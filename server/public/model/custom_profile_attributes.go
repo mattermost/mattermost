@@ -13,9 +13,6 @@ import (
 	"strings"
 )
 
-// Deprecated: Use [ProtectedAttributesPropertyGroupName] instead.
-const CustomProfileAttributesPropertyGroupName = ProtectedAttributesPropertyGroupName
-
 const (
 	// Attributes keys
 	CustomProfileAttributesPropertyAttrsSortOrder  = "sort_order"

@@ -139,8 +139,8 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyValueStore := mocks.PropertyValueStore{}
 
 	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
-	propertyGroupStore.On("Register", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
-	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
+	propertyGroupStore.On("Register", model.ProtectedAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ProtectedAttributesPropertyGroupName}, nil)
+	propertyGroupStore.On("Get", model.ProtectedAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ProtectedAttributesPropertyGroupName}, nil)
 
 	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName}
 	propertyGroupStore.On("Register", model.BoardsPropertyGroupName).Return(boardsGroup, nil)

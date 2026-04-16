@@ -65,7 +65,7 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 }
 
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
-	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	group, groupErr := th.service.RegisterPropertyGroup(model.ProtectedAttributesPropertyGroupName)
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 

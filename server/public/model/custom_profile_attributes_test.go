@@ -24,7 +24,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "valid property field with all attributes",
 			propertyField: &PropertyField{
 				ID:      NewId(),
-				GroupID: CustomProfileAttributesPropertyGroupName,
+				GroupID: ProtectedAttributesPropertyGroupName,
 				Name:    "Test Field",
 				Type:    PropertyFieldTypeSelect,
 				Attrs: StringInterface{
@@ -60,7 +60,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "valid property field with minimal attributes",
 			propertyField: &PropertyField{
 				ID:      NewId(),
-				GroupID: CustomProfileAttributesPropertyGroupName,
+				GroupID: ProtectedAttributesPropertyGroupName,
 				Name:    "Test Field",
 				Type:    PropertyFieldTypeText,
 				Attrs: StringInterface{
@@ -82,7 +82,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "property field with empty attributes returns default values",
 			propertyField: &PropertyField{
 				ID:       NewId(),
-				GroupID:  CustomProfileAttributesPropertyGroupName,
+				GroupID:  ProtectedAttributesPropertyGroupName,
 				Name:     "Empty Field",
 				Type:     PropertyFieldTypeText,
 				CreateAt: GetMillis(),
@@ -146,7 +146,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  CustomProfileAttributesPropertyGroupName,
+					GroupID:  ProtectedAttributesPropertyGroupName,
 					Name:     "Test Field",
 					Type:     PropertyFieldTypeSelect,
 					CreateAt: GetMillis(),
@@ -171,7 +171,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  CustomProfileAttributesPropertyGroupName,
+					GroupID:  ProtectedAttributesPropertyGroupName,
 					Name:     "Test Field",
 					Type:     PropertyFieldTypeText,
 					CreateAt: GetMillis(),
@@ -188,7 +188,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  CustomProfileAttributesPropertyGroupName,
+					GroupID:  ProtectedAttributesPropertyGroupName,
 					Name:     "Empty Field",
 					Type:     PropertyFieldTypeText,
 					CreateAt: GetMillis(),
@@ -238,7 +238,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				cpaField: &CPAField{
 					PropertyField: PropertyField{
 						ID:       NewId(),
-						GroupID:  CustomProfileAttributesPropertyGroupName,
+						GroupID:  ProtectedAttributesPropertyGroupName,
 						Name:     "Managed Field",
 						Type:     PropertyFieldTypeText,
 						CreateAt: GetMillis(),
@@ -256,7 +256,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				cpaField: &CPAField{
 					PropertyField: PropertyField{
 						ID:       NewId(),
-						GroupID:  CustomProfileAttributesPropertyGroupName,
+						GroupID:  ProtectedAttributesPropertyGroupName,
 						Name:     "Non-managed Field",
 						Type:     PropertyFieldTypeText,
 						CreateAt: GetMillis(),

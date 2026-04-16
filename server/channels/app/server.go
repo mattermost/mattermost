@@ -271,13 +271,13 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.CustomProfileAttributesPropertyGroupName},
+		{Name: model.ProtectedAttributesPropertyGroupName},
 		{Name: model.ContentFlaggingGroupName},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
 
-	cpaGroup, err := s.propertyService.Group(model.CustomProfileAttributesPropertyGroupName)
+	cpaGroup, err := s.propertyService.Group(model.ProtectedAttributesPropertyGroupName)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to look up CPA property group")
 	}
