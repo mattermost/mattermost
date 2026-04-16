@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getAdminAccount} from '../../../../tests/support/env';
+import {getAdminAccount} from '@/support/env';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -14,7 +14,7 @@ import {getAdminAccount} from '../../../../tests/support/env';
 describe('loading of at-mentioned users', () => {
     const admin = getAdminAccount();
 
-    let testChannel;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // # Login as test user and visit off-topic

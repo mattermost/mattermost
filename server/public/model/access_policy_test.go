@@ -214,6 +214,57 @@ func TestAccessPolicyVersionV0_1(t *testing.T) {
 	})
 }
 
+func TestAccessControlPolicyValidateScope(t *testing.T) {
+	validPolicy := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Test Policy",
+			Revision: 1,
+			Version:  AccessControlPolicyVersionV0_1,
+			Rules:    []AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+	}
+
+	t.Run("no scope fields set — valid", func(t *testing.T) {
+		p := validPolicy()
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("scope=team with valid scope_id — valid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = AccessControlPolicyScopeTeam
+		p.ScopeID = NewId()
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("scope_id set without scope — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.ScopeID = NewId()
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope_id_without_scope.app_error", err.Id)
+	})
+
+	t.Run("scope=team with empty scope_id — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = AccessControlPolicyScopeTeam
+		p.ScopeID = ""
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope_id.app_error", err.Id)
+	})
+
+	t.Run("unknown scope value — invalid", func(t *testing.T) {
+		p := validPolicy()
+		p.Scope = "unknown"
+		p.ScopeID = NewId()
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope.app_error", err.Id)
+	})
+}
+
 func TestAccessPolicyVersionV0_3(t *testing.T) {
 	validRule := AccessControlPolicyRule{
 		Actions:    []string{AccessControlPolicyActionMembership},
@@ -255,6 +306,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin"},
@@ -309,6 +361,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{},
@@ -323,6 +376,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{""},
@@ -337,6 +391,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin", "system_user"},
@@ -351,6 +406,7 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),
 			Type:     AccessControlPolicyTypePermission,
+			Name:     "Permission",
 			Revision: 0,
 			Version:  AccessControlPolicyVersionV0_3,
 			Roles:    []string{"system_admin"},
@@ -360,6 +416,36 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		err := policy.accessPolicyVersionV0_3()
 		require.NotNil(t, err)
 		require.Equal(t, "model.access_policy.is_valid.imports.app_error", err.Id)
+	})
+
+	t.Run("permission with empty name", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
+	})
+
+	t.Run("permission with name exceeding max length", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     strings.Repeat("a", MaxPolicyNameLength+1),
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_admin"},
+			Rules:    []AccessControlPolicyRule{validRule},
+		}
+		err := policy.accessPolicyVersionV0_3()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
 	})
 
 	t.Run("unrecognized action", func(t *testing.T) {

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging @smoke
 
-import * as MESSAGES from '../../../fixtures/messages';
+import * as MESSAGES from '@/fixtures/messages';
 
 describe('Message', () => {
     before(() => {

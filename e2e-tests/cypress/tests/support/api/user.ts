@@ -3,12 +3,14 @@
 
 import {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import authenticator from 'authenticator';
-import {ChainableT} from 'tests/types';
+
 
 import {getRandomId, newTestPassword} from '../../utils';
 import {getAdminAccount} from '../env';
 
 import {buildQueryString} from './helpers';
+
+import {ChainableT} from '@/types';
 
 // *****************************************************************************
 // Users
@@ -25,8 +27,8 @@ import {buildQueryString} from './helpers';
  * @example
  *   cy.apiLogin({username: 'sysadmin', password: 'secret'});
  */
-function apiLogin(user: Partial<Pick<UserProfile, 'username' | 'email' | 'password'>>, requestOptions: Record<string, any> = {}): ChainableT<{user: UserProfile} | {error: any}> {
-    return cy.request<UserProfile | any>({
+function apiLogin(user: Partial<Pick<UserProfile, 'username' | 'email' | 'password'>>, requestOptions: Record<string, unknown> = {}): ChainableT<{user: UserProfile} | {error: unknown}> {
+    return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/login',
         method: 'POST',
@@ -38,16 +40,16 @@ function apiLogin(user: Partial<Pick<UserProfile, 'username' | 'email' | 'passwo
         }
 
         if (response.status === 200) {
-            return cy.wrap<{user: UserProfile}>({
+            return cy.wrap({
                 user: {
                     ...response.body,
                     password: user.password,
                 },
-            });
+            } as {user: UserProfile});
         }
 
-        return cy.wrap({error: response.body});
-    });
+        return cy.wrap({error: response.body} as {error: unknown});
+    }) as unknown as ChainableT<{user: UserProfile} | {error: unknown}>;
 }
 
 Cypress.Commands.add('apiLogin', apiLogin);
@@ -91,13 +93,13 @@ Cypress.Commands.add('apiLoginWithMFA', apiLoginWithMFA);
  * @example
  *   cy.apiAdminLogin();
  */
-function apiAdminLogin(requestOptions?: Record<string, any>): ChainableT<{user: UserProfile}> {
+function apiAdminLogin(requestOptions?: Record<string, unknown>): ChainableT<{user: UserProfile}> {
     const admin = getAdminAccount();
 
     // First, login with username
     return cy.apiLogin(admin, requestOptions).then((resp) => {
-        if ((<{error: any}>resp).error) {
-            if ((<{error: any}>resp).error.id === 'mfa.validate_token.authenticate.app_error') {
+        if ((<{error: unknown}>resp).error) {
+            if (((<{error: unknown}>resp).error as {id: string}).id === 'mfa.validate_token.authenticate.app_error') {
                 // On fail, try to login via MFA
                 return cy.dbGetUser({username: admin.username}).then(({user: {mfasecret}}) => {
                     const token = authenticator.generateToken(mfasecret);
@@ -106,7 +108,8 @@ function apiAdminLogin(requestOptions?: Record<string, any>): ChainableT<{user: 
             }
 
             // Or, try to login via email
-            delete admin.username;
+            // Cast needed: intentionally clearing username to force email-based login
+            (admin as unknown as {username: string | undefined}).username = undefined;
             return cy.apiLogin(admin, requestOptions) as ChainableT<{user: UserProfile}>;
         }
 
@@ -125,7 +128,7 @@ Cypress.Commands.add('apiAdminLogin', apiAdminLogin);
  * @example
  *   cy.apiAdminLoginWithMFA(token);
  */
-function apiAdminLoginWithMFA(token): ChainableT<{user: UserProfile}> {
+function apiAdminLoginWithMFA(token: string): ChainableT<{user: UserProfile}> {
     const admin = getAdminAccount();
 
     return cy.apiLoginWithMFA(admin, token);
@@ -411,7 +414,7 @@ function apiCreateUser({
     bypassTutorial = true,
     hideOnboarding = true,
     bypassWhatsNewModal = true,
-    user = null,
+    user = null as unknown as Partial<UserProfile>,
 }: Partial<CreateUserOptions> = {}): ChainableT<{user: UserProfile}> {
     const newUser = user || generateRandomUser(prefix, createAt);
 
@@ -488,7 +491,7 @@ Cypress.Commands.add('apiCreateGuestUser', apiCreateGuestUser);
  * @example
  *   cy.apiRevokeUserSessions('user-id');
  */
-function apiRevokeUserSessions(userId: string): ChainableT<Record<string, any>> {
+function apiRevokeUserSessions(userId: string): ChainableT<{data: unknown}> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/sessions/revoke/all`,
@@ -496,7 +499,7 @@ function apiRevokeUserSessions(userId: string): ChainableT<Record<string, any>> 
     }).then((response) => {
         expect(response.status).to.equal(200);
         return cy.wrap({data: response.body});
-    });
+    }) as unknown as ChainableT<{data: unknown}>;
 }
 
 Cypress.Commands.add('apiRevokeUserSessions', apiRevokeUserSessions);
@@ -512,7 +515,7 @@ Cypress.Commands.add('apiRevokeUserSessions', apiRevokeUserSessions);
  *       // do something with users
  *   });
  */
-function apiGetUsers(queryParams: Record<string, any>): ChainableT<{users: UserProfile[]}> {
+function apiGetUsers(queryParams: Record<string, string | number | boolean>): ChainableT<{users: UserProfile[]}> {
     const queryString = buildQueryString(queryParams);
 
     return cy.request({
@@ -540,7 +543,7 @@ Cypress.Commands.add('apiGetUsers', apiGetUsers);
  *       // do something with users
  *   });
  */
-function apiGetUsersNotInTeam({teamId, page = 0, perPage = 60}: Record<string, any>): ChainableT<{users: UserProfile[]}> {
+function apiGetUsersNotInTeam({teamId, page = 0, perPage = 60}: {teamId: string; page?: number; perPage?: number}): ChainableT<{users: UserProfile[]}> {
     return cy.apiGetUsers({not_in_team: teamId, page, per_page: perPage});
 }
 
@@ -550,11 +553,11 @@ Cypress.Commands.add('apiGetUsersNotInTeam', apiGetUsersNotInTeam);
  * patch user roles
  * @param {String} userId - ID of user to patch
  * @param {String[]} roleNames - The user roles
- * @returns {any} - the result of patching the user roles
+ * @returns the result of patching the user roles
  * @example
  *   cy.apiPatchUserRoles('user-id', ['system_user']);
  */
-function apiPatchUserRoles(userId: string, roleNames: string[] = ['system_user']): any {
+function apiPatchUserRoles(userId: string, roleNames: string[] = ['system_user']): ChainableT<{user: unknown}> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/roles`,
@@ -577,7 +580,7 @@ Cypress.Commands.add('apiPatchUserRoles', apiPatchUserRoles);
  * @example
  *   cy.apiDeactivateUser('user-id');
  */
-function apiDeactivateUser(userId: string): ChainableT<any> {
+function apiDeactivateUser(userId: string): ChainableT<Cypress.Response<unknown>> {
     const options = {
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'DELETE',
@@ -601,7 +604,7 @@ Cypress.Commands.add('apiDeactivateUser', apiDeactivateUser);
  * @example
  *   cy.apiActivateUser('user-id');
  */
-function apiActivateUser(userId: string): ChainableT<any> {
+function apiActivateUser(userId: string): ChainableT<Cypress.Response<unknown>> {
     const options = {
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
@@ -701,7 +704,7 @@ Cypress.Commands.add('apiVerifyUserEmailById', apiVerifyUserEmailById);
  * @example
  *   cy.apiActivateUserMFA('user-id', activate: false);
  */
-function apiActivateUserMFA(userId: string, activate: boolean, token: string): ChainableT<any> {
+function apiActivateUserMFA(userId: string, activate: boolean, token: string): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/users/${userId}/mfa`,
@@ -718,7 +721,7 @@ function apiActivateUserMFA(userId: string, activate: boolean, token: string): C
 
 Cypress.Commands.add('apiActivateUserMFA', apiActivateUserMFA);
 
-function apiResetPassword(userId, currentPass, newPass) {
+function apiResetPassword(userId: string, currentPass: string, newPass: string) {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',
@@ -735,7 +738,7 @@ function apiResetPassword(userId, currentPass, newPass) {
 
 Cypress.Commands.add('apiResetPassword', apiResetPassword);
 
-function apiGenerateMfaSecret(userId) {
+function apiGenerateMfaSecret(userId: string) {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'POST',
@@ -779,7 +782,7 @@ Cypress.Commands.add('apiAccessToken', apiAccessToken);
  * @example
  *   cy.apiRevokeAccessToken('token-id')
  */
-function apiRevokeAccessToken(tokenId: string): ChainableT<any> {
+function apiRevokeAccessToken(tokenId: string): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/users/tokens/revoke',
@@ -805,7 +808,7 @@ Cypress.Commands.add('apiRevokeAccessToken', apiRevokeAccessToken);
  * @example
  *   cy.apiUpdateUserAuth('user-id', 'auth-data', 'password', 'auth-service');
  */
-function apiUpdateUserAuth(userId: string, authData: string, password: string, authService: string): ChainableT<any> {
+function apiUpdateUserAuth(userId: string, authData: string, password: string, authService: string): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         method: 'PUT',

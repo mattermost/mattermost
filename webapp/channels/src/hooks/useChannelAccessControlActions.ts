@@ -35,105 +35,63 @@ export interface ChannelAccessControlActions {
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
-    createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
+    createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => Promise<ActionResult>;
 }
 
 /**
- * Hook that provides access control actions for both System Console and Channel Settings contexts.
- * This is a thin wrapper around the existing redux actions that provides:
- * - Consistent interface for both system and channel contexts
- * - Channel-specific security for channel admin contexts
- * - Simplified usage in components without needing to import redux actions directly
- * - Improved readability and maintainability of components
- * - Easier testing and mocking in unit tests
- * - Centralized access control logic for easier updates and changes
- * - Single source of truth for ABAC actions for the channel context
- *
+ * Provides ABAC actions scoped to channel or team context.
+ * Injects channelId/teamId into all API calls for permission verification.
  * @param channelId - Optional channel ID for channel-specific context. Required for channel admin contexts, optional for system admin contexts.
  * @returns Object containing access control action functions
  */
-export const useChannelAccessControlActions = (channelId?: string): ChannelAccessControlActions => {
+export const useChannelAccessControlActions = (channelId?: string, teamId?: string): ChannelAccessControlActions => {
     const dispatch = useDispatch();
 
     return useMemo(() => ({
-
-        /**
-         * Get available user attribute fields for access control rules
-         */
         getAccessControlFields: (after: string, limit: number) => {
-            return dispatch(getAccessControlFields(after, limit, channelId));
+            return dispatch(getAccessControlFields(after, limit, channelId, teamId));
         },
 
-        /**
-         * Convert a CEL expression to a visual AST for table editor display
-         */
         getVisualAST: (expression: string) => {
-            return dispatch(getVisualAST(expression, channelId));
+            return dispatch(getVisualAST(expression, channelId, teamId));
         },
 
-        /**
-         * Search users that match a given access control expression
-         */
         searchUsers: (expression: string, term: string, after: string, limit: number) => {
-            return dispatch(searchUsersForExpression(expression, term, after, limit, channelId));
+            return dispatch(searchUsersForExpression(expression, term, after, limit, channelId, teamId));
         },
 
-        /**
-         * Get the access control policy for a specific channel
-         */
         getChannelPolicy: (channelId: string) => {
             return dispatch(getAccessControlPolicy(channelId));
         },
 
-        /**
-         * Save or update the access control policy for a channel
-         */
         saveChannelPolicy: (policy: AccessControlPolicy) => {
-            return dispatch(createAccessControlPolicy(policy));
+            return dispatch(createAccessControlPolicy(policy, teamId));
         },
 
-        /**
-         * Delete the access control policy for a channel
-         */
         deleteChannelPolicy: (policyId: string) => {
-            return dispatch(deleteAccessControlPolicy(policyId));
+            return dispatch(deleteAccessControlPolicy(policyId, teamId));
         },
 
-        /**
-         * Get channel members for a specific channel
-         */
         getChannelMembers: (channelId: string, page = 0, perPage = 200) => {
             return dispatch(getChannelMembers(channelId, page, perPage));
         },
 
-        /**
-         * Create a job for access control synchronization
-         */
         createJob: (job: JobTypeBase & { data: any }) => {
             return dispatch(createJob(job));
         },
 
-        /**
-         * Validate if the current user (requester) matches an access control expression
-         */
         validateExpressionAgainstRequester: (expression: string) => {
-            return dispatch(validateExpressionAgainstRequester(expression, channelId));
+            return dispatch(validateExpressionAgainstRequester(expression, channelId, teamId));
         },
 
-        /**
-         * Create an access control sync job with deduplication
-         */
-        createAccessControlSyncJob: (jobData: {policy_id: string}) => {
+        createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
         },
 
-        /**
-         * Update the active statuses of access control policies
-         */
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
-            return dispatch(updateAccessControlPoliciesActive(statuses));
+            return dispatch(updateAccessControlPoliciesActive(statuses, teamId));
         },
-    }), [dispatch, channelId]);
+    }), [dispatch, channelId, teamId]);
 };
 
 export default useChannelAccessControlActions;
