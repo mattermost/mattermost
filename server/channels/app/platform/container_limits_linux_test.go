@@ -74,4 +74,14 @@ func TestGetContainerLimits(t *testing.T) {
 		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
 		assert.Equal(t, float64(0), limits.CPULimit)
 	})
+
+	t.Run("missing cpu.max returns zero values", func(t *testing.T) {
+		cgroupPaths.v2MemoryMax = writeTempCgroupFile(t, dir, "mem_no_cpu", "max\n")
+		cgroupPaths.v2CPUMax = filepath.Join(dir, "nonexistent_cpu")
+
+		limits, err := getContainerLimits()
+		require.NoError(t, err)
+		assert.Equal(t, uint64(0), limits.MemoryLimitMB)
+		assert.Equal(t, float64(0), limits.CPULimit)
+	})
 }
