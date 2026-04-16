@@ -9,18 +9,19 @@
 
 // Group: @channels @enterprise @integrations
 
-import {getRandomId} from '../../../../utils';
 import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/constants';
 import {enablePermission, goToSystemScheme, saveConfigForScheme} from '../system_console/channel_moderation/helpers';
 
-describe('Integrations page', () => {
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
+import {getRandomId} from '@/utils';
 
-    let user1;
-    let user2;
-    let testChannelUrl1;
-    let oauthClientID;
-    let oauthClientSecret;
+describe('Integrations page', () => {
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
+
+    let user1: Cypress.UserProfile;
+    let user2: Cypress.UserProfile;
+    let testChannelUrl1: string;
+    let oauthClientID: string;
+    let oauthClientSecret: string;
     const testApp = `Test${getRandomId()}`;
 
     before(() => {
@@ -163,9 +164,9 @@ describe('Integrations page', () => {
         });
 
         cy.get('@clientID').then((clientID) => {
-            oauthClientID = clientID;
+            oauthClientID = clientID as unknown as string;
             cy.get('@clientSecret').then((clientSecret) => {
-                oauthClientSecret = clientSecret;
+                oauthClientSecret = clientSecret as unknown as string;
 
                 // # Send credentials
                 cy.postIncomingWebhook({

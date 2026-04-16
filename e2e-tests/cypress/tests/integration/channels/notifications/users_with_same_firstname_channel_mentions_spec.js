@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId, newTestPassword} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Notifications', () => {
     let testTeam;

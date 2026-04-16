@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 chai.use((chai: Chai.ChaiStatic) => {
-    function assertIsFoo({exactStyles = true} = {}) {
+    // Chai assertion context has dynamic 'this' binding
+    function assertIsFoo(this: any, {exactStyles = true} = {}) {
 
         const obj = this._obj as JQuery<HTMLElement>;
 
