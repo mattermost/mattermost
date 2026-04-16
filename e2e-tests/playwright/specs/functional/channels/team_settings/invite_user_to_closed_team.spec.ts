@@ -26,7 +26,7 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
 
     // # Navigate to team
     await channelsPage.goto(team.name);
-    await page.waitForLoadState('networkidle');
+    await channelsPage.toBeVisible();
 
     // # Open Team Settings Modal and go to Access tab
     const teamSettings = await channelsPage.openTeamSettings();

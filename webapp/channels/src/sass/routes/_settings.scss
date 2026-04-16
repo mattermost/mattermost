@@ -206,7 +206,7 @@
             min-height: 475px;
             min-height: 0;
             flex: 1;
-            margin: 0 auto;
+            margin: 0;
 
             .security-links {
                 margin-right: 20px;
@@ -237,6 +237,7 @@
                 overflow: auto;
                 flex: 1;
                 padding: 20px 30px;
+                scrollbar-gutter: stable;
 
                 .modal-header {
                     display: none;

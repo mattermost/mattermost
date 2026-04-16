@@ -10,13 +10,14 @@
 // Stage: @prod
 // Group: @channels @emoji @keyboard_shortcuts
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import * as MESSAGES from '../../../../fixtures/messages';
-
 import {
     checkReactionFromPost,
     doReactToLastMessageShortcut,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+
 
 describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last message', () => {
     let testUser;

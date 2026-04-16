@@ -17,10 +17,11 @@
 
 // Group: @channels @system_console @plugin @plugins_uninstall @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {demoPlugin, demoPluginOld} from '../../../utils/plugins';
-
 import {waitForAlertMessage} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {demoPlugin, demoPluginOld} from '@/utils/plugins';
+
 
 describe('Plugin remains enabled when upgraded', () => {
     before(() => {

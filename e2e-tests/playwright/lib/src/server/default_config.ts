@@ -619,6 +619,7 @@ const defaultServerConfig: AdminConfig = {
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
         ExperimentalChannelCategorySorting: false,
+        EnableWatermark: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -776,6 +777,7 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
+        PermissionPolicies: true,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
