@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @accessibility
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Verify Accessibility Support in Post', () => {
     let testUser;

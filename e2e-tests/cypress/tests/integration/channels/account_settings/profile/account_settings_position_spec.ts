@@ -65,7 +65,7 @@ describe('Profile > Profile Settings > Position', () => {
             minPositionHeader().click();
             maxPositionInput().invoke('val').then((val) => {
                 // * Verify that the input value is 128 characters
-                expect(val.toString().length).to.equal(128);
+                expect(val!.toString().length).to.equal(128);
             });
 
             // # Try to edit the field with maximum characters

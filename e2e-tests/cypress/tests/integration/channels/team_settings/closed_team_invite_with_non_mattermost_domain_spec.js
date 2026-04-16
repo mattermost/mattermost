@@ -9,10 +9,11 @@
 
 // Group: @channels @te_only @team_settings
 
-import {getAdminAccount} from '../../../support/env';
-import {generateRandomUser} from '../../../support/api/user';
-
 import {allowOnlyUserFromSpecificDomain, inviteUserByEmail, verifyEmailInviteAndVisitLink, signupAndVerifyTutorial} from './helpers';
+
+import {getAdminAccount} from '@/support/env';
+import {generateRandomUser} from '@/support/api/user';
+
 
 describe('Team Settings', () => {
     const sysadmin = getAdminAccount();
