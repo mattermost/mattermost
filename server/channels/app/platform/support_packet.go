@@ -241,7 +241,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 			d.Notifications.Email.Status = model.StatusOk
 		}
 	} else {
-		d.Notifications.Email.Status = "disabled"
+		d.Notifications.Email.Status = model.StatusDisabled
 	}
 
 	/* Push Notifications */
@@ -264,7 +264,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 			}
 		}
 	} else {
-		d.Notifications.Push.Status = "disabled"
+		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
 	b, err := yaml.Marshal(&d)
