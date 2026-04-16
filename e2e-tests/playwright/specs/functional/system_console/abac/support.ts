@@ -120,7 +120,6 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
             }
         }
     }
-
 }
 
 /**
@@ -559,7 +558,10 @@ export async function createMultiAttributePolicy(
         if ((await addAttrBtn.isVisible({timeout: 2000})) && !(await addAttrBtn.isDisabled())) {
             await addAttrBtn.click();
             // Wait for the new row's attribute selector button to appear
-            await page.locator('[data-testid="attributeSelectorMenuButton"]').nth(i).waitFor({state: 'visible', timeout: 5000});
+            await page
+                .locator('[data-testid="attributeSelectorMenuButton"]')
+                .nth(i)
+                .waitFor({state: 'visible', timeout: 5000});
         }
 
         // Select attribute - click the attribute selector for this row

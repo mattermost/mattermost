@@ -617,42 +617,21 @@ func TestGetJobsByTypeAndData(t *testing.T) {
 		}(job.Id)
 	}
 
-	t.Run("returns jobs sorted newest-first", func(t *testing.T) {
+	t.Run("returns all matching jobs for policy", func(t *testing.T) {
 		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": policyID}, 0, 10)
+			map[string]string{"policy_id": policyID})
 		require.Nil(t, appErr)
 		require.Len(t, received, 3)
-		require.Equal(t, jobs[2].Id, received[0].Id, "newest job should be first")
-		require.Equal(t, jobs[0].Id, received[1].Id)
-		require.Equal(t, jobs[1].Id, received[2].Id, "oldest job should be last")
-	})
-
-	t.Run("paginates correctly", func(t *testing.T) {
-		// page 0, perPage 2 → two newest
-		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": policyID}, 0, 2)
-		require.Nil(t, appErr)
-		require.Len(t, received, 2)
-		require.Equal(t, jobs[2].Id, received[0].Id)
-		require.Equal(t, jobs[0].Id, received[1].Id)
-
-		// page 1, perPage 2 → one remaining
-		received, appErr = th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": policyID}, 1, 2)
-		require.Nil(t, appErr)
-		require.Len(t, received, 1)
-		require.Equal(t, jobs[1].Id, received[0].Id)
-
-		// page beyond results → empty slice
-		received, appErr = th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": policyID}, 5, 2)
-		require.Nil(t, appErr)
-		require.Empty(t, received)
+		receivedIDs := make([]string, len(received))
+		for i, j := range received {
+			receivedIDs[i] = j.Id
+		}
+		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id}, receivedIDs)
 	})
 
 	t.Run("filters by data key-value, excludes other policies", func(t *testing.T) {
 		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": otherPolicyID}, 0, 10)
+			map[string]string{"policy_id": otherPolicyID})
 		require.Nil(t, appErr)
 		require.Len(t, received, 1)
 		require.Equal(t, jobs[3].Id, received[0].Id)
@@ -660,7 +639,7 @@ func TestGetJobsByTypeAndData(t *testing.T) {
 
 	t.Run("returns empty when no jobs match data filter", func(t *testing.T) {
 		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
-			map[string]string{"policy_id": model.NewId()}, 0, 10)
+			map[string]string{"policy_id": model.NewId()})
 		require.Nil(t, appErr)
 		require.Empty(t, received)
 	})
