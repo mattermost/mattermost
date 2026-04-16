@@ -5217,7 +5217,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Twoja licencja {{.SkuName}} wygasła"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7053,11 +7053,11 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, Twoja subskrypcja ma wygasnąć za {{.Days}} dni. Mamy nadzieję, że korzystasz z elastycznej i bezpiecznej współpracy zespołowej, którą umożliwia Mattermost. Odnów wkrótce, aby Twój zespół mógł nadal korzystać z tych korzyści."
+    "translation": "Twoja licencja {{.SkuName}} dla <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> wygaśnie za {{.Days}} dni. Mamy nadzieję, że podoba Ci się bezpieczna współpraca o krytycznym znaczeniu, którą umożliwia Mattermost."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Twoja licencja jest w trakcie odnawiania"
+    "translation": "Twoja licencja {{.SkuName}} wymaga odnowienia"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -7089,7 +7089,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
+    "translation": "Twoja licencja Mattermost wymaga odnowienia"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -10017,23 +10017,23 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nie można pobrać grupy właściwości Atrybuty profilu niestandardowego."
+    "translation": "Nie można pobrać grupy właściwości Atrybuty użytkownika."
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Osiągnięto limit pola atrybutów profilu niestandardowego"
+    "translation": "Osiągnięto limit pola Atrybuty użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Nie można uzyskać pola atrybutu profilu niestandardowego"
+    "translation": "Nie można uzyskać pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Nie można uzyskać niestandardowych wartości atrybutów profilu"
+    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Nie można usunąć pola atrybutu profilu niestandardowego"
+    "translation": "Nie można usunąć pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
@@ -10109,7 +10109,7 @@
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Twoja licencja nie obsługuje niestandardowych atrybutów profilu."
+    "translation": "Twoja licencja nie obsługuje Atrybutów użytkownika."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -10149,7 +10149,7 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Nie można policzyć liczby pól dla grupy atrybutów profilu niestandardowego"
+    "translation": "Nie można policzyć liczby pól dla grupy Atrybuty użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
@@ -10221,7 +10221,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+    "translation": "Nie można przekonwertować pola właściwości na pole atrybutu użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -10229,7 +10229,7 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "Nieprawidłowa poprawka pola atrybutu profilu niestandardowego"
+    "translation": "Nieprawidłowa poprawka pola Atrybut użytkownika"
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
@@ -10273,7 +10273,7 @@
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Nie można usunąć wartości atrybutu profilu niestandardowego dla użytkownika"
+    "translation": "Nie można usunąć wartości Atrybutu użytkownika dla użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
@@ -10369,7 +10369,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola atrybutu profilu niestandardowego"
+    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola Atrybut użytkownika"
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
@@ -10689,7 +10689,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Nie można zaktualizować wartości pola Atrybut profilu niestandardowego zarządzanego przez administratora"
+    "translation": "Nie można zaktualizować wartości pola Atrybut użytkownika zarządzanego przez administratora"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
@@ -10949,7 +10949,7 @@
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Nie można załatać pola Atrybut profilu niestandardowego"
+    "translation": "Nie można załatać pola Atrybut użytkownika"
   },
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
@@ -12082,5 +12082,121 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_value.invalid_group_name.app_error",
+    "translation": "Podana nazwa grupy jest nieprawidłowa lub nie istnieje."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Podany typ obiektu jest nieprawidłowy."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Żądanie zawiera zduplikowane identyfikatory pól."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Treść żądania musi zawierać co najmniej jedną aktualizację wartości właściwości."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Jeden lub więcej identyfikatorów pól w żądaniu jest nieprawidłowych."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "Nie masz uprawnień do ustawienia wartości w jednym lub kilku polach."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Nie można zaktualizować tak wielu wartości właściwości. Tylko {{.Max}} wartości właściwości mogą być aktualizowane jednocześnie."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "Nie masz uprawnień dostępu do wartości właściwości innego użytkownika."
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Porozmawiaj z ekspertem Mattermost</a>, aby uzyskać pomoc dotyczącą planów i opcji odnowienia."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Potrzebujesz pomocy?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Odnów wkrótce, aby Twój zespół mógł nadal cieszyć się tymi korzyściami."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Twoja licencja Mattermost wygasła"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Twoja licencja {{.SkuName}} dla <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> wygasła i niektóre funkcje mogą być wyłączone."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Odnów swoją licencję teraz, aby kontynuować korzystanie z pełnych możliwości Mattermost."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Nie można utworzyć widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Nie można usunąć widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Nie można uzyskać widoku z usuniętego kanału."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Nie możesz pobrać postów dla widoku z usuniętego kanału."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Nie można wyświetlić widoków dla usuniętego kanału."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Nie można zaktualizować widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Nie można zaktualizować kolejności sortowania widoku w usuniętym kanale."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Nieprawidłowa konfiguracja dla pomocnika testu mostu AI."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Dodanie członka kanału odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Archiwum Kanałów odrzucone przez Wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
   }
 ]
