@@ -135,15 +135,12 @@ func TestMemoryStoreSet(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 100
-		for i := 0; i < n; i++ {
-			i := i
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for i := range n {
+			wg.Go(func() {
 				ok, err := store.Set(fmt.Sprintf("k_%d", i), []byte("value"))
 				require.NoError(t, err)
 				require.True(t, ok)
-			}()
+			})
 		}
 
 		wg.Wait()
@@ -189,14 +186,11 @@ func TestMemoryStoreSetAtomicWithRetries(t *testing.T) {
 		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 10
-		for i := 0; i < n; i++ {
-			i := i
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for i := range n {
+			wg.Go(func() {
 				err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return fmt.Sprintf("k_%d", i), nil })
 				require.NoError(t, err)
-			}()
+			})
 		}
 
 		wg.Wait()
