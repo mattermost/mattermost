@@ -295,14 +295,12 @@ export async function runSyncJob(page: Page): Promise<string | null> {
         if (!job.id) {
             throw new Error('POST /api/v4/jobs response missing id field');
         }
-        await page.waitForLoadState('networkidle');
         return job.id as string;
     } catch (err) {
         if (err instanceof Error && err.message.startsWith('POST /api/v4/jobs')) {
             throw err;
         }
         // Interception timed out — callers fall back to list-based polling in Phase 1.
-        await page.waitForLoadState('networkidle');
         return null;
     }
 }

@@ -121,7 +121,6 @@ export async function ensureUserAttributes(client: Client4, attributeNames?: str
         }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 /**
@@ -349,10 +348,9 @@ export async function createBasicPolicy(
         channels?: string[];
     },
 ): Promise<string | null> {
-    // Click Add policy button
+    // Click Add policy button — nameInput.waitFor below is sufficient, no separate networkidle
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
-    await page.waitForLoadState('networkidle');
 
     // Fill policy name
     const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
@@ -380,29 +378,35 @@ export async function createBasicPolicy(
         const isDisabled = await addAttributeButton.isDisabled();
         if (!isDisabled) {
             await addAttributeButton.click();
-            await page.waitForTimeout(1000);
+            // Wait for the attribute selector menu to appear rather than sleeping
+            await page
+                .locator('[id^="attribute-selector-menu"]')
+                .waitFor({state: 'visible', timeout: 5000})
+                .catch(() => null);
         }
     }
 
     // Select attribute
     const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-    const menuIsOpen = await attributeMenu.isVisible({timeout: 2000});
+    const menuIsOpen = await attributeMenu.isVisible({timeout: 500});
 
     if (!menuIsOpen) {
         const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
         await attributeButton.click();
-        await page.waitForTimeout(500);
+        // Wait for the menu to open
+        await page.locator('[id^="attribute-selector-menu"]').waitFor({state: 'visible', timeout: 5000});
     }
 
     const attributeOption = page.locator(`[id^="attribute-selector-menu"] li:has-text("${options.attribute}")`).first();
+    await attributeOption.waitFor({state: 'visible', timeout: 3000});
     await attributeOption.click({force: true});
-    await page.waitForTimeout(500);
 
     // Select operator
     const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
     await operatorButton.waitFor({state: 'visible', timeout: 5000});
     await operatorButton.click({force: true});
-    await page.waitForTimeout(500);
+    // Wait for operator menu to open
+    await page.locator('[id^="operator-selector-menu"]').waitFor({state: 'visible', timeout: 3000});
 
     const operatorMap: Record<string, string> = {
         '==': 'is',
@@ -414,8 +418,8 @@ export async function createBasicPolicy(
     };
     const operatorText = operatorMap[options.operator] || options.operator;
     const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
+    await operatorOption.waitFor({state: 'visible', timeout: 3000});
     await operatorOption.click({force: true});
-    await page.waitForTimeout(500);
 
     // Fill value
     if (options.operator === 'in') {
@@ -423,48 +427,47 @@ export async function createBasicPolicy(
         const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
         await valueButton.waitFor({state: 'visible', timeout: 10000});
         await valueButton.click({force: true});
-        await page.waitForTimeout(500);
-
+        // Wait for value input to appear
         const valueInput = page.locator('input[type="text"]').last();
+        await valueInput.waitFor({state: 'visible', timeout: 3000});
         await valueInput.fill(options.value);
         await page.keyboard.press('Enter');
-        await page.waitForTimeout(300);
     } else {
         // Single-value operator
         const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
         await valueInput.waitFor({state: 'visible', timeout: 10000});
         await valueInput.fill(options.value);
-        await page.waitForTimeout(500);
     }
 
     // Assign channels if specified
     if (options.channels && options.channels.length > 0) {
         const addChannelsButton = page.getByRole('button', {name: /add channels/i});
         await addChannelsButton.click();
-        await page.waitForTimeout(500);
+        // Wait for the channel modal to open
+        const channelModal = page.locator('.channel-selector-modal, [role="dialog"]').first();
+        await channelModal.waitFor({state: 'visible', timeout: 5000});
 
         for (const channelName of options.channels) {
             const searchInput = page.locator('input[type="text"], input[placeholder*="search" i]').last();
+            await searchInput.waitFor({state: 'visible', timeout: 3000});
             await searchInput.fill(channelName);
-            await page.waitForTimeout(500);
-
+            // Wait for the channel option to appear in search results
             const channelOption = page
                 .locator('.channel-selector-modal, [role="dialog"]')
                 .locator('text=' + channelName)
                 .first();
+            await channelOption.waitFor({state: 'visible', timeout: 5000});
             await channelOption.click({force: true});
-            await page.waitForTimeout(300);
         }
 
         const addButton = page.getByRole('button', {name: /^add$|^save$/i}).last();
         await addButton.click();
-        await page.waitForTimeout(500);
+        // Wait for modal to close
+        await channelModal.waitFor({state: 'hidden', timeout: 5000}).catch(() => null);
     }
 
     // Set auto-add for all channels if autoSync is true
     if (options.autoSync && options.channels && options.channels.length > 0) {
-        await page.waitForTimeout(1000); // Wait for channel list to update
-
         // Click the header checkbox to enable auto-add for ALL channels
         const headerCheckbox = page.locator('#auto-add-header-checkbox');
 
@@ -474,7 +477,6 @@ export async function createBasicPolicy(
             // Only click if we need to enable it
             if (!isChecked) {
                 await headerCheckbox.click({force: true});
-                await page.waitForTimeout(500);
             }
         }
     }
@@ -489,7 +491,6 @@ export async function createBasicPolicy(
     );
 
     await saveButton.click();
-    await page.waitForTimeout(1000);
 
     let policyId: string | null = null;
     try {
@@ -506,7 +507,6 @@ export async function createBasicPolicy(
     if (applyVisible) {
         await applyPolicyButton.click();
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(2000);
     } else {
         // No channels assigned, just wait for save to complete
         await page.waitForLoadState('networkidle');
@@ -527,10 +527,9 @@ export async function createMultiAttributePolicy(
         channels?: string[];
     },
 ): Promise<void> {
-    // Click Add policy button
+    // Click Add policy button — nameInput.waitFor below is sufficient, no separate networkidle
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
-    await page.waitForLoadState('networkidle');
 
     // Fill policy name
     const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
@@ -559,7 +558,8 @@ export async function createMultiAttributePolicy(
         const addAttrBtn = page.getByRole('button', {name: /add attribute/i});
         if ((await addAttrBtn.isVisible({timeout: 2000})) && !(await addAttrBtn.isDisabled())) {
             await addAttrBtn.click();
-            await page.waitForTimeout(500);
+            // Wait for the new row's attribute selector button to appear
+            await page.locator('[data-testid="attributeSelectorMenuButton"]').nth(i).waitFor({state: 'visible', timeout: 5000});
         }
 
         // Select attribute - click the attribute selector for this row
@@ -567,21 +567,26 @@ export async function createMultiAttributePolicy(
         const attributeButton = attributeButtons.nth(i);
         await attributeButton.waitFor({state: 'visible', timeout: 5000});
         await attributeButton.click({force: true});
-        await page.waitForTimeout(500);
+        // Wait for the attribute menu to open
+        const attrMenu = page.locator('[id^="attribute-selector-menu"]');
+        await attrMenu.waitFor({state: 'visible', timeout: 3000});
 
         // Select the attribute from the menu
         const attributeOption = page
             .locator(`[id^="attribute-selector-menu"] li:has-text("${rule.attribute}")`)
             .first();
+        await attributeOption.waitFor({state: 'visible', timeout: 3000});
         await attributeOption.click({force: true});
-        await page.waitForTimeout(500);
+        await attrMenu.waitFor({state: 'hidden', timeout: 3000}).catch(() => {});
 
         // Select operator
         const operatorButtons = page.locator('[data-testid="operatorSelectorMenuButton"]');
         const operatorButton = operatorButtons.nth(i);
         await operatorButton.waitFor({state: 'visible', timeout: 5000});
         await operatorButton.click({force: true});
-        await page.waitForTimeout(500);
+        // Wait for operator menu to open
+        const opMenu = page.locator('[id^="operator-selector-menu"]');
+        await opMenu.waitFor({state: 'visible', timeout: 3000});
 
         // Map operator to display text
         const operatorMap: Record<string, string> = {
@@ -594,25 +599,28 @@ export async function createMultiAttributePolicy(
         };
         const operatorText = operatorMap[rule.operator] || 'is';
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
+        await operatorOption.waitFor({state: 'visible', timeout: 3000});
         await operatorOption.click({force: true});
-        await page.waitForTimeout(500);
+        await opMenu.waitFor({state: 'hidden', timeout: 3000}).catch(() => {});
 
         // Enter value - check if it's a text input or select menu
         const valueInput = page.locator('.values-editor__simple-input').nth(i);
         if (await valueInput.isVisible({timeout: 2000})) {
             await valueInput.fill(rule.value);
-            await page.waitForTimeout(300);
+            // No sleep needed — fill is a synchronous state change
         } else {
             // It might be a select/multiselect - click the value selector
             const valueButtons = page.locator('[data-testid="valueSelectorMenuButton"]');
             const valueButton = valueButtons.nth(i);
             if (await valueButton.isVisible({timeout: 2000})) {
                 await valueButton.click({force: true});
-                await page.waitForTimeout(500);
+                const valueMenu = page.locator('[id^="value-selector-menu"]');
+                await valueMenu.waitFor({state: 'visible', timeout: 3000}).catch(() => {});
 
                 const valueOption = page.locator(`[id^="value-selector-menu"] li:has-text("${rule.value}")`).first();
+                await valueOption.waitFor({state: 'visible', timeout: 3000}).catch(() => {});
                 await valueOption.click({force: true});
-                await page.waitForTimeout(300);
+                await valueMenu.waitFor({state: 'hidden', timeout: 3000}).catch(() => {});
             }
         }
     }
@@ -621,57 +629,56 @@ export async function createMultiAttributePolicy(
     if (options.channels && options.channels.length > 0) {
         const addChannelsButton = page.getByRole('button', {name: /add channels/i});
         await addChannelsButton.click();
-        await page.waitForTimeout(500);
+        // Wait for the channel modal to open
+        const channelModalMulti = page
+            .locator('[role="dialog"], .modal')
+            .filter({hasText: /channel/i})
+            .first();
+        await channelModalMulti.waitFor({state: 'visible', timeout: 5000});
 
         for (const channelName of options.channels) {
-            const searchInput = page
-                .locator('[role="dialog"], .modal')
-                .filter({hasText: /channel/i})
-                .locator('input[placeholder*="Search" i]')
-                .first();
-            await searchInput.waitFor({state: 'visible', timeout: 5000});
+            const searchInput = channelModalMulti.locator('input[placeholder*="Search" i]').first();
+            await searchInput.waitFor({state: 'visible', timeout: 3000});
             await searchInput.fill(channelName);
-            await page.waitForTimeout(500);
-
+            // Wait for search results to appear
             const channelOption = page
                 .locator('.channel-selector-modal, [role="dialog"]')
                 .locator('text=' + channelName)
                 .first();
+            await channelOption.waitFor({state: 'visible', timeout: 5000});
             await channelOption.click({force: true});
-            await page.waitForTimeout(300);
         }
 
         const addButton = page.getByRole('button', {name: /^add$|^save$/i}).last();
         await addButton.click();
-        await page.waitForTimeout(500);
+        // Wait for modal to close
+        await channelModalMulti.waitFor({state: 'hidden', timeout: 5000}).catch(() => {});
     }
 
     // Set auto-add for all channels if autoSync is true
     if (options.autoSync && options.channels && options.channels.length > 0) {
-        await page.waitForTimeout(1000);
-
+        // Wait for the header checkbox to become visible (channel list rendered)
         const headerCheckbox = page.locator('#auto-add-header-checkbox');
+        await headerCheckbox.waitFor({state: 'visible', timeout: 5000}).catch(() => {});
 
-        if (await headerCheckbox.isVisible({timeout: 3000})) {
+        if (await headerCheckbox.isVisible({timeout: 1000}).catch(() => false)) {
             const isChecked = await headerCheckbox.isChecked();
             if (!isChecked) {
                 await headerCheckbox.click({force: true});
-                await page.waitForTimeout(500);
             }
         }
     }
 
-    // Save policy and confirm
+    // Save policy and confirm — wait for the apply-policy modal rather than sleeping
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.click();
-    await page.waitForTimeout(1000);
 
     // Click "Apply policy" button in confirmation modal
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     await applyPolicyButton.waitFor({state: 'visible', timeout: 5000});
     await applyPolicyButton.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    // Removed: waitForTimeout(2000) — networkidle is sufficient
 }
 
 /**
@@ -686,10 +693,9 @@ export async function createAdvancedPolicy(
         channels?: string[];
     },
 ): Promise<string | null> {
-    // Click Add policy button
+    // Click Add policy button — nameInput.waitFor below is sufficient, no separate networkidle
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
-    await page.waitForLoadState('networkidle');
 
     // Fill policy name
     const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
@@ -700,40 +706,38 @@ export async function createAdvancedPolicy(
     const advancedModeButton = page.getByRole('button', {name: /advanced/i});
     if (await advancedModeButton.isVisible({timeout: 2000})) {
         await advancedModeButton.click();
-        await page.waitForTimeout(1000);
+        // Wait for the Monaco editor to appear instead of sleeping
+        await page.locator('.monaco-editor').first().waitFor({state: 'visible', timeout: 5000});
     }
 
-    // Fill CEL expression in the Monaco editor
-    // Monaco editor has a visual layer that intercepts clicks, so we need to:
-    // 1. Click on the editor container to focus it
-    // 2. Use keyboard to clear and type the expression
+    // Fill CEL expression in the Monaco editor.
+    // Monaco exposes a hidden textarea (.inputarea) that accepts programmatic fill,
+    // which is ~10× faster than simulating individual keystrokes with keyboard.type.
     const monacoContainer = page.locator('.monaco-editor').first();
     await monacoContainer.waitFor({state: 'visible', timeout: 5000});
 
-    // Click on the visible lines area to focus the editor
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    await editorLines.click({force: true});
-    await page.waitForTimeout(300);
+    // Focus the editor via its accessible textarea
+    const monacoTextarea = page.locator('.monaco-editor textarea.inputarea').first();
+    await monacoTextarea.waitFor({state: 'visible', timeout: 5000}).catch(async () => {
+        // Fallback: click to focus then type
+        const editorLines = page.locator('.monaco-editor .view-lines').first();
+        await editorLines.click({force: true});
+    });
 
-    // Select all existing content and replace with our expression
-    // Use Cmd+A on Mac, Ctrl+A on others
+    // Select all existing content and replace in one operation
     const isMac = process.platform === 'darwin';
+    await monacoTextarea.focus().catch(() => {});
     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-    await page.waitForTimeout(100);
+    await page.keyboard.type(options.celExpression);
 
-    // Type the CEL expression
-    await page.keyboard.type(options.celExpression, {delay: 10});
-    await page.waitForTimeout(1000);
-
-    // Wait for the "Valid" indicator to appear
+    // Wait for the "Valid" indicator to appear (confirms expression parsed)
     const validIndicator = page.locator('text=Valid').first();
-    await validIndicator.isVisible({timeout: 5000}).catch(() => false);
+    await validIndicator.waitFor({state: 'visible', timeout: 5000}).catch(() => null);
 
     // Assign channels if specified
     if (options.channels && options.channels.length > 0) {
         const addChannelsButton = page.getByRole('button', {name: /add channels/i});
         await addChannelsButton.click();
-        await page.waitForTimeout(1000);
 
         // Wait for the modal to appear.
         // ChannelSelectorModal sets role='none' on its outer element, so we locate
@@ -747,14 +751,10 @@ export async function createAdvancedPolicy(
             const searchInput = channelModal.locator('input').first();
             await searchInput.waitFor({state: 'visible', timeout: 5000});
             await searchInput.fill(channelName);
-            await page.waitForTimeout(1000);
-
-            // Click the "Select channel" button (the + button) to add it
+            // Wait for search results to populate
             const selectChannelButton = channelModal.getByRole('button', {name: /select channel/i}).first();
-            if (await selectChannelButton.isVisible({timeout: 5000})) {
-                await selectChannelButton.click();
-            }
-            await page.waitForTimeout(300);
+            await selectChannelButton.waitFor({state: 'visible', timeout: 5000});
+            await selectChannelButton.click();
         }
 
         // Click Add button inside the modal to confirm
@@ -762,13 +762,10 @@ export async function createAdvancedPolicy(
         await modalAddButton.click();
 
         // Wait for modal to close
-        await page.waitForTimeout(1000);
-        const modalStillOpen = await channelModal.isVisible().catch(() => false);
-        if (modalStillOpen) {
-            // Try pressing Escape to close
+        await channelModal.waitFor({state: 'hidden', timeout: 5000}).catch(async () => {
+            // Try pressing Escape to close if still open
             await page.keyboard.press('Escape');
-            await page.waitForTimeout(500);
-        }
+        });
     }
 
     // Verify channels were added before saving
@@ -776,13 +773,11 @@ export async function createAdvancedPolicy(
         const channelsTable = page
             .locator('.policy-channels-table, [class*="channel"]')
             .filter({hasText: options.channels[0]});
-        await channelsTable.isVisible({timeout: 3000}).catch(() => false);
+        await channelsTable.waitFor({state: 'visible', timeout: 3000}).catch(() => null);
     }
 
     // Set auto-add for all channels if autoSync is true
     if (options.autoSync && options.channels && options.channels.length > 0) {
-        await page.waitForTimeout(1000); // Wait for channel list to update
-
         // Click the header checkbox to enable auto-add for ALL channels
         const headerCheckbox = page.locator('#auto-add-header-checkbox');
 
@@ -792,7 +787,6 @@ export async function createAdvancedPolicy(
             // Only click if we need to enable it
             if (!isChecked) {
                 await headerCheckbox.click({force: true});
-                await page.waitForTimeout(500);
             }
         }
     }
@@ -803,7 +797,6 @@ export async function createAdvancedPolicy(
     // Make sure Save button is enabled
     const saveEnabled = await saveButton.isEnabled({timeout: 5000}).catch(() => false);
     if (!saveEnabled) {
-        // console.error(`❌ Save button is disabled - cannot save policy`);
         throw new Error(`Save button is disabled`);
     }
 
@@ -814,7 +807,6 @@ export async function createAdvancedPolicy(
     );
 
     await saveButton.click();
-    await page.waitForTimeout(2000);
 
     let policyId: string | null = null;
     try {
@@ -829,7 +821,6 @@ export async function createAdvancedPolicy(
     const errorMessage = page.locator('text=/Unable to save|errors in the form/i').first();
     if (await errorMessage.isVisible({timeout: 2000}).catch(() => false)) {
         const errorText = await errorMessage.textContent();
-        // console.error(`❌ Save failed: ${errorText}`);
         throw new Error(`Failed to save policy: ${errorText}`);
     }
 
@@ -840,9 +831,7 @@ export async function createAdvancedPolicy(
     if (applyVisible) {
         await applyPolicyButton.click();
         await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(2000);
     } else {
-        // console.error(`❌ Apply Policy button not found`);
         throw new Error(`Apply Policy button not visible after Save`);
     }
 
@@ -938,7 +927,7 @@ export async function waitForLatestSyncJob(
             if (job) {
                 if (job.status === 'success') {
                     await page.reload();
-                    await page.waitForLoadState('networkidle');
+                    await page.waitForLoadState('domcontentloaded');
                     return job.id;
                 }
                 if (job.status === 'error' || job.status === 'canceled') {
@@ -1014,7 +1003,7 @@ export async function waitForLatestSyncJob(
     // Fast path: job was already done when discovered in Phase 1.
     if (initialStatus === 'success') {
         await page.reload();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         return expectedJobId;
     }
     if (initialStatus === 'error' || initialStatus === 'canceled') {
@@ -1039,7 +1028,7 @@ export async function waitForLatestSyncJob(
             if (job.status === 'success') {
                 // One reload to sync the DOM for any subsequent page interactions.
                 await page.reload();
-                await page.waitForLoadState('networkidle');
+                await page.waitForLoadState('domcontentloaded');
                 return job.id;
             }
             if (job.status === 'error' || job.status === 'canceled') {
