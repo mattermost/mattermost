@@ -306,27 +306,14 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
-	// managed-flag authorization + PermissionValues sync.
+	// managed-flag authorization + permission level enforcement.
 	permChecker := func(userID string, perm *model.Permission) bool {
-		user, userErr := s.Store().User().Get(context.Background(), userID)
-		if userErr != nil {
+		if s.ch == nil {
+			mlog.Error("permChecker called before Channels is initialized, denying permission",
+				mlog.String("user_id", userID), mlog.String("permission", perm.Id))
 			return false
 		}
-		roles, roleErr := s.Store().Role().GetByNames(user.GetRoles())
-		if roleErr != nil {
-			return false
-		}
-		for _, role := range roles {
-			if role.DeleteAt != 0 {
-				continue
-			}
-			for _, p := range role.Permissions {
-				if p == perm.Id {
-					return true
-				}
-			}
-		}
-		return false
+		return (&App{ch: s.ch}).HasPermissionTo(userID, perm)
 	}
 	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)

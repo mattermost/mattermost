@@ -559,7 +559,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		assert.Contains(t, upsertErr.Error(), "expected string array")
 	})
 
-	// Managed-flag PermissionValues sync tests
+	// Group permission enforcement tests
 
 	t.Run("create field with managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -576,6 +576,10 @@ func TestAttributeValidationHook(t *testing.T) {
 		require.NoError(t, createErr)
 		require.NotNil(t, created.PermissionValues)
 		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+		require.NotNil(t, created.PermissionField)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
 	})
 
 	t.Run("create field without managed sets PermissionValues to member", func(t *testing.T) {
@@ -591,6 +595,10 @@ func TestAttributeValidationHook(t *testing.T) {
 		require.NoError(t, createErr)
 		require.NotNil(t, created.PermissionValues)
 		assert.Equal(t, model.PermissionLevelMember, *created.PermissionValues)
+		require.NotNil(t, created.PermissionField)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
 	})
 
 	t.Run("update field to managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {

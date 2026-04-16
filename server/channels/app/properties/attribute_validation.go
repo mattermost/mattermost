@@ -64,9 +64,15 @@ func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField)
 	return nil
 }
 
-// syncManagedPermissions ensures PermissionValues stays in sync with the
-// managed attribute and that only admins can set managed="admin".
-func (h *AttributeValidationHook) syncManagedPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
+// enforceGroupPermissions sets the permission levels required for fields in
+// managed groups and validates the managed-flag authorization:
+//   - PermissionField and PermissionOptions are always set to sysadmin so
+//     that only admins can modify field definitions and options.
+//   - PermissionValues is set to sysadmin when managed="admin", and to
+//     member otherwise, so that regular users can write their own values
+//     on non-admin-managed fields.
+//   - Setting managed="admin" requires PermissionManageSystem.
+func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	managed, _ := field.Attrs[model.CustomProfileAttributesPropertyAttrsManaged].(string)
 	sysadmin := model.PermissionLevelSysadmin
 	member := model.PermissionLevelMember
@@ -77,7 +83,7 @@ func (h *AttributeValidationHook) syncManagedPermissions(rctx request.CTX, field
 			callerID := h.propertyService.extractCallerID(rctx)
 			if callerID != "" && !h.permissionChecker(callerID, model.PermissionManageSystem) {
 				return nil, model.NewAppError(
-					"syncManagedPermissions",
+					"enforceGroupPermissions",
 					"app.property_field.managed_admin.permission.app_error",
 					nil,
 					"only system admins can set managed=admin",
@@ -89,6 +95,10 @@ func (h *AttributeValidationHook) syncManagedPermissions(rctx request.CTX, field
 	} else {
 		field.PermissionValues = &member
 	}
+
+	// Fields in managed groups always require sysadmin for field/options edits.
+	field.PermissionField = &sysadmin
+	field.PermissionOptions = &sysadmin
 
 	return field, nil
 }
@@ -102,7 +112,7 @@ func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field
 		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 	}
 
-	field, err := h.syncManagedPermissions(rctx, field)
+	field, err := h.enforceGroupPermissions(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
 	}
@@ -119,7 +129,7 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, group
 		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
 	}
 
-	field, err := h.syncManagedPermissions(rctx, field)
+	field, err := h.enforceGroupPermissions(rctx, field)
 	if err != nil {
 		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
 	}
@@ -137,7 +147,7 @@ func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, grou
 			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
-		updated, err := h.syncManagedPermissions(rctx, field)
+		updated, err := h.enforceGroupPermissions(rctx, field)
 		if err != nil {
 			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
 		}

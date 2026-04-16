@@ -170,9 +170,20 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Create a field with a license so we can test the license check on patch.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
+		createdField, _, createErr := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		require.NoError(t, createErr)
+		require.NotNil(t, createdField)
+
+		// Remove the license and verify patch is blocked.
+		th.App.Srv().SetLicense(nil)
 		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
-		patchedField, _, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
+		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 		require.Empty(t, patchedField)
 	}, "endpoint should not work if no valid license is present")
 
@@ -314,8 +325,19 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		_, err := client.DeleteCPAField(context.Background(), model.NewId())
+		// Create a field with a license so we can test the license check on delete.
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
+		createdField, _, createErr := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		require.NoError(t, createErr)
+		require.NotNil(t, createdField)
+
+		// Remove the license and verify delete is blocked.
+		th.App.Srv().SetLicense(nil)
+		resp, err := client.DeleteCPAField(context.Background(), createdField.ID)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
+		CheckErrorID(t, err, "api.custom_profile_attributes.license_error")
 	}, "endpoint should not work if no valid license is present")
 
 	// add a valid license

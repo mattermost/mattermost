@@ -64,7 +64,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
 	// Translate to PropertyField and route through the generic property API.
-	// CPA fields are always system-scoped and admin-managed at the field level.
+	// Permission levels are enforced by the attribute validation hook for the
+	// protected_attributes group — no need to set them here.
 	field := pf.ToPropertyField()
 	groupID, appErr := c.App.CpaGroupID()
 	if appErr != nil {
@@ -74,10 +75,6 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.GroupID = groupID
 	field.ObjectType = model.PropertyFieldObjectTypeUser
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
-	sysadmin := model.PermissionLevelSysadmin
-	field.PermissionField = &sysadmin
-	field.PermissionOptions = &sysadmin
-	// PermissionValues is set by the attribute validation hook based on managed attr
 
 	createdField := executeCreatePropertyField(c, r, field)
 	if c.Err != nil {
@@ -106,6 +103,13 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
+	// License check is kept here because the read path (GetPropertyField)
+	// inside executePatchPropertyField wraps license errors as 500.
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.patchCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
@@ -143,7 +147,10 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedField := executePatchPropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
+	updatedField, originalField := executePatchPropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
+	if originalField != nil {
+		auditRec.AddEventPriorState(originalField)
+	}
 	if c.Err != nil {
 		return
 	}
@@ -169,6 +176,13 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
+	// License check is kept here because the read path (GetPropertyField)
+	// inside executeDeletePropertyField wraps license errors as 500.
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.deleteCPAField", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireFieldId()
 	if c.Err != nil {
 		return
