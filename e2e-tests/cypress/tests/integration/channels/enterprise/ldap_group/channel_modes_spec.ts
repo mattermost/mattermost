@@ -10,7 +10,7 @@
 // Group: @channels @enterprise @ldap_group
 
 describe('LDAP Group Sync - Test channel public/private toggle', () => {
-    let testTeam;
+    let testTeam: Cypress.Team;
 
     before(() => {
         // * Check if server has license for LDAP Groups

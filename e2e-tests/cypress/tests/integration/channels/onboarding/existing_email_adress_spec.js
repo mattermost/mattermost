@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @onboarding
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId, newTestPassword} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 const uniqueUserId = getRandomId();
 

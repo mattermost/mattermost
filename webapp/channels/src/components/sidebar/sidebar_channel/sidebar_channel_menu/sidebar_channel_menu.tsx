@@ -3,6 +3,7 @@
 
 import React, {useRef, memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     MarkAsUnreadIcon,
@@ -16,14 +17,19 @@ import {
     ExitToAppIcon,
 } from '@mattermost/compass-icons/components';
 
+import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
+
 import MenuItemOpenInNewWindow from 'components/channel_header_menu/menu_items/open_in_new_window';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubmenu from 'components/channel_move_to_sub_menu';
 import * as Menu from 'components/menu';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {copyToClipboard} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 import type {PropsFromRedux, OwnProps} from './index';
 
@@ -49,6 +55,7 @@ const SidebarChannelMenu = ({
     channelLeaveHandler,
 }: Props) => {
     const isLeaving = useRef(false);
+    const isInManagedCategory = useSelector((state: GlobalState) => isChannelInManagedCategory(state, channel.id));
 
     const {formatMessage} = useIntl();
 
@@ -93,13 +100,13 @@ const SidebarChannelMenu = ({
         );
     }
 
-    let favoriteUnfavoriteMenuItem: JSX.Element | null = null;
+    let favoriteItem: JSX.Element;
     if (isFavorite) {
         function handleUnfavoriteChannel() {
             unfavoriteChannel(channel.id);
         }
 
-        favoriteUnfavoriteMenuItem = (
+        favoriteItem = (
             <Menu.Item
                 id={`unfavorite-${channel.id}`}
                 onClick={handleUnfavoriteChannel}
@@ -110,6 +117,7 @@ const SidebarChannelMenu = ({
                         defaultMessage='Unfavorite'
                     />
                 )}
+                disabled={isInManagedCategory}
             />
         );
     } else {
@@ -117,8 +125,7 @@ const SidebarChannelMenu = ({
             favoriteChannel(channel.id);
         }
 
-        favoriteUnfavoriteMenuItem = (
-
+        favoriteItem = (
             <Menu.Item
                 id={`favorite-${channel.id}`}
                 onClick={handleFavoriteChannel}
@@ -129,9 +136,23 @@ const SidebarChannelMenu = ({
                         defaultMessage='Favorite'
                     />
                 )}
+                disabled={isInManagedCategory}
             />
         );
     }
+
+    const favoriteUnfavoriteMenuItem = isInManagedCategory ? (
+        <WithTooltip
+            title={
+                <FormattedMessage
+                    id='channelHeader.managedCategoryFavoriteDisabled'
+                    defaultMessage='Channels in managed categories cannot be favorited.'
+                />
+            }
+        >
+            <div>{favoriteItem}</div>
+        </WithTooltip>
+    ) : favoriteItem;
 
     let muteUnmuteChannelMenuItem: JSX.Element | null = null;
     if (isMuted) {

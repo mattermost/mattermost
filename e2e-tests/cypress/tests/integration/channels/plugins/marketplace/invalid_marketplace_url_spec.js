@@ -9,7 +9,7 @@
 
 // Group: @channels @not_cloud @plugin_marketplace @plugin @plugins_uninstall
 
-import {githubPlugin} from '../../../../utils/plugins';
+import {githubPlugin} from '@/utils/plugins';
 
 describe('Plugin Marketplace', () => {
     let townsquareLink;
