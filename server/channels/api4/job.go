@@ -319,6 +319,11 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 			jobs = teamJobs[start:end]
 		}
 	} else if policyID != "" && c.Params.JobType == model.JobTypeAccessControlSync {
+		// Only system admins may filter by policy_id to prevent job enumeration across policies.
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
 		policyJobs, appErr := c.App.GetJobsByTypeAndData(c.AppContext, c.Params.JobType,
 			map[string]string{"policy_id": policyID})
 		if appErr != nil {
