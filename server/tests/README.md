@@ -1,5 +1,5 @@
 # Testing Text Processing  
-The text processing tests located in the [doc/developer/tests folder](https://github.com/mattermost/platform/tree/master/doc/developer/tests) are designed for use with the `/test url` command in isolated non-production test environments. This command posts the raw contents of a specified .md file in the doc/developer/test folder into Mattermost.
+The text processing tests located in the [doc/developer/tests folder](https://github.com/mattermost/platform/tree/master/doc/developer/tests) are designed for use with the `/test url` command in isolated non-production test environments. This command posts the raw contents of a specified `.md` file in the `doc/developer/tests` folder into Mattermost.
 
 ## Turning on /test  
 Access the **System Console** from the Main Menu. Under *Environment > Developer* make sure that *Enable Testing Commands* is set to `true`, then click **Save**. You may also change this setting from `config.json` by setting `"EnableTesting": true`. This setting is intended only for isolated non-production environments with test users and sample data, and must never be enabled in production. Changing this setting requires a server restart to take effect.

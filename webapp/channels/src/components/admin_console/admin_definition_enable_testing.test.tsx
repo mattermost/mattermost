@@ -39,12 +39,10 @@ describe('AdminDefinition - Enable Testing setting', () => {
         expect(setting).toBeDefined();
         expect(setting?.type).toBe('bool');
         expect(setting?.help_text).toBeDefined();
-
-        if (setting?.help_text && typeof setting.help_text === 'object') {
-            expect(setting.help_text).toMatchObject({
-                id: 'admin.service.testingDescription',
-                defaultMessage: expect.stringContaining('never in production'),
-            });
-        }
+        expect(typeof setting?.help_text).toBe('object');
+        expect(setting?.help_text).toMatchObject({
+            id: 'admin.service.testingDescription',
+            defaultMessage: expect.stringContaining('never in production'),
+        });
     });
 });
