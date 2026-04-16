@@ -7,9 +7,23 @@ import "regexp"
 
 var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
 
+const (
+	PropertyGroupVersionV1 = 1
+	PropertyGroupVersionV2 = 2
+)
+
 type PropertyGroup struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Version int    `json:"version"`
+}
+
+func (pg *PropertyGroup) IsPSAv1() bool {
+	return pg.Version == PropertyGroupVersionV1
+}
+
+func (pg *PropertyGroup) IsPSAv2() bool {
+	return pg.Version == PropertyGroupVersionV2
 }
 
 func (pg *PropertyGroup) PreSave() {
