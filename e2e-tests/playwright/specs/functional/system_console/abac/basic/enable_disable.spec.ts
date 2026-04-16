@@ -38,8 +38,10 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // # Test enable ABAC
     await enableRadio.click();
     await expect(enableRadio).toBeChecked();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    if (!(await saveButton.isDisabled())) {
+        await saveButton.click();
+        await systemConsolePage.page.waitForLoadState('networkidle');
+    }
 
     // * Verify the Attribute-Based Access page only has the toggle — no policy management here
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();

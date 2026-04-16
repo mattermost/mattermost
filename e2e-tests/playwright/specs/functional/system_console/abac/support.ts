@@ -495,9 +495,12 @@ export async function createBasicPolicy(
     // Save policy and confirm
     const saveButton = page.getByRole('button', {name: 'Save'});
 
-    // Intercept the PUT response to capture the policy ID
+    // Intercept the POST/PUT response to capture the policy ID
     const policyResponsePromise = page.waitForResponse(
-        (resp) => resp.url().includes('/access_control_policies') && resp.request().method() === 'PUT' && resp.ok(),
+        (resp) =>
+            resp.url().includes('/access_control_policies') &&
+            (resp.request().method() === 'PUT' || resp.request().method() === 'POST') &&
+            resp.ok(),
         {timeout: 15000},
     );
 
@@ -826,9 +829,12 @@ export async function createAdvancedPolicy(
         throw new Error(`Save button is disabled`);
     }
 
-    // Intercept the PUT response to capture the policy ID
+    // Intercept the POST/PUT response to capture the policy ID
     const policyResponsePromise = page.waitForResponse(
-        (resp) => resp.url().includes('/access_control_policies') && resp.request().method() === 'PUT' && resp.ok(),
+        (resp) =>
+            resp.url().includes('/access_control_policies') &&
+            (resp.request().method() === 'PUT' || resp.request().method() === 'POST') &&
+            resp.ok(),
         {timeout: 15000},
     );
 
