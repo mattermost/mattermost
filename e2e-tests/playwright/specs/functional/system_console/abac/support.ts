@@ -842,7 +842,9 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
 }
 
 /**
- * Wait for sync job to complete and get the latest job row
+ * Wait for sync job to complete and get the latest job row.
+ * Uses page-based polling (reloads the UI). Prefer waitForPolicySyncJob when a
+ * policyId is available — it queries the API directly and avoids cross-shard races.
  */
 export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): Promise<any> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -871,6 +873,54 @@ export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): 
     }
 
     throw new Error(`Sync job did not complete after ${maxRetries} retries`);
+}
+
+/**
+ * Wait for a policy-specific access_control_sync job to complete.
+ *
+ * Unlike waitForLatestSyncJob (which reloads the page and checks the first row),
+ * this function queries the server API directly with a policy_id filter. In parallel
+ * CI shards, multiple shards trigger sync jobs at the same time; without filtering
+ * a shard could pick up another shard's completed job and assume its own job finished.
+ * Filtering by policyId makes each shard wait for the job that belongs to it.
+ *
+ * Requires the server-side policy_id filter endpoint (added in this PR):
+ *   GET /api/v4/jobs/type/access_control_sync?policy_id=<id>
+ */
+export async function waitForPolicySyncJob(client: Client4, policyId: string, maxRetries: number = 10): Promise<void> {
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        // Give the job time to start / progress before polling
+        await delay(2000);
+
+        try {
+            const jobs: any[] = await (client as any).doFetch(
+                `${client.getBaseRoute()}/jobs/type/access_control_sync?policy_id=${encodeURIComponent(policyId)}&page=0&per_page=5`,
+                {method: 'GET'},
+            );
+
+            if (Array.isArray(jobs) && jobs.length > 0) {
+                // Server returns jobs sorted by CreateAt DESC — index 0 is the latest
+                const latest = jobs[0];
+                if (latest.status === 'success') {
+                    return;
+                }
+                if (latest.status === 'error' || latest.status === 'canceled' || latest.status === 'cancel_requested') {
+                    throw new Error(`Policy sync job failed with status: ${latest.status}`);
+                }
+                // status is 'pending' or 'in_progress' — keep polling
+            }
+            // No jobs yet — keep polling
+        } catch (err) {
+            if (err instanceof Error && err.message.startsWith('Policy sync job')) {
+                throw err;
+            }
+            // Network / parse error — keep polling
+        }
+    }
+
+    throw new Error(`Policy sync job for policy ${policyId} did not complete after ${maxRetries} retries`);
 }
 
 /**

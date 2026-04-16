@@ -16,7 +16,7 @@ import {
     createBasicPolicy,
     createAdvancedPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
+    waitForPolicySyncJob,
     getPolicyIdByName,
 } from '../support';
 
@@ -52,8 +52,9 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await activatePolicy(adminClient, t5799Policy1Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
+    // Use policy-scoped API polling to avoid cross-shard job contamination.
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5799Policy1Id, 10);
 
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1InitialCheck).toBe(true);
@@ -63,7 +64,7 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
 
     // Sync: user no longer qualifies → gets removed.
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5799Policy1Id, 10);
 
     const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
     expect(user1AfterSync).toBe(false);
@@ -103,7 +104,7 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
 
     // Sync: user has qualifying attribute → gets auto-added.
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5799Policy2Id, 10);
 
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2InitialCheck).toBe(true);
@@ -113,7 +114,7 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
 
     // Sync: user no longer qualifies → gets removed.
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5799Policy2Id, 10);
 
     const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
     expect(user2AfterSync).toBe(false);
@@ -159,7 +160,7 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5800PolicyId, 10);
 
     const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
     expect(phase2InChannel).toBe(true);
@@ -168,7 +169,7 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
     await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, 5);
+    await waitForPolicySyncJob(adminClient, t5800PolicyId, 10);
 
     const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
     expect(phase3InChannel).toBe(false);
