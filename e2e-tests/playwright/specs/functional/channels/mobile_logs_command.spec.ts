@@ -267,9 +267,11 @@ test.describe('/mobile-logs slash command', () => {
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
+            // # Post the mobile-logs command
             await channelsPage.postMessage('/mobile-logs on @nonexistentuser12345');
 
             const lastPost = await channelsPage.getLastPost();
+            // * Expect permission denial message
             await lastPost.toContainText('Unable to change mobile log settings for that user.');
         },
     );
