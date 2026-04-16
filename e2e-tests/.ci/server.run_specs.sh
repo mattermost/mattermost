@@ -74,7 +74,10 @@ EOF
 
   # Run playwright with specific spec files
   LOGFILE_SUFFIX="${CI_BASE_URL//\//_}_specs"
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" \
+    -e "TEST_FILTER=${TEST_FILTER:-}" \
+    -e "PW_SHARD=${PW_SHARD:-}" \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee "../playwright/logs/${LOGFILE_SUFFIX}_playwright.log" || true
 
   # Collect run results (if results.json exists)
   if [ -f ../playwright/results/reporter/results.json ]; then
