@@ -58,10 +58,6 @@ function BookmarksBarMenu({
     const hasOverflow = overflowItems.length > 0;
 
     // MUI's autoFocusItem can't see through OverflowBookmarkItem wrappers,
-    // so we disable it and handle initial focus ourselves via DOM query.
-    // ArrowDown/Up from the Paper focuses the first/last menuitem;
-    // once a menuitem has focus, MUI handles cycling.
-    // MUI's autoFocusItem can't see through OverflowBookmarkItem wrappers,
     // so we disable it and handle initial focus via DOM query.
     // ArrowDown/Up from the Paper focuses the first/last menuitem;
     // once a menuitem has focus, MUI handles cycling.
