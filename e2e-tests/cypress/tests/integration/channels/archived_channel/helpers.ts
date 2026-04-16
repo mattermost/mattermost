@@ -1,23 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
-export function createArchivedChannel(channelOptions, messages, memberUsernames?) {
+export function createArchivedChannel(channelOptions: Record<string, unknown>, messages: string[], memberUsernames?: string[]) {
     return cy.uiCreateChannel(channelOptions).then((newChannel) => {
         if (memberUsernames) {
             cy.uiAddUsersToCurrentChannel(memberUsernames);
         }
 
-        if (messages) {
-            let messageList = messages;
-            if (!Array.isArray(messages)) {
-                messageList = [messages];
-            }
-            messageList.forEach((message) => {
-                cy.postMessage(message);
-            });
-        }
+        messages.forEach((message) => {
+            cy.postMessage(message);
+        });
 
         cy.uiArchiveChannel();
 

@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @system_console @authentication
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {reUrl, getRandomId, newTestPassword} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {reUrl, getRandomId, newTestPassword} from '@/utils';
 
 describe('Authentication', () => {
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Do email test if setup properly

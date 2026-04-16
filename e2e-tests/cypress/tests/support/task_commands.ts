@@ -16,7 +16,8 @@ import {ChainableT} from '../types';
 export interface PostMessageResp {
     id: string;
     status: number;
-    data: any;
+    // Post data from the API response
+    data: Record<string, any>;
 }
 
 interface PostMessageArg {
@@ -33,10 +34,10 @@ interface PostMessageArg {
 interface PostMessageRequest {
     token: string;
     message: string;
-    props?;
+    props?: Record<string, unknown>;
     channelId: string;
-    rootId?;
-    createAt?;
+    rootId?: string;
+    createAt?: number;
     failOnStatus?: boolean;
 }
 
@@ -44,7 +45,8 @@ function postMessageAs(arg: PostMessageArg): ChainableT<PostMessageResp> {
     const {sender, message, channelId, rootId, createAt} = arg;
     const baseUrl = Cypress.config('baseUrl');
 
-    return cy.task('postMessageAs', {sender, message, channelId, rootId, createAt, baseUrl}).then((response: AxiosResponse<{id: string}>) => {
+    // cy.task() returns untyped data
+    return cy.task('postMessageAs', {sender, message, channelId, rootId, createAt, baseUrl}).then((response: any) => {
         const {status, data} = response;
         expect(status).to.equal(201);
 
@@ -61,12 +63,13 @@ Cypress.Commands.add('postMessageAs', postMessageAs);
  * @param {Object} channelId - where a post will be posted
  */
 
-function postListOfMessages({numberOfMessages = 30, ...rest}): ChainableT<any> {
+function postListOfMessages({numberOfMessages = 30, ...rest}): ChainableT<unknown> {
     const baseUrl = Cypress.config('baseUrl');
 
+    // Cast needed: Cypress.Commands.add requires cast for overloaded commands
     return (cy as any).
         task('postListOfMessages', {numberOfMessages, baseUrl, ...rest}, {timeout: numberOfMessages * 200}).
-        each((message) => expect(message.status).to.equal(201));
+        each((message: {status: number}) => expect(message.status).to.equal(201));
 }
 
 Cypress.Commands.add('postListOfMessages', postListOfMessages);
@@ -81,7 +84,8 @@ Cypress.Commands.add('postListOfMessages', postListOfMessages);
 Cypress.Commands.add('reactToMessageAs', ({sender, postId, reaction}) => {
     const baseUrl = Cypress.config('baseUrl');
 
-    return cy.task('reactToMessageAs', {sender, postId, reaction, baseUrl}).then(({status, data}) => {
+    // cy.task() returns untyped data
+    return cy.task('reactToMessageAs', {sender, postId, reaction, baseUrl}).then(({status, data}: any) => {
         expect(status).to.equal(200);
 
         // # Return the response after reaction is added
@@ -96,26 +100,32 @@ Cypress.Commands.add('reactToMessageAs', ({sender, postId, reaction}) => {
 * @param {Object} data - payload on incoming webhook
 */
 
+interface WebhookData {
+    text?: string;
+    attachments?: Array<Record<string, unknown> & {pretext?: string}>;
+    [key: string]: unknown;
+}
+
 function postIncomingWebhook({url, data, waitFor}: {
     url: string;
-    data: Record<string, any>;
+    data: WebhookData;
     waitFor?: string;
 }): ChainableT {
     cy.task('postIncomingWebhook', {url, data}).its('status').should('be.equal', 200);
 
     if (!waitFor) {
-        return;
+        return cy.wrap(undefined) as ChainableT;
     }
 
-    cy.waitUntil(() => cy.getLastPost().then((el) => {
+    return cy.waitUntil(() => cy.getLastPost().then((el) => {
         switch (waitFor) {
         case 'text': {
             const textEl = el.find('.post-message__text > p')[0];
-            return Boolean(textEl && textEl.textContent.includes(data.text));
+            return Boolean(textEl && data.text && textEl.textContent.includes(data.text));
         }
         case 'attachment-pretext': {
             const attachmentPretextEl = el.find('.attachment__thumb-pretext > p')[0];
-            return Boolean(attachmentPretextEl && attachmentPretextEl.textContent.includes(data.attachments[0].pretext));
+            return Boolean(attachmentPretextEl && data.attachments?.[0]?.pretext && attachmentPretextEl.textContent.includes(data.attachments[0].pretext));
         }
         default:
             return false;
@@ -132,11 +142,12 @@ interface ExternalRequestArg<T> {
     data?: T;
     failOnStatusCode?: boolean;
 }
-function externalRequest<T=any, U=any>(arg: ExternalRequestArg<U>): ChainableT<Pick<AxiosResponse<T>, 'data' | 'status'>> {
+function externalRequest<T=unknown, U=unknown>(arg: ExternalRequestArg<U>): ChainableT<Pick<AxiosResponse<T>, 'data' | 'status'>> {
     const {user, method, path, data, failOnStatusCode = true} = arg;
     const baseUrl = Cypress.config('baseUrl');
 
-    return cy.task('externalRequest', {baseUrl, user, method, path, data}).then((response: Pick<AxiosResponse<T & {id: string}>, 'data' | 'status'>) => {
+    // cy.task() returns untyped data
+    return cy.task('externalRequest', {baseUrl, user, method, path, data}).then((response: any) => {
         // Temporarily ignore error related to Cloud
         const cloudErrorId = [
             'ent.cloud.request_error',
@@ -147,10 +158,11 @@ function externalRequest<T=any, U=any>(arg: ExternalRequestArg<U>): ChainableT<P
             expect(response.status).to.be.oneOf([200, 201, 204]);
         }
 
-        return cy.wrap(response);
-    });
+        return cy.wrap(response as Pick<AxiosResponse<T>, 'data' | 'status'>);
+    }) as ChainableT<Pick<AxiosResponse<T>, 'data' | 'status'>>;
 }
-Cypress.Commands.add('externalRequest', externalRequest);
+// Cypress.Commands.add requires cast for overloaded commands
+Cypress.Commands.add('externalRequest', externalRequest as any);
 
 /**
 * postMessageAs is a task which is wrapped as command with post-verification
@@ -162,7 +174,8 @@ Cypress.Commands.add('externalRequest', externalRequest);
 function postBotMessage({token, message, props, channelId, rootId, createAt, failOnStatus = true}: PostMessageRequest): ChainableT<PostMessageResp> {
     const baseUrl = Cypress.config('baseUrl');
 
-    return cy.task('postBotMessage', {token, message, props, channelId, rootId, createAt, baseUrl}).then(({status, data}) => {
+    // cy.task() returns untyped data
+    return cy.task('postBotMessage', {token, message, props, channelId, rootId, createAt, baseUrl}).then(({status, data}: any) => {
         if (failOnStatus) {
             expect(status).to.equal(201);
         }
@@ -184,10 +197,11 @@ Cypress.Commands.add('postBotMessage', postBotMessage);
 * @param {String} httpStatus - expected HTTP status
 */
 
-function urlHealthCheck({name, url, helperMessage, method, httpStatus}): ChainableT {
+function urlHealthCheck({name, url, helperMessage, method, httpStatus}: {name: string; url: string; helperMessage: string; method: string; httpStatus: number}): ChainableT {
     Cypress.log({name, message: `Checking URL health at ${url}`});
 
-    return cy.task('urlHealthCheck', {url, method}).then(({data, errorCode, status, success}) => {
+    // cy.task() returns untyped data
+    return cy.task('urlHealthCheck', {url, method}).then(({data, errorCode, status, success}: any) => {
         const urlService = `__${name}__ at ${url}`;
 
         const successMessage = success ?
@@ -208,9 +222,9 @@ Cypress.Commands.add('urlHealthCheck', urlHealthCheck);
 
 Cypress.Commands.add('requireWebhookServer', () => {
     const baseUrl = Cypress.config('baseUrl');
-    const webhookBaseUrl = Cypress.env('webhookBaseUrl');
-    const adminUsername = Cypress.env('adminUsername');
-    const adminPassword = Cypress.env('adminPassword');
+    const webhookBaseUrl = Cypress.expose('webhookBaseUrl');
+    const adminUsername = Cypress.expose('adminUsername');
+    const adminPassword = Cypress.expose('adminPassword');
     const helperMessage = `
 __Tips:__
     1. In local development, you may run "__npm run start:webhook__" at "/e2e" folder.
@@ -260,9 +274,9 @@ declare global {
                 user: Pick<UserProfile, 'username' | 'password'>;
                 method: string;
                 path: string;
-                data?: Record<string, any>;
+                data?: Record<string, unknown> | unknown[];
                 failOnStatusCode?: boolean;
-            }): Chainable<any>;
+            }): Chainable<Pick<AxiosResponse, 'data' | 'status'>>;
 
             /**
              * Adds a given reaction to a specific post from a user
@@ -275,7 +289,7 @@ declare global {
              * @example
              *    cy.reactToMessageAs({sender:user2, postId:"ABC123", reaction: 'smile'});
              */
-            reactToMessageAs({sender, postId, reaction}: {sender: Record<string, unknown>; postId: string; reaction: string}): Chainable<any>;
+            reactToMessageAs({sender, postId, reaction}: {sender: Record<string, unknown>; postId: string; reaction: string}): Chainable<{status: number; data: unknown}>;
 
             /**
              * Verify that the webhook server is accessible, and then sets up base URLs and credential.
