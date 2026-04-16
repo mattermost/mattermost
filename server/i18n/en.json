@@ -56,6 +56,10 @@
     "translation": "Get fields limit is not valid."
   },
   {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Permission policies feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -242,6 +246,10 @@
   {
     "id": "api.channel.add_members.user_denied",
     "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -582,6 +590,18 @@
   {
     "id": "api.channel.restore_channel.unarchived",
     "translation": "{{.Username}} unarchived the channel."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Cannot set members on a group-constrained channel."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Cannot set members on a policy-enforced channel."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Cannot set members on this channel type."
   },
   {
     "id": "api.channel.update_channel.banner_info.channel_type.not_allowed",
@@ -2261,6 +2281,10 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "You do not have the required access to download this file."
+  },
+  {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
     "translation": "Mismatched flagged post ID specified."
   },
@@ -2355,6 +2379,10 @@
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "File storage settings has unset values."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "You do not have the required access to upload files to this channel."
   },
   {
     "id": "api.file.upload_file.get_channel.app_error",
@@ -3437,6 +3465,22 @@
   {
     "id": "api.server.start_server.starting.critical",
     "translation": "Error starting server, err:%v"
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "File data is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo is required."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name is required."
   },
   {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
@@ -5123,6 +5167,14 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Failed to retrieve the access control subject."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Failed to retrieve the access control attribute group."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -5601,6 +5653,22 @@
   {
     "id": "app.channel.search_group_channels.app_error",
     "translation": "Unable to get the group channels for the given user and term."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "The set channel members operation was cancelled."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Cannot remove all members from a private channel."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Unable to get current channel members."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Unable to get channel members for role reconciliation."
   },
   {
     "id": "app.channel.sidebar_categories.app_error",
@@ -6967,10 +7035,6 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Unable to get existing jobs."
-  },
-  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -7317,6 +7381,10 @@
   {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Failed to evaluate permission policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -8339,6 +8407,34 @@
   {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "One or more channels were not found."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Channel {{.ChannelId}} does not belong to this team."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "At least one channel is required."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Unable to verify policy ownership for this team."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Failed to reconcile team scope on policy."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "You cannot create a policy that would exclude yourself."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Failed to validate policy rules."
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -10093,8 +10189,16 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Permission policies cannot inherit from other policies."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10113,12 +10217,28 @@
     "translation": "Invalid policy revision."
   },
   {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "Rule(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Invalid scope value for this access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Scope ID must be a valid ID when scope is set."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Scope ID cannot be set without a scope."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
@@ -12418,11 +12538,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
