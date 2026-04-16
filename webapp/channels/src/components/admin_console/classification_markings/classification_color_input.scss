@@ -10,14 +10,14 @@
 
 .ClassificationColorInput__control {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    box-sizing: border-box;
     height: 34px;
+    box-sizing: border-box;
+    align-items: center;
     padding: 0 10px 0 8px;
     border: none;
     border-radius: 0;
     background: transparent;
+    gap: 8px;
 
     &:focus-within {
         background: rgba(var(--button-bg-rgb), 0.06);
@@ -26,9 +26,9 @@
 
 .ClassificationColorInput__swatch {
     display: block;
-    flex-shrink: 0;
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
     padding: 0;
     border: none;
     border-radius: 2px;
@@ -47,11 +47,11 @@
 }
 
 .ClassificationColorInput__hex {
-    flex: 1 1 auto;
     min-width: 0;
     height: 100%;
-    border: none;
+    flex: 1 1 auto;
     padding: 0;
+    border: none;
     background: transparent;
     color: var(--center-channel-color);
     font-size: 14px;
