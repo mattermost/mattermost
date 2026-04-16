@@ -3,12 +3,18 @@
 
 import React from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+
+const isDesktopAppMock = jest.mocked(isDesktopApp);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+}));
 
 describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     const baseChannel = {
@@ -67,8 +73,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should match snapshot for desktop', () => {
-        const userAgentMock = jest.requireMock('utils/user_agent');
-        userAgentMock.isDesktopApp.mockImplementation(() => false);
+        isDesktopAppMock.mockImplementation(() => false);
 
         const {container} = renderLink();
 
