@@ -33,8 +33,10 @@ func websocketCmdF(cmd *cobra.Command, args []string) error {
 
 	c.Listen()
 	fmt.Fprintln(os.Stderr, "Press CTRL+C to exit")
-	for {
-		event := <-c.EventChannel
+	for event := range c.EventChannel {
+		if event == nil {
+			continue
+		}
 		data, err := event.ToJSON()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -42,4 +44,8 @@ func websocketCmdF(cmd *cobra.Command, args []string) error {
 			fmt.Println(string(data))
 		}
 	}
+	if c.ListenError != nil {
+		return errors.New(c.ListenError.Error())
+	}
+	return nil
 }
