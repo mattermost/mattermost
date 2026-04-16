@@ -101,7 +101,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableABAC(systemConsolePage.page);
 
         // Use the working createBasicPolicy helper (same as MM-T5784)
-        const policyName = `Engineering Policy ${await pw.random.id()}`;
+        const policyName = `Engineering Policy ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -279,7 +279,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableABAC(systemConsolePage.page);
 
         // Use createBasicPolicy with autoSync: true
-        const policyName = `Auto-Add Policy ${await pw.random.id()}`;
+        const policyName = `Auto-Add Policy ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -388,7 +388,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await enableABAC(page);
 
         // Create the first policy
-        const policyName = `Duplicate Test ${await pw.random.id()}`;
+        const policyName = `Duplicate Test ${pw.random.id()}`;
         await createBasicPolicy(page, {
             name: policyName,
             attribute: 'Department',

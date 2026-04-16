@@ -70,6 +70,19 @@ $sidebarOpacityAnimationDuration: 0.15s;
             color: inherit;
             cursor: inherit;
         }
+
+        .SidebarNavContainer:not(.disabled) .SidebarChannelGroup.SidebarChannelGroup--managedDropRejected {
+            cursor: not-allowed;
+
+            .SidebarChannelGroupHeader,
+            .SidebarChannelGroupHeader_groupButton,
+            .SidebarChannelGroupHeader_groupButton:hover,
+            .SidebarChannelGroupHeader_text,
+            .SidebarLink,
+            .SidebarChannel {
+                cursor: not-allowed;
+            }
+        }
     }
 
     .a11y--focused {
@@ -730,6 +743,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
 
             +.SidebarChannelGroupHeader_text {
                 padding-left: 0;
+            }
+        }
+
+        i.icon-folder-outline {
+            font-size: 14px;
+            +.SidebarChannelGroupHeader_text {
+                padding-left: 4px;
             }
         }
     }

@@ -9,8 +9,8 @@
 
 // Group: @channels @incoming_webhook
 
-import {getRandomId} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {getRandomId} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Incoming webhook', () => {
     let testTeam;
