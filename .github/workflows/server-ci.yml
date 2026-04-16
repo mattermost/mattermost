@@ -5,6 +5,7 @@
 # If you rename this workflow, be sure to update those workflows as well.
 name: Server CI
 on:
+  workflow_dispatch:  # Allow manual/API triggering for linked plugin CI
   push:
     branches:
       - master
