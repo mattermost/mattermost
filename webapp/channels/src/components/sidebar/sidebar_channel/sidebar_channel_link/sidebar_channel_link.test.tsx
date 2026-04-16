@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link/sidebar_channel_link';
@@ -10,6 +11,10 @@ import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_chann
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import {renderWithContext} from 'tests/react_testing_utils';
 
+const isDesktopAppMock = jest.mocked(isDesktopApp);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isDesktopApp: jest.fn(),
+}));
 jest.mock('packages/mattermost-redux/src/selectors/entities/shared_channels', () => ({
     getRemoteNamesForChannel: jest.fn(),
 }));
@@ -72,8 +77,7 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
     });
 
     test('should match snapshot for desktop', () => {
-        const userAgentMock = jest.requireMock('utils/user_agent');
-        userAgentMock.isDesktopApp.mockImplementation(() => false);
+        isDesktopAppMock.mockImplementation(() => false);
 
         const {container} = renderWithContext(
             <SidebarChannelLink {...baseProps}/>,

@@ -2,6 +2,11 @@
 
 .plugin-link-tooltip-floating-overlay {
     z-index: variables.$z-index-popover;
+    pointer-events: none;
+
+    > * {
+        pointer-events: auto;
+    }
 }
 
 // This is as per UX guidelines what the container of the

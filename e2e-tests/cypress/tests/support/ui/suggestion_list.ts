@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {SimpleUser} from 'tests/integration/channels/autocomplete/helpers';
-import {ChainableT} from 'tests/types';
+import {SimpleUser} from '@/integration/channels/autocomplete/helpers';
+import {ChainableT} from '@/types';
 
 /**
  * Verify user's at-mention in the suggestion list
@@ -13,7 +13,7 @@ import {ChainableT} from 'tests/types';
  * @example
  *   cy.uiVerifyAtMentionInSuggestionList(user, true, 'Channel Members');
  */
-function uiVerifyAtMentionInSuggestionList(user: SimpleUser, isSelected = false, sectionDividerName: string = null): ChainableT {
+function uiVerifyAtMentionInSuggestionList(user: SimpleUser, isSelected = false, sectionDividerName: string | null = null): ChainableT {
     // * Verify that the suggestion list is open and visible
     return cy.get('#suggestionList').should('be.visible').within(() => {
         if (sectionDividerName) {

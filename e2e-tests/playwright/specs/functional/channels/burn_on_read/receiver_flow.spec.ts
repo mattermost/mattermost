@@ -23,7 +23,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
 
         // # Post BoR message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `Secret message ${await pw.random.id()}`;
+        const secretMessage = `Secret message ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Login as receiver in new context
@@ -72,7 +72,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `To be burned ${await pw.random.id()}`;
+        const message = `To be burned ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -126,7 +126,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             await senderPage.toBeVisible();
 
             await senderPage.centerView.postCreate.toggleBurnOnRead();
-            const message = `Test message ${await pw.random.id()}`;
+            const message = `Test message ${pw.random.id()}`;
             await senderPage.postMessage(message);
 
             // # Login as receiver
@@ -180,7 +180,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Timer test ${await pw.random.id()}`;
+        const message = `Timer test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -241,7 +241,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Auto-delete test ${await pw.random.id()}`;
+        const message = `Auto-delete test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver
@@ -295,7 +295,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await senderPage.toBeVisible();
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message = `Badge test ${await pw.random.id()}`;
+        const message = `Badge test ${pw.random.id()}`;
         await senderPage.postMessage(message);
 
         // # Login as receiver

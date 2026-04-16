@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @guest_account @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Guest User Identification in different screens', () => {
     let guestUser: Cypress.UserProfile;
