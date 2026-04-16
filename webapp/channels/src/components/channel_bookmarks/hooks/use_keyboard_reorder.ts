@@ -92,7 +92,7 @@ export function useKeyboardReorder({
             formatMessage(
                 {
                     id: 'channel_bookmarks.reorder.start',
-                    defaultMessage: 'Selected {name} for reordering. Use arrow keys to move, Space to confirm, Escape to cancel.',
+                    defaultMessage: 'Selected {name} for reordering. Use arrow keys to move, Space or Enter to confirm, Escape to cancel.',
                 },
                 {name},
             ),
