@@ -57,7 +57,7 @@ test('Should show channel banner in thread view', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     // Configure the channel banner
     const channelSettingsModal = await channelsPage.openChannelSettings();
@@ -88,7 +88,7 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     // Post a message and open the thread
     await channelsPage.centerView.postMessage('Message without banner');
