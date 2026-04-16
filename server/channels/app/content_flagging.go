@@ -586,14 +586,23 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "api.data_spillage.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
-	deletionReport, appErr := a.PermanentDeletePostDataRetainStub(rctx, flaggedPost, reviewerId)
-	if appErr != nil {
-		return appErr
-	}
-
 	groupId, err := a.ContentFlaggingGroupId()
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFlaggedPost", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	deletionReport, appErr := a.PermanentDeletePostDataRetainStub(rctx, flaggedPost, reviewerId)
+
+	// Send the deletion report even if there is an error as there can be partial deletion of data
+	// which must be reported to the reviewers.
+	if deletionReport != nil {
+		a.Srv().Go(func() {
+			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
+		})
+	}
+
+	if appErr != nil {
+		return appErr
 	}
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
@@ -651,9 +660,6 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 
 	a.Srv().Go(func() {
 		a.sendFlaggedPostRemovalNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
-		if deletionReport != nil {
-			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
-		}
 	})
 
 	return nil
