@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @bot_accounts
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Managing bot accounts', () => {
     let botName: string;

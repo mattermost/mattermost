@@ -1370,14 +1370,35 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !fromSysConsole {
-		// If the request is not coming from system_console, only show the user level channels
-		// from all teams.
+		if len(props.TeamIds) == 1 && model.IsValidId(props.TeamIds[0]) {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), props.TeamIds[0], model.PermissionViewTeam) {
+				c.SetPermissionError(model.PermissionViewTeam)
+				return
+			}
+			// Team-scoped search
+			var channels model.ChannelList
+			var appErr *model.AppError
+			if props.Private || props.ExcludeGroupConstrained {
+				channels, appErr = c.App.AutocompleteChannelsForTeamFiltered(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term, props.Private, props.ExcludeGroupConstrained)
+			} else {
+				channels, appErr = c.App.AutocompleteChannelsForTeam(c.AppContext, props.TeamIds[0], c.AppContext.Session().UserId, props.Term)
+			}
+			if appErr != nil {
+				c.Err = appErr
+				return
+			}
+			if err := json.NewEncoder(w).Encode(channels); err != nil {
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
+			}
+			return
+		}
+
+		// No team filter — show user-level channels from all teams
 		channels, err := c.App.AutocompleteChannels(c.AppContext, c.AppContext.Session().UserId, props.Term)
 		if err != nil {
 			c.Err = err
 			return
 		}
-
 		if err := json.NewEncoder(w).Encode(channels); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}

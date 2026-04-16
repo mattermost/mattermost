@@ -22,7 +22,7 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 function verifyPurchaseModal() {
     cy.contains('Provide your payment details');
@@ -65,7 +65,7 @@ const defaultSuccessForm: PurchaseForm = {
     agree: true,
 };
 
-const prefilledProvinceCountryRegions = {
+const prefilledProvinceCountryRegions: Record<string, boolean> = {
     'United States of America': true,
     Canada: true,
 };
@@ -266,7 +266,7 @@ describe('Self hosted Purchase', () => {
         getCurrentUsers().then((userCount) => {
             cy.contains(`${userCount + additionalSeatsToPurchase} users`);
             cy.wait('@products').then((res) => {
-                const product = res.response.body.find((product: Cypress.Product) => product.sku === 'professional');
+                const product = res.response!.body.find((product: Cypress.Product) => product.sku === 'professional');
                 const purchaseAmount = dollarUSLocale.format((userCount + additionalSeatsToPurchase) * (product).price_per_seat * 12);
                 cy.contains(purchaseAmount);
             });
@@ -289,10 +289,10 @@ describe('Self hosted Purchase', () => {
                         expect(prodLine.length).to.be.equal(1);
                         getCurrentUsers().then((userCount) => {
                             cy.wait('@products').then((res) => {
-                                const product = res.response.body.find((product: Cypress.Product) => product.sku === 'professional');
+                                const product = res.response!.body.find((product: Cypress.Product) => product.sku === 'professional');
                                 const purchaseAmount = dollarUSLocale.format((userCount + additionalSeatsToPurchase) * (product).price_per_seat * 12);
                                 const amountLine = allLines.find((line: string) => line.includes('Amount paid'));
-                                if (!amountLine.includes(purchaseAmount)) {
+                                if (!amountLine!.includes(purchaseAmount)) {
                                     throw new Error(`Expected purchase amount ${purchaseAmount}, but amount line was ${amountLine}`);
                                 }
                             });
