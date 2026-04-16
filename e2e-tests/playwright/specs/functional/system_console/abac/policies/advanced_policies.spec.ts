@@ -18,6 +18,7 @@ import {
     activatePolicy,
     waitForLatestSyncJob,
     getJobDetailsFromRecentJobs,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -98,12 +99,13 @@ test('MM-T5785 Test policy with all attribute types and auto-add', async ({pw}) 
     // User 1 and 2 have Department=Engineering, User 3 has Department=Sales
     const celExpression = 'user.attributes.Department == "Engineering"';
 
-    const t5785PolicyId = await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(systemConsolePage.page, {
         name: policyName,
         celExpression: celExpression,
         autoSync: true,
         channels: [privateChannel.display_name],
     });
+    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
     // ============================================================
     // STEP 4: Test Access Rule
@@ -126,29 +128,11 @@ test('MM-T5785 Test policy with all attribute types and auto-add', async ({pw}) 
         await navigateToABACPage(systemConsolePage.page);
     }
 
-    // Get policy ID FIRST (before any sync jobs run)
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-
-    const idMatch = policyName.match(/([a-z0-9]+)$/i);
-    const uniqueId = idMatch ? idMatch[1] : policyName;
-    await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(1000);
-
-    const policyRow = systemConsolePage.page.locator('.policy-name').first();
-    const policyElementId = await policyRow.getAttribute('id');
-    const policyId = policyElementId?.replace('customDescription-', '');
-
-    if (!policyId) {
-        throw new Error('Could not get policy ID');
-    }
-    await searchInput.clear();
-
     // Activate the policy BEFORE waiting for sync jobs
     await activatePolicy(adminClient, policyId);
 
     // Wait for the initial sync job (created when policy was saved)
-    await waitForLatestSyncJob(systemConsolePage.page, 10, undefined, undefined, t5785PolicyId);
+    await waitForLatestSyncJob(systemConsolePage.page, 10, undefined, undefined, policyId);
 
     // Run ANOTHER sync job now that policy is active
     const t5785SyncJobId = await runSyncJob(systemConsolePage.page);
@@ -282,12 +266,13 @@ test('MM-T5787 Test policy with complex rules in Advanced Mode', async ({pw}) =>
     const complexExpression =
         'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
 
-    const t5787PolicyId = await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(systemConsolePage.page, {
         name: policyName,
         celExpression: complexExpression,
         autoSync: true,
         channels: [channel.display_name],
     });
+    const t5787PolicyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
     // # Ensure we're on the ABAC page
     await navigateToABACPage(systemConsolePage.page);
@@ -313,28 +298,10 @@ test('MM-T5787 Test policy with complex rules in Advanced Mode', async ({pw}) =>
     // # Wait for sync job (from Apply Policy)
     await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5787PolicyId);
 
-    // # Find and activate the policy - search by unique ID part
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
-    const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
-
-    await searchInput.fill(searchTerm);
-    await systemConsolePage.page.waitForTimeout(1000);
-
-    // Find the specific policy by name
-    const foundPolicy = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-    if (await foundPolicy.isVisible({timeout: 5000})) {
-        const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId) {
-            await activatePolicy(adminClient, policyId);
-            const t5787SyncJobId = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5787SyncJobId);
-        }
-    } else {
-        // Try to list what policies ARE visible
-        await systemConsolePage.page.locator('.policy-name').allTextContents();
-    }
-    await searchInput.clear();
+    // # Activate and run sync
+    await activatePolicy(adminClient, t5787PolicyId);
+    const t5787SyncJobId = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, t5787SyncJobId);
 
     // # Verify results
 

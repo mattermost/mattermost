@@ -17,6 +17,7 @@ import {
     createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -39,17 +40,16 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await navigateToABACPage(systemConsolePage.page);
 
     const policy1Name = `LDAP Remove StartsWith ${await pw.random.id()}`;
-    const t5799Policy1Id = await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(systemConsolePage.page, {
         name: policy1Name,
         celExpression: 'user.attributes.Department.startsWith("Eng")',
         autoSync: true,
         channels: [channel1.display_name],
     });
+    const t5799Policy1Id = await getPolicyIdByName(systemConsolePage.page, policy1Name);
 
-    // Activate immediately using the UUID from createAdvancedPolicy — no creation-sync wait needed.
-    if (t5799Policy1Id) {
-        await activatePolicy(adminClient, t5799Policy1Id);
-    }
+    // Activate immediately using the UUID — no creation-sync wait needed.
+    await activatePolicy(adminClient, t5799Policy1Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
     const t5799Sync1aJobId = await runSyncJob(systemConsolePage.page);
@@ -89,7 +89,7 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await navigateToABACPage(systemConsolePage.page);
 
     const policy2Name = `LDAP Remove TwoAttr ${await pw.random.id()}`;
-    const t5799Policy2Id = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policy2Name,
         attribute: 'Department',
         operator: '==',
@@ -97,10 +97,9 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
         autoSync: true,
         channels: [channel2.display_name],
     });
+    const t5799Policy2Id = await getPolicyIdByName(systemConsolePage.page, policy2Name);
 
-    if (t5799Policy2Id) {
-        await activatePolicy(adminClient, t5799Policy2Id);
-    }
+    await activatePolicy(adminClient, t5799Policy2Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
     const t5799Sync2aJobId = await runSyncJob(systemConsolePage.page);
@@ -140,7 +139,7 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await navigateToABACPage(systemConsolePage.page);
 
     const policyName = `Dynamic Policy ${await pw.random.id()}`;
-    const t5800PolicyId = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -148,10 +147,9 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
         autoSync: true,
         channels: [privateChannel.display_name],
     });
+    const t5800PolicyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
-    if (t5800PolicyId) {
-        await activatePolicy(adminClient, t5800PolicyId);
-    }
+    await activatePolicy(adminClient, t5800PolicyId);
 
     // PHASE 1: User has non-qualifying attribute — not in channel without a sync.
     const phase1InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);

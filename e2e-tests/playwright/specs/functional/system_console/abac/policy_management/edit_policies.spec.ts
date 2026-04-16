@@ -14,6 +14,7 @@ import {
     createBasicPolicy,
     captureLatestJobId,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -85,7 +86,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
     // ===========================================
     const policyName = `ABAC-Edit-Test-${await pw.random.id()}`;
 
-    const editTest1PolicyId = await createBasicPolicy(page, {
+    await createBasicPolicy(page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -93,6 +94,7 @@ test('MM-T5790 Editing policy value applies access control without auto-add', as
         autoSync: false, // Auto-add is OFF
         channels: [privateChannel.display_name],
     });
+    const editTest1PolicyId = await getPolicyIdByName(page, policyName);
 
     // Check membership AFTER policy creation (before explicit sync)
     await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);

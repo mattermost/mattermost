@@ -17,6 +17,7 @@ import {
     createAdvancedPolicy,
     captureLatestJobId,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -100,7 +101,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // ===========================================
     const policyName = `ABAC-AddAttr-Test-${await pw.random.id()}`;
 
-    const editTest2PolicyId = await createBasicPolicy(page, {
+    await createBasicPolicy(page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -108,6 +109,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
+    const editTest2PolicyId = await getPolicyIdByName(page, policyName);
 
     // Wait for automatic sync to complete
     await page.waitForTimeout(500);
@@ -321,12 +323,13 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // ===========================================
     const policyName = `ABAC-RemoveRule-${await pw.random.id()}`;
 
-    const editTest3PolicyId = await createAdvancedPolicy(page, {
+    await createAdvancedPolicy(page, {
         name: policyName,
         celExpression: 'user.attributes.Department == "Engineering" && user.attributes.Office == "Remote"',
         autoSync: true, // Auto-add is ON
         channels: [privateChannel.display_name],
     });
+    const editTest3PolicyId = await getPolicyIdByName(page, policyName);
 
     // Wait for automatic sync to complete
     await page.waitForTimeout(500);

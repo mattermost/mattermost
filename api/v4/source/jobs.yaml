@@ -218,17 +218,6 @@
           schema:
             type: integer
             default: 60
-        - name: policy_id
-          in: query
-          description: >
-            Optional filter for `access_control_sync` jobs only. When provided,
-            returns only jobs whose `data` map contains a matching `policy_id`
-            value (i.e. jobs triggered for that specific ABAC policy). Ignored
-            for all other job types.
-
-            __Minimum server version: 10.9__
-          schema:
-            type: string
       responses:
         "200":
           description: Job list retrieval successful

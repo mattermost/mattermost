@@ -21,6 +21,7 @@ import {
     createBasicPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -60,7 +61,7 @@ test('MM-T5794 User auto-added when qualifying attribute is added to profile', a
     await navigateToABACPage(systemConsolePage.page);
 
     const policyName = `Engineering Access ${await pw.random.id()}`;
-    const policyId = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -68,11 +69,10 @@ test('MM-T5794 User auto-added when qualifying attribute is added to profile', a
         autoSync: true, // ✅ Auto-add enabled
         channels: [privateChannel.display_name],
     });
+    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
-    // Activate immediately using the UUID returned by createBasicPolicy — no creation-sync wait.
-    if (policyId) {
-        await activatePolicy(adminClient, policyId);
-    }
+    // Activate immediately using the UUID — no creation-sync wait.
+    await activatePolicy(adminClient, policyId);
 
     // ============================================================
     // STEP 2: Verify user is NOT in channel initially
@@ -271,7 +271,7 @@ test('MM-T5796a User auto-removed when required attribute is removed (auto-add f
     await navigateToABACPage(systemConsolePage.page);
 
     const policy1Name = `Engineering Access NoAutoAdd ${await pw.random.id()}`;
-    const policy1Id = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policy1Name,
         attribute: 'Department',
         operator: '==',
@@ -279,16 +279,15 @@ test('MM-T5796a User auto-removed when required attribute is removed (auto-add f
         autoSync: false,
         channels: [privateChannel.display_name],
     });
+    const policy1Id = await getPolicyIdByName(systemConsolePage.page, policy1Name);
 
     // Manually add user to channel
     await adminClient.addToChannel(testUser.id, privateChannel.id);
     const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
     expect(initialInChannel).toBe(true);
 
-    // Activate immediately using the UUID from createBasicPolicy — no creation-sync wait.
-    if (policy1Id) {
-        await activatePolicy(adminClient, policy1Id);
-    }
+    // Activate immediately using the UUID — no creation-sync wait.
+    await activatePolicy(adminClient, policy1Id);
 
     // Remove the qualifying attribute
     await updateUserAttributes(adminClient, testUser.id, {Department: 'Sales'});
@@ -330,7 +329,7 @@ test('MM-T5796b User auto-added then auto-removed when attribute changes (auto-a
     await navigateToABACPage(systemConsolePage.page);
 
     const policy2Name = `Engineering Access WithAutoAdd ${await pw.random.id()}`;
-    const policy2Id = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policy2Name,
         attribute: 'Department',
         operator: '==',
@@ -338,11 +337,10 @@ test('MM-T5796b User auto-added then auto-removed when attribute changes (auto-a
         autoSync: true,
         channels: [channel2.display_name],
     });
+    const policy2Id = await getPolicyIdByName(systemConsolePage.page, policy2Name);
 
-    // Activate immediately using the UUID from createBasicPolicy — no creation-sync wait.
-    if (policy2Id) {
-        await activatePolicy(adminClient, policy2Id);
-    }
+    // Activate immediately using the UUID — no creation-sync wait.
+    await activatePolicy(adminClient, policy2Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
     const runSync2JobId = await runSyncJob(systemConsolePage.page);

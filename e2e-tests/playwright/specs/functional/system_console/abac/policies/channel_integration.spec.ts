@@ -10,6 +10,7 @@ import {
     createBasicPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -54,16 +55,15 @@ test('MM-T5788 Add policy to channel from Channel Configuration page', async ({p
 
     // Create policy without channels (we'll link via Channel Config)
     const policyName = `Channel Config Policy ${await pw.random.id()}`;
-    const t5788PolicyId = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
         value: 'Engineering',
     });
+    const t5788PolicyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
-    if (t5788PolicyId) {
-        await activatePolicy(adminClient, t5788PolicyId);
-    }
+    await activatePolicy(adminClient, t5788PolicyId);
 
     // Get search term for policy
     const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);

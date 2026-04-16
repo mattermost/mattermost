@@ -15,6 +15,7 @@ import {
     activatePolicy,
     waitForLatestSyncJob,
     getJobDetailsFromRecentJobs,
+    getPolicyIdByName,
 } from '../support';
 
 test('MM-T5783 Create and test policy with auto-add disabled', async ({pw}) => {
@@ -81,7 +82,7 @@ test('MM-T5783 Create and test policy with auto-add disabled', async ({pw}) => {
 
     // Use the working createBasicPolicy helper (same as MM-T5784)
     const policyName = `Engineering Policy ${await pw.random.id()}`;
-    const t5784PolicyId = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -89,6 +90,7 @@ test('MM-T5783 Create and test policy with auto-add disabled', async ({pw}) => {
         autoSync: false, // Auto-add DISABLED for this test
         channels: [privateChannel.display_name],
     });
+    const t5784PolicyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
     // ============================================================
     // STEP 3: Test Access Rule (navigate back to policy to test)
@@ -247,7 +249,7 @@ test('MM-T5784 Create and test policy with auto-add enabled', async ({pw}) => {
 
     // Use createBasicPolicy with autoSync: true
     const policyName = `Auto-Add Policy ${await pw.random.id()}`;
-    const t5784AutoAddPolicyId = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policyName,
         attribute: 'Department',
         operator: '==',
@@ -255,6 +257,7 @@ test('MM-T5784 Create and test policy with auto-add enabled', async ({pw}) => {
         autoSync: true, // Auto-add ENABLED for this test
         channels: [privateChannel.display_name],
     });
+    const policyId = await getPolicyIdByName(systemConsolePage.page, policyName);
 
     // ============================================================
     // STEP 3: Test Access Rule (navigate back to policy to test)
@@ -278,25 +281,7 @@ test('MM-T5784 Create and test policy with auto-add enabled', async ({pw}) => {
     }
 
     // Wait for initial sync job to complete
-    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, t5784AutoAddPolicyId);
-
-    // Get policy ID and activate it for auto-add to work
-    const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 5000});
-
-    const idMatch = policyName.match(/([a-z0-9]+)$/i);
-    const uniqueId = idMatch ? idMatch[1] : policyName;
-    await searchInput.fill(uniqueId);
-    await systemConsolePage.page.waitForTimeout(1000);
-
-    const policyRow = systemConsolePage.page.locator('.policy-name').first();
-    const policyElementId = await policyRow.getAttribute('id');
-    const policyId = policyElementId?.replace('customDescription-', '');
-
-    if (!policyId) {
-        throw new Error('Could not get policy ID');
-    }
-    await searchInput.clear();
+    await waitForLatestSyncJob(systemConsolePage.page, 5, undefined, undefined, policyId);
 
     // Activate the policy so auto-add works
     await activatePolicy(adminClient, policyId);

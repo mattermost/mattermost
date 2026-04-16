@@ -350,16 +350,13 @@ export async function createBasicPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<string | null> {
+): Promise<void> {
     // Ensure we are on the Membership Policies page before looking for "Add policy".
-    // The ABAC settings page was split: the enable/disable toggle is now on
-    // /attribute_based_access_control while the policy list lives on /membership_policies.
     if (!page.url().includes('/membership_policies')) {
         await page.goto('/admin_console/system_attributes/membership_policies');
         await page.waitForLoadState('networkidle');
     }
 
-    // Click Add policy button — nameInput.waitFor below is sufficient, no separate networkidle
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.click();
 
@@ -494,26 +491,7 @@ export async function createBasicPolicy(
 
     // Save policy and confirm
     const saveButton = page.getByRole('button', {name: 'Save'});
-
-    // Intercept the POST/PUT response to capture the policy ID
-    const policyResponsePromise = page.waitForResponse(
-        (resp) =>
-            resp.url().includes('/access_control_policies') &&
-            (resp.request().method() === 'PUT' || resp.request().method() === 'POST') &&
-            resp.ok(),
-        {timeout: 15000},
-    );
-
     await saveButton.click();
-
-    let policyId: string | null = null;
-    try {
-        const response = await policyResponsePromise;
-        const policy: {id?: string} = await response.json();
-        policyId = policy.id ?? null;
-    } catch {
-        // fallback — caller gets null, will use global job list
-    }
 
     // Click "Apply policy" button in confirmation modal (only appears if channels are assigned)
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
@@ -522,11 +500,8 @@ export async function createBasicPolicy(
         await applyPolicyButton.click();
         await page.waitForLoadState('networkidle');
     } else {
-        // No channels assigned, just wait for save to complete
         await page.waitForLoadState('networkidle');
     }
-
-    return policyId;
 }
 
 /**
@@ -715,7 +690,7 @@ export async function createAdvancedPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<string | null> {
+): Promise<void> {
     // Ensure we are on the Membership Policies page before looking for "Add policy".
     if (!page.url().includes('/membership_policies')) {
         await page.goto('/admin_console/system_attributes/membership_policies');
@@ -829,25 +804,7 @@ export async function createAdvancedPolicy(
         throw new Error(`Save button is disabled`);
     }
 
-    // Intercept the POST/PUT response to capture the policy ID
-    const policyResponsePromise = page.waitForResponse(
-        (resp) =>
-            resp.url().includes('/access_control_policies') &&
-            (resp.request().method() === 'PUT' || resp.request().method() === 'POST') &&
-            resp.ok(),
-        {timeout: 15000},
-    );
-
     await saveButton.click();
-
-    let policyId: string | null = null;
-    try {
-        const response = await policyResponsePromise;
-        const policy: {id?: string} = await response.json();
-        policyId = policy.id ?? null;
-    } catch {
-        // fallback — caller gets null, will use global job list
-    }
 
     // Check for error message
     const errorMessage = page.locator('text=/Unable to save|errors in the form/i').first();
@@ -866,8 +823,6 @@ export async function createAdvancedPolicy(
     } else {
         throw new Error(`Apply Policy button not visible after Save`);
     }
-
-    return policyId;
 }
 
 /**
@@ -1236,70 +1191,39 @@ export async function getJobDetailsFromRecentJobs(
 }
 
 /**
- * Get policy ID by name using search API (with retry)
+ * Extract policy ID from the DOM after creation.
+ * Navigates to the membership policies page, searches for the policy by name,
+ * and reads the ID from the element's id attribute (format: customDescription-{id}).
  */
-export async function getPolicyIdByName(
-    client: Client4,
-    policyName: string,
-    retries: number = 3,
-): Promise<string | null> {
-    const searchUrl = `${client.getBaseRoute()}/access_control/policies/search`;
-
-    // Extract the base name without the random ID suffix for search
-    // e.g., "Auto-Add Policy 48b0141" -> "Auto-Add Policy"
-    const baseNameMatch = policyName.match(/^(.+?)\s+[a-z0-9]+$/i);
-    const searchTerm = baseNameMatch ? baseNameMatch[1] : policyName;
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-            // Use the search API
-            const result = await (client as any).doFetch(searchUrl, {
-                method: 'POST',
-                body: JSON.stringify({
-                    term: searchTerm,
-                }),
-            });
-
-            const policies = result?.policies || [];
-
-            if (policies.length > 0) {
-                // Try exact match first
-                let policy = policies.find((p: any) => p.name === policyName);
-
-                // If no exact match, try partial match
-                if (!policy) {
-                    policy = policies.find((p: any) => p.name.includes(searchTerm));
-                }
-
-                // If still no match, just take the first result
-                if (!policy && policies.length > 0) {
-                    policy = policies[0];
-                }
-
-                if (policy) {
-                    return policy.id;
-                } else {
-                    // Wait before retrying
-                    if (attempt < retries) {
-                        await new Promise((resolve) => setTimeout(resolve, 2000));
-                    }
-                }
-            } else {
-                // Wait before retrying
-                if (attempt < retries) {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
-                }
-            }
-        } catch {
-            // console.error(`Failed to search policies (attempt ${attempt}):`, _error.message || String(_error));
-
-            if (attempt < retries) {
-                await new Promise((resolve) => setTimeout(resolve, 2000));
-            }
-        }
+export async function getPolicyIdByName(page: Page, policyName: string): Promise<string> {
+    // Navigate to membership policies if needed
+    if (!page.url().includes('/membership_policies')) {
+        await page.goto('/admin_console/system_attributes/membership_policies');
+        await page.waitForLoadState('domcontentloaded');
     }
 
-    return null;
+    // Search for the policy
+    const searchInput = page.getByPlaceholder(/search/i).first();
+    if (await searchInput.isVisible({timeout: 3000}).catch(() => false)) {
+        await searchInput.fill(policyName);
+        await page.waitForTimeout(1000);
+    }
+
+    const policyRow = page.locator('.policy-name').first();
+    await policyRow.waitFor({state: 'visible', timeout: 10000});
+    const elementId = await policyRow.getAttribute('id');
+    const policyId = elementId?.replace('customDescription-', '');
+
+    if (!policyId) {
+        throw new Error(`Could not extract policy ID for "${policyName}"`);
+    }
+
+    // Clear search
+    if (await searchInput.isVisible({timeout: 1000}).catch(() => false)) {
+        await searchInput.clear();
+    }
+
+    return policyId;
 }
 
 /**

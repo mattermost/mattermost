@@ -17,6 +17,7 @@ import {
     createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -38,7 +39,7 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
     await navigateToABACPage(systemConsolePage.page);
 
     const policy1Name = `LDAP AutoAdd Single ${await pw.random.id()}`;
-    const policy1Id = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policy1Name,
         attribute: 'Department',
         operator: '==',
@@ -46,12 +47,10 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
         autoSync: true,
         channels: [channel1.display_name],
     });
+    const policy1Id = await getPolicyIdByName(systemConsolePage.page, policy1Name);
 
-    // createBasicPolicy returns the policy UUID from the PUT response — activate directly,
-    // no need to wait for the policy-creation sync (policy was inactive during that sync).
-    if (policy1Id) {
-        await activatePolicy(adminClient, policy1Id);
-    }
+    // Activate directly — no need to wait for the policy-creation sync.
+    await activatePolicy(adminClient, policy1Id);
 
     // User has non-qualifying attribute (Sales) — no sync needed to confirm not in channel.
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
@@ -87,16 +86,15 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
     await navigateToABACPage(systemConsolePage.page);
 
     const policy2Name = `LDAP AutoAdd Contains ${await pw.random.id()}`;
-    const policy2Id = await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(systemConsolePage.page, {
         name: policy2Name,
         celExpression: 'user.attributes.Department.contains("Eng")',
         autoSync: true,
         channels: [channel2.display_name],
     });
+    const policy2Id = await getPolicyIdByName(systemConsolePage.page, policy2Name);
 
-    if (policy2Id) {
-        await activatePolicy(adminClient, policy2Id);
-    }
+    await activatePolicy(adminClient, policy2Id);
 
     // User has non-qualifying attribute — no sync needed.
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
@@ -131,7 +129,7 @@ test('MM-T5798a User added by admin after LDAP attribute sync with == operator (
     await navigateToABACPage(systemConsolePage.page);
 
     const policy1Name = `LDAP Sync Equals ${await pw.random.id()}`;
-    const t5798Policy1Id = await createBasicPolicy(systemConsolePage.page, {
+    await createBasicPolicy(systemConsolePage.page, {
         name: policy1Name,
         attribute: 'Department',
         operator: '==',
@@ -139,10 +137,9 @@ test('MM-T5798a User added by admin after LDAP attribute sync with == operator (
         autoSync: false,
         channels: [channel1.display_name],
     });
+    const t5798Policy1Id = await getPolicyIdByName(systemConsolePage.page, policy1Name);
 
-    if (t5798Policy1Id) {
-        await activatePolicy(adminClient, t5798Policy1Id);
-    }
+    await activatePolicy(adminClient, t5798Policy1Id);
 
     // User has non-qualifying attribute — not in channel without needing a sync.
     const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
@@ -187,16 +184,15 @@ test('MM-T5798b User added by admin after LDAP attribute sync with in operator (
     await navigateToABACPage(systemConsolePage.page);
 
     const policy2Name = `LDAP Sync In ${await pw.random.id()}`;
-    const t5798Policy2Id = await createAdvancedPolicy(systemConsolePage.page, {
+    await createAdvancedPolicy(systemConsolePage.page, {
         name: policy2Name,
         celExpression: 'user.attributes.Department in ["Engineering", "Product"]',
         autoSync: false,
         channels: [channel2.display_name],
     });
+    const t5798Policy2Id = await getPolicyIdByName(systemConsolePage.page, policy2Name);
 
-    if (t5798Policy2Id) {
-        await activatePolicy(adminClient, t5798Policy2Id);
-    }
+    await activatePolicy(adminClient, t5798Policy2Id);
 
     // User has non-qualifying attribute — not in channel without needing a sync.
     const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
