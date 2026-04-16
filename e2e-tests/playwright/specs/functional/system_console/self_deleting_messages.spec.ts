@@ -1,7 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {AdminConfig} from '@mattermost/types/config';
+
 import {expect, test} from '@mattermost/playwright-lib';
+
+/**
+ * Patch the Posts page required fields to known valid values so tests that
+ * load the page always start with a saveable form state, regardless of what
+ * other parallel tests may have left in the server config.
+ */
+async function resetPostsConfig(adminClient: {patchConfig: (config: Partial<AdminConfig>) => Promise<unknown>}) {
+    await adminClient.patchConfig({
+        ServiceSettings: {
+            PersistentNotificationIntervalMinutes: 5,
+            PersistentNotificationMaxRecipients: 5,
+            PersistentNotificationMaxCount: 6,
+        },
+    } as Partial<AdminConfig>);
+}
 
 test.describe('System Console > Self-Deleting Messages', () => {
     test('admin can enable and disable self-deleting messages', async ({pw}) => {
@@ -16,6 +33,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
@@ -87,6 +107,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
             throw new Error('Failed to create admin user');
         }
 
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
+
         // # Ensure BoR is enabled via API
         const config = await adminClient.getConfig();
         config.ServiceSettings.EnableBurnOnRead = true;
@@ -136,6 +159,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # Ensure BoR is enabled via API
         const config = await adminClient.getConfig();
@@ -209,26 +235,26 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const durationDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadDurationSecondsdropdown');
         const maxTTLDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown');
 
-        // * Verify feature is disabled (from API config)
-        expect(await enableToggleFalse.isChecked()).toBe(true);
+        // * Verify feature is disabled (from API config) — use built-in retry to tolerate render lag
+        await expect(enableToggleFalse).toBeChecked({timeout: 10000});
 
         // * Verify dropdowns are disabled when feature is off
-        expect(await durationDropdown.isDisabled()).toBe(true);
-        expect(await maxTTLDropdown.isDisabled()).toBe(true);
+        await expect(durationDropdown).toBeDisabled({timeout: 5000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 5000});
 
         // # Enable the feature (just toggle, don't save)
         await enableToggleTrue.click();
 
         // * Verify dropdowns are now enabled
-        expect(await durationDropdown.isDisabled()).toBe(false);
-        expect(await maxTTLDropdown.isDisabled()).toBe(false);
+        await expect(durationDropdown).not.toBeDisabled({timeout: 5000});
+        await expect(maxTTLDropdown).not.toBeDisabled({timeout: 5000});
 
         // # Toggle back to disabled
         await enableToggleFalse.click();
 
         // * Verify dropdowns are disabled again
-        expect(await durationDropdown.isDisabled()).toBe(true);
-        expect(await maxTTLDropdown.isDisabled()).toBe(true);
+        await expect(durationDropdown).toBeDisabled({timeout: 5000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 5000});
     });
 
     test('settings persist after page reload', async ({pw}) => {
@@ -296,6 +322,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
             throw new Error('Failed to create admin user');
         }
 
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
+
         // # First, disable BoR via API to start clean
         const config = await adminClient.getConfig();
         config.ServiceSettings.EnableBurnOnRead = false;
@@ -342,6 +371,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         if (!adminUser) {
             throw new Error('Failed to create admin user');
         }
+
+        // # Reset Posts section required fields so Save button is always enabled
+        await resetPostsConfig(adminClient);
 
         // # First, enable BoR via API
         const config = await adminClient.getConfig();
@@ -396,6 +428,12 @@ test.describe('System Console > Self-Deleting Messages', () => {
         config.ServiceSettings.BurnOnReadDurationSeconds = 300; // 5 minutes
         config.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds = 604800; // 7 days (so max TTL doesn't interfere)
         await adminClient.patchConfig(config);
+
+        // # Verify the config was applied before proceeding (guard against state pollution)
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
 
         // # Create a second user to receive the message
         const randomUser = await pw.random.user();

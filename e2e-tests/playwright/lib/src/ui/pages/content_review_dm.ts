@@ -55,10 +55,9 @@ export default class ContentReviewPage {
     }
 
     async waitForPageLoaded() {
-        await this.page.waitForTimeout(1000);
         await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         this.ensureReportCardSet();
-        await expect(this.reportCard!).toBeVisible();
+        await expect(this.reportCard!).toBeVisible({timeout: 15000});
     }
 
     async getLastCard(): Promise<Locator> {

@@ -70,6 +70,14 @@ export default class ScheduleMessageModal {
 
         await dateLocator.click();
 
+        // Wait for the date-picker calendar to fully close before returning.
+        // The calendar uses FloatingFocusManager with modal=true; if it is still
+        // mounted when selectTime() tries to click the time button the focus
+        // management can prevent the Menu.Container from registering the click,
+        // causing time_option_0 to never appear.
+        const calendarPopper = this.container.locator('.date-picker__popper');
+        await calendarPopper.waitFor({state: 'hidden'});
+
         // if day is single digit then prefix with a 0
         if (day < 10) {
             return `${month} 0${day}`;
@@ -80,25 +88,32 @@ export default class ScheduleMessageModal {
 
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
-        const timeButton = this.container.page().getByTestId(`time_option_${optionIndex}`);
-        await expect(timeButton).toBeVisible();
-        await timeButton.click();
+        const timeOption = this.container.page().getByTestId(`time_option_${optionIndex}`);
+        await expect(timeOption).toBeVisible();
+        await timeOption.click();
 
-        return await timeButton.textContent();
+        return await timeOption.textContent();
     }
 
     async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0) {
         await this.toBeVisible();
 
         const selectedDate = await this.selectDate(dayFromToday);
-        const fromDateButton = await this.dateButton.textContent();
+
+        // The date button's textContent includes the label prefix ("Date") and the
+        // icon element, so use includes() rather than strict equality to detect
+        // relative labels such as "Today" and "Tomorrow".
+        const fromDateButtonText = (await this.dateButton.textContent()) ?? '';
 
         const selectedTime = await this.selectTime(timeOptionIndex);
         await this.scheduleButton.click();
 
         // if selectedDate is Today or Tomorrow then return Today or Tomorrow
-        if (fromDateButton === 'Today' || fromDateButton === 'Tomorrow') {
-            return {selectedDate: fromDateButton, selectedTime};
+        if (fromDateButtonText.includes('Today')) {
+            return {selectedDate: 'Today', selectedTime};
+        }
+        if (fromDateButtonText.includes('Tomorrow')) {
+            return {selectedDate: 'Tomorrow', selectedTime};
         }
 
         // if selectedDate is a date in the future then return the date

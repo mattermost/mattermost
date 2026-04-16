@@ -24,10 +24,12 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Skip if Entry SKU — single-channel guest card is gated on non-Entry licenses
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(license.SkuShortName === 'entry', 'Skipping test - server has Entry license, card not shown');
+
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Create a guest user and add to one channel
         const guestUser = await adminClient.createUser(await pw.random.user(), '', '');
@@ -44,10 +46,10 @@ test(
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify the single-channel guests card is visible
         const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
+        await singleChannelGuestsCard.waitFor({state: 'visible'});
         await expect(singleChannelGuestsCard).toBeVisible();
 
         // * Verify the count is at least 1
@@ -74,10 +76,8 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Create a guest user and add to one channel
         const guestUser = await adminClient.createUser(await pw.random.user(), '', '');
@@ -114,10 +114,8 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Disable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = false;
-        await adminClient.updateConfig(config);
+        // # Disable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: false}} as any);
 
         // # Log in as admin and navigate to site statistics
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -143,10 +141,8 @@ test(
     async ({pw}) => {
         const {adminClient} = await pw.initSetup();
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Fetch server limits
         const {data: limits} = await adminClient.getServerLimits();
@@ -177,10 +173,12 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Skip if Entry SKU — single-channel guest card is gated on non-Entry licenses
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(license.SkuShortName === 'entry', 'Skipping test - server has Entry license, card not shown');
+
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Create a single-channel guest (count will be well within any license limit)
         const guestUser = await adminClient.createUser(await pw.random.user(), '', '');
@@ -202,10 +200,10 @@ test(
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify the card title does NOT have error class (count is within limit)
         const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
+        await cardTitle.waitFor({state: 'visible'});
         await expect(cardTitle).toBeVisible();
         await expect(cardTitle).not.toHaveClass(/team_statistics--error/);
     },
@@ -224,10 +222,8 @@ test('does not show guest limit banner when count is within limit', {tag: '@syst
         throw new Error('Failed to create admin user');
     }
 
-    // # Enable guest accounts
-    const config = await adminClient.getConfig();
-    config.GuestAccountsSettings.Enable = true;
-    await adminClient.updateConfig(config);
+    // # Enable guest accounts via patch to avoid overwriting unrelated config
+    await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
     // # Navigate to any page as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -254,10 +250,12 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Skip if Entry SKU — single-channel guest card is gated on non-Entry licenses
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(license.SkuShortName === 'entry', 'Skipping test - server has Entry license, card not shown');
+
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Create multiple single-channel guests so the analytics count exceeds the mocked limit
         for (let i = 0; i < 3; i++) {
@@ -291,10 +289,10 @@ test(
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify the card title has error styling
         const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
+        await cardTitle.waitFor({state: 'visible'});
         await expect(cardTitle).toBeVisible();
         await expect(cardTitle).toHaveClass(/team_statistics--error/);
 
@@ -319,10 +317,12 @@ test(
             throw new Error('Failed to create admin user');
         }
 
-        // # Enable guest accounts
-        const config = await adminClient.getConfig();
-        config.GuestAccountsSettings.Enable = true;
-        await adminClient.updateConfig(config);
+        // # Skip if Entry SKU — single-channel guest card is gated on non-Entry licenses
+        const license = await adminClient.getClientLicenseOld();
+        test.skip(license.SkuShortName === 'entry', 'Skipping test - server has Entry license, card not shown');
+
+        // # Enable guest accounts via patch to avoid overwriting unrelated config
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}} as any);
 
         // # Create a guest user and add to TWO channels
         const multiChannelGuest = await adminClient.createUser(await pw.random.user(), '', '');
@@ -353,10 +353,10 @@ test(
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
         // * Verify the single-channel guests card is visible
         const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
+        await singleChannelGuestsCard.waitFor({state: 'visible'});
         await expect(singleChannelGuestsCard).toBeVisible();
 
         // * Verify the count text is present — multi-channel guest should not increment it
@@ -374,10 +374,11 @@ test(
 
         // # Reload page to get updated stats
         await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
 
-        // * Verify the count increased by exactly 1 for the new single-channel guest
-        const updatedCountText = await singleChannelGuestsCard.textContent();
+        // * Wait for the card to be visible again after reload and verify the count increased by exactly 1
+        const updatedCard = systemConsolePage.page.getByTestId('singleChannelGuests');
+        await updatedCard.waitFor({state: 'visible'});
+        const updatedCountText = await updatedCard.textContent();
         const updatedMatch = updatedCountText?.match(/(\d+)/);
         expect(updatedMatch).toBeTruthy();
         expect(Number(updatedMatch![1])).toBe(singleChannelGuestCount + 1);

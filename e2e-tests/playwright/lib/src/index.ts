@@ -71,6 +71,7 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
+    ensureAutotranslationPermissions,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
 export {

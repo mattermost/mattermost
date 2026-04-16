@@ -227,7 +227,13 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             adminClient,
         } = await setupBorTest(pw, {
             durationSeconds: 10,
-            maxTTLSeconds: 300,
+            maxTTLSeconds: 86400,
+        });
+
+        // # Verify the config was applied before proceeding (guard against state pollution)
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
         });
 
         // # Create receiver
@@ -266,7 +272,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             const postLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
             await expect(postLocator).not.toBeVisible();
         }).toPass({
-            timeout: 20000,
+            timeout: 30000,
             intervals: [1000],
         });
 

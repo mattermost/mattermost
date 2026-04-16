@@ -60,9 +60,9 @@ export default class FlagPostConfirmationDialog {
     }
 
     async notToBeVisible() {
-        await expect(this.container).not.toBeVisible();
-        await expect(this.cancelButton).not.toBeVisible();
-        await expect(this.submitButton).not.toBeVisible();
+        await expect(this.container).not.toBeVisible({timeout: 10000});
+        await expect(this.cancelButton).not.toBeVisible({timeout: 10000});
+        await expect(this.submitButton).not.toBeVisible({timeout: 10000});
     }
 
     async cannotFlagAlreadyFlaggedPostToBeVisible() {

@@ -153,18 +153,20 @@ test.describe('Anonymous URLs', () => {
         {tag: '@anonymous_urls'},
         async ({pw}) => {
             // # Initialize setup and configure anonymous URLs
-            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
             const license = await adminClient.getClientLicenseOld();
             test.skip(
                 license.SkuShortName !== 'advanced',
                 'Skipping test - server does not have enterprise advanced license',
             );
 
+            await adminClient.addToTeam(team.id, adminUser.id);
             await setAnonymousUrls(adminClient, true);
 
-            // # Log in and go to channels
+            // # Log in and go to channels — navigate to the team explicitly so the
+            // # webapp loads its config after UseAnonymousURLs is already true
             const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
+            await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
 
             // # Open new channel modal
@@ -382,6 +384,9 @@ test.describe('Anonymous URLs', () => {
             const {channelsPage} = await pw.testBrowser.login(adminUser);
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
+
+            // # Re-apply config in case a concurrent shard reset it during login/navigation
+            await setAnonymousUrls(adminClient, true);
 
             const channelDisplayName = `Archived Anonymous ${pw.random.id()}`;
             await createChannelFromUI(channelsPage, channelDisplayName);
@@ -701,10 +706,16 @@ test.describe('Anonymous URLs', () => {
         await skipIfNoAdvancedLicense(adminClient);
         await setAnonymousUrls(adminClient, true);
 
-        // # Log in and create anonymous URL channels
+        // # Log in and navigate to the test team so the webapp loads config with
+        // # UseAnonymousURLs already true; explicit addToTeam guards against race resets
+        await adminClient.addToTeam(team.id, user.id);
         const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto();
+        await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
+
+        // # Re-apply config immediately before channel creation to guard against
+        // # concurrent shard initSetup calls resetting UseAnonymousURLs to false
+        await setAnonymousUrls(adminClient, true);
 
         const createdChannels = [];
         for (let i = 1; i <= 3; i++) {

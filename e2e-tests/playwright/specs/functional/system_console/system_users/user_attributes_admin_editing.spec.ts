@@ -127,8 +127,15 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
         await userRow.container.getByText(testUser.email).click();
 
-        // Wait for user detail page to load
+        // Wait for user detail page URL and for the AdminUserCard to finish loading
+        // custom profile attribute fields (which are fetched asynchronously after mount).
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
+        await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
+        // Wait for at least one custom attribute label to confirm CPA fields have loaded
+        await systemConsolePage.page
+            .locator('.AdminUserCard')
+            .getByText('Work Email', {exact: false})
+            .waitFor({state: 'visible', timeout: 15000});
     });
 
     test.afterEach(async ({pw}) => {

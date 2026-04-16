@@ -180,6 +180,9 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add options
         await sp.addOptions(0, ['Remote', 'Office', 'Hybrid']);
 
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.nameInput(0).click();
+
         await sp.saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
@@ -211,9 +214,10 @@ test.describe('System Console - User Attributes Management', () => {
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Find the attribute name input and edit it
-        const nameInput = sp.nameInput(0);
-        await expect(nameInput).toHaveValue('Old Name');
+        // # Find the attribute name input by its current value to avoid
+        // # index-based flakiness when other attributes exist on the server
+        const nameInput = sp.nameInputByValue('Old Name');
+        await expect(nameInput).toBeVisible();
         await nameInput.fill('New Name');
         await nameInput.blur();
 
@@ -365,18 +369,28 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Editable by users" toggle
         await sp.toggleEditableByUsers();
 
+        // # Wait for the checkbox to reflect the toggled (unchecked) state before dismissing,
+        // # to avoid a race where Escape fires before the UI registers the change
+        await expect(systemConsolePage.page.getByRole('menuitemcheckbox', {name: 'Editable by users'})).toHaveAttribute(
+            'aria-checked',
+            'false',
+        );
+
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
         await sp.dismissMenu();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify managed was set to 'admin' (not editable by users) via API
-        const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Editable Test');
-        expect(updatedField).toBeDefined();
-        expect(updatedField!.attrs.managed).toBe('admin');
+        // # Use expect.poll to tolerate brief server-side propagation delay
+        await expect
+            .poll(async () => {
+                const map = await getFieldsMap(adminClient);
+                return Object.values(map).find((f) => f.name === 'Editable Test');
+            })
+            .toMatchObject({attrs: {managed: 'admin'}});
 
-        await cleanupFields(adminClient, updatedMap);
+        await cleanupFields(adminClient, await getFieldsMap(adminClient));
     });
 
     /**
@@ -497,6 +511,9 @@ test.describe('System Console - User Attributes Management', () => {
 
         // # Add options
         await sp.addOptions(0, ['JavaScript', 'Python', 'Go']);
+
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.nameInput(0).click();
 
         await sp.saveAndWaitForSettled();
 

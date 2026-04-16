@@ -178,9 +178,19 @@ export async function editSelectAttribute(
     await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
-    await page.locator(`#customProfileAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customProfileAttribute_${fieldId}`).click();
-    await page.locator(`#react-select-2-option-${optionIndex}`).click();
+
+    // Open the dropdown — the control div carries the field-scoped id
+    const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+    await selectControl.scrollIntoViewIfNeeded();
+    await selectControl.click();
+
+    // Pick the option by index inside this specific dropdown's open menu.
+    // Scoping to the react-select container avoids fragile global react-select-N-option-M IDs.
+    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+    const option = selectContainer.locator('.react-select__option').nth(optionIndex);
+    await option.waitFor({state: 'visible'});
+    await option.click();
+
     await page.locator('button:has-text("Save")').click();
 }
 
@@ -202,15 +212,23 @@ export async function editMultiselectAttribute(
     await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
     await page.locator(`#customAttribute_${fieldId}Edit`).click();
 
+    // The react-select container wraps the control; scope option lookups to it
+    // to avoid relying on fragile global react-select-N-option-M IDs.
+    const selectContainer = page.locator(`#customProfileAttribute_${fieldId}`).locator('..');
+
     for (const index of optionIndices) {
-        await page.waitForTimeout(500); // Wait for the dropdown to stabilize
-        await page.locator(`#customProfileAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-        await page.locator(`#customProfileAttribute_${fieldId}`).click();
-        await page.locator(`#react-select-3-option-${index}`).click();
+        // Open the dropdown for each selection (it closes after each pick)
+        const selectControl = page.locator(`#customProfileAttribute_${fieldId}`);
+        await selectControl.scrollIntoViewIfNeeded();
+        await selectControl.click();
+
+        // Wait for menu to appear and click the nth option
+        const option = selectContainer.locator('.react-select__option').nth(index);
+        await option.waitFor({state: 'visible'});
+        await option.click();
     }
 
     await page.locator('button:has-text("Save")').click();
-    await page.waitForTimeout(500); // Wait for save to complete
 }
 
 /**
@@ -220,8 +238,12 @@ export async function editMultiselectAttribute(
  */
 export async function verifyAttributesExistInSettings(page: Page, attributes: CustomProfileAttribute[]): Promise<void> {
     for (const attribute of attributes) {
-        await page.locator(`text=${attribute.name}`).scrollIntoViewIfNeeded();
-        await expect(page.locator(`.user-settings:has-text("${attribute.name}")`)).toBeVisible();
+        // Wait for the attribute label to appear — custom profile attribute fields are
+        // fetched asynchronously after the settings modal opens, so we need an explicit
+        // wait before asserting visibility.
+        const label = page.locator(`.user-settings`).getByText(attribute.name, {exact: false});
+        await label.waitFor({state: 'visible', timeout: 15000});
+        await label.scrollIntoViewIfNeeded();
     }
 }
 
@@ -334,16 +356,16 @@ export async function setupCustomProfileAttributeFields(
         return field;
     });
 
-    // Get existing fields
+    // Build a name -> existing field map so we can reuse fields that already
+    // exist (e.g. a 'Department' field created by global test setup) and only
+    // create the ones that are genuinely missing.  The old "return early if any
+    // fields exist" logic caused the map to be incomplete whenever a previous
+    // test run (or the global setup) had left even a single field behind.
+    const existingByName: Record<string, UserPropertyField> = {};
     try {
         const existingFields = await adminClient.getCustomProfileAttributeFields();
-
-        // If fields exist, use them
-        if (existingFields && existingFields.length > 0) {
-            for (const field of existingFields) {
-                fieldsMap[field.id] = field;
-            }
-            return fieldsMap;
+        for (const field of existingFields) {
+            existingByName[field.name] = field;
         }
     } catch (error) {
         // If request fails, continue to create new fields
@@ -351,14 +373,20 @@ export async function setupCustomProfileAttributeFields(
         console.log('Error getting existing custom profile fields, will create new ones', error);
     }
 
-    // Create fields sequentially
+    // Create fields sequentially, reusing any that already exist by name
     for (const field of attributeFields) {
-        try {
-            const createdField = await adminClient.createCustomProfileAttributeField(field);
-            fieldsMap[createdField.id] = createdField;
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to create field ${field.name}:`, error);
+        if (field.name && existingByName[field.name]) {
+            // Reuse the existing field — record it in the map and move on
+            const existing = existingByName[field.name];
+            fieldsMap[existing.id] = existing;
+        } else {
+            try {
+                const createdField = await adminClient.createCustomProfileAttributeField(field);
+                fieldsMap[createdField.id] = createdField;
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.log(`Failed to create field ${field.name}:`, error);
+            }
         }
     }
 
