@@ -100,6 +100,9 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// Enable Mobile Ephemeral Mode for controlling data persistence on mobile devices
+	MobileEphemeralMode bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -147,6 +150,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.MobileEphemeralMode = false
 }
 
 // ToMap returns the feature flags as a map[string]string
