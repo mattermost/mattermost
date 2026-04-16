@@ -11,8 +11,8 @@
 // Group: @channels @enterprise @ldap_group
 
 describe('Group Synced Team - Bot invitation flow', () => {
-    let groupConstrainedTeam;
-    let bot;
+    let groupConstrainedTeam: Cypress.Team;
+    let bot: Cypress.Bot;
 
     before(() => {
         // * Check if server has license for LDAP Groups

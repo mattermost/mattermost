@@ -33,7 +33,7 @@ const ProfilePopoverCustomAttributes = ({
         if (!userProfile.custom_profile_attributes) {
             dispatch(getCustomProfileAttributeValues(userID));
         }
-    });
+    }, [dispatch, userID, userProfile.custom_profile_attributes]);
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {

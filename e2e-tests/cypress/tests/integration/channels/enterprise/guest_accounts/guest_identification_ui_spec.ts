@@ -15,8 +15,8 @@
  */
 import dayjs from 'dayjs';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('Verify Guest User Identification in different screens', () => {
     const admin = getAdminAccount();

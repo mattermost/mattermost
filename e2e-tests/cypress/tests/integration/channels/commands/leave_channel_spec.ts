@@ -10,10 +10,10 @@
 // Stage: @prod
 // Group: @channels @commands
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Leave Channel Command', () => {
-    let testChannel;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // # Login as test user and go to town-square

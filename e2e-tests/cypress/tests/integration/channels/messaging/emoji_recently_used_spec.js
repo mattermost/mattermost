@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import timeouts from '../../../fixtures/timeouts';
+import timeouts from '@/fixtures/timeouts';
 
 describe('Messaging', () => {
     let offTopicPath;
