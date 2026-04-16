@@ -871,6 +871,7 @@ export type ExperimentalSettings = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
     ExperimentalChannelCategorySorting: boolean;
+    ExperimentalLastViewSanitize: boolean;
 };
 
 export type AnalyticsSettings = {
