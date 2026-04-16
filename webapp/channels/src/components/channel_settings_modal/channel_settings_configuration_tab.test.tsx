@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsConfigurationTab from './channel_settings_configuration_tab';
@@ -12,6 +12,29 @@ import ChannelSettingsConfigurationTab from './channel_settings_configuration_ta
 jest.mock('mattermost-redux/actions/channels', () => ({
     patchChannel: jest.fn(),
 }));
+
+jest.mock('mattermost-redux/actions/shared_channels', () => ({
+    fetchChannelRemotes: jest.fn(() => ({type: 'MOCK_ACTION', data: []})),
+}));
+
+jest.mock('mattermost-redux/client', () => ({
+    Client4: {
+        sharedChannelRemoteInvite: jest.fn().mockResolvedValue({}),
+        sharedChannelRemoteUninvite: jest.fn().mockResolvedValue({}),
+        getRemoteClusters: jest.fn().mockResolvedValue([
+            {remote_id: 'remote1', name: 'nebula', display_name: 'Nebula Networks'},
+            {remote_id: 'remote2', name: 'cascade', display_name: 'Cascade Collaborative'},
+        ]),
+    },
+}));
+
+jest.mock('mattermost-redux/selectors/entities/shared_channels', () => {
+    const emptyList: any[] = [];
+    return {
+        getRemotesForChannel: jest.fn(() => emptyList),
+        getRemoteNamesForChannel: jest.fn(() => emptyList),
+    };
+});
 
 // Mock the ShowFormat component to make it easier to test
 jest.mock('components/advanced_text_editor/show_formatting/show_formatting', () => (
@@ -411,5 +434,281 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         // The text input should now have the trimmed value
         expect(textInput).toHaveValue('Banner text with whitespace');
+    });
+
+    describe('Share channel with connected workspaces', () => {
+        beforeEach(() => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            getRemotesForChannel.mockReturnValue([]);
+        });
+
+        it('should render ShareChannelWithWorkspaces section when canManageSharedChannels is true', () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            expect(screen.getByText('Share with connected workspaces')).toBeInTheDocument();
+        });
+
+        it('should not render ShareChannelWithWorkspaces section when canManageSharedChannels is false', () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={false}
+                />,
+            );
+
+            expect(screen.queryByText('Share with connected workspaces')).not.toBeInTheDocument();
+        });
+
+        it('should show Add workspace button when toggle is enabled', async () => {
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            await userEvent.click(toggle);
+
+            expect(screen.getByText('Add workspace')).toBeInTheDocument();
+        });
+
+        it('when shared channel changes include only adding workspaces, save calls invite and fetchChannelRemotes', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            getRemotesForChannel.mockReturnValue([]);
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
+            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
+
+            await waitFor(() => {
+                expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
+
+            // Wait for the workspace to be added to the list after the menu close animation
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            expect(Client4.sharedChannelRemoteInvite).toHaveBeenCalledWith('remote1', 'channel1');
+            expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
+            expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
+        });
+
+        it('when shared channel changes include removing a connection, confirm modal is shown before save', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            const initialRemotes = [
+                {
+                    remote_id: 'remote1',
+                    name: 'nebula',
+                    display_name: 'Nebula Networks',
+                    create_at: 0,
+                    delete_at: 0,
+                    last_ping_at: Date.now(),
+                    site_url: 'https://nebula.example.com',
+                },
+            ];
+            getRemotesForChannel.mockReturnValue(initialRemotes);
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Are you sure you want to unshare\?/)).toBeInTheDocument();
+                expect(screen.getByText(/Yes, unshare/)).toBeInTheDocument();
+                expect(Client4.sharedChannelRemoteUninvite).not.toHaveBeenCalled();
+            });
+        });
+
+        it('when user confirms remove in modal, uninvite and fetchChannelRemotes are called', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            const initialRemotes = [
+                {
+                    remote_id: 'remote1',
+                    name: 'nebula',
+                    display_name: 'Nebula Networks',
+                    create_at: 0,
+                    delete_at: 0,
+                    last_ping_at: Date.now(),
+                    site_url: 'https://nebula.example.com',
+                },
+            ];
+            getRemotesForChannel.mockReturnValue(initialRemotes);
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Are you sure you want to unshare\?/)).toBeInTheDocument();
+                expect(screen.getByText(/Yes, unshare/)).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('button', {name: /Yes, unshare/}));
+
+            expect(Client4.sharedChannelRemoteUninvite).toHaveBeenCalledWith('remote1', 'channel1');
+            expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
+            expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
+        });
+
+        it('when user cancels remove modal, uninvite is not called', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            const initialRemotes = [
+                {
+                    remote_id: 'remote1',
+                    name: 'nebula',
+                    display_name: 'Nebula Networks',
+                    create_at: 0,
+                    delete_at: 0,
+                    last_ping_at: Date.now(),
+                    site_url: 'https://nebula.example.com',
+                },
+            ];
+            getRemotesForChannel.mockReturnValue(initialRemotes);
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const removeButton = await screen.findByRole('button', {name: /Remove Nebula Networks/i});
+            await userEvent.click(removeButton);
+            const saveButton = await screen.findByRole('button', {name: 'Save'});
+            await userEvent.click(saveButton);
+            const cancelButton = await screen.findByRole('button', {name: 'Cancel'});
+            await userEvent.click(cancelButton);
+
+            expect(Client4.sharedChannelRemoteUninvite).not.toHaveBeenCalled();
+        });
+
+        it('when one invite fails, handleServerError is called and fetchChannelRemotes is still called', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {fetchChannelRemotes} = require('mattermost-redux/actions/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            getRemotesForChannel.mockReturnValue([]);
+            Client4.sharedChannelRemoteInvite.mockRejectedValueOnce({message: 'Invite failed for workspace'});
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
+
+            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
+            await waitFor(() => {
+                expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
+
+            // Wait for the workspace to be added to the list after the menu close animation
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(fetchChannelRemotes.mock.calls.length).toBe(fetchCallsAfterMount + 1);
+                expect(fetchChannelRemotes).toHaveBeenLastCalledWith('channel1', true);
+            });
+            expect(screen.getByText('Invite failed for workspace')).toBeInTheDocument();
+        });
+
+        it('when multiple invite/uninvite operations fail, shows sharing_errors message', async () => {
+            const {getRemotesForChannel} = require('mattermost-redux/selectors/entities/shared_channels');
+            const {Client4} = require('mattermost-redux/client');
+
+            getRemotesForChannel.mockReturnValue([]);
+            Client4.sharedChannelRemoteInvite.mockRejectedValue(new Error('Network error'));
+
+            renderWithContext(
+                <ChannelSettingsConfigurationTab
+                    {...baseProps}
+                    canManageSharedChannels={true}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
+            await waitFor(() => {
+                expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Nebula Networks'}));
+
+            // Wait for Nebula Networks to be added to the list after the menu close animation
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: /Remove Nebula Networks/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
+            await waitFor(() => {
+                expect(screen.getByRole('menuitem', {name: 'Cascade Collaborative'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Cascade Collaborative'}));
+
+            // Wait for Cascade Collaborative to be added to the list after the menu close animation
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: /Remove Cascade Collaborative/i})).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'Save'}));
+
+            await waitFor(() => {
+                expect(screen.getByText(/There has been errors while sharing the channel with some workspaces\. Please try again\./)).toBeInTheDocument();
+            });
+        });
     });
 });

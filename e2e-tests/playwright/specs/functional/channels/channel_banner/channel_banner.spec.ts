@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
-import {getRandomId} from 'utils/utils';
 
 test('Should show channel banner when configured', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
@@ -13,7 +12,7 @@ test('Should show channel banner when configured', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     let channelSettingsModal = await channelsPage.openChannelSettings();
     let configurationTab = await channelSettingsModal.openConfigurationTab();
@@ -58,7 +57,7 @@ test('Should render markdown', async ({pw}) => {
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    await channelsPage.newChannel(await getRandomId(), 'O');
+    await channelsPage.newChannel(pw.random.id(), 'O');
 
     const channelSettingsModal = await channelsPage.openChannelSettings();
     const configurationTab = await channelSettingsModal.openConfigurationTab();

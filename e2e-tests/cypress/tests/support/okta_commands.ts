@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
-
 import * as TIMEOUTS from '../fixtures/timeouts';
 
-const token = 'SSWS ' + Cypress.env('oktaMMAppToken');
+import {ChainableT} from '@/types';
 
-type UserId = string | null;
+
+const token = 'SSWS ' + Cypress.expose('oktaMMAppToken');
+
+type UserId = string | undefined;
 
 interface Profile {
     firstName: string;
@@ -36,11 +37,6 @@ export interface UserCollection {
     regulars: Record<string, Partial<User>>;
 }
 
-interface OktaResponse<T = any> {
-    status: number;
-    data: T;
-}
-
 /**
  * Builds a user profile object
  * @param {Object} user - the user data
@@ -64,10 +60,10 @@ function buildProfile(user: User): Profile {
  * @param {Object} user - the user to create
  * @returns {String} userId: the user id
  */
-function oktaCreateUser(user: any = {}): ChainableT<UserId> {
-    const profile = buildProfile(user);
+function oktaCreateUser(user: Partial<User> = {}): ChainableT<UserId> {
+    const profile = buildProfile(user as User);
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/',
         method: 'post',
         token,
@@ -81,10 +77,11 @@ function oktaCreateUser(user: any = {}): ChainableT<UserId> {
                 },
             },
         },
-    }).then((response: OktaResponse<{id: UserId}>) => {
+    // cy.task() returns untyped data
+    }).then((response: any) => {
         expect(response.status).to.equal(200);
         const userId = response.data.id;
-        return cy.wrap(userId);
+        return cy.wrap(userId as UserId);
     });
 }
 
@@ -97,16 +94,17 @@ Cypress.Commands.add('oktaCreateUser', oktaCreateUser);
  */
 function oktaGetUser(userId: string = ''): ChainableT<UserId> {
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users?q=' + userId,
         method: 'get',
         token,
-    }).then((response: OktaResponse<Array<{id: UserId}>>) => {
+    // cy.task() returns untyped data
+    }).then((response: any) => {
         expect(response.status).to.be.equal(200);
         if (response.data.length > 0) {
-            return cy.wrap(response.data[0].id);
+            return cy.wrap(response.data[0].id as UserId);
         }
-        return cy.wrap(null as UserId);
+        return cy.wrap(undefined as UserId);
     });
 }
 
@@ -118,18 +116,19 @@ Cypress.Commands.add('oktaGetUser', oktaGetUser);
  * @param {Object} user - the user data
  * @returns {Object} data: the user data as a response
  */
-function oktaUpdateUser(userId: string = '', user: any = {}): ChainableT<any> {
-    const profile = buildProfile(user);
+function oktaUpdateUser(userId: string = '', user: Partial<User> = {}) {
+    const profile = buildProfile(user as User);
 
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId,
         method: 'post',
         token,
         data: {
             profile,
         },
-    }).then((response: OktaResponse) => {
+    // cy.task() returns untyped data
+    }).then((response: any) => {
         expect(response.status).to.equal(201);
         return cy.wrap(response.data);
     });
@@ -142,19 +141,20 @@ Cypress.Commands.add('oktaUpdateUser', oktaUpdateUser);
  * @param {String} userId - the user id
  */
 function oktaDeleteUser(userId: string = '') {
+    // cy.task() returns untyped data
     cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId,
         method: 'delete',
         token,
-    }).then((response: OktaResponse) => {
+    }).then((response: any) => {
         expect(response.status).to.equal(204);
         cy.task('oktaRequest', {
-            baseUrl: Cypress.env('oktaApiUrl'),
+            baseUrl: Cypress.expose('oktaApiUrl'),
             urlSuffix: '/users/' + userId,
             method: 'delete',
             token,
-        }).then((_response: OktaResponse) => {
+        }).then((_response: any) => {
             expect(_response.status).to.equal(204);
         });
     });
@@ -168,12 +168,13 @@ Cypress.Commands.add('oktaDeleteUser', oktaDeleteUser);
  * @param {String} userId - the user id
  */
 function oktaDeleteSession(userId: string = '') {
+    // cy.task() returns untyped data
     cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
+        baseUrl: Cypress.expose('oktaApiUrl'),
         urlSuffix: '/users/' + userId + '/sessions',
         method: 'delete',
         token,
-    }).then((response: OktaResponse) => {
+    }).then((response: any) => {
         expect(response.status).to.equal(204);
 
         // Ensure we clear out these specific cookies
@@ -191,22 +192,23 @@ Cypress.Commands.add('oktaDeleteSession', oktaDeleteSession);
  * @param {Object} user - the user data
  * @returns {Object} data: the user data as response
  */
-function oktaAssignUserToApplication(userId: string = '', user: any = {}): ChainableT<any> {
+function oktaAssignUserToApplication(userId: string = '', user: Partial<User> = {}) {
     return cy.task('oktaRequest', {
-        baseUrl: Cypress.env('oktaApiUrl'),
-        urlSuffix: '/apps/' + Cypress.env('oktaMMAppId') + '/users',
+        baseUrl: Cypress.expose('oktaApiUrl'),
+        urlSuffix: '/apps/' + Cypress.expose('oktaMMAppId') + '/users',
         method: 'post',
         token,
         data: {
             id: userId,
             scope: 'USER',
             profile: {
-                firstName: user.firstName,
-                lastName: user.lastName,
+                firstName: user.firstname,
+                lastName: user.lastname,
                 email: user.email,
             },
         },
-    }).then((response: OktaResponse) => {
+    // cy.task() returns untyped data
+    }).then((response: any) => {
         expect(response.status).to.be.equal(200);
         return cy.wrap(response.data);
     });
@@ -220,16 +222,16 @@ Cypress.Commands.add('oktaAssignUserToApplication', oktaAssignUserToApplication)
  * @returns {String} userId: the user id
  */
 function oktaGetOrCreateUser(user: User): ChainableT<UserId> {
-    let userId;
+    let userId: UserId;
     return cy.oktaGetUser(user.email).then((uId) => {
         userId = uId;
         if (userId == null) {
             cy.oktaCreateUser(user).then((_uId) => {
                 userId = _uId;
-                cy.oktaAssignUserToApplication(userId, user);
+                cy.oktaAssignUserToApplication(userId as string, user);
             });
         } else {
-            cy.oktaAssignUserToApplication(userId, user);
+            cy.oktaAssignUserToApplication(userId as string, user);
         }
         return cy.wrap(userId as UserId);
     });
@@ -242,41 +244,41 @@ Cypress.Commands.add('oktaGetOrCreateUser', oktaGetOrCreateUser);
  * @param {Object} users - a collection of users
  */
 function oktaAddUsers(users: UserCollection) {
-    let userId;
-    Object.values(users.regulars).forEach((_user: User) => {
+    let userId: UserId;
+    Object.values(users.regulars).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((uId) => {
             userId = uId;
             if (userId == null) {
                 cy.oktaCreateUser(_user).then((_uId) => {
                     userId = _uId;
-                    cy.oktaAssignUserToApplication(userId, _user);
-                    cy.oktaDeleteSession(userId);
+                    cy.oktaAssignUserToApplication(userId as string, _user);
+                    cy.oktaDeleteSession(userId as string);
                 });
             }
         });
     });
 
-    Object.values(users.guests).forEach((_user: User) => {
+    Object.values(users.guests).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((uId) => {
             userId = uId;
             if (userId == null) {
                 cy.oktaCreateUser(_user).then((_uId) => {
                     userId = _uId;
-                    cy.oktaAssignUserToApplication(userId, _user);
-                    cy.oktaDeleteSession(userId);
+                    cy.oktaAssignUserToApplication(userId as string, _user);
+                    cy.oktaDeleteSession(userId as string);
                 });
             }
         });
     });
 
-    Object.values(users.admins).forEach((_user: User) => {
+    Object.values(users.admins).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((uId) => {
             userId = uId;
             if (userId == null) {
                 cy.oktaCreateUser(_user).then((_uId) => {
                     userId = _uId;
-                    cy.oktaAssignUserToApplication(userId, _user);
-                    cy.oktaDeleteSession(userId);
+                    cy.oktaAssignUserToApplication(userId as string, _user);
+                    cy.oktaDeleteSession(userId as string);
                 });
             }
         });
@@ -290,30 +292,30 @@ Cypress.Commands.add('oktaAddUsers', oktaAddUsers);
  * @param {Object} users - a collection of users
  */
 function oktaRemoveUsers(users: UserCollection) {
-    let userId;
-    Object.values(users.regulars).forEach((_user: User) => {
+    let userId: UserId;
+    Object.values(users.regulars).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((_uId) => {
             userId = _uId;
             if (userId != null) {
-                cy.oktaDeleteUser(userId);
+                cy.oktaDeleteUser(userId as string);
             }
         });
     });
 
-    Object.values(users.guests).forEach((_user: User) => {
+    Object.values(users.guests).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((_uId) => {
             userId = _uId;
             if (userId != null) {
-                cy.oktaDeleteUser(userId);
+                cy.oktaDeleteUser(userId as string);
             }
         });
     });
 
-    Object.values(users.admins).forEach((_user: User) => {
+    Object.values(users.admins).forEach((_user) => {
         cy.oktaGetUser(_user.email).then((_uId) => {
             userId = _uId;
             if (userId != null) {
-                cy.oktaDeleteUser(userId);
+                cy.oktaDeleteUser(userId as string);
             }
         });
     });

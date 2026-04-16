@@ -83,7 +83,7 @@ Cypress.Commands.add('apiInstallTrialLicense', () => {
         body: {
             receive_emails_accepted: true,
             terms_accepted: true,
-            users: Cypress.env('numberOfTrialUsers'),
+            users: Cypress.expose('numberOfTrialUsers'),
 
             // Enriched fields required for trial license as of v10.7
             company_country: 'US',
@@ -110,7 +110,7 @@ Cypress.Commands.add('apiDeleteLicense', () => {
 });
 
 export const getDefaultConfig = () => {
-    const cypressEnv = Cypress.env();
+    const cypressEnv = Cypress.expose();
 
     const fromCypressEnv = {
         ElasticsearchSettings: {
@@ -303,8 +303,8 @@ Cypress.Commands.add('shouldHaveClusterEnabled', () => {
         const {Enable, ClusterName} = config.ClusterSettings;
         expect(Enable, Enable ? '' : 'Should have cluster enabled').to.equal(true);
 
-        const sameClusterName = ClusterName === Cypress.env('serverClusterName');
-        expect(sameClusterName, sameClusterName ? '' : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${Cypress.env('serverClusterName')}"`).to.equal(true);
+        const sameClusterName = ClusterName === Cypress.expose('serverClusterName');
+        expect(sameClusterName, sameClusterName ? '' : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${Cypress.expose('serverClusterName')}"`).to.equal(true);
     });
 });
 
