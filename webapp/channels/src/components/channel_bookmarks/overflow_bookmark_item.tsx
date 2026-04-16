@@ -74,7 +74,6 @@ function OverflowBookmarkItem({
         }
     }, [keyboardReorderProps]);
 
-
     const linksDisabled = isDragging || isDragSelf;
     const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
 
