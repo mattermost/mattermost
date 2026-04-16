@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @signin_authentication
 
-import {FixedCloudConfig} from '../../../utils/constants';
+import {FixedCloudConfig} from '@/utils/constants';
 
 describe('Signup Email page', () => {
     let config;

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
+import {ChainableT} from '@/types';
 
 function uiSearchPosts(searchTerm: string) {
     // # Enter the search terms and hit enter to start the search

@@ -12,7 +12,7 @@
 import {UserProfile} from '@mattermost/types/users';
 import * as authenticator from 'authenticator';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Authentication', () => {
     let mfaSysAdmin: UserProfile;

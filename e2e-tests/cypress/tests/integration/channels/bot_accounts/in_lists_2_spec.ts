@@ -14,15 +14,15 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {createBotPatch} from '../../../support/api/bots';
-import {generateRandomUser} from '../../../support/api/user';
+import {createBotPatch} from '@/support/api/bots';
+import {generateRandomUser} from '@/support/api/user';
 
 describe('Bots in lists', () => {
     let team: Team;
     let channel: Channel;
     let testUser: UserProfile;
 
-    const STATUS_PRIORITY = {
+    const STATUS_PRIORITY: Record<string, number> = {
         online: 0,
         away: 1,
         dnd: 2,
@@ -40,9 +40,9 @@ describe('Bots in lists', () => {
         cy.makeClient().then(async (client) => {
             // # Create bots
             const bots = await Promise.all([
-                client.createBot(createBotPatch()),
-                client.createBot(createBotPatch()),
-                client.createBot(createBotPatch()),
+                client.createBot(createBotPatch() as Partial<Bot>),
+                client.createBot(createBotPatch() as Partial<Bot>),
+                client.createBot(createBotPatch() as Partial<Bot>),
             ]);
 
             // # Create users
@@ -87,7 +87,7 @@ describe('Bots in lists', () => {
                 // # Sort 'em
                 const sortedUsers = Cypress._.sortBy(users, [
                     ({is_bot: isBot}) => (isBot ? 1 : 0), // users first
-                    ({status}) => STATUS_PRIORITY[status],
+                    ({status}) => STATUS_PRIORITY[status ?? 'offline'],
                     ({username}) => username,
                 ]);
 
