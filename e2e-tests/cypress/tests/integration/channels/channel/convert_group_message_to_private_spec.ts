@@ -85,7 +85,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users belong to only one common team', () => {
-        let testUser4;
+        let testUser4: Cypress.UserProfile;
         let gm2;
 
         cy.apiCreateUser({prefix: 'other'}).then(({user}) => {
@@ -120,7 +120,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users have no common team', () => {
-        let testUser5;
+        let testUser5: Cypress.UserProfile;
         let gm3;
         let testTeam3;
 

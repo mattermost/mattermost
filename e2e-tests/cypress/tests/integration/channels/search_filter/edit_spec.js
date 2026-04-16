@@ -9,14 +9,15 @@
 
 // Group: @channels @search_date_filter
 
-import {getAdminAccount} from '../../../support/env';
-
 import {
     getMsAndQueryForDate,
     getTestMessages,
     searchAndValidate,
     setupTestData,
 } from './helpers';
+
+import {getAdminAccount} from '@/support/env';
+
 
 describe('Search Date Filter', () => {
     const testData = getTestMessages();

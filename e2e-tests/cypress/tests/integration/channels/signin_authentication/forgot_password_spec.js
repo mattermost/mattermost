@@ -15,7 +15,7 @@ import {
     newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Signin/Authentication', () => {
     let testUser;
