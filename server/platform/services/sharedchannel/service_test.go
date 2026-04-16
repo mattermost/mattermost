@@ -60,7 +60,7 @@ func TestMessageForSharedChannelStatePost(t *testing.T) {
 
 	t.Run("unshared with workspace_unknown true", func(t *testing.T) {
 		props := model.StringInterface{
-			model.PostPropsSharedChannelState:           model.SharedChannelStatePostValueUnshared,
+			model.PostPropsSharedChannelState:            model.SharedChannelStatePostValueUnshared,
 			model.PostPropsSharedChannelWorkspaceUnknown: "true",
 		}
 		got := messageForSharedChannelStatePost(props)
