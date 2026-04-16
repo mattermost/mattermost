@@ -110,7 +110,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 placeholder: placeholderText ?? '',
                 showOnlyCurrent: true,
             }),
-            Table.configure({resizable: false}),
+            Table.configure({resizable: false, cellMinWidth: 80}),
             TableRow,
             TableCell,
             TableHeader,
@@ -153,6 +153,25 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 return true;
             },
             handleKeyDown: (view, event) => {
+                // Tab: navigate between table cells
+                if (event.key === 'Tab') {
+                    const {state} = view;
+                    const {$from} = state.selection;
+                    const grandparent = $from.depth > 1 ? $from.node($from.depth - 1) : null;
+                    if (grandparent && ['tableCell', 'tableHeader'].includes(grandparent.type.name)) {
+                        const ed = editorRef.current;
+                        if (ed && !ed.isDestroyed) {
+                            event.preventDefault();
+                            if (event.shiftKey) {
+                                ed.chain().goToPreviousCell().run();
+                            } else {
+                                ed.chain().goToNextCell().run();
+                            }
+                            return true;
+                        }
+                    }
+                }
+
                 // UP arrow: edit previous message when editor is empty
                 if (event.key === 'ArrowUp' && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
                     const {state} = view;
@@ -226,7 +245,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         getEditor: () => editor,
         insertText: (text: string) => {
             if (editor && !editor.isDestroyed) {
-                editor.chain().focus().insertContent(text).run();
+                editor.chain().focus().insertContent({type: 'text', text}).run();
             }
         },
     }), [editor]);

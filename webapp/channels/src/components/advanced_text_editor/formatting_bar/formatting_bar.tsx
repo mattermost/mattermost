@@ -46,6 +46,7 @@ const FormattingBarContainer = styled.div`
     transform-origin: top;
     transition: height 0.25s ease;
     overflow: hidden;
+    flex-wrap: nowrap;
 `;
 
 const HiddenControlsContainer = styled.div`
@@ -214,7 +215,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
     }, [additionalControls]);
 
-    const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location);
+    const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location, Boolean(getWysiwygEditor));
 
     const [, forceUpdate] = useReducer((c: number) => c + 1, 0);
 

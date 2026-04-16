@@ -146,4 +146,29 @@ describe('splitFormattingBarControls', () => {
             expect(hiddenControls).toHaveLength(9);
         });
     });
+
+    describe('WYSIWYG text style dropdown — reduces visible count by 3 on non-wide modes', () => {
+        test('wide mode is unaffected', () => {
+            const {controls} = splitFormattingBarControls(LayoutModes.Wide, 0, false, true);
+            expect(controls).toHaveLength(9);
+        });
+
+        test('normal mode reduces from 5 to 2', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Normal, 0, false, true);
+            expect(controls).toHaveLength(2);
+            expect(hiddenControls).toHaveLength(7);
+        });
+
+        test('narrow mode reduces from 2 to 0', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Narrow, 0, false, true);
+            expect(controls).toHaveLength(0);
+            expect(hiddenControls).toHaveLength(9);
+        });
+
+        test('min mode reduces from 1 to 0', () => {
+            const {controls, hiddenControls} = splitFormattingBarControls(LayoutModes.Min, 0, false, true);
+            expect(controls).toHaveLength(0);
+            expect(hiddenControls).toHaveLength(9);
+        });
+    });
 });

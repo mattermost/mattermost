@@ -24,7 +24,7 @@ import ChannelMentionProvider from 'components/suggestion/channel_mention_provid
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from 'components/suggestion/suggestion_results';
-import {normalizeResultsFromProvider} from 'components/suggestion/suggestion_results';
+import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,6 +40,16 @@ const EMPTY_RESULTS: SuggestionResults = {
     items: [],
     components: [],
 };
+
+function getAllTerms(results: SuggestionResults): string[] {
+    if ('terms' in results) {
+        return results.terms;
+    }
+    if ('groups' in results) {
+        return results.groups.flatMap((group) => group.terms);
+    }
+    return [];
+}
 
 function getTextBeforeCursor(editor: Editor): string {
     const {state} = editor;
@@ -100,13 +110,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
 
     const handleReceivedSuggestions = useCallback((suggestions: any) => {
         const normalized = normalizeResultsFromProvider(suggestions);
-        const terms = 'terms' in normalized ? normalized.terms : [];
+        const terms = getAllTerms(normalized);
 
         setResults(normalized);
         setPretext(suggestions.matchedPretext || '');
         matchedPretextRef.current = suggestions.matchedPretext || '';
 
-        if (terms.length > 0) {
+        if (countResults(normalized) > 0 && terms.length > 0) {
             setSelection(terms[0]);
             setIsOpen(true);
         } else {
@@ -205,7 +215,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
                 return;
             }
 
-            const allTerms = 'terms' in resultsRef.current ? resultsRef.current.terms : [];
+            const allTerms = getAllTerms(resultsRef.current);
             if (allTerms.length === 0) {
                 return;
             }
