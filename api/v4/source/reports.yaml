@@ -50,10 +50,10 @@
             type: string
         - name: date_range
           in: query
-          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          description: The date range of the post statistics to display. Must be one of ("last_30_days", "previous_month", "last_6_months", "all_time"). Will default to 'all_time' if the input is not valid.
           schema:
             type: string
-            default: 'alltime'
+            default: 'all_time'
         - name: role_filter
           in: query
           description: Filter users by their role.
@@ -166,10 +166,10 @@
       parameters:
         - name: date_range
           in: query
-          description: The date range of the post statistics to display. Must be one of ("last30days", "previousmonth", "last6months", "alltime"). Will default to 'alltime' if the input is not valid.
+          description: The date range of the post statistics to display. Must be one of ("last_30_days", "previous_month", "last_6_months", "all_time"). Will default to 'all_time' if the input is not valid.
           schema:
             type: string
-            default: 'alltime'
+            default: 'all_time'
       responses:
         "200":
           description: Job successfully started
