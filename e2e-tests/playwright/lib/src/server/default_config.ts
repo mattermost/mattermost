@@ -259,7 +259,6 @@ const defaultServerConfig: AdminConfig = {
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
-        // @ts-expect-error -- AnalyticsQueryTimeout exists at runtime but is missing from the type definition
         AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
         MigrationsStatementTimeoutSeconds: 100000,
@@ -432,7 +431,6 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
-        // @ts-expect-error -- UsePreferredUsername exists at runtime but is missing from the type definition
         UsePreferredUsername: false,
     },
     GoogleSettings: {
@@ -447,7 +445,6 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
-        // @ts-expect-error -- UsePreferredUsername exists at runtime but is missing from the type definition
         UsePreferredUsername: false,
     },
     Office365Settings: {
@@ -460,7 +457,6 @@ const defaultServerConfig: AdminConfig = {
         UserAPIEndpoint: 'https://graph.microsoft.com/v1.0/me',
         DiscoveryEndpoint: '',
         DirectoryId: '',
-        // @ts-expect-error -- UsePreferredUsername exists at runtime but is missing from the type definition
         UsePreferredUsername: false,
     },
     OpenIdSettings: {
@@ -474,7 +470,6 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '#145DBF',
-        // @ts-expect-error -- UsePreferredUsername exists at runtime but is missing from the type definition
         UsePreferredUsername: false,
     },
     LdapSettings: {
