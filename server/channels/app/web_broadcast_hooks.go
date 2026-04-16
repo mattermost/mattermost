@@ -204,7 +204,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		(len(permalinkPreviewedPost.Post.FileIds) > 0 ||
 			(permalinkPreviewedPost.Post.Metadata != nil && len(permalinkPreviewedPost.Post.Metadata.Files) > 0)) {
 		session := webConn.GetSession()
-		if session != nil && webConn.Platform.Config().FeatureFlags.PermissionPolicies {
+		if session != nil {
 			rctxWithSession := rctx.WithSession(session)
 			if !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 				postCopy := permalinkPreviewedPost.Post.Clone()
