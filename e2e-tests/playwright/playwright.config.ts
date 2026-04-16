@@ -5,6 +5,67 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
+/**
+ * Spec files that mutate global server config and must NOT run in parallel
+ * with the main test suite. These are placed in the "chrome-serial" project
+ * which depends on "chrome", so Playwright runs them only after all parallel
+ * tests on the shard have completed.
+ *
+ * Each entry here is a regex that matches the file path relative to testDir.
+ * When adding a new spec that calls updateConfig() / patchConfig() on
+ * server-wide settings (ABAC, notifications, privacy, shared channels, etc.),
+ * add it here to avoid flaky failures under PW_WORKERS >= 2.
+ */
+const globalConfigSpecs: RegExp[] = [
+    // AccessControlSettings (ABAC enable/disable)
+    /team_settings\/team_settings_membership_policies/,
+    /team_settings\/team_settings_policy_editor/,
+
+    // ContentFlaggingSettings
+    /content_flagging\/flagging\/flag-messages/,
+    /content_flagging\/notifications\/author-notification/,
+
+    // ConnectedWorkspacesSettings (shared channels)
+    /shared_channel_configuration/,
+
+    // PrivacySettings (anonymous URLs, email/name visibility)
+    /anonymous_urls/,
+    /account_settings\/profile\/popover_fields/,
+
+    // TeamSettings (managed categories)
+    /managed_categories/,
+
+    // EmailSettings / SupportSettings (notification config)
+    /notifications\/system_console/,
+
+    // AutoTranslationSettings
+    /autotranslation\/autotranslation_permissions/,
+
+    // ServiceSettings (collapsed threads, burn-on-read, email invitations)
+    /message_scroll\/thread_appears_and_scrollable_in_the_rhs/,
+    /burn_on_read/,
+    /team_settings\/invite_user_to_closed_team/,
+
+    // GuestAccountsSettings
+    /single_channel_guests/,
+
+    // Office365/SAML settings
+    /mobile_security/,
+
+    // PluginSettings / FileSettings
+    /plugins\/demo_plugin/,
+
+    // ServiceSettings (desktop app, self-deleting messages)
+    /desktop_app_update_required/,
+    /self_deleting_messages/,
+];
+
+const chromeUse = {
+    browserName: 'chromium' as const,
+    permissions: ['notifications', 'clipboard-read', 'clipboard-write'] as string[],
+    viewport: {width: 1280, height: 1024},
+};
+
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
@@ -56,13 +117,25 @@ export default defineConfig({
             dependencies: ['setup'],
         },
         {
+            // Main parallel project — runs the bulk of the suite with PW_WORKERS
+            // concurrency. Specs that mutate global server config are excluded
+            // here and run in "chrome-serial" after this project completes.
             name: 'chrome',
-            use: {
-                browserName: 'chromium',
-                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
-                viewport: {width: 1280, height: 1024},
-            },
+            use: chromeUse,
+            testIgnore: globalConfigSpecs,
             dependencies: ['setup'],
+        },
+        {
+            // Serialized project for specs that mutate global server config.
+            // Depends on "chrome" so Playwright runs these AFTER all parallel
+            // tests on the shard finish, preventing cross-test config pollution.
+            // The tests in this project come from different config domains
+            // (ABAC, notifications, privacy, etc.) so they rarely conflict
+            // with each other when 2 run in parallel.
+            name: 'chrome-serial',
+            use: chromeUse,
+            testMatch: globalConfigSpecs,
+            dependencies: ['chrome'],
         },
         {
             name: 'firefox',
