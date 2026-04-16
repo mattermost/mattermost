@@ -49,7 +49,7 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
   -e "TEST_FILTER=${TEST_FILTER:-}" \
   -e "PW_SHARD=${PW_SHARD:-}" \
-  -- playwright bash -lc 'cd e2e-tests/playwright && npm run test:ci -- ${TEST_FILTER:+$TEST_FILTER} ${PW_SHARD:+$PW_SHARD}' | tee ../playwright/logs/playwright.log || true
+  -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
 # Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
