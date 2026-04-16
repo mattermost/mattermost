@@ -18,46 +18,77 @@ import {readdirSync, statSync} from 'fs';
 import {join, relative} from 'path';
 
 // ── Estimated durations (seconds) per spec file ─────────────────────────
-// Key = path relative to the playwright directory (e.g. "specs/functional/...")
+// Calibrated from CI run 24496768108 (2026-04-16).
+// Key = path relative to the playwright directory.
 const DURATIONS = {
-    // ── ABAC / LDAP (heaviest) ──────────────────────────────────────────
-    'specs/functional/system_console/abac/ldap/ldap_sync.spec.ts': 90,
-    'specs/functional/system_console/abac/ldap/ldap_sync_removal.spec.ts': 80,
-    'specs/functional/system_console/abac/policies/advanced_policies.spec.ts': 70,
-    'specs/functional/system_console/abac/policies/advanced_policies_operators.spec.ts': 60,
-    'specs/functional/system_console/abac/policies/advanced_policies_operators_2.spec.ts': 50,
-    'specs/functional/system_console/abac/file_access/file_permissions.spec.ts': 55,
-    'specs/functional/system_console/abac/file_access/file_permissions_combined.spec.ts': 50,
-    'specs/functional/system_console/abac/policies/create_policies.spec.ts': 45,
-    'specs/functional/system_console/abac/policy_management/delete_policies.spec.ts': 45,
-    'specs/functional/system_console/abac/policy_management/edit_policies.spec.ts': 40,
-    'specs/functional/system_console/abac/policy_management/edit_policies_rules.spec.ts': 40,
-    'specs/functional/system_console/abac/policies/channel_integration.spec.ts': 40,
-    'specs/functional/system_console/abac/user_attributes/attribute_changes.spec.ts': 50,
-    'specs/functional/system_console/abac/policies/permission_policies.spec.ts': 50,
-    'specs/functional/system_console/abac/policies/permission_policies_enforcement.spec.ts': 40,
+    // ── ABAC / LDAP (heaviest — each test ~40-90s) ──────────────────────
+    'specs/functional/system_console/abac/ldap/ldap_sync.spec.ts': 200,
+    'specs/functional/system_console/abac/ldap/ldap_sync_removal.spec.ts': 180,
+    'specs/functional/system_console/abac/policies/advanced_policies.spec.ts': 150,
+    'specs/functional/system_console/abac/policies/advanced_policies_operators.spec.ts': 120,
+    'specs/functional/system_console/abac/policies/advanced_policies_operators_2.spec.ts': 90,
+    'specs/functional/system_console/abac/file_access/file_permissions.spec.ts': 150,
+    'specs/functional/system_console/abac/file_access/file_permissions_combined.spec.ts': 120,
+    'specs/functional/system_console/abac/policies/create_policies.spec.ts': 80,
+    'specs/functional/system_console/abac/policy_management/delete_policies.spec.ts': 70,
+    'specs/functional/system_console/abac/policy_management/edit_policies.spec.ts': 60,
+    'specs/functional/system_console/abac/policy_management/edit_policies_rules.spec.ts': 60,
+    'specs/functional/system_console/abac/policies/channel_integration.spec.ts': 70,
+    'specs/functional/system_console/abac/user_attributes/attribute_changes.spec.ts': 100,
+    'specs/functional/system_console/abac/policies/permission_policies.spec.ts': 180,
+    'specs/functional/system_console/abac/policies/permission_policies_enforcement.spec.ts': 100,
     'specs/functional/system_console/abac/basic/enable_disable.spec.ts': 35,
-    // ── Autotranslation ─────────────────────────────────────────────────
-    'specs/functional/channels/autotranslation/autotranslation.spec.ts': 40,
-    'specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts': 30,
-    // ── Content flagging ────────────────────────────────────────────────
-    'specs/functional/channels/content_flagging/flagging/flag-messages.spec.ts': 30,
-    'specs/functional/channels/content_flagging/reviewer-actions/reviewer-actions.spec.ts': 30,
+    // ── Scheduled messages (7 tests × 20-50s) ───────────────────────────
+    'specs/functional/channels/scheduled_messages/scheduled_messages.spec.ts': 200,
+    // ── Managed categories (8 tests × 10-28s) ───────────────────────────
+    'specs/functional/channels/managed_categories/managed_categories.spec.ts': 120,
+    // ── Custom profile attributes (7 tests × 15s) ───────────────────────
+    'specs/functional/channels/custom_profile_attributes/custom_attributes.spec.ts': 110,
+    'specs/functional/channels/custom_profile_attributes/user_settings.spec.ts': 30,
+    // ── Accessibility settings (7 tests × 12s) ──────────────────────────
+    'specs/accessibility/channels/settings_dialog/advanced.spec.ts': 85,
+    'specs/accessibility/channels/settings_dialog/display.spec.ts': 60,
+    'specs/accessibility/channels/settings_dialog/notifications.spec.ts': 60,
+    'specs/accessibility/channels/settings_dialog/settings.spec.ts': 50,
+    'specs/accessibility/channels/settings_dialog/sidebar.spec.ts': 50,
+    // ── Content flagging (multiple tests per file) ──────────────────────
+    'specs/functional/channels/content_flagging/flagging/flag-messages.spec.ts': 50,
+    'specs/functional/channels/content_flagging/reviewer-actions/reviewer-actions.spec.ts': 50,
+    'specs/functional/channels/content_flagging/reviewer-reports/cross-team-flag-reports-global-reviewers.spec.ts': 30,
+    'specs/functional/channels/content_flagging/reviewer-reports/multiple-reviewers-receive-same-flag.spec.ts': 30,
+    'specs/functional/channels/content_flagging/notifications/author-notification.spec.ts': 25,
+    'specs/functional/channels/content_flagging/notifications/reporter-notification.spec.ts': 25,
+    'specs/functional/channels/content_flagging/edge-cases/author-deletes-message-before-review.spec.ts': 25,
+    'specs/functional/channels/content_flagging/edge-cases/author-edits-message-during-review.spec.ts': 25,
     // ── Team settings ───────────────────────────────────────────────────
-    'specs/functional/channels/team_settings/team_settings_policy_editor.spec.ts': 45,
-    'specs/functional/channels/team_settings/team_settings_membership_policies.spec.ts': 30,
+    'specs/functional/channels/team_settings/team_settings_policy_editor.spec.ts': 60,
+    'specs/functional/channels/team_settings/team_settings_membership_policies.spec.ts': 45,
+    'specs/functional/channels/team_settings/team_settings_unsaved_changes.spec.ts': 45,
+    // ── Autotranslation ─────────────────────────────────────────────────
+    'specs/functional/channels/autotranslation/autotranslation.spec.ts': 60,
+    'specs/functional/channels/autotranslation/autotranslation_permissions.spec.ts': 40,
     // ── Burn on read ────────────────────────────────────────────────────
-    'specs/functional/channels/burn_on_read/receiver_flow.spec.ts': 30,
-    'specs/functional/channels/burn_on_read/sender_flow.spec.ts': 25,
+    'specs/functional/channels/burn_on_read/receiver_flow.spec.ts': 40,
+    'specs/functional/channels/burn_on_read/sender_flow.spec.ts': 35,
+    'specs/functional/channels/burn_on_read/dm_gm_flow.spec.ts': 30,
+    'specs/functional/channels/burn_on_read/restrictions.spec.ts': 25,
     // ── System console ──────────────────────────────────────────────────
-    'specs/functional/system_console/self_deleting_messages.spec.ts': 30,
-    'specs/functional/system_console/single_channel_guests.spec.ts': 25,
-    'specs/functional/system_console/user_attributes/user_attributes.spec.ts': 25,
+    'specs/functional/system_console/self_deleting_messages.spec.ts': 40,
+    'specs/functional/system_console/single_channel_guests.spec.ts': 35,
+    'specs/functional/system_console/user_attributes/user_attributes.spec.ts': 90,
+    'specs/functional/system_console/system_users/user_attributes_admin_editing.spec.ts': 30,
+    'specs/functional/system_console/permissions/system_role_assignment.spec.ts': 30,
     // ── Plugins ─────────────────────────────────────────────────────────
     'specs/functional/plugins/demo_plugin/server/slash_commands/demo_plugin_hook_toggle.spec.ts': 30,
+    'specs/functional/plugins/demo_plugin_installation.spec.ts': 20,
+    // ── Channels (multi-test files) ─────────────────────────────────────
+    'specs/functional/channels/notifications/system_console.spec.ts': 40,
+    'specs/functional/channels/search/browse_channels_sorting.spec.ts': 25,
+    'specs/functional/channels/shared_channel_configuration/shared_channel_configuration.spec.ts': 25,
+    'specs/functional/channels/sidebar_right/channel_members_profile_popover.spec.ts': 25,
 };
 
-const DEFAULT_DURATION = 15;
+const DEFAULT_DURATION = 20;
 
 // ── Discover spec files ─────────────────────────────────────────────────
 
