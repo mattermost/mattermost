@@ -9,7 +9,7 @@
 
 // Group: @channels @not_cloud @messaging @markdown
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const testCases = [
     {name: 'Markdown - typescript', fileKey: 'markdown_typescript'},

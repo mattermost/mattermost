@@ -11,7 +11,7 @@
 // Group: @channels @account_setting
 
 describe('Profile > Profile Settings > Full Name', () => {
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Login as new user and visit off-topic

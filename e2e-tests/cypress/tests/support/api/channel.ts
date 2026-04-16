@@ -3,9 +3,11 @@
 
 import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
-import {ChainableT} from 'tests/types';
 
 import {getRandomId} from '../../utils';
+
+import {ChainableT} from '@/types';
+
 
 // *****************************************************************************
 // Channels
@@ -134,8 +136,8 @@ function apiUpdateChannel(channelId: string, channel: Channel): ChainableT<{chan
         url: '/api/v4/channels/' + channelId,
         method: 'PUT',
         body: {
-            id: channelId,
             ...channel,
+            id: channelId,
         },
     }).then((response) => {
         expect(response.status).to.equal(200);
@@ -301,7 +303,7 @@ Cypress.Commands.add('apiGetChannelsForUser', apiGetChannelsForUser);
  * @example
  *   cy.apiDeleteChannel('channel-id');
  */
-function apiDeleteChannel(channelId: string): ChainableT<any> {
+function apiDeleteChannel(channelId: string): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId,
@@ -342,7 +344,7 @@ function apiAddUserToChannel(channelId: string, userId: string): ChainableT<{mem
 
 Cypress.Commands.add('apiAddUserToChannel', apiAddUserToChannel);
 
-function apiRemoveUserFromChannel(channelId, userId): ChainableT<any> {
+function apiRemoveUserFromChannel(channelId: string, userId: string): ChainableT<{member: unknown}> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: '/api/v4/channels/' + channelId + '/members/' + userId,
@@ -374,7 +376,7 @@ function apiCreateArchivedChannel(name: string, displayName: string, type: Chann
     return cy.apiCreateChannel(teamId, name, displayName, type).then(({channel}) => {
         Cypress._.forEach(messages, (message) => {
             cy.postMessageAs({
-                sender: user,
+                sender: user as {username: string; password: string},
                 message,
                 channelId: channel.id,
             });
@@ -394,7 +396,7 @@ Cypress.Commands.add('apiCreateArchivedChannel', apiCreateArchivedChannel);
  * @param {string} displayName - display name of converted channel
  * @param {string} name - name of converted channel
  */
-function apiConvertGMToPrivateChannel(channelId: string, teamId: string, displayName: string, name: string): ChainableT<any> {
+function apiConvertGMToPrivateChannel(channelId: string, teamId: string, displayName: string, name: string): ChainableT<Cypress.Response<void>> {
     const body = {
         channel_id: channelId,
         team_id: teamId,

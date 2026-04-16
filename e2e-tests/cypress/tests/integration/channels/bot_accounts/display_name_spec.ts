@@ -9,7 +9,6 @@
 
 // Group: @channels @bot_accounts
 
-import {Bot} from '@mattermost/types/bots';
 import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 
@@ -60,7 +59,7 @@ describe('Bot display name', () => {
 
                     // # Post message as bot through api with auth token
                     const props = {attachments: [{pretext: 'Some Pretext', text: 'Some Text'}]};
-                    cy.postBotMessage({token, message: firstMessage, props, channelId: offTopicChannel.id}).
+                    cy.postBotMessage({token: token!, message: firstMessage, props, channelId: offTopicChannel.id}).
                         its('id').
                         should('exist').
                         as('botPost');
@@ -80,8 +79,8 @@ describe('Bot display name', () => {
                             should('have.text', bot.display_name);
                     }).then(() => {
                         // # Change display name after prior verification
-                        cy.wrap(client.patchBot(bot.user_id, {display_name: `NEW ${bot.display_name}`})).then((newBot: Bot) => {
-                            cy.postBotMessage({token, message: secondMessage, props, channelId: offTopicChannel.id}).
+                        cy.wrap(client.patchBot(bot.user_id, {display_name: `NEW ${bot.display_name}`})).then(() => {
+                            cy.postBotMessage({token: token!, message: secondMessage, props, channelId: offTopicChannel.id}).
                                 its('id').
                                 should('exist').
                                 as('newBotPost');
@@ -93,7 +92,7 @@ describe('Bot display name', () => {
                                     should('be.visible');
 
                                 cy.findByTestId(`popover-fullname-${bot.username}`).
-                                    should('have.text', newBot.display_name);
+                                    should('have.text', `NEW ${bot.display_name}`);
                             });
                         });
                     });
