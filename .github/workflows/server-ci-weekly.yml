@@ -7,7 +7,7 @@
 #
 # Jobs moved here from server-ci.yml:
 # - Postgres with binary parameters (1x 8-core)
-# - Postgres FIPS sharded tests (4x 8-core + merge)
+# - Postgres FIPS unsharded (1x 8-core) — sharded runs stay in server-ci.yml for PR iteration
 # - mmctl FIPS tests (1x 8-core)
 name: Server CI Weekly
 on:
