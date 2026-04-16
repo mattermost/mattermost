@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @cloud_only @cloud_trial
 
-import {getAdminAccount} from '../../../../../support/env';
-import {newTestPassword} from '../../../../../utils';
+import {getAdminAccount} from '@/support/env';
+import {newTestPassword} from '@/utils';
 
 const admin = getAdminAccount();
 
@@ -47,7 +47,7 @@ function simulateFilesLimitReached(fileStorageUsageBytes: number) {
 }
 
 // Move to utils
-function simulateSubscription(subscription: Subscription, withLimits = {}) {
+function simulateSubscription(subscription: Partial<Subscription>, withLimits = {}) {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,
         body: subscription,
@@ -86,7 +86,7 @@ function simulateSubscription(subscription: Subscription, withLimits = {}) {
 }
 
 function createUsersProcess(team: { id: string }, channel: { id: string }, times: number) {
-    const users = [];
+    const users: Cypress.UserProfile[] = [];
     for (let i = 0; i < times; i++) {
         cy.apiCreateUser({prefix: 'other'}).then(({user}) => {
             users.push(user);
@@ -162,7 +162,7 @@ function createTrialNotificationForEnterpriseFeatures() {
     }));
 }
 
-function triggerNotifications(url, trial = false, _failOnStatusCode = true) {
+function triggerNotifications(url: string, trial = false, _failOnStatusCode = true) {
     cy.apiAdminLogin().then(() => {
         cy.request({
             headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -206,7 +206,7 @@ function deletePost() {
         cy.externalRequest({user: admin, method: 'DELETE', path: `posts/${postId}`});
     });
 }
-function assertNotification(featureId, minimumPlan, totalRequests, requestsCount, teamName, trial = false) {
+function assertNotification(featureId: string, minimumPlan: string, totalRequests: number, requestsCount: number, teamName: string, trial = false) {
     // # Open system-bot and admin DM
     cy.visit(`/${teamName}/messages/@system-bot`);
 
@@ -267,12 +267,12 @@ function assertTrialMessageButton() {
     cy.get('#pricingModal').should('exist');
 }
 
-function testTrialNotifications(subscription, limits) {
-    let myTeam;
-    let myChannel;
+function testTrialNotifications(subscription: Partial<Subscription>, limits: Partial<Limits>) {
+    let myTeam: Cypress.Team;
+    let myChannel: Cypress.Channel;
     let myUrl: string;
-    let myAllProfessionalUsers = [];
-    let myAllEnterpriseUsers = [];
+    let myAllProfessionalUsers: Cypress.UserProfile[] = [];
+    let myAllEnterpriseUsers: Cypress.UserProfile[] = [];
     const ALL_PROFESSIONAL_FEATURES_REQUESTS = 5;
     const ALL_ENTERPRISE_FEATURES_REQUESTS = 3;
     const TOTAL = 8;
@@ -325,10 +325,10 @@ function testTrialNotifications(subscription, limits) {
 }
 
 function testFilesNotifications(subscription: Subscription, limits: Limits) {
-    let myTeam;
-    let myChannel;
-    let myUrl;
-    let myAllProfessionalUsers = [];
+    let myTeam: Cypress.Team;
+    let myChannel: Cypress.Channel;
+    let myUrl: string;
+    let myAllProfessionalUsers: Cypress.UserProfile[] = [];
     const ALL_PROFESSIONAL_FEATURES_REQUESTS = 5;
     const TOTAL = 5;
 
@@ -365,13 +365,13 @@ function testFilesNotifications(subscription: Subscription, limits: Limits) {
     deletePost();
 }
 
-function testUpgradeNotifications(subscription, limits) {
-    let myTeam;
-    let myChannel;
+function testUpgradeNotifications(subscription: Partial<Subscription>, limits: Partial<Limits>) {
+    let myTeam: Cypress.Team;
+    let myChannel: Cypress.Channel;
     let myUrl: string;
-    let myMessageLimitUsers = [];
-    let myUnlimitedTeamsUsers = [];
-    let myUserGroupsUsers = [];
+    let myMessageLimitUsers: Cypress.UserProfile[] = [];
+    let myUnlimitedTeamsUsers: Cypress.UserProfile[] = [];
+    let myUserGroupsUsers: Cypress.UserProfile[] = [];
 
     const CREATE_MULTIPLE_TEAMS_USERS = 2;
     const UNLIMITED_MESSAGES_USERS = 3;
