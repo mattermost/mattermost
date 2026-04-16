@@ -32,6 +32,7 @@ describe('SystemUserDetail', () => {
         showManageUserSettings: false,
         showLockedManageUserSettings: false,
         mfaEnabled: false,
+        customProfileAttributeEnabled: true,
         customProfileAttributeFields: [],
         patchUser: jest.fn(),
         updateUserAuth: jest.fn(),
@@ -114,6 +115,24 @@ describe('SystemUserDetail', () => {
             showManageUserSettings: false,
         };
         const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
+
+        expect(container).toMatchSnapshot();
+    });
+
+    test('should not fetch CPA data if disabled', async () => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+        const getCustomProfileAttributeValues = jest.fn().mockResolvedValue({data: {}});
+
+        const props = {
+            ...defaultProps,
+            customProfileAttributeEnabled: false,
+            getCustomProfileAttributeFields,
+            getCustomProfileAttributeValues,
+        };
+        const {container} = await renderWithContext(<SystemUserDetail {...props}/>);
+
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+        expect(getCustomProfileAttributeValues).not.toHaveBeenCalled();
 
         expect(container).toMatchSnapshot();
     });

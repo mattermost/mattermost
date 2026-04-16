@@ -36,6 +36,7 @@ describe('PostComponent', () => {
         isMobileView: false,
         isPostAcknowledgementsEnabled: false,
         isPostPriorityEnabled: false,
+        permissionPoliciesEnabled: false,
         location: Locations.CENTER,
         post: TestHelper.getPostMock({channel_id: channel.id}),
         recentEmojis: [],
