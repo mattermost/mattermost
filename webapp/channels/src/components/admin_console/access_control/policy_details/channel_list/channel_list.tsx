@@ -39,6 +39,7 @@ type Props = WrappedComponentProps & {
     policyActiveStatusChanges?: PolicyActiveStatus[];
     onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
     saving?: boolean;
+    hideTeamColumn?: boolean;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -328,7 +329,7 @@ class ChannelList extends React.PureComponent<Props, State> {
     };
 
     getColumns = (): Column[] => {
-        return [
+        const columns: Column[] = [
             {
                 name: (
                     <FormattedMessage
@@ -338,9 +339,12 @@ class ChannelList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
                 fixed: true,
-                width: 7,
+                width: this.props.hideTeamColumn ? 10 : 7,
             },
-            {
+        ];
+
+        if (!this.props.hideTeamColumn) {
+            columns.push({
                 name: (
                     <FormattedMessage
                         id='admin.channel_settings.channel_list.teamHeader'
@@ -350,7 +354,10 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'team',
                 fixed: true,
                 width: 7,
-            },
+            });
+        }
+
+        columns.push(
             {
                 name: (
                     <div className='ChannelList__autoAddHeader'>
@@ -395,16 +402,18 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'autoAdd',
                 textAlign: 'center',
                 fixed: true,
-                width: 8,
+                width: this.props.hideTeamColumn ? 9 : 8,
             },
             {
                 name: '',
                 field: 'remove',
                 textAlign: 'right',
                 fixed: true,
-                width: 3,
+                width: this.props.hideTeamColumn ? 3 : 3,
             },
-        ];
+        );
+
+        return columns;
     };
 
     getRows = () => {
@@ -533,7 +542,7 @@ class ChannelList extends React.PureComponent<Props, State> {
             },
         };
 
-        const filterProps = {
+        const filterProps = this.props.hideTeamColumn ? undefined : {
             options: filterOptions,
             keys: ['teams'],
             onFilter: this.onFilter,

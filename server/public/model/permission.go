@@ -42,6 +42,7 @@ var PermissionAssignSystemAdminRole *Permission
 var PermissionManageRoles *Permission
 var PermissionManageTeamRoles *Permission
 var PermissionManageChannelRoles *Permission
+var PermissionManageTeamAccessRules *Permission
 var PermissionCreateDirectChannel *Permission
 var PermissionCreateGroupChannel *Permission
 var PermissionManagePublicChannelProperties *Permission
@@ -510,6 +511,12 @@ func initializePermissions() {
 		"manage_team_roles",
 		"authentication.permissions.manage_team_roles.name",
 		"authentication.permissions.manage_team_roles.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageTeamAccessRules = &Permission{
+		"manage_team_access_rules",
+		"",
+		"",
 		PermissionScopeTeam,
 	}
 	PermissionManageChannelRoles = &Permission{
@@ -2551,6 +2558,7 @@ func initializePermissions() {
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
 		PermissionManageTeamRoles,
+		PermissionManageTeamAccessRules,
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,

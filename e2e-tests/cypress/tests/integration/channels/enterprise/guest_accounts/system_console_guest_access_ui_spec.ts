@@ -14,7 +14,7 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Guest Account - Verify Guest Access UI', () => {
     beforeEach(() => {

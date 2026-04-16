@@ -14,9 +14,9 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import messageMenusOptions from '../../../fixtures/interactive_message_menus_options.json';
-import {getMessageMenusPayload} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import messageMenusOptions from '@/fixtures/interactive_message_menus_options.json';
+import {getMessageMenusPayload} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const options = [
     {text: 'Option 1', value: 'option1'},

@@ -1,0 +1,148 @@
+.TeamAccessPoliciesTab {
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    &__title {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__add-btn {
+        display: flex;
+        align-items: center;
+        padding: 6px 16px;
+        font-size: 13px;
+        gap: 4px;
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    // Override PolicyTable (policies list) DataGrid styles for the channels product context.
+    .PolicyTable {
+        .DataGrid {
+            background-color: var(--center-channel-bg);
+
+            &_search {
+                background: var(--center-channel-bg);
+
+                .DataGrid_searchBar {
+                    border-color: rgba(var(--center-channel-color-rgb), 0.2);
+
+                    input {
+                        background: var(--center-channel-bg);
+                        color: var(--center-channel-color);
+                    }
+
+                    .DataGrid_searchIcon {
+                        color: rgba(var(--center-channel-color-rgb), 0.5);
+                    }
+                }
+            }
+
+            &_header {
+                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.16);
+                color: var(--center-channel-color);
+            }
+
+            .DataGrid_rows {
+                background: var(--center-channel-bg);
+
+                .DataGrid_row {
+                    background-color: var(--center-channel-bg);
+                    color: var(--center-channel-color);
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+                }
+            }
+
+            &_footer {
+                background: var(--center-channel-bg);
+                color: rgba(var(--center-channel-color-rgb), 0.5);
+            }
+        }
+
+        .action-wrapper .icon-button {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
+            }
+        }
+    }
+
+    // Override DataGrid customTable styles for use within the channels product
+    // (team settings modal), which uses --center-channel-* variables instead of
+    // the system console's --sys-* variables.
+    .DataGrid.customTable {
+        background: var(--center-channel-bg);
+
+        .DataGrid_search {
+            background: var(--center-channel-bg);
+
+            .DataGrid_searchBar {
+                border-color: rgba(var(--center-channel-color-rgb), 0.2);
+
+                input {
+                    background: var(--center-channel-bg);
+                    color: var(--center-channel-color);
+                }
+
+                .DataGrid_searchIcon {
+                    color: rgba(var(--center-channel-color-rgb), 0.5);
+                }
+            }
+        }
+
+        .DataGrid_rows {
+            background: var(--center-channel-bg);
+        }
+
+        .DataGrid_header {
+            border-bottom-color: rgba(var(--center-channel-color-rgb), 0.16);
+            color: var(--center-channel-color);
+        }
+
+        .DataGrid_row {
+            color: var(--center-channel-color);
+
+            &:nth-child(odd) {
+                background: var(--center-channel-bg);
+            }
+
+            &:nth-child(even) {
+                background: rgba(var(--button-bg-rgb), 0.04);
+            }
+
+            &:hover {
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--center-channel-color);
+            }
+
+            .actionIcon a {
+                color: rgba(var(--center-channel-color-rgb), 0.75);
+            }
+
+            .actionIcon a:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+            }
+        }
+
+        .DataGrid_footer {
+            background: var(--center-channel-bg);
+            color: rgba(var(--center-channel-color-rgb), 0.5);
+        }
+    }
+}
