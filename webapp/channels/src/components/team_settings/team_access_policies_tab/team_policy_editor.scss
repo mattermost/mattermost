@@ -1,0 +1,103 @@
+.TeamPolicyEditor {
+    padding-bottom: 80px;
+    margin-top: -8px;
+
+    &__header {
+        margin-bottom: 0;
+    }
+
+    &__back-btn {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        cursor: pointer;
+        font-family: 'Metropolis', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        gap: 8px;
+        line-height: 24px;
+
+        .fa {
+            font-size: 20px;
+        }
+    }
+
+    &__divider {
+        border: none;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin: 20px 0;
+
+        &--full-width {
+            margin-right: -32px;
+            margin-left: -32px;
+        }
+
+        &.header-divider {
+            margin-top: 12px;
+        }
+    }
+
+    &__name-input {
+        margin-bottom: 0;
+    }
+
+    &__name-hint {
+        margin-top: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+
+        &--error {
+            color: var(--error-text);
+        }
+    }
+
+    &__section {
+        margin-bottom: 0;
+    }
+
+    &__section-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    &__section-title {
+        margin: 0 0 4px;
+        color: var(--center-channel-color);
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__section-subtitle {
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    // Override table editor colors for channel theme
+    .table-editor__cell {
+        button {
+            color: var(--center-channel-color) !important;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+            }
+        }
+    }
+
+    .editor__help-text {
+        width: 75%;
+        color: rgba(var(--center-channel-color-rgb), 0.56) !important;
+    }
+
+
+    &__delete-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+}

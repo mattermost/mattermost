@@ -993,3 +993,159 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		require.True(t, allFilesHaveMembership)
 	})
 }
+
+func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	post := th.CreatePost(t, th.BasicChannel)
+
+	t.Run("no filtering when ABAC is not enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = nil
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		allMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, allMembership)
+		require.Len(t, fileList.Order, 1)
+	})
+
+	t.Run("keeps files when ABAC allows download", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		fi1 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi2 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi1.Id] = fi1
+		fileList.FileInfos[fi2.Id] = fi2
+		fileList.Order = []string{fi1.Id, fi2.Id}
+
+		allMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, allMembership)
+		require.Len(t, fileList.Order, 2)
+	})
+
+	t.Run("removes files when ABAC denies download", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		require.Empty(t, fileList.FileInfos)
+	})
+
+	t.Run("ABAC evaluation error denies download (fail-secure)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", 500))
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		require.Empty(t, fileList.FileInfos)
+	})
+
+	t.Run("ABAC evaluates once per channel not per file", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+		fi1 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi2 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi3 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi1.Id] = fi1
+		fileList.FileInfos[fi2.Id] = fi2
+		fileList.FileInfos[fi3.Id] = fi3
+		fileList.Order = []string{fi1.Id, fi2.Id, fi3.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.Order, 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	})
+
+	t.Run("skips ABAC check for channels already denied by RBAC", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		fileList := model.NewFileInfoList()
+		fi := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		mockACS.AssertNotCalled(t, "AccessEvaluation")
+	})
+}

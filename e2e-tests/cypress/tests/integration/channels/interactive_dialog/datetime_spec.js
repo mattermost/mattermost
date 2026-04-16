@@ -91,7 +91,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
             testTeam = team;
             testChannel = channel;
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             const command = {
                 auto_complete: false,

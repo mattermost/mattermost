@@ -9,14 +9,14 @@
 
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {reUrl, getRandomId} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {reUrl, getRandomId} from '@/utils';
 
 describe('Profile > Profile Settings > Email', () => {
-    let siteName;
+    let siteName: string;
     let testUser: Cypress.UserProfile;
-    let otherUser;
-    let offTopicUrl;
+    let otherUser: Cypress.UserProfile;
+    let offTopicUrl: string;
     let origConfig: Cypress.AdminConfig;
 
     before(() => {
