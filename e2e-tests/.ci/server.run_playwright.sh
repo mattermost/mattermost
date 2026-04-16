@@ -43,12 +43,14 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 
 # Run Playwright test
 # NB: do not exit the script if some testcases fail
-# Pass TEST_FILTER and PW_SHARD with `docker compose exec -e` so they are set
-# inside the container. Expanding them only in the host-side bash -c "..." string
-# can leave them empty (then every CI shard runs the full suite and hits the job timeout).
+# Pass TEST_FILTER and PW_SHARD with `docker compose exec -e VAR` (no =value) so
+# Compose copies them from this shell's environment. Do NOT use -e "VAR=${VAR}"
+# here: TEST_FILTER is e.g. --grep-invert "@visual" and embedded quotes break the
+# host command line, so PW_SHARD never reaches the container and every shard runs
+# the full suite.
 ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
-  -e "TEST_FILTER=${TEST_FILTER:-}" \
-  -e "PW_SHARD=${PW_SHARD:-}" \
+  -e TEST_FILTER \
+  -e PW_SHARD \
   -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright.log || true
 
 # Collect run results
