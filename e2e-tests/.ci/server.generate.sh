@@ -133,8 +133,6 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     network_mode: host
     networks: !reset []
     restart: "no"
-    security_opt:
-      - apparmor:unconfined
     extends:
         file: ../../server/build/docker-compose.common.yml
         service: openldap
