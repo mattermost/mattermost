@@ -416,7 +416,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button
@@ -681,7 +681,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
 
         // Navigate back to ABAC list page
-        await page.goto('/admin_console/system_attributes/attribute_based_access_control', {waitUntil: 'networkidle'});
+        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
         await page.waitForTimeout(2000);
 
         // Verify we're on the list page by checking for "Add policy" button

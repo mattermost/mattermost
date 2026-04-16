@@ -56,6 +56,10 @@
     "translation": "Get fields limit is not valid."
   },
   {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Permission policies feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -242,6 +246,10 @@
   {
     "id": "api.channel.add_members.user_denied",
     "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -2221,6 +2229,10 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "You do not have the required access to download this file."
+  },
+  {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
     "translation": "Mismatched flagged post ID specified."
   },
@@ -2315,6 +2327,10 @@
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "File storage settings has unset values."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "You do not have the required access to upload files to this channel."
   },
   {
     "id": "api.file.upload_file.get_channel.app_error",
@@ -5099,6 +5115,14 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Failed to retrieve the access control subject."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Failed to retrieve the access control attribute group."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -7305,6 +7329,10 @@
   {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Failed to evaluate permission policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",

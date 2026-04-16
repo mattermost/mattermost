@@ -11,6 +11,9 @@ type Subject struct {
 	ID string `json:"id"`
 	// Type specifies the type of the Subject, eg. user, bot, etc.
 	Type string `json:"type"`
+	// Role is the system role of the subject (e.g. "system_user", "system_guest", "system_admin").
+	// This is separate from custom profile attributes since it's a first-class system concept.
+	Role string `json:"role"`
 	// Attributes are the key-value pairs assicuated with the subject.
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
