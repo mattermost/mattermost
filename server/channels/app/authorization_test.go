@@ -1154,8 +1154,7 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	testCases := []struct {
 		name     string
@@ -1292,8 +1291,7 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -1515,8 +1513,7 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	testCases := []struct {
 		name     string
@@ -1653,8 +1650,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	testCases := []struct {
 		name     string
@@ -1805,8 +1801,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -2027,8 +2022,7 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	testCases := []struct {
 		name     string

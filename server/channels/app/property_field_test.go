@@ -17,8 +17,7 @@ func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should create a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -115,8 +114,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should update a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -198,8 +196,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should update multiple non-protected fields without bypass", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -343,8 +340,7 @@ func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should delete a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -479,8 +475,7 @@ func TestGetPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should get an existing field", func(t *testing.T) {
 		field := &model.PropertyField{
@@ -507,8 +502,7 @@ func TestGetPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should get multiple fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
@@ -537,8 +531,7 @@ func TestSearchPropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	groupID := th.CpaGroupID(t)
 
 	t.Run("should search for fields", func(t *testing.T) {
 		field := &model.PropertyField{
