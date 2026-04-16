@@ -149,11 +149,12 @@ jobs:
  
             3. **Identify affected personas** for each documentation-relevant change using the impact signals defined above.
  
-            4. **Search `./docs/source/`** for existing documentation covering each affected feature/area. Search for related RST files by name patterns and content.
+            4. **Search `./docs/source/`** for existing documentation covering each affected feature/area. Search for related RST files by name patterns and content. For every RST file you identify as potentially relevant, **read its actual content** and confirm it explicitly describes the specific behavior, setting, endpoint, or workflow being changed. Do not flag a page solely because its filename or section heading is related — only flag it if the file contains prose that would become inaccurate or incomplete due to this PR.
  
             5. **Evaluate documentation impact** for each change by applying these two criteria:
               - **Documented behavior changed:** The PR modifies behavior that is currently described in the documentation. The existing docs would become inaccurate or misleading if not updated. Flag these as **"Documentation Updates Required"**.
               - **Documentation gap identified:** The PR introduces new functionality, settings, endpoints, or behavioral changes that are not covered anywhere in the current documentation, and that are highly relevant to one or more identified personas. Flag these as **"Documentation Updates Recommended"** and note that new documentation is needed.
+              - **API spec changes already in PR:** Changes to `api/v4/source/` YAML files are part of the PR itself and are automatically published to api.mattermost.com. These do **not** require a separate docs repo action. Do not create action items for them. You may note them in the table as "Handled in PR — auto-published to api.mattermost.com" but they must not appear as recommended actions.
  
             6. **Determine the documentation action** for each flagged change: does an existing page need updating (cite the exact RST file), or is an entirely new page needed (suggest the appropriate directory and a proposed filename)?
  
@@ -191,7 +192,7 @@ jobs:
             - [ ] [Specific action item with exact file path, e.g., "Update docs/source/administration-guide/config-settings.rst to document new FooBar setting"]
             - [ ] [Another action item with file path]
  
-            If the PR has API spec changes in `api/v4/source/`, note that these are automatically published to api.mattermost.com and may not need separate docs repo changes, but flag them for completeness review.
+            If the PR has API spec changes in `api/v4/source/`, note in the table that these are automatically published to api.mattermost.com and are already handled by this PR. Do **not** include them as recommended action items.
  
             #### Confidence
             [High/Medium/Low] — [Brief explanation of confidence level]

@@ -160,7 +160,55 @@
     }
 }
 
+.policy-refresh-btn {
+    display: flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    font-size: 18px;
+    outline: none;
+
+    &:focus-visible {
+        border-radius: 4px;
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active {
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+}
+
 .actions-column {
     justify-content: flex-end !important;
     text-align: right;
+}
+
+.PolicyList__no-results {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.48);
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.PolicyList__no-results-hint {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 400;
 }
