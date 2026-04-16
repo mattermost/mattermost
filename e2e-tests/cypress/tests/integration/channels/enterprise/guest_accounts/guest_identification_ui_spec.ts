@@ -15,8 +15,8 @@
  */
 import dayjs from 'dayjs';
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
-import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {getAdminAccount} from '../../../../support/env';
 
 describe('Verify Guest User Identification in different screens', () => {
     const admin = getAdminAccount();
@@ -203,7 +203,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
     it('Verify Guest Badge in @mentions Autocomplete', () => {
         // # Start a draft in Channel containing "@user"
-        cy.uiGetPostTextBox().type(`@${guestUser.username}`);
+        cy.uiGetPostTextBox().clear().type(`@${guestUser.username}`);
 
         // * Verify Guest Badge is displayed at mention auto-complete
         cy.get('#suggestionList').should('be.visible');

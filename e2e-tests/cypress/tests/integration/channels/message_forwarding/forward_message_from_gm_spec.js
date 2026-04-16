@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Forward Message', () => {
     let user1;
@@ -212,7 +212,10 @@ describe('Forward Message', () => {
 
             if (comment) {
                 // # Enter comment
-                cy.get('#forward_post_textbox').invoke('val', comment).trigger('change').type(' {backspace}');
+                cy.get('#forward_post_textbox').clear().then((el) => {
+                    el[0].textContent = comment;
+                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                }).type(' {backspace}');
 
                 // * Assert if error message is not present
                 cy.get('label.post-error').should('not.exist');

@@ -31,7 +31,7 @@ describe('Messaging', () => {
         cy.clickEmojiInEmojiPicker('grinning');
 
         // * The emoji should be inserted as a Unicode character where the cursor is at the time of selection.
-        cy.uiGetPostTextBox().should('have.value', 'Hello\uD83D\uDE00World!');
+        cy.uiGetPostTextBox().should('contain.text', 'Hello\uD83D\uDE00World!');
         cy.uiGetPostTextBox().type('{enter}');
 
         // * The emoji should be displayed in the post at the position inserted.

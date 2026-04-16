@@ -11,15 +11,15 @@ import {isMac} from '../utils';
 // Read more: https://on.cypress.io/custom-commands
 // ***********************************************************
 
-function logout(): ChainableT<JQuery> {
+function logout(): ChainableT<any> {
     return cy.get('#logout').click({force: true});
 }
 Cypress.Commands.add('logout', logout);
 
-function getCurrentUserId(): ChainableT<string> {
-    return cy.wrap(new Promise<string>((resolve) => {
+function getCurrentUserId(): ChainableT<Promise<unknown>> {
+    return cy.wrap(new Promise((resolve) => {
         cy.getCookie('MMUSERID').then((cookie) => {
-            resolve(cookie!.value);
+            resolve(cookie.value);
         });
     }));
 }
@@ -30,12 +30,12 @@ Cypress.Commands.add('getCurrentUserId', getCurrentUserId);
 // ***********************************************************
 
 // Type Cmd or Ctrl depending on OS
-function typeCmdOrCtrl(): ChainableT<JQuery> {
+function typeCmdOrCtrl(): ChainableT<any> {
     return typeCmdOrCtrlInt('#post_textbox');
 }
 Cypress.Commands.add('typeCmdOrCtrl', typeCmdOrCtrl);
 
-function typeCmdOrCtrlForEdit(): ChainableT<JQuery> {
+function typeCmdOrCtrlForEdit(): ChainableT<any> {
     return typeCmdOrCtrlInt('#edit_textbox');
 }
 Cypress.Commands.add('typeCmdOrCtrlForEdit', typeCmdOrCtrlForEdit);
@@ -51,7 +51,7 @@ function typeCmdOrCtrlInt(textboxSelector: string) {
     return cy.get(textboxSelector).type(cmdOrCtrl, {release: false});
 }
 
-function cmdOrCtrlShortcut(subject: string, text?: string): ChainableT<JQuery> {
+function cmdOrCtrlShortcut(subject: string, text?: string): ChainableT<any> {
     const cmdOrCtrl = isMac() ? '{cmd}' : '{ctrl}';
     return cy.get(subject).type(`${cmdOrCtrl}${text}`);
 }
@@ -61,21 +61,27 @@ Cypress.Commands.add('cmdOrCtrlShortcut', {prevSubject: true}, cmdOrCtrlShortcut
 // Post
 // ***********************************************************
 
-function postMessage(message: string): ChainableT<boolean> {
+function postMessage(message: string): ChainableT<any> {
     cy.get('#postListContent').should('be.visible');
     return postMessageAndWait('#post_textbox', message);
 }
 Cypress.Commands.add('postMessage', postMessage);
 
-function postMessageReplyInRHS(message: string): ChainableT<boolean> {
+function postMessageReplyInRHS(message: string): ChainableT<any> {
     cy.get('#sidebar-right').should('be.visible');
     return postMessageAndWait('#reply_textbox', message, true);
 }
 Cypress.Commands.add('postMessageReplyInRHS', postMessageReplyInRHS);
 
 Cypress.Commands.add('uiPostMessageQuickly', (message) => {
-    cy.uiGetPostTextBox().should('be.visible').clear().
-        invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
+    cy.uiGetPostTextBox().should('be.visible').then((el) => {
+        const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+        if (isContentEditable) {
+            cy.wrap(el).clear().type(message).wait(TIMEOUTS.HALF_SEC).type('{enter}');
+        } else {
+            cy.wrap(el).clear().invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
+        }
+    });
     cy.waitUntil(() => {
         return cy.uiGetPostTextBox().then((el) => {
             return el[0].textContent === '';
@@ -97,13 +103,27 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).then((el) => {
+        const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+        if (isContentEditable) {
+            cy.wrap(el).should('contain.text', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-    cy.get(textboxSelector).invoke('val').then((value) => {
-        if (typeof value === 'string' && value.length > 0 && value === message) {
-            cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+            cy.get(textboxSelector).then((retryEl) => {
+                if ((retryEl[0].textContent || '').trim().length > 0) {
+                    cy.wrap(retryEl).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+                }
+            });
+        } else {
+            cy.wrap(el).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+
+            cy.get(textboxSelector).invoke('val').then((value: string) => {
+                if (value.length > 0 && value === message) {
+                    cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+                }
+            });
         }
     });
+
     return cy.waitUntil(() => {
         return cy.get(textboxSelector).then((el) => {
             return el[0].textContent === '';
@@ -169,7 +189,7 @@ function getLastPostId(): ChainableT<string> {
 }
 Cypress.Commands.add('getLastPostId', getLastPostId);
 
-function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<boolean> {
+function uiWaitUntilMessagePostedIncludes(message: string): ChainableT<any> {
     const checkFn = () => {
         return cy.getLastPost().scrollIntoView().then((el) => {
             const postedMessageEl = el.find('.post-message__text')[0];
@@ -203,14 +223,20 @@ function uiGetNthPost(index: number): ChainableT<JQuery> {
 }
 Cypress.Commands.add('uiGetNthPost', uiGetNthPost);
 
-function postMessageFromFile(file: string, target = '#post_textbox') {
+function postMessageFromFile(file: string, target = '#post_textbox'): ChainableT<any> {
     return cy.fixture(file, 'utf-8').then((text) => {
-        return cy.get(target).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
+        return cy.get(target).then((el) => {
+            const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+            if (isContentEditable) {
+                return cy.wrap(el).clear().type(text, {delay: 0}).wait(TIMEOUTS.HALF_SEC).type('{enter}').should('have.text', '');
+            }
+            return cy.wrap(el).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
+        });
     });
 }
 Cypress.Commands.add('postMessageFromFile', postMessageFromFile);
 
-function compareLastPostHTMLContentFromFile(file: string, timeout = TIMEOUTS.TEN_SEC): ChainableT<void> {
+function compareLastPostHTMLContentFromFile(file: string, timeout = TIMEOUTS.TEN_SEC): ChainableT<any> {
     // * Verify that HTML Content is correct
     return cy.getLastPostId().then((postId) => {
         const postMessageTextId = `#postMessageText_${postId}`;
@@ -347,14 +373,12 @@ Cypress.Commands.add('clickPostSaveIcon', clickPostSaveIcon);
 function clickPostDotMenu(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'button');
 }
-// Cypress.Commands.add requires cast for overloaded commands
-Cypress.Commands.add('clickPostDotMenu', clickPostDotMenu as any);
+Cypress.Commands.add('clickPostDotMenu', clickPostDotMenu);
 
 function clickPostReactionIcon(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'reaction');
 }
-// Cypress.Commands.add requires cast for overloaded commands
-Cypress.Commands.add('clickPostReactionIcon', clickPostReactionIcon as any);
+Cypress.Commands.add('clickPostReactionIcon', clickPostReactionIcon);
 
 function clickPostCommentIcon(postId: string, location = 'CENTER') {
     clickPostHeaderItem(postId, location, 'commentIcon');
@@ -514,7 +538,7 @@ function updateDMGMChannelHeader(text: string) {
 
 Cypress.Commands.add('updateDMGMChannelHeader', updateDMGMChannelHeader);
 
-function checkRunLDAPSync() {
+function checkRunLDAPSync(): ChainableT<any> {
     return cy.apiGetLDAPSync().then((response) => {
         const jobs = response.body;
         const currentTime = new Date();
@@ -567,7 +591,7 @@ function clickEmojiInEmojiPicker(emojiName: string) {
 }
 Cypress.Commands.add('clickEmojiInEmojiPicker', clickEmojiInEmojiPicker);
 
-function verifyPostedMessage(message: string) {
+function verifyPostedMessage(message) {
     cy.wait(TIMEOUTS.HALF_SEC).getLastPostId().then((postId) => {
         cy.get(`#post_${postId}`).within(() => {
             cy.get(`#postMessageText_${postId}`).contains(message);
@@ -576,7 +600,7 @@ function verifyPostedMessage(message: string) {
 }
 Cypress.Commands.add('verifyPostedMessage', verifyPostedMessage);
 
-function verifyEphemeralMessage(message: string, isCompactMode: boolean, needsToScroll: boolean) {
+function verifyEphemeralMessage(message, isCompactMode, needsToScroll) {
     if (needsToScroll) {
         // # Scroll the ephemeral message into view
         cy.get('#postListContent').within(() => {
@@ -747,7 +771,7 @@ declare global {
              * @param {User[]} users - the users that should get the message
              * @param {String} message - the message to send
              */
-            sendDirectMessageToUsers(users: User[], message: string): ChainableT<boolean>;
+            sendDirectMessageToUsers(users: User[], message: string): ChainableT<any>;
 
             /**
              * Click post time

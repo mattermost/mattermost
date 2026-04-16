@@ -13,6 +13,7 @@ const Preferences = {
     CATEGORY_AUTO_RESET_MANUAL_STATUS: 'auto_reset_manual_status',
     CATEGORY_NOTIFICATIONS: 'notifications',
     COLLAPSED_REPLY_THREADS: 'collapsed_reply_threads',
+    WYSIWYG_EDITOR: 'wysiwyg_editor',
     COLLAPSED_REPLY_THREADS_OFF: 'off',
     COLLAPSED_REPLY_THREADS_ON: 'on',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',

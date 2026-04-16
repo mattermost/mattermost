@@ -13,7 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
     let testTeam: Team;
@@ -123,7 +123,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                 cy.apiAddUserToChannel(testChannel.id, user.id).then(() => {
                     // * Verify Accessibility support in post input field
-                    cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).clear().focus();
+                    cy.uiGetPostTextBox().should('have.attr', 'role', 'textbox').clear().focus();
 
                     // # Ensure User list is cached once in UI
                     cy.uiGetPostTextBox().type('@').wait(TIMEOUTS.ONE_SEC);
@@ -169,7 +169,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
             // * Verify Accessibility Support in Main Post input
-            cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
+            cy.uiGetPostTextBox().should('have.attr', 'role', 'textbox').clear().focus().type('test');
 
             // # Set a11y focus on the textbox
             cy.get('#FormattingControl_bold').focus().tab({shift: true});
@@ -235,7 +235,7 @@ describe('Verify Accessibility Support in different input fields', () => {
 
         cy.get('#rhsContainer').within(() => {
             // * Verify Accessibility Support in RHS input
-            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab();
+            cy.uiGetReplyTextBox().should('have.attr', 'role', 'textbox').focus().type('test').tab();
 
             // * Verify if the focus is on the preview button
             cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
@@ -276,7 +276,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function verifySearchAutocomplete(index: number) {
+function verifySearchAutocomplete(index) {
     cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
         and('have.class', 'suggestion--selected').
         invoke('attr', 'id').then((suggestionId) => {
@@ -284,7 +284,7 @@ function verifySearchAutocomplete(index: number) {
         });
 }
 
-function verifyMessageAutocomplete(index: number) {
+function verifyMessageAutocomplete(index) {
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected');
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).invoke('attr', 'id').then((selectedId) => {
         cy.wrap(selectedId).should('not.equal', '');

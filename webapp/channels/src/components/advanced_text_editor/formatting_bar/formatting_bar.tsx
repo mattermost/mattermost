@@ -2,8 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {useFloating, offset, useClick, useDismiss, useInteractions} from '@floating-ui/react';
+import type {Editor} from '@tiptap/react';
 import classNames from 'classnames';
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState, useReducer} from 'react';
 import {useIntl} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
@@ -16,6 +17,8 @@ import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_mark
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {LayoutModes, useFormattingBarControls} from './hooks';
+import LinkPopover from './link_popover';
+import TextStyleDropdown from './text_style_dropdown';
 
 export const Separator = styled.div`
     display: block;
@@ -42,6 +45,7 @@ const FormattingBarContainer = styled.div`
     gap: 2px;
     transform-origin: top;
     transition: height 0.25s ease;
+    overflow: hidden;
 `;
 
 const HiddenControlsContainer = styled.div`
@@ -132,12 +136,65 @@ interface FormattingBarProps {
     additionalControls?: React.ReactNodeArray;
 
     /**
-     * AI actions menu rendered at the far left of the formatting bar
+     * Returns the TipTap editor instance for WYSIWYG mode.
+     * When provided, formatting commands are dispatched directly to the editor
+     * instead of going through markdown string manipulation.
      */
-    aiActionsMenu?: React.ReactNode;
+    getWysiwygEditor?: () => Editor | null;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
+
+function isWysiwygMarkActive(editor: Editor | null, mode: MarkdownMode): boolean {
+    if (!editor) {
+        return false;
+    }
+    switch (mode) {
+    case 'bold': return editor.isActive('bold');
+    case 'italic': return editor.isActive('italic');
+    case 'strike': return editor.isActive('strike');
+    case 'code': return editor.isActive('codeBlock');
+    case 'quote': return editor.isActive('blockquote');
+    case 'heading': return editor.isActive('heading');
+    case 'ul': return editor.isActive('bulletList');
+    case 'ol': return editor.isActive('orderedList');
+    case 'link': return editor.isActive('link');
+    default: return false;
+    }
+}
+
+function applyWysiwygCommand(editor: Editor, mode: MarkdownMode): boolean {
+    switch (mode) {
+    case 'bold':
+        editor.chain().focus().toggleBold().run();
+        return true;
+    case 'italic':
+        editor.chain().focus().toggleItalic().run();
+        return true;
+    case 'strike':
+        editor.chain().focus().toggleStrike().run();
+        return true;
+    case 'heading':
+        editor.chain().focus().toggleHeading({level: 3}).run();
+        return true;
+    case 'code':
+        editor.chain().focus().toggleCodeBlock().run();
+        return true;
+    case 'quote':
+        editor.chain().focus().toggleBlockquote().run();
+        return true;
+    case 'ul':
+        editor.chain().focus().toggleBulletList().run();
+        return true;
+    case 'ol':
+        editor.chain().focus().toggleOrderedList().run();
+        return true;
+    case 'link':
+        return false;
+    default:
+        return false;
+    }
+}
 
 const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     const {
@@ -147,15 +204,34 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         disableControls,
         location,
         additionalControls,
-        aiActionsMenu,
+        getWysiwygEditor,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
+    const [linkPopoverEditor, setLinkPopoverEditor] = useState<Editor | null>(null);
+    const linkButtonRef = useRef<HTMLElement | null>(null);
 
     const additionalControlsCount = useMemo(() => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
     }, [additionalControls]);
 
     const {formattingBarRef, controls, hiddenControls, layoutMode} = useFormattingBarControls(additionalControlsCount, location);
+
+    const [, forceUpdate] = useReducer((c: number) => c + 1, 0);
+
+    useEffect(() => {
+        const editor = getWysiwygEditor?.();
+        if (!editor || editor.isDestroyed) {
+            return undefined;
+        }
+
+        editor.on('selectionUpdate', forceUpdate);
+        editor.on('transaction', forceUpdate);
+
+        return () => {
+            editor.off('selectionUpdate', forceUpdate);
+            editor.off('transaction', forceUpdate);
+        };
+    }, [getWysiwygEditor]);
 
     const {formatMessage} = useIntl();
     const HiddenControlsButtonAriaLabel = formatMessage({id: 'accessibility.button.hidden_controls_button', defaultMessage: 'show hidden formatting options'});
@@ -189,12 +265,23 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * the FormattingIcon component. This should improve render-performance
      */
     const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
-        // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;
         }
 
-        // get the current selection values and return early (doing nothing) when we don't get valid values
+        const wysiwygEditor = getWysiwygEditor?.();
+        if (wysiwygEditor && !wysiwygEditor.isDestroyed) {
+            if (mode === 'link') {
+                setLinkPopoverEditor(wysiwygEditor);
+                return;
+            }
+            applyWysiwygCommand(wysiwygEditor, mode);
+            if (showHiddenControls) {
+                setShowHiddenControls(true);
+            }
+            return;
+        }
+
         const {start, end} = getCurrentSelection();
 
         if (start === null || end === null) {
@@ -210,11 +297,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             message: value,
         });
 
-        // if hidden controls are currently open close them
         if (showHiddenControls) {
             setShowHiddenControls(true);
         }
-    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls]);
+    }, [getCurrentSelection, getCurrentMessage, applyMarkdown, showHiddenControls, disableControls, getWysiwygEditor]);
 
     const leftPosition = layoutMode === LayoutModes.Min ? (x ?? 0) + DEFAULT_MIN_MODE_X_COORD : x ?? 0;
 
@@ -231,17 +317,41 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             ref={formattingBarRef}
             data-testid='formattingBarContainer'
         >
-            {aiActionsMenu}
-            {aiActionsMenu && showSeparators && <Separator/>}
+            {getWysiwygEditor && (
+                <>
+                    <TextStyleDropdown
+                        getWysiwygEditor={getWysiwygEditor}
+                        disabled={disableControls}
+                    />
+                    {showSeparators && <Separator/>}
+                </>
+            )}
             {controls.map((mode) => {
+                if (mode === 'heading' && getWysiwygEditor) {
+                    return null;
+                }
+                const wysiwygEditor = getWysiwygEditor?.();
                 return (
                     <React.Fragment key={mode}>
-                        <FormattingIcon
-                            mode={mode}
-                            className='control'
-                            onClick={makeFormattingHandler(mode)}
-                            disabled={disableControls}
-                        />
+                        {mode === 'link' && getWysiwygEditor ? (
+                            <span ref={(el) => { linkButtonRef.current = el; }}>
+                                <FormattingIcon
+                                    mode={mode}
+                                    className='control'
+                                    onClick={makeFormattingHandler(mode)}
+                                    disabled={disableControls}
+                                    isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
+                                />
+                            </span>
+                        ) : (
+                            <FormattingIcon
+                                mode={mode}
+                                className='control'
+                                onClick={makeFormattingHandler(mode)}
+                                disabled={disableControls}
+                                isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
+                            />
+                        )}
                         {mode === 'heading' && showSeparators && <Separator/>}
                     </React.Fragment>
                 );
@@ -294,6 +404,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                     {...getDismissFloatingProps()}
                 >
                     {hiddenControls.map((mode) => {
+                        const wysiwygEditor = getWysiwygEditor?.();
                         return (
                             <FormattingIcon
                                 key={mode}
@@ -301,11 +412,20 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 className='control'
                                 onClick={makeFormattingHandler(mode)}
                                 disabled={disableControls}
+                                isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
                             />
                         );
                     })}
                 </HiddenControlsContainer>
             </CSSTransition>
+
+            {linkPopoverEditor && !linkPopoverEditor.isDestroyed && (
+                <LinkPopover
+                    editor={linkPopoverEditor}
+                    anchorEl={linkButtonRef.current}
+                    onClose={() => setLinkPopoverEditor(null)}
+                />
+            )}
         </FormattingBarContainer>
     );
 };

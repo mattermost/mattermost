@@ -52,6 +52,6 @@ describe('Messaging', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // * Assert that the message textbox is empty
-        cy.uiGetPostTextBox().should('have.value', '');
+        cy.uiGetPostTextBox().should('have.text', '');
     });
 });

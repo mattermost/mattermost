@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '@/utils';
+import {getRandomId} from '../../../../utils';
 
 describe('Settings > Sidebar > General', () => {
     const randomId = getRandomId();
@@ -62,7 +62,7 @@ describe('Settings > Sidebar > General', () => {
         cy.uiGetPostTextBox().tab();
 
         // * Verify that after enter user's username match
-        cy.uiGetPostTextBox().should('have.value', `@${username} `);
+        cy.uiGetPostTextBox().should('contain.text', `@${username} `);
 
         // # Click enter in post textbox
         cy.uiGetPostTextBox().type('{enter}');

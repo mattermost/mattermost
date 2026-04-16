@@ -10,16 +10,15 @@
 // Stage: @prod
 // Group: @channels @emoji @timeout_error
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as MESSAGES from '../../../fixtures/messages';
+
 import {getCustomEmoji} from './helpers';
-
-import * as TIMEOUTS from '@/fixtures/timeouts';
-import * as MESSAGES from '@/fixtures/messages';
-
 
 describe('Recent Emoji', () => {
     const largeEmojiFile = 'gif-image-file.gif';
 
-    let townsquareLink: string;
+    let townsquareLink;
 
     before(() => {
         cy.apiUpdateConfig({
@@ -54,7 +53,7 @@ describe('Recent Emoji', () => {
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('have.value', '😂 ').type(`${message} {enter}`);
+        cy.uiGetPostTextBox().and('contain.text', '😂 ').type(`${message} {enter}`);
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post
@@ -108,7 +107,8 @@ describe('Recent Emoji', () => {
         // # Post a custom emoji
         // We let autocomplete emoji to be shown as this is a custom emoji, properties are loaded then we press enter twice, first one to auto complete add, next for post enter
         cy.uiGetPostTextBox().clear().type(`${MESSAGES.TINY}-recent ${customEmojiWithColons.slice(0, -1)}`).wait(TIMEOUTS.TWO_SEC);
-        cy.uiGetPostTextBox().type('{enter} {enter}').wait(TIMEOUTS.TWO_SEC);
+        cy.uiGetPostTextBox().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.uiGetPostTextBox().type('{enter}').wait(TIMEOUTS.TWO_SEC);
 
         // # Hover over the last post by opening dot menu on it
         cy.getLastPostId().then((postId) => {

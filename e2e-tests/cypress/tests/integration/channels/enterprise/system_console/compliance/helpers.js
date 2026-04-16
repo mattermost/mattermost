@@ -3,7 +3,7 @@
 
 import path from 'path';
 
-import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 
 export function downloadAndUnzipExportFile(targetFolder = '') {
     // # Get the download link
@@ -52,7 +52,7 @@ export function editLastPost(message) {
         cy.get('#edit_textbox').should('be.visible');
 
         // # Update the post message and type ENTER
-        cy.get('#edit_textbox').invoke('val', '').type(message);
+        cy.get('#edit_textbox').clear().type(message);
         cy.get('#create_post').findByText('Save').should('be.visible').click();
 
         // * Edit modal should not be visible
