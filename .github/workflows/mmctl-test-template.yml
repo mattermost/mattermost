@@ -56,7 +56,7 @@ jobs:
           docker compose --ansi never ps
       - name: Run mmctl Tests
         env:
-          BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
+          BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export TESTFLAGS="-timeout 90m -race"
