@@ -7,6 +7,7 @@ import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/elem
 import {preventUnhandled} from '@atlaskit/pragmatic-drag-and-drop/prevent-unhandled';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import type {RefObject} from 'react';
 import {useEffect, useState} from 'react';
 
 import {createBookmarkDragPreview} from '../drag_preview';
@@ -17,7 +18,7 @@ interface UseBookmarkDragDropOptions {
     allowedEdges: Edge[];
     displayName: string;
     canReorder: boolean;
-    getElement: () => HTMLElement | null;
+    elementRef: RefObject<HTMLElement | null>;
 }
 
 interface UseBookmarkDragDropResult {
@@ -31,13 +32,13 @@ export function useBookmarkDragDrop({
     allowedEdges,
     displayName,
     canReorder,
-    getElement,
+    elementRef,
 }: UseBookmarkDragDropOptions): UseBookmarkDragDropResult {
     const [isDragSelf, setIsDragSelf] = useState(false);
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
     useEffect(() => {
-        const el = getElement();
+        const el = elementRef.current;
         if (!el || !canReorder) {
             return undefined;
         }
@@ -92,7 +93,7 @@ export function useBookmarkDragDrop({
             el.removeEventListener('dragstart', handleDragStart);
             cleanup();
         };
-    }, [id, container, allowedEdges, displayName, canReorder, getElement]);
+    }, [id, container, allowedEdges, displayName, canReorder, elementRef]);
 
     return {isDragSelf, closestEdge};
 }

@@ -54,7 +54,7 @@ function OverflowBookmarkItem({
         allowedEdges: ['top', 'bottom'] as Edge[],
         displayName: bookmark.display_name,
         canReorder,
-        getElement: () => liRef.current,
+        elementRef: liRef,
     });
 
     // Compose keyboard handlers: reorder first, then ArrowRight to open dot menu

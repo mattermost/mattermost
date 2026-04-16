@@ -79,27 +79,35 @@ const ChannelBookmarksSubmenu = (props: Props) => {
             <Menu.Item
                 id={`channel-menu-${channelId}-bookmarks-link`}
                 leadingElement={<LinkVariantIcon size={18}/>}
-                disabled={limitReached}
+                aria-disabled={limitReached}
                 labels={addItemLabels(
                     <FormattedMessage
                         id='channel_menu.bookmarks.addLink'
                         defaultMessage='Add a link'
                     />,
                 )}
-                onClick={() => handleCreateLink()}
+                onClick={() => {
+                    if (!limitReached) {
+                        handleCreateLink();
+                    }
+                }}
             />
             {canUploadFiles && (
                 <Menu.Item
                     id={`channel-menu-${channelId}-bookmarks-file`}
                     leadingElement={<PaperclipIcon size={18}/>}
-                    disabled={limitReached}
+                    aria-disabled={limitReached}
                     labels={addItemLabels(
                         <FormattedMessage
                             id='channel_menu.bookmarks.addFile'
                             defaultMessage='Attach a file'
                         />,
                     )}
-                    onClick={() => handleCreateFile()}
+                    onClick={() => {
+                        if (!limitReached) {
+                            handleCreateFile();
+                        }
+                    }}
                 />
             )}
         </Menu.SubMenu>

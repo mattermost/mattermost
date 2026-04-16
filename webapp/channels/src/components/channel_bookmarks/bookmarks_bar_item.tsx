@@ -36,7 +36,7 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
         allowedEdges: ['left', 'right'] as Edge[],
         displayName: bookmark.display_name,
         canReorder: !disabled && !hidden,
-        getElement: () => ref.current,
+        elementRef: ref,
     });
 
     // Prevent Space from bubbling to message input

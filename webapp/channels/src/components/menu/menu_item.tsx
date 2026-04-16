@@ -184,9 +184,10 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
             if (onClick && event.nativeEvent !== lastHandledEventRef.current) {
                 lastHandledEventRef.current = event.nativeEvent;
 
-                // If the menu is in mobile view, we execute the click event immediately.
-                // If the menu item is a checkbox or radio button, we execute the click event immediately.
-                if (isMobileView || isRoleCheckboxOrRadio(role)) {
+                // Execute immediately when the menu isn't closing on select
+                // (mobile modal, checkbox/radio, or disableCloseOnSelect).
+                // Otherwise defer to after the close animation.
+                if (isMobileView || isRoleCheckboxOrRadio(role) || disableCloseOnSelect) {
                     onClick(event);
                 } else {
                     // Clone the event since we delay the click handler until after the menu has closed.
