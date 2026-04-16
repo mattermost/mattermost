@@ -13,9 +13,10 @@
 import {Bot} from '@mattermost/types/bots';
 import {Team} from '@mattermost/types/teams';
 
-import {getRandomId} from '../../../utils';
-
 import {createBotInteractive} from './helpers';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Bot accounts - CRUD Testing', () => {
     let newTeam: Team;
@@ -43,10 +44,10 @@ describe('Bot accounts - CRUD Testing', () => {
         // * Check that the previously created bot is listed
         cy.findByText(testBot.fullDisplayName).then((el) => {
             // # Make sure it's on the screen
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // # Click the edit button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Edit').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Edit').should('be.visible').click();
 
             // * Validate redirect to edit screen
             cy.url().should('include', `/${newTeam.name}/integrations/bots/edit`);
@@ -82,10 +83,10 @@ describe('Bot accounts - CRUD Testing', () => {
         // * Check that the previously created bot is listed
         cy.findByText(testBot.fullDisplayName).then((el) => {
             // # Make sure it's on the screen
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // # Click the edit button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Edit').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Edit').should('be.visible').click();
 
             // * Validate redirect to edit screen
             cy.url().should('include', `/${newTeam.name}/integrations/bots/edit`);
@@ -122,7 +123,7 @@ describe('Bot accounts - CRUD Testing', () => {
 
             // * Check that the previously created bot is listed
             cy.findByText(`Test Bot (@${botUsername})`).then((el) => {
-                cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+                cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
                 // * Validate that token is NOT visible on the next page
                 const token = text.substr(text.indexOf('Token: ') + 7, 26);
@@ -138,20 +139,20 @@ describe('Bot accounts - CRUD Testing', () => {
         // * Check that the previously created bot is listed
         cy.findByText(testBot.fullDisplayName).then((el) => {
             // # Make sure it's on the screen
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // # Click the 'Create token' button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Create New Token').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Create New Token').should('be.visible').click();
 
             // # Try saving without description
             cy.findByTestId('saveSetting').click();
-            cy.wrap(el[0].parentElement.parentElement).find('input').scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).find('input').scrollIntoView();
 
             // * Check for error message
             cy.get('#clientError').should('be.visible');
 
             // # Add description
-            cy.wrap(el[0].parentElement.parentElement).find('input').click().type(testBot.username + 'description!');
+            cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type(testBot.username + 'description!');
 
             // # Save and check that no error is visible
             cy.findByTestId('saveSetting').click();
@@ -169,33 +170,33 @@ describe('Bot accounts - CRUD Testing', () => {
         // * Check that the previously created bot is listed
         cy.findByText(testBot.fullDisplayName).then((el) => {
             // # Make sure it's on the screen
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // # Click the 'Create token' button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Create New Token').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Create New Token').should('be.visible').click();
 
             // # Add description
-            cy.wrap(el[0].parentElement.parentElement).find('input').click().type('description!');
+            cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type('description!');
 
             // # Save
             cy.findByTestId('saveSetting').click();
 
             // # Click Close button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Close').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Close').should('be.visible').click();
 
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // * Check that token is visible
-            cy.wrap(el[0].parentElement.parentElement).findByText(/Token ID:/).should('be.visible');
+            cy.wrap(el[0].parentElement!.parentElement!).findByText(/Token ID:/).should('be.visible');
 
             // # Click Delete button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Delete').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Delete').should('be.visible').click();
 
             // * Validate that confirmation dialog is visible and click the delete button
             cy.get('#confirmModalButton').should('be.visible').click();
 
             // * Check that token is not visible
-            cy.wrap(el[0].parentElement.parentElement).findByText(/Token ID:/).should('not.exist');
+            cy.wrap(el[0].parentElement!.parentElement!).findByText(/Token ID:/).should('not.exist');
         });
     });
 });

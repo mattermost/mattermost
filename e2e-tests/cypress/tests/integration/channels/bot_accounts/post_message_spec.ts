@@ -37,7 +37,7 @@ describe('Bot post message', () => {
 
                 // # Post message as bot through api with auth token
                 const props = {attachments: [{pretext: 'Some Pretext', text: 'Some Text'}]};
-                cy.postBotMessage({token, message, props, channelId: offTopicChannel.id}).
+                cy.postBotMessage({token: token!, message, props, channelId: offTopicChannel.id}).
                     its('id').
                     should('exist').
                     as('botPost');

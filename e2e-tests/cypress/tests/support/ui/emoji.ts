@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
+import {ChainableT} from '@/types';
 
 Cypress.Commands.add('uiGetEmojiPicker', (): ChainableT<JQuery> => {
     return cy.get('#emojiPicker').should('be.visible');
