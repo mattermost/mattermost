@@ -406,6 +406,22 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 >
                     {hiddenControls.map((mode) => {
                         const wysiwygEditor = getWysiwygEditor?.();
+                        if (mode === 'link' && getWysiwygEditor) {
+                            return (
+                                <span
+                                    key={mode}
+                                    ref={(el) => { linkButtonRef.current = el; }}
+                                >
+                                    <FormattingIcon
+                                        mode={mode}
+                                        className='control'
+                                        onClick={makeFormattingHandler(mode)}
+                                        disabled={disableControls}
+                                        isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
+                                    />
+                                </span>
+                            );
+                        }
                         return (
                             <FormattingIcon
                                 key={mode}

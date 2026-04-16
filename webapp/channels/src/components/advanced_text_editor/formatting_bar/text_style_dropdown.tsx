@@ -182,7 +182,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
             chain.setParagraph().run();
         } else {
             const level = parseInt(style.replace('h', ''), 10) as 1 | 2 | 3 | 4 | 5 | 6;
-            chain.toggleHeading({level}).run();
+            chain.setHeading({level}).run();
         }
 
         savedSelectionRef.current = null;

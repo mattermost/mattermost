@@ -53,7 +53,14 @@ describe('Recent Emoji', () => {
 
         // # Submit post
         const message = 'hi';
-        cy.uiGetPostTextBox().and('contain.text', '😂 ').type(`${message} {enter}`);
+        cy.uiGetPostTextBox().then((el) => {
+            const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+            if (isContentEditable) {
+                cy.wrap(el).and('contain.text', '😂').type(`${message} {enter}`);
+            } else {
+                cy.wrap(el).and('have.value', '😂 ').type(`${message} {enter}`);
+            }
+        });
         cy.uiWaitUntilMessagePostedIncludes(message);
 
         // # Post reaction to post

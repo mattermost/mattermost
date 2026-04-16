@@ -138,8 +138,6 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
             return;
         }
 
-        editor.chain().focus();
-
         if (isEditing) {
             editor.chain().focus().extendMarkRange('link').setLink({href: url}).run();
         } else {
@@ -148,9 +146,13 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
                 editor.chain().focus().setLink({href: url}).run();
             } else {
                 const displayText = text || url;
-                editor.chain().focus().insertContent(
-                    `<a href="${url}">${displayText}</a>`,
-                ).run();
+                editor.chain().focus().insertContent([
+                    {
+                        type: 'text',
+                        text: displayText,
+                        marks: [{type: 'link', attrs: {href: url}}],
+                    },
+                ]).run();
             }
         }
 
@@ -238,10 +240,10 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
                         onClick={handleSave}
                         disabled={!isUrlValid}
                     >
-                        {formatMessage({
-                            id: 'wysiwyg.link.save',
-                            defaultMessage: isEditing ? 'Update' : 'Save',
-                        })}
+                        {isEditing
+                            ? formatMessage({id: 'wysiwyg.link.update', defaultMessage: 'Update'})
+                            : formatMessage({id: 'wysiwyg.link.save', defaultMessage: 'Save'})
+                        }
                     </PopoverButton>
                 </PopoverActions>
                 {isEditing && (

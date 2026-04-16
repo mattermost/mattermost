@@ -15,8 +15,9 @@
  */
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {newTestPassword} from '../../../../utils';
 
-function demoteGuestUser(guestUser) {
+function demoteGuestUser(guestUser: Cypress.UserProfile) {
     // # Demote user as guest user before each test
     cy.apiAdminLogin();
     cy.apiGetUserByEmail(guestUser.email).then(({user}) => {
@@ -203,7 +204,7 @@ describe('Guest Account - Guest User Experience', () => {
                 cy.findByText('Back').should('be.visible').click();
 
                 // * Verify if user is redirected to a valid channel
-                cy.get('#post_textbox').should('be.visible');
+                cy.findByTestId('post_textbox').should('be.visible');
             });
         });
     });
@@ -226,7 +227,7 @@ describe('Guest Account - Guest User Experience', () => {
 
         // # Login with guest user credentials and check the error message
         cy.get('#input_loginId').type(guestUser.username);
-        cy.get('#input_password-input').type('passwd');
+        cy.get('#input_password-input').type(newTestPassword());
         cy.get('#saveSetting').should('not.be.disabled').click();
 
         // * Verify if guest account is deactivated

@@ -174,7 +174,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         const deleteFrom = startOfLine + matchIndex;
         const deleteTo = from;
 
-        const completedText = term.endsWith(':') ? `${term} ` : `${term} `;
+        const completedText = `${term} `;
 
         editor.chain().focus().deleteRange({from: deleteFrom, to: deleteTo}).insertContent(completedText).run();
 

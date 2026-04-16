@@ -217,8 +217,13 @@ describe('Collapsed Reply Threads', () => {
             // # Paste a multiline string in the RHS textbox.
             const text = 'word '.repeat(2000);
             cy.get('#rhsContainer').find('#reply_textbox').clear().then((el) => {
-                el[0].textContent = text;
-                el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
+                if (isContentEditable) {
+                    el[0].textContent = text;
+                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
+                } else {
+                    cy.wrap(el).invoke('val', text).trigger('input');
+                }
             });
 
             // * RHS should open and the editor should be visible and focused

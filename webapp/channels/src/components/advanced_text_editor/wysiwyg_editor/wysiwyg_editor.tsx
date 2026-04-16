@@ -245,7 +245,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         getEditor: () => editor,
         insertText: (text: string) => {
             if (editor && !editor.isDestroyed) {
-                editor.chain().focus().insertContent({type: 'text', text}).run();
+                const {state} = editor;
+                const {from} = state.selection;
+                const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
+                const needsSpace = charBefore.length > 0 && !/\s/.test(charBefore);
+                const content = needsSpace ? ` ${text} ` : `${text} `;
+                editor.chain().focus().insertContent({type: 'text', text: content}).run();
             }
         },
     }), [editor]);

@@ -45,7 +45,7 @@ const useEditorEmojiPicker = (
 
     const insertTextAtCaret = useCallback((text: string) => {
         if (insertWysiwygText) {
-            insertWysiwygText(`${text} `);
+            insertWysiwygText(text);
             return;
         }
 
