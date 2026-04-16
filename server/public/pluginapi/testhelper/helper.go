@@ -75,6 +75,10 @@ func ensurePluginMeta() error {
 			pluginMetaErr = fmt.Errorf("no plugin bundle found in dist/ — ensure 'make dist' ran before tests")
 			return
 		}
+		if len(matches) > 1 {
+			pluginMetaErr = fmt.Errorf("multiple plugin bundles found in dist/ — remove old bundles and keep only one: %v", matches)
+			return
+		}
 		pluginBundle = matches[0]
 	})
 	return pluginMetaErr
