@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @system_console
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('System Console > Site Statistics', () => {
     let testTeam;
