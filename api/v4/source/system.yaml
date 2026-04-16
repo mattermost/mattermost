@@ -195,7 +195,9 @@
         mock agent availability, agent/service listings, queued completion
         responses, and test-only AI feature flag overrides.
 
-        This endpoint is only available when `EnableTesting` is enabled.
+        This endpoint is only available when `EnableTesting` is enabled. `EnableTesting`
+        is intended only for isolated non-production environments and must never be
+        enabled in production.
 
         ##### Permissions
 
@@ -228,7 +230,9 @@
       description: >
         Retrieve the current in-memory AI bridge test helper state used for end-to-end tests.
 
-        This endpoint is only available when `EnableTesting` is enabled.
+        This endpoint is only available when `EnableTesting` is enabled. `EnableTesting`
+        is intended only for isolated non-production environments and must never be
+        enabled in production.
 
         ##### Permissions
 
@@ -252,7 +256,9 @@
       description: >
         Reset the in-memory AI bridge test helper state used for end-to-end tests.
 
-        This endpoint is only available when `EnableTesting` is enabled.
+        This endpoint is only available when `EnableTesting` is enabled. `EnableTesting`
+        is intended only for isolated non-production environments and must never be
+        enabled in production.
 
         ##### Permissions
 
