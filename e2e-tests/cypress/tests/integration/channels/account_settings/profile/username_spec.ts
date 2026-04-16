@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Settings > Sidebar > General > Edit', () => {
-    let testTeam;
-    let testUser;
-    let testChannel;
-    let otherUser;
-    let offTopicUrl;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let testChannel: Cypress.Channel;
+    let otherUser: Cypress.UserProfile;
+    let offTopicUrl: string;
 
     before(() => {
         // # Login as admin and visit off-topic
@@ -86,7 +86,7 @@ describe('Settings > Sidebar > General > Edit', () => {
     });
 
     it('MM-T2053 Username w/ dot, dash, underscore still searches', () => {
-        let tempUser;
+        let tempUser: Cypress.UserProfile;
 
         // # Create a temporary user
         cy.apiCreateUser({prefix: 'temp'}).then(({user: user1}) => {

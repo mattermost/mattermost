@@ -15,6 +15,10 @@
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
+
+    &.compact {
+        height: unset;
+    }
 }
 
 .file-preview {
@@ -38,11 +42,20 @@
         margin-top: -16px;
         margin-left: -16px;
     }
+
+    &.compact {
+        overflow: hidden !important;
+    }
 }
 
 .app__body {
     .file-preview__remove {
         position: absolute;
+
+        &.compact {
+            position: unset;
+        }
+
         top: 4px;
         right: 4px;
         display: flex;
@@ -494,6 +507,12 @@
     font-size: 12px;
     text-align: left;
 
+    &.compact {
+        .post-image__name {
+            font-size: 12px;
+        }
+    }
+
     .post-image__archived-name {
         align-items: center;
         justify-content: start;
@@ -536,6 +555,14 @@
             height: 36px;
             line-height: normal;
             text-overflow: ellipsis;
+
+            &.compact {
+                height: unset;
+
+                .post-image__name {
+                    font-size: 12px;
+                }
+            }
 
             .post-image__name {
                 display: block;
