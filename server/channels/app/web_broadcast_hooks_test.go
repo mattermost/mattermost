@@ -634,9 +634,9 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 
 		gotJSON, _ := msg.Get("post").(string)
 		assert.NotContains(t, gotJSON, fileID, "file ID should be cleared")
-		// RedactedFileCount is 0 because Files was nil (len(nil) == 0).
-		// With JSON omitempty, a zero value is omitted from the output.
-		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "zero redacted count is omitted by omitempty")
+		// RedactedFileCount falls back to len(FileIds) when Metadata.Files is nil,
+		// so the placeholder count is 1 even though Files was already cleared upstream.
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "file count falls back to FileIds length")
 	})
 
 	t.Run("no file stripping when embed has no files", func(t *testing.T) {
