@@ -6,6 +6,8 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -31,6 +33,31 @@ func TestProcessSlackText(t *testing.T) {
 	if th.App.ProcessSlackText("<@"+userID+"> hello") != "@"+username+" hello" {
 		t.Fail()
 	}
+}
+
+func TestProcessMessageAttachmentsWithNilEntries(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	attachments := []*model.SlackAttachment{
+		nil,
+		{
+			Pretext: "pretext",
+			Text:    "text",
+			Title:   "title",
+		},
+		nil,
+		{
+			Pretext: "pretext2",
+			Text:    "text2",
+		},
+	}
+
+	result := th.App.ProcessSlackAttachments(attachments)
+	require.Len(t, result, 2)
+	require.Equal(t, "pretext", result[0].Pretext)
+	require.Equal(t, "pretext2", result[1].Pretext)
 }
 
 func TestProcessSlackAnnouncement(t *testing.T) {
