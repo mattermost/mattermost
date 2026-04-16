@@ -13,7 +13,6 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {
     enablePermission,
     goToSystemScheme,
@@ -21,6 +20,8 @@ import {
 } from '../../enterprise/system_console/channel_moderation/helpers';
 
 import {addNewCommand, runSlashCommand} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Slash commands', () => {
     const trigger = 'my_trigger';
@@ -39,7 +40,7 @@ describe('Slash commands', () => {
             team1 = team;
 
             cy.apiGetChannelByName(team.name, 'town-square').then(({channel}) => {
-                commandURL = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
+                commandURL = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
             });
 
             // # Create a GM with at least 3 users
@@ -70,7 +71,7 @@ describe('Slash commands', () => {
 
         cy.apiAdminLogin(user1);
         cy.apiGetChannelByName(team1.name, groupChannel.name).then(({channel}) => {
-            const customGMUrl = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
+            const customGMUrl = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channel.id}`;
 
             // # Add a new command to send a GM
             addNewCommand(team1, gmTrigger, customGMUrl);
@@ -95,7 +96,7 @@ describe('Slash commands', () => {
             const message = `hello from ${user2.username}: ${Date.now()}`;
             cy.postMessageAs({sender: user2, message, channelId});
 
-            const customDMUrl = `${Cypress.env().webhookBaseUrl}/send_message_to_channel?channel_id=${channelId}`;
+            const customDMUrl = `${Cypress.expose().webhookBaseUrl}/send_message_to_channel?channel_id=${channelId}`;
 
             addNewCommand(team1, dmTrigger, customDMUrl);
 

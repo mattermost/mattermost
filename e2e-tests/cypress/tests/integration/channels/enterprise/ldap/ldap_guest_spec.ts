@@ -11,17 +11,17 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../support/env';
-import {getRandomId} from '../../../../utils';
+import ldapUsers from '@/fixtures/ldap_users.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 // assumes that E20 license is uploaded
 // for setup with AWS: Follow the instructions mentioned in the mattermost/platform-private/config/ldap-test-setup.txt file
 describe('LDAP guest', () => {
-    let testSettings;
-    let user1Data;
-    let user2Data;
+    let testSettings: {siteName: string; siteUrl: string; teamName: string; user: null | Record<string, unknown>};
+    let user1Data: Record<string, unknown>;
+    let user2Data: Record<string, unknown>;
 
     const user1 = ldapUsers['test-2'];
     const user2 = ldapUsers['test-3'];
@@ -46,7 +46,7 @@ describe('LDAP guest', () => {
             user1Data = user;
 
             // # Remove user1 from all the teams
-            removeUserFromAllTeams(user1Data);
+            removeUserFromAllTeams(user1Data as {id: string});
         });
 
         // # Get user2 data
@@ -54,7 +54,7 @@ describe('LDAP guest', () => {
             user2Data = user;
 
             // # Remove user2 fromm all the teams
-            removeUserFromAllTeams(user2Data);
+            removeUserFromAllTeams(user2Data as {id: string});
         });
     });
 
@@ -190,10 +190,11 @@ describe('LDAP guest', () => {
             // # Get available ldap groups
             cy.apiGetLDAPGroups().then((result) => {
                 // # Find "board" group
-                const board = result.body.groups.find((group) => group.name === 'board');
+                const board = result.body.groups.find((group: {name: string; primary_key: string}) => group.name === 'board');
+                expect(board, 'LDAP group "board" should exist').to.exist;
 
                 // # Link group
-                cy.apiLinkGroup(board.primary_key).then(() => {
+                cy.apiLinkGroup(board!.primary_key).then(() => {
                     // # Add board-one to test team
                     cy.visit(`/admin_console/user_management/teams/${team.id}`);
                     cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Team Configuration');
@@ -249,7 +250,7 @@ function gotoLDAPSettings() {
     cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'AD/LDAP Wizard');
 }
 
-function promoteGuestToUser(user) {
+function promoteGuestToUser(user: Record<string, unknown>) {
     // # Issue a Request to promote the guest to user
     // Ignoring the response status as it won't be 200 if user is not a guest
     cy.task('externalRequest', {
@@ -260,7 +261,7 @@ function promoteGuestToUser(user) {
     });
 }
 
-function demoteUserToGuest(user) {
+function demoteUserToGuest(user: Record<string, unknown>) {
     // # Issue a Request to demote the user to guest
     cy.task('externalRequest', {
         user: getAdminAccount(),
@@ -282,7 +283,7 @@ function removeUserFromAllTeams(user: { id: string }) {
     });
 }
 
-function setGuestAccess(enable) {
+function setGuestAccess(enable: boolean) {
     const inputId = 'GuestAccountsSettings.' + (enable ? 'Enabletrue' : 'Enablefalse');
     cy.findByTestId(inputId).then((elem) => {
         // Proceed only if it's not already checked
@@ -302,7 +303,7 @@ function setGuestAccess(enable) {
     });
 }
 
-function setLDAPTestSettings(config) {
+function setLDAPTestSettings(config: Cypress.AdminConfig) {
     return {
         siteName: config.TeamSettings.SiteName,
         siteUrl: config.ServiceSettings.SiteURL,
@@ -311,7 +312,7 @@ function setLDAPTestSettings(config) {
     };
 }
 
-function updateGuestFilter(value) {
+function updateGuestFilter(value: string) {
     // # Set guest filter value
     if (value) {
         cy.findByTestId('LdapSettings.GuestFilterinput').type(value);

@@ -1547,6 +1547,20 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Block file metadata (including mini_preview) for users denied download access.
+	// Skipped when the PermissionPolicies feature flag is off to avoid an unnecessary DB fetch.
+	if c.App.Config().FeatureFlags.PermissionPolicies {
+		filePost, filePostErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+		if filePostErr != nil {
+			c.Err = filePostErr
+			return
+		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
 	infos, appErr := c.App.GetFileInfosForPostWithMigration(c.AppContext, c.Params.PostId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr

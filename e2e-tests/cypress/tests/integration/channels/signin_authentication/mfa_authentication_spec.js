@@ -11,9 +11,10 @@
 
 import authenticator from 'authenticator';
 
-import timeouts from '../../../fixtures/timeouts';
-
 import {fillCredentialsForUser} from './helpers';
+
+import timeouts from '@/fixtures/timeouts';
+
 
 describe('Authentication', () => {
     let testTeam;

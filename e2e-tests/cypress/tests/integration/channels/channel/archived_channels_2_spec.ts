@@ -14,8 +14,8 @@ import {Channel, ServerChannel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('Leave an archived channel', () => {
     let testTeam: Team;
@@ -45,22 +45,24 @@ describe('Leave an archived channel', () => {
                 type: 'P',
             } as Channel;
 
-            cy.wrap(client.createChannel(channelTest)).then(async (channel: ServerChannel) => {
+            cy.wrap(client.createChannel(channelTest)).then(async (channel: unknown) => {
+                const ch = channel as ServerChannel;
                 // # Then invite us to it
-                await client.addToChannel(testUser.id, channel.id);
+                await client.addToChannel(testUser.id, ch.id);
 
-                return channel;
+                return ch;
             }).then((channel) => {
                 // * Verify that the newly created channel is in the sidebar
                 cy.get(`#sidebarItem_${channel.name}`).should('be.visible');
 
                 cy.wrap(channel);
             }).then(async (channel) => {
+                const ch = channel as ServerChannel;
                 // # Then archive the channel
-                await client.deleteChannel(channel.id);
+                await client.deleteChannel(ch.id);
 
                 // * Verify that the channel is no longer in the sidebar and that the app hasn't crashed
-                cy.get(`#sidebarItem_${channel.name}`).should('not.exist');
+                cy.get(`#sidebarItem_${ch.name}`).should('not.exist');
             });
         });
     });
