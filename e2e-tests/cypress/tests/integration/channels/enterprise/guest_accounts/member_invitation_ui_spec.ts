@@ -13,9 +13,9 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import {getRandomId, stubClipboard, newTestPassword} from '../../../../utils';
-import {getAdminAccount} from '../../../../support/env';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, stubClipboard, newTestPassword} from '@/utils';
 
 describe('Guest Account - Member Invitation Flow', () => {
     const sysadmin = getAdminAccount();
@@ -249,7 +249,7 @@ describe('Guest Account - Member Invitation Flow', () => {
     });
 });
 
-function invitePeople(typeText, resultsCount, verifyText, clickInvite = true) {
+function invitePeople(typeText: string, resultsCount: number, verifyText: string, clickInvite = true) {
     // # Open team menu and click 'Invite People'
     cy.uiOpenTeamMenu('Invite people');
 
@@ -271,7 +271,7 @@ function invitePeople(typeText, resultsCount, verifyText, clickInvite = true) {
     }
 }
 
-function verifyInvitationError(user, team, errorText) {
+function verifyInvitationError(user: string, team: Cypress.Team, errorText: string) {
     // * Verify the content and error message in the Invitation Modal
     cy.findByTestId('invitationModal').within(() => {
         cy.get('h1').should('have.text', `Members invited to ${team.display_name}`);
@@ -290,7 +290,7 @@ function verifyInvitationError(user, team, errorText) {
     cy.get('.InvitationModal').should('not.exist');
 }
 
-function verifyInvitationSuccess(user, team, successText) {
+function verifyInvitationSuccess(user: string, team: Cypress.Team, successText: string) {
     // * Verify the content and success message in the Invitation Modal
     cy.findByTestId('invitationModal').within(() => {
         cy.get('h1').should('have.text', `Members invited to ${team.display_name}`);
@@ -309,7 +309,7 @@ function verifyInvitationSuccess(user, team, successText) {
     cy.get('.InvitationModal').should('not.exist');
 }
 
-function loginAsNewUser(team) {
+function loginAsNewUser(team: Cypress.Team) {
     // # Login as new user and get the user id
     cy.apiCreateUser().then(({user}) => {
         cy.apiAddUserToTeam(team.id, user.id);

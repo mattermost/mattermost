@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -66,6 +67,14 @@ func (a *App) GetJobsByTypesPage(rctx request.CTX, jobType []string, page int, p
 	return jobs, nil
 }
 
+func (a *App) GetJobsByTypeAndData(rctx request.CTX, jobType string, data map[string]string) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, jobType, data, false)
+	if err != nil {
+		return nil, model.NewAppError("GetJobsByTypeAndData", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return jobs, nil
+}
+
 func (a *App) GetJobsByTypesAndStatuses(rctx request.CTX, jobTypes []string, status []string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store().Job().GetAllByTypesAndStatusesPage(rctx, jobTypes, status, page*perPage, perPage)
 	if err != nil {
@@ -85,38 +94,93 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 }
 
 func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
-	// Get the policy_id (channel ID) from job data to scope the deduplication
-	policyID, exists := jobData["policy_id"]
+	policyID := jobData["policy_id"]
+	teamID := jobData["team_id"]
+	requesterID := jobData["requester_id"]
+	isAdmin := jobData["requester_is_admin"] == "true"
 
-	// If policy_id is provided, this is a channel-specific job that needs deduplication
-	if exists && policyID != "" {
-		// Find existing pending or in-progress jobs for this specific policy/channel
-		existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
-			"policy_id": policyID,
-		}, true, model.JobStatusPending, model.JobStatusInProgress)
-		if err != nil {
-			return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	// Remove transient fields before persisting.
+	delete(jobData, "requester_id")
+	delete(jobData, "requester_is_admin")
+
+	if policyID != "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, map[string]string{"policy_id": policyID}, "policy_id", policyID)
+	}
+
+	if teamID != "" && policyID == "" {
+		a.cancelExistingAccessControlSyncJobs(rctx, map[string]string{"team_id": teamID}, "team_id", teamID)
+	}
+
+	// For team-scoped syncs by non-admins, resolve which channels the
+	// requester can sync based on self-inclusion (attribute match).
+	if teamID != "" && policyID == "" && requesterID != "" && !isAdmin {
+		channelIDs, appErr := a.resolveTeamSyncChannelIDs(rctx, teamID, requesterID)
+		if appErr != nil {
+			return nil, appErr
 		}
-
-		// Cancel any existing active jobs for this policy (all returned jobs are already active)
-		for _, job := range existingJobs {
-			rctx.Logger().Info("Canceling existing access control sync job before creating new one",
-				mlog.String("job_id", job.Id),
-				mlog.String("policy_id", policyID),
-				mlog.String("status", job.Status))
-
-			// directly cancel jobs for deduplication
-			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
-				rctx.Logger().Warn("Failed to cancel existing access control sync job",
-					mlog.String("job_id", job.Id),
-					mlog.String("policy_id", policyID),
-					mlog.Err(err))
-			}
+		if len(channelIDs) > 0 {
+			jobData["channel_ids"] = strings.Join(channelIDs, ",")
 		}
 	}
 
-	// Create the new job
 	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
+}
+
+// cancelExistingAccessControlSyncJobs cancels pending/in-progress sync jobs
+// matching the given data filter for deduplication.
+func (a *App) cancelExistingAccessControlSyncJobs(rctx request.CTX, dataFilter map[string]string, logKey, logValue string) {
+	existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, dataFilter, true, model.JobStatusPending, model.JobStatusInProgress)
+	if err != nil {
+		rctx.Logger().Warn("Failed to query existing sync jobs for deduplication", mlog.Err(err))
+		return
+	}
+
+	for _, job := range existingJobs {
+		rctx.Logger().Info("Canceling existing access control sync job before creating new one",
+			mlog.String("job_id", job.Id),
+			mlog.String(logKey, logValue),
+			mlog.String("status", job.Status))
+		if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
+			rctx.Logger().Warn("Failed to cancel existing access control sync job",
+				mlog.String("job_id", job.Id),
+				mlog.String(logKey, logValue),
+				mlog.Err(err))
+		}
+	}
+}
+
+// resolveTeamSyncChannelIDs returns channel IDs the requester can sync,
+// filtered by self-inclusion (same logic as SearchTeamAccessPolicies).
+func (a *App) resolveTeamSyncChannelIDs(rctx request.CTX, teamID, requesterID string) ([]string, *model.AppError) {
+	policies, _, appErr := a.SearchTeamAccessPolicies(rctx, teamID, requesterID, model.AccessControlPolicySearch{
+		Limit: teamPoliciesMaxFetch,
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	var channelIDs []string
+	for _, policy := range policies {
+		if policy.Props == nil {
+			continue
+		}
+		childIDs, ok := policy.Props["child_ids"].([]string)
+		if !ok {
+			// Handle []any from JSON unmarshaling
+			if rawIDs, ok2 := policy.Props["child_ids"].([]any); ok2 {
+				for _, raw := range rawIDs {
+					if id, ok3 := raw.(string); ok3 {
+						channelIDs = append(channelIDs, id)
+					}
+				}
+				continue
+			}
+			continue
+		}
+		channelIDs = append(channelIDs, childIDs...)
+	}
+
+	return channelIDs, nil
 }
 
 func (a *App) CancelJob(rctx request.CTX, jobId string) *model.AppError {
@@ -178,7 +242,14 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 			}
 		}
 
-		// Fallback: deny access if no specific channel permission and not system admin
+		// Check team admin permission. This is needed for jobs that are scoped to a team but don't specify a channel (i.e. team-level syncs).
+		teamID, hasTeamID := job.Data["team_id"]
+		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
+			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
+				return true, model.PermissionManageTeamAccessRules
+			}
+		}
+
 		return false, model.PermissionManageSystem
 	}
 

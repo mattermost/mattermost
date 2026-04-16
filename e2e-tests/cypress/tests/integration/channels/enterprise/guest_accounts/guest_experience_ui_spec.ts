@@ -14,10 +14,10 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {newTestPassword} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {newTestPassword} from '@/utils';
 
-function demoteGuestUser(guestUser) {
+function demoteGuestUser(guestUser: Cypress.UserProfile) {
     // # Demote user as guest user before each test
     cy.apiAdminLogin();
     cy.apiGetUserByEmail(guestUser.email).then(({user}) => {

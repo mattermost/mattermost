@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {loginAndVisitChannel} from './helper';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Integrations', () => {
     let testUser;
