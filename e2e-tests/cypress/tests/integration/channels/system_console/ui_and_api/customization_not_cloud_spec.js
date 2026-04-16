@@ -9,7 +9,7 @@
 
 // Group: @channels @not_cloud @system_console
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Customization', () => {
     let origConfig;

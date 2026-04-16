@@ -10,17 +10,20 @@
 // Stage: @prod
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import * as MESSAGES from '../../../fixtures/messages';
 import {doReactToLastMessageShortcut, checkReactionFromPost} from '../keyboard_shortcuts/ctrl_cmd_shift_slash/helpers';
 
 import {getCustomEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import * as MESSAGES from '@/fixtures/messages';
+
+
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
     let otherUser;
-    let townsquareLink;
+    let townsquareLink: string;
 
     const builtinEmoji = 'taco';
     const builtinEmojiWithColons = ':taco:';

@@ -9,7 +9,7 @@
 
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const DEFAULT_CHARACTER_LIMIT = 16383;
 

@@ -14,7 +14,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
         emoji: 'grinning',
         text: 'Busy',
     };
-    let currentUser;
+    let currentUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiUpdateConfig({TeamSettings: {EnableCustomUserStatuses: true}});
