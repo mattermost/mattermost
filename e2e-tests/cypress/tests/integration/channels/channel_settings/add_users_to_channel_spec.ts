@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @channel @channel_settings
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Channel Settings', () => {
     let testTeam: Cypress.Team;
@@ -43,14 +43,14 @@ describe('Channel Settings', () => {
             });
 
             // # Change permission so that regular users can't add team members
-            cy.apiGetRolesByNames(['team_user']).then((result: any) => {
-                if (result.roles) {
-                    const role = result.roles[0];
-                    const permissions = role.permissions.filter((permission) => {
+            cy.apiGetRolesByNames(['team_user']).then(({roles}) => {
+                if (roles?.length) {
+                    const role = roles[0];
+                    const permissions = role.permissions.filter((permission: string) => {
                         return !(['add_user_to_team'].includes(permission));
                     });
 
-                    if (permissions.length !== role.permissions) {
+                    if (permissions.length !== role.permissions.length) {
                         cy.apiPatchRole(role.id, {permissions});
                     }
                 }
@@ -117,10 +117,10 @@ describe('Channel Settings', () => {
         // # First add one user in order to see them disappearing from the list
         cy.get('#multiSelectList > div').not(':contains("Already in channel")').first().then((el) => {
             const childNodes = Array.from(el[0].childNodes);
-            childNodes.map((child: HTMLElement) => usernames.push(child.innerText));
+            childNodes.map((child: ChildNode) => usernames.push((child as HTMLElement).innerText));
 
             // # Get username from text for comparison
-            username = usernames.toString().match(/\w+/g)[0];
+            username = usernames.toString().match(/\w+/g)![0];
             cy.get('#multiSelectList').should('contain', username);
 
             // # Verify status wrapper is present within the modal list
