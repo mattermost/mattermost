@@ -42,6 +42,7 @@ var PermissionAssignSystemAdminRole *Permission
 var PermissionManageRoles *Permission
 var PermissionManageTeamRoles *Permission
 var PermissionManageChannelRoles *Permission
+var PermissionManageTeamAccessRules *Permission
 var PermissionCreateDirectChannel *Permission
 var PermissionCreateGroupChannel *Permission
 var PermissionManagePublicChannelProperties *Permission
@@ -416,6 +417,8 @@ var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
 var PermissionManageOutgoingOAuthConnections *Permission
+var PermissionManageOwnAgent *Permission
+var PermissionManageOthersAgent *Permission
 var ModeratedBookmarkPermissions []*Permission
 
 func initializePermissions() {
@@ -508,6 +511,12 @@ func initializePermissions() {
 		"manage_team_roles",
 		"authentication.permissions.manage_team_roles.name",
 		"authentication.permissions.manage_team_roles.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageTeamAccessRules = &Permission{
+		"manage_team_access_rules",
+		"",
+		"",
 		PermissionScopeTeam,
 	}
 	PermissionManageChannelRoles = &Permission{
@@ -2328,6 +2337,19 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManageOwnAgent = &Permission{
+		"manage_own_agent",
+		"authentication.permissions.manage_own_agent.name",
+		"authentication.permissions.manage_own_agent.description",
+		PermissionScopeSystem,
+	}
+	PermissionManageOthersAgent = &Permission{
+		"manage_others_agent",
+		"authentication.permissions.manage_others_agent.name",
+		"authentication.permissions.manage_others_agent.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2524,6 +2546,8 @@ func initializePermissions() {
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
 		PermissionManageOutgoingOAuthConnections,
+		PermissionManageOwnAgent,
+		PermissionManageOthersAgent,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2534,6 +2558,7 @@ func initializePermissions() {
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
 		PermissionManageTeamRoles,
+		PermissionManageTeamAccessRules,
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
