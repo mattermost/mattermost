@@ -204,6 +204,68 @@ describe('PostMessagePreview', () => {
         expect(container).toMatchSnapshot();
     });
 
+    describe('redacted files placeholder', () => {
+        test('should render placeholder when permissionPoliciesEnabled and redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                metadata: {
+                    redacted_file_count: 2,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {getByTestId, queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(getByTestId('redactedFilesPlaceholder')).toBeInTheDocument();
+            expect(queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+        });
+
+        test('should not render placeholder when permissionPoliciesEnabled is false even if redacted_file_count > 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 1,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: false,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
+
+        test('should render regular file list when permissionPoliciesEnabled is true but redacted_file_count is 0', () => {
+            const postPreview = {
+                ...previewPost,
+                file_ids: ['file_1'],
+                metadata: {
+                    redacted_file_count: 0,
+                },
+            } as Post;
+
+            const props = {
+                ...baseProps,
+                previewPost: postPreview,
+                permissionPoliciesEnabled: true,
+            };
+
+            const {queryByTestId} = renderWithContext(<PostMessagePreview {...props}/>, baseState);
+
+            expect(queryByTestId('redactedFilesPlaceholder')).not.toBeInTheDocument();
+        });
+    });
+
     describe('nested previews', () => {
         const files = {
             file_ids: [
