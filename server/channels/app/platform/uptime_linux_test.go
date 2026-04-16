@@ -21,10 +21,8 @@ func TestGetHostUptimeSeconds(t *testing.T) {
 	})
 
 	t.Run("error on unreadable file", func(t *testing.T) {
-		// Point the function at a non-existent path by temporarily swapping
-		// the real implementation.  We test the error-wrapping branch directly
-		// by calling os.ReadFile on a path that doesn't exist.
-		_, err := parseUptimeFile("/nonexistent/proc/uptime")
+		missingPath := t.TempDir() + "/uptime"
+		_, err := parseUptimeFile(missingPath)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to read")
 	})
