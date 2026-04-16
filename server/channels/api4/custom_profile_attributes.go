@@ -28,9 +28,25 @@ func (api *API) InitCustomProfileAttributes() {
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
-	fields, appErr := c.App.ListCPAFields(rctx)
+	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	pfs, appErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
+		GroupID:    group.ID,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		PerPage:    200, // global limit for the protected_attributes group
+	})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	fields, convErr := model.CPAFieldsFromPropertyFields(pfs)
+	if convErr != nil {
+		c.Err = model.NewAppError("listCPAFields", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
 		return
 	}
 
@@ -60,12 +76,12 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Permission levels are enforced by the attribute validation hook for the
 	// protected_attributes group — no need to set them here.
 	field := pf.ToPropertyField()
-	groupID, appErr := c.App.CpaGroupID()
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
-	field.GroupID = groupID
+	field.GroupID = group.ID
 	field.ObjectType = model.PropertyFieldObjectTypeUser
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 
@@ -127,13 +143,13 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	groupID, appErr := c.App.CpaGroupID()
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	updatedField, originalField := executePatchPropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
+	updatedField, originalField := executePatchPropertyField(c, r, group.ID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
 	if originalField != nil {
 		auditRec.AddEventPriorState(originalField)
 	}
@@ -171,13 +187,13 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	groupID, appErr := c.App.CpaGroupID()
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	existingField := executeDeletePropertyField(c, r, groupID, model.PropertyFieldObjectTypeUser, c.Params.FieldId)
+	existingField := executeDeletePropertyField(c, r, group.ID, model.PropertyFieldObjectTypeUser, c.Params.FieldId)
 	if c.Err != nil {
 		return
 	}
@@ -196,13 +212,13 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
-	groupID, appErr := c.App.CpaGroupID()
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(map[string]string{"id": groupID}); err != nil {
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": group.ID}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
@@ -276,7 +292,16 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
-	values, appErr := c.App.ListCPAValues(rctx, c.Params.UserId)
+	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	values, appErr := c.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
+		TargetIDs: []string{c.Params.UserId},
+		PerPage:   200,
+	})
 	if appErr != nil {
 		c.Err = appErr
 		return
