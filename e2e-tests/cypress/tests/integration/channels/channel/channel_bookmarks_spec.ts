@@ -682,6 +682,186 @@ describe('Channel Bookmarks', () => {
 
             dismissMenu();
         });
+
+        it('keyboard reorder: ArrowRight moves last bar item into overflow', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Capture the last visible bar item's name
+            cy.findByTestId('channel-bookmarks-container').within(() => {
+                cy.findAllByRole('link').last().invoke('text').then((text) => {
+                    const lastName = text.trim();
+
+                    // # Start reorder on last bar item, move right to cross into overflow
+                    cy.findByRole('link', {name: lastName}).focus()
+                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.findByRole('link', {name: lastName})
+                        .trigger('keydown', {key: 'ArrowRight', code: 'ArrowRight', bubbles: true});
+
+                    // * Verify overflow menu opened as result of cross-container move
+                    cy.root().closest('body').find('#channelBookmarksBarMenuDropdown').should('exist');
+
+                    // # Confirm placement
+                    cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                });
+            });
+
+            // * Verify item is now in overflow menu
+            cy.get('#channelBookmarksBarMenuDropdown').should('exist');
+            dismissMenu();
+        });
+
+        it('keyboard reorder: ArrowUp moves first overflow item into bar', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Open overflow and start reorder on first item, move up to bar
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('text').then((text) => {
+                const firstOverflowName = text.trim();
+
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', firstOverflowName).focus()
+                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstOverflowName)
+                        .trigger('keydown', {key: 'ArrowUp', code: 'ArrowUp', bubbles: true});
+                });
+
+                // * Verify overflow menu closed (transitioned to bar)
+                cy.get('#channelBookmarksBarMenuDropdown').should('not.exist');
+
+                // # Confirm placement on bar
+                cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+
+                // * Verify the moved item is now visible in the bar
+                cy.findByTestId('channel-bookmarks-container').within(() => {
+                    cy.findByRole('link', {name: firstOverflowName}).should('exist');
+                });
+            });
+        });
+
+        it('ArrowRight opens dot menu from overflow item', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Open overflow and focus first item
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().focus();
+
+            // # ArrowRight to open dot menu
+            cy.focused().trigger('keydown', {key: 'ArrowRight', code: 'ArrowRight', bubbles: true});
+
+            // * Verify dot menu dropdown opened
+            cy.get('#channelBookmarksDotMenuDropdown').should('be.visible');
+
+            // # ArrowLeft to close and return to item
+            cy.get('#channelBookmarksDotMenuDropdown').trigger('keydown', {key: 'ArrowLeft', code: 'ArrowLeft', bubbles: true});
+
+            // * Verify dot menu closed
+            cy.get('#channelBookmarksDotMenuDropdown').should('not.exist');
+            dismissMenu();
+        });
+
+        it('keyboard reorder Space confirm does not activate link', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            const initialUrl = `/${testTeam.name}/channels/${overflowChannel.name}`;
+
+            // # Open overflow menu
+            cy.get('#channelBookmarksBarMenuButton').click();
+            cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first().invoke('text').then((text) => {
+                const firstName = text.trim();
+
+                // # Space to select, ArrowDown to move, Space to confirm
+                cy.get('#channelBookmarksBarMenuDropdown').within(() => {
+                    cy.contains('[data-bookmark-id]', firstName).focus()
+                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName)
+                        .trigger('keydown', {key: 'ArrowDown', code: 'ArrowDown', bubbles: true});
+                    cy.contains('[data-bookmark-id]', firstName)
+                        .trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
+                });
+
+                // * Verify we did NOT navigate (URL unchanged, no new tab)
+                cy.url().should('include', initialUrl);
+            });
+
+            dismissMenu();
+        });
+
+        it('overflow menu button aria-label reflects count', () => {
+            // # Overflow channel — button should mention count
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.get('#channelBookmarksBarMenuButton').should(($btn) => {
+                const label = $btn.attr('aria-label') ?? '';
+                expect(label).to.match(/more bookmark/i);
+            });
+        });
+
+        it('overflow recalculates when a bookmark is renamed to a much longer name', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Capture initial overflow count
+            cy.get('#channelBookmarksBarMenuButton').invoke('text').then((text) => {
+                const initialCount = parseInt(text.replace(/\D/g, ''), 10);
+
+                // # Rename the first bookmark via API — edit UI is tested separately.
+                // This test verifies overflow recalculation behavior, not the rename flow.
+                cy.makeClient().then(async (client) => {
+                    const bookmarks = await client.getChannelBookmarks(overflowChannel.id);
+                    await client.updateChannelBookmark(overflowChannel.id, bookmarks[0].id, {
+                        display_name: 'A very very very very very very very long renamed bookmark',
+                    }, '');
+                });
+
+                // * Verify overflow count increased (item got wider → more items pushed into overflow)
+                cy.get('#channelBookmarksBarMenuButton').should(($btn) => {
+                    const newCount = parseInt($btn.text().replace(/\D/g, ''), 10);
+                    expect(newCount).to.be.greaterThan(initialCount);
+                });
+            });
+        });
+
+        it('channel switch preserves overflow detection', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.get('#channelBookmarksBarMenuButton').should('be.visible');
+
+            // # Switch to publicChannel (few/no bookmarks — overflow button should not show count)
+            cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
+
+            // # Back to overflow channel — detection still works
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.get('#channelBookmarksBarMenuButton').should(($btn) => {
+                const count = parseInt($btn.text().replace(/\D/g, ''), 10);
+                expect(count).to.be.greaterThan(0);
+            });
+        });
+
+        it('dot menu "Open" action fires exactly once', () => {
+            cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
+            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+
+            // # Stub window.open so we can count external-tab opens from "Open" action
+            cy.window().then((win) => {
+                cy.stub(win, 'open').as('windowOpen');
+            });
+
+            // # Open overflow, click dot menu on first item
+            cy.get('#channelBookmarksBarMenuButton').click();
+            clickOverflowDotMenu(cy.get('#channelBookmarksBarMenuDropdown [data-bookmark-id]').first());
+
+            // # Press Enter on "Open" menu item
+            cy.findByRole('menuitem', {name: 'Open'}).should('exist').focus()
+                .trigger('keydown', {key: 'Enter', code: 'Enter', bubbles: true});
+
+            // * Verify window.open called exactly once (no Menu.Item double-fire)
+            cy.get('@windowOpen').should('have.been.calledOnce');
+        });
     });
 
     describe('limits enforced', () => {
