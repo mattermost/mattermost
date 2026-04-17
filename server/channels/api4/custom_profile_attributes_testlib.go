@@ -15,7 +15,22 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
+
+// cpaTestRequestContext returns a request context for CPA test fixture
+// helpers. When InitBasic has created a SystemAdminUser, that user's ID is
+// plumbed in as the caller so hook permission checks (notably
+// AttributeValidationHook's managed=admin gate) succeed during fixture
+// setup.
+func (th *TestHelper) cpaTestRequestContext(tb testing.TB) request.CTX {
+	tb.Helper()
+	rctx := request.TestContext(tb)
+	if th.SystemAdminUser == nil {
+		return rctx
+	}
+	return app.RequestContextWithCallerID(rctx, th.SystemAdminUser.Id)
+}
 
 // CPA test helpers — test-only shims that mirror the old app-layer CPA
 // wrapper API (now deleted). They route through the generic property API
@@ -90,10 +105,13 @@ func (th *TestHelper) ListCPAFields(tb testing.TB) ([]*model.CPAField, *model.Ap
 
 // CreateCPAField creates a CPA field for test fixture setup. Mirrors the
 // old app.CreateCPAField behavior: sets defaults, calls SanitizeAndValidate,
-// routes through CreatePropertyField so hooks run.
+// routes through CreatePropertyField so hooks run. Runs as SystemAdminUser
+// when InitBasic has set one, so hook checks that require admin privileges
+// (e.g. AttributeValidationHook's managed=admin gate) pass for fixture
+// creation.
 func (th *TestHelper) CreateCPAField(tb testing.TB, field *model.CPAField) (*model.CPAField, *model.AppError) {
 	tb.Helper()
-	rctx := request.TestContext(tb)
+	rctx := th.cpaTestRequestContext(tb)
 	groupID := th.CpaGroupID(tb)
 
 	field.GroupID = groupID
@@ -120,7 +138,7 @@ func (th *TestHelper) CreateCPAField(tb testing.TB, field *model.CPAField) (*mod
 // (no target_id / target_type patching).
 func (th *TestHelper) PatchCPAField(tb testing.TB, fieldID string, patch *model.PropertyFieldPatch) (*model.CPAField, *model.AppError) {
 	tb.Helper()
-	rctx := request.TestContext(tb)
+	rctx := th.cpaTestRequestContext(tb)
 
 	existing, appErr := th.GetCPAField(tb, fieldID)
 	if appErr != nil {
@@ -153,7 +171,7 @@ func (th *TestHelper) PatchCPAField(tb testing.TB, fieldID string, patch *model.
 // DeleteCPAField deletes a CPA field.
 func (th *TestHelper) DeleteCPAField(tb testing.TB, fieldID string) *model.AppError {
 	tb.Helper()
-	rctx := request.TestContext(tb)
+	rctx := th.cpaTestRequestContext(tb)
 	groupID := th.CpaGroupID(tb)
 
 	appErr := th.App.DeletePropertyField(rctx, groupID, fieldID, false, "")
@@ -199,7 +217,7 @@ func (th *TestHelper) PatchCPAValue(tb testing.TB, userID, fieldID string, value
 // field-existence + DeleteAt checks of the old app.PatchCPAValues.
 func (th *TestHelper) PatchCPAValues(tb testing.TB, userID string, fieldValueMap map[string]json.RawMessage) ([]*model.PropertyValue, *model.AppError) {
 	tb.Helper()
-	rctx := request.TestContext(tb)
+	rctx := th.cpaTestRequestContext(tb)
 	groupID := th.CpaGroupID(tb)
 
 	toUpdate := []*model.PropertyValue{}
