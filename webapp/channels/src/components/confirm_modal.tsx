@@ -194,15 +194,15 @@ const ConfirmModal = ({
     let cancelButton;
     if (!hideCancel) {
         cancelButton = (
-            <button
+            <Button
                 type='button'
                 data-testid='cancel-button'
-                className='btn btn-tertiary'
+                emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
             >
                 {cancelText}
-            </button>
+            </Button>
         );
     }
 
