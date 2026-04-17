@@ -3913,8 +3913,6 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	t.Skip("test disabled during old build server changes, should be investigated")
-
 	th := Setup(t).InitBasic(t)
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
