@@ -527,7 +527,10 @@ func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType,
 	}
 
 	if existingField.ObjectType != objectType {
-		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
+		// 404 matches the shape of a non-existent field so that callers cannot
+		// distinguish "no such field" from "field exists but in a different
+		// object-type bucket".
+		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
 		return nil, nil
 	}
 
@@ -589,7 +592,10 @@ func executeDeletePropertyField(c *Context, r *http.Request, groupID, objectType
 	}
 
 	if existingField.ObjectType != objectType {
-		c.Err = model.NewAppError("executeDeletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
+		// 404 matches the shape of a non-existent field so that callers cannot
+		// distinguish "no such field" from "field exists but in a different
+		// object-type bucket".
+		c.Err = model.NewAppError("executeDeletePropertyField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
 

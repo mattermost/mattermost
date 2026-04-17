@@ -13,24 +13,28 @@ import (
 	"strings"
 )
 
+// CPA-prefixed aliases for the canonical PropertyField* constants in
+// property_field_attrs_validation.go. Aliasing (not redeclaring) keeps CPA
+// writes and property-hook reads keyed on the same string at compile time,
+// so a rename to one side cannot silently diverge from the other.
 const (
 	// Attributes keys
-	CustomProfileAttributesPropertyAttrsSortOrder  = "sort_order"
-	CustomProfileAttributesPropertyAttrsValueType  = "value_type"
-	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
-	CustomProfileAttributesPropertyAttrsLDAP       = "ldap"
-	CustomProfileAttributesPropertyAttrsSAML       = "saml"
-	CustomProfileAttributesPropertyAttrsManaged    = "managed"
+	CustomProfileAttributesPropertyAttrsSortOrder  = PropertyFieldAttrSortOrder
+	CustomProfileAttributesPropertyAttrsValueType  = PropertyFieldAttrValueType
+	CustomProfileAttributesPropertyAttrsVisibility = PropertyFieldAttrVisibility
+	CustomProfileAttributesPropertyAttrsLDAP       = PropertyFieldAttrLDAP
+	CustomProfileAttributesPropertyAttrsSAML       = PropertyFieldAttrSAML
+	CustomProfileAttributesPropertyAttrsManaged    = PropertyFieldAttrManaged
 
 	// Value Types
-	CustomProfileAttributesValueTypeEmail = "email"
-	CustomProfileAttributesValueTypeURL   = "url"
-	CustomProfileAttributesValueTypePhone = "phone"
+	CustomProfileAttributesValueTypeEmail = PropertyFieldValueTypeEmail
+	CustomProfileAttributesValueTypeURL   = PropertyFieldValueTypeURL
+	CustomProfileAttributesValueTypePhone = PropertyFieldValueTypePhone
 
 	// Visibility
-	CustomProfileAttributesVisibilityHidden  = "hidden"
-	CustomProfileAttributesVisibilityWhenSet = "when_set"
-	CustomProfileAttributesVisibilityAlways  = "always"
+	CustomProfileAttributesVisibilityHidden  = PropertyFieldVisibilityHidden
+	CustomProfileAttributesVisibilityWhenSet = PropertyFieldVisibilityWhenSet
+	CustomProfileAttributesVisibilityAlways  = PropertyFieldVisibilityAlways
 	CustomProfileAttributesVisibilityDefault = CustomProfileAttributesVisibilityWhenSet
 
 	// CPA options
@@ -38,7 +42,7 @@ const (
 	CPAOptionColorMaxLength = 128
 
 	// CPA value constraints
-	CPAValueTypeTextMaxLength = 64
+	CPAValueTypeTextMaxLength = PropertyFieldValueTypeTextMaxLength
 )
 
 func IsKnownCPAValueType(valueType string) bool {
@@ -304,7 +308,10 @@ func CPAFieldsFromPropertyFields(pfs []*PropertyField) ([]*CPAField, error) {
 	}
 
 	sort.Slice(cpaFields, func(i, j int) bool {
-		return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+		if cpaFields[i].Attrs.SortOrder != cpaFields[j].Attrs.SortOrder {
+			return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
+		}
+		return cpaFields[i].ID < cpaFields[j].ID
 	})
 
 	return cpaFields, nil

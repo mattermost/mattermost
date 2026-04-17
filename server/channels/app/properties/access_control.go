@@ -815,7 +815,13 @@ func (h *AccessControlHook) extractOptionIDsFromValue(fieldType model.PropertyFi
 	return optionIDs, nil
 }
 
-// copyPropertyField creates a deep copy of a PropertyField, including its Attrs map.
+// copyPropertyField returns a copy of a PropertyField with a fresh Attrs map.
+// The Attrs copy is shallow: nested slices/maps (notably Attrs["options"])
+// share backing storage with the original. That is safe today because
+// filterSharedOnlyFieldOptions replaces Attrs["options"] wholesale rather
+// than mutating in place. A future hook that mutates a nested value in the
+// returned copy would also mutate the caller's original — deep-copy those
+// entries if that changes.
 func (h *AccessControlHook) copyPropertyField(field *model.PropertyField) *model.PropertyField {
 	copied := *field
 	copied.Attrs = make(model.StringInterface)

@@ -839,10 +839,11 @@ func TestPatchPropertyField(t *testing.T) {
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		// Try to update with wrong object_type in URL
+		// Try to update with wrong object_type in URL. Expected 404 to match
+		// the shape of a non-existent field.
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "channel", createdField.ID, patch)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("patch with wrong group name should fail", func(t *testing.T) {
@@ -1382,10 +1383,11 @@ func TestDeletePropertyField(t *testing.T) {
 		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		// Try to delete with wrong object_type in URL
+		// Try to delete with wrong object_type in URL. Expected 404 to match
+		// the shape of a non-existent field.
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "channel", createdField.ID)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("delete with wrong group name should fail", func(t *testing.T) {

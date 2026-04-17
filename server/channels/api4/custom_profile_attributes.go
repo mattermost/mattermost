@@ -213,6 +213,14 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Every other CPA endpoint enforces MinimumEnterpriseLicense via the
+	// LicenseCheckHook on field/value operations. GetPropertyGroup is not
+	// hooked, so we enforce the same contract here inline.
+	if !model.MinimumEnterpriseLicense(c.App.License()) {
+		c.Err = model.NewAppError("getCPAGroup", "app.property.license_error", nil, "an Enterprise license is required", http.StatusForbidden)
+		return
+	}
+
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr

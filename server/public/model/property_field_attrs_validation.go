@@ -135,8 +135,15 @@ func ValidatePropertyValueForValueType(valueType string, value json.RawMessage) 
 			return fmt.Errorf("invalid email: %q", str)
 		}
 	case PropertyFieldValueTypeURL:
-		if _, err := url.Parse(str); err != nil {
+		// ParseRequestURI rejects relative references (url.Parse accepts them),
+		// and we additionally require a non-empty Host so bare schemes like
+		// "http:" or "file:///..." without an authority are rejected.
+		u, err := url.ParseRequestURI(str)
+		if err != nil {
 			return fmt.Errorf("invalid url: %w", err)
+		}
+		if u.Scheme == "" || u.Host == "" {
+			return fmt.Errorf("invalid url: %q", str)
 		}
 	case PropertyFieldValueTypePhone:
 		// Phone values are accepted as-is; no structural validation.
