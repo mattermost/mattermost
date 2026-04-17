@@ -1151,3 +1151,19 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 		mockACS.AssertNotCalled(t, "AccessEvaluation")
 	})
 }
+
+func TestCheckMandatoryS3FieldsNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	defer th.TearDown()
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		settings := &model.FileSettings{}
+		settings.SetDefaults(false)
+		// CheckMandatoryS3Fields calls License().IsCloud() — must not panic when nil.
+		_ = th.App.CheckMandatoryS3Fields(settings)
+		// If we get here without a panic, the test passes.
+	})
+}

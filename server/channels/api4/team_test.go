@@ -4,11 +4,13 @@
 package api4
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 	"strings"
@@ -4866,5 +4868,49 @@ func TestGetTeamMembersForUserRoleDataSanitization(t *testing.T) {
 			}
 		}
 		require.Fail(t, "basic team membership not found")
+	})
+}
+
+func TestRestoreTeamNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// restoreTeam checks License().IsCloud() — must not panic when nil.
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/teams/"+th.BasicTeam.Id+"/restore", "")
+		// May return 403/404 depending on team state, but must not return 500.
+		if err != nil {
+			require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode)
+		}
+	})
+}
+
+func TestImportTeamNilLicense(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("nil license does not panic", func(t *testing.T) {
+		th.App.Srv().SetLicense(nil)
+
+		// importTeam checks License().IsCloud() — must not panic when nil.
+		// We send a minimal multipart request that will fail validation but should not panic.
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		w.WriteField("importFrom", "slack")
+		w.WriteField("filesize", "100")
+		part, _ := w.CreateFormFile("file", "import.zip")
+		part.Write([]byte("fake"))
+		w.Close()
+
+		req, _ := http.NewRequest("POST", th.SystemAdminClient.APIURL+"/teams/"+th.BasicTeam.Id+"/import", &b)
+		req.Header.Set("Content-Type", w.FormDataContentType())
+		req.Header.Set(model.HeaderAuth, model.HeaderBearer+" "+th.SystemAdminClient.AuthToken)
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		resp.Body.Close()
+		require.NotEqual(t, http.StatusInternalServerError, resp.StatusCode,
+			"nil license must not cause a 500 panic in importTeam")
 	})
 }

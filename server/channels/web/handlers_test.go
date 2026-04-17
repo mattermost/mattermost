@@ -1179,3 +1179,21 @@ func TestHandleContextErrorZeroStatusCode(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, response.Code)
 	})
 }
+
+func TestHandlerServeHTTPNilLicense(t *testing.T) {
+	th := Setup(t)
+
+	th.App.Srv().SetLicense(nil)
+
+	web := New(th.Server)
+	handler := web.NewHandler(handlerForServeDefaultSecurityHeaders)
+
+	// ServeHTTP checks License().IsCloud() for siteURL and CWS token — must not panic when nil.
+	request := httptest.NewRequest("GET", "/api/v4/test", nil)
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	// Should complete without panic. Any non-500 status is acceptable.
+	require.NotEqual(t, http.StatusInternalServerError, response.Code,
+		"nil license must not cause a 500 panic in ServeHTTP")
+}
