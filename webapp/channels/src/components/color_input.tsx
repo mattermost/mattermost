@@ -53,13 +53,9 @@ export default class ColorInput extends React.PureComponent<Props, State> {
             if (isOpened) {
                 document.addEventListener('click', this.checkClick, {capture: true});
             } else {
-                document.removeEventListener('click', this.checkClick, {capture: true});
+                document.removeEventListener('click', this.checkClick);
             }
         }
-    }
-
-    public componentWillUnmount() {
-        document.removeEventListener('click', this.checkClick, {capture: true});
     }
 
     private checkClick = (e: MouseEvent): void => {
@@ -174,7 +170,6 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                         ref={this.colorPicker}
                         className='color-popover'
                         id={`${id}-ChromePickerModal`}
-                        onMouseDown={(e) => e.preventDefault()}
                     >
                         <ChromePicker
                             color={value}
