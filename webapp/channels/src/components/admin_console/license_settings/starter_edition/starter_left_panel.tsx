@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
 import {FileTypes} from 'utils/constants';
@@ -88,8 +90,8 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                     <FormattedMessage {...messages.key}/>
                 </div>
                 <div className='uploadButtons'>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => fileInputRef.current?.click()}
                         id='open-modal'
                     >
@@ -97,7 +99,7 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
                             id='admin.license.uploadFile'
                             defaultMessage='Upload File'
                         />
-                    </button>
+                    </Button>
                     <input
                         ref={fileInputRef}
                         type='file'

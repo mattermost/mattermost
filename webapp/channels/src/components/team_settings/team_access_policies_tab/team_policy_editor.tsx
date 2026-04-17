@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
@@ -483,15 +484,15 @@ export default function TeamPolicyEditor({
                             />
                         </p>
                     </div>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={() => setAddChannelOpen(true)}
                     >
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
                             defaultMessage='Add channels'
                         />
-                    </button>
+                    </Button>
                 </div>
                 <ChannelList
                     onRemoveCallback={addToRemovedChannels}

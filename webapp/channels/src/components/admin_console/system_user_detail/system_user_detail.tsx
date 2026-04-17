@@ -13,6 +13,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -1471,9 +1472,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             })}
                             button={
                                 <div className='add-team-button'>
-                                    <button
+                                    <Button
                                         type='button'
-                                        className='btn btn-primary'
+                                        emphasis='primary'
                                         onClick={this.toggleOpenTeamSelectorModal}
                                         disabled={this.state.isLoading}
                                     >
@@ -1481,7 +1482,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             id='admin.userManagement.userDetail.addTeam'
                                             defaultMessage='Add Team'
                                         />
-                                    </button>
+                                    </Button>
                                 </div>
                             }
                         >

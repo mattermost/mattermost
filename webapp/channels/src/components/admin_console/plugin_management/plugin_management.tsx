@@ -7,6 +7,7 @@ import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -945,11 +946,6 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
             lastMessage = <div className='col-sm-12'><div className='form-group half'>{this.state.lastMessage}</div></div>;
         }
 
-        let btnClass = 'btn btn-primary';
-        if (this.state.fileSelected) {
-            btnClass = 'btn btn-primary';
-        }
-
         let fileName;
         if (this.state.file) {
             fileName = this.state.file.name;
@@ -1174,14 +1170,14 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         />
                                     </div>
-                                    <button
-                                        className={btnClass}
+                                    <Button
+                                        emphasis='primary'
                                         id='uploadPlugin'
                                         disabled={!this.state.fileSelected}
                                         onClick={this.handleSubmitUpload}
                                     >
                                         {uploadButtonText}
-                                    </button>
+                                    </Button>
                                     <div className='help-text m-0'>
                                         {fileName}
                                     </div>

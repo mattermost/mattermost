@@ -3,6 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -84,14 +85,14 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     <h1>{'Access Control Sync Jobs'}</h1>
                     <p>{'Synchronize access control policies with system resources and permissions.'}</p>
                 </div>
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
                 >
                     <i className='icon icon-plus'/>
                     <span>{isSubmitting ? 'Running Job...' : 'Run Sync Job'}</span>
-                </button>
+                </Button>
             </div>
             <JobsTable
                 perPage={5}
