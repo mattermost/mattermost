@@ -245,22 +245,35 @@ jobs:
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
-  # FIPS tests: run on all pushes to master/release, and on PRs when go.mod
-  # changed or branch name contains "fips". Unsharded here (speed not critical
-  # for conditional runs); weekly workflow provides regular full coverage.
+  # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
+  # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
-    if: github.event_name == 'push' || contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
-    name: Postgres FIPS
+    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    name: "Postgres FIPS (shard ${{ matrix.shard }})"
     needs: go
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
-      name: Postgres FIPS
+      name: "Postgres FIPS (shard ${{ matrix.shard }})"
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: postgres-server-fips-test-logs
+      logsartifact: "postgres-server-fips-test-logs-shard-${{ matrix.shard }}"
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      shard-index: ${{ matrix.shard }}
+      shard-total: 4
+  merge-postgres-fips-test-results:
+    name: Merge Postgres FIPS Test Results
+    needs: test-postgres-normal-fips
+    if: needs.test-postgres-normal-fips.result != 'skipped'
+    uses: ./.github/workflows/server-test-merge-template.yml
+    with:
+      artifact-pattern: postgres-server-fips-test-logs-shard-*
+      artifact-name: postgres-server-fips-test-logs
 
   test-coverage:
     name: "Coverage (shard ${{ matrix.shard }})"
@@ -298,7 +311,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-mmctl-fips:
-    if: github.event_name == 'push' || contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
