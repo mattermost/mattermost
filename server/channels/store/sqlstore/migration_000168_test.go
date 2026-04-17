@@ -46,9 +46,9 @@ func TestMigration000168(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		master.Exec("DELETE FROM PropertyValues WHERE GroupID = ?", groupID)  //nolint:errcheck
-		master.Exec("DELETE FROM PropertyFields WHERE GroupID = ?", groupID)  //nolint:errcheck
-		master.Exec("DELETE FROM PropertyGroups WHERE ID = ?", groupID)       //nolint:errcheck
+		master.Exec("DELETE FROM PropertyValues WHERE GroupID = ?", groupID) //nolint:errcheck
+		master.Exec("DELETE FROM PropertyFields WHERE GroupID = ?", groupID) //nolint:errcheck
+		master.Exec("DELETE FROM PropertyGroups WHERE ID = ?", groupID)      //nolint:errcheck
 	})
 
 	now := model.GetMillis()
@@ -111,8 +111,8 @@ func TestMigration000168(t *testing.T) {
 	// Non-managed fields get PermissionValues = 'member'.
 	// Admin-managed fields get PermissionValues = 'sysadmin'.
 	for _, tc := range []struct {
-		id                      string
-		label                   string
+		id                       string
+		label                    string
 		expectedPermissionValues string
 	}{
 		{fieldID1, "non-managed text field", "member"},
