@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {verifySavedPost} from '../../../support/ui/post';
+import {verifySavedPost} from '@/support/ui/post';
 
 describe('Post PreHeader', () => {
     let testTeam;

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Notifications', () => {
     let otherUser;

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AppCallResponse} from '@mattermost/types/apps';
 import type {CommandArgs, CommandResponse} from '@mattermost/types/integrations';
 
@@ -31,7 +32,6 @@ import {getHistory} from 'utils/browser_history';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import {isUrlSafe, getSiteURL} from 'utils/url';
-import * as UserAgent from 'utils/user_agent';
 import {getUserIdFromChannelName} from 'utils/utils';
 
 import type {ActionFuncAsync} from 'types/store';

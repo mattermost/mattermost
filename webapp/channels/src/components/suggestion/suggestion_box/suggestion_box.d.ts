@@ -81,7 +81,7 @@ export type SuggestionBoxProps = {
      */
     onKeyDown?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
     onKeyPress?: (e: React.KeyboardEvent<SuggestionBoxElement>) => void;
-    onComposition?: () => void;
+    onCompositionUpdate?: () => void;
 
     onSearchTypeSelected?: (...args: unknown[]) => void;
 
