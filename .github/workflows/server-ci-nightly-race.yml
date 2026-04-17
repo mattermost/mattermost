@@ -17,6 +17,9 @@ on:
     - cron: "0 6 * * *" # Daily 6am UTC (~2am ET)
   workflow_dispatch: # Manual trigger for on-demand race detection
 
+permissions:
+  contents: read
+
 jobs:
   go:
     name: Compute Go Version
