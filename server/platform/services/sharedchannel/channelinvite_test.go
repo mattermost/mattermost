@@ -129,6 +129,8 @@ func (*stubRemoteClusterService) SendMsg(_ context.Context, msg model.RemoteClus
 	return nil
 }
 
+var _ remotecluster.RemoteClusterServiceIFace = (*stubRemoteClusterService)(nil)
+
 func setupMockServerWithRemoteClusterService(mockServer *MockServerIface, rcs remotecluster.RemoteClusterServiceIFace) {
 	mockConfig := model.Config{}
 	mockConfig.SetDefaults()
@@ -594,6 +596,110 @@ func TestOnReceiveChannelInvite_invitationPersistence(t *testing.T) {
 	})
 }
 
+func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
+	channelID := model.NewId()
+	userID := model.NewId()
+	remoteID := model.NewId()
+	sharedChannel := &model.SharedChannel{ChannelId: channelID}
+	channel := &model.Channel{Id: channelID}
+	// Remote with LastPingAt 0 is offline (IsOnline() returns false)
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", DisplayName: "Test Remote", LastPingAt: 0}
+
+	t.Run("when remote is offline and existing connection is not soft deleted, returns ErrChannelAlreadyShared", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		invMock := mocks.NewSharedChannelInvitationStore(t)
+		registerSharedChannelInvitationStoreMocks(invMock, &invitationStoreCalls{})
+		mockStore.On("SharedChannelInvitation").Return(invMock)
+		existingScr := &model.SharedChannelRemote{
+			ChannelId: channelID,
+			RemoteId:  remoteID,
+			DeleteAt:  0, // not soft deleted -> already connected
+		}
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(existingScr, nil)
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+		mockApp.On("SendEphemeralPost", mockTypeReqContext, userID, mock.MatchedBy(func(post *model.Post) bool {
+			return post != nil && post.ChannelId == channelID && post.Message != ""
+		})).Return(nil, true).Once()
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, model.ErrChannelAlreadyShared)
+		mockApp.AssertExpectations(t)
+	})
+
+	t.Run("when remote is offline and existing connection is soft deleted, restores and succeeds", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		invMock := mocks.NewSharedChannelInvitationStore(t)
+		registerSharedChannelInvitationStoreMocks(invMock, &invitationStoreCalls{})
+		mockStore.On("SharedChannelInvitation").Return(invMock)
+		existingScr := &model.SharedChannelRemote{
+			ChannelId: channelID,
+			RemoteId:  remoteID,
+			DeleteAt:  12345, // soft deleted
+		}
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(existingScr, nil)
+		mockSharedChannelStore.On("UpdateRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.DeleteAt == 0 && scr.CreatorId == userID &&
+				scr.IsInviteAccepted && !scr.IsInviteConfirmed && scr.LastMembersSyncAt == 0
+		})).Return(nil, nil).Once()
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.NoError(t, err)
+		mockSharedChannelStore.AssertExpectations(t)
+	})
+
+	t.Run("when remote is offline and no existing connection, saves new and succeeds", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		invMock := mocks.NewSharedChannelInvitationStore(t)
+		registerSharedChannelInvitationStoreMocks(invMock, &invitationStoreCalls{})
+		mockStore.On("SharedChannelInvitation").Return(invMock)
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
+		mockSharedChannelStore.On("SaveRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.CreatorId == userID &&
+				scr.IsInviteAccepted && !scr.IsInviteConfirmed
+		})).Return(nil, nil).Once()
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.NoError(t, err)
+		mockSharedChannelStore.AssertExpectations(t)
+	})
+}
+
 func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 	t.Run("plugin remote saves pending invitation then deletes after confirm", func(t *testing.T) {
 		mockServer := &MockServerIface{}
@@ -686,6 +792,7 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 		registerSharedChannelInvitationStoreMocks(invMock, invCalls)
 		mockSharedChannelStore := &mocks.SharedChannelStore{}
 		mockSharedChannelStore.On("Get", channel.Id).Return(sc, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channel.Id, rc.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 
 		mockStore := &mocks.Store{}
@@ -743,6 +850,7 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 
 		mockSharedChannelStore := &mocks.SharedChannelStore{}
 		mockSharedChannelStore.On("Get", channel.Id).Return(sc, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channel.Id, rc.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
 		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, nil)
 
 		mockStore := &mocks.Store{}

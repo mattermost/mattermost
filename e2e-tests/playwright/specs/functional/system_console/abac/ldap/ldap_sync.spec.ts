@@ -61,7 +61,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policy1Name = `LDAP AutoAdd Single ${await pw.random.id()}`;
+        const policy1Name = `LDAP AutoAdd Single ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
@@ -134,7 +134,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
 
         // Create policy with contains operator: Department contains "Eng"
-        const policy2Name = `LDAP AutoAdd Contains ${await pw.random.id()}`;
+        const policy2Name = `LDAP AutoAdd Contains ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department.contains("Eng")',
@@ -240,7 +240,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policy1Name = `LDAP Sync Equals ${await pw.random.id()}`;
+        const policy1Name = `LDAP Sync Equals ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
@@ -311,7 +311,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
 
         // Create policy with 'in' operator (user.attributes.Department in ["Engineering", "Product"])
-        const policy2Name = `LDAP Sync In ${await pw.random.id()}`;
+        const policy2Name = `LDAP Sync In ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "Product"]',
@@ -416,7 +416,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policy1Name = `LDAP Remove StartsWith ${await pw.random.id()}`;
+        const policy1Name = `LDAP Remove StartsWith ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy1Name,
             celExpression: 'user.attributes.Department.startsWith("Eng")',
@@ -484,7 +484,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Create policy with TWO attributes: Department == "Engineering"
         // Note: Using single attribute with == since we can't reliably set multiple different attribute types
-        const policy2Name = `LDAP Remove TwoAttr ${await pw.random.id()}`;
+        const policy2Name = `LDAP Remove TwoAttr ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',
@@ -571,7 +571,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `Dynamic Policy ${await pw.random.id()}`;
+        const policyName = `Dynamic Policy ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',

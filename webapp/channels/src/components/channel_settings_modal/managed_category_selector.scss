@@ -1,0 +1,105 @@
+$managed_category_index: 999999;
+
+.ManagedCategorySelector {
+    &.Input_container {
+        margin-top: 24px;
+    }
+
+    .Input_wrapper {
+        padding: 0 1px;
+    }
+
+    .Input {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .Input_legend {
+        margin-left: 8px;
+    }
+}
+
+.ManagedCategorySelector__controlContainer {
+    .ManagedCategory__control {
+        border: none;
+        background-color: var(--center-channel-bg);
+        box-shadow: none;
+
+        .ManagedCategory__input {
+            box-shadow: none;
+        }
+    }
+}
+
+.ManagedCategory__menu {
+    background-color: var(--center-channel-bg) !important;
+}
+
+.ManagedCategorySelector__createLabelPrefix {
+    opacity: 0.75;
+}
+
+.ManagedCategory__indicator-separator {
+    display: none;
+}
+
+.ManagedCategorySelector__valueContainerInner {
+    display: flex;
+    overflow: hidden;
+    flex: 1;
+    align-items: center;
+    gap: 6px;
+}
+
+.ManagedCategorySelector__folderIcon {
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}
+
+.ManagedCategory__placeholder, .ManagedCategory__single-value {
+    position: absolute;
+    left: 22px;
+}
+
+.ManagedCategory__single-value {
+    color: var(--center-channel-color) !important;
+}
+
+.ManagedCategorySelector__indicatorsContainer {
+    margin-right: 8px;
+
+    i {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-weight: normal;
+
+        &::before {
+            margin: 0;
+        }
+    }
+}
+
+.ManagedCategorySelector__option > div {
+    z-index: $managed_category_index;
+    padding: 8px 16px;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.ManagedCategorySelector__option.selected > div {
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    color: var(--center-channel-color);
+}
+
+.ManagedCategorySelector__option.focused > div {
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+}
+
+.ManagedCategorySelector__option .ManagedCategory__option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ManagedCategorySelector__option svg {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}

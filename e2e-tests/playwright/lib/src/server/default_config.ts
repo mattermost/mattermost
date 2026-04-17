@@ -50,7 +50,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableDiagnostics: false,
         },
         PasswordSettings: {
-            MinimumLength: 5,
+            MinimumLength: 14,
             Lowercase: false,
             Number: false,
             Uppercase: false,
@@ -86,7 +86,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v11.4 server
+// Based on v11.7 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -175,6 +175,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIUserDeletion: false,
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
+        MinimumDesktopAppVersion: '',
         ExperimentalEnableHardenedMode: false,
         ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
@@ -214,7 +215,6 @@ const defaultServerConfig: AdminConfig = {
         EnableWebHubChannelIteration: false,
         FrameAncestors: '',
         DeleteAccountLink: '',
-        MinimumDesktopAppVersion: '',
     },
     TeamSettings: {
         SiteName: 'Mattermost',
@@ -259,6 +259,7 @@ const defaultServerConfig: AdminConfig = {
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
+        AnalyticsQueryTimeout: 300,
         DisableDatabaseSearch: false,
         MigrationsStatementTimeoutSeconds: 100000,
         ReplicaLagSettings: [],
@@ -286,7 +287,7 @@ const defaultServerConfig: AdminConfig = {
         Certificate: '',
     },
     PasswordSettings: {
-        MinimumLength: 8,
+        MinimumLength: 14,
         Lowercase: false,
         Number: false,
         Uppercase: false,
@@ -430,6 +431,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
+        UsePreferredUsername: false,
     },
     GoogleSettings: {
         Enable: false,
@@ -443,6 +445,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '',
+        UsePreferredUsername: false,
     },
     Office365Settings: {
         Enable: false,
@@ -454,6 +457,7 @@ const defaultServerConfig: AdminConfig = {
         UserAPIEndpoint: 'https://graph.microsoft.com/v1.0/me',
         DiscoveryEndpoint: '',
         DirectoryId: '',
+        UsePreferredUsername: false,
     },
     OpenIdSettings: {
         Enable: false,
@@ -466,6 +470,7 @@ const defaultServerConfig: AdminConfig = {
         DiscoveryEndpoint: '',
         ButtonText: '',
         ButtonColor: '#145DBF',
+        UsePreferredUsername: false,
     },
     LdapSettings: {
         Enable: false,
@@ -614,6 +619,7 @@ const defaultServerConfig: AdminConfig = {
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
         ExperimentalChannelCategorySorting: false,
+        EnableWatermark: false,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
@@ -771,14 +777,17 @@ const defaultServerConfig: AdminConfig = {
         ExperimentalAuditSettingsSystemConsoleUI: true,
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
+        PermissionPolicies: true,
         ContentFlagging: true,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
-        MobileSSOCodeExchange: true,
-        AutoTranslation: false,
+        MobileSSOCodeExchange: false,
+        AutoTranslation: true,
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
+        IntegratedBoards: false,
+        CJKSearch: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -844,9 +853,10 @@ const defaultServerConfig: AdminConfig = {
     },
     AutoTranslationSettings: {
         Enable: false,
+        RestrictDMAndGM: false,
         Provider: '',
         TargetLanguages: ['en'],
-        Workers: 4,
+        Workers: 6,
         TimeoutMs: 5000,
         LibreTranslate: {
             URL: '',
@@ -855,6 +865,5 @@ const defaultServerConfig: AdminConfig = {
         Agents: {
             LLMServiceID: '',
         },
-        RestrictDMAndGM: false,
     },
 };

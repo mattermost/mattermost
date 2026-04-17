@@ -4,12 +4,13 @@
 import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import * as userAgentUtils from '@mattermost/shared/utils/user_agent';
+
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import * as userAgentUtils from 'utils/user_agent';
 
 import TooltipShortcut from './tooltip_shortcut';
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isMac: jest.fn(),
 }));
 

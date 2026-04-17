@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @websocket
 
-import {getRandomId} from '../../../../utils';
-
 import {
     createNewTeamAndMoveToOffTopic,
     removeMeFromCurrentChannel,
     shouldRemoveSavedPostsInRHS,
     shouldRemoveMentionsInRHS,
 } from './helpers';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Handle removed user - new sidebar', () => {
     const sidebarItemClass = '.SidebarChannel';

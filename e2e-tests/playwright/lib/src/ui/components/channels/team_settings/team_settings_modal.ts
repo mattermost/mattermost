@@ -13,6 +13,7 @@ export default class TeamSettingsModal {
 
     readonly infoTab;
     readonly accessTab;
+    readonly accessPoliciesTab;
 
     readonly saveButton;
     readonly undoButton;
@@ -27,6 +28,7 @@ export default class TeamSettingsModal {
 
         this.infoTab = container.locator('[data-testid="info-tab-button"]');
         this.accessTab = container.locator('[data-testid="access-tab-button"]');
+        this.accessPoliciesTab = container.locator('[data-testid="access_policies-tab-button"]');
 
         this.saveButton = container.locator('button[data-testid="SaveChangesPanel__save-btn"]');
         this.undoButton = container.locator('button[data-testid="SaveChangesPanel__cancel-btn"]');
@@ -55,6 +57,11 @@ export default class TeamSettingsModal {
         await this.accessTab.click();
 
         return this.accessSettings;
+    }
+
+    async openAccessPoliciesTab() {
+        await expect(this.accessPoliciesTab).toBeVisible();
+        await this.accessPoliciesTab.click();
     }
 
     async save() {

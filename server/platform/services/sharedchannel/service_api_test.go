@@ -34,7 +34,9 @@ func TestUnshareChannel_deletesSharedChannelInvitations(t *testing.T) {
 	mockServer.On("Config").Return(&cfg)
 
 	mockChannelStore := &mocks.ChannelStore{}
-	mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, TeamId: teamID}, nil)
+	ch := &model.Channel{Id: channelID, TeamId: teamID}
+	mockChannelStore.On("Get", channelID, true).Return(ch, nil)
+	mockChannelStore.On("Get", channelID, false).Return(ch, nil)
 
 	mockSharedChannelStore := &mocks.SharedChannelStore{}
 	mockSharedChannelStore.On("Delete", channelID).Return(true, nil)
@@ -72,7 +74,9 @@ func TestUnshareChannel_invitationDeleteErrorStillReturnsSuccess(t *testing.T) {
 	mockServer.On("Config").Return(&cfg)
 
 	mockChannelStore := &mocks.ChannelStore{}
-	mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID}, nil)
+	ch := &model.Channel{Id: channelID}
+	mockChannelStore.On("Get", channelID, true).Return(ch, nil)
+	mockChannelStore.On("Get", channelID, false).Return(ch, nil)
 
 	mockSharedChannelStore := &mocks.SharedChannelStore{}
 	mockSharedChannelStore.On("Delete", channelID).Return(true, nil)

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Move thread', () => {
     let user1;

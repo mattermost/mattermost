@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {
     trimFilename,
     canUploadFiles,
     getFileTypeFromMime,
 } from 'utils/file_utils';
-import * as UserAgent from 'utils/user_agent';
+
+const isMobileMock = jest.mocked(UserAgent.isMobile);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    isMobile: jest.fn(() => false),
+}));
 
 describe('FileUtils.trimFilename', () => {
     it('trimFilename: should return same filename', () => {
@@ -19,7 +25,7 @@ describe('FileUtils.trimFilename', () => {
 });
 
 describe('FileUtils.canUploadFiles', () => {
-    (UserAgent as any).isMobileApp = jest.fn().mockImplementation(() => false); // eslint-disable-line no-import-assign
+    isMobileMock.mockReturnValue(false);
 
     it('is false when file attachments are disabled', () => {
         const config = {
@@ -30,10 +36,10 @@ describe('FileUtils.canUploadFiles', () => {
     });
 
     describe('is true when file attachments are enabled', () => {
-        (UserAgent as any).isMobileApp.mockImplementation(() => false);
+        isMobileMock.mockReturnValue(false);
 
         it('and not on mobile', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => false);
+            isMobileMock.mockReturnValue(false);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -43,7 +49,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('and on mobile with mobile file upload enabled', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => true);
+            isMobileMock.mockReturnValue(true);
 
             const config = {
                 EnableFileAttachments: 'true',
@@ -53,7 +59,7 @@ describe('FileUtils.canUploadFiles', () => {
         });
 
         it('unless on mobile with mobile file upload disabled', () => {
-            (UserAgent as any).isMobileApp.mockImplementation(() => true);
+            isMobileMock.mockReturnValue(true);
 
             const config = {
                 EnableFileAttachments: 'true',

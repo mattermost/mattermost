@@ -5,11 +5,12 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import QuickSwitchModal from 'components/quick_switch_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';

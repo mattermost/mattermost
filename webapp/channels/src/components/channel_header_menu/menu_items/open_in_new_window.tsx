@@ -13,19 +13,19 @@ import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 
 import {getPopoutChannelTitle} from 'components/channel_popout/channel_popout';
 import * as Menu from 'components/menu';
-import PopoutMenuItem from 'components/popout_menu_item';
+import PopoutMenuItem, {type PopoutMenuItemProps} from 'components/popout_menu_item';
 
 import {getChannelRoutePathAndIdentifier} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
-import {isChannelPopoutWindow, popoutChannel} from 'utils/popouts/popout_windows';
+import {popoutChannel} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
-interface Props {
+interface Props extends PopoutMenuItemProps {
     channel: Channel;
 }
 
-const MenuItemOpenInNewWindow = ({channel}: Props) => {
+const MenuItemOpenInNewWindow = ({channel, ...rest}: Props) => {
     const intl = useIntl();
     const team = useSelector(getCurrentTeam);
     const currentUserId = useSelector(getCurrentUserId);
@@ -36,10 +36,6 @@ const MenuItemOpenInNewWindow = ({channel}: Props) => {
         }
         return undefined;
     });
-
-    if (isChannelPopoutWindow()) {
-        return null;
-    }
 
     const handleClick = () => {
         if (!team) {
@@ -55,6 +51,7 @@ const MenuItemOpenInNewWindow = ({channel}: Props) => {
             <PopoutMenuItem
                 id='channelOpenInNewWindow'
                 onClick={handleClick}
+                {...rest}
             />
             <Menu.Separator/>
         </>
