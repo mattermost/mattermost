@@ -10,6 +10,11 @@ const CLASSIFICATION_FIELD_NAME = 'classification';
 
 export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/classification_markings';
 
+/**
+ * Toggle via System Console config API. On servers without SplitKey, feature flags are
+ * read-only from config (see server/config/store.go); effective values come from env
+ * (e.g. MM_FEATUREFLAGS_CLASSIFICATIONMARKINGS). E2E docker sets that env in server.generate.sh.
+ */
 export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
     const config = await adminClient.getConfig();
     // Full config round-trip; FeatureFlags is a wide record on the client type.
