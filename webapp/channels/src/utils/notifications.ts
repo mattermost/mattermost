@@ -3,7 +3,7 @@
 
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
-import * as UserAgent from 'utils/user_agent';
+import {isEdge} from 'utils/user_agent';
 
 import type {ThunkActionFunc} from 'types/store';
 
@@ -46,7 +46,7 @@ export function showNotification(
 ): ThunkActionFunc<Promise<NotificationResult & {callback: () => void}>> {
     return async () => {
         let icon = icon50;
-        if (UserAgent.isEdge()) {
+        if (isEdge()) {
             icon = iconWS;
         }
 

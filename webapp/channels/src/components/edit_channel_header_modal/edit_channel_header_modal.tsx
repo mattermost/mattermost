@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -15,7 +16,6 @@ import type TextboxClass from 'components/textbox/textbox';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
 import {insertLineBreakFromKeyEvent, isUnhandledLineBreakKeyCombo} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
