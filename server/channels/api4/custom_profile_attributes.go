@@ -63,14 +63,15 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	pf.Name = strings.TrimSpace(pf.Name)
-	if appErr := pf.SanitizeAndValidate(); appErr != nil {
-		c.Err = appErr
-		return
-	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateCPAField, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
+
+	if appErr := pf.SanitizeAndValidate(); appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	// Translate to PropertyField and route through the generic property API.
 	// Permission levels are enforced by the attribute validation hook for the
