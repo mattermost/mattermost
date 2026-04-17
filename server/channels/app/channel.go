@@ -3169,6 +3169,8 @@ func (a *App) AutocompleteChannels(rctx request.CTX, userID, term string) (model
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	channelList = a.filterDiscoverableChannelsByPolicy(rctx, userID, channelList)
+
 	return channelList, nil
 }
 
@@ -3185,6 +3187,8 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channelList = a.filterDiscoverableChannelListByPolicy(rctx, userID, channelList)
 
 	return channelList, nil
 }
@@ -4405,4 +4409,279 @@ func (a *App) SetChannelMembers(rctx request.CTX, channel *model.Channel, desire
 	}
 
 	return nil
+}
+
+func (a *App) RequestJoinChannel(rctx request.CTX, userId, channelId string) (*model.ChannelJoinRequest, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.Type != model.ChannelTypePrivate {
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.not_private.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !channel.Discoverable {
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.not_discoverable.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if _, err := a.Srv().Store().Channel().GetMember(rctx, channelId, userId); err == nil {
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.already_member.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if channel.PolicyEnforced {
+		allowed, appErr := a.evaluateChannelMembershipPolicy(rctx, userId, channel)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if allowed {
+			_, appErr := a.AddChannelMember(rctx, userId, channel, ChannelMemberOpts{
+				UserRequestorID: userId,
+			})
+			if appErr != nil {
+				return nil, appErr
+			}
+			return &model.ChannelJoinRequest{
+				ChannelId: channelId,
+				UserId:    userId,
+				Status:    model.JoinRequestStatusApproved,
+			}, nil
+		}
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.policy_denied.app_error", nil, "", http.StatusForbidden)
+	}
+
+	existing, err := a.Srv().Store().ChannelJoinRequest().GetPendingByChannelAndUser(channelId, userId)
+	if err != nil {
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if existing != nil {
+		return existing, nil
+	}
+
+	joinRequest := &model.ChannelJoinRequest{
+		ChannelId: channelId,
+		UserId:    userId,
+		Status:    model.JoinRequestStatusPending,
+	}
+
+	saved, err := a.Srv().Store().ChannelJoinRequest().Save(joinRequest)
+	if err != nil {
+		return nil, model.NewAppError("RequestJoinChannel", "app.channel.request_join.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelJoinRequestReceived, channel.TeamId, channelId, "", nil, "")
+	message.Add("join_request", saved)
+	a.Publish(message)
+
+	return saved, nil
+}
+
+// filterDiscoverableChannelsByPolicy removes discoverable + policy-enforced private channels
+// that the user does not conform to. Non-policy discoverable channels pass through (anyone can
+// see them, but joining requires admin approval). Channels the user is already a member of are
+// never filtered out.
+func (a *App) filterDiscoverableChannelsByPolicy(rctx request.CTX, userID string, channels model.ChannelListWithTeamData) model.ChannelListWithTeamData {
+	if len(channels) == 0 {
+		return channels
+	}
+
+	memberChannels := make(map[string]bool)
+	if members, err := a.Srv().Store().Channel().GetMembersForUser("", userID); err == nil {
+		for _, m := range members {
+			memberChannels[m.ChannelId] = true
+		}
+	}
+
+	var filtered model.ChannelListWithTeamData
+	for _, ch := range channels {
+		if memberChannels[ch.Id] || ch.Type != model.ChannelTypePrivate || !ch.Discoverable {
+			filtered = append(filtered, ch)
+			continue
+		}
+		// Discoverable private, user not a member: if channel has any policy,
+		// only show to users who conform to it.
+		if ch.PolicyEnforced {
+			allowed, err := a.evaluateChannelMembershipPolicy(rctx, userID, &ch.Channel)
+			if err != nil || !allowed {
+				continue
+			}
+		}
+		filtered = append(filtered, ch)
+	}
+	return filtered
+}
+
+func (a *App) filterDiscoverableChannelListByPolicy(rctx request.CTX, userID string, channels model.ChannelList) model.ChannelList {
+	if len(channels) == 0 {
+		return channels
+	}
+
+	memberChannels := make(map[string]bool)
+	if members, err := a.Srv().Store().Channel().GetMembersForUser("", userID); err == nil {
+		for _, m := range members {
+			memberChannels[m.ChannelId] = true
+		}
+	}
+
+	var filtered model.ChannelList
+	for _, ch := range channels {
+		if memberChannels[ch.Id] || ch.Type != model.ChannelTypePrivate || !ch.Discoverable {
+			filtered = append(filtered, ch)
+			continue
+		}
+		if ch.PolicyEnforced {
+			allowed, err := a.evaluateChannelMembershipPolicy(rctx, userID, ch)
+			if err != nil || !allowed {
+				continue
+			}
+		}
+		filtered = append(filtered, ch)
+	}
+	return filtered
+}
+
+func (a *App) evaluateChannelMembershipPolicy(rctx request.CTX, userId string, channel *model.Channel) (bool, *model.AppError) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return false, nil
+	}
+
+	groupID, appErr := a.CpaGroupID()
+	if appErr != nil {
+		return false, appErr
+	}
+
+	subject, err := a.Srv().Store().Attributes().GetSubject(rctx, userId, groupID)
+	if err != nil {
+		return false, model.NewAppError("evaluateChannelMembershipPolicy", "app.channel.request_join.policy_eval.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		Subject: *subject,
+		Resource: model.Resource{
+			Type: model.AccessControlPolicyTypeChannel,
+			ID:   channel.Id,
+		},
+		Action: "membership",
+	})
+	if evalErr != nil {
+		return false, evalErr
+	}
+
+	return decision.Decision, nil
+}
+
+func (a *App) GetChannelJoinRequests(rctx request.CTX, channelId string, status string, page, perPage int) ([]*model.ChannelJoinRequest, *model.AppError) {
+	requests, err := a.Srv().Store().ChannelJoinRequest().GetByChannelId(channelId, status, page*perPage, perPage)
+	if err != nil {
+		return nil, model.NewAppError("GetChannelJoinRequests", "app.channel.join_requests.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if requests == nil {
+		requests = []*model.ChannelJoinRequest{}
+	}
+
+	return requests, nil
+}
+
+func (a *App) UpdateChannelJoinRequest(rctx request.CTX, requestId, status, reviewerId string) (*model.ChannelJoinRequest, *model.AppError) {
+	joinRequest, err := a.Srv().Store().ChannelJoinRequest().GetById(requestId)
+	if err != nil {
+		return nil, model.NewAppError("UpdateChannelJoinRequest", "app.channel.join_request.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	channel, appErr := a.GetChannel(rctx, joinRequest.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if status == model.JoinRequestStatusApproved {
+		_, appErr = a.AddChannelMember(rctx, joinRequest.UserId, channel, ChannelMemberOpts{
+			UserRequestorID: reviewerId,
+		})
+		if appErr != nil {
+			return nil, appErr
+		}
+		a.sendJoinRequestNotification(rctx, joinRequest, channel, true)
+	} else if status == model.JoinRequestStatusDenied {
+		a.sendJoinRequestNotification(rctx, joinRequest, channel, false)
+	}
+
+	// Delete the request row to avoid unique constraint issues on future requests
+	if err := a.Srv().Store().ChannelJoinRequest().Delete(joinRequest.Id); err != nil {
+		return nil, model.NewAppError("UpdateChannelJoinRequest", "app.channel.join_request.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	joinRequest.Status = status
+	joinRequest.ReviewedBy = reviewerId
+
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelJoinRequestUpdated, channel.TeamId, joinRequest.ChannelId, joinRequest.UserId, nil, "")
+	message.Add("join_request", joinRequest)
+	a.Publish(message)
+
+	return joinRequest, nil
+}
+
+func (a *App) GetPendingJoinRequestCount(rctx request.CTX, channelId string) (int64, *model.AppError) {
+	count, err := a.Srv().Store().ChannelJoinRequest().CountPendingByChannelId(channelId)
+	if err != nil {
+		return 0, model.NewAppError("GetPendingJoinRequestCount", "app.channel.join_request.count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return count, nil
+}
+
+func (a *App) WithdrawJoinRequest(rctx request.CTX, userId, channelId string) *model.AppError {
+	existing, err := a.Srv().Store().ChannelJoinRequest().GetPendingByChannelAndUser(channelId, userId)
+	if err != nil {
+		return model.NewAppError("WithdrawJoinRequest", "app.channel.join_request.withdraw.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if existing == nil {
+		return model.NewAppError("WithdrawJoinRequest", "app.channel.join_request.withdraw.not_found.app_error", nil, "", http.StatusNotFound)
+	}
+
+	if err := a.Srv().Store().ChannelJoinRequest().Delete(existing.Id); err != nil {
+		return model.NewAppError("WithdrawJoinRequest", "app.channel.join_request.withdraw.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channel, appErr := a.GetChannel(rctx, channelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventChannelJoinRequestUpdated, channel.TeamId, channelId, "", nil, "")
+	message.Add("withdrawn", true)
+	message.Add("user_id", userId)
+	a.Publish(message)
+
+	return nil
+}
+
+func (a *App) sendJoinRequestNotification(rctx request.CTX, joinRequest *model.ChannelJoinRequest, channel *model.Channel, approved bool) {
+	status := "approved"
+	if !approved {
+		status = "denied"
+	}
+
+	bot, appErr := a.GetSystemBot(rctx)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to get system bot for join request notification", mlog.Err(appErr))
+		return
+	}
+
+	dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, bot.UserId, joinRequest.UserId)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to create DM channel for join request notification", mlog.Err(appErr))
+		return
+	}
+
+	post := &model.Post{
+		ChannelId: dmChannel.Id,
+		UserId:    bot.UserId,
+		Message:   fmt.Sprintf("Your request to join ~%s was %s.", channel.Name, status),
+		Type:      model.PostTypeDefault,
+	}
+
+	if _, _, appErr := a.CreatePostAsUser(rctx, post, rctx.Session().Id, false); appErr != nil {
+		rctx.Logger().Error("Failed to send join request notification", mlog.Err(appErr))
+	}
 }

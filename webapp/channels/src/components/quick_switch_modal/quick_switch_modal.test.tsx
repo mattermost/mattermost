@@ -28,6 +28,8 @@ describe('components/QuickSwitchModal', () => {
                 return Promise.resolve({error});
             }),
             closeRightHandSide: jest.fn(),
+            requestJoinChannel: jest.fn(() => Promise.resolve({data: {status: 'pending'}})),
+            openModal: jest.fn(),
         },
     };
 

@@ -107,6 +107,30 @@
         margin-top: 16px;
     }
 
+    .channel_discoverable_header {
+        display: flex;
+        margin-top: 20px;
+
+        .channel_discoverable_header__text {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 8px;
+
+            .Input_legend {
+                color: rgb(var(--center-channel-color-rgb));
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .Input_subheading {
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 12px;
+                line-height: 16px;
+            }
+        }
+    }
+
     &__purposeContainer, &__headerContainer {
         margin-top: 28px;
 

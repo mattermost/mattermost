@@ -162,6 +162,26 @@ func (_m *Store) ChannelBookmark() store.ChannelBookmarkStore {
 	return r0
 }
 
+// ChannelJoinRequest provides a mock function with no fields
+func (_m *Store) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelJoinRequest")
+	}
+
+	var r0 store.ChannelJoinRequestStore
+	if rf, ok := ret.Get(0).(func() store.ChannelJoinRequestStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelJoinRequestStore)
+		}
+	}
+
+	return r0
+}
+
 // ChannelMemberHistory provides a mock function with no fields
 func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	ret := _m.Called()

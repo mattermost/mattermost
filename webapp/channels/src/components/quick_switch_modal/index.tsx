@@ -5,7 +5,10 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {requestJoinChannel} from 'mattermost-redux/actions/channels';
+
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
+import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -27,7 +30,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             joinChannelById,
             switchToChannel,
+            requestJoinChannel,
             closeRightHandSide,
+            openModal,
         }, dispatch),
     };
 }

@@ -66,14 +66,14 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
             profilesNotInCurrentTeam = getProfilesNotInTeam(state, props.teamId);
             membersInTeam = getMembersInTeam(state, props.teamId);
         } else {
-            profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state);
-            profilesInCurrentChannel = getProfilesInCurrentChannel(state);
-            profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state);
+            profilesNotInCurrentChannel = getProfilesNotInCurrentChannel(state) || [];
+            profilesInCurrentChannel = getProfilesInCurrentChannel(state) || [];
+            profilesNotInCurrentTeam = getProfilesNotInCurrentTeam(state) || [];
             membersInTeam = getMembersInCurrentTeam(state);
         }
 
         // For ABAC channels, also return empty DM profiles to avoid contamination
-        const profilesFromRecentDMs = isAbacChannel ? [] : getRecentProfilesFromDMs(state);
+        const profilesFromRecentDMs = isAbacChannel ? [] : (getRecentProfilesFromDMs(state) || []);
         const config = getConfig(state);
         const license = getLicense(state);
 

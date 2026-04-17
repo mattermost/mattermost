@@ -674,6 +674,19 @@ export function joinChannel(userId: string, teamId: string, channelId: string, c
     };
 }
 
+export function requestJoinChannel(channelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const data = await Client4.requestJoinChannel(channelId);
+            return {data};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function deleteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {

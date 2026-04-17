@@ -1,0 +1,54 @@
+.ChannelJoinRequestsModal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 120px;
+}
+
+.ChannelJoinRequestsModal__empty {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 14px;
+}
+
+.ChannelJoinRequestsModal__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: background 150ms ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+}
+
+.ChannelJoinRequestsModal__userInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+        color: var(--center-channel-color);
+        font-size: 14px;
+    }
+}
+
+.ChannelJoinRequestsModal__date {
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+}
+
+.ChannelJoinRequestsModal__actions {
+    display: flex;
+    gap: 8px;
+
+    .btn {
+        min-width: 72px;
+    }
+}

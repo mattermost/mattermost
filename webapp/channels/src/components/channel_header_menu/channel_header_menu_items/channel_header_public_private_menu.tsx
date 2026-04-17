@@ -31,6 +31,7 @@ import MenuItemToggleFavoriteChannel from '../menu_items/toggle_favorite_channel
 import MenuItemToggleInfo from '../menu_items/toggle_info';
 import MenuItemToggleMuteChannel from '../menu_items/toggle_mute_channel';
 import MenuItemUnarchiveChannel from '../menu_items/unarchive_channel';
+import MenuItemViewJoinRequests from '../menu_items/view_join_requests';
 import MenuItemViewPinnedPosts from '../menu_items/view_pinned_posts';
 
 interface Props extends Menu.FirstMenuItemProps {
@@ -159,6 +160,9 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 </>
             )}
 
+            {isPrivate && channel.discoverable && (
+                <MenuItemViewJoinRequests channel={channel}/>
+            )}
             <Menu.Separator/>
             <ChannelMoveToSubMenu channel={channel}/>
             {!isMobile && (

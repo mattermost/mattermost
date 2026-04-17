@@ -117,6 +117,7 @@ type SqlStoreStores struct {
 	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
 	temporaryPost              store.TemporaryPostStore
+	channelJoinRequest         store.ChannelJoinRequestStore
 }
 
 type SqlStore struct {
@@ -303,6 +304,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
+	store.stores.channelJoinRequest = newSqlChannelJoinRequestStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -917,6 +919,10 @@ func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {
 	return ss.stores.temporaryPost
+}
+
+func (ss *SqlStore) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return ss.stores.channelJoinRequest
 }
 
 func (ss *SqlStore) DropAllTables() {

@@ -155,13 +155,14 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Get excluded users
     const excludedUsers = useMemo(() => {
+        const notInTeam = props.profilesNotInCurrentTeam || [];
         if (props.excludeUsers) {
             return new Set([
-                ...props.profilesNotInCurrentTeam.map((user) => user.id),
+                ...notInTeam.map((user) => user.id),
                 ...Object.values(props.excludeUsers).map((user) => user.id),
             ]);
         }
-        return new Set(props.profilesNotInCurrentTeam.map((user) => user.id));
+        return new Set(notInTeam.map((user) => user.id));
     }, [props.excludeUsers, props.profilesNotInCurrentTeam]);
 
     // Filter out deleted and excluded users
@@ -178,18 +179,18 @@ const ChannelInviteModalComponent = (props: Props) => {
         // Only include DM users if ABAC is not enabled
         let dmUsers: UserProfileValue[] = [];
         if (!props.channel.policy_enforced) {
-            const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
+            const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs || [], term);
             dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
         }
 
         let users: UserProfileValue[];
         if (props.channel.policy_enforced) {
             // ABAC mode: Use local state with fresh API data, completely bypass Redux
-            const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers, term);
+            const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers || [], term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
         } else {
             // Non-ABAC mode: existing logic
-            const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
+            const filteredUsers = filterProfilesStartingWithTerm((props.profilesNotInCurrentChannel || []).concat(props.profilesInCurrentChannel || []), term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
 
             // Only include explicitly added users if ABAC is not enabled
@@ -227,8 +228,8 @@ const ChannelInviteModalComponent = (props: Props) => {
     // Handle modal hide
     const onHide = useCallback(() => {
         setShow(false);
-        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
-        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel || []);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel || []);
     }, [props.actions, props.profilesNotInCurrentChannel, props.profilesInCurrentChannel]);
 
     // Handle invite error
@@ -396,7 +397,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         }
 
         if (isUser(option)) {
-            const ProfilesInGroup = props.profilesInCurrentChannel.map((user) => user.id);
+            const ProfilesInGroup = (props.profilesInCurrentChannel || []).map((user) => user.id);
 
             const userMapping: Record<string, string> = {};
             for (let i = 0; i < ProfilesInGroup.length; i++) {
@@ -484,8 +485,8 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
         props.actions.getTeamStats(props.channel.team_id);
-        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
-        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+        props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel || []);
+        props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel || []);
     }, [
         props.channel.id,
         props.channel.team_id,

@@ -73,6 +73,7 @@ export type Channel = {
     default_category_name?: string;
     managed_category_name?: string;
     autotranslation?: boolean;
+    discoverable?: boolean;
 };
 
 export type ServerChannel = Channel & {
@@ -240,4 +241,14 @@ export type ChannelSearchOpts = {
     access_control_policy_enforced?: boolean;
     exclude_access_control_policy_enforced?: boolean;
     parent_access_control_policy_id?: string;
+};
+
+export type ChannelJoinRequest = {
+    id: string;
+    channel_id: string;
+    user_id: string;
+    status: 'pending' | 'approved' | 'denied';
+    create_at: number;
+    update_at: number;
+    reviewed_by: string;
 };

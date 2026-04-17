@@ -102,7 +102,10 @@ export type WebSocketMessage = (
     Messages.OpenDialog |
 
     BaseWebSocketMessage<WebSocketEvents.PresenceIndicator, unknown> |
-    BaseWebSocketMessage<WebSocketEvents.PostedNotifyAck, unknown>
+    BaseWebSocketMessage<WebSocketEvents.PostedNotifyAck, unknown> |
+
+    Messages.ChannelJoinRequestReceived |
+    Messages.ChannelJoinRequestUpdated
 );
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

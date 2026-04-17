@@ -20,9 +20,13 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import {flattenItems, isItemLoaded, type SuggestionResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
+
 import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
-import Constants, {RHSStates} from 'utils/constants';
+import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 import * as Utils from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';
@@ -39,7 +43,9 @@ export type Props = WrappedComponentProps & {
     actions: {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
+        requestJoinChannel: (channelId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
+        openModal: <P>(modalData: ModalData<P>) => void;
     };
     focusOriginElement: string;
 };
@@ -125,8 +131,35 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
         }
 
         if (this.state.mode === CHANNEL_MODE) {
-            const {joinChannelById, switchToChannel} = this.props.actions;
+            const {joinChannelById, switchToChannel, requestJoinChannel} = this.props.actions;
             const selectedChannel = selected.channel;
+
+            // Discoverable private channels the user is not a member of
+            if (selectedChannel.type === Constants.PRIVATE_CHANNEL && selectedChannel.discoverable && !selected.last_viewed_at) {
+                if (selectedChannel.policy_enforced) {
+                    // Policy-enforced: auto-join via ABAC, no confirmation needed
+                    const result = await requestJoinChannel(selectedChannel.id);
+                    if (result?.data?.status === 'approved') {
+                        // User was added by the server. Navigate directly.
+                        this.hideOnSelect();
+                        switchToChannel(selectedChannel);
+                    }
+                } else {
+                    // Non-policy: show the Request to Join modal
+                    this.hideOnSelect();
+                    this.props.actions.openModal({
+                        modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+                        dialogType: RequestJoinChannelModal,
+                        dialogProps: {
+                            channel: selectedChannel,
+                            onJoined: () => {
+                                switchToChannel(selectedChannel);
+                            },
+                        },
+                    });
+                }
+                return;
+            }
 
             if (selected.type === Constants.MENTION_MORE_CHANNELS && selectedChannel.type === Constants.OPEN_CHANNEL) {
                 await joinChannelById(selectedChannel.id);

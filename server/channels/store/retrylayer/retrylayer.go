@@ -27,6 +27,7 @@ type RetryLayer struct {
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelJoinRequestStore         store.ChannelJoinRequestStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -105,6 +106,10 @@ func (s *RetryLayer) Channel() store.ChannelStore {
 
 func (s *RetryLayer) ChannelBookmark() store.ChannelBookmarkStore {
 	return s.ChannelBookmarkStore
+}
+
+func (s *RetryLayer) ChannelJoinRequest() store.ChannelJoinRequestStore {
+	return s.ChannelJoinRequestStore
 }
 
 func (s *RetryLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -339,6 +344,11 @@ type RetryLayerChannelStore struct {
 
 type RetryLayerChannelBookmarkStore struct {
 	store.ChannelBookmarkStore
+	Root *RetryLayer
+}
+
+type RetryLayerChannelJoinRequestStore struct {
+	store.ChannelJoinRequestStore
 	Root *RetryLayer
 }
 
@@ -3800,6 +3810,153 @@ func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 	tries := 0
 	for {
 		result, err := s.ChannelBookmarkStore.UpdateSortOrder(bookmarkID, channelID, newIndex)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) CountPendingByChannelId(channelId string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.CountPendingByChannelId(channelId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) Delete(id string) error {
+
+	tries := 0
+	for {
+		err := s.ChannelJoinRequestStore.Delete(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) GetByChannelId(channelId string, status string, offset int, limit int) ([]*model.ChannelJoinRequest, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.GetByChannelId(channelId, status, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) GetById(id string) (*model.ChannelJoinRequest, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.GetById(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) GetPendingByChannelAndUser(channelId string, userId string) (*model.ChannelJoinRequest, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.GetPendingByChannelAndUser(channelId, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) Save(request *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.Save(request)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelJoinRequestStore) Update(request *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelJoinRequestStore.Update(request)
 		if err == nil {
 			return result, nil
 		}
@@ -18236,6 +18393,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.BotStore = &RetryLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &RetryLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &RetryLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelJoinRequestStore = &RetryLayerChannelJoinRequestStore{ChannelJoinRequestStore: childStore.ChannelJoinRequest(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &RetryLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &RetryLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &RetryLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

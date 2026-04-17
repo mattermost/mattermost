@@ -710,6 +710,10 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.ShowToast:
         dispatch(handleShowToast(msg));
         break;
+    case WebSocketEvents.ChannelJoinRequestReceived:
+    case WebSocketEvents.ChannelJoinRequestUpdated:
+        window.dispatchEvent(new CustomEvent('channel_join_request_change', {detail: msg}));
+        break;
     default:
     }
 

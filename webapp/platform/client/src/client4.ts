@@ -24,6 +24,7 @@ import type {
     ChannelViewResponse,
     ChannelWithTeamData,
     ChannelSearchOpts,
+    ChannelJoinRequest,
     ServerChannel,
 } from '@mattermost/types/channels';
 import type {Options, StatusOK, ClientResponse, FetchPaginatedThreadOptions, OptsSignalExt} from '@mattermost/types/client4';
@@ -2021,6 +2022,52 @@ export default class Client4 {
         return this.doFetch<Channel[]>(
             `${this.getChannelsRoute()}/group/search`,
             {method: 'post', body: JSON.stringify({term})},
+        );
+    };
+
+    requestJoinChannel = (channelId: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelRoute(channelId)}/request_join`,
+            {method: 'post'},
+        );
+    };
+
+    getMyJoinRequest = async (channelId: string): Promise<ChannelJoinRequest | null> => {
+        try {
+            return await this.doFetch<ChannelJoinRequest>(
+                `${this.getChannelRoute(channelId)}/request_join`,
+                {method: 'get'},
+            );
+        } catch {
+            return null;
+        }
+    };
+
+    withdrawJoinRequest = (channelId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getChannelRoute(channelId)}/request_join`,
+            {method: 'delete'},
+        );
+    };
+
+    getChannelJoinRequests = (channelId: string, status = 'pending', page = 0, perPage = 50) => {
+        return this.doFetch<ChannelJoinRequest[]>(
+            `${this.getChannelRoute(channelId)}/join_requests${buildQueryString({status, page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    updateChannelJoinRequest = (channelId: string, requestId: string, status: string) => {
+        return this.doFetch<ChannelJoinRequest>(
+            `${this.getChannelRoute(channelId)}/join_requests/${requestId}`,
+            {method: 'put', body: JSON.stringify({status})},
+        );
+    };
+
+    getPendingJoinRequestCount = (channelId: string) => {
+        return this.doFetch<{count: number}>(
+            `${this.getChannelRoute(channelId)}/join_requests/count`,
+            {method: 'get'},
         );
     };
 

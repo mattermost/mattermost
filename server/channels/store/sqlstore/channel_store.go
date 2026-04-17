@@ -140,6 +140,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "LastRootPostAt",
 		p + "BannerInfo",
 		p + "DefaultCategoryName",
+		p + "Discoverable",
 	}
 
 	if isSelect {
@@ -178,6 +179,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.LastRootPostAt,
 		channel.BannerInfo,
 		channel.DefaultCategoryName,
+		channel.Discoverable,
 	}
 }
 
@@ -814,7 +816,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			LastRootPostAt=:LastRootPostAt,
 		    BannerInfo=:BannerInfo,
 			DefaultCategoryName=:DefaultCategoryName,
-			AutoTranslation=:AutoTranslation
+			AutoTranslation=:AutoTranslation,
+			Discoverable=:Discoverable
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -3066,6 +3069,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 					From("ChannelMembers").
 					Where(sq.Eq{"UserId": userID})),
 			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
+			},
 		})
 	}
 
@@ -3113,6 +3120,10 @@ func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term strin
 			sq.And{
 				sq.Eq{"c.Type": model.ChannelTypePrivate},
 				sq.Expr("c.Id IN (?)", memberSubQuery),
+			},
+			sq.And{
+				sq.Eq{"c.Type": model.ChannelTypePrivate},
+				sq.Eq{"c.Discoverable": true},
 			},
 		})
 	}

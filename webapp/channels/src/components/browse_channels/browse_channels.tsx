@@ -15,6 +15,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoadingScreen from 'components/loading_screen';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SearchableChannelList from 'components/searchable_channel_list';
 
 import {getHistory} from 'utils/browser_history';
@@ -43,6 +44,7 @@ type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[]>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
+    requestJoinChannel: (channelId: string) => Promise<ActionResult>;
     searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[] | ChannelsWithTotalCount>>;
     openModal: <P>(modalData: ModalData<P>) => void;
     closeModal: (modalId: string) => void;
@@ -79,6 +81,7 @@ type State = {
     serverError: React.ReactNode | string;
     searching: boolean;
     searchTerm: string;
+    discoverableChannels: Channel[];
 }
 
 export default class BrowseChannels extends React.PureComponent<Props, State> {
@@ -98,6 +101,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             serverError: null,
             searching: false,
             searchTerm: '',
+            discoverableChannels: [],
         };
     }
 
@@ -122,8 +126,23 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
             }
         });
+
+        this.loadDiscoverableChannels();
         this.loadComplete();
     }
+
+    loadDiscoverableChannels = async () => {
+        const {data} = await this.props.actions.searchAllChannels('', {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: false}) as ActionResult<Channel[]>;
+        if (data) {
+            const discoverable = data.filter(
+                (c: Channel) => c.type === Constants.PRIVATE_CHANNEL && c.discoverable && !this.isMemberOfChannel(c.id) && c.team_id === this.props.teamId,
+            );
+            if (discoverable.length > 0) {
+                this.props.actions.getChannelsMemberCount(discoverable.map((c: Channel) => c.id));
+            }
+            this.setState({discoverableChannels: discoverable});
+        }
+    };
 
     loadComplete = () => {
         this.setState({loading: false});
@@ -167,9 +186,55 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         });
     };
 
+    handleRequestJoin = async (channel: Channel, done: () => void) => {
+        // Policy-enforced channels: try auto-join via ABAC directly, no confirmation needed
+        if (channel.policy_enforced) {
+            const result = await this.props.actions.requestJoinChannel(channel.id);
+            if (done) {
+                done();
+            }
+            if (result?.error) {
+                this.setState({serverError: result.error.message});
+                return;
+            }
+            if (result?.data?.status === 'approved') {
+                this.props.actions.getChannelsMemberCount([channel.id]);
+                getHistory().push(getRelativeChannelURL(this.props.teamName!, channel.name));
+                this.closeEditRHS();
+                this.handleExit();
+                return;
+            }
+            this.setState({serverError: 'Your request could not be processed.'});
+            return;
+        }
+
+        // Non-policy channels: show the Request to Join modal for admin approval
+        if (done) {
+            done();
+        }
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.REQUEST_JOIN_CHANNEL,
+            dialogType: RequestJoinChannelModal,
+            dialogProps: {
+                channel,
+                onJoined: () => {
+                    this.props.actions.getChannelsMemberCount([channel.id]);
+                    getHistory().push(getRelativeChannelURL(this.props.teamName!, channel.name));
+                    this.closeEditRHS();
+                    this.handleExit();
+                },
+            },
+        });
+    };
+
     handleJoin = async (channel: Channel, done: () => void) => {
         const {actions, currentUserId, teamId, teamName} = this.props;
         let result;
+
+        // Discoverable private channels where the user is not a member
+        if (!this.isMemberOfChannel(channel.id) && channel.type === Constants.PRIVATE_CHANNEL && channel.discoverable) {
+            return this.handleRequestJoin(channel, done);
+        }
 
         if (!this.isMemberOfChannel(channel.id)) {
             result = await actions.joinChannel(currentUserId, teamId, channel.id);
@@ -227,10 +292,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     setSearchResults = (channels: Channel[]) => {
-        // filter out private channels that the user is not a member of
-        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id));
+        // filter out private channels that the user is not a member of, unless they are discoverable
+        let searchedChannels = channels.filter((c) => c.type !== Constants.PRIVATE_CHANNEL || this.isMemberOfChannel(c.id) || c.discoverable);
         if (this.state.filter === Filter.Private) {
-            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && this.isMemberOfChannel(c.id));
+            searchedChannels = channels.filter((c) => c.type === Constants.PRIVATE_CHANNEL && (this.isMemberOfChannel(c.id) || c.discoverable));
         }
         if (this.state.filter === Filter.Public) {
             searchedChannels = channels.filter((c) => c.type === Constants.OPEN_CHANNEL && c.delete_at === 0);
@@ -264,18 +329,24 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     getActiveChannels = () => {
         const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
-        const {search, searchedChannels, filter} = this.state;
+        const {search, searchedChannels, filter, discoverableChannels} = this.state;
 
-        const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
+        const memberPrivateIds = new Set(privateChannels.map((c) => c.id));
+        const mergedPrivateChannels = [
+            ...privateChannels,
+            ...discoverableChannels.filter((c) => !memberPrivateIds.has(c.id)),
+        ];
+
+        const allChannels = channels.concat(mergedPrivateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
         const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
-        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
+        const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(mergedPrivateChannels);
 
         const filterOptions = {
             [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
             [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
-            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
+            [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : mergedPrivateChannels,
             [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
         };
 
@@ -343,6 +414,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     isSearch={search}
                     search={this.search}
                     handleJoin={this.handleJoin}
+                    handleRequestJoin={this.handleRequestJoin}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
                     changeFilter={this.changeFilter}

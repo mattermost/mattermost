@@ -6,10 +6,11 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelJoinRequest} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -92,6 +93,56 @@ export default function ChannelMembersRHS({
             replace(/([A-Z])/g, ' $1').
             replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
     };
+
+    const [joinRequests, setJoinRequests] = useState<ChannelJoinRequest[]>([]);
+    const [joinRequestUsernames, setJoinRequestUsernames] = useState<Record<string, string>>({});
+    const [processingRequestId, setProcessingRequestId] = useState('');
+
+    const showJoinRequests = currentUserIsChannelAdmin && channel.discoverable && channel.type === Constants.PRIVATE_CHANNEL;
+
+    const fetchJoinRequests = useCallback(() => {
+        if (!showJoinRequests) {
+            return;
+        }
+        Client4.getChannelJoinRequests(channel.id, 'pending').then(async (data) => {
+            const requests = data || [];
+            setJoinRequests(requests);
+            const userIds = requests.map((r: ChannelJoinRequest) => r.user_id);
+            if (userIds.length > 0) {
+                const profiles = await Client4.getProfilesByIds(userIds);
+                const names: Record<string, string> = {};
+                for (const profile of profiles) {
+                    names[profile.id] = profile.username;
+                }
+                setJoinRequestUsernames(names);
+            }
+        }).catch(() => setJoinRequests([]));
+    }, [channel.id, showJoinRequests]);
+
+    useEffect(() => {
+        fetchJoinRequests();
+    }, [fetchJoinRequests]);
+
+    useEffect(() => {
+        const handler = () => fetchJoinRequests();
+        window.addEventListener('channel_join_request_change', handler);
+        return () => window.removeEventListener('channel_join_request_change', handler);
+    }, [fetchJoinRequests]);
+
+    const handleJoinRequestAction = useCallback(async (requestId: string, status: 'approved' | 'denied') => {
+        setProcessingRequestId(requestId);
+        try {
+            await Client4.updateChannelJoinRequest(channel.id, requestId, status);
+            setJoinRequests((prev) => prev.filter((r) => r.id !== requestId));
+            if (status === 'approved') {
+                actions.loadProfilesAndReloadChannelMembers(0, USERS_PER_PAGE, channel.id, ProfilesInChannelSortBy.Admin);
+            }
+        } catch {
+            // ignore for MVP
+        } finally {
+            setProcessingRequestId('');
+        }
+    }, [channel.id, actions]);
 
     const searching = searchTerms !== '';
 
@@ -306,6 +357,46 @@ export default function ChannelMembersRHS({
             )}
 
             <div className='channel-members-rhs__members-container'>
+                {showJoinRequests && joinRequests.length > 0 && (
+                    <div className='channel-members-rhs__join-requests'>
+                        <div className='channel-members-rhs__member-list-separator channel-members-rhs__member-list-separator--first'>
+                            <FormattedMessage
+                                id='channel_members_rhs.join_requests_title'
+                                defaultMessage='PENDING REQUESTS ({count})'
+                                values={{count: joinRequests.length}}
+                            />
+                        </div>
+                        {joinRequests.map((req) => (
+                            <div
+                                key={req.id}
+                                className='channel-members-rhs__join-request-row'
+                            >
+                                <div className='channel-members-rhs__join-request-user'>
+                                    <span className='channel-members-rhs__join-request-username'>
+                                        {'@'}{joinRequestUsernames[req.user_id] || req.user_id}
+                                    </span>
+                                </div>
+                                <div className='channel-members-rhs__join-request-actions'>
+                                    <button
+                                        className='btn btn-sm btn-primary'
+                                        disabled={processingRequestId === req.id}
+                                        onClick={() => handleJoinRequestAction(req.id, 'approved')}
+                                    >
+                                        {formatMessage({id: 'channel_members_rhs.approve', defaultMessage: 'Approve'})}
+                                    </button>
+                                    <button
+                                        className='btn btn-sm btn-tertiary'
+                                        disabled={processingRequestId === req.id}
+                                        onClick={() => handleJoinRequestAction(req.id, 'denied')}
+                                    >
+                                        {formatMessage({id: 'channel_members_rhs.deny', defaultMessage: 'Deny'})}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 {channelMembers.length > 0 && (
                     <MemberList
                         searchTerms={searchTerms}

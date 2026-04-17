@@ -102,6 +102,7 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	ChannelJoinRequest() ChannelJoinRequestStore
 }
 
 type RetentionPolicyStore interface {
@@ -1330,4 +1331,14 @@ type RecapStore interface {
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
+}
+
+type ChannelJoinRequestStore interface {
+	Save(request *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	GetById(id string) (*model.ChannelJoinRequest, error)
+	GetByChannelId(channelId string, status string, offset, limit int) ([]*model.ChannelJoinRequest, error)
+	GetPendingByChannelAndUser(channelId, userId string) (*model.ChannelJoinRequest, error)
+	Update(request *model.ChannelJoinRequest) (*model.ChannelJoinRequest, error)
+	Delete(id string) error
+	CountPendingByChannelId(channelId string) (int64, error)
 }

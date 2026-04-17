@@ -147,4 +147,46 @@
         font-size: 16px;
         line-height: 20px;
     }
+
+    &__join-requests {
+        padding: 0 0 8px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-bottom: 4px;
+    }
+
+    &__join-request-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 20px;
+        border-radius: 4px;
+        transition: background 150ms ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__join-request-user {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    &__join-request-username {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__join-request-actions {
+        display: flex;
+        gap: 8px;
+
+        .btn {
+            min-width: 64px;
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+    }
 }

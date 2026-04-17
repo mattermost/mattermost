@@ -27,6 +27,7 @@ import ConvertConfirmModal from 'components/admin_console/team_channel_settings/
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import type {TextboxElement} from 'components/textbox';
+import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
@@ -115,6 +116,7 @@ function ChannelSettingsInfoTab({
     const [channelPurpose, setChannelPurpose] = useState(channel.purpose ?? '');
     const [channelHeader, setChannelHeader] = useState(channel?.header ?? '');
     const [channelType, setChannelType] = useState<ChannelType>(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
+    const [discoverable, setDiscoverable] = useState(channel?.discoverable ?? false);
 
     // UI Feedback: errors, states
     const [formError, setFormError] = useState('');
@@ -144,11 +146,12 @@ function ChannelSettingsInfoTab({
             channelPurpose.trim() !== channel.purpose ||
             channelHeader.trim() !== channel.header ||
             channelType !== channel.type ||
-            managedCategoryName !== serverCategoryName
+            managedCategoryName !== serverCategoryName ||
+            discoverable !== (channel.discoverable ?? false)
         ) : false;
 
         setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, managedCategoryName, serverCategoryName, setAreThereUnsavedChanges]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, managedCategoryName, serverCategoryName, discoverable, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -278,6 +281,9 @@ function ChannelSettingsInfoTab({
         if (managedCategoryName !== serverCategoryName) {
             updated.managed_category_name = managedCategoryName ?? '';
         }
+        if (isPrivate && discoverable !== (channel.discoverable ?? false)) {
+            updated.discoverable = discoverable;
+        }
 
         if (Object.keys(updated).length === 0) {
             // Return true if no changes were made
@@ -301,7 +307,7 @@ function ChannelSettingsInfoTab({
         setServerCategoryName(managedCategoryName);
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, managedCategoryName, serverCategoryName]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, isPrivate, channelUrl, channelPurpose, channelHeader, discoverable, dispatch, formatMessage, handleServerError, managedCategoryName, serverCategoryName]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -374,11 +380,12 @@ function ChannelSettingsInfoTab({
                 unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
                 unsavedChanges = unsavedChanges || channelType !== channel.type;
                 unsavedChanges = unsavedChanges || managedCategoryName !== serverCategoryName;
+                unsavedChanges = unsavedChanges || discoverable !== (channel.discoverable ?? false);
             }
         }
 
         return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, managedCategoryName, serverCategoryName]);
+    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, discoverable, saveChangesPanelState, managedCategoryName, serverCategoryName]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -452,6 +459,38 @@ function ChannelSettingsInfoTab({
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelRoles}
                 />
+            )}
+
+            {/* Discoverable Toggle - only for private channels */}
+            {isPrivate && canManageChannelProperties && (
+                <div className='channel_discoverable_header'>
+                    <div className='channel_discoverable_header__text'>
+                        <label
+                            className='Input_legend'
+                            aria-label={formatMessage({id: 'channel_settings.discoverable.label', defaultMessage: 'Discoverable'})}
+                        >
+                            {formatMessage({id: 'channel_settings.discoverable.label', defaultMessage: 'Discoverable'})}
+                        </label>
+                        <label className='Input_subheading'>
+                            {formatMessage({
+                                id: 'channel_settings.discoverable.description',
+                                defaultMessage: 'Allow non-members to find this channel when browsing. If access rules are configured, qualifying users can join directly. Otherwise, they can request to join.',
+                            })}
+                        </label>
+                    </div>
+                    <div className='channel_discoverable_header__toggle'>
+                        <Toggle
+                            id='channelDiscoverableToggle'
+                            ariaLabel={formatMessage({id: 'channel_settings.discoverable.label', defaultMessage: 'Discoverable'})}
+                            size='btn-md'
+                            disabled={false}
+                            onToggle={() => setDiscoverable(!discoverable)}
+                            toggled={discoverable}
+                            tabIndex={0}
+                            toggleClassName='btn-toggle-primary'
+                        />
+                    </div>
+                </div>
             )}
 
             {/* Purpose Section*/}

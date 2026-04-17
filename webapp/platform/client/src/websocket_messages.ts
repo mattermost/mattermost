@@ -487,6 +487,16 @@ export type ShowToast = BaseWebSocketMessage<WebSocketEvents.ShowToast, {
     position?: string;
 }>;
 
+export type ChannelJoinRequestReceived = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestReceived, {
+    join_request: unknown;
+}>;
+
+export type ChannelJoinRequestUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelJoinRequestUpdated, {
+    join_request?: unknown;
+    withdrawn?: boolean;
+    user_id?: string;
+}>;
+
 /**
  * Unknown is used for WebSocket messages which don't come from Mattermost itself. It's primarily intended for use
  * by plugins.

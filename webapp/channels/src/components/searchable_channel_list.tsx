@@ -34,6 +34,7 @@ interface Props extends WrappedComponentProps {
     isSearch: boolean;
     search: (term: string) => void;
     handleJoin: (channel: Channel, done: () => void) => void;
+    handleRequestJoin?: (channel: Channel, done: () => void) => void;
     noResultsText: JSX.Element;
     changeFilter: (filter: FilterType) => void;
     filter: FilterType;
@@ -103,6 +104,17 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     handleJoin = (channel: Channel, e: React.MouseEvent) => {
         e.stopPropagation();
+
+        // Discoverable private channels the user is not a member of
+        // must go through the request-to-join flow, never the direct join flow.
+        if (!this.isMemberOfChannel(channel.id) && channel.type === Constants.PRIVATE_CHANNEL && channel.discoverable) {
+            if (this.props.handleRequestJoin) {
+                this.setState({joiningChannel: channel.id});
+                this.props.handleRequestJoin(channel, () => this.setState({joiningChannel: ''}));
+            }
+            return;
+        }
+
         this.setState({joiningChannel: channel.id});
         this.props.handleJoin(
             channel,
@@ -160,9 +172,25 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         );
 
+        const isMember = this.isMemberOfChannel(channel.id);
+        const isDiscoverablePrivateNonMember = !isMember && channel.type === Constants.PRIVATE_CHANNEL && channel.discoverable;
+
+        let joinViewButtonId: string;
+        let joinViewButtonDefault: string;
+        if (isMember) {
+            joinViewButtonId = 'more_channels.view';
+            joinViewButtonDefault = 'View';
+        } else if (isDiscoverablePrivateNonMember && !channel.policy_enforced) {
+            joinViewButtonId = 'more_channels.request_join';
+            joinViewButtonDefault = 'Request to Join';
+        } else {
+            joinViewButtonId = 'joinChannel.JoinButton';
+            joinViewButtonDefault = 'Join';
+        }
+
         const joinViewChannelButtonClass = classNames('btn btn-sm', {
-            'btn-secondary outlineButton': this.isMemberOfChannel(channel.id),
-            'btn-primary primaryButton': !this.isMemberOfChannel(channel.id),
+            'btn-secondary outlineButton': isMember,
+            'btn-primary primaryButton': !isMember,
         });
 
         const joinViewChannelButton = (
@@ -172,15 +200,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 className={joinViewChannelButtonClass}
                 disabled={Boolean(this.state.joiningChannel)}
                 tabIndex={-1}
-                aria-label={this.isMemberOfChannel(channel.id) ? this.props.intl.formatMessage({id: 'more_channels.view', defaultMessage: 'View'}) : this.props.intl.formatMessage({id: 'joinChannel.JoinButton', defaultMessage: 'Join'})}
+                aria-label={this.props.intl.formatMessage({id: joinViewButtonId, defaultMessage: joinViewButtonDefault})}
             >
                 <LoadingWrapper
                     loading={this.state.joiningChannel === channel.id}
                     text={messages.joiningButton}
                 >
                     <FormattedMessage
-                        id={this.isMemberOfChannel(channel.id) ? 'more_channels.view' : 'joinChannel.JoinButton'}
-                        defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
+                        id={joinViewButtonId}
+                        defaultMessage={joinViewButtonDefault}
                     />
                 </LoadingWrapper>
             </button>

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -64,6 +66,13 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channel.Handle("/common_teams", api.APISessionRequired(getDirectOrGroupMessageMembersCommonTeams)).Methods(http.MethodGet)
 	api.BaseRoutes.Channel.Handle("/convert_to_channel", api.APISessionRequired(convertGroupMessageToChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/access_control/attributes", api.APISessionRequired(getChannelAccessControlAttributes)).Methods(http.MethodGet)
+
+	api.BaseRoutes.Channel.Handle("/request_join", api.APISessionRequired(requestJoinChannel)).Methods(http.MethodPost)
+	api.BaseRoutes.Channel.Handle("/request_join", api.APISessionRequired(getMyJoinRequest)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/request_join", api.APISessionRequired(withdrawJoinRequest)).Methods(http.MethodDelete)
+	api.BaseRoutes.Channel.Handle("/join_requests", api.APISessionRequired(getJoinRequests)).Methods(http.MethodGet)
+	api.BaseRoutes.Channel.Handle("/join_requests/{request_id:[A-Za-z0-9]+}", api.APISessionRequired(updateJoinRequest)).Methods(http.MethodPut)
+	api.BaseRoutes.Channel.Handle("/join_requests/count", api.APISessionRequired(getPendingJoinRequestCount)).Methods(http.MethodGet)
 
 	api.BaseRoutes.ChannelForUser.Handle("/unread", api.APISessionRequired(getChannelUnread)).Methods(http.MethodGet)
 
@@ -354,8 +363,9 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	updatingProperties := patch.DisplayName != nil || patch.Name != nil || patch.Header != nil || patch.Purpose != nil || patch.GroupConstrained != nil
 	updatingAutoTranslation := patch.AutoTranslation != nil
 	updatingManagedCategory := patch.ManagedCategoryName != nil
+	updatingDiscoverable := patch.Discoverable != nil
 
-	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory {
+	if !updatingProperties && !updatingAutoTranslation && patch.BannerInfo == nil && !updatingManagedCategory && !updatingDiscoverable {
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.no_changes.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -413,6 +423,18 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	if updatingDiscoverable && oldChannel.Type != model.ChannelTypePrivate {
+		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.discoverable_only_private.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if updatingDiscoverable && oldChannel.Type == model.ChannelTypePrivate {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManagePrivateChannelProperties); !ok {
+			c.SetPermissionError(model.PermissionManagePrivateChannelProperties)
+			return
+		}
 	}
 
 	if oldChannel.Name == model.DefaultChannelName {
@@ -2098,6 +2120,19 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManagePrivateChannelMembers)
 			return
 		}
+
+		// Block direct self-add to discoverable private channels without a policy.
+		// Users must go through the request_join flow and get admin approval.
+		if channel.Discoverable && !channel.PolicyEnforced {
+			for _, userId := range userIds {
+				if userId == c.AppContext.Session().UserId {
+					if _, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, model.PermissionReadChannel); !isMember {
+						c.Err = model.NewAppError("addChannelMember", "api.channel.add_channel_member.discoverable_requires_approval.app_error", nil, "", http.StatusForbidden)
+						return
+					}
+				}
+			}
+		}
 	}
 
 	if channel.IsGroupConstrained() {
@@ -2948,4 +2983,150 @@ func getManagedCategories(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(mappings); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func requestJoinChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	joinRequest, appErr := c.App.RequestJoinChannel(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(joinRequest); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getJoinRequests(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if hasPerm, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !hasPerm {
+		c.SetPermissionError(model.PermissionManageChannelRoles)
+		return
+	}
+
+	status := r.URL.Query().Get("status")
+	if status == "" {
+		status = model.JoinRequestStatusPending
+	}
+
+	requests, appErr := c.App.GetChannelJoinRequests(c.AppContext, c.Params.ChannelId, status, c.Params.Page, c.Params.PerPage)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(requests); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func updateJoinRequest(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	props := mux.Vars(r)
+	requestId := props["request_id"]
+	if requestId == "" {
+		c.SetInvalidURLParam("request_id")
+		return
+	}
+
+	if hasPerm, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !hasPerm {
+		c.SetPermissionError(model.PermissionManageChannelRoles)
+		return
+	}
+
+	var body struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	if body.Status != model.JoinRequestStatusApproved && body.Status != model.JoinRequestStatusDenied {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	updated, appErr := c.App.UpdateChannelJoinRequest(c.AppContext, requestId, body.Status, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(updated); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getPendingJoinRequestCount(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if hasPerm, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !hasPerm {
+		c.SetPermissionError(model.PermissionManageChannelRoles)
+		return
+	}
+
+	count, appErr := c.App.GetPendingJoinRequestCount(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(map[string]int64{"count": count}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getMyJoinRequest(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	request, err := c.App.Srv().Store().ChannelJoinRequest().GetPendingByChannelAndUser(c.Params.ChannelId, c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("getMyJoinRequest", "api.channel.get_my_join_request.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if request == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(request); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func withdrawJoinRequest(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	appErr := c.App.WithdrawJoinRequest(c.AppContext, c.AppContext.Session().UserId, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
 }
