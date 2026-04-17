@@ -144,7 +144,7 @@ export async function createMockAIAgent(
     overrides: CreateMockAIAgentOverrides = {},
 ): Promise<{agent: AIBridgeMockAgent; service: AIBridgeMockService; state: AIBridgeMockState}> {
     const state = await getAIBridgeMock(adminClient);
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
 
     const service: AIBridgeMockService = {
         id: overrides.service?.id ?? overrides.agent?.service_id ?? `mock-service-${randomId}`,

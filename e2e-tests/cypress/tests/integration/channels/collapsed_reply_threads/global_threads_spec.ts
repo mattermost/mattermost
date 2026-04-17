@@ -12,7 +12,8 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-import {PostMessageResp} from 'tests/support/task_commands';
+
+import {PostMessageResp} from '@/support/task_commands';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -420,12 +421,12 @@ describe('Collapsed Reply Threads', () => {
 
     it('CRT - Threads list keyboard navigation', () => {
         // # Post a few messages as another user and then reply to each one as the current user to follow them
-        let firstRoot;
-        let firstReply;
-        let secondRoot;
-        let secondReply;
-        let thirdRoot;
-        let thirdReply;
+        let firstRoot: PostMessageResp;
+        let firstReply: PostMessageResp;
+        let secondRoot: PostMessageResp;
+        let secondReply: PostMessageResp;
+        let thirdRoot: PostMessageResp;
+        let thirdReply: PostMessageResp;
 
         cy.postMessageAs({sender: user1, message: messages.ROOT + '1', channelId: testChannel.id}).then((post) => {
             firstRoot = post;

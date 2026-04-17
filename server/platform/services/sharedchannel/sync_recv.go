@@ -43,10 +43,12 @@ func (scs *Service) onReceiveSyncMessage(msg model.RemoteClusterMsg, rc *model.R
 	if err := json.Unmarshal(msg.Payload, &sm); err != nil {
 		return fmt.Errorf("invalid sync message: %w", err)
 	}
-	return scs.processSyncMessage(request.EmptyContext(scs.server.Log()), &sm, rc, response)
+	return scs.processSyncMessageForRemote(request.EmptyContext(scs.server.Log()), &sm, rc, response)
 }
 
-func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+// processGlobalUserSync processes a global user sync message from a remote cluster or plugin.
+// Returns the SyncResponse directly.
+func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
 	syncResp := model.SyncResponse{
 		UserErrors: make([]string, 0),
 		UsersSyncd: make([]string, 0),
@@ -73,10 +75,12 @@ func (scs *Service) processGlobalUserSync(rctx request.CTX, syncMsg *model.SyncM
 		}
 	}
 
-	return response.SetPayload(syncResp)
+	return syncResp, nil
 }
 
-func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+// ProcessSyncMessage processes an inbound sync message from a remote cluster or plugin.
+// Returns the SyncResponse directly.
+func (scs *Service) ProcessSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
 	var targetChannel *model.Channel
 	var team *model.Team
 
@@ -96,7 +100,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 
 	// If this message only contains membership changes and feature is disabled, skip it
 	if hasMembershipChanges && !membershipSyncEnabled && len(syncMsg.Users) == 0 && len(syncMsg.Posts) == 0 && len(syncMsg.Reactions) == 0 {
-		return nil
+		return syncResp, nil
 	}
 
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Sync msg received",
@@ -115,32 +119,32 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		if len(syncMsg.Posts) != 0 ||
 			len(syncMsg.Reactions) != 0 ||
 			len(syncMsg.Statuses) != 0 {
-			return fmt.Errorf("global user sync message should not contain posts, reactions or statuses")
+			return syncResp, fmt.Errorf("global user sync message should not contain posts, reactions or statuses")
 		}
 
 		if len(syncMsg.Users) == 0 {
-			return nil
+			return syncResp, nil
 		}
 		// Check if feature flag is enabled
 		if !scs.isGlobalUserSyncEnabled() {
-			return nil
+			return syncResp, nil
 		}
-		return scs.processGlobalUserSync(rctx, syncMsg, rc, response)
+		return scs.processGlobalUserSync(rctx, syncMsg, rc)
 	}
 
 	// For regular sync messages, we need a specific channel
 	if targetChannel, err = scs.server.GetStore().Channel().Get(syncMsg.ChannelId, true); err != nil {
 		// if the channel doesn't exist then none of these sync items are going to work.
-		return fmt.Errorf("channel not found processing sync message: %w", err)
+		return syncResp, fmt.Errorf("channel not found processing sync message: %w", err)
 	}
 
 	// make sure target channel is shared with the remote
 	exists, err := scs.server.GetStore().SharedChannel().HasRemote(targetChannel.Id, rc.RemoteId)
 	if err != nil {
-		return fmt.Errorf("cannot check channel share state for sync message: %w", err)
+		return syncResp, fmt.Errorf("cannot check channel share state for sync message: %w", err)
 	}
 	if !exists {
-		return fmt.Errorf("cannot process sync message; %w: %s",
+		return syncResp, fmt.Errorf("cannot process sync message; %w: %s",
 			ErrChannelNotShared, syncMsg.ChannelId)
 	}
 
@@ -279,7 +283,7 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 
 	// Process membership changes after users have been synced
 	if hasMembershipChanges && membershipSyncEnabled {
-		if err := scs.onReceiveMembershipChanges(syncMsg, rc, response); err != nil {
+		if err := scs.onReceiveMembershipChanges(syncMsg, rc); err != nil {
 			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Error processing membership changes",
 				mlog.String("remote", rc.Name),
 				mlog.String("channel_id", syncMsg.ChannelId),
@@ -291,9 +295,16 @@ func (scs *Service) processSyncMessage(rctx request.CTX, syncMsg *model.SyncMsg,
 		}
 	}
 
-	response.SetPayload(syncResp)
+	return syncResp, nil
+}
 
-	return nil
+// processSyncMessageForRemote wraps ProcessSyncMessage for the remote cluster transport layer.
+func (scs *Service) processSyncMessageForRemote(rctx request.CTX, syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+	syncResp, err := scs.ProcessSyncMessage(rctx, syncMsg, rc)
+	if err != nil {
+		return err
+	}
+	return response.SetPayload(syncResp)
 }
 
 func (scs *Service) upsertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {

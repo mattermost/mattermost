@@ -7,7 +7,7 @@ export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
-export {duration, wait, newTestPassword} from './util';
+export {duration, getRandomId, wait, newTestPassword} from './util';
 
 export {
     ChannelsPage,
@@ -84,6 +84,8 @@ export {
     enableABAC,
     disableABAC,
     navigateToABACPage,
+    navigateToPermissionPoliciesPage,
+    navigateToAttributeBasedAccessPage,
     createBasicPolicy,
     createAdvancedPolicy,
     editPolicy,

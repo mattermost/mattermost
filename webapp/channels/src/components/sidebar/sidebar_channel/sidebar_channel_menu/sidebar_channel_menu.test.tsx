@@ -208,6 +208,21 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         expect(baseElement).toMatchSnapshot();
     });
 
+    test('should disable favorite menu item when channel is in a managed category', async () => {
+        const spy = jest.spyOn(require('mattermost-redux/selectors/entities/channel_categories'), 'isChannelInManagedCategory').mockReturnValue(true);
+
+        renderWithContext(
+            <SidebarChannelMenu {...baseProps}/>,
+        );
+
+        await openMenu();
+
+        const favoriteItem = screen.getByRole('menuitem', {name: 'Favorite'});
+        expect(favoriteItem).toHaveAttribute('aria-disabled', 'true');
+
+        spy.mockRestore();
+    });
+
     test('should match snapshot of rendered items when multiselecting channels - public channels and DM category', async () => {
         const props = {
             ...baseProps,
