@@ -89,8 +89,8 @@ type User struct {
 	UpdateAt               int64       `json:"update_at,omitempty" xml:"UpdateAt,omitempty"`
 	DeleteAt               int64       `json:"delete_at" xml:"DeleteAt"`
 	Username               string      `json:"username" xml:"Username"`
-	Password               string      `json:"password,omitempty" xml:"Password,omitempty"`
-	AuthData               *string     `json:"auth_data,omitempty" xml:"AuthData,omitempty"`
+	Password               string      `json:"password,omitempty" xml:"-"`
+	AuthData               *string     `json:"auth_data,omitempty" xml:"-"`
 	AuthService            string      `json:"auth_service" xml:"AuthService"`
 	Email                  string      `json:"email" xml:"Email"`
 	EmailVerified          bool        `json:"email_verified,omitempty" xml:"EmailVerified,omitempty"`
@@ -108,7 +108,7 @@ type User struct {
 	Locale                 string      `json:"locale" xml:"Locale"`
 	Timezone               StringMap   `json:"timezone" xml:"Timezone"`
 	MfaActive              bool        `json:"mfa_active,omitempty" xml:"MfaActive,omitempty"`
-	MfaSecret              string      `json:"mfa_secret,omitempty" xml:"MfaSecret,omitempty"`
+	MfaSecret              string      `json:"mfa_secret,omitempty" xml:"-"`
 	RemoteId               *string     `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 	LastActivityAt         int64       `json:"last_activity_at,omitempty" xml:"LastActivityAt,omitempty"`
 	IsBot                  bool        `json:"is_bot,omitempty" xml:"IsBot,omitempty"`

@@ -70,7 +70,7 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Error(t, err)
 	})
 
-	t.Run("Save SiteURL collision", func(t *testing.T) {
+	t.Run("Save plugin SiteURL collision is idempotent", func(t *testing.T) {
 		siteURL := makeSiteURL()
 
 		rc := &model.RemoteCluster{
@@ -93,10 +93,30 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.NotNil(t, rcSaved)
 
-		// original remotecluster should be returned (idempotent save by SiteURL)
+		// original remotecluster should be returned (idempotent save by SiteURL for plugins)
 		require.Equal(t, rc.Name, rcSaved.Name)
 		require.Equal(t, rc.SiteURL, rcSaved.SiteURL)
 		require.Greater(t, rc.CreateAt, int64(0))
+	})
+
+	t.Run("Save non-plugin SiteURL collision returns error", func(t *testing.T) {
+		siteURL := makeSiteURL()
+
+		rc := &model.RemoteCluster{
+			Name:      "server_remote_1",
+			SiteURL:   siteURL,
+			CreatorId: model.NewId(),
+		}
+		_, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		rc2 := &model.RemoteCluster{
+			Name:      "server_remote_2",
+			SiteURL:   siteURL,
+			CreatorId: model.NewId(),
+		}
+		_, err = ss.RemoteCluster().Save(rc2)
+		require.Error(t, err, "non-plugin SiteURL collision should return an error")
 	})
 
 	t.Run("Save same pluginID different SiteURLs", func(t *testing.T) {

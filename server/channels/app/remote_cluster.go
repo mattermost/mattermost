@@ -36,7 +36,7 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	if rc != nil {
 		// SiteURL exists. Verify it belongs to this plugin.
 		if rc.PluginID != opts.PluginID {
-			return "", fmt.Errorf("SiteURL %q is already in use by another remote", opts.SiteURL)
+			return "", fmt.Errorf("SiteURL %q is already in use by remote %s (plugin %q)", opts.SiteURL, rc.RemoteId, rc.PluginID)
 		}
 
 		// Same plugin, same SiteURL: idempotent re-registration.

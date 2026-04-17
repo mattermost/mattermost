@@ -54,14 +54,17 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 		return nil, err
 	}
 
-	// Check for SiteURL collisions (idempotent save).
-	rc, err := s.GetBySiteURL(remoteCluster.SiteURL)
-	if err == nil {
-		// SiteURL already exists, return existing record.
-		return rc, nil
-	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by SiteURL %s", remoteCluster.SiteURL)
+	// For plugin remotes, check for SiteURL collisions and treat as idempotent.
+	// Non-plugin remotes skip this check and rely on the DB unique constraint
+	// so that AddRemoteCluster can report a proper conflict error.
+	if remoteCluster.PluginID != "" {
+		rc, err := s.GetBySiteURL(remoteCluster.SiteURL)
+		if err == nil {
+			return rc, nil
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by SiteURL %s", remoteCluster.SiteURL)
+		}
 	}
 
 	query := `INSERT INTO RemoteClusters
