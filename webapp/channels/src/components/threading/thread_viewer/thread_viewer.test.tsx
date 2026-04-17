@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -9,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fakeDate} from 'tests/helpers/date';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {FakePost} from 'types/store/rhs';
@@ -108,7 +108,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should match snapshot', async () => {
         const reset = fakeDate(new Date(1502715365000));
 
-        const {container} = render(
+        const {container} = await renderWithContext(
             <ThreadViewer {...baseProps}/>,
         );
 
@@ -120,7 +120,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should make api call to get thread posts on socket reconnect', async () => {
-        const {rerender} = render(
+        const {rerender} = await renderWithContext(
             <ThreadViewer {...baseProps}/>,
         );
 
@@ -156,9 +156,7 @@ describe('components/threading/ThreadViewer', () => {
             selected: fakePost,
         };
 
-        await act(async () => {
-            render(<ThreadViewer {...props}/>);
-        });
+        await renderWithContext(<ThreadViewer {...props}/>);
     });
 
     test('should not break if root post is ID only', async () => {
@@ -168,15 +166,13 @@ describe('components/threading/ThreadViewer', () => {
             selected: undefined,
         };
 
-        await act(async () => {
-            render(<ThreadViewer {...props}/>);
-        });
+        await renderWithContext(<ThreadViewer {...props}/>);
     });
 
     test('should call fetchThread when no thread on mount', async () => {
         const {actions} = baseProps;
 
-        render(
+        await renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
@@ -199,15 +195,13 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 32,
         } as UserThread;
 
-        await act(async () => {
-            render(
-                <ThreadViewer
-                    {...baseProps}
-                    userThread={userThread}
-                    isCollapsedThreadsEnabled={true}
-                />,
-            );
-        });
+        await renderWithContext(
+            <ThreadViewer
+                {...baseProps}
+                userThread={userThread}
+                isCollapsedThreadsEnabled={true}
+            />,
+        );
 
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).not.toHaveBeenCalled();
@@ -223,15 +217,13 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        await act(async () => {
-            render(
-                <ThreadViewer
-                    {...baseProps}
-                    userThread={userThread}
-                    isCollapsedThreadsEnabled={true}
-                />,
-            );
-        });
+        await renderWithContext(
+            <ThreadViewer
+                {...baseProps}
+                userThread={userThread}
+                isCollapsedThreadsEnabled={true}
+            />,
+        );
 
         expect(actions.updateThreadLastOpened).toHaveBeenCalledWith('id', 42);
         expect(actions.updateThreadRead).toHaveBeenCalledWith('user_id', 'team_id', 'id', 400);
@@ -250,7 +242,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        const {rerender} = render(
+        const {rerender} = await renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
@@ -291,13 +283,11 @@ describe('components/threading/ThreadViewer', () => {
     test('should call fetchRHSAppsBindings on mount if appsEnabled', async () => {
         const {actions} = baseProps;
 
-        await act(async () => {
-            render(
-                <ThreadViewer
-                    {...baseProps}
-                />,
-            );
-        });
+        await renderWithContext(
+            <ThreadViewer
+                {...baseProps}
+            />,
+        );
 
         expect(actions.fetchRHSAppsBindings).toHaveBeenCalledWith('channel_id', 'id');
     });
@@ -305,14 +295,12 @@ describe('components/threading/ThreadViewer', () => {
     test('should not call fetchRHSAppsBindings on mount if not appsEnabled', async () => {
         const {actions} = baseProps;
 
-        await act(async () => {
-            render(
-                <ThreadViewer
-                    {...baseProps}
-                    appsEnabled={false}
-                />,
-            );
-        });
+        await renderWithContext(
+            <ThreadViewer
+                {...baseProps}
+                appsEnabled={false}
+            />,
+        );
 
         expect(actions.fetchRHSAppsBindings).not.toHaveBeenCalledWith('channel_id', 'id');
     });
@@ -320,7 +308,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should update thread with highest update_at value when lastUpdateAt is 0', async () => {
         const {actions} = baseProps;
 
-        render(
+        await renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 lastUpdateAt={0} // Set lastUpdateAt to 0
@@ -349,7 +337,7 @@ describe('components/threading/ThreadViewer', () => {
             },
         });
 
-        render(
+        await renderWithContext(
             <ThreadViewer
                 {...baseProps}
             />,

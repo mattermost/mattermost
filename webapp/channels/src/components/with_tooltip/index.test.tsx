@@ -7,7 +7,7 @@ import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing
 
 import WithTooltip from './index';
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isMac: jest.fn().mockReturnValue(false),
 }));
 

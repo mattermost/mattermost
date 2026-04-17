@@ -14,8 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../../utils';
+
 
 import {checkboxesTitleToIdMap} from './constants';
 import {
@@ -30,6 +29,9 @@ import {
     visitChannel,
     visitChannelConfigPage,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 function addButtonExists() {
     cy.uiGetRHS().contains('button', 'Add').should('be.visible');

@@ -9,7 +9,6 @@
 
 // Group: @channels @enterprise @system_console @channel_moderation
 
-import {getRandomId} from '../../../../../utils';
 
 import {checkboxesTitleToIdMap} from './constants';
 import {
@@ -29,11 +28,13 @@ import {
     visitChannelConfigPage,
 } from './helpers';
 
+import {getRandomId} from '@/utils';
+
 describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
-    let regularUser;
-    let guestUser;
-    let testTeam;
-    let testChannel;
+    let regularUser: Cypress.UserProfile;
+    let guestUser: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // * Check if server has license

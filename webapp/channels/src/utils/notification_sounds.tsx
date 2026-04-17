@@ -19,7 +19,7 @@ import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
 import {DesktopSound} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
+import {isEdge} from 'utils/user_agent';
 
 export const DesktopNotificationSounds = {
     DEFAULT: 'default',
@@ -241,7 +241,7 @@ export function loopNotificationRing(name: string) {
 }
 
 export function hasSoundOptions() {
-    return (!UserAgent.isEdge());
+    return (!isEdge());
 }
 
 /**

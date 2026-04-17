@@ -50,7 +50,7 @@ describe('TeamAccessPoliciesTab', () => {
             actions: {...defaultProps.actions, searchTeamPolicies},
         };
 
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...props}/>);
 
         await waitFor(() => {
             expect(searchTeamPolicies).toHaveBeenCalledWith(
@@ -64,7 +64,7 @@ describe('TeamAccessPoliciesTab', () => {
     });
 
     test('should show empty state when no policies exist', async () => {
-        renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
@@ -85,7 +85,7 @@ describe('TeamAccessPoliciesTab', () => {
             },
         };
 
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('TeamAccessPoliciesTab', () => {
             },
         };
 
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Empty Policy')).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('TeamAccessPoliciesTab', () => {
     });
 
     test('should have correct accessibility attributes', async () => {
-        renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
         await waitFor(() => {
             expect(screen.getByText('No policies found')).toBeInTheDocument();
@@ -140,7 +140,7 @@ describe('TeamAccessPoliciesTab', () => {
             },
         };
 
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
+        await renderWithContext(<TeamAccessPoliciesTab {...props}/>);
 
         await waitFor(() => {
             expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();

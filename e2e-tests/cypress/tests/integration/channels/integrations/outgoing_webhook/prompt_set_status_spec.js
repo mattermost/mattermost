@@ -8,7 +8,7 @@
 // ***************************************************************
 
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Prompting set status', () => {
     let user1;
