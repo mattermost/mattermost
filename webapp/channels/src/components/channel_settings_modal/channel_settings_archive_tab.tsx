@@ -84,7 +84,7 @@ function ChannelSettingsArchiveTab({
                     confirmButtonText={formatMessage({id: 'channel_settings.modal.confirmArchive', defaultMessage: 'Confirm'})}
                     onConfirm={doArchiveChannel}
                     onCancel={() => setShowArchiveConfirmModal(false)}
-                    confirmButtonClass='btn btn-danger'
+                    confirmButtonVariant='destructive'
                     modalClass='archiveChannelConfirmModal'
                     focusOriginElement='channelSettingsArchiveChannelButton'
                     isStacked={true}

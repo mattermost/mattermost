@@ -853,7 +853,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={overwriteButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
@@ -889,7 +889,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                 show={show}
                 title={title}
                 message={message}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={removeButton}
                 onConfirm={onConfirm}
                 onCancel={onCancel}
