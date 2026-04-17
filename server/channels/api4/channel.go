@@ -93,6 +93,7 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+	// TODO(phase-4): route encrypted:true creations through the ME orchestration flow.
 	license := c.App.Channels().License()
 	if !channel.IsGroupOrDirect() && model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
 		channel.Name = model.NewId()
@@ -151,6 +152,8 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+	// TODO(phase-4): reject any request that flips Encrypted (it's immutable
+	// post-creation; ChannelPatch deliberately omits the field).
 
 	// The channel being updated in the payload must be the same one as indicated in the URL.
 	if channel.Id != c.Params.ChannelId {

@@ -312,3 +312,11 @@ func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 	_, err = th.App.Srv().Store().System().GetByName(expectedKey)
 	assert.Error(t, err)
 }
+
+func TestAppManagedEncryptionReturnsNilWhenUnregistered(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	require.Nil(t, th.App.ManagedEncryption(),
+		"App.ManagedEncryption() must be nil without an enterprise ME registration — callers use the nil check as the activation gate")
+}

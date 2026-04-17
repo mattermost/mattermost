@@ -384,3 +384,23 @@ func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
 		})
 	}
 }
+
+func TestMESecurityOfficerRole(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	t.Run("role exists with empty permissions", func(t *testing.T) {
+		role, ok := roles[MESecurityOfficerRoleId]
+		require.True(t, ok, "me_security_officer role should exist in MakeDefaultRoles")
+		assert.Equal(t, "me_security_officer", role.Name)
+		assert.Equal(t, "authentication.roles.me_security_officer.name", role.DisplayName)
+		assert.Equal(t, "authentication.roles.me_security_officer.description", role.Description)
+		assert.True(t, role.BuiltIn, "role should be built-in")
+		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
+		assert.Empty(t, role.Permissions, "me_security_officer is a label-only role with no permissions")
+	})
+
+	t.Run("role is included in NewSystemRoleIDs so upgrade deployments create it", func(t *testing.T) {
+		assert.True(t, slices.Contains(NewSystemRoleIDs, MESecurityOfficerRoleId),
+			"me_security_officer must be in NewSystemRoleIDs to be created on existing deployments")
+	})
+}

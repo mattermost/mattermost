@@ -681,6 +681,26 @@ func (_m *Store) Logger() mlog.LoggerIFace {
 	return r0
 }
 
+// MEChannelKeys provides a mock function with no fields
+func (_m *Store) MEChannelKeys() store.MEChannelKeysStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MEChannelKeys")
+	}
+
+	var r0 store.MEChannelKeysStore
+	if rf, ok := ret.Get(0).(func() store.MEChannelKeysStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.MEChannelKeysStore)
+		}
+	}
+
+	return r0
+}
+
 // MarkSystemRanUnitTests provides a mock function with no fields
 func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()

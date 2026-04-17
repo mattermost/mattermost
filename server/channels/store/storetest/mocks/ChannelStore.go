@@ -769,6 +769,36 @@ func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID st
 	return r0, r1
 }
 
+// GetAllMEProtectedIDs provides a mock function with given fields: rctx
+func (_m *ChannelStore) GetAllMEProtectedIDs(rctx request.CTX) ([]string, error) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllMEProtectedIDs")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]string, error)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) []string); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetByName provides a mock function with given fields: teamID, name, allowFromCache
 func (_m *ChannelStore) GetByName(teamID string, name string, allowFromCache bool) (*model.Channel, error) {
 	ret := _m.Called(teamID, name, allowFromCache)

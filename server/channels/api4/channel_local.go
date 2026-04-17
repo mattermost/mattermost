@@ -43,6 +43,7 @@ func localCreateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParamWithErr("channel", err)
 		return
 	}
+	// TODO(phase-4): route encrypted:true creations through the ME orchestration flow.
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLocalCreateChannel, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)

@@ -75,6 +75,7 @@ type Store struct {
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
 	ViewStore                       mocks.ViewStore
+	MEChannelKeysStore              mocks.MEChannelKeysStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -177,6 +178,9 @@ func (s *Store) Recap() store.RecapStore {
 func (s *Store) ReadReceipt() store.ReadReceiptStore {
 	return &s.ReadReceiptStore
 }
+func (s *Store) MEChannelKeys() store.MEChannelKeysStore {
+	return &s.MEChannelKeysStore
+}
 func (s *Store) TemporaryPost() store.TemporaryPostStore {
 	return &s.TemporaryPostStore
 }
@@ -239,5 +243,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,
+		&s.MEChannelKeysStore,
 	)
 }

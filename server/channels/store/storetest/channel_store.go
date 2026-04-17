@@ -164,6 +164,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
+	t.Run("EncryptedRoundTrip", func(t *testing.T) { testChannelStoreEncryptedRoundTrip(t, rctx, ss) })
+	t.Run("GetAllMEProtectedIDs", func(t *testing.T) { testChannelStoreGetAllMEProtectedIDs(t, rctx, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -8893,4 +8895,73 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 		require.Len(t, mentions, 0)
 		require.Len(t, times, 0)
 	})
+}
+
+func testChannelStoreEncryptedRoundTrip(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	o := model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Encrypted",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+		Encrypted:   true,
+	}
+	saved, nErr := ss.Channel().Save(rctx, &o, -1)
+	require.NoError(t, nErr)
+	require.True(t, saved.Encrypted, "Save must round-trip Encrypted")
+	require.True(t, saved.IsEncrypted())
+
+	got, nErr := ss.Channel().Get(saved.Id, false)
+	require.NoError(t, nErr)
+	require.True(t, got.Encrypted, "Get must load Encrypted (all column lists must include it)")
+
+	// An update that doesn't touch Encrypted must preserve its value.
+	got.DisplayName = "Renamed"
+	_, nErr = ss.Channel().Update(rctx, got)
+	require.NoError(t, nErr)
+
+	got2, nErr := ss.Channel().Get(saved.Id, false)
+	require.NoError(t, nErr)
+	require.True(t, got2.Encrypted, "Update must preserve Encrypted across writes")
+}
+
+func testChannelStoreGetAllMEProtectedIDs(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	enc := model.Channel{
+		TeamId: teamID, DisplayName: "Enc",
+		Name: NewTestID(), Type: model.ChannelTypePrivate, Encrypted: true,
+	}
+	plain := model.Channel{
+		TeamId: teamID, DisplayName: "Plain",
+		Name: NewTestID(), Type: model.ChannelTypePrivate,
+	}
+	encDeleted := model.Channel{
+		TeamId: teamID, DisplayName: "EncDel",
+		Name: NewTestID(), Type: model.ChannelTypePrivate, Encrypted: true,
+	}
+
+	savedEnc, nErr := ss.Channel().Save(rctx, &enc, -1)
+	require.NoError(t, nErr)
+	savedPlain, nErr := ss.Channel().Save(rctx, &plain, -1)
+	require.NoError(t, nErr)
+	savedEncDel, nErr := ss.Channel().Save(rctx, &encDeleted, -1)
+	require.NoError(t, nErr)
+
+	// Soft-delete one encrypted channel — GetAllMEProtectedIDs must still return it
+	// because the startup reconcile path depends on seeing soft-deleted-but-restorable rows.
+	nErr = ss.Channel().Delete(savedEncDel.Id, model.GetMillis())
+	require.NoError(t, nErr)
+
+	ids, err := ss.Channel().GetAllMEProtectedIDs(rctx)
+	require.NoError(t, err)
+
+	set := map[string]bool{}
+	for _, id := range ids {
+		set[id] = true
+	}
+	require.True(t, set[savedEnc.Id], "live encrypted channel must appear in GetAllMEProtectedIDs")
+	require.True(t, set[savedEncDel.Id], "soft-deleted encrypted channel must appear in GetAllMEProtectedIDs (restore-safe)")
+	require.False(t, set[savedPlain.Id], "non-encrypted channel must not appear")
 }

@@ -104,6 +104,7 @@ type Channel struct {
 	PolicyIsActive      bool               `json:"policy_is_active"`
 	DefaultCategoryName string             `json:"default_category_name"`
 	ManagedCategoryName string             `json:"managed_category_name"`
+	Encrypted           bool               `db:"encrypted" json:"encrypted"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -127,6 +128,7 @@ func (o *Channel) Auditable() map[string]any {
 		"policy_enforced":      o.PolicyEnforced,
 		"autotranslation":      o.AutoTranslation,
 		"policy_is_active":     o.PolicyIsActive, // this field is only for logging purposes
+		"encrypted":            o.Encrypted,
 	}
 }
 
@@ -293,6 +295,10 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if o.Encrypted && o.Type != ChannelTypePrivate {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.encrypted_requires_private.app_error", nil, "id="+o.Id+", ME channels must be private", http.StatusBadRequest)
+	}
+
 	if utf8.RuneCountInString(o.Header) > ChannelHeaderMaxRunes {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.header.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
@@ -428,6 +434,10 @@ func (o *Channel) IsShared() bool {
 	return o.Shared != nil && *o.Shared
 }
 
+func (o *Channel) IsEncrypted() bool {
+	return o.Encrypted
+}
+
 func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	user1, user2 := o.GetBothUsersForDM()
 
@@ -459,6 +469,12 @@ func (o *Channel) GetBothUsersForDM() (string, string) {
 	return userIds[0], userIds[1]
 }
 
+// TODO(phase-5): include Encrypted in the sanitized output (add `Encrypted: o.Encrypted`
+// to the returned struct) and audit all 5 callsites (api4/channel.go, app/team.go,
+// app/support_packet.go, app/plugin_api.go, app/oauth.go) to ensure no fail-closed
+// authorization guard is reading a sanitized Channel — a sanitized Channel currently
+// reports IsEncrypted()==false regardless of truth, which could silently fail-open if
+// a Phase 5 guard trusts it.
 func (o *Channel) Sanitize() Channel {
 	return Channel{
 		Id:          o.Id,

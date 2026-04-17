@@ -128,6 +128,13 @@ func RegisterIntuneInterface(f func(*App) einterfaces.IntuneInterface) {
 	intuneInterface = f
 }
 
+//nolint:unused
+var managedEncryptionInterface func(*App) einterfaces.ManagedEncryptionInterface
+
+func RegisterManagedEncryptionInterface(f func(*App) einterfaces.ManagedEncryptionInterface) {
+	managedEncryptionInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

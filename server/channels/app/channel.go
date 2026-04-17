@@ -157,6 +157,9 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 }
 
 func (a *App) CreateChannelWithUser(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
+	// TODO(phase-4): when channel.Encrypted is true, dispatch to App.CreateMEChannel
+	// instead of the plain create path (ME channels need DEK generation via the plugin,
+	// ME scheme application, key-row persistence, and rollback on partial failure).
 	if channel.IsGroupOrDirect() {
 		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.direct_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -229,6 +232,9 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
+	// TODO(phase-4): when channel.Encrypted is true, dispatch to App.CreateMEChannel
+	// instead of the plain create path (ME channels need DEK generation via the plugin,
+	// ME scheme application, key-row persistence, and rollback on partial failure).
 	a.handleChannelCategoryName(channel)
 
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
@@ -729,6 +735,9 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	// TODO(phase-4): Encrypted is immutable post-creation (model.Channel.IsValid()
+	// requires ME channels to be private, and ChannelPatch deliberately omits the field).
+	// This path must reject any transition into or out of Encrypted=true.
 	ok, appErr := a.ChannelAccessControlled(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr

@@ -140,6 +140,7 @@ func channelSliceColumns(isSelect bool, prefix ...string) []string {
 		p + "LastRootPostAt",
 		p + "BannerInfo",
 		p + "DefaultCategoryName",
+		p + "Encrypted",
 	}
 
 	if isSelect {
@@ -178,6 +179,7 @@ func channelToSlice(channel *model.Channel) []any {
 		channel.LastRootPostAt,
 		channel.BannerInfo,
 		channel.DefaultCategoryName,
+		channel.Encrypted,
 	}
 }
 
@@ -814,7 +816,8 @@ func (s SqlChannelStore) updateChannelT(transaction *sqlxTxWrapper, channel *mod
 			LastRootPostAt=:LastRootPostAt,
 		    BannerInfo=:BannerInfo,
 			DefaultCategoryName=:DefaultCategoryName,
-			AutoTranslation=:AutoTranslation
+			AutoTranslation=:AutoTranslation,
+			Encrypted=:Encrypted
 		WHERE Id=:Id`, channel)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "channels_name_teamid_key"}) {
@@ -4282,4 +4285,23 @@ func (s SqlChannelStore) IsChannelReadOnlyScheme(schemeID string) (bool, error) 
 	}
 	permissionList := strings.Split(permissions, " ")
 	return slices.Index(permissionList, model.PermissionCreatePost.Id) == -1, nil
+}
+
+// GetAllMEProtectedIDs returns the IDs of every channel with Encrypted=true,
+// including soft-deleted ones (soft-deleted channels may be restored, and
+// the startup reconcile path depends on seeing them so it can fail-closed
+// even if the row was deleted out from under it).
+func (s SqlChannelStore) GetAllMEProtectedIDs(rctx request.CTX) ([]string, error) {
+	query := s.getQueryBuilder().
+		Select("Id").
+		From("Channels").
+		Where(sq.Eq{"Encrypted": true})
+
+	var ids []string
+	// GetMaster: used for security-critical decisions; replicas may lag.
+	if err := s.GetMaster().SelectBuilder(&ids, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get ME-protected channel IDs")
+	}
+
+	return ids, nil
 }

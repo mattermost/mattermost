@@ -102,6 +102,7 @@ type Store interface {
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
 	TemporaryPost() TemporaryPostStore
+	MEChannelKeys() MEChannelKeysStore
 }
 
 type RetentionPolicyStore interface {
@@ -325,6 +326,9 @@ type ChannelStore interface {
 	GetTeamForChannel(channelID string) (*model.Team, error)
 	IsReadOnlyChannel(channelID string) (bool, error)
 	IsChannelReadOnlyScheme(schemeID string) (bool, error)
+	// GetAllMEProtectedIDs returns the IDs of all channels with Encrypted=true, including
+	// soft-deleted rows (those may be restored, and the startup reconcile path depends on seeing them).
+	GetAllMEProtectedIDs(rctx request.CTX) ([]string, error)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -1227,6 +1231,15 @@ type TemporaryPostStore interface {
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error)
 	Delete(rctx request.CTX, id string) error
 	GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error)
+}
+
+// MEChannelKeysStore persists one wrapped DEK per Managed Encryption channel.
+type MEChannelKeysStore interface {
+	Save(rctx request.CTX, key *model.MEChannelKey) error
+	Get(rctx request.CTX, channelID string) (*model.MEChannelKey, error)
+	GetAll(rctx request.CTX) ([]*model.MEChannelKey, error)
+	Delete(rctx request.CTX, channelID string) error
+	Upsert(rctx request.CTX, key *model.MEChannelKey) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

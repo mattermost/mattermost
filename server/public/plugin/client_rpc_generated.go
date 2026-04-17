@@ -1306,6 +1306,80 @@ func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLL
 	return nil
 }
 
+func init() {
+	hookNameToId["MEGenerateAndWrapDEK"] = MEGenerateAndWrapDEKID
+}
+
+type Z_MEGenerateAndWrapDEKArgs struct {
+}
+
+type Z_MEGenerateAndWrapDEKReturns struct {
+	A []byte
+	B []byte
+	C string
+	D error
+}
+
+func (g *hooksRPCClient) MEGenerateAndWrapDEK() (plainDEK []byte, wrappedDEK []byte, keyID string, err error) {
+	_args := &Z_MEGenerateAndWrapDEKArgs{}
+	_returns := &Z_MEGenerateAndWrapDEKReturns{}
+	if g.implemented[MEGenerateAndWrapDEKID] {
+		if err := g.client.Call("Plugin.MEGenerateAndWrapDEK", _args, _returns); err != nil {
+			g.log.Error("RPC call MEGenerateAndWrapDEK to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B, _returns.C, _returns.D
+}
+
+func (s *hooksRPCServer) MEGenerateAndWrapDEK(args *Z_MEGenerateAndWrapDEKArgs, returns *Z_MEGenerateAndWrapDEKReturns) error {
+	if hook, ok := s.impl.(interface {
+		MEGenerateAndWrapDEK() (plainDEK []byte, wrappedDEK []byte, keyID string, err error)
+	}); ok {
+		returns.A, returns.B, returns.C, returns.D = hook.MEGenerateAndWrapDEK()
+		returns.D = encodableError(returns.D)
+	} else {
+		return encodableError(fmt.Errorf("Hook MEGenerateAndWrapDEK called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["MEUnwrapKey"] = MEUnwrapKeyID
+}
+
+type Z_MEUnwrapKeyArgs struct {
+	A []byte
+	B string
+}
+
+type Z_MEUnwrapKeyReturns struct {
+	A []byte
+	B error
+}
+
+func (g *hooksRPCClient) MEUnwrapKey(wrappedDEK []byte, keyID string) (plainDEK []byte, err error) {
+	_args := &Z_MEUnwrapKeyArgs{wrappedDEK, keyID}
+	_returns := &Z_MEUnwrapKeyReturns{}
+	if g.implemented[MEUnwrapKeyID] {
+		if err := g.client.Call("Plugin.MEUnwrapKey", _args, _returns); err != nil {
+			g.log.Error("RPC call MEUnwrapKey to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) MEUnwrapKey(args *Z_MEUnwrapKeyArgs, returns *Z_MEUnwrapKeyReturns) error {
+	if hook, ok := s.impl.(interface {
+		MEUnwrapKey(wrappedDEK []byte, keyID string) (plainDEK []byte, err error)
+	}); ok {
+		returns.A, returns.B = hook.MEUnwrapKey(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook MEUnwrapKey called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

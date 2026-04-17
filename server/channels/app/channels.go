@@ -73,6 +73,13 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
+	// TODO(phase-3): initialize via managedEncryptionInterface on OnPluginReady for the MBE plugin;
+	// clear on OnPluginDeactivated. Re-evaluate MinimumEnterpriseAdvancedLicense(license) &&
+	// pluginActive(MBE) on license-change events so SKU downgrades clear the field while the plugin
+	// stays active. Match the concurrency pattern (plain field / atomic.Pointer / RWMutex) used by
+	// neighboring enterprise interface fields like Compliance / MessageExport — do not invent a new
+	// pattern. Always nil in Phase 2 (no runtime consumer).
+	ManagedEncryption einterfaces.ManagedEncryptionInterface
 
 	attributeViewRefreshMut  sync.Mutex
 	attributeViewRefreshLast time.Time

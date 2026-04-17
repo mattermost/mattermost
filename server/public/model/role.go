@@ -28,6 +28,7 @@ func init() {
 		SystemReadOnlyAdminRoleId,
 		SystemManagerRoleId,
 		SharedChannelManagerRoleId,
+		MESecurityOfficerRoleId,
 	}
 
 	BuiltInSchemeManagedRoleIDs = append([]string{
@@ -382,6 +383,7 @@ const (
 	SystemManagerRoleId          = "system_manager"
 	SystemCustomGroupAdminRoleId = "system_custom_group_admin"
 	SharedChannelManagerRoleId   = "system_shared_channel_manager"
+	MESecurityOfficerRoleId      = "me_security_officer"
 
 	TeamGuestRoleId         = "team_guest"
 	TeamUserRoleId          = "team_user"
@@ -1193,6 +1195,19 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName:   "authentication.roles.system_shared_channel_manager.name",
 		Description:   "authentication.roles.system_shared_channel_manager.description",
 		Permissions:   SharedChannelManagerDefaultPermissions,
+		SchemeManaged: false,
+		BuiltIn:       true,
+	}
+
+	// me_security_officer is a label-only role (empty permission set) used to identify
+	// the current Security Officer via standard role-membership lookup. Operational
+	// authority over ME channels comes from channel_admin scheme-role grants, not from
+	// a permission on this role.
+	roles[MESecurityOfficerRoleId] = &Role{
+		Name:          MESecurityOfficerRoleId,
+		DisplayName:   "authentication.roles.me_security_officer.name",
+		Description:   "authentication.roles.me_security_officer.description",
+		Permissions:   []string{},
 		SchemeManaged: false,
 		BuiltIn:       true,
 	}

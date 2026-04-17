@@ -275,6 +275,82 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MEGenerateAndWrapDEK provides a mock function with no fields
+func (_m *Hooks) MEGenerateAndWrapDEK() ([]byte, []byte, string, error) {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MEGenerateAndWrapDEK")
+	}
+
+	var r0 []byte
+	var r1 []byte
+	var r2 string
+	var r3 error
+	if rf, ok := ret.Get(0).(func() ([]byte, []byte, string, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() []byte); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func() string); ok {
+		r2 = rf()
+	} else {
+		r2 = ret.Get(2).(string)
+	}
+
+	if rf, ok := ret.Get(3).(func() error); ok {
+		r3 = rf()
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
+// MEUnwrapKey provides a mock function with given fields: wrappedDEK, keyID
+func (_m *Hooks) MEUnwrapKey(wrappedDEK []byte, keyID string) ([]byte, error) {
+	ret := _m.Called(wrappedDEK, keyID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MEUnwrapKey")
+	}
+
+	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]byte, string) ([]byte, error)); ok {
+		return rf(wrappedDEK, keyID)
+	}
+	if rf, ok := ret.Get(0).(func([]byte, string) []byte); ok {
+		r0 = rf(wrappedDEK, keyID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]byte, string) error); ok {
+		r1 = rf(wrappedDEK, keyID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // MessageHasBeenDeleted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)

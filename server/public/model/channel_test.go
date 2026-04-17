@@ -221,3 +221,97 @@ func TestSanitize(t *testing.T) {
 	require.Nil(t, s.PolicyID)
 	require.Equal(t, int64(0), s.LastRootPostAt)
 }
+
+func TestChannel_IsEncrypted(t *testing.T) {
+	o := Channel{}
+	require.False(t, o.IsEncrypted())
+
+	o.Encrypted = true
+	require.True(t, o.IsEncrypted())
+}
+
+func TestChannel_IsValid_EncryptedRequiresPrivate(t *testing.T) {
+	// Each subtest constructs a Channel that would be IsValid for its Type
+	// except for Encrypted, so only the encrypted-requires-private invariant
+	// can fire. Prevents a future reordering of IsValid checks from silently
+	// changing which error fires while still matching the assertion.
+	newBase := func() Channel {
+		return Channel{
+			Id:          NewId(),
+			CreateAt:    GetMillis(),
+			UpdateAt:    GetMillis(),
+			DisplayName: "valid",
+			Header:      "h",
+			Purpose:     "p",
+		}
+	}
+
+	t.Run("open + encrypted is rejected", func(t *testing.T) {
+		o := newBase()
+		o.Type = ChannelTypeOpen
+		o.Name = "valid-name"
+		o.Encrypted = true
+		err := o.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid.encrypted_requires_private.app_error", err.Id)
+	})
+
+	t.Run("private + encrypted is valid", func(t *testing.T) {
+		o := newBase()
+		o.Type = ChannelTypePrivate
+		o.Name = "valid-name"
+		o.Encrypted = true
+		require.Nil(t, o.IsValid())
+	})
+
+	t.Run("private + not encrypted is valid", func(t *testing.T) {
+		o := newBase()
+		o.Type = ChannelTypePrivate
+		o.Name = "valid-name"
+		o.Encrypted = false
+		require.Nil(t, o.IsValid())
+	})
+
+	t.Run("direct + encrypted is rejected", func(t *testing.T) {
+		o := newBase()
+		o.Type = ChannelTypeDirect
+		// Proper DM name shape: sorted `id__id`.
+		o.Name = GetDMNameFromIds(NewId(), NewId())
+		o.Encrypted = true
+		err := o.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid.encrypted_requires_private.app_error", err.Id)
+	})
+
+	t.Run("group + encrypted is rejected", func(t *testing.T) {
+		o := newBase()
+		o.Type = ChannelTypeGroup
+		// gmNameRegex: 40 hex chars.
+		o.Name = "0123456789abcdef0123456789abcdef01234567"
+		o.Encrypted = true
+		err := o.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.channel.is_valid.encrypted_requires_private.app_error", err.Id)
+	})
+}
+
+func TestChannel_Patch_DoesNotTouchEncrypted(t *testing.T) {
+	o := Channel{Id: NewId(), Type: ChannelTypePrivate, Encrypted: true}
+	p := &ChannelPatch{}
+	name := "renamed"
+	p.Name = &name
+	o.Patch(p)
+	require.True(t, o.Encrypted, "Patch must not clear Encrypted")
+
+	o2 := Channel{Id: NewId(), Type: ChannelTypePrivate, Encrypted: false}
+	o2.Patch(p)
+	require.False(t, o2.Encrypted, "Patch must not set Encrypted")
+}
+
+func TestChannel_Auditable_IncludesEncrypted(t *testing.T) {
+	o := Channel{Encrypted: true}
+	aud := o.Auditable()
+	v, ok := aud["encrypted"]
+	require.True(t, ok, "Auditable must include encrypted")
+	require.Equal(t, true, v)
+}

@@ -40,6 +40,7 @@ type TimerLayer struct {
 	JobStore                        store.JobStore
 	LicenseStore                    store.LicenseStore
 	LinkMetadataStore               store.LinkMetadataStore
+	MEChannelKeysStore              store.MEChannelKeysStore
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
@@ -160,6 +161,10 @@ func (s *TimerLayer) License() store.LicenseStore {
 
 func (s *TimerLayer) LinkMetadata() store.LinkMetadataStore {
 	return s.LinkMetadataStore
+}
+
+func (s *TimerLayer) MEChannelKeys() store.MEChannelKeysStore {
+	return s.MEChannelKeysStore
 }
 
 func (s *TimerLayer) NotifyAdmin() store.NotifyAdminStore {
@@ -408,6 +413,11 @@ type TimerLayerLicenseStore struct {
 
 type TimerLayerLinkMetadataStore struct {
 	store.LinkMetadataStore
+	Root *TimerLayer
+}
+
+type TimerLayerMEChannelKeysStore struct {
+	store.MEChannelKeysStore
 	Root *TimerLayer
 }
 
@@ -1227,6 +1237,22 @@ func (s *TimerLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID str
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool, privateOnly bool, excludeGroupConstrained bool) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.AutocompleteInTeamFiltered", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	start := time.Now()
 
@@ -1589,6 +1615,22 @@ func (s *TimerLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, a
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllDirectChannelsForExportAfter", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) GetAllMEProtectedIDs(rctx request.CTX) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetAllMEProtectedIDs(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllMEProtectedIDs", success, elapsed)
 	}
 	return result, err
 }
@@ -5772,6 +5814,86 @@ func (s *TimerLayerLinkMetadataStore) Save(linkMetadata *model.LinkMetadata) (*m
 		s.Root.Metrics.ObserveStoreMethodDuration("LinkMetadataStore.Save", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerMEChannelKeysStore) Delete(rctx request.CTX, channelID string) error {
+	start := time.Now()
+
+	err := s.MEChannelKeysStore.Delete(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("MEChannelKeysStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerMEChannelKeysStore) Get(rctx request.CTX, channelID string) (*model.MEChannelKey, error) {
+	start := time.Now()
+
+	result, err := s.MEChannelKeysStore.Get(rctx, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("MEChannelKeysStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerMEChannelKeysStore) GetAll(rctx request.CTX) ([]*model.MEChannelKey, error) {
+	start := time.Now()
+
+	result, err := s.MEChannelKeysStore.GetAll(rctx)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("MEChannelKeysStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerMEChannelKeysStore) Save(rctx request.CTX, key *model.MEChannelKey) error {
+	start := time.Now()
+
+	err := s.MEChannelKeysStore.Save(rctx, key)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("MEChannelKeysStore.Save", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerMEChannelKeysStore) Upsert(rctx request.CTX, key *model.MEChannelKey) error {
+	start := time.Now()
+
+	err := s.MEChannelKeysStore.Upsert(rctx, key)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("MEChannelKeysStore.Upsert", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerNotifyAdminStore) DeleteBefore(trial bool, now int64) error {
@@ -14412,6 +14534,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.JobStore = &TimerLayerJobStore{JobStore: childStore.Job(), Root: &newStore}
 	newStore.LicenseStore = &TimerLayerLicenseStore{LicenseStore: childStore.License(), Root: &newStore}
 	newStore.LinkMetadataStore = &TimerLayerLinkMetadataStore{LinkMetadataStore: childStore.LinkMetadata(), Root: &newStore}
+	newStore.MEChannelKeysStore = &TimerLayerMEChannelKeysStore{MEChannelKeysStore: childStore.MEChannelKeys(), Root: &newStore}
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}

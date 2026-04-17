@@ -68,6 +68,8 @@ const (
 	ChannelMemberWillBeAddedID                = 49
 	TeamMemberWillBeAddedID                   = 50
 	ChannelWillBeArchivedID                   = 51
+	MEGenerateAndWrapDEKID                    = 52
+	MEUnwrapKeyID                             = 53
 	TotalHooksID                              = iota
 )
 
@@ -465,4 +467,26 @@ type Hooks interface {
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// TODO(phase-3): the generated hooksRPCClient logs-and-swallows transport errors for
+	// the two ME hooks below — on plugin crash, IPC timeout, or gob error, the client
+	// returns (nil, nil, "", nil) / (nil, nil) with err == nil. Phase 3's PluginKeyProvider
+	// MUST validate that plainDEK is non-nil and len == me.AESKeySize (and wrappedDEK /
+	// keyID are non-empty on the Generate path) before passing to KeyManager.StoreLease;
+	// otherwise a plugin crash silently produces channels with null keys. Wrap transport
+	// failures as %w of me.ErrDegraded so callers can distinguish transient from permanent.
+	//
+	// MEGenerateAndWrapDEK asks the plugin to generate a fresh data encryption
+	// key and return it wrapped by the plugin's currently-configured KEK. The
+	// returned keyID is an opaque identifier that the plugin can decode later to
+	// resolve the wrapping KEK (its format is a plugin concern).
+	//
+	// Minimum server version: 11.8
+	MEGenerateAndWrapDEK() (plainDEK []byte, wrappedDEK []byte, keyID string, err error)
+
+	// MEUnwrapKey asks the plugin to unwrap a previously-wrapped DEK. The keyID
+	// is whatever the plugin returned from MEGenerateAndWrapDEK for this DEK.
+	//
+	// Minimum server version: 11.8
+	MEUnwrapKey(wrappedDEK []byte, keyID string) (plainDEK []byte, err error)
 }

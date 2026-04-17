@@ -334,3 +334,17 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
 }
+
+func (hooks *hooksTimerLayer) MEGenerateAndWrapDEK() (plainDEK []byte, wrappedDEK []byte, keyID string, err error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsC, _returnsD := hooks.hooksImpl.MEGenerateAndWrapDEK()
+	hooks.recordTime(startTime, "MEGenerateAndWrapDEK", _returnsD == nil)
+	return _returnsA, _returnsB, _returnsC, _returnsD
+}
+
+func (hooks *hooksTimerLayer) MEUnwrapKey(wrappedDEK []byte, keyID string) (plainDEK []byte, err error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.MEUnwrapKey(wrappedDEK, keyID)
+	hooks.recordTime(startTime, "MEUnwrapKey", _returnsB == nil)
+	return _returnsA, _returnsB
+}

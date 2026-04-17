@@ -10357,6 +10357,10 @@
     "translation": "Invalid display name."
   },
   {
+    "id": "model.channel.is_valid.encrypted_requires_private.app_error",
+    "translation": "Managed Encryption channels must be private."
+  },
+  {
     "id": "model.channel.is_valid.header.app_error",
     "translation": "Invalid header."
   },

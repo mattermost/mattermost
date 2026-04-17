@@ -105,6 +105,9 @@ func (a *App) Saml() einterfaces.SamlInterface {
 func (a *App) Intune() einterfaces.IntuneInterface {
 	return a.ch.Intune
 }
+func (a *App) ManagedEncryption() einterfaces.ManagedEncryptionInterface {
+	return a.ch.ManagedEncryption
+}
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
 }

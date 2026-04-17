@@ -26,6 +26,9 @@ import (
 	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
+// TODO(phase-4): add end-to-end coverage for POST /api/v4/channels with
+// {"encrypted": true}. This phase has no dispatch path for that field and no
+// server runs between phases, so the case is intentionally untested here.
 func TestCreateChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

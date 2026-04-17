@@ -1,0 +1,4 @@
+ALTER TABLE Channels
+    DROP COLUMN IF EXISTS Encrypted;
+
+DROP TABLE IF EXISTS MEChannelKeys;
