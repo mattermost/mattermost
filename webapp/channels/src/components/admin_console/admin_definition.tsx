@@ -2272,6 +2272,100 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                             ],
                         },
+                        {
+                            key: 'MobileSecuritySettings.EphemeralMode',
+                            title: 'Mobile Ephemeral Mode',
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.ephemeralMode.description', defaultMessage: 'Configure Mobile Ephemeral Mode to control how mobile clients handle data persistence. When enabled, mobile devices will follow server-configured policies for data retention and cache management.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'mobile_ephemeral_mode',
+                                    title: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.title', defaultMessage: 'Control mobile data persistence with Mobile Ephemeral Mode'}),
+                                    description: defineMessage({id: 'admin.mobileSecurity.ephemeralMode_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, you can enable Mobile Ephemeral Mode to enforce data persistence policies on mobile devices. Configure disconnection timeouts, offline data retention, and automatic cache cleanup.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment-guide/mobile/mobile-ephemeral-mode.html',
+                                },
+                            },
+                            isHidden: it.configIsFalse('FeatureFlags', 'MobileEphemeralMode'),
+                            settings: [
+                                {
+                                    type: 'banner',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.banner', defaultMessage: 'Changes to these settings are delivered to connected devices in real time. Offline devices will continue operating under their last-known settings until they re-establish a server connection. Timer state persists across app and device restarts.'}),
+                                    banner_type: 'info',
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'MobileEphemeralModeSettings.Enable',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableTitle', defaultMessage: 'Enable Mobile Ephemeral Mode:'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.enableDescription', defaultMessage: 'When enabled, mobile clients will follow the server-configured ephemeral data policies. Disconnected devices will clean up cached data based on the configured timers.'}),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.DisconnectionTimeoutSeconds',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutTitle', defaultMessage: 'Disconnection Timeout (seconds):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutDescription', defaultMessage: 'Grace period before a disconnected app is considered offline. The server connection must fail for the full duration before the Data Persistence Timer begins. This prevents false triggers from brief network interruptions such as momentary mobile signal loss. Setting this below 5 seconds is not recommended as it may cause unnecessary content deletion during normal connectivity fluctuations.'}),
+                                    isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                    validate: (value: number) => {
+                                        const maxResult = validators.maxValue(
+                                            600,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.maxValue', defaultMessage: 'Cannot exceed 600 seconds (10 minutes).'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        return validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.minValue', defaultMessage: 'Must be 0 or greater.'}),
+                                        )(value);
+                                    },
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.OfflinePersistenceTimerHours',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceTitle', defaultMessage: 'Offline Persistence Timer (hours):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceDescription', defaultMessage: 'Controls how long cached content is kept after the device loses server connectivity. When this timer expires, cached content is deleted while session credentials are preserved. Set to 0 to delete cached content as soon as the device is considered offline (see Disconnection Timeout).'}),
+                                    disabled_help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.disabled', defaultMessage: 'This setting is only configurable when Mobile Ephemeral Mode is enabled and Auto Cache Cleanup is not set to 0 (zero-persistence mode).'}),
+                                    isDisabled: it.any(
+                                        it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                        it.stateEquals('MobileEphemeralModeSettings.AutoCacheCleanupDays', 0),
+                                    ),
+                                    validate: (value: number) => {
+                                        const maxResult = validators.maxValue(
+                                            72,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.maxValue', defaultMessage: 'Cannot exceed 72 hours (3 days).'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        return validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.minValue', defaultMessage: 'Must be 0 or greater.'}),
+                                        )(value);
+                                    },
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'MobileEphemeralModeSettings.AutoCacheCleanupDays',
+                                    label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanupTitle', defaultMessage: 'Auto Cache Cleanup (days):'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanupDescription', defaultMessage: 'Controls the maximum age of any content cached on the device, regardless of connection status. Prevents unbounded accumulation of sensitive data. Set to 0 for zero-persistence mode where content is never persisted to disk.'}),
+                                    isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
+                                    validate: (value: number) => {
+                                        const maxResult = validators.maxValue(
+                                            60,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.maxValue', defaultMessage: 'Cannot exceed 60 days.'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        return validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.minValue', defaultMessage: 'Must be 0 or greater.'}),
+                                        )(value);
+                                    },
+                                },
+                            ],
+                        },
                     ],
                 },
             },

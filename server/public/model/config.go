@@ -3365,6 +3365,61 @@ func (s *DataRetentionSettings) GetFileRetentionHours() int {
 	return DataRetentionSettingsDefaultFileRetentionDays * 24
 }
 
+const (
+	MobileEphemeralModeDefaultDisconnectionTimeoutSeconds  = 60
+	MobileEphemeralModeDefaultOfflinePersistenceTimerHours = 24
+	MobileEphemeralModeDefaultAutoCacheCleanupDays         = 7
+
+	MobileEphemeralModeMaxDisconnectionTimeoutSeconds  = 600
+	MobileEphemeralModeMaxOfflinePersistenceTimerHours = 72
+	MobileEphemeralModeMaxAutoCacheCleanupDays         = 60
+)
+
+type MobileEphemeralModeSettings struct {
+	Enable                       *bool `access:"environment_mobile_security"`
+	DisconnectionTimeoutSeconds  *int  `access:"environment_mobile_security"`
+	OfflinePersistenceTimerHours *int  `access:"environment_mobile_security"`
+	AutoCacheCleanupDays         *int  `access:"environment_mobile_security"`
+}
+
+func (s *MobileEphemeralModeSettings) SetDefaults() {
+	if s.Enable == nil {
+		s.Enable = NewPointer(false)
+	}
+	if s.DisconnectionTimeoutSeconds == nil {
+		s.DisconnectionTimeoutSeconds = NewPointer(MobileEphemeralModeDefaultDisconnectionTimeoutSeconds)
+	}
+	if s.OfflinePersistenceTimerHours == nil {
+		s.OfflinePersistenceTimerHours = NewPointer(MobileEphemeralModeDefaultOfflinePersistenceTimerHours)
+	}
+	if s.AutoCacheCleanupDays == nil {
+		s.AutoCacheCleanupDays = NewPointer(MobileEphemeralModeDefaultAutoCacheCleanupDays)
+	}
+}
+
+func (s *MobileEphemeralModeSettings) isValid() *AppError {
+	if s.Enable == nil || !*s.Enable {
+		return nil
+	}
+
+	if s.DisconnectionTimeoutSeconds == nil || *s.DisconnectionTimeoutSeconds < 0 || *s.DisconnectionTimeoutSeconds > MobileEphemeralModeMaxDisconnectionTimeoutSeconds {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxDisconnectionTimeoutSeconds}, "", http.StatusBadRequest)
+	}
+
+	if s.OfflinePersistenceTimerHours == nil || *s.OfflinePersistenceTimerHours < 0 || *s.OfflinePersistenceTimerHours > MobileEphemeralModeMaxOfflinePersistenceTimerHours {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxOfflinePersistenceTimerHours}, "", http.StatusBadRequest)
+	}
+
+	if s.AutoCacheCleanupDays == nil || *s.AutoCacheCleanupDays < 0 || *s.AutoCacheCleanupDays > MobileEphemeralModeMaxAutoCacheCleanupDays {
+		return NewAppError("Config.IsValid", "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+			map[string]any{"Min": 0, "Max": MobileEphemeralModeMaxAutoCacheCleanupDays}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 type JobSettings struct {
 	RunJobs                    *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	RunScheduler               *bool `access:"write_restrictable,cloud_restrictable"` // telemetry: none
@@ -4001,8 +4056,9 @@ type Config struct {
 	ExperimentalSettings        ExperimentalSettings
 	AnalyticsSettings           AnalyticsSettings
 	ElasticsearchSettings       ElasticsearchSettings
-	DataRetentionSettings       DataRetentionSettings
-	MessageExportSettings       MessageExportSettings
+	DataRetentionSettings           DataRetentionSettings
+	MobileEphemeralModeSettings     MobileEphemeralModeSettings
+	MessageExportSettings           MessageExportSettings
 	JobSettings                 JobSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
@@ -4117,6 +4173,7 @@ func (o *Config) SetDefaults() {
 	o.NativeAppSettings.SetDefaults()
 	o.IntuneSettings.SetDefaults()
 	o.DataRetentionSettings.SetDefaults()
+	o.MobileEphemeralModeSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
 	o.ExperimentalAuditSettings.SetDefaults()
@@ -4293,6 +4350,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.MobileEphemeralModeSettings.isValid(); appErr != nil {
 		return appErr
 	}
 

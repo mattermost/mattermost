@@ -834,6 +834,13 @@ export type IntuneSettings = {
     AuthService?: string;
 };
 
+export type MobileEphemeralModeSettings = {
+    Enable: boolean;
+    DisconnectionTimeoutSeconds: number;
+    OfflinePersistenceTimerHours: number;
+    AutoCacheCleanupDays: number;
+};
+
 export type ClusterSettings = {
     Enable: boolean;
     ClusterName: string;
@@ -1102,6 +1109,7 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
+    MobileEphemeralModeSettings: MobileEphemeralModeSettings;
 };
 
 export type ReplicaLagSetting = {

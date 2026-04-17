@@ -2923,6 +2923,121 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	checkStruct(t, reflect.TypeFor[Config](), "Config")
 }
 
+func TestMobileEphemeralModeSettingsDefaults(t *testing.T) {
+	c := Config{}
+	c.SetDefaults()
+
+	require.False(t, *c.MobileEphemeralModeSettings.Enable)
+	require.Equal(t, MobileEphemeralModeDefaultDisconnectionTimeoutSeconds, *c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds)
+	require.Equal(t, MobileEphemeralModeDefaultOfflinePersistenceTimerHours, *c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours)
+	require.Equal(t, MobileEphemeralModeDefaultAutoCacheCleanupDays, *c.MobileEphemeralModeSettings.AutoCacheCleanupDays)
+}
+
+func TestMobileEphemeralModeSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name        string
+		settings    MobileEphemeralModeSettings
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "disabled settings should be valid",
+			settings: MobileEphemeralModeSettings{
+				Enable: NewPointer(false),
+			},
+			expectError: false,
+		},
+		{
+			name: "enabled with valid values",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(120),
+				OfflinePersistenceTimerHours: NewPointer(24),
+				AutoCacheCleanupDays:         NewPointer(7),
+			},
+			expectError: false,
+		},
+		{
+			name: "invalid disconnection timeout above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(MobileEphemeralModeMaxDisconnectionTimeoutSeconds + 1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid offline persistence above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(MobileEphemeralModeMaxOfflinePersistenceTimerHours + 1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid auto cache cleanup above max",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(MobileEphemeralModeMaxAutoCacheCleanupDays + 1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+		{
+			name: "invalid negative disconnection timeout",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(-1),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+		},
+		{
+			name: "invalid negative offline persistence",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(-1),
+				AutoCacheCleanupDays:         NewPointer(0),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+		},
+		{
+			name: "invalid negative auto cache cleanup",
+			settings: MobileEphemeralModeSettings{
+				Enable:                       NewPointer(true),
+				DisconnectionTimeoutSeconds:  NewPointer(60),
+				OfflinePersistenceTimerHours: NewPointer(0),
+				AutoCacheCleanupDays:         NewPointer(-1),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.settings.isValid()
+			if tc.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tc.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}
+
 func TestNativeAppSettingsIsValid(t *testing.T) {
 	t.Run("defaults are valid", func(t *testing.T) {
 		cfg := Config{}

@@ -864,4 +864,10 @@ const defaultServerConfig: AdminConfig = {
             LLMServiceID: '',
         },
     },
+    MobileEphemeralModeSettings: {
+        Enable: false,
+        DisconnectionTimeoutSeconds: 60,
+        OfflinePersistenceTimerHours: 24,
+        AutoCacheCleanupDays: 7,
+    },
 };

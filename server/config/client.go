@@ -256,6 +256,20 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 				props["AutoTranslationLanguages"] = ""
 			}
 			props["RestrictDMAndGMAutotranslation"] = strconv.FormatBool(*c.AutoTranslationSettings.RestrictDMAndGM)
+
+			if c.FeatureFlags.MobileEphemeralMode {
+				ephemeralEnabled := c.MobileEphemeralModeSettings.Enable != nil && *c.MobileEphemeralModeSettings.Enable
+				props["MobileEphemeralModeEnabled"] = strconv.FormatBool(ephemeralEnabled)
+				if c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds != nil {
+					props["MobileEphemeralModeDisconnectionTimeoutSeconds"] = strconv.Itoa(*c.MobileEphemeralModeSettings.DisconnectionTimeoutSeconds)
+				}
+				if c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours != nil {
+					props["MobileEphemeralModeOfflinePersistenceTimerHours"] = strconv.Itoa(*c.MobileEphemeralModeSettings.OfflinePersistenceTimerHours)
+				}
+				if c.MobileEphemeralModeSettings.AutoCacheCleanupDays != nil {
+					props["MobileEphemeralModeAutoCacheCleanupDays"] = strconv.Itoa(*c.MobileEphemeralModeSettings.AutoCacheCleanupDays)
+				}
+			}
 		}
 	}
 

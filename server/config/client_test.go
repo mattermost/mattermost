@@ -20,6 +20,7 @@ func TestGetClientConfig(t *testing.T) {
 		telemetryID    string
 		license        *model.License
 		expectedFields map[string]string
+		absentFields   []string
 	}{
 		{
 			"unlicensed",
@@ -48,6 +49,7 @@ func TestGetClientConfig(t *testing.T) {
 				"WebsocketPort":                    "80",
 				"WebsocketSecurePort":              "443",
 			},
+			nil,
 		},
 		{
 			"licensed, but not for theme management",
@@ -71,6 +73,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EmailNotificationContentsType": "full",
 				"AllowCustomThemes":             "true",
 			},
+			nil,
 		},
 		{
 			"licensed for theme management",
@@ -93,6 +96,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EmailNotificationContentsType": "full",
 				"AllowCustomThemes":             "false",
 			},
+			nil,
 		},
 		{
 			"licensed for enforcement",
@@ -110,6 +114,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnforceMultifactorAuthentication": "true",
 			},
+			nil,
 		},
 		{
 			"default marketplace",
@@ -123,6 +128,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IsDefaultMarketplace": "true",
 			},
+			nil,
 		},
 		{
 			"non-default marketplace",
@@ -136,6 +142,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IsDefaultMarketplace": "false",
 			},
+			nil,
 		},
 		{
 			"enable ShowFullName prop",
@@ -149,6 +156,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ShowFullName": "true",
 			},
+			nil,
 		},
 		{
 			"enable UseAnonymousURLs prop",
@@ -162,6 +170,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"UseAnonymousURLs": "true",
 			},
+			nil,
 		},
 		{
 			"Custom groups professional license",
@@ -174,6 +183,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableCustomGroups": "true",
 			},
+			nil,
 		},
 		{
 			"Custom groups enterprise license",
@@ -186,6 +196,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableCustomGroups": "true",
 			},
+			nil,
 		},
 		{
 			"Custom groups other license",
@@ -198,6 +209,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableCustomGroups": "false",
 			},
+			nil,
 		},
 		{
 			"Shared channels other license",
@@ -216,6 +228,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalSharedChannels": "false",
 			},
+			nil,
 		},
 		{
 			"licensed for shared channels",
@@ -234,6 +247,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalSharedChannels": "true",
 			},
+			nil,
 		},
 		{
 			"Shared channels professional license",
@@ -252,6 +266,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalSharedChannels": "true",
 			},
+			nil,
 		},
 		{
 			"disable EnableUserStatuses",
@@ -265,6 +280,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableUserStatuses": "false",
 			},
+			nil,
 		},
 		{
 			"Shared channels enterprise license",
@@ -283,6 +299,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"ExperimentalSharedChannels": "true",
 			},
+			nil,
 		},
 		{
 			"Disable App Bar",
@@ -296,6 +313,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"DisableAppBar": "true",
 			},
+			nil,
 		},
 		{
 			"default EnableJoinLeaveMessage",
@@ -305,6 +323,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableJoinLeaveMessageByDefault": "true",
 			},
+			nil,
 		},
 		{
 			"disable EnableJoinLeaveMessage",
@@ -318,6 +337,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"EnableJoinLeaveMessageByDefault": "false",
 			},
+			nil,
 		},
 		{
 			"test key for GiphySdkKey",
@@ -331,6 +351,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
 			},
+			nil,
 		},
 		{
 			"report a problem values",
@@ -350,6 +371,7 @@ func TestGetClientConfig(t *testing.T) {
 				"ReportAProblemMail": "mail",
 				"AllowDownloadLogs":  "true",
 			},
+			nil,
 		},
 		{
 			"access control settings enabled",
@@ -365,6 +387,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableAttributeBasedAccessControl": "true",
 				"EnableUserManagedAttributes":       "true",
 			},
+			nil,
 		},
 		{
 			"access control settings disabled",
@@ -380,6 +403,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
 			},
+			nil,
 		},
 		{
 			"access control settings default",
@@ -390,6 +414,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableAttributeBasedAccessControl": "false",
 				"EnableUserManagedAttributes":       "false",
 			},
+			nil,
 		},
 		{
 			"burn on read enabled",
@@ -405,6 +430,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableBurnOnRead":          "true",
 				"BurnOnReadDurationSeconds": "1800",
 			},
+			nil,
 		},
 		{
 			"burn on read disabled",
@@ -420,6 +446,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableBurnOnRead":          "false",
 				"BurnOnReadDurationSeconds": "600",
 			},
+			nil,
 		},
 		{
 			"burn on read default",
@@ -430,6 +457,7 @@ func TestGetClientConfig(t *testing.T) {
 				"EnableBurnOnRead":          "true",
 				"BurnOnReadDurationSeconds": "600", // 10 minutes in seconds
 			},
+			nil,
 		},
 		{
 			"Intune MAM enabled with Enterprise Advanced license and Office365 AuthService",
@@ -450,6 +478,7 @@ func TestGetClientConfig(t *testing.T) {
 				"IntuneMAMEnabled": "true",
 				"IntuneScope":      "api://87654321-4321-4321-4321-210987654321/login.mattermost",
 			},
+			nil,
 		},
 		{
 			"Intune MAM disabled when not enabled",
@@ -469,6 +498,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IntuneMAMEnabled": "false",
 			},
+			nil,
 		},
 		{
 			"Intune MAM disabled when TenantId is missing",
@@ -488,6 +518,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IntuneMAMEnabled": "false",
 			},
+			nil,
 		},
 		{
 			"Intune MAM disabled when ClientId is missing",
@@ -507,6 +538,7 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IntuneMAMEnabled": "false",
 			},
+			nil,
 		},
 		{
 			"Intune MAM not exposed with lower license tier",
@@ -524,6 +556,7 @@ func TestGetClientConfig(t *testing.T) {
 				SkuShortName: model.LicenseShortSkuProfessional,
 			},
 			map[string]string{},
+			[]string{"IntuneMAMEnabled", "IntuneScope"},
 		},
 		{
 			"Intune MAM not exposed without license",
@@ -538,6 +571,7 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			nil,
 			map[string]string{},
+			[]string{"IntuneMAMEnabled", "IntuneScope"},
 		},
 		{
 			"Intune MAM enabled with Enterprise Advanced license and SAML AuthService",
@@ -562,6 +596,7 @@ func TestGetClientConfig(t *testing.T) {
 				"IntuneScope":       "api://87654321-4321-4321-4321-210987654321/login.mattermost",
 				"IntuneAuthService": "saml",
 			},
+			nil,
 		},
 		{
 			"Intune MAM disabled when AuthService is missing",
@@ -581,6 +616,100 @@ func TestGetClientConfig(t *testing.T) {
 			map[string]string{
 				"IntuneMAMEnabled": "false",
 			},
+			nil,
+		},
+		{
+			"Mobile Ephemeral Mode enabled with custom values",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{MobileEphemeralMode: true},
+				MobileEphemeralModeSettings: model.MobileEphemeralModeSettings{
+					Enable:                       model.NewPointer(true),
+					DisconnectionTimeoutSeconds:  model.NewPointer(120),
+					OfflinePersistenceTimerHours: model.NewPointer(48),
+					AutoCacheCleanupDays:         model.NewPointer(14),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"MobileEphemeralModeEnabled":                      "true",
+				"MobileEphemeralModeDisconnectionTimeoutSeconds":  "120",
+				"MobileEphemeralModeOfflinePersistenceTimerHours": "48",
+				"MobileEphemeralModeAutoCacheCleanupDays":         "14",
+			},
+			nil,
+		},
+		{
+			"Mobile Ephemeral Mode disabled still exposes parameters",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{MobileEphemeralMode: true},
+				MobileEphemeralModeSettings: model.MobileEphemeralModeSettings{
+					Enable:                       model.NewPointer(false),
+					DisconnectionTimeoutSeconds:  model.NewPointer(60),
+					OfflinePersistenceTimerHours: model.NewPointer(24),
+					AutoCacheCleanupDays:         model.NewPointer(7),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"MobileEphemeralModeEnabled":                      "false",
+				"MobileEphemeralModeDisconnectionTimeoutSeconds":  "60",
+				"MobileEphemeralModeOfflinePersistenceTimerHours": "24",
+				"MobileEphemeralModeAutoCacheCleanupDays":         "7",
+			},
+			nil,
+		},
+		{
+			"Mobile Ephemeral Mode not exposed when feature flag is off",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{MobileEphemeralMode: false},
+				MobileEphemeralModeSettings: model.MobileEphemeralModeSettings{
+					Enable: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{},
+			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
+		},
+		{
+			"Mobile Ephemeral Mode not exposed without license",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{MobileEphemeralMode: true},
+				MobileEphemeralModeSettings: model.MobileEphemeralModeSettings{
+					Enable: model.NewPointer(true),
+				},
+			},
+			"",
+			nil,
+			map[string]string{},
+			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
+		},
+		{
+			"Mobile Ephemeral Mode not exposed with lower license tier",
+			&model.Config{
+				FeatureFlags: &model.FeatureFlags{MobileEphemeralMode: true},
+				MobileEphemeralModeSettings: model.MobileEphemeralModeSettings{
+					Enable: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{},
+			[]string{"MobileEphemeralModeEnabled", "MobileEphemeralModeDisconnectionTimeoutSeconds", "MobileEphemeralModeOfflinePersistenceTimerHours", "MobileEphemeralModeAutoCacheCleanupDays"},
 		},
 	}
 
@@ -599,6 +728,10 @@ func TestGetClientConfig(t *testing.T) {
 				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
 					assert.Equal(t, expectedValue, actualValue)
 				}
+			}
+			for _, absentField := range testCase.absentFields {
+				_, ok := configMap[absentField]
+				assert.False(t, ok, fmt.Sprintf("config should not contain %v", absentField))
 			}
 		})
 	}
