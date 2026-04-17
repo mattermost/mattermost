@@ -32,6 +32,11 @@ func cleanupCPAFields(t *testing.T, th *TestHelper) {
 func TestPluginProperties(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
+	// Subtests that exercise the protected_attributes group require an
+	// Enterprise license because LicenseCheckHook gates that group.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
+
 	t.Run("test property field methods", func(t *testing.T) {
 		groupName := model.NewId()
 		tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
@@ -474,9 +479,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "CPA Test Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "CPA Test Field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 				}
 
 				createdField, err := p.API.CreatePropertyField(field)
@@ -537,9 +544,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Protected Field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -603,9 +612,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Plugin1 Protected Field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -699,9 +710,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Field To Delete",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Field To Delete",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -759,9 +772,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Field To Keep",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Plugin1 Field To Keep",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -854,9 +869,11 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				// Create a protected CPA field
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Protected Field With Values",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Protected Field With Values",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -936,9 +953,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Plugin1 Field With Protected Values",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Plugin1 Field With Protected Values",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					Attrs: map[string]any{
 						"protected": true,
 					},
@@ -1055,9 +1074,11 @@ func TestPluginProperties(t *testing.T) {
 
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
-					GroupID: "` + cpaID + `",
-					Name:    "Non-Protected Field",
-					Type:    model.PropertyFieldTypeText,
+					GroupID:    "` + cpaID + `",
+					Name:       "Non-Protected Field",
+					Type:       model.PropertyFieldTypeText,
+					ObjectType: model.PropertyFieldObjectTypeUser,
+					TargetType: string(model.PropertyFieldTargetLevelSystem),
 					// Note: protected is not set
 				}
 
