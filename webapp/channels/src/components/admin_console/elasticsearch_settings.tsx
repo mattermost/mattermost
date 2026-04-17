@@ -91,6 +91,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.passwordDescription,
     messages.sniffTitle,
     messages.sniffDescription,
+    messages.sniffWarning,
     messages.testHelpText,
     messages.elasticsearch_test_button,
     messages.bulkIndexingTitle,
