@@ -61,6 +61,7 @@ type Store interface {
 	UserTermsOfService() UserTermsOfServiceStore
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
+	SharedChannelInvitation() SharedChannelInvitationStore
 	Draft() DraftStore
 	MarkSystemRanUnitTests()
 	Close()
@@ -1048,6 +1049,16 @@ type SharedChannelStore interface {
 	UpsertAttachment(remote *model.SharedChannelAttachment) (string, error)
 	GetAttachment(fileID string, remoteID string) (*model.SharedChannelAttachment, error)
 	UpdateAttachmentLastSyncAt(id string, syncTime int64) error
+}
+
+type SharedChannelInvitationStore interface {
+	Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error)
+	Get(id string) (*model.SharedChannelInvitation, error)
+	GetAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error)
+	UpdateStatus(id, status, errMsg string) (*model.SharedChannelInvitation, error)
+	Delete(id string) error
+	DeleteByChannelId(channelID string) error
+	DeleteByChannelIdAndRemoteId(channelID, remoteID string) error
 }
 
 type PostPriorityStore interface {

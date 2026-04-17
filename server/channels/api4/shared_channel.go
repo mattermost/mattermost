@@ -18,6 +18,7 @@ func (api *API) InitSharedChannels() {
 	api.BaseRoutes.SharedChannels.Handle("/users/{user_id:[A-Za-z0-9]+}/can_dm/{other_user_id:[A-Za-z0-9]+}", api.APISessionRequired(canUserDirectMessage)).Methods(http.MethodGet)
 
 	api.BaseRoutes.SharedChannelRemotes.Handle("", api.APISessionRequired(getSharedChannelRemotesByRemoteCluster)).Methods(http.MethodGet)
+	api.BaseRoutes.SharedChannelInvitations.Handle("", api.APISessionRequired(getSharedChannelInvitationsByRemoteCluster)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelForRemote.Handle("/invite", api.APISessionRequired(inviteRemoteClusterToChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelForRemote.Handle("/uninvite", api.APISessionRequired(uninviteRemoteClusterToChannel)).Methods(http.MethodPost)
 }
@@ -135,6 +136,38 @@ func getSharedChannelRemotesByRemoteCluster(c *Context, w http.ResponseWriter, r
 	}
 
 	if err := json.NewEncoder(w).Encode(sharedChannelRemotes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getSharedChannelInvitationsByRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRemoteId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePermissionToManageSecureConnectionsOrSharedChannels()
+	if c.Err != nil {
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if _, appErr := c.App.GetRemoteCluster(c.Params.RemoteId, true); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	invitations, err := c.App.GetSharedChannelInvitationsByRemote(c.Params.RemoteId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = model.NewAppError("getSharedChannelInvitationsByRemoteCluster", "api.shared_channel.get_invitations.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(invitations); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

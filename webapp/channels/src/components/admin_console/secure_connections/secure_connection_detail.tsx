@@ -42,6 +42,7 @@ import {
     LinkButton,
 } from './controls';
 import {useRemoteClusterCreate, useSharedChannelsAdd, useSharedChannelsRemove} from './modals/modal_utils';
+import SharedChannelInvitationsPanel from './shared_channel_invitations_panel';
 import TeamSelector from './team_selector';
 import type {SharedChannelRemoteRow} from './utils';
 import {getEditLocation, isConfirmed, isErrorState, isPendingState, useRemoteClusterEdit, useSharedChannelRemoteRows, useTeamOptions} from './utils';
@@ -223,6 +224,7 @@ export default function SecureConnectionDetail(props: Props) {
 
 function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | undefined}) {
     const [filter, setFilter] = useState<'home' | 'remote'>();
+    const [invitationsRevision, setInvitationsRevision] = useState(0);
     const [data, {loading, fetch}] = useSharedChannelRemoteRows(props.remoteId, {filter});
     const {promptAdd} = useSharedChannelsAdd(props.remoteId);
     const confirmed = props.rc ? isConfirmed(props.rc) : undefined;
@@ -251,6 +253,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
             } else {
                 fetch();
             }
+            setInvitationsRevision((r) => r + 1);
         }, 500);
     };
 
@@ -264,6 +267,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                 data={data}
                 filter={filter ?? 'home'}
                 fetch={fetch}
+                onInvitationsRefresh={() => setInvitationsRevision((r) => r + 1)}
             />
         );
     } else {
@@ -326,6 +330,10 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
                     {content}
                 </SectionContent>
             </TabsWrapper>
+            <SharedChannelInvitationsPanel
+                remoteId={props.remoteId}
+                refresh={invitationsRevision}
+            />
         </>
     );
 }
@@ -451,7 +459,19 @@ const TeamName = styled.span`
     color: rgba(var(--center-channel-color-rgb), 0.72);
 `;
 
-function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filter: 'home' | 'remote'; fetch: () => void}) {
+type SharedChannelRemotesTableProps = {
+    data: SharedChannelRemoteRow[];
+    filter: 'home' | 'remote';
+    fetch: () => void;
+    onInvitationsRefresh?: () => void;
+};
+
+function SharedChannelRemotesTable({
+    data,
+    filter,
+    fetch,
+    onInvitationsRefresh,
+}: SharedChannelRemotesTableProps) {
     const col = createColumnHelper<SharedChannelRemoteRow>();
 
     const columns = useMemo<Array<ColumnDef<SharedChannelRemoteRow, any>>>(() => {
@@ -474,7 +494,7 @@ function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filte
             }),
             col.accessor('team_display_name', {
                 header: () => {
-                    if (props.filter === 'home') {
+                    if (filter === 'home') {
                         return (
                             <FormattedMessage
                                 id='admin.secure_connection_detail.shared_channels.table.team_home'
@@ -503,17 +523,18 @@ function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filte
                 cell: ({row}) => (
                     <RemoteActions
                         remote={row.original}
-                        fetch={props.fetch}
+                        fetch={fetch}
+                        onInvitationsRefresh={onInvitationsRefresh}
                     />
                 ),
                 enableHiding: false,
                 enableSorting: false,
             }),
         ];
-    }, [props.data, props.filter, props.fetch]);
+    }, [col, filter, fetch, onInvitationsRefresh]);
 
     const table = useReactTable({
-        data: props.data,
+        data,
         columns,
         initialState: {
             sorting: [
@@ -577,11 +598,14 @@ const TableWrapper = styled.div`
     }
 `;
 
-const RemoteActions = ({remote, fetch}: {remote: SharedChannelRemoteRow; fetch: () => void}) => {
+const RemoteActions = ({remote, fetch, onInvitationsRefresh}: {remote: SharedChannelRemoteRow; fetch: () => void; onInvitationsRefresh?: () => void}) => {
     const {promptRemove} = useSharedChannelsRemove(remote.remote_id);
 
     const handleRemove = () => {
-        promptRemove(remote.channel_id).then(fetch);
+        promptRemove(remote.channel_id).then(() => {
+            fetch();
+            onInvitationsRefresh?.();
+        });
     };
 
     return (

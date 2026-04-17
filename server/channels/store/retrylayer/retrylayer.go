@@ -64,6 +64,7 @@ type RetryLayer struct {
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
+	SharedChannelInvitationStore    store.SharedChannelInvitationStore
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
 	TeamStore                       store.TeamStore
@@ -253,6 +254,10 @@ func (s *RetryLayer) Session() store.SessionStore {
 
 func (s *RetryLayer) SharedChannel() store.SharedChannelStore {
 	return s.SharedChannelStore
+}
+
+func (s *RetryLayer) SharedChannelInvitation() store.SharedChannelInvitationStore {
+	return s.SharedChannelInvitationStore
 }
 
 func (s *RetryLayer) Status() store.StatusStore {
@@ -524,6 +529,11 @@ type RetryLayerSessionStore struct {
 
 type RetryLayerSharedChannelStore struct {
 	store.SharedChannelStore
+	Root *RetryLayer
+}
+
+type RetryLayerSharedChannelInvitationStore struct {
+	store.SharedChannelInvitationStore
 	Root *RetryLayer
 }
 
@@ -13074,6 +13084,153 @@ func (s *RetryLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChan
 
 }
 
+func (s *RetryLayerSharedChannelInvitationStore) Delete(id string) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelInvitationStore.Delete(id)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) DeleteByChannelId(channelID string) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelInvitationStore.DeleteByChannelId(channelID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(channelID string, remoteID string) error {
+
+	tries := 0
+	for {
+		err := s.SharedChannelInvitationStore.DeleteByChannelIdAndRemoteId(channelID, remoteID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.Get(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitationFilterOpts, offset int, limit int) ([]*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.GetAll(opts, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.Save(invitation)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerSharedChannelInvitationStore) UpdateStatus(id string, status string, errMsg string) (*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.UpdateStatus(id, status, errMsg)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerStatusStore) Get(userID string) (*model.Status, error) {
 
 	tries := 0
@@ -18231,6 +18388,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.SchemeStore = &RetryLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &RetryLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &RetryLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
+	newStore.SharedChannelInvitationStore = &RetryLayerSharedChannelInvitationStore{SharedChannelInvitationStore: childStore.SharedChannelInvitation(), Root: &newStore}
 	newStore.StatusStore = &RetryLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &RetryLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &RetryLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}

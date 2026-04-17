@@ -115,6 +115,55 @@
         "403":
           $ref: "#/components/responses/Forbidden"
 
+  "/api/v4/remotecluster/{remote_id}/shared_channel_invitations":
+    get:
+      tags:
+        - shared channels
+      summary: Get shared channel invitations by remote cluster.
+      description: |
+        Returns invitation records for channel sharing with the given remote cluster
+        (outgoing and incoming), including pending, failed, and rejected invitations.
+
+        ##### Permissions
+        `manage_secure_connections` or `manage_shared_channels`
+      operationId: GetSharedChannelInvitationsByRemoteCluster
+      parameters:
+        - name: remote_id
+          in: path
+          description: The remote cluster GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of invitations per page
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Shared channel invitations fetch successful. Result may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedChannelInvitation"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   "/api/v4/sharedchannels/remote_info/{remote_id}":
     get:
       tags:

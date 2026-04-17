@@ -30,3 +30,15 @@ export type SharedChannelsState = {
     remotes: Record<string, RemoteClusterInfo[]>;
     remotesByRemoteId: Record<string, RemoteClusterInfo>;
 }
+
+export type SharedChannelInvitation = {
+    id: string;
+    channel_id: string;
+    remote_id: string;
+    direction: 'sent' | 'received';
+    status: 'pending' | 'rejected' | 'failed';
+    error?: string;
+    creator_id: string;
+    create_at: number;
+    update_at: number;
+};

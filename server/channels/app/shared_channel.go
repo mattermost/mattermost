@@ -179,6 +179,12 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 	return a.Srv().Store().SharedChannel().GetRemotesStatus(channelID)
 }
 
+func (a *App) GetSharedChannelInvitationsByRemote(remoteID string, page, perPage int) ([]*model.SharedChannelInvitation, error) {
+	offset := page * perPage
+	opts := model.SharedChannelInvitationFilterOpts{RemoteId: remoteID}
+	return a.Srv().Store().SharedChannelInvitation().GetAll(opts, offset, perPage)
+}
+
 // SharedChannelUsers
 
 func (a *App) NotifySharedChannelUserUpdate(user *model.User) {

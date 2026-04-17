@@ -69,6 +69,35 @@ describe('Client4', () => {
             expect(result[2]).toEqual({user_id: 'dummy-user-id', channel_id: 'channel3', roles: 'channel_user'});
         });
     });
+
+    describe('getSharedChannelInvitationsByRemote', () => {
+        test('should request the shared_channel_invitations route with pagination query', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const remoteId = 'abcdefghijklmnopqrstuvwxyz';
+            const payload = [
+                {
+                    id: 'id000000000000000000000000',
+                    channel_id: 'ch000000000000000000000000',
+                    remote_id: remoteId,
+                    direction: 'sent',
+                    status: 'pending',
+                    creator_id: 'cr000000000000000000000000',
+                    create_at: 1,
+                    update_at: 1,
+                },
+            ];
+
+            nock(client.getBaseRoute()).
+                get(`/remotecluster/${remoteId}/shared_channel_invitations${buildQueryString({page: 2, per_page: 25})}`).
+                reply(200, payload);
+
+            const result = await client.getSharedChannelInvitationsByRemote(remoteId, 2, 25);
+
+            expect(result).toEqual(payload);
+        });
+    });
 });
 
 describe('ClientError', () => {

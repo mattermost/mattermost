@@ -1187,6 +1187,26 @@ func (_m *Store) SharedChannel() store.SharedChannelStore {
 	return r0
 }
 
+// SharedChannelInvitation provides a mock function with no fields
+func (_m *Store) SharedChannelInvitation() store.SharedChannelInvitationStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for SharedChannelInvitation")
+	}
+
+	var r0 store.SharedChannelInvitationStore
+	if rf, ok := ret.Get(0).(func() store.SharedChannelInvitationStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.SharedChannelInvitationStore)
+		}
+	}
+
+	return r0
+}
+
 // Status provides a mock function with no fields
 func (_m *Store) Status() store.StatusStore {
 	ret := _m.Called()

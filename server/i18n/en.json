@@ -3379,6 +3379,10 @@
     "translation": "Error starting server, err:%v"
   },
   {
+    "id": "api.shared_channel.get_invitations.error",
+    "translation": "Could not fetch shared channel invitations."
+  },
+  {
     "id": "api.shared_channel.get_shared_channel_remotes_error",
     "translation": "Could not fetch shared channel remotes"
   },
@@ -11779,6 +11783,42 @@
   {
     "id": "model.session.is_valid.user_id.app_error",
     "translation": "Invalid UserId field for session."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.channel_id.app_error",
+    "translation": "Invalid ChannelId for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.create_at.app_error",
+    "translation": "Invalid CreateAt for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.creator_id.app_error",
+    "translation": "Invalid CreatorId for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.direction.app_error",
+    "translation": "Invalid Direction for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.err_msg.app_error",
+    "translation": "Error message is too long for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.id.app_error",
+    "translation": "Invalid Id for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.remote_id.app_error",
+    "translation": "Invalid RemoteId for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.status.app_error",
+    "translation": "Invalid Status for shared channel invitation."
+  },
+  {
+    "id": "model.shared_channel_invitation.is_valid.update_at.app_error",
+    "translation": "Invalid UpdateAt for shared channel invitation."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

@@ -97,6 +97,7 @@ type SqlStoreStores struct {
 	UserTermsOfService         store.UserTermsOfServiceStore
 	linkMetadata               store.LinkMetadataStore
 	sharedchannel              store.SharedChannelStore
+	sharedChannelInvitation    store.SharedChannelInvitationStore
 	draft                      store.DraftStore
 	notifyAdmin                store.NotifyAdminStore
 	postPriority               store.PostPriorityStore
@@ -278,6 +279,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.UserTermsOfService = newSqlUserTermsOfServiceStore(store)
 	store.stores.linkMetadata = newSqlLinkMetadataStore(store)
 	store.stores.sharedchannel = newSqlSharedChannelStore(store)
+	store.stores.sharedChannelInvitation = newSqlSharedChannelInvitationStore(store)
 	store.stores.reaction = newSqlReactionStore(store)
 	store.stores.role = newSqlRoleStore(store)
 	store.stores.scheme = newSqlSchemeStore(store)
@@ -848,6 +850,10 @@ func (ss *SqlStore) NotifyAdmin() store.NotifyAdminStore {
 
 func (ss *SqlStore) SharedChannel() store.SharedChannelStore {
 	return ss.stores.sharedchannel
+}
+
+func (ss *SqlStore) SharedChannelInvitation() store.SharedChannelInvitationStore {
+	return ss.stores.sharedChannelInvitation
 }
 
 func (ss *SqlStore) PostPriority() store.PostPriorityStore {

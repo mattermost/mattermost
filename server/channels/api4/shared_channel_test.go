@@ -582,6 +582,88 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	})
 }
 
+func TestGetSharedChannelInvitationsByRemoteCluster(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
+		th := Setup(t)
+
+		_, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), model.NewId(), 0, 100)
+		CheckNotImplementedStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc := &model.RemoteCluster{Name: "rc_inv", SiteURL: "http://inv.example.com", CreatorId: th.SystemAdminUser.Id}
+	rc, appErr := th.App.AddRemoteCluster(rc)
+	require.Nil(t, appErr)
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	inv1 := &model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusPending,
+		CreatorId: th.BasicUser.Id,
+	}
+	_, err := th.App.Srv().Store().SharedChannelInvitation().Save(inv1)
+	require.NoError(t, err)
+
+	inv2 := &model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionReceived,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		ErrMsg:    "boom",
+		CreatorId: th.BasicUser.Id,
+	}
+	_, err = th.App.Srv().Store().SharedChannelInvitation().Save(inv2)
+	require.NoError(t, err)
+
+	otherRC := &model.RemoteCluster{Name: "rc_other_inv", SiteURL: "http://other-inv.example.com", CreatorId: th.SystemAdminUser.Id}
+	otherRC, appErr = th.App.AddRemoteCluster(otherRC)
+	require.Nil(t, appErr)
+	_, err = th.App.Srv().Store().SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  otherRC.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("should enforce access and list invitations for the remote", func(t *testing.T) {
+		_, resp, err := th.Client.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 0, 100)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+
+		_, resp, err = th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), model.NewId(), 0, 100)
+		CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+
+		list, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, list, 2)
+		for _, row := range list {
+			require.Equal(t, rc.RemoteId, row.RemoteId)
+			require.Equal(t, ch.Id, row.ChannelId)
+		}
+
+		page0, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 0, 1)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, page0, 1)
+		require.Equal(t, model.SharedChannelInvitationDirectionReceived, page0[0].Direction)
+
+		page1, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 1, 1)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, page1, 1)
+		require.Equal(t, model.SharedChannelInvitationDirectionSent, page1[0].Direction)
+	})
+}
+
 func TestInviteRemoteClusterToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -689,6 +771,12 @@ func TestSharedChannelEndpointsWithSharedChannelManagerRole(t *testing.T) {
 
 	t.Run("getSharedChannelRemotesByRemoteCluster should allow shared_channel_manager", func(t *testing.T) {
 		_, resp, err := scmClient.GetSharedChannelRemotesByRemoteCluster(context.Background(), rc.RemoteId, model.SharedChannelRemoteFilterOpts{}, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+
+	t.Run("getSharedChannelInvitationsByRemote should allow shared_channel_manager", func(t *testing.T) {
+		_, resp, err := scmClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 0, 100)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 	})

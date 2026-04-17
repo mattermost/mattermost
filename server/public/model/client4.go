@@ -613,6 +613,10 @@ func (c *Client4) sharedChannelRemotesRoute(remoteId string) clientRoute {
 	return c.remoteClusterRoute().Join(remoteId, "sharedchannelremotes")
 }
 
+func (c *Client4) sharedChannelInvitationsRoute(remoteId string) clientRoute {
+	return c.remoteClusterRoute().Join(remoteId, "shared_channel_invitations")
+}
+
 func (c *Client4) channelRemoteRoute(remoteId, channelId string) clientRoute {
 	return c.remoteClusterRoute().Join(remoteId, "channels", channelId)
 }
@@ -7530,6 +7534,22 @@ func (c *Client4) GetSharedChannelRemotesByRemoteCluster(ctx context.Context, re
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*SharedChannelRemote](r)
+}
+
+func (c *Client4) GetSharedChannelInvitationsByRemote(ctx context.Context, remoteId string, page, perPage int) ([]*SharedChannelInvitation, *Response, error) {
+	values := url.Values{}
+	if page != 0 {
+		values.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		values.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.sharedChannelInvitationsRoute(remoteId), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*SharedChannelInvitation](r)
 }
 
 func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {

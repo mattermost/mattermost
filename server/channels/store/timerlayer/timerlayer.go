@@ -63,6 +63,7 @@ type TimerLayer struct {
 	SchemeStore                     store.SchemeStore
 	SessionStore                    store.SessionStore
 	SharedChannelStore              store.SharedChannelStore
+	SharedChannelInvitationStore    store.SharedChannelInvitationStore
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
 	TeamStore                       store.TeamStore
@@ -252,6 +253,10 @@ func (s *TimerLayer) Session() store.SessionStore {
 
 func (s *TimerLayer) SharedChannel() store.SharedChannelStore {
 	return s.SharedChannelStore
+}
+
+func (s *TimerLayer) SharedChannelInvitation() store.SharedChannelInvitationStore {
+	return s.SharedChannelInvitationStore
 }
 
 func (s *TimerLayer) Status() store.StatusStore {
@@ -523,6 +528,11 @@ type TimerLayerSessionStore struct {
 
 type TimerLayerSharedChannelStore struct {
 	store.SharedChannelStore
+	Root *TimerLayer
+}
+
+type TimerLayerSharedChannelInvitationStore struct {
+	store.SharedChannelInvitationStore
 	Root *TimerLayer
 }
 
@@ -10347,6 +10357,118 @@ func (s *TimerLayerSharedChannelStore) UpsertAttachment(remote *model.SharedChan
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelInvitationStore) Delete(id string) error {
+	start := time.Now()
+
+	err := s.SharedChannelInvitationStore.Delete(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) DeleteByChannelId(channelID string) error {
+	start := time.Now()
+
+	err := s.SharedChannelInvitationStore.DeleteByChannelId(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.DeleteByChannelId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) DeleteByChannelIdAndRemoteId(channelID string, remoteID string) error {
+	start := time.Now()
+
+	err := s.SharedChannelInvitationStore.DeleteByChannelIdAndRemoteId(channelID, remoteID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.DeleteByChannelIdAndRemoteId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.Get(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitationFilterOpts, offset int, limit int) ([]*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.GetAll(opts, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.Save(invitation)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSharedChannelInvitationStore) UpdateStatus(id string, status string, errMsg string) (*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.UpdateStatus(id, status, errMsg)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.UpdateStatus", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerStatusStore) Get(userID string) (*model.Status, error) {
 	start := time.Now()
 
@@ -14435,6 +14557,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.SchemeStore = &TimerLayerSchemeStore{SchemeStore: childStore.Scheme(), Root: &newStore}
 	newStore.SessionStore = &TimerLayerSessionStore{SessionStore: childStore.Session(), Root: &newStore}
 	newStore.SharedChannelStore = &TimerLayerSharedChannelStore{SharedChannelStore: childStore.SharedChannel(), Root: &newStore}
+	newStore.SharedChannelInvitationStore = &TimerLayerSharedChannelInvitationStore{SharedChannelInvitationStore: childStore.SharedChannelInvitation(), Root: &newStore}
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &TimerLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}

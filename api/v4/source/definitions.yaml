@@ -4029,6 +4029,45 @@ components:
           type: string
         last_post_create_id:
           type: string
+    SharedChannelInvitation:
+      type: object
+      properties:
+        id:
+          description: Invitation record id
+          type: string
+        channel_id:
+          description: Channel the invitation applies to
+          type: string
+        remote_id:
+          description: Remote cluster id for this invitation
+          type: string
+        direction:
+          description: Whether the invitation was sent from this server or received from the remote
+          type: string
+          enum:
+            - sent
+            - received
+        status:
+          description: Processing status of the invitation
+          type: string
+          enum:
+            - pending
+            - rejected
+            - failed
+        error:
+          description: Error message when status is failed (omitted when empty)
+          type: string
+        creator_id:
+          description: User id of the user who created the invitation
+          type: string
+        create_at:
+          description: Time in milliseconds when the invitation was created
+          type: integer
+          format: int64
+        update_at:
+          description: Time in milliseconds when the invitation was last updated
+          type: integer
+          format: int64
     SystemStatusResponse:
       type: object
       properties:
