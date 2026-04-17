@@ -786,7 +786,7 @@ const defaultServerConfig: AdminConfig = {
         BurnOnRead: true,
         EnableAIPluginBridge: false,
         EnableAIRecaps: false,
-        ClassificationMarkings: false,
+        ClassificationMarkings: true,
         IntegratedBoards: false,
         CJKSearch: false,
     },
