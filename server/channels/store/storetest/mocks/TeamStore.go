@@ -542,6 +542,36 @@ func (_m *TeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUserID stri
 	return r0, r1
 }
 
+// GetDeletedTeamsByUserIdSince provides a mock function with given fields: userID, since
+func (_m *TeamStore) GetDeletedTeamsByUserIdSince(userID string, since int64) ([]*model.Team, error) {
+	ret := _m.Called(userID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDeletedTeamsByUserIdSince")
+	}
+
+	var r0 []*model.Team
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64) ([]*model.Team, error)); ok {
+		return rf(userID, since)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.Team); ok {
+		r0 = rf(userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) error); ok {
+		r1 = rf(userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMany provides a mock function with given fields: ids
 func (_m *TeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	ret := _m.Called(ids)

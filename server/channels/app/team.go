@@ -1122,6 +1122,17 @@ func (a *App) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
+// GetDeletedTeamsForUserSince returns soft-deleted (archived) teams the user is an
+// active member of, where Teams.DeleteAt > since. Used by delta sync to surface
+// team archival tombstones to clients that were online before the team was archived.
+func (a *App) GetDeletedTeamsForUserSince(userID string, since int64) ([]*model.Team, *model.AppError) {
+	teams, err := a.Srv().Store().Team().GetDeletedTeamsByUserIdSince(userID, since)
+	if err != nil {
+		return nil, model.NewAppError("GetDeletedTeamsForUserSince", "app.team.get_deleted.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return teams, nil
+}
+
 func (a *App) GetTeamMember(rctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
 	teamMember, err := a.Srv().Store().Team().GetMember(sqlstore.RequestContextWithMaster(rctx), teamID, userID)
 	if err != nil {
@@ -1834,14 +1845,13 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userID string, include
 	membersMap := make(map[string]*model.TeamUnread)
 
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
-		tu.MentionCount += cu.MentionCount
-		tu.MentionCountRoot += cu.MentionCountRoot
-
-		if cu.NotifyProps[model.MarkUnreadNotifyProp] != model.ChannelMarkUnreadMention {
+		isMuted := cu.NotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention
+		if !isMuted {
+			tu.MentionCount += cu.MentionCount
+			tu.MentionCountRoot += cu.MentionCountRoot
 			tu.MsgCount += cu.MsgCount
 			tu.MsgCountRoot += cu.MsgCountRoot
 		}
-
 		return tu
 	}
 

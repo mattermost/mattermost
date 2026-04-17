@@ -1266,6 +1266,36 @@ func (_m *ChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, 
 	return r0, r1, r2, r3
 }
 
+// GetDMGMProfilesByChannelIds provides a mock function with given fields: channelIDs, userID, since
+func (_m *ChannelStore) GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error) {
+	ret := _m.Called(channelIDs, userID, since)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDMGMProfilesByChannelIds")
+	}
+
+	var r0 map[string][]*model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string, string, int64) (map[string][]*model.User, error)); ok {
+		return rf(channelIDs, userID, since)
+	}
+	if rf, ok := ret.Get(0).(func([]string, string, int64) map[string][]*model.User); ok {
+		r0 = rf(channelIDs, userID, since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string, string, int64) error); ok {
+		r1 = rf(channelIDs, userID, since)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDeleted provides a mock function with given fields: teamID, offset, limit, userID, skipTeamMembershipCheck
 func (_m *ChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	ret := _m.Called(teamID, offset, limit, userID, skipTeamMembershipCheck)

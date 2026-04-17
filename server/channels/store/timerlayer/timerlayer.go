@@ -1943,6 +1943,22 @@ func (s *TimerLayerChannelStore) GetChannelsWithUnreadsAndWithMentions(rctx requ
 	return result, resultVar1, resultVar2, err
 }
 
+func (s *TimerLayerChannelStore) GetDMGMProfilesByChannelIds(channelIDs []string, userID string, since int64) (map[string][]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.GetDMGMProfilesByChannelIds(channelIDs, userID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetDMGMProfilesByChannelIds", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) GetDeleted(teamID string, offset int, limit int, userID string, skipTeamMembershipCheck bool) (model.ChannelList, error) {
 	start := time.Now()
 
@@ -3516,6 +3532,22 @@ func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.DeleteOrphanedRows", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelMemberHistoryStore) GetChannelsLeftInTeamSince(userID string, teamID string, since int64) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.ChannelMemberHistoryStore.GetChannelsLeftInTeamSince(userID, teamID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelMemberHistoryStore.GetChannelsLeftInTeamSince", success, elapsed)
 	}
 	return result, err
 }
@@ -11480,6 +11512,22 @@ func (s *TimerLayerTeamStore) GetCommonTeamIDsForTwoUsers(userID string, otherUs
 	return result, err
 }
 
+func (s *TimerLayerTeamStore) GetDeletedTeamsByUserIdSince(userID string, since int64) ([]*model.Team, error) {
+	start := time.Now()
+
+	result, err := s.TeamStore.GetDeletedTeamsByUserIdSince(userID, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TeamStore.GetDeletedTeamsByUserIdSince", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTeamStore) GetMany(ids []string) ([]*model.Team, error) {
 	start := time.Now()
 
@@ -12196,6 +12244,22 @@ func (s *TimerLayerThreadStore) Get(id string) (*model.Thread, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.Get", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerThreadStore) GetDMGMThreadCounts(userID string, postPriorityEnabled bool) (bool, int64, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, resultVar2, err := s.ThreadStore.GetDMGMThreadCounts(userID, postPriorityEnabled)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetDMGMThreadCounts", success, elapsed)
+	}
+	return result, resultVar1, resultVar2, err
 }
 
 func (s *TimerLayerThreadStore) GetMembershipForUser(userID string, postID string) (*model.ThreadMembership, error) {

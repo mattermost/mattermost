@@ -5136,13 +5136,13 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, rctx request.CTX, ss store
 	rm1, err := ss.Channel().GetMember(rctx, m1.ChannelId, m1.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o1.LastPostAt, rm1.LastViewedAt)
-	assert.Equal(t, o1.LastPostAt, rm1.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm1.LastUpdateAt, o1.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o1.TotalMsgCount, rm1.MsgCount)
 
 	rm2, err := ss.Channel().GetMember(rctx, m2.ChannelId, m2.UserId)
 	assert.NoError(t, err)
 	assert.Equal(t, o2.LastPostAt, rm2.LastViewedAt)
-	assert.Equal(t, o2.LastPostAt, rm2.LastUpdateAt)
+	assert.GreaterOrEqual(t, rm2.LastUpdateAt, o2.LastPostAt, "LastUpdateAt must be >= LastPostAt (wall-clock time of the view)")
 	assert.Equal(t, o2.TotalMsgCount, rm2.MsgCount)
 
 	_, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")

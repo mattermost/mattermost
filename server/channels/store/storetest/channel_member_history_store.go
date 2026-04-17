@@ -26,6 +26,7 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, rctx, ss) })
 	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, rctx, ss) })
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
+	t.Run("TestGetChannelsLeftInTeamSince", func(t *testing.T) { testGetChannelsLeftInTeamSince(t, rctx, ss) })
 	t.Run("TestDeleteOrphanedRows", func(t *testing.T) { testDeleteOrphanedRows(t, rctx, ss) })
 	t.Run("TestGetMembershipChanges", func(t *testing.T) { testGetMembershipChanges(t, rctx, ss) })
 }
@@ -873,5 +874,112 @@ func testGetMembershipChanges(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, user1, lastResult.UserId)
 		assert.Equal(t, int64(6000), lastResult.JoinTime)
 		assert.Nil(t, lastResult.LeaveTime, "rejoin should have nil LeaveTime")
+	})
+}
+
+func testGetChannelsLeftInTeamSince(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Two teams: channels in team1 must not appear when querying team2, and vice versa.
+	team1, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team1",
+		Name:        "team1-" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	team2, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team2",
+		Name:        "team2-" + model.NewId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	ch1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel1",
+		Name:        "channel1-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	ch2, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team1.Id,
+		DisplayName: "Channel2",
+		Name:        "channel2-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	ch3team2, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team2.Id,
+		DisplayName: "Channel3",
+		Name:        "channel3-" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+	joinTime := int64(1000)
+
+	// User joins all three channels.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(userID, ch1.Id, joinTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(userID, ch2.Id, joinTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(userID, ch3team2.Id, joinTime))
+
+	t.Run("returns empty when user has not left any channel", func(t *testing.T) {
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime)
+		require.NoError(t, err2)
+		assert.Empty(t, ids)
+	})
+
+	// User leaves ch1 in team1 at t=1100.
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(userID, ch1.Id, joinTime+100))
+
+	t.Run("returns only the left channel in the correct team", func(t *testing.T) {
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime+100)
+		require.NoError(t, err2)
+		assert.Equal(t, []string{ch1.Id}, ids)
+	})
+
+	t.Run("does not return channels from a different team", func(t *testing.T) {
+		// ch3team2 is in team2 — must not appear in team1 results.
+		require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(userID, ch3team2.Id, joinTime+200))
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime)
+		require.NoError(t, err2)
+		assert.Equal(t, []string{ch1.Id}, ids, "ch3 is in team2, must not appear in team1 query")
+
+		// team2 query should return ch3team2.
+		ids, err2 = ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team2.Id, joinTime)
+		require.NoError(t, err2)
+		assert.Equal(t, []string{ch3team2.Id}, ids)
+	})
+
+	t.Run("does not return channels the user is still a member of", func(t *testing.T) {
+		// ch2 in team1 was joined but never left — must not appear.
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime)
+		require.NoError(t, err2)
+		assert.NotContains(t, ids, ch2.Id)
+	})
+
+	t.Run("does not return channels left before since threshold", func(t *testing.T) {
+		// since=joinTime+200 — ch1 was left at joinTime+100, which is < since, so it must not appear.
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime+200)
+		require.NoError(t, err2)
+		assert.Empty(t, ids)
+	})
+
+	t.Run("does not return channel when user rejoined after leaving", func(t *testing.T) {
+		// User rejoins ch1 after leaving — it must no longer be in the result.
+		require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(userID, ch1.Id, joinTime+300))
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(userID, team1.Id, joinTime)
+		require.NoError(t, err2)
+		assert.NotContains(t, ids, ch1.Id, "rejoined channels must not appear as left")
+	})
+
+	t.Run("returns empty for a user with no history", func(t *testing.T) {
+		ids, err2 := ss.ChannelMemberHistory().GetChannelsLeftInTeamSince(model.NewId(), team1.Id, joinTime)
+		require.NoError(t, err2)
+		assert.Empty(t, ids)
 	})
 }

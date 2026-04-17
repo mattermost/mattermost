@@ -708,6 +708,24 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) ([]*model.Team, error) {
 	return teams, nil
 }
 
+// GetDeletedTeamsByUserIdSince returns soft-deleted (archived) teams the user is an
+// active member of (TeamMembers.DeleteAt = 0) whose Teams.DeleteAt > since.
+// Used by the initial_load delta endpoint to surface team archival tombstones
+// to clients that were online before the team was archived.
+func (s SqlTeamStore) GetDeletedTeamsByUserIdSince(userId string, since int64) ([]*model.Team, error) {
+	teams := []*model.Team{}
+	query := s.teamsQuery.
+		Join("TeamMembers ON TeamMembers.TeamId = Teams.Id").
+		Where(sq.Eq{"TeamMembers.UserId": userId, "TeamMembers.DeleteAt": 0}).
+		Where(sq.Gt{"Teams.DeleteAt": since})
+
+	if err := s.GetReplica().SelectBuilder(&teams, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find deleted Teams")
+	}
+
+	return teams, nil
+}
+
 // GetAllPrivateTeamListing returns all private teams.
 func (s SqlTeamStore) GetAllPrivateTeamListing() ([]*model.Team, error) {
 	query := s.teamsQuery.Where(sq.Eq{"AllowOpenInvite": false}).

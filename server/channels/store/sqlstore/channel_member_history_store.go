@@ -377,3 +377,26 @@ func (s SqlChannelMemberHistoryStore) GetChannelsLeftSince(userID string, since 
 
 	return channelIds, nil
 }
+
+// GetChannelsLeftInTeamSince returns list of channels within a specific team that the user has
+// left after a given time, but has not rejoined again.
+func (s SqlChannelMemberHistoryStore) GetChannelsLeftInTeamSince(userID string, teamID string, since int64) ([]string, error) {
+	query, params, err := s.getQueryBuilder().
+		Select("cmh.ChannelId").
+		From("ChannelMemberHistory cmh").
+		Join("Channels c ON c.Id = cmh.ChannelId").
+		GroupBy("cmh.ChannelId").
+		Where(sq.Eq{"cmh.UserId": userID}).
+		Where(sq.Eq{"c.TeamId": teamID}).
+		Having("MAX(cmh.LeaveTime) > MAX(cmh.JoinTime) AND MAX(cmh.LeaveTime) IS NOT NULL AND MAX(cmh.LeaveTime) >= ?", since).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+	channelIds := []string{}
+	err = s.GetReplica().Select(&channelIds, query, params...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "GetChannelsLeftInTeamSince userId=%s teamId=%s since=%d", userID, teamID, since)
+	}
+
+	return channelIds, nil
+}
