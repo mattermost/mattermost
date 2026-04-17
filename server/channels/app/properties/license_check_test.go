@@ -96,4 +96,55 @@ func TestLicenseCheckHook(t *testing.T) {
 		require.NoError(t, createErr)
 		assert.NotEmpty(t, created.ID)
 	})
+
+	t.Run("blocks field counts without license on managed group", func(t *testing.T) {
+		currentLicense = enterpriseLicense
+		th.CreatePropertyFieldDirect(t, makeField())
+
+		currentLicense = nil
+
+		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, group.ID)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "license_error")
+
+		_, err = th.service.CountAllPropertyFieldsForGroup(th.Context, group.ID)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "license_error")
+
+		_, err = th.service.CountActivePropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "license_error")
+
+		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "license_error")
+	})
+
+	t.Run("allows field counts with license on managed group", func(t *testing.T) {
+		currentLicense = enterpriseLicense
+
+		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, group.ID)
+		require.NoError(t, err)
+
+		_, err = th.service.CountAllPropertyFieldsForGroup(th.Context, group.ID)
+		require.NoError(t, err)
+
+		_, err = th.service.CountActivePropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
+		require.NoError(t, err)
+
+		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
+		require.NoError(t, err)
+	})
+
+	t.Run("allows field counts without license on unmanaged group", func(t *testing.T) {
+		currentLicense = nil
+		otherGroup, groupErr := th.service.RegisterPropertyGroup("count_no_license_needed")
+		require.NoError(t, groupErr)
+
+		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, otherGroup.ID)
+		require.NoError(t, err)
+
+		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, otherGroup.ID, "user", model.NewId())
+		require.NoError(t, err)
+	})
 }

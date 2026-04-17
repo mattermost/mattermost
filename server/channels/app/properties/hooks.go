@@ -38,6 +38,12 @@ type PropertyHook interface {
 	PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
 
+	// Field pre-hook for count operations. Count operations return only a
+	// scalar so there is no post-hook — access control applied to per-row
+	// data does not apply, but license/group-level gating still does.
+	// Return an error to block the count.
+	PreCountPropertyFields(rctx request.CTX, groupID string) error
+
 	// Field post-hooks (read operations)
 	//
 	// PostGetPropertyField is called after retrieving a single field (by ID or by name).
@@ -85,6 +91,9 @@ func (BasePropertyHook) PreUpdatePropertyFields(_ request.CTX, _ string, fields 
 	return fields, nil
 }
 func (BasePropertyHook) PreDeletePropertyField(_ request.CTX, _ string, _ string) error {
+	return nil
+}
+func (BasePropertyHook) PreCountPropertyFields(_ request.CTX, _ string) error {
 	return nil
 }
 func (BasePropertyHook) PostGetPropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
@@ -182,6 +191,17 @@ func (ps *PropertyService) runPreUpdatePropertyFields(rctx request.CTX, groupID 
 func (ps *PropertyService) runPreDeletePropertyField(rctx request.CTX, groupID string, id string) error {
 	for _, hook := range ps.hooks {
 		if err := hook.PreDeletePropertyField(rctx, groupID, id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// runPreCountPropertyFields runs all registered pre-hooks for the public
+// CountProperty* methods.
+func (ps *PropertyService) runPreCountPropertyFields(rctx request.CTX, groupID string) error {
+	for _, hook := range ps.hooks {
+		if err := hook.PreCountPropertyFields(rctx, groupID); err != nil {
 			return err
 		}
 	}

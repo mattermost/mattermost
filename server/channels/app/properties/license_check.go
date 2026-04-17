@@ -95,6 +95,13 @@ func (h *LicenseCheckHook) PreDeletePropertyField(_ request.CTX, groupID string,
 	return h.checkLicense()
 }
 
+func (h *LicenseCheckHook) PreCountPropertyFields(_ request.CTX, groupID string) error {
+	if !h.isGroupManaged(groupID) {
+		return nil
+	}
+	return h.checkLicense()
+}
+
 // Field post-hooks
 
 func (h *LicenseCheckHook) PostGetPropertyField(_ request.CTX, field *model.PropertyField) (*model.PropertyField, error) {

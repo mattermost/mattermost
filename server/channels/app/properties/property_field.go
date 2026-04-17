@@ -218,21 +218,36 @@ func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, tar
 	return ps.runPostGetPropertyField(rctx, field)
 }
 
-// Count methods bypass hooks — they don't require access control filtering.
+// Count methods run PreCountPropertyFields so group-level gating (e.g.
+// license) applies. Access control hooks are no-ops for counts since a
+// scalar total exposes no per-row data. Internal callers that need to
+// bypass hooks (e.g. FieldLimitHook) use the private count* methods.
 
-func (ps *PropertyService) CountActivePropertyFieldsForGroup(_ request.CTX, groupID string) (int64, error) {
+func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
+		return 0, fmt.Errorf("CountActivePropertyFieldsForGroup: %w", err)
+	}
 	return ps.countActivePropertyFieldsForGroup(groupID)
 }
 
-func (ps *PropertyService) CountAllPropertyFieldsForGroup(_ request.CTX, groupID string) (int64, error) {
+func (ps *PropertyService) CountAllPropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
+		return 0, fmt.Errorf("CountAllPropertyFieldsForGroup: %w", err)
+	}
 	return ps.countAllPropertyFieldsForGroup(groupID)
 }
 
-func (ps *PropertyService) CountActivePropertyFieldsForTarget(_ request.CTX, groupID, targetType, targetID string) (int64, error) {
+func (ps *PropertyService) CountActivePropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
+		return 0, fmt.Errorf("CountActivePropertyFieldsForTarget: %w", err)
+	}
 	return ps.countActivePropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
-func (ps *PropertyService) CountAllPropertyFieldsForTarget(_ request.CTX, groupID, targetType, targetID string) (int64, error) {
+func (ps *PropertyService) CountAllPropertyFieldsForTarget(rctx request.CTX, groupID, targetType, targetID string) (int64, error) {
+	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {
+		return 0, fmt.Errorf("CountAllPropertyFieldsForTarget: %w", err)
+	}
 	return ps.countAllPropertyFieldsForTarget(groupID, targetType, targetID)
 }
 
