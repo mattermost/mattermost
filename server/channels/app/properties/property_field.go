@@ -14,6 +14,18 @@ import (
 // Private implementation methods (database access)
 
 func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	// Enforce version match between field and group
+	if group, ok := ps.GroupByID(field.GroupID); ok {
+		if field.IsPSAv1() && group.IsPSAv2() {
+			return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.version_mismatch.app_error", nil,
+				"cannot create a PSAv1 field in a PSAv2 group", http.StatusBadRequest)
+		}
+		if field.IsPSAv2() && group.IsPSAv1() {
+			return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.version_mismatch.app_error", nil,
+				"cannot create a PSAv2 field in a PSAv1 group", http.StatusBadRequest)
+		}
+	}
+
 	// Legacy properties (PSAv1) skip conflict check
 	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)

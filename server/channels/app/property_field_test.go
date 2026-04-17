@@ -339,6 +339,81 @@ func TestUpdatePropertyFields(t *testing.T) {
 	})
 }
 
+func TestCreatePropertyFieldVersionEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should reject creating a v2 field on a v1 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_reject_v2_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V2 Field on V1 Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should reject creating a v1 field on a v2 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_reject_v1_field", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V1 Field on V2 Group",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			// No ObjectType → PSAv1 field
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, created)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow creating a v1 field on a v1 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_allow_v1_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V1 Field on V1 Group",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+			// No ObjectType → PSAv1 field
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, created.ID)
+	})
+
+	t.Run("should allow creating a v2 field on a v2 group", func(t *testing.T) {
+		group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_allow_v2_field", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "V2 Field on V2 Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.NotEmpty(t, created.ID)
+	})
+}
+
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

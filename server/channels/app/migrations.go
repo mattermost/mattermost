@@ -766,7 +766,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return s.cacheManagedCategoryIDs()
 	}
 
-	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV1})
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
