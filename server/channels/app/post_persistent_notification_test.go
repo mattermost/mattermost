@@ -198,6 +198,132 @@ func TestDeletePersistentNotification(t *testing.T) {
 	})
 }
 
+func TestForEachPersistentNotificationPost(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+	defer th.TearDown()
+
+	// Common data
+	user1 := &model.User{Id: "uid1", Username: "user-1"}
+	user2 := &model.User{Id: "uid2", Username: "user-2"}
+	user3 := &model.User{Id: "uid3", Username: "user-3"}
+	team := &model.Team{Id: "tid"}
+	channel := &model.Channel{Id: "chid", TeamId: team.Id, Type: model.ChannelTypeOpen}
+
+	th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+	cfg := th.App.Config()
+	*cfg.ServiceSettings.PostPriority = true
+	*cfg.ServiceSettings.AllowPersistentNotifications = true
+
+	// setupMocks creates a fresh mock store with the given data and sets it on the server.
+	// Returns the PostPersistentNotificationStore mock for test-specific expectations.
+	setupMocks := func(channels []*model.Channel, teams []*model.Team, profileMap map[string]*model.User) *storemocks.PostPersistentNotificationStore {
+		localStore := storemocks.Store{}
+		localStore.On("Close").Return(nil)
+
+		mockChannel := storemocks.ChannelStore{}
+		localStore.On("Channel").Return(&mockChannel)
+		mockChannel.On("GetChannelsByIds", mock.Anything, mock.Anything).Return(channels, nil)
+		mockChannel.On("GetAllChannelMembersNotifyPropsForChannel", mock.Anything, mock.Anything).Return(map[string]model.StringMap{}, nil)
+
+		mockTeam := storemocks.TeamStore{}
+		localStore.On("Team").Return(&mockTeam)
+		mockTeam.On("GetMany", mock.Anything).Return(teams, nil)
+
+		mockUser := storemocks.UserStore{}
+		localStore.On("User").Return(&mockUser)
+		mockUser.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(profileMap, nil)
+
+		mockGroup := storemocks.GroupStore{}
+		localStore.On("Group").Return(&mockGroup)
+		mockGroup.On("GetGroups", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return([]*model.Group{}, nil)
+
+		mockPPN := storemocks.PostPersistentNotificationStore{}
+		localStore.On("PostPersistentNotification").Return(&mockPPN)
+
+		th.App.Srv().SetStore(&localStore)
+		return &mockPPN
+	}
+
+	t.Run("should cleanup posts whose channel no longer exists", func(t *testing.T) {
+		profileMap := map[string]*model.User{user1.Id: user1}
+		post1 := &model.Post{Id: "pid1", ChannelId: channel.Id, Message: "hello @user-1", UserId: user1.Id}
+		post2 := &model.Post{Id: "pid2", ChannelId: "deleted-channel-id", Message: "hello", UserId: user1.Id}
+
+		mockPPN := setupMocks([]*model.Channel{channel}, []*model.Team{team}, profileMap)
+		mockPPN.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
+		mockPPN.On("Delete", []string{post2.Id}).Return(nil)
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		mockPPN.AssertCalled(t, "Delete", []string{post2.Id})
+	})
+
+	t.Run("should cleanup posts whose team no longer exists", func(t *testing.T) {
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		channelWithMissingTeam := &model.Channel{Id: "chid2", TeamId: "deleted-team-id", Type: model.ChannelTypeOpen}
+		post1 := &model.Post{Id: "pid1", ChannelId: channel.Id, Message: "hello @user-1", UserId: user2.Id}
+		post2 := &model.Post{Id: "pid2", ChannelId: channelWithMissingTeam.Id, Message: "hello @user-1", UserId: user2.Id}
+
+		mockPPN := setupMocks([]*model.Channel{channel, channelWithMissingTeam}, []*model.Team{team}, profileMap)
+		mockPPN.On("GetSingle", post2.Id).Return(&model.PostPersistentNotifications{PostId: post2.Id}, nil)
+		mockPPN.On("Delete", []string{post2.Id}).Return(nil)
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1, post2}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		mockPPN.AssertCalled(t, "Delete", []string{post2.Id})
+	})
+
+	t.Run("should not cleanup DM posts that have no team", func(t *testing.T) {
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2}
+		dmChannel := &model.Channel{Id: "dm-chid", TeamId: "", Type: model.ChannelTypeDirect, Name: model.GetDMNameFromIds(user1.Id, user2.Id)}
+		post1 := &model.Post{Id: "pid1", ChannelId: dmChannel.Id, Message: "hello", UserId: user1.Id}
+
+		mockPPN := setupMocks([]*model.Channel{dmChannel}, []*model.Team{}, profileMap)
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		mockPPN.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+
+	t.Run("should not cleanup GM posts that have no team", func(t *testing.T) {
+		profileMap := map[string]*model.User{user1.Id: user1, user2.Id: user2, user3.Id: user3}
+		gmChannel := &model.Channel{Id: "gm-chid", TeamId: "", Type: model.ChannelTypeGroup}
+		post1 := &model.Post{Id: "pid1", ChannelId: gmChannel.Id, Message: "hello @user-2", UserId: user1.Id}
+
+		mockPPN := setupMocks([]*model.Channel{gmChannel}, []*model.Team{}, profileMap)
+
+		fnCalled := []string{}
+		err := th.App.forEachPersistentNotificationPost([]*model.Post{post1}, func(post *model.Post, _ *model.Channel, _ *model.Team, _ *MentionResults, _ model.UserMap, _ map[string]map[string]model.StringMap) error {
+			fnCalled = append(fnCalled, post.Id)
+			return nil
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, []string{"pid1"}, fnCalled)
+		mockPPN.AssertNotCalled(t, "Delete", mock.Anything)
+	})
+}
+
 func TestSendPersistentNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
@@ -230,6 +356,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send notification when bot is sender", func(t *testing.T) {
 		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "testbot",
@@ -282,6 +409,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send notification when bot sender is not a channel member", func(t *testing.T) {
 		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "testbot",
