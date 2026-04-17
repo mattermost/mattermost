@@ -1855,7 +1855,10 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 	})
 
 	t.Run("Check OutOfChannel results with/without VIEW_MEMBERS permissions", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-61041")
+		// MM-61041: Re-enabled to collect failure data (17mo, "Broken Test").
+		// This subtest is fragile by design — shares th.Client with the parent,
+		// mutates global permissions/license/config. If it still fails, rewrite
+		// as focused app-layer unit tests rather than fixing shared state.
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 		th.App.Srv().SetLicense(model.NewTestLicense())
