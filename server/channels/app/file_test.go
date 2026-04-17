@@ -996,7 +996,9 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 
 func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
 
 	post := th.CreatePost(t, th.BasicChannel)
 
