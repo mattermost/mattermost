@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -19,7 +20,6 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
-import {isMobile} from 'utils/user_agent';
 
 const SECTION_TOKENS = 'tokens';
 const TOKEN_CREATING = 'creating';
