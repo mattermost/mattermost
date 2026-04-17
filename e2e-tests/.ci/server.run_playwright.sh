@@ -87,22 +87,113 @@ ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
   -e PW_SHARD \
   -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci-serial -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-serial.log || true
 
-# Keep a combined tail log for backwards-compat with anything grepping
-# playwright.log. The authoritative results are the blob reports merged
-# by the CI template's calculate-results job.
-cat ../playwright/logs/playwright-chrome.log ../playwright/logs/playwright-serial.log >../playwright/logs/playwright.log 2>/dev/null || true
+# Rename the chrome-serial pass's blob so the retry step below doesn't overwrite it.
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+  cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
+  for f in report-*.zip; do
+    [ -e \"\$f\" ] || continue
+    mv \"\$f\" \"serial-\$f\"
+  done
+" || true
 
-# Collect run results from the SECOND pass's results.json. This summary
-# is used only by local dev / the cypress-oriented template; the playwright
-# CI template computes authoritative totals from the merged blob reports.
-# Documentation on the results.json file: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
-jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
+# ──────────────────────────────────────────────────────────────────────
+# Inline per-shard retry
+# ──────────────────────────────────────────────────────────────────────
+# If any specs failed in either pass, re-run JUST those specs on the SAME
+# server (no new provisioning). This replaces the previous standalone
+# `run-failed-tests` CI job, which spent ~7 min spinning up a fresh server,
+# then ran 0 tests once chrome-serial specs were split off from test:ci.
+#
+# A failed spec from either project is re-run against BOTH projects —
+# Playwright silently no-ops the project that doesn't match (testIgnore
+# vs. testMatch), so it's safe and avoids having to classify specs here.
+#
+# All earlier blobs (chrome-*.zip, serial-*.zip) stay in place; retry
+# blobs are renamed to retry-*.zip to avoid collisions. merge-reports at
+# the end combines them so tests that pass on retry are reported as
+# flaky, not failed.
+RESULTS_FILE="../playwright/results/reporter/results.json"
+FAILED_SPECS=""
+if [ -f "$RESULTS_FILE" ]; then
+  FAILED_SPECS=$(jq -r '
+    [.suites[] | . as $top |
+      (recurse(.suites[]?) | .specs[]? | .tests[]? |
+       select((.results | length) > 0) |
+       select((.results | last).status == "failed" or (.results | last).status == "timedOut") |
+       (.location.file // $top.file))
+    ] | map(select(. != null)) | unique | join(",")
+  ' "$RESULTS_FILE" 2>/dev/null || echo "")
+fi
+
+if [ -n "$FAILED_SPECS" ]; then
+  mme2e_log "Retrying failed specs on the same runner: $FAILED_SPECS"
+  SPEC_ARGS=$(echo "$FAILED_SPECS" | tr ',' ' ')
+
+  mme2e_log "Retry pass 1/2: chrome"
+  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+    -e TEST_FILTER \
+    -e PW_SHARD \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry-chrome.log || true
+
+  # Move retry blobs aside before the next retry pass overwrites them.
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+    cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
+    for f in report-*.zip; do
+      [ -e \"\$f\" ] || continue
+      mv \"\$f\" \"retry-chrome-\$f\"
+    done
+  " || true
+
+  mme2e_log "Retry pass 2/2: chrome-serial"
+  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+    -e TEST_FILTER \
+    -e PW_SHARD \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci-serial -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry-serial.log || true
+
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+    cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
+    for f in report-*.zip; do
+      [ -e \"\$f\" ] || continue
+      mv \"\$f\" \"retry-serial-\$f\"
+    done
+  " || true
+
+  # Re-merge everything (chrome-*, serial-*, retry-chrome-*, retry-serial-*)
+  # into a single results.json. Tests that failed in the first pass but
+  # passed on retry will appear as `flaky` rather than `failed`.
+  mme2e_log "Merging first-pass + retry blob reports"
+  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+    cd e2e-tests/playwright
+    rm -rf results/reporter
+    mkdir -p results/reporter
+    npx playwright merge-reports --config merge.config.mjs results/blob-report
+  " || true
+else
+  mme2e_log "No failed specs in shard; skipping inline retry"
+fi
+
+# Keep a combined tail log for backwards-compat with anything grepping
+# playwright.log. The authoritative results are the merged blob reports.
+cat ../playwright/logs/playwright-chrome.log \
+    ../playwright/logs/playwright-serial.log \
+    ../playwright/logs/playwright-retry-chrome.log \
+    ../playwright/logs/playwright-retry-serial.log \
+    >../playwright/logs/playwright.log 2>/dev/null || true
+
+# Collect run results from the merged results.json. This summary is used
+# only by local dev / the cypress-oriented template; the playwright CI
+# template computes authoritative totals from the merged blob reports it
+# downloads across all shards.
+# Documentation: https://playwright.dev/docs/api/class-testcase#test-case-expected-status
+if [ -f ../playwright/results/reporter/results.json ]; then
+  jq -f /dev/stdin ../playwright/results/reporter/results.json >../playwright/results/summary.json <<EOF
 {
   passed: .stats.expected,
   failed: .stats.unexpected,
   failed_expected: (.stats.skipped + .stats.flaky)
 }
 EOF
+fi
 
 # Collect server logs
 ${MME2E_DC_SERVER} logs --no-log-prefix -- server >../playwright/logs/mattermost.log 2>&1
