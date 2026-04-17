@@ -11,6 +11,7 @@ import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 
+import {isFirefox, isSafari} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
 import type {FileInfo} from '@mattermost/types/files';
@@ -60,7 +61,7 @@ import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
-import * as UserAgent from 'utils/user_agent';
+import {isInternetExplorer, isEdge} from 'utils/user_agent';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -109,7 +110,7 @@ export function isUnhandledLineBreakKeyCombo(e: React.KeyboardEvent | KeyboardEv
     return Boolean(
         Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) &&
         !e.shiftKey && // shift + enter is already handled everywhere, so don't handle again
-        (e.altKey && !UserAgent.isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
+        (e.altKey && !isSafari() && !Keyboard.cmdOrCtrlPressed(e)), // alt/option + enter is already handled in Safari, so don't handle again
     );
 }
 
@@ -658,7 +659,7 @@ function updateCodeTheme(codeTheme: string) {
         xmlHTTP.onload = function onLoad() {
             link.href = cssPath;
 
-            if (UserAgent.isFirefox()) {
+            if (isFirefox()) {
                 link.addEventListener('load', () => {
                     changeCss('code.hljs', 'visibility: visible');
                 }, {once: true});
@@ -1191,7 +1192,7 @@ export function fillRecord<T>(value: T, length: number): Record<number, T> {
 // Checks if a data transfer contains files not text, folders, etc..
 // Slightly modified from http://stackoverflow.com/questions/6848043/how-do-i-detect-a-file-is-being-dragged-rather-than-a-draggable-element-on-my-pa
 export function isFileTransfer(files: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
+    if (isInternetExplorer() || isEdge()) {
         return files.types != null && files.types.includes('Files');
     }
 
@@ -1199,7 +1200,7 @@ export function isFileTransfer(files: DataTransfer) {
 }
 
 export function isUriDrop(dataTransfer: DataTransfer) {
-    if (UserAgent.isInternetExplorer() || UserAgent.isEdge() || UserAgent.isSafari()) {
+    if (isInternetExplorer() || isEdge() || isSafari()) {
         for (let i = 0; i < dataTransfer.items.length; i++) {
             if (dataTransfer.items[i].type === 'text/uri-list') {
                 return true;
