@@ -202,6 +202,7 @@ func TestForEachPersistentNotificationPost(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := SetupWithStoreMock(t)
+	defer th.TearDown()
 
 	// Common data
 	user1 := &model.User{Id: "uid1", Username: "user-1"}
@@ -355,6 +356,7 @@ func TestSendPersistentNotificationsBotSender(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send notification when bot is sender", func(t *testing.T) {
 		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "testbot",
@@ -407,6 +409,7 @@ func TestSendPersistentNotificationsBotSenderNotInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should send notification when bot sender is not a channel member", func(t *testing.T) {
 		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
 		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
 			Username:    "testbot",
