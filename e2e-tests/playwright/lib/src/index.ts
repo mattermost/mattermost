@@ -9,6 +9,11 @@ export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {duration, getRandomId, wait, newTestPassword} from './util';
 
+// Admin client helper — used by test.afterAll hooks in config-mutating specs
+// to restore server settings (afterAll has no access to the `pw` fixture, so
+// tests need a direct way to get an admin client).
+export {getAdminClient} from './server';
+
 export {
     ChannelsPage,
     LandingLoginPage,

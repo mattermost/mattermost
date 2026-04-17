@@ -13,7 +13,7 @@
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test, SystemConsolePage} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
@@ -72,6 +72,28 @@ async function cleanupFields(client: Client4, fieldsMap: FieldsMap): Promise<voi
 }
 
 test.describe('System Console - User Attributes Management', () => {
+    // setupTest() above deletes ALL custom profile attribute fields at the
+    // start of each test (to get a blank slate). This wipes the `Department`
+    // attribute that `specs/test_setup.ts` creates as a shared baseline for
+    // ABAC tests running on the same worker. Restore it here so later files
+    // on the same worker don't see a missing `Department` field.
+    test.afterAll(async () => {
+        try {
+            const {adminClient} = await getAdminClient({skipLog: true});
+            const fields = (await adminClient.getCustomProfileAttributeFields()) as Array<{name: string}>;
+            if (!fields.some((f) => f.name === 'Department')) {
+                await adminClient.createCustomProfileAttributeField({
+                    name: 'Department',
+                    type: 'text',
+                    attrs: {sort_order: 0},
+                } as any);
+            }
+        } catch {
+            // Best-effort cleanup; if the server is unlicensed or fields API
+            // is unavailable, ABAC tests will handle their own attribute setup.
+        }
+    });
+
     /**
      * @objective Verify that navigating to the User Attributes page shows the empty state
      * with the Add attribute button and a disabled Save button.

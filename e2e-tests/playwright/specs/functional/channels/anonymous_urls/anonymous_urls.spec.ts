@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
 const OBFUSCATED_SLUG_RE = /^[a-z0-9]{26}$/;
 
@@ -80,6 +80,22 @@ async function createAnonymousUrlChannel(
 }
 
 test.describe('Anonymous URLs', () => {
+    // Reset PrivacySettings.UseAnonymousURLs to its default (off) at the end
+    // of this file so leftover state does not affect other suites. Tests within
+    // this file explicitly set the value they need at the start of each test.
+    test.afterAll(async () => {
+        try {
+            const {adminClient} = await getAdminClient({skipLog: true});
+            await adminClient.patchConfig({
+                PrivacySettings: {
+                    UseAnonymousURLs: false,
+                },
+            });
+        } catch {
+            // Best-effort cleanup; do not fail the suite if admin client is unavailable.
+        }
+    });
+
     /**
      * @objective Verify that the anonymous URLs setting can be toggled on from System Console and persists after navigation
      *

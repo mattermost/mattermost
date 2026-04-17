@@ -1,7 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+
+// Disable ContentFlaggingSettings at end of file so leftover state cannot leak
+// into other suites. Individual tests enable content flagging via patchConfig
+// as needed.
+test.afterAll(async () => {
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await adminClient.patchConfig({
+            ContentFlaggingSettings: {
+                EnableContentFlagging: false,
+            },
+        });
+    } catch {
+        // Best-effort cleanup.
+    }
+});
 
 // Constants for repeated strings
 const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';

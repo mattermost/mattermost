@@ -127,15 +127,23 @@ export default defineConfig({
         },
         {
             // Serialized project for specs that mutate global server config.
-            // Depends on "chrome" so Playwright runs these AFTER all parallel
-            // tests on the shard finish, preventing cross-test config pollution.
-            // The tests in this project come from different config domains
+            //
+            // IMPORTANT: do NOT set `dependencies: ['chrome']` here. Playwright
+            // does not shard tests in a dependency project — every shard would
+            // run the full "chrome" suite as setup, producing ~94% duplication
+            // across shards (see PR #36054 investigation). Instead, this project
+            // is invoked as a SECOND sharded pass by `server.run_playwright.sh`,
+            // after the "chrome" pass finishes on the same runner. That keeps
+            // the "no concurrent global-config mutation with chrome tests"
+            // invariant while letting both projects shard properly.
+            //
+            // Tests in this project come from different config domains
             // (ABAC, notifications, privacy, etc.) so they rarely conflict
             // with each other when 2 run in parallel.
             name: 'chrome-serial',
             use: chromeUse,
             testMatch: globalConfigSpecs,
-            dependencies: ['chrome'],
+            dependencies: ['setup'],
         },
         {
             name: 'firefox',

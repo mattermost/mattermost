@@ -3,10 +3,12 @@
 
 import {
     ChannelsPost,
+    disableAutotranslationConfig,
     disableChannelAutotranslation,
     enableAutotranslationConfig,
     enableChannelAutotranslation,
     ensureAutotranslationPermissions,
+    getAdminClient,
     hasAutotranslationLicense,
     setUserChannelAutotranslation,
     expect,
@@ -15,6 +17,18 @@ import {
 } from '@mattermost/playwright-lib';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
+
+// Disable AutoTranslationSettings at end of file so leftover state cannot leak
+// into other suites. Individual tests enable the feature via
+// enableAutotranslationConfig() as needed.
+test.afterAll(async () => {
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await disableAutotranslationConfig(adminClient);
+    } catch {
+        // Best-effort cleanup.
+    }
+});
 
 test(
     'post is translated for user with autotranslation enabled',

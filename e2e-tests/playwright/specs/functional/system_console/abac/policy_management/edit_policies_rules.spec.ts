@@ -3,6 +3,7 @@
 
 import {
     expect,
+    getAdminClient,
     test,
     navigateToABACPage,
     verifyUserInChannel,
@@ -18,6 +19,24 @@ import {
     waitForLatestSyncJob,
     getPolicyIdByName,
 } from '../support';
+
+// Restore AccessControlSettings to the shared baseline expected by
+// `specs/test_setup.ts` (ABAC enabled) after this file's tests complete, so
+// later files on the same worker see the expected setup-state.
+test.afterAll(async () => {
+    try {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        const config = await adminClient.getConfig();
+        (config as any).AccessControlSettings = {
+            ...((config as any).AccessControlSettings || {}),
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        };
+        await adminClient.updateConfig(config);
+    } catch {
+        // Best-effort cleanup.
+    }
+});
 
 /**
  * MM-T5791: Editing existing access policy to add another attribute applies access control as specified (with auto-add)

@@ -6,7 +6,7 @@
  * @reference MM-67669
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -18,6 +18,25 @@ import {
 } from './helpers';
 
 test.describe('Team Settings Modal - Membership Policies Tab', () => {
+    // Restore AccessControlSettings to the shared baseline expected by
+    // `specs/test_setup.ts` (ABAC enabled) so that any later file on the same
+    // worker doesn't start with ABAC unexpectedly off. Individual tests may
+    // disable ABAC mid-test but must leave this baseline intact at file end.
+    test.afterAll(async () => {
+        try {
+            const {adminClient} = await getAdminClient({skipLog: true});
+            const config = await adminClient.getConfig();
+            (config as any).AccessControlSettings = {
+                ...((config as any).AccessControlSettings || {}),
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            };
+            await adminClient.updateConfig(config);
+        } catch {
+            // Best-effort cleanup.
+        }
+    });
+
     test('MM-67669_1 Membership Policies tab visible for admin with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, adminConfig} = await pw.initSetup();
