@@ -9,8 +9,7 @@
   "license": "MIT",
   "files": [
     "build/webpack-web-app-externals.cjs",
-    "dist",
-    "src"
+    "dist"
   ],
   "main": "dist/main.js",
   "module": "dist/module.js",
