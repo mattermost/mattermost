@@ -140,26 +140,41 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
 
+	groupsByName := map[string]*model.PropertyGroup{}
+
+	cpaGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1}
+	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
+	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
+
+	groupsByName[cpaGroup.Name] = cpaGroup
+	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
+	groupsByName[boardsGroup.Name] = boardsGroup
+
 	propertyGroupStore.On("Register", mock.AnythingOfType("*model.PropertyGroup")).Return(
 		func(group *model.PropertyGroup) *model.PropertyGroup {
-			return &model.PropertyGroup{
+			if existing, ok := groupsByName[group.Name]; ok {
+				return existing
+			}
+
+			version := group.Version
+			if version == 0 {
+				version = model.PropertyGroupVersionV1
+			}
+
+			created := &model.PropertyGroup{
 				ID:      model.NewId(),
 				Name:    group.Name,
-				Version: group.Version,
+				Version: version,
 			}
+			groupsByName[group.Name] = created
+			return created
 		},
 		func(group *model.PropertyGroup) error {
 			return nil
 		},
 	)
-
-	cpaGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1}
 	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(cpaGroup, nil)
-
-	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
-
-	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
