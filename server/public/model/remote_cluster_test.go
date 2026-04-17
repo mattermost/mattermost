@@ -240,3 +240,20 @@ func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
 	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
 	assert.Equal(t, rc.SiteURL, info.SiteURL)
 }
+
+func TestRemoteClusterIsPlugin(t *testing.T) {
+	t.Run("PluginID set returns true", func(t *testing.T) {
+		rc := &RemoteCluster{PluginID: "com.example.plugin", SiteURL: "https://example.com"}
+		assert.True(t, rc.IsPlugin())
+	})
+
+	t.Run("empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: "https://example.com"}
+		assert.False(t, rc.IsPlugin())
+	})
+
+	t.Run("plugin_ SiteURL prefix with empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: SiteURLPlugin + "com.example.plugin"}
+		assert.False(t, rc.IsPlugin(), "IsPlugin should only check PluginID, not SiteURL prefix")
+	})
+}
