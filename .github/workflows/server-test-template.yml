@@ -196,8 +196,10 @@ jobs:
           disable_search: true
           files: server/cover.out
       - name: Stop docker compose
+        if: ${{ always() }}
         run: |
           cd server/build
+          docker compose --ansi never logs --no-color > ../../docker-compose.log 2>&1
           docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
@@ -210,4 +212,5 @@ jobs:
             server/cover.out
             server/test-name
             server/pr-number
+            docker-compose.log
 
