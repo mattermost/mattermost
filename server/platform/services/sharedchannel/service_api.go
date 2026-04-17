@@ -99,7 +99,7 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	}
 
 	var workspaceNames []string
-	remotes, remotesErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 10000, model.SharedChannelRemoteFilterOpts{ChannelId: channelID})
+	remotes, remotesErr := scs.server.GetStore().SharedChannel().GetRemotes(0, 10000, model.SharedChannelRemoteFilterOpts{ChannelId: channelID, IncludeUnconfirmed: true})
 	if remotesErr != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceWarn, "Could not list remotes before unshare; skipping unshare system posts",
 			mlog.String("channel_id", channelID),
