@@ -2,13 +2,13 @@
 // See LICENSE.txt for license information.
 
 import type {PopoutViewProps} from '@mattermost/desktop-api';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {RHSStates} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getBasePath} from 'utils/url';
-import {isDesktopApp} from 'utils/user_agent';
 
 import type {RhsState, SearchType} from 'types/store/rhs';
 
