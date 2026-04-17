@@ -130,7 +130,7 @@ func (th *TestHelper) PatchCPAField(tb testing.TB, fieldID string, patch *model.
 	if err := existing.Patch(patch); err != nil {
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.patch_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if appErr := existing.SanitizeAndValidate(); appErr != nil {
+	if appErr = existing.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
 	}
 

@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 	"strconv"
 	"strings"
@@ -561,9 +562,7 @@ func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType,
 	orig := *existingField
 	if existingField.Attrs != nil {
 		orig.Attrs = make(model.StringInterface, len(existingField.Attrs))
-		for k, v := range existingField.Attrs {
-			orig.Attrs[k] = v
-		}
+		maps.Copy(orig.Attrs, existingField.Attrs)
 	}
 
 	existingField.Patch(patch, true)

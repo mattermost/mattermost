@@ -37,7 +37,7 @@ func TestFieldLimitHook(t *testing.T) {
 	}
 
 	t.Run("allows fields up to per-object-type limit", func(t *testing.T) {
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			_, createErr := th.service.CreatePropertyField(th.Context, makeField("user"))
 			require.NoError(t, createErr)
 		}
@@ -69,7 +69,7 @@ func TestFieldLimitHook(t *testing.T) {
 		otherGroup, groupErr := th.service.RegisterPropertyGroup("test_no_limits")
 		require.NoError(t, groupErr)
 
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			field := &model.PropertyField{
 				GroupID:    otherGroup.ID,
 				Name:       "field_" + model.NewId(),
