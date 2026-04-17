@@ -245,6 +245,7 @@ func TestWebConnDrainDeadQueue(t *testing.T) {
 
 func TestWebConnRejectBinaryFrameUnauthenticated(t *testing.T) {
 	th := Setup(t)
+	defer th.TearDown()
 
 	readPumpDone := make(chan struct{})
 	upgradeErrCh := make(chan error, 1)
