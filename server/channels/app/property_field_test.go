@@ -17,14 +17,17 @@ func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_create_field_v2_group", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr)
+	groupID := group.ID
 
 	t.Run("should create a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected Field",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
@@ -115,14 +118,17 @@ func TestUpdatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	group, appErr2 := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_update_field_v2_group", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr2)
+	groupID := group.ID
 
 	t.Run("should update a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Update",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -179,9 +185,11 @@ func TestUpdatePropertyField(t *testing.T) {
 
 	t.Run("should reject an invalid update", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field for Invalid Update",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field for Invalid Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -198,19 +206,24 @@ func TestUpdatePropertyFields(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	group, appErr2 := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_update_fields_v2_group", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr2)
+	groupID := group.ID
 
 	t.Run("should update multiple non-protected fields without bypass", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Batch Field 1",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Batch Field 1",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		field2 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Batch Field 2",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Batch Field 2",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
@@ -228,9 +241,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should reject batch update if any field is protected without bypass", func(t *testing.T) {
 		nonProtected := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected in Batch",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected in Batch",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		protected := &model.PropertyField{
 			GroupID:           groupID,
@@ -270,9 +285,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should allow batch update with protected fields when bypass is true", func(t *testing.T) {
 		nonProtected := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Non-Protected Bypass Batch",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Non-Protected Bypass Batch",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		protected := &model.PropertyField{
 			GroupID:           groupID,
@@ -301,7 +318,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should fail to update if any field comes from a different property group", func(t *testing.T) {
 		// Create a field in a different group
-		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test-other-group", Version: model.PropertyGroupVersionV1})
+		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
 
 		fieldInOtherGroup := &model.PropertyField{
@@ -314,9 +331,11 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 		// Create a field in the main group
 		fieldInMainGroup := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field in Main Group",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field in Main Group",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		createdMain, appErr := th.App.CreatePropertyField(th.Context, fieldInMainGroup, false, "")
 		require.Nil(t, appErr)
@@ -418,14 +437,17 @@ func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID, err := th.App.CpaGroupID()
-	require.Nil(t, err)
+	group, appErr2 := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_delete_field_v2_group", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, appErr2)
+	groupID := group.ID
 
 	t.Run("should delete a non-protected field without bypass", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Delete",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Delete",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -495,7 +517,8 @@ func TestDeletePropertyField(t *testing.T) {
 			GroupID:    groupID,
 			Name:       "User Targeted Field",
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)

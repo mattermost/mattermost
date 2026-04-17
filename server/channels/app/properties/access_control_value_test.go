@@ -94,7 +94,7 @@ func TestCreatePropertyValue_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-value-create", Version: model.PropertyGroupVersionV1})
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_create", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -599,7 +599,7 @@ func TestGetPropertyValueReadAccess(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-value-read", Version: model.PropertyGroupVersionV1})
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_value_read", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -1064,7 +1064,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects values across multiple groups", func(t *testing.T) {
 		// Register a second group
-		group2, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test-group-create-values-2", Version: model.PropertyGroupVersionV1})
+		group2, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_2", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create fields in both groups
@@ -1124,7 +1124,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("rejects mixed groups before checking access control", func(t *testing.T) {
 		// Register a third group
-		group3, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test-group-create-values-3", Version: model.PropertyGroupVersionV1})
+		group3, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_group_create_values_3", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create public field in CPA group
@@ -1186,7 +1186,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-bulk", Version: model.PropertyGroupVersionV1})
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_bulk", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create two fields in non-CPA group
@@ -1234,7 +1234,7 @@ func TestCreatePropertyValues_WriteAccessControl(t *testing.T) {
 
 	t.Run("mixed CPA and non-CPA groups are rejected before access control", func(t *testing.T) {
 		// Register a non-CPA group
-		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-mixed", Version: model.PropertyGroupVersionV1})
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_mixed", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create protected field in CPA group via plugin API
