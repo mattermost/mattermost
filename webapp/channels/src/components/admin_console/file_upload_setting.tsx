@@ -4,6 +4,8 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import * as Utils from 'utils/utils';
 
 import Setting from './setting';
@@ -108,9 +110,9 @@ const FileUploadSetting = ({
         >
             <div>
                 <div className='file__upload'>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         disabled={disabled}
                         onClick={handleChooseClick}
                     >
@@ -118,7 +120,7 @@ const FileUploadSetting = ({
                             id='admin.file_upload.chooseFile'
                             defaultMessage='Choose File'
                         />
-                    </button>
+                    </Button>
                     <input
                         ref={fileInputRef}
                         type='file'
@@ -127,9 +129,9 @@ const FileUploadSetting = ({
                         onChange={handleChange}
                     />
                 </div>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     disabled={!isFileSelected}
                     onClick={handleSubmit}
                 >
@@ -148,7 +150,7 @@ const FileUploadSetting = ({
                             defaultMessage='Upload'
                         />
                     }
-                </button>
+                </Button>
                 <div className='help-text m-0'>
                     {fileName}
                 </div>

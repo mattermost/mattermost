@@ -4,6 +4,7 @@
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
@@ -220,15 +221,15 @@ const EnterpriseEditionRightPanel = ({
                     {subtitle()}
                 </div>
                 <div className='purchase_buttons'>
-                    <button
-                        className='btn btn-primary'
+                    <Button
+                        emphasis='primary'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
                             id='admin.license.contactSales'
                             defaultMessage='Questions? Contact sales'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

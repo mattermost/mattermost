@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
@@ -124,22 +125,22 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
-                </button>
-                <button
+                </Button>
+                <Button
                     data-testid='save-add-edit-button'
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={handleSave}
                     disabled={Boolean(CIDRError) || !CIDR.length || !name.length}
                 >
                     {existingRange ? formatMessage({id: 'admin.ip_filtering.update_filter', defaultMessage: 'Update filter'}) : formatMessage({id: 'admin.ip_filtering.save', defaultMessage: 'Save'})}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

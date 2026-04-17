@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -201,9 +202,9 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                             defaultMessage='Cancel'
                         />
                     </button>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         disabled={this.state.requestStarted}
                         onClick={this.handleSave}
                     >
@@ -211,7 +212,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                             id='edit_channel_purpose_modal.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

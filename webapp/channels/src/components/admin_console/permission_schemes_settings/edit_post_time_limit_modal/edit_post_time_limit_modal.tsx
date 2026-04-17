@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -154,20 +155,20 @@ export default function EditPostTimeLimitModal(props: Props) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={props.onClose}
                 >
                     <FormattedMessage
                         id='confirm_modal.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
-                <button
+                </Button>
+                <Button
                     id='linkModalCloseButton'
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={save}
                     disabled={saving}
                 >
@@ -182,7 +183,7 @@ export default function EditPostTimeLimitModal(props: Props) {
                             defaultMessage='Save Edit Time'
                         />
                     )}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

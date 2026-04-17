@@ -11,6 +11,7 @@ import {useHistory, useParams, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import {isRemoteClusterPatch, type RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -364,7 +365,7 @@ const Placeholder = (props: {filter: 'home' | 'remote'; rc: RemoteCluster}) => {
     );
 };
 
-const AddChannelsButton = styled.button.attrs({className: 'btn btn-primary'})`
+const AddChannelsButton = styled(Button)`
     padding-left: 15px;
 `;
 

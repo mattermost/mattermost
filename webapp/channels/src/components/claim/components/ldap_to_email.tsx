@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -184,15 +185,15 @@ const LDAPToEmail = (props: Props) => {
                     />
                 </div>
                 <ErrorLabel errorText={confirmError}/>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='claim.ldap_to_email.switchTo'
                         defaultMessage='Switch account to email/password'
                     />
-                </button>
+                </Button>
                 <ErrorLabel errorText={serverError}/>
             </form>
         </>

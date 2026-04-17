@@ -5,6 +5,7 @@ import React, {useState, useEffect, useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import MemberListGroup from 'components/admin_console/member_list_group';
@@ -63,15 +64,15 @@ const GroupMembersModal: React.FC<Props> = ({
                 />
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     autoFocus={true}
                     type='button'
-                    className='btn btn-primary'
+                    emphasis='primary'
                     onClick={handleHide}
                     id='closeModalButton'
                 >
                     {button}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

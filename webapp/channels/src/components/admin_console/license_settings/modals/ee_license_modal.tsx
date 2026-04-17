@@ -5,6 +5,7 @@ import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
@@ -58,12 +59,12 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
                     </div>
                 </div>
                 <div className='content-footer'>
-                    <button
+                    <Button
                         onClick={handleOnClose}
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         {'Close'}
-                    </button>
+                    </Button>
                 </div>
             </>
         </GenericModal>

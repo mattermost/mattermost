@@ -5,6 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
 
 import './no_permissions_view.scss';
@@ -43,9 +45,9 @@ export default function NoPermissionsView(props: Props) {
                 </div>
             </Modal.Body>
             <Modal.Footer className={props.footerClass}>
-                <button
+                <Button
                     onClick={props.onDone}
-                    className='btn btn-primary'
+                    emphasis='primary'
                     data-testid='confirm-done'
                     aria-label='Close'
                     title='Close'
@@ -54,7 +56,7 @@ export default function NoPermissionsView(props: Props) {
                         id='invitation_modal.confirm.done'
                         defaultMessage='Done'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </>
     );

@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system_svg';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -77,10 +79,10 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
         upgradeButton = (
             <div>
                 <p>
-                    <button
+                    <Button
                         type='button'
                         onClick={onHandleUpgrade}
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <LoadingWrapper
                             loading={upgradingPercentage > 0}
@@ -97,7 +99,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                                 defaultMessage='Upgrade to Enterprise Edition'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </p>
                 <p className='upgrade-legal-terms'>
                     <FormattedMessage
@@ -145,10 +147,10 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                     />
                 </p>
                 <p>
-                    <button
+                    <Button
                         type='button'
                         onClick={handleRestart}
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <LoadingWrapper
                             loading={restarting}
@@ -162,7 +164,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                                 defaultMessage='Restart Server'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </p>
                 {restartError && (
                     <div className='upgrade-error'>

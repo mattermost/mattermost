@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
@@ -123,16 +124,16 @@ const OAuthToEmail = (props: Props) => {
                     />
                 </div>
                 <ErrorLabel errorText={error}/>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='claim.oauth_to_email.switchTo'
                         defaultMessage='Switch {type} to Email and Password'
                         values={{type: uiType}}
                     />
-                </button>
+                </Button>
             </form>
         </>
     );

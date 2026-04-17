@@ -5,6 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 type Props = {
     show: boolean;
     onHide: () => void;
@@ -143,17 +145,17 @@ export default class GetLinkModal extends React.PureComponent<Props, State> {
                     {linkText}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         id='linkModalCloseButton'
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='get_link.close'
                             defaultMessage='Close'
                         />
-                    </button>
+                    </Button>
                     {copyLink}
                 </Modal.Footer>
             </Modal>

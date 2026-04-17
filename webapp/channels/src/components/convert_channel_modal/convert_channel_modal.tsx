@@ -5,6 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {General} from 'mattermost-redux/constants';
 
 import Constants from 'utils/constants';
@@ -111,9 +113,9 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             defaultMessage='No, cancel'
                         />
                     </button>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary'
+                        emphasis='primary'
                         data-dismiss='modal'
                         onClick={this.handleConvert}
                         autoFocus={true}
@@ -123,7 +125,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             id='convert_channel.confirm'
                             defaultMessage='Yes, convert to private channel'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );
