@@ -529,6 +529,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var failureMode atomic.Bool
 		failureMode.Store(true)
 		var successfulSyncs []string
+		var syncsMu sync.Mutex
 		var selfCluster *model.RemoteCluster
 		var syncHandler *SelfReferentialSyncHandler
 
@@ -596,10 +597,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Initialize sync handler with callbacks
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
+			syncsMu.Lock()
 			successfulSyncs = append(successfulSyncs, userIds...)
+			syncsMu.Unlock()
 		}
 		syncHandler.OnIndividualSync = func(userId string, messageNumber int32) {
+			syncsMu.Lock()
 			successfulSyncs = append(successfulSyncs, userId)
+			syncsMu.Unlock()
 		}
 
 		// Add a user to sync
@@ -620,7 +625,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		initialAttempts := syncAttempts.Load()
 		assert.Greater(t, initialAttempts, int32(0), "Should have attempted sync")
+		syncsMu.Lock()
 		assert.Empty(t, successfulSyncs, "No successful syncs during failure mode")
+		syncsMu.Unlock()
 
 		// Recover from failure mode
 		failureMode.Store(false)
@@ -630,6 +637,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for successful sync with more robust checking
 		require.Eventually(t, func() bool {
+			syncsMu.Lock()
+			defer syncsMu.Unlock()
 			return slices.Contains(successfulSyncs, testUser.Id)
 		}, 15*time.Second, 100*time.Millisecond, "Should have successful sync after recovery")
 
