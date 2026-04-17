@@ -122,7 +122,7 @@ func TestRegisterPluginForSharedChannels(t *testing.T) {
 
 		rc, err := th.App.Srv().Store().RemoteCluster().Get(remoteID, false)
 		require.NoError(t, err)
-		require.Equal(t, model.SiteURLPlugin+pluginID, rc.SiteURL)
+		require.Equal(t, "plugin_"+pluginID, rc.SiteURL)
 	})
 
 	t.Run("cross-plugin SiteURL collision returns error", func(t *testing.T) {
@@ -206,6 +206,11 @@ func TestUnregisterPluginRemoteForSharedChannels(t *testing.T) {
 
 		err = th.App.UnregisterPluginRemoteForSharedChannels(pluginID, remoteID)
 		require.NoError(t, err)
+
+		// Verify the remote is actually deleted
+		rc, storeErr := th.App.Srv().Store().RemoteCluster().Get(remoteID, false)
+		require.Error(t, storeErr, "deleted remote should not be found with includeDeleted=false")
+		require.Nil(t, rc)
 
 		// Second call should be a no-op (idempotent)
 		err = th.App.UnregisterPluginRemoteForSharedChannels(pluginID, remoteID)
