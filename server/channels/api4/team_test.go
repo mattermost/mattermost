@@ -4898,10 +4898,12 @@ func TestImportTeamNilLicense(t *testing.T) {
 		// We send a minimal multipart request that will fail validation but should not panic.
 		var b bytes.Buffer
 		w := multipart.NewWriter(&b)
-		w.WriteField("importFrom", "slack")
-		w.WriteField("filesize", "100")
-		part, _ := w.CreateFormFile("file", "import.zip")
-		part.Write([]byte("fake"))
+		require.NoError(t, w.WriteField("importFrom", "slack"))
+		require.NoError(t, w.WriteField("filesize", "100"))
+		part, err := w.CreateFormFile("file", "import.zip")
+		require.NoError(t, err)
+		_, err = part.Write([]byte("fake"))
+		require.NoError(t, err)
 		w.Close()
 
 		req, _ := http.NewRequest("POST", th.SystemAdminClient.APIURL+"/teams/"+th.BasicTeam.Id+"/import", &b)
