@@ -179,7 +179,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.0%2Bc4449ac-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4%2B5855fe1-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
