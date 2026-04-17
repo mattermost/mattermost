@@ -10037,15 +10037,15 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
+    "translation": "Nie można zaktualizować pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
+    "translation": "Nie znaleziono pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Nie można przeszukiwać pól atrybutów profilu niestandardowego"
+    "translation": "Nie można szukać pól Atrybutów użytkownika"
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
@@ -10153,7 +10153,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Nie można wstawić pól atrybutów profilu niestandardowego"
+    "translation": "Nie można wstawić pól Atrybutów użytkownika"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -12198,5 +12198,153 @@
   {
     "id": "app.custom_profile_attributes.get_property_value.app_error",
     "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Polityka o tej Nazwie już istnieje. Wybierz inną nazwę."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Nie można pobrać postów dla widoku."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Nie można policzyć pól właściwości dla grupy."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Nie można policzyć pól właściwości dla celu."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Nie można utworzyć pola właściwości."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Nie można utworzyć właściwości \"{{.Name}}\": właściwość o tej nazwie już istnieje na poziomie {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Nie można utworzyć chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Nie można usunąć pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Nie można uzyskać pola właściwości do usunięcia."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Nie znaleziono pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Nie można usunąć chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Nie można uzyskać pola właściwości."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Nie można uzyskać pola właściwości po nazwie."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Nie można uzyskać pola właściwości."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "Co najmniej jeden identyfikator pola właściwości nie został znaleziony w określonej grupie."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Podano nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Nie można szukać pól właściwości."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Nie można zaktualizować pól właściwości."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Nie można pobrać pól właściwości do aktualizacji."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Nie można zaktualizować właściwości do \"{{.Name}}\": właściwość o tej nazwie już istnieje na poziomie {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Nie można zaktualizować chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Nie można uzyskać grupy właściwości."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Nie można zarejestrować grupy właściwości."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Nie można utworzyć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Nie można utworzyć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Nie można usunąć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Nie można usunąć wartości właściwości dla pola."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Nie można usunąć wartości właściwości dla celu."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Nie można uzyskać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Nie można pozyskać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Podano nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Nierozpoznany typ obiektu \"{{.ObjectType}}\" dla wartości właściwości broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Nie można szukać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Nie można zaktualizować wartości właściwości."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Nie można zaktualizować wartości właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Nie można wstawić wartości właściwości."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Nie można wstawić wartości właściwości."
   }
 ]
