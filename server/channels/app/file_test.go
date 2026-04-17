@@ -1155,7 +1155,6 @@ func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
 func TestCheckMandatoryS3FieldsNilLicense(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("nil license does not panic", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
