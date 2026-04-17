@@ -71,25 +71,36 @@ func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField)
 //   - PermissionValues is set to sysadmin when managed="admin", and to
 //     member otherwise, so that regular users can write their own values
 //     on non-admin-managed fields.
-//   - Setting managed="admin" requires PermissionManageSystem.
+//   - Setting managed="admin" requires PermissionManageSystem. Callers
+//     without an identifiable caller ID (e.g. internal callers with no
+//     session on rctx) are treated as non-admin and rejected.
 func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	managed, _ := field.Attrs[model.CustomProfileAttributesPropertyAttrsManaged].(string)
 	sysadmin := model.PermissionLevelSysadmin
 	member := model.PermissionLevelMember
 
 	if managed == "admin" {
-		// Verify the caller has admin privileges.
-		if h.permissionChecker != nil {
-			callerID := h.propertyService.extractCallerID(rctx)
-			if callerID != "" && !h.permissionChecker(callerID, model.PermissionManageSystem) {
-				return nil, model.NewAppError(
-					"enforceGroupPermissions",
-					"app.property_field.managed_admin.permission.app_error",
-					nil,
-					"only system admins can set managed=admin",
-					http.StatusForbidden,
-				)
-			}
+		// Verify the caller has admin privileges. Default-deny if the
+		// permission checker isn't wired up or if the caller is
+		// unidentifiable — we never silently promote to sysadmin.
+		if h.permissionChecker == nil {
+			return nil, model.NewAppError(
+				"enforceGroupPermissions",
+				"app.property_field.managed_admin.permission.app_error",
+				nil,
+				"cannot set managed=admin: no permission checker configured",
+				http.StatusForbidden,
+			)
+		}
+		callerID := h.propertyService.extractCallerID(rctx)
+		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
+			return nil, model.NewAppError(
+				"enforceGroupPermissions",
+				"app.property_field.managed_admin.permission.app_error",
+				nil,
+				"only system admins can set managed=admin",
+				http.StatusForbidden,
+			)
 		}
 		field.PermissionValues = &sysadmin
 	} else {

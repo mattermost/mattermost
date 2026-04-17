@@ -277,57 +277,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
 
-	cpaGroup, err := s.propertyService.Group(model.ProtectedAttributesPropertyGroupName)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to look up CPA property group")
-	}
-
-	// License check hook — must run before other hooks so unlicensed
-	// operations are rejected early.
-	licenseCheckHook := properties.NewLicenseCheckHook(func() *model.License {
-		return s.License()
-	}, cpaGroup.ID)
-	s.propertyService.AddHook(licenseCheckHook)
-
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
-		if s.ch == nil {
-			return false
-		}
-
-		_, err := s.ch.GetPluginStatus(pluginID)
-		return err == nil
-	}, cpaGroup.ID)
-	s.propertyService.AddHook(accessControlHook)
-
-	// Attribute sanitization hook — normalizes values (trims whitespace,
-	// filters empty array entries) before validation.
-	attrSanitizationHook := properties.NewAttributeSanitizationHook(s.propertyService, cpaGroup.ID)
-	s.propertyService.AddHook(attrSanitizationHook)
-
-	// Attribute validation hook — validates visibility, sort_order on fields,
-	// field-type constraints on values (options, user IDs, value_type), and
-	// managed-flag authorization + permission level enforcement.
-	permChecker := func(userID string, perm *model.Permission) bool {
-		if s.ch == nil {
-			mlog.Error("permChecker called before Channels is initialized, denying permission",
-				mlog.String("user_id", userID), mlog.String("permission", perm.Id))
-			return false
-		}
-		return (&App{ch: s.ch}).HasPermissionTo(userID, perm)
-	}
-	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
-	s.propertyService.AddHook(attrValidationHook)
-
-	// Field limit hook — enforces per-object-type and global field limits.
-	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
-	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
-		PerObjectType: map[string]int64{
-			model.PropertyFieldObjectTypeUser: 20,
-		},
-		GlobalLimit: 200,
-	})
-	s.propertyService.AddHook(fieldLimitHook)
-
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
@@ -349,6 +298,59 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// After channel is initialized set it to the App object
 	app := New(ServerConnector(channels))
+
+	// Register property-service hooks AFTER s.ch is populated. The
+	// access-control and attribute-validation hooks capture s and use
+	// s.ch for plugin-status and permission lookups; registering them
+	// earlier leaves a window where hook invocations race against a
+	// nil s.ch.
+	cpaGroup, err := s.propertyService.Group(model.ProtectedAttributesPropertyGroupName)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to look up CPA property group")
+	}
+
+	// License check hook — must run before other hooks so unlicensed
+	// operations are rejected early.
+	licenseCheckHook := properties.NewLicenseCheckHook(func() *model.License {
+		return s.License()
+	}, cpaGroup.ID)
+	s.propertyService.AddHook(licenseCheckHook)
+
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, func(pluginID string) bool {
+		_, err := s.ch.GetPluginStatus(pluginID)
+		return err == nil
+	}, cpaGroup.ID)
+	s.propertyService.AddHook(accessControlHook)
+
+	// Attribute sanitization hook — normalizes values (trims whitespace,
+	// filters empty array entries) before validation.
+	attrSanitizationHook := properties.NewAttributeSanitizationHook(s.propertyService, cpaGroup.ID)
+	s.propertyService.AddHook(attrSanitizationHook)
+
+	// Attribute validation hook — validates visibility, sort_order on fields,
+	// field-type constraints on values (options, user IDs, value_type), and
+	// managed-flag authorization + permission level enforcement.
+	permChecker := func(userID string, perm *model.Permission) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them admin
+		// permissions without a user lookup.
+		if userID == model.CallerIDLocalAdmin {
+			return true
+		}
+		return (&App{ch: s.ch}).HasPermissionTo(userID, perm)
+	}
+	attrValidationHook := properties.NewAttributeValidationHook(s.propertyService, permChecker, cpaGroup.ID)
+	s.propertyService.AddHook(attrValidationHook)
+
+	// Field limit hook — enforces per-object-type and global field limits.
+	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
+	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
+		PerObjectType: map[string]int64{
+			model.PropertyFieldObjectTypeUser: 20,
+		},
+		GlobalLimit: 200,
+	})
+	s.propertyService.AddHook(fieldLimitHook)
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.

@@ -560,8 +560,14 @@ func TestAttributeValidationHook(t *testing.T) {
 	})
 
 	// Group permission enforcement tests
+	//
+	// These tests run with the hook configured with a nil permissionChecker
+	// (see the Setup block at the top of this test function). In that
+	// configuration, managed="admin" is default-denied since there is no
+	// way to verify the caller's admin status. The "allowed" side of the
+	// authorization matrix is covered in TestAttributeValidationHookManagedAuthorization.
 
-	t.Run("create field with managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {
+	t.Run("create field with managed=admin is rejected when no permission checker is configured", func(t *testing.T) {
 		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -572,14 +578,9 @@ func TestAttributeValidationHook(t *testing.T) {
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 			},
 		}
-		created, createErr := th.service.CreatePropertyField(th.Context, field)
-		require.NoError(t, createErr)
-		require.NotNil(t, created.PermissionValues)
-		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
-		require.NotNil(t, created.PermissionField)
-		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
-		require.NotNil(t, created.PermissionOptions)
-		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "managed=admin")
 	})
 
 	t.Run("create field without managed sets PermissionValues to member", func(t *testing.T) {
@@ -601,7 +602,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
 	})
 
-	t.Run("update field to managed=admin sets PermissionValues to sysadmin", func(t *testing.T) {
+	t.Run("update field to managed=admin is rejected when no permission checker is configured", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       "field_" + model.NewId(),
@@ -614,10 +615,9 @@ func TestAttributeValidationHook(t *testing.T) {
 		field.Attrs = model.StringInterface{
 			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 		}
-		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
-		require.NoError(t, updateErr)
-		require.NotNil(t, updated.PermissionValues)
-		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "managed=admin")
 	})
 
 	t.Run("update field to remove managed sets PermissionValues to member", func(t *testing.T) {
@@ -802,5 +802,24 @@ func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 		require.NoError(t, createErr)
 		// PermissionValues should NOT be set by the hook for unmanaged groups
 		assert.Nil(t, created.PermissionValues)
+	})
+
+	t.Run("empty caller ID is rejected (default-deny for unidentified callers)", func(t *testing.T) {
+		// th.Context has no caller ID set. The hook must treat this as
+		// non-admin and block managed=admin rather than silently
+		// promoting to sysadmin.
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+			},
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		assert.Contains(t, createErr.Error(), "managed=admin")
 	})
 }

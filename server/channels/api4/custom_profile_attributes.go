@@ -27,7 +27,7 @@ func (api *API) InitCustomProfileAttributes() {
 }
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
@@ -292,7 +292,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
@@ -300,8 +300,9 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	values, appErr := c.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
-		TargetIDs: []string{c.Params.UserId},
-		PerPage:   200,
+		TargetIDs:  []string{c.Params.UserId},
+		TargetType: model.PropertyValueTargetTypeUser,
+		PerPage:    200,
 	})
 	if appErr != nil {
 		c.Err = appErr

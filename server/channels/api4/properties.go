@@ -417,12 +417,24 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // These are called by both the generic property API handlers and the CPA
 // translation-shim handlers to keep authorization in a single place.
 
+// sessionCallerID returns the caller ID to attach to a request-derived rctx
+// for property-service hook identification. Local-mode (unrestricted)
+// sessions have an empty Session.UserId but full admin privileges, so they
+// are tagged with CallerIDLocalAdmin instead.
+func sessionCallerID(c *Context) string {
+	session := c.AppContext.Session()
+	if session.IsUnrestricted() {
+		return model.CallerIDLocalAdmin
+	}
+	return session.UserId
+}
+
 // executeCreatePropertyField performs scope-based permission checks, sets
 // default permission levels, and creates the field. The caller must set
 // GroupID, ObjectType and TargetType on the field before calling.
 // Returns the created field or nil with c.Err set.
 func executeCreatePropertyField(c *Context, r *http.Request, field *model.PropertyField) *model.PropertyField {
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	if field.Protected {
 		c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
@@ -501,7 +513,7 @@ func executeCreatePropertyField(c *Context, r *http.Request, field *model.Proper
 // c.Err is set and updated is nil; original may still be non-nil if the
 // field was loaded before the error occurred.
 func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType, fieldID string, patch *model.PropertyFieldPatch) (updated, original *model.PropertyField) {
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	existingField, err := c.App.GetPropertyField(rctx, groupID, fieldID)
 	if err != nil {
@@ -568,7 +580,7 @@ func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType,
 // executeDeletePropertyField loads the existing field, checks permissions,
 // and deletes it. Returns the deleted field (for audit) or nil with c.Err set.
 func executeDeletePropertyField(c *Context, r *http.Request, groupID, objectType, fieldID string) *model.PropertyField {
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	existingField, err := c.App.GetPropertyField(rctx, groupID, fieldID)
 	if err != nil {
@@ -605,7 +617,7 @@ func executeDeletePropertyField(c *Context, r *http.Request, groupID, objectType
 // validates fields, checks per-field permissions, and upserts values.
 // Returns the upserted values or nil with c.Err set.
 func executePatchPropertyValues(c *Context, r *http.Request, groupName, objectType, targetID string, items []model.PropertyValuePatchItem) []*model.PropertyValue {
-	rctx := app.RequestContextWithCallerID(c.AppContext, c.AppContext.Session().UserId)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	if !hasTargetAccess(c, objectType, targetID, true) {
 		return nil

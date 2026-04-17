@@ -147,6 +147,23 @@ func (ps *PropertyService) UpdatePropertyValue(rctx request.CTX, groupID string,
 }
 
 func (ps *PropertyService) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if len(values) == 0 {
+		return values, nil
+	}
+
+	// Hooks gate on values[0].GroupID for batch operations, so enforce
+	// single-group batches at the public boundary — otherwise a mixed
+	// batch could silently bypass per-group hook logic (license,
+	// validation, access control).
+	for i, v := range values {
+		if v == nil {
+			return nil, fmt.Errorf("UpdatePropertyValues: nil element at index %d", i)
+		}
+		if v.GroupID != values[0].GroupID {
+			return nil, fmt.Errorf("UpdatePropertyValues: mixed group IDs in batch")
+		}
+	}
+
 	values, err := ps.runPreUpdatePropertyValues(rctx, groupID, values)
 	if err != nil {
 		return nil, fmt.Errorf("UpdatePropertyValues: %w", err)

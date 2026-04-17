@@ -10,7 +10,9 @@ SET ObjectType        = '',
     PermissionField   = NULL,
     PermissionValues  = NULL,
     PermissionOptions = NULL
-WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'custom_profile_attributes');
+WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'custom_profile_attributes')
+  AND ObjectType = 'user'
+  AND TargetType = 'system';
 
 -- Restore the materialized view without the ObjectType filter (000137 version).
 DROP MATERIALIZED VIEW IF EXISTS AttributeView;

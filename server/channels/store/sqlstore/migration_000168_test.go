@@ -206,6 +206,99 @@ func TestMigration000168(t *testing.T) {
 	assert.Equal(t, groupID, val.GroupID, "value GroupID should remain unchanged after down")
 }
 
+func TestMigration000168DownPreservesNonUserFields(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
+	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
+	if err != nil {
+		t.Skip(err)
+	}
+
+	store, err := New(*settings, logger, nil)
+	require.NoError(t, err)
+	defer store.Close()
+
+	master := store.GetMaster()
+
+	upSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.up.sql")
+	downSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.down.sql")
+
+	groupID := model.NewId()
+	_, err = master.Exec("INSERT INTO PropertyGroups (ID, Name) VALUES (?, ?)", groupID, "custom_profile_attributes")
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		master.Exec("DELETE FROM PropertyFields WHERE GroupID = ?", groupID) //nolint:errcheck
+		master.Exec("DELETE FROM PropertyGroups WHERE ID = ?", groupID)      //nolint:errcheck
+	})
+
+	now := model.GetMillis()
+
+	// Insert a legacy user field that the up migration will touch.
+	userFieldID := model.NewId()
+	_, err = master.Exec(
+		`INSERT INTO PropertyFields
+			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, CreateAt, UpdateAt, DeleteAt, Protected)
+		VALUES (?, ?, 'Legacy User Field', 'text', '{}'::jsonb, '', '', '', ?, ?, 0, false)`,
+		userFieldID, groupID, now, now,
+	)
+	require.NoError(t, err)
+
+	// Run UP migration — legacy user field gets ObjectType='user', TargetType='system'.
+	_, err = master.ExecNoTimeout(upSQL)
+	require.NoError(t, err, "up migration should succeed")
+
+	// Simulate a post-migration channel-scoped field created via the
+	// generic property API against the (now renamed) protected_attributes
+	// group.
+	channelFieldID := model.NewId()
+	channelTargetID := model.NewId()
+	_, err = master.Exec(
+		`INSERT INTO PropertyFields
+			(ID, GroupID, Name, Type, Attrs, TargetID, TargetType, ObjectType, PermissionField, PermissionValues, PermissionOptions, CreateAt, UpdateAt, DeleteAt, Protected)
+		VALUES (?, ?, 'Channel Classification', 'select', '{}'::jsonb, ?, 'channel', 'channel', 'sysadmin', 'member', 'sysadmin', ?, ?, 0, false)`,
+		channelFieldID, groupID, channelTargetID, now, now,
+	)
+	require.NoError(t, err)
+
+	// Run DOWN migration — must revert only user/system fields, not the channel one.
+	_, err = master.ExecNoTimeout(downSQL)
+	require.NoError(t, err, "down migration should succeed")
+
+	// The original user field reverts to legacy metadata.
+	var userField struct {
+		ObjectType        string         `db:"objecttype"`
+		TargetType        string         `db:"targettype"`
+		PermissionField   sql.NullString `db:"permissionfield"`
+		PermissionValues  sql.NullString `db:"permissionvalues"`
+		PermissionOptions sql.NullString `db:"permissionoptions"`
+	}
+	require.NoError(t, master.Get(&userField, "SELECT ObjectType, TargetType, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", userFieldID))
+	assert.Equal(t, "", userField.ObjectType, "user field ObjectType should revert")
+	assert.Equal(t, "", userField.TargetType, "user field TargetType should revert")
+	assert.False(t, userField.PermissionField.Valid, "user field PermissionField should be NULL")
+
+	// The post-migration channel field keeps its PSAv2 metadata intact.
+	var channelField struct {
+		ObjectType        string         `db:"objecttype"`
+		TargetType        string         `db:"targettype"`
+		TargetID          string         `db:"targetid"`
+		PermissionField   sql.NullString `db:"permissionfield"`
+		PermissionValues  sql.NullString `db:"permissionvalues"`
+		PermissionOptions sql.NullString `db:"permissionoptions"`
+	}
+	require.NoError(t, master.Get(&channelField, "SELECT ObjectType, TargetType, TargetID, PermissionField, PermissionValues, PermissionOptions FROM PropertyFields WHERE ID = ?", channelFieldID))
+	assert.Equal(t, "channel", channelField.ObjectType, "channel field ObjectType must survive rollback")
+	assert.Equal(t, "channel", channelField.TargetType, "channel field TargetType must survive rollback")
+	assert.Equal(t, channelTargetID, channelField.TargetID, "channel field TargetID must survive rollback")
+	assert.True(t, channelField.PermissionField.Valid, "channel field PermissionField must survive rollback")
+	assert.Equal(t, "sysadmin", channelField.PermissionField.String)
+	assert.True(t, channelField.PermissionValues.Valid)
+	assert.Equal(t, "member", channelField.PermissionValues.String)
+	assert.True(t, channelField.PermissionOptions.Valid)
+	assert.Equal(t, "sysadmin", channelField.PermissionOptions.String)
+}
+
 func TestMigration000168NoOpOnFreshDB(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 

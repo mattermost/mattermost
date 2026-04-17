@@ -141,4 +141,12 @@ func TestCallerIDConstants(t *testing.T) {
 	require.NotEmpty(t, CallerIDLDAPSync)
 	require.NotEmpty(t, CallerIDSAMLSync)
 	require.NotEqual(t, CallerIDLDAPSync, CallerIDSAMLSync)
+
+	// The sync caller IDs must not be valid plugin IDs, otherwise an
+	// admin-installed plugin could set its manifest ID to one of these
+	// values and bypass the sync-lock check for LDAP/SAML-managed fields.
+	require.False(t, IsValidPluginId(CallerIDLDAPSync),
+		"CallerIDLDAPSync must not be a valid plugin ID")
+	require.False(t, IsValidPluginId(CallerIDSAMLSync),
+		"CallerIDSAMLSync must not be a valid plugin ID")
 }

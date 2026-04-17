@@ -175,8 +175,9 @@ func (th *TestHelper) GetCPAValue(tb testing.TB, valueID string) (*model.Propert
 func (th *TestHelper) ListCPAValues(tb testing.TB, userID string) ([]*model.PropertyValue, *model.AppError) {
 	tb.Helper()
 	return th.App.SearchPropertyValues(request.TestContext(tb), th.CpaGroupID(tb), model.PropertyValueSearchOpts{
-		TargetIDs: []string{userID},
-		PerPage:   200,
+		TargetIDs:  []string{userID},
+		TargetType: model.PropertyValueTargetTypeUser,
+		PerPage:    200,
 	})
 }
 

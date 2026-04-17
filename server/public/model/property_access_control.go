@@ -14,9 +14,20 @@ const AccessControlCallerIDContextKey AccessControlContextKey = "access_control_
 // Well-known caller IDs for internal services that need to write property
 // values on synced fields. These are set on the request context by the
 // respective sync services so that the access control hook can identify them.
+//
+// The "system:" prefix contains a colon, which is not a valid character in a
+// plugin ID (see IsValidPluginId). That guarantees these values cannot be
+// forged by a plugin whose manifest ID is used as its caller ID.
+//
+// CallerIDLocalAdmin marks a request as originating from a local-mode
+// (unrestricted) session, which has an empty Session.UserId but full admin
+// privileges. HTTP handlers tag the rctx with this caller ID when
+// Session().IsUnrestricted() is true, so the attribute validation hook's
+// permission checker can grant admin privileges without a user lookup.
 const (
-	CallerIDLDAPSync = "ldap_sync"
-	CallerIDSAMLSync = "saml_sync"
+	CallerIDLDAPSync   = "system:ldap_sync"
+	CallerIDSAMLSync   = "system:saml_sync"
+	CallerIDLocalAdmin = "system:local_admin"
 )
 
 // WithCallerID adds the caller ID to a context.Context for access control purposes.
