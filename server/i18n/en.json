@@ -1286,6 +1286,10 @@
     "translation": "me"
   },
   {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Unable to change mobile log settings for that user."
+  },
+  {
     "id": "api.command_mobile_logs.desc",
     "translation": "Manage mobile app log attachment for yourself or another user."
   },
@@ -1304,14 +1308,6 @@
   {
     "id": "api.command_mobile_logs.name",
     "translation": "mobile-logs"
-  },
-  {
-    "id": "api.command_mobile_logs.no_permission.app_error",
-    "translation": "You do not have permission to modify another user's settings."
-  },
-  {
-    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
-    "translation": "Unable to change mobile log settings for that user."
   },
   {
     "id": "api.command_mobile_logs.status_off",
