@@ -670,6 +670,8 @@
   "admin.classification_markings.levels.table.text.input": "Classification level name",
   "admin.classification_markings.levels.title": "Classification levels",
   "admin.classification_markings.load_error": "Failed to load classification markings: {error}",
+  "admin.classification_markings.notice.body": "Markings are not tied to access control decisions at this time and are for display purposes only.",
+  "admin.classification_markings.notice.title": "Classification markings are informational only",
   "admin.classification_markings.preset_switch.confirm": "Change preset",
   "admin.classification_markings.preset_switch.message": "Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.",
   "admin.classification_markings.preset_switch.title": "Change classification preset?",

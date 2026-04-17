@@ -21,6 +21,7 @@ import ConfirmModal from 'components/confirm_modal';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 import LoadingScreen from 'components/loading_screen';
+import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import ClassificationColorInput from './classification_color_input';
@@ -29,6 +30,7 @@ import {
     AddLevelButton,
     AddLevelButtonRow,
     ClassificationLevelsSectionContent,
+    InformationNoticeWrapper,
     ColHeaderLeft,
     ColorCellWrapper,
     ColorSwatch,
@@ -63,6 +65,8 @@ const msg = defineMessages({
     levelsTitle: {id: 'admin.classification_markings.levels.title', defaultMessage: 'Classification levels'},
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     colorOpenPicker: {id: 'admin.classification_markings.color.open_picker', defaultMessage: 'Open color picker'},
+    informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
+    informationalNoticeBody: {id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'},
 });
 
 type Props = {
@@ -439,6 +443,14 @@ export default function ClassificationMarkings({disabled}: Props) {
                 <FormattedMessage {...msg.pageTitle}/>
             </AdminHeader>
             <AdminWrapper>
+                <InformationNoticeWrapper>
+                    <SectionNotice
+                        type='warning'
+                        iconOverride='icon-information-outline'
+                        title={<FormattedMessage {...msg.informationalNoticeTitle}/>}
+                        text={formatMessage(msg.informationalNoticeBody)}
+                    />
+                </InformationNoticeWrapper>
                 <form
                     className='form-horizontal'
                     onSubmit={(e) => e.preventDefault()}

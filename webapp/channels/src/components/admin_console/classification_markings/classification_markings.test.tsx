@@ -291,6 +291,19 @@ describe('ClassificationMarkings component', () => {
         expect(screen.getByText(/Network error/)).toBeInTheDocument();
     });
 
+    test('should show informational notice when loaded', async () => {
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
+
+        renderWithContext(<ClassificationMarkings/>);
+
+        await screen.findByText('True');
+
+        expect(screen.getByRole('heading', {name: 'Classification markings are informational only'})).toBeInTheDocument();
+        expect(
+            screen.getByText('Markings are not tied to access control decisions at this time and are for display purposes only.'),
+        ).toBeInTheDocument();
+    });
+
     test('should render disabled state when no existing field', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 

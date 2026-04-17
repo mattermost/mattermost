@@ -5,6 +5,14 @@ import styled from 'styled-components';
 
 import {SectionContent} from '../system_properties/controls';
 
+export const InformationNoticeWrapper = styled.div`
+    margin-bottom: 16px;
+
+    h4 {
+        margin: 0;
+    }
+`;
+
 export const PresetDropdownWrapper = styled.div`
     max-width: 500px;
 
