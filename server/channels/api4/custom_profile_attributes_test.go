@@ -1268,3 +1268,352 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		}, "batch update with managed fields succeeds for admin")
 	})
 }
+
+// TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin can write
+// their own non-admin-managed CPA value through the generic property API
+// (/api/v4/properties/protected_attributes/...). The request travels through
+// hasTargetAccess (self-target short-circuit) and the per-field permission
+// check (PermissionValues="member" → scope-based access).
+func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	field := &model.PropertyField{
+		Name: model.NewId(),
+		Type: model.PropertyFieldTypeText,
+	}
+	createdField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, createdField)
+
+	value := "Self Value"
+	items := []model.PropertyValuePatchItem{{
+		FieldID: createdField.ID,
+		Value:   json.RawMessage(fmt.Sprintf(`%q`, value)),
+	}}
+
+	upserted, resp, err := th.Client.PatchPropertyValues(
+		context.Background(),
+		model.ProtectedAttributesPropertyGroupName,
+		model.PropertyFieldObjectTypeUser,
+		th.BasicUser.Id,
+		items,
+	)
+	CheckOKStatus(t, resp)
+	require.NoError(t, err)
+	require.Len(t, upserted, 1)
+	require.Equal(t, createdField.ID, upserted[0].FieldID)
+	require.Equal(t, th.BasicUser.Id, upserted[0].TargetID)
+	require.Equal(t, model.PropertyValueTargetTypeUser, upserted[0].TargetType)
+
+	var actualValue string
+	require.NoError(t, json.Unmarshal(upserted[0].Value, &actualValue))
+	require.Equal(t, value, actualValue)
+
+	// Verify the write persisted via a generic-API read on the same target.
+	stored, resp, err := th.Client.GetPropertyValues(
+		context.Background(),
+		model.ProtectedAttributesPropertyGroupName,
+		model.PropertyFieldObjectTypeUser,
+		th.BasicUser.Id,
+		model.PropertyValueSearch{PerPage: 60},
+	)
+	CheckOKStatus(t, resp)
+	require.NoError(t, err)
+	require.Len(t, stored, 1)
+	require.Equal(t, createdField.ID, stored[0].FieldID)
+
+	var readValue string
+	require.NoError(t, json.Unmarshal(stored[0].Value, &readValue))
+	require.Equal(t, value, readValue)
+}
+
+// TestCPANonAdminBlockedFromAdminManagedViaGenericAPI confirms the generic
+// property API denies a non-admin caller writing to an admin-managed field,
+// producing the same error ID as the CPA-path test at line ~745. The 403
+// fires at the per-field permission check in executePatchPropertyValues
+// before the hook chain runs, since AttributeValidationHook.enforceGroupPermissions
+// pinned PermissionValues=sysadmin at field-create time.
+func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	managedField := &model.PropertyField{
+		Name: model.NewId(),
+		Type: model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
+		},
+	}
+	createdManagedField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), managedField)
+	CheckCreatedStatus(t, resp)
+	require.NoError(t, err)
+	require.NotNil(t, createdManagedField)
+
+	items := []model.PropertyValuePatchItem{{
+		FieldID: createdManagedField.ID,
+		Value:   json.RawMessage(`"Non-Admin Value"`),
+	}}
+
+	t.Run("non-admin writing own admin-managed value is forbidden", func(t *testing.T) {
+		_, resp, err := th.Client.PatchPropertyValues(
+			context.Background(),
+			model.ProtectedAttributesPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			th.BasicUser.Id,
+			items,
+		)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.property_value.patch.no_values_permission.app_error")
+	})
+
+	t.Run("admin writing same admin-managed value succeeds", func(t *testing.T) {
+		adminItems := []model.PropertyValuePatchItem{{
+			FieldID: createdManagedField.ID,
+			Value:   json.RawMessage(`"Admin Value"`),
+		}}
+		upserted, resp, err := th.SystemAdminClient.PatchPropertyValues(
+			context.Background(),
+			model.ProtectedAttributesPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			th.BasicUser.Id,
+			adminItems,
+		)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, upserted, 1)
+
+		var actualValue string
+		require.NoError(t, json.Unmarshal(upserted[0].Value, &actualValue))
+		require.Equal(t, "Admin Value", actualValue)
+	})
+}
+
+// TestCPACrossAPIFieldRoundtrip verifies that a CPA field created via one
+// API surface reads back equivalently from the other. We deliberately do
+// not do a full map-equality on Attrs: ToPropertyField packs empty-string
+// defaults for every CPA-known key, so CPA→generic→CPA is lossy at the
+// map level. Compare the explicit set of fields that should match instead.
+func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("create via CPA API, read via generic API", func(t *testing.T) {
+		name := model.NewId()
+		field := &model.PropertyField{
+			Name: name,
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsValueType:  model.CustomProfileAttributesValueTypeEmail,
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  5,
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		listed, resp, err := th.SystemAdminClient.GetPropertyFields(
+			context.Background(),
+			model.ProtectedAttributesPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			model.PropertyFieldSearch{
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+				PerPage:    60,
+			},
+		)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var found *model.PropertyField
+		for _, pf := range listed {
+			if pf.ID == created.ID {
+				found = pf
+				break
+			}
+		}
+		require.NotNil(t, found, "field created via CPA API should be readable via generic API")
+
+		require.Equal(t, created.ID, found.ID)
+		require.Equal(t, name, found.Name)
+		require.Equal(t, created.Type, found.Type)
+		require.Equal(t, created.GroupID, found.GroupID)
+		require.Equal(t, model.PropertyFieldObjectTypeUser, found.ObjectType)
+		require.Equal(t, string(model.PropertyFieldTargetLevelSystem), found.TargetType)
+		require.Empty(t, found.TargetID)
+		require.Equal(t, created.CreatedBy, found.CreatedBy)
+		require.Equal(t, created.CreateAt, found.CreateAt)
+		require.Equal(t, int64(0), found.DeleteAt)
+		require.Equal(t, created.PermissionField, found.PermissionField)
+		require.Equal(t, created.PermissionValues, found.PermissionValues)
+		require.Equal(t, created.PermissionOptions, found.PermissionOptions)
+
+		require.Equal(t, model.CustomProfileAttributesValueTypeEmail, found.Attrs[model.CustomProfileAttributesPropertyAttrsValueType])
+		require.EqualValues(t, 5, found.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, found.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+	})
+
+	t.Run("create via generic API, read via CPA API", func(t *testing.T) {
+		name := model.NewId()
+		field := &model.PropertyField{
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsSortOrder:  3,
+				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityAlways,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreatePropertyField(
+			context.Background(),
+			model.ProtectedAttributesPropertyGroupName,
+			model.PropertyFieldObjectTypeUser,
+			field,
+		)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotNil(t, created)
+
+		listed, resp, err := th.SystemAdminClient.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		var found *model.PropertyField
+		for _, pf := range listed {
+			if pf.ID == created.ID {
+				found = pf
+				break
+			}
+		}
+		require.NotNil(t, found, "field created via generic API should be readable via CPA ListCPAFields")
+
+		require.Equal(t, created.ID, found.ID)
+		require.Equal(t, name, found.Name)
+		require.Equal(t, created.Type, found.Type)
+		require.Equal(t, created.GroupID, found.GroupID)
+		require.Equal(t, created.CreateAt, found.CreateAt)
+		require.Equal(t, int64(0), found.DeleteAt)
+
+		// The CPA list response is CPAField-shaped: unmarshal to confirm
+		// the typed attrs struct round-trips cleanly.
+		cpaField, err := model.NewCPAFieldFromPropertyField(found)
+		require.NoError(t, err)
+		require.EqualValues(t, 3, cpaField.Attrs.SortOrder)
+		require.Equal(t, model.CustomProfileAttributesVisibilityAlways, cpaField.Attrs.Visibility)
+	})
+}
+
+// TestCPABackwardCompatAfterRefactor spot-checks invariants that could have
+// drifted in the Phase 7 refactor of the CPA handlers into thin shims. Broad
+// behavioral equivalence is already covered by the existing CPA tests (they
+// still pass); these subtests target invariants that those tests don't
+// exercise directly.
+func TestCPABackwardCompatAfterRefactor(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	t.Run("ListCPAFields preserves sort_order ordering", func(t *testing.T) {
+		// Create in a non-sorted order; ListCPAFields should return them
+		// sorted ascending by sort_order via CPAFieldsFromPropertyFields.
+		ids := make([]string, 3)
+		for _, order := range []int{2, 0, 1} {
+			field := &model.PropertyField{
+				Name: model.NewId(),
+				Type: model.PropertyFieldTypeText,
+				Attrs: model.StringInterface{
+					model.CustomProfileAttributesPropertyAttrsSortOrder: order,
+				},
+			}
+			created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+			CheckCreatedStatus(t, resp)
+			require.NoError(t, err)
+			ids[order] = created.ID
+		}
+
+		listed, resp, err := th.SystemAdminClient.ListCPAFields(context.Background())
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, len(listed), 3)
+
+		// Extract the three fields we just created, preserving ListCPAFields
+		// return order, and verify they match ids[0], ids[1], ids[2].
+		var observed []string
+		for _, pf := range listed {
+			for _, expected := range ids {
+				if pf.ID == expected {
+					observed = append(observed, pf.ID)
+				}
+			}
+		}
+		require.Equal(t, ids, observed, "ListCPAFields must return fields in ascending sort_order")
+	})
+
+	t.Run("CPA create response has typed CPAField attrs, with defaults filled", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsValueType: model.CustomProfileAttributesValueTypeEmail,
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		// The CPA response goes through ToPropertyField on the server side,
+		// so every CPA-known attrs key is present — including defaults like
+		// Visibility="when_set" that the caller did not send.
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsValueType)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsVisibility)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsSortOrder)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsLDAP)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsSAML)
+		require.Contains(t, created.Attrs, model.CustomProfileAttributesPropertyAttrsManaged)
+
+		cpaField, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Equal(t, model.CustomProfileAttributesValueTypeEmail, cpaField.Attrs.ValueType)
+		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, cpaField.Attrs.Visibility)
+	})
+
+	t.Run("AccessControlHook still blocks LDAP-synced writes via CPA path", func(t *testing.T) {
+		ldapField := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
+			},
+		}
+		createdLDAPField, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), ldapField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(
+			context.Background(),
+			th.BasicUser.Id,
+			map[string]json.RawMessage{createdLDAPField.ID: json.RawMessage(`"attempted write"`)},
+		)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property.sync_lock.app_error")
+	})
+}
