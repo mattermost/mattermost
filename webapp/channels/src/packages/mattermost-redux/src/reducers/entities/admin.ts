@@ -699,7 +699,7 @@ function accessControlPolicies(state: IDMappedObjects<AccessControlPolicy> = {},
 function permissionPoliciesLastInvalidation(state = 0, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.PERMISSION_POLICIES_INVALIDATED:
-        return Date.now();
+        return state + 1;
     case UserTypes.LOGOUT_SUCCESS:
         return 0;
     default:
@@ -800,6 +800,6 @@ export default combineReducers({
     // object with policy ids as keys and arrays of channel ids as values
     channelsForAccessControlPolicy,
 
-    // timestamp of last permission policy invalidation via WebSocket
+    // monotonic counter incremented on each permission policy invalidation via WebSocket
     permissionPoliciesLastInvalidation,
 });

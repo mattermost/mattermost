@@ -65,6 +65,7 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
     const history = useMemo(() => getHistory(), []);
 
     const lastSeenInvalidation = useRef(props.lastInvalidation);
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
         fetchPolicies();
@@ -78,10 +79,14 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
     }, [props.lastInvalidation]);
 
     const fetchPolicies = async (term = '', afterParam = '', resetPage = false) => {
+        const myRequestId = ++requestIdRef.current;
         setLoading(true);
 
         try {
             const action = await props.actions.searchPolicies(term, afterParam, PAGE_SIZE + 1);
+            if (myRequestId !== requestIdRef.current) {
+                return;
+            }
             if (!action?.data) {
                 setLoading(false);
                 setSearchErrored(true);
@@ -108,6 +113,9 @@ export default function PermissionPolicyList(props: Props): JSX.Element {
                 setTotal(newTotal);
             }
         } catch {
+            if (myRequestId !== requestIdRef.current) {
+                return;
+            }
             setLoading(false);
             setSearchErrored(true);
         }

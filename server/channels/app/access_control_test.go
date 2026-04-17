@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -1427,14 +1428,37 @@ func TestHasPermissionToFileAction(t *testing.T) {
 	})
 }
 
+func waitForWSMessage(t *testing.T, messages <-chan *model.WebSocketEvent, expectedType model.WebsocketEventType, timeout time.Duration) *model.WebSocketEvent {
+	t.Helper()
+	select {
+	case msg := <-messages:
+		require.Equal(t, expectedType, msg.EventType())
+		return msg
+	case <-time.After(timeout):
+		require.Fail(t, "timed out waiting for WebSocket event", "expected %s within %s", expectedType, timeout)
+		return nil
+	}
+}
+
+func assertNoWSMessage(t *testing.T, messages <-chan *model.WebSocketEvent, timeout time.Duration) {
+	t.Helper()
+	select {
+	case msg := <-messages:
+		require.Fail(t, "unexpected WS event received", "got %s", msg.EventType())
+	case <-time.After(timeout):
+	}
+}
+
 func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	userID := th.BasicUser.Id
-	messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPermissionPolicyUpdated})
-	defer closeWS()
+	wsEventTypes := []model.WebsocketEventType{model.WebsocketEventPermissionPolicyUpdated}
 
 	t.Run("CreateOrUpdate broadcasts for permission policy", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, userID, "", wsEventTypes)
+		defer closeWS()
+
 		policy := &model.AccessControlPolicy{
 			ID:      model.NewId(),
 			Type:    model.AccessControlPolicyTypePermission,
@@ -1453,11 +1477,13 @@ func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
 		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
 		require.Nil(t, appErr)
 
-		received := <-messages
-		require.Equal(t, model.WebsocketEventPermissionPolicyUpdated, received.EventType())
+		waitForWSMessage(t, messages, model.WebsocketEventPermissionPolicyUpdated, 5*time.Second)
 	})
 
 	t.Run("CreateOrUpdate does not broadcast for parent policy", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, userID, "", wsEventTypes)
+		defer closeWS()
+
 		policy := &model.AccessControlPolicy{
 			ID:      model.NewId(),
 			Type:    model.AccessControlPolicyTypeParent,
@@ -1475,14 +1501,13 @@ func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
 		_, appErr := th.App.CreateOrUpdateAccessControlPolicy(th.Context, policy)
 		require.Nil(t, appErr)
 
-		select {
-		case msg := <-messages:
-			t.Fatalf("unexpected WS event received: %s", msg.EventType())
-		default:
-		}
+		assertNoWSMessage(t, messages, 200*time.Millisecond)
 	})
 
 	t.Run("Delete broadcasts for permission policy", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, userID, "", wsEventTypes)
+		defer closeWS()
+
 		policyID := model.NewId()
 		policy := &model.AccessControlPolicy{
 			ID:   policyID,
@@ -1497,11 +1522,13 @@ func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
 		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
 		require.Nil(t, appErr)
 
-		received := <-messages
-		require.Equal(t, model.WebsocketEventPermissionPolicyUpdated, received.EventType())
+		waitForWSMessage(t, messages, model.WebsocketEventPermissionPolicyUpdated, 5*time.Second)
 	})
 
 	t.Run("Delete does not broadcast for channel policy", func(t *testing.T) {
+		messages, closeWS := connectFakeWebSocket(t, th, userID, "", wsEventTypes)
+		defer closeWS()
+
 		policyID := model.NewId()
 		policy := &model.AccessControlPolicy{
 			ID:   policyID,
@@ -1516,10 +1543,6 @@ func TestPermissionPolicyWebSocketBroadcast(t *testing.T) {
 		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
 		require.Nil(t, appErr)
 
-		select {
-		case msg := <-messages:
-			t.Fatalf("unexpected WS event received: %s", msg.EventType())
-		default:
-		}
+		assertNoWSMessage(t, messages, 200*time.Millisecond)
 	})
 }
