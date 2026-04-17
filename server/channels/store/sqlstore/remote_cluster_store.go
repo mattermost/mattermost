@@ -57,12 +57,22 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 	// For plugin remotes, check for SiteURL collisions and treat as idempotent.
 	// Non-plugin remotes skip this check and rely on the DB unique constraint
 	// so that AddRemoteCluster can report a proper conflict error.
+	// This reads from master to avoid race conditions on lagging replicas.
 	if remoteCluster.PluginID != "" {
-		rc, err := s.GetBySiteURL(remoteCluster.SiteURL)
-		if err == nil {
-			return rc, nil
+		lookupQuery := s.getQueryBuilder().
+			Select(remoteClusterFields("")...).
+			From("RemoteClusters").
+			Where(sq.Eq{"SiteURL": remoteCluster.SiteURL})
+
+		lookupSQL, args, err := lookupQuery.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "remote_cluster_save_lookup_tosql")
 		}
-		if !errors.Is(err, sql.ErrNoRows) {
+
+		var existing model.RemoteCluster
+		if err := s.GetMaster().Get(&existing, lookupSQL, args...); err == nil {
+			return &existing, nil
+		} else if !errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by SiteURL %s", remoteCluster.SiteURL)
 		}
 	}
@@ -226,8 +236,7 @@ func (s sqlRemoteClusterStore) GetBySiteURL(siteURL string) (*model.RemoteCluste
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
 		From("RemoteClusters").
-		Where(sq.Eq{"SiteURL": siteURL}).
-		Where(sq.Eq{"DeleteAt": 0})
+		Where(sq.Eq{"SiteURL": siteURL})
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

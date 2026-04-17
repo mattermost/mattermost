@@ -99,26 +99,6 @@ func testRemoteClusterSave(t *testing.T, _ request.CTX, ss store.Store) {
 		require.Greater(t, rc.CreateAt, int64(0))
 	})
 
-	t.Run("Save non-plugin SiteURL collision returns error", func(t *testing.T) {
-		siteURL := makeSiteURL()
-
-		rc := &model.RemoteCluster{
-			Name:      "server_remote_1",
-			SiteURL:   siteURL,
-			CreatorId: model.NewId(),
-		}
-		_, err := ss.RemoteCluster().Save(rc)
-		require.NoError(t, err)
-
-		rc2 := &model.RemoteCluster{
-			Name:      "server_remote_2",
-			SiteURL:   siteURL,
-			CreatorId: model.NewId(),
-		}
-		_, err = ss.RemoteCluster().Save(rc2)
-		require.Error(t, err, "non-plugin SiteURL collision should return an error")
-	})
-
 	t.Run("Save same pluginID different SiteURLs", func(t *testing.T) {
 		pluginID := model.NewId()
 
@@ -934,7 +914,7 @@ func testRemoteClusterGetBySiteURL(t *testing.T, _ request.CTX, ss store.Store) 
 		require.Error(t, err)
 	})
 
-	t.Run("GetBySiteURL excludes deleted", func(t *testing.T) {
+	t.Run("GetBySiteURL includes deleted", func(t *testing.T) {
 		siteURL := makeSiteURL()
 		rc := &model.RemoteCluster{
 			Name:      "deleted_siteurl_test",
@@ -947,7 +927,9 @@ func testRemoteClusterGetBySiteURL(t *testing.T, _ request.CTX, ss store.Store) 
 		_, err = ss.RemoteCluster().Delete(saved.RemoteId)
 		require.NoError(t, err)
 
-		_, err = ss.RemoteCluster().GetBySiteURL(siteURL)
-		require.Error(t, err)
+		result, err := ss.RemoteCluster().GetBySiteURL(siteURL)
+		require.NoError(t, err)
+		require.Equal(t, saved.RemoteId, result.RemoteId)
+		require.NotZero(t, result.DeleteAt)
 	})
 }

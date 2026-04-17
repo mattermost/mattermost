@@ -116,7 +116,7 @@ func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
 // The pluginID is validated against the remote's PluginID to ensure a plugin can only
 // unregister its own remotes.
 func (a *App) UnregisterPluginRemoteForSharedChannels(pluginID, remoteID string) error {
-	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, true)
 	if err != nil {
 		return err
 	}

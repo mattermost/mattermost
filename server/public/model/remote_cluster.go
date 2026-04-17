@@ -9,7 +9,6 @@ import (
 	"crypto/pbkdf2"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"io"
@@ -96,11 +95,7 @@ func (rc *RemoteCluster) Auditable() map[string]any {
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
-		if rc.PluginID != "" {
-			rc.RemoteId = newIDFromBytes([]byte(rc.PluginID))
-		} else {
-			rc.RemoteId = NewId()
-		}
+		rc.RemoteId = NewId()
 	}
 
 	if rc.DisplayName == "" {
@@ -185,16 +180,6 @@ type RemoteClusterWithInvite struct {
 	RemoteCluster *RemoteCluster `json:"remote_cluster"`
 	Invite        string         `json:"invite"`
 	Password      string         `json:"password,omitempty"`
-}
-
-func newIDFromBytes(b []byte) string {
-	hash := sha256.New()
-	_, _ = hash.Write(b)
-	buf := hash.Sum(nil)
-
-	encoding := base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
-	id := encoding.EncodeToString(buf)
-	return id[:26]
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {

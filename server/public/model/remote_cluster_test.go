@@ -240,25 +240,3 @@ func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
 	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
 	assert.Equal(t, rc.SiteURL, info.SiteURL)
 }
-
-func TestNewIDFromBytes(t *testing.T) {
-	tests := []struct {
-		name string
-		ss   string
-	}{
-		{name: "empty", ss: ""},
-		{name: "very short", ss: "x"},
-		{name: "normal", ss: "com.mattermost.msteams-sync"},
-		{name: "long", ss: "com.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-sync"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got1 := newIDFromBytes([]byte(tt.ss))
-
-			assert.True(t, IsValidId(got1), "not a valid id")
-
-			got2 := newIDFromBytes([]byte(tt.ss))
-			assert.Equal(t, got1, got2, "newIDFromBytes must generate same id for same inputs")
-		})
-	}
-}
