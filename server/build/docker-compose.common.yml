@@ -47,7 +47,7 @@ services:
       - mm-test
     environment:
       POSTGRES_USER: mmuser
-      POSTGRES_PASSWORD: mostest
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
       POSTGRES_DB: mattermost_test
     command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:

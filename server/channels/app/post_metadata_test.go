@@ -520,7 +520,7 @@ func TestPreparePostForClient(t *testing.T) {
 				name: "markdown",
 				link: "[markdown](%s) link",
 				// This is because markdown links are not currently supported in the opengraph fetching code
-				// if you just implmented this, remove the `notImplmented` field
+				// if you just implemented this, remove the `notImplmented` field
 				notImplmented: true,
 			},
 			{
