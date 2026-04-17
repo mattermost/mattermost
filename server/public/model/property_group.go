@@ -41,15 +41,15 @@ func (pg *PropertyGroup) PreSave() {
 
 func (pg *PropertyGroup) IsValid() *AppError {
 	if !IsValidId(pg.ID) {
-		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.id.app_error", nil, "", http.StatusBadRequest)
+		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
 	}
 
 	if !IsValidPropertyGroupName(pg.Name) {
-		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.name.app_error", nil, "id="+pg.ID, http.StatusBadRequest)
+		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "invalid name"}, "id="+pg.ID, http.StatusBadRequest)
 	}
 
 	if pg.Version != PropertyGroupVersionV1 && pg.Version != PropertyGroupVersionV2 {
-		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.version.app_error", nil, "id="+pg.ID, http.StatusBadRequest)
+		return NewAppError("PropertyGroup.IsValid", "model.property_group.is_valid.app_error", map[string]any{"FieldName": "version", "Reason": "unknown value"}, "id="+pg.ID, http.StatusBadRequest)
 	}
 
 	return nil
