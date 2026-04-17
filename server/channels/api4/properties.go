@@ -33,7 +33,7 @@ func (api *API) InitProperties() {
 func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
 	if appErr != nil {
-		c.Err = model.NewAppError(callerName, "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+		c.Err = appErr
 		return nil
 	}
 	if !group.IsPSAv2() {

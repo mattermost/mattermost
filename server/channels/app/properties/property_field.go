@@ -21,13 +21,9 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 		return fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
 	}
 
-	if field.IsPSAv1() && group.IsPSAv2() {
+	if field.IsPSAv1() != group.IsPSAv1() {
 		return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
-			"cannot operate on a PSAv1 field in a PSAv2 group", http.StatusBadRequest)
-	}
-	if field.IsPSAv2() && group.IsPSAv1() {
-		return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
-			"cannot operate on a PSAv2 field in a PSAv1 group", http.StatusBadRequest)
+			"field and group version mismatch", http.StatusBadRequest)
 	}
 
 	return nil
