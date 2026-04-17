@@ -49,9 +49,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
 
     ...otherProps
 }, ref) => {
-    const emphasisClass = emphasisClasses[emphasis];
+    let emphasisClass = emphasisClasses[emphasis];
     const sizeClass = sizeClasses[size];
     const variantClass = variantClasses[variant];
+
+    if (emphasis === 'primary' && variant === 'destructive') {
+        // TODO in the current CSS, btn-primary overrides btn-danger
+        emphasisClass = '';
+    }
 
     return (
         <button
