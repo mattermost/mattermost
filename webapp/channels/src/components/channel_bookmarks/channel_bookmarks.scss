@@ -77,8 +77,8 @@
     }
 
     &.channelBookmarksDotMenuButton--overflow {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         justify-content: center;
         border-radius: 4px;
     }
@@ -151,6 +151,7 @@
     position: relative;
     min-height: 36px;
     padding-top: 2px;
+    padding-right: 12px;
     padding-bottom: 2px;
 
     &.is-dragging-self {

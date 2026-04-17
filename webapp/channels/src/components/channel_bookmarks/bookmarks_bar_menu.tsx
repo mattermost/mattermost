@@ -243,7 +243,6 @@ const MenuContainer = styled.div`
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    padding: 0 8px;
 `;
 
 const ButtonContent = styled.div`

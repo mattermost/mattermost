@@ -36,7 +36,7 @@ describe('MenuItem — onClick deduplication and invocation', () => {
      * We use disableCloseOnSelect so onClick is called immediately (not deferred
      * via addOnClosedListener), making the assertion synchronous.
      */
-    it('pressing Enter fires onClick exactly once (dedup regression)', async () => {
+    it('pressing Enter fires onClick exactly once (deduplication regression)', async () => {
         const onClick = jest.fn();
         renderMenuItem({
             labels: <span>{'Item'}</span>,
