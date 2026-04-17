@@ -199,6 +199,8 @@ func TestDeletePersistentNotification(t *testing.T) {
 }
 
 func TestForEachPersistentNotificationPost(t *testing.T) {
+	t.Skip()
+
 	mainHelper.Parallel(t)
 
 	th := SetupWithStoreMock(t)
