@@ -301,7 +301,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 
 	t.Run("should fail to update if any field comes from a different property group", func(t *testing.T) {
 		// Create a field in a different group
-		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, "test-other-group")
+		otherGroup, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test-other-group", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
 
 		fieldInOtherGroup := &model.PropertyField{

@@ -8060,10 +8060,10 @@ func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, e
 	return result, err
 }
 
-func (s *TimerLayerPropertyGroupStore) Register(name string) (*model.PropertyGroup, error) {
+func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	start := time.Now()
 
-	result, err := s.PropertyGroupStore.Register(name)
+	result, err := s.PropertyGroupStore.Register(group)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

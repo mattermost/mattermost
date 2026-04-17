@@ -280,7 +280,7 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-routing-read")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-routing-read", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -779,7 +779,7 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without setting source_plugin_id", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-create")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-create", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -951,7 +951,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-update")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-update", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -1129,7 +1129,7 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-delete")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other-group-delete", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{

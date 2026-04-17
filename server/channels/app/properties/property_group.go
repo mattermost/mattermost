@@ -14,7 +14,7 @@ import (
 // database round-trips.
 func (ps *PropertyService) RegisterBuiltinGroups(groups []*model.PropertyGroup) error {
 	for _, group := range groups {
-		if _, err := ps.RegisterPropertyGroup(group.Name); err != nil {
+		if _, err := ps.RegisterPropertyGroup(group); err != nil {
 			return fmt.Errorf("failed to register builtin property group %q: %w", group.Name, err)
 		}
 	}
@@ -38,14 +38,14 @@ func (ps *PropertyService) Group(name string) (*model.PropertyGroup, error) {
 	return group, nil
 }
 
-func (ps *PropertyService) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, err := ps.groupStore.Register(name)
+func (ps *PropertyService) RegisterPropertyGroup(group *model.PropertyGroup) (*model.PropertyGroup, error) {
+	registered, err := ps.groupStore.Register(group)
 	if err != nil {
 		return nil, err
 	}
 
-	ps.groupCache.Store(name, group)
-	return group, nil
+	ps.groupCache.Store(registered.Name, registered)
+	return registered, nil
 }
 
 func (ps *PropertyService) GetPropertyGroup(name string) (*model.PropertyGroup, error) {

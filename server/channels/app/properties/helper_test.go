@@ -70,7 +70,7 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
-	group, groupErr := th.service.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1})
 	require.NoError(tb, groupErr)
 	th.CPAGroupID = group.ID
 

@@ -10101,11 +10101,11 @@ func (s *RetryLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, e
 
 }
 
-func (s *RetryLayerPropertyGroupStore) Register(name string) (*model.PropertyGroup, error) {
+func (s *RetryLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyGroupStore.Register(name)
+		result, err := s.PropertyGroupStore.Register(group)
 		if err == nil {
 			return result, nil
 		}
