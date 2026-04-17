@@ -16,10 +16,6 @@ jest.mock('./actions', () => ({
 }));
 
 describe('InlineEntityLink', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     const baseProps = {
         url: 'http://localhost:8065/team-name/pl/postid123?view=citation',
         text: 'Link Text',

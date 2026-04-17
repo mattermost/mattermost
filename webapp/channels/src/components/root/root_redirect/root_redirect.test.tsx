@@ -53,10 +53,6 @@ describe('components/RootRedirect', () => {
         },
     } as Props & RouteComponentProps;
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should redirect to /login when currentUserId is empty', async () => {
         await renderWithContext(<RootRedirect {...defaultProps}/>);
 

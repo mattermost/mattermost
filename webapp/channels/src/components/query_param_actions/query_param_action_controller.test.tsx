@@ -44,10 +44,6 @@ describe('QueryParamActionController', () => {
         (useHistory as jest.Mock).mockReturnValue(mockHistory);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     it('should dispatch openModal for INVITATION modal ID when passed valid open_invitation_modal action', async () => {
         await renderWithContext(
             <MemoryRouter initialEntries={['/?action=open_invitation_modal']}>

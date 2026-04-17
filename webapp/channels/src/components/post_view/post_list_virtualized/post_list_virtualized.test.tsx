@@ -117,10 +117,6 @@ describe('PostList', () => {
         'post5',
     ];
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('renderRow', () => {
         const postListIds = ['a', 'b', 'c', 'd'];
 

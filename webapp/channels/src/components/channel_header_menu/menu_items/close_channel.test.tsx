@@ -16,10 +16,6 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseChannel', () => {
         jest.spyOn(channelActions, 'goToLastViewedChannel');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly, handle click event', async () => {
         await renderWithContext(
             <WithTestMenuContext>

@@ -25,10 +25,6 @@ describe('components/ChannelHeaderMenu/MenuItems/AddChannelMembers', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly', async () => {
         await renderWithContext(
             <AddChannelMembers

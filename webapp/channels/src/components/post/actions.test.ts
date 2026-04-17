@@ -51,7 +51,6 @@ describe('highlightPostInChannelPopout', () => {
     let mockReplace: jest.Mock;
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockReplace = jest.fn();
         jest.mocked(getHistory).mockReturnValue({replace: mockReplace} as any);
     });

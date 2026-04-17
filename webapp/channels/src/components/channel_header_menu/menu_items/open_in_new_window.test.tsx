@@ -52,10 +52,6 @@ describe('MenuItemOpenInNewWindow', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render nothing when already in a channel popout', async () => {
         jest.mocked(isChannelPopoutWindow).mockReturnValue(true);
         const channel = TestHelper.getChannelMock({type: 'O' as ChannelType, name: 'town-square'});

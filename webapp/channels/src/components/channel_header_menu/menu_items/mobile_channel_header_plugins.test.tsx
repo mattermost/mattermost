@@ -35,10 +35,6 @@ describe('components/ChannelHeaderMenu/MenuItems/MobileChannelHeaderPlugins, wit
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const channel = TestHelper.getChannelMock();
     const action = jest.fn();
     const pluginState = {

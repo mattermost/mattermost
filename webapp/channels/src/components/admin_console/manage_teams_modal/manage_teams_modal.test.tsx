@@ -30,10 +30,6 @@ describe('ManageTeamsModal', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot init', async () => {
         const {baseElement} = await renderWithContext(
             <ManageTeamsModal {...baseProps}/>,

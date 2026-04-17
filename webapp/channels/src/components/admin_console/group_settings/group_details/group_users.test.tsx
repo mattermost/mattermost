@@ -37,10 +37,6 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         return container.querySelector('button.next') as HTMLButtonElement;
     }
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should match snapshot, on loading without data', async () => {
         const {container} = await renderWithContext(
             <GroupUsers

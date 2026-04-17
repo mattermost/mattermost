@@ -53,8 +53,6 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
     const onExited = jest.fn();
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockedUseUser.mockReturnValue(flaggedPostAuthor);
         mockedUseChannel.mockReturnValue(flaggedPostChannel);
         mockedUseContentFlaggingConfig.mockReturnValue(

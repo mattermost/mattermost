@@ -16,6 +16,8 @@
 - **userEvent**: Use `userEvent` over `fireEvent`, always await.
 - **Props Factory**: Use `getBaseProps()` (not `makeProps` or other names) when creating fresh props per test to avoid shared mock state leaking between tests.
 - **No `act()` wrapping render calls**: RTL's `render` and `renderHook` (and their context wrappers like `renderWithContext`, `renderHookWithContext`) already run inside `act`. For async effects on mount, render normally and use `waitFor` to assert the effect completed.
+- **Always `await renderWithContext`/`renderHookWithContext`**: they are async and internally flush mount-effects inside `act`. Missing the `await` lets `waitFor` run concurrently with a still-pending `act`, which toggles `IS_REACT_ACT_ENVIRONMENT` out from under React and produces `"The current testing environment is not configured to support act(...)"` warnings.
+- **Do not call `jest.clearAllMocks()` / `jest.resetAllMocks()` in test files**: `jest.config.js` sets `clearMocks: true`, which already clears mock state between tests. In-file `beforeEach(() => jest.clearAllMocks())` or `afterEach(() => jest.clearAllMocks())` is redundant and actively harmful — it wipes the `console.error` / `console.warn` spy call histories that `setup_jest.ts` relies on, so the global guard that fails tests on unexpected warnings silently passes instead. If you only need to reset a single mock's call history mid-test, call `mockFn.mockClear()` on that specific mock rather than the global helper.
 
 ## renderWithContext
 Always use `renderWithContext` for components that need Redux, Router, or I18n context:

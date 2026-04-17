@@ -71,7 +71,6 @@ describe('/components/data_prefetch', () => {
 
     beforeEach(() => {
         mockQueue.splice(0, mockQueue.length);
-        jest.clearAllMocks();
     });
 
     test('should fetch posts for current channel on first channel load', async () => {

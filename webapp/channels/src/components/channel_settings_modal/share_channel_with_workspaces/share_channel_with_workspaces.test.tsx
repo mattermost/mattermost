@@ -57,7 +57,6 @@ async function renderShareChannelWithWorkspaces(remotes: WorkspaceWithStatus[], 
 
 describe('ShareChannelWithWorkspaces', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         (require('mattermost-redux/client').Client4.getRemoteClusters as jest.Mock).mockResolvedValue([
             {remote_id: 'remote1', name: 'nebula', display_name: 'Nebula Networks'},
             {remote_id: 'remote2', name: 'cascade', display_name: 'Cascade Collaborative'},

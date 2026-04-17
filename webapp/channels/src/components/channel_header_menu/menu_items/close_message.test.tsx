@@ -76,10 +76,6 @@ describe('components/ChannelHeaderMenu/MenuItems/CloseMessage', () => {
         jest.spyOn(preferences, 'savePreferences');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the component correctly for group channel', async () => {
         await renderWithContext(
             <WithTestMenuContext>

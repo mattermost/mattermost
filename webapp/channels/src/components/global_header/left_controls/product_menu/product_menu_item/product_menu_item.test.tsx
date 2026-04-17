@@ -18,10 +18,6 @@ describe('components/ProductMenuItem', () => {
         onClick: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render menu item with correct text', async () => {
         await renderWithContext(<ProductMenuItem {...defaultProps}/>);
 

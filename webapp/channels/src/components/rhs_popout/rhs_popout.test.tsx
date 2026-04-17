@@ -64,10 +64,6 @@ describe('RhsPopout', () => {
         jest.mocked(useTeamByName).mockReturnValue(team1);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     async function renderPopout(path: string, state = baseState) {
         return renderWithContext(
             <MemoryRouter initialEntries={[path]}>

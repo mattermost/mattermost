@@ -78,7 +78,6 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
         mockConsole.debug.mockClear();
         mockConsole.warn.mockClear();
         mockConsole.error.mockClear();

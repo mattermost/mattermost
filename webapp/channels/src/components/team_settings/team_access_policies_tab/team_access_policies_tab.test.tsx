@@ -39,10 +39,6 @@ describe('TeamAccessPoliciesTab', () => {
         },
     };
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should call searchTeamPolicies with team.id on mount', async () => {
         const searchTeamPolicies = jest.fn().mockResolvedValue({data: {policies: [], total: 0}});
         const props = {

@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
 import {PushSettings} from 'components/admin_console/push_settings';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/PushSettings', () => {
     test('should match snapshot, licensed', async () => {

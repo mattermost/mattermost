@@ -118,7 +118,6 @@ describe('components/SearchResults', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         jest.mocked(getHistory).mockReturnValue({push: jest.fn()} as any);
     });
 

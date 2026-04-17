@@ -20,10 +20,6 @@ jest.mock('actions/views/rhs', () => ({
 const mockedSelectPostFromRightHandSideSearch = require('actions/views/rhs').selectPostFromRightHandSideSearch as jest.MockedFunction<any>;
 
 describe('DataSpillageFooter', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render footer with view details button', async () => {
         const post = TestHelper.getPostMock();
 

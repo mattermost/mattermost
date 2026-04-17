@@ -53,8 +53,6 @@ describe('components/threading/global_threads/thread_pane', () => {
     let initialState: any;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         mockThread = {
             id: '1y8hpek81byspd4enyk9mp1ncw',
             unread_replies: 0,

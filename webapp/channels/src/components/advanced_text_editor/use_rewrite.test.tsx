@@ -74,7 +74,6 @@ describe('useRewrite', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         document.body.innerHTML = '';
         try {
             Object.defineProperty(mockTextboxRef, 'current', {

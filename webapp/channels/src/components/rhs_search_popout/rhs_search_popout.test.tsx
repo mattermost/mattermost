@@ -79,10 +79,6 @@ describe('RhsSearchPopout', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     async function renderPopout(search: string, rhsState?: string) {
         const state = rhsState ? {
             ...baseState,

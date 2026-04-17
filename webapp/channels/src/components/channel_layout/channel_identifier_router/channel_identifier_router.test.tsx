@@ -39,10 +39,6 @@ describe('components/channel_layout/ChannelIdentifierRouter', () => {
         history: [] as unknown as History,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should call onChannelByIdentifierEnter on props change', () => {
         const {rerender} = render(<ChannelIdentifierRouter {...baseProps}/>);
         expect(baseProps.actions.onChannelByIdentifierEnter).toHaveBeenCalledTimes(1);

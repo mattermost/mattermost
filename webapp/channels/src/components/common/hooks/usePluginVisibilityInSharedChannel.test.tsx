@@ -29,10 +29,6 @@ describe('usePluginVisibilityInSharedChannel', () => {
         mockGetChannel.mockReturnValue(undefined);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const renderHookWithChannelId = (channelId: string | undefined) => {
         const store = mockStore({});
         const wrapper = ({children}: {children: React.ReactNode}) => (

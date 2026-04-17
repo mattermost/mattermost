@@ -23,10 +23,6 @@ describe('TeamUrlStep', () => {
         buttonText: <>{'Finish'}</>,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render with default props', async () => {
         const {container} = await renderWithContext(<TeamUrlStep {...defaultProps}/>);
 

@@ -22,10 +22,6 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
         emailInvitationsEnabled: true,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     describe('delimiter handling on typed input', () => {
         it('should NOT treat space as a delimiter when typing', async () => {
             const ref = React.createRef<UsersEmailsInput>();

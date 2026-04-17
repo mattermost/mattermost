@@ -91,7 +91,6 @@ describe('useBurnOnRead', () => {
     );
 
     beforeEach(() => {
-        jest.clearAllMocks();
         (isBurnOnReadEnabled as jest.Mock).mockReturnValue(true);
         (getBurnOnReadDurationMinutes as jest.Mock).mockReturnValue(10);
         (canUserSendBurnOnRead as jest.Mock).mockReturnValue(true);

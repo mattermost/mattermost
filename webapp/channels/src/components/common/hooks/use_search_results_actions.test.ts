@@ -56,10 +56,6 @@ describe('useSearchResultsActions', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     async function callAction(
         callback: (actions: ReturnType<typeof useSearchResultsActions>) => void,
         rhsState?: string,

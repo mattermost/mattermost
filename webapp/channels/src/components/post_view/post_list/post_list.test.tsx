@@ -80,7 +80,6 @@ const baseProps = {
 
 describe('components/post_view/post_list', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
         lastVirtPostListProps = null;
     });
 

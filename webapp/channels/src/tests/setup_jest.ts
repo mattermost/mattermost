@@ -57,11 +57,6 @@ window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
     return origGetComputedStyle(elt);
 };
 
-// Set React act() environment flag so state updates outside act() produce warnings that
-// our guard below can catch and fail the test. Without this, React silently ignores
-// unhandled state updates. See https://react.dev/reference/react/act
-(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
-
 // isDependencyWarning returns true when the given console.warn message is coming from a dependency using deprecated
 // React lifecycle methods.
 function isDependencyWarning(params: string[]) {

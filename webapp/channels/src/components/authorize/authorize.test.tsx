@@ -37,7 +37,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         requiredProps = {
             location: {search: ''},
             actions: {

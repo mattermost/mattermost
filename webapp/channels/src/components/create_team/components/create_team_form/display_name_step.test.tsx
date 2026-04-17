@@ -21,10 +21,6 @@ describe('DisplayNameStep', () => {
         nameError: '',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render with default props', async () => {
         await renderWithContext(<DisplayNameStep {...defaultProps}/>);
 

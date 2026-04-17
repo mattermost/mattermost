@@ -40,7 +40,6 @@ describe('components/AboutBuildModal', () => {
             connected: false,
             serverHostname: '',
         };
-        jest.clearAllMocks();
     });
 
     beforeEach(() => {

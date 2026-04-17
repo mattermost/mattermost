@@ -96,10 +96,6 @@ describe('ChannelPopout', () => {
         );
     }
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should show loading screen when team is not found', async () => {
         jest.mocked(useTeamByName).mockReturnValue(undefined);
         await renderPopout('/_popout/channel/test-team/channels/town-square');

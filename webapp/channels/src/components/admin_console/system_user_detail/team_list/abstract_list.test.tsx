@@ -109,7 +109,6 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         defaultProps.actions.getTeamsData = jest.fn().mockResolvedValue([]);
     });
 

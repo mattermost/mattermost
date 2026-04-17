@@ -30,7 +30,6 @@ describe('CreateTeamForm - display_name step', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
         defaultProps = {
             step: 'display_name' as const,
             updateParent: jest.fn(),
@@ -234,10 +233,6 @@ describe('CreateTeamForm - team_url step', () => {
         },
         history: {push: jest.fn()},
     };
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should match snapshot', async () => {
         const {container} = await renderWithContext(<CreateTeamForm {...defaultProps}/>, defaultState);

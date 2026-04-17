@@ -52,10 +52,6 @@ describe('SystemUsersListAction Component', () => {
         (haveISystemPermission as jest.Mock).mockImplementation(() => true);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const renderComponent = async (authServiceUser: UserProfile) => {
         await renderWithContext(
             <SystemUsersListAction
