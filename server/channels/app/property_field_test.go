@@ -433,6 +433,97 @@ func TestCreatePropertyFieldVersionEnforcement(t *testing.T) {
 	})
 }
 
+func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("should reject updating a v2 field on a v1 group", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_update_reject_v2", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		// Create a v1 field on the v1 group (allowed)
+		field := &model.PropertyField{
+			GroupID:    v1Group.ID,
+			Name:       "V1 Field for Update Test",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		// Attempt to update it as a v2 field (add ObjectType to make it v2)
+		created.ObjectType = model.PropertyFieldObjectTypeUser
+		created.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		updated, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should reject updating a v1 field on a v2 group", func(t *testing.T) {
+		v2Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_update_reject_v1", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		// Create a v2 field on the v2 group (allowed)
+		field := &model.PropertyField{
+			GroupID:    v2Group.ID,
+			Name:       "V2 Field for Update Test",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		// Attempt to update it as a v1 field (remove ObjectType to make it v1)
+		created.ObjectType = ""
+		created.TargetType = "user"
+		updated, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should allow updating a v1 field on a v1 group", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v1_group_update_allow_v1", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    v1Group.ID,
+			Name:       "V1 Field Update Allowed",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "user",
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "V1 Field Updated"
+		updated, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "V1 Field Updated", updated.Name)
+	})
+
+	t.Run("should allow updating a v2 field on a v2 group", func(t *testing.T) {
+		v2Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "v2_group_update_allow_v2", Version: model.PropertyGroupVersionV2})
+		require.Nil(t, appErr)
+
+		field := &model.PropertyField{
+			GroupID:    v2Group.ID,
+			Name:       "V2 Field Update Allowed",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "V2 Field Updated"
+		updated, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "V2 Field Updated", updated.Name)
+	})
+}
+
 func TestDeletePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -34,19 +34,27 @@ func (ps *PropertyService) Group(name string) (*model.PropertyGroup, error) {
 		return nil, fmt.Errorf("property group %q not found: %w", name, err)
 	}
 
-	ps.groupCache.Store(name, group)
+	ps.groupCache.Store(group.Name, group)
 	ps.groupIDCache.Store(group.ID, group)
 	return group, nil
 }
 
-// GroupByID returns the cached PropertyGroup for a given ID.
-// Only groups that have been registered or previously looked up by name are available.
-func (ps *PropertyService) GroupByID(id string) (*model.PropertyGroup, bool) {
-	cached, ok := ps.groupIDCache.Load(id)
-	if !ok {
-		return nil, false
+// GroupByID returns the PropertyGroup for a given ID. It first checks
+// the in-memory cache and falls back to a database lookup on cache
+// miss, caching the result for subsequent calls.
+func (ps *PropertyService) GroupByID(id string) (*model.PropertyGroup, error) {
+	if cached, ok := ps.groupIDCache.Load(id); ok {
+		return cached.(*model.PropertyGroup), nil
 	}
-	return cached.(*model.PropertyGroup), true
+
+	group, err := ps.groupStore.GetByID(id)
+	if err != nil {
+		return nil, fmt.Errorf("property group with id %q not found: %w", id, err)
+	}
+
+	ps.groupCache.Store(group.Name, group)
+	ps.groupIDCache.Store(group.ID, group)
+	return group, nil
 }
 
 func (ps *PropertyService) RegisterPropertyGroup(group *model.PropertyGroup) (*model.PropertyGroup, error) {

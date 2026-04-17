@@ -44,6 +44,36 @@ func (_m *PropertyGroupStore) Get(name string) (*model.PropertyGroup, error) {
 	return r0, r1
 }
 
+// GetByID provides a mock function with given fields: id
+func (_m *PropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error) {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByID")
+	}
+
+	var r0 *model.PropertyGroup
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.PropertyGroup, error)); ok {
+		return rf(id)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PropertyGroup); ok {
+		r0 = rf(id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PropertyGroup)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Register provides a mock function with given fields: group
 func (_m *PropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
 	ret := _m.Called(group)

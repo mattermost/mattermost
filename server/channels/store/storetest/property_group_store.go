@@ -98,4 +98,24 @@ func testRegisterAndGetPropertyGroup(t *testing.T, _ request.CTX, ss store.Store
 		})
 		require.Error(t, err)
 	})
+
+	t.Run("should retrieve a group by its ID", func(t *testing.T) {
+		group, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+			Name:    "getbyid_test_group",
+			Version: model.PropertyGroupVersionV2,
+		})
+		require.NoError(t, err)
+		require.NotZero(t, group.ID)
+
+		fetched, err := ss.PropertyGroup().GetByID(group.ID)
+		require.NoError(t, err)
+		require.Equal(t, group.ID, fetched.ID)
+		require.Equal(t, "getbyid_test_group", fetched.Name)
+		require.Equal(t, model.PropertyGroupVersionV2, fetched.Version)
+	})
+
+	t.Run("should return error for non-existent ID", func(t *testing.T) {
+		_, err := ss.PropertyGroup().GetByID(model.NewId())
+		require.Error(t, err)
+	})
 }

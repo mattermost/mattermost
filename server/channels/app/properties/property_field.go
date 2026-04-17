@@ -11,19 +11,34 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+// enforceFieldGroupVersionMatch checks that the field and group versions are
+// compatible. It returns an error if the field is PSAv1 on a PSAv2 group or
+// vice versa. The lookup uses GroupByID which checks the cache first and falls
+// back to the database.
+func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID string, field *model.PropertyField) error {
+	group, err := ps.GroupByID(groupID)
+	if err != nil {
+		return fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
+	}
+
+	if field.IsPSAv1() && group.IsPSAv2() {
+		return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
+			"cannot operate on a PSAv1 field in a PSAv2 group", http.StatusBadRequest)
+	}
+	if field.IsPSAv2() && group.IsPSAv1() {
+		return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
+			"cannot operate on a PSAv2 field in a PSAv1 group", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 // Private implementation methods (database access)
 
 func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*model.PropertyField, error) {
 	// Enforce version match between field and group
-	if group, ok := ps.GroupByID(field.GroupID); ok {
-		if field.IsPSAv1() && group.IsPSAv2() {
-			return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.version_mismatch.app_error", nil,
-				"cannot create a PSAv1 field in a PSAv2 group", http.StatusBadRequest)
-		}
-		if field.IsPSAv2() && group.IsPSAv1() {
-			return nil, model.NewAppError("CreatePropertyField", "app.property_field.create.version_mismatch.app_error", nil,
-				"cannot create a PSAv2 field in a PSAv1 group", http.StatusBadRequest)
-		}
+	if err := ps.enforceFieldGroupVersionMatch("CreatePropertyField", field.GroupID, field); err != nil {
+		return nil, err
 	}
 
 	// Legacy properties (PSAv1) skip conflict check
@@ -120,6 +135,13 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 	existingByID := make(map[string]*model.PropertyField, len(existingFields))
 	for _, ef := range existingFields {
 		existingByID[ef.ID] = ef
+	}
+
+	// Enforce version match between field and group for each field
+	for _, field := range fields {
+		if err := ps.enforceFieldGroupVersionMatch("UpdatePropertyFields", groupID, field); err != nil {
+			return nil, err
+		}
 	}
 
 	// Check each field for changes that require conflict validation
