@@ -31,7 +31,6 @@ const DiscardChangesModal = ({
         />
     );
 
-    const buttonClass = 'btn btn-primary';
     const button = (
         <FormattedMessage
             id='discard_changes_modal.leave'
@@ -47,7 +46,6 @@ const DiscardChangesModal = ({
             title={title}
             message={message}
             modalClass={modalClass}
-            confirmButtonClass={buttonClass}
             confirmButtonText={button}
             onConfirm={onConfirm}
             onCancel={onCancel}

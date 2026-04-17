@@ -62,7 +62,7 @@ export default function PromoteToMemberModal({user, onExited, onSuccess, onError
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonClass='btn btn-danger'
+            confirmButtonVariant='destructive'
             confirmButtonText={promoteUserButton}
             onConfirm={confirm}
             onExited={onExited}

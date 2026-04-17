@@ -126,7 +126,6 @@ const ConvertAndRemoveConfirmModal = ({
             title={title}
             message={message}
             modalClass={modalClass}
-            confirmButtonClass={'btn btn-primary'}
             confirmButtonText={confirmButton}
             cancelButtonText={cancelButton}
             onConfirm={onConfirm}

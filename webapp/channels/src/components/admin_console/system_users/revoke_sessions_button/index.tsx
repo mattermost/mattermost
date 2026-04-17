@@ -57,7 +57,7 @@ export function RevokeSessionsButton() {
                         defaultMessage='This action revokes all sessions in the system. All users will be logged out from all devices, including your session. Are you sure you want to revoke all sessions?'
                     />
                 }
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 confirmButtonText={
                     <FormattedMessage
                         id='admin.system_users.revoke_all_sessions_button'

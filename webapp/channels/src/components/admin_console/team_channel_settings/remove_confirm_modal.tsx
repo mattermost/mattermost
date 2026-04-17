@@ -62,7 +62,6 @@ const RemoveConfirmModal = ({show, onConfirm, onCancel, inChannel, amount}: Prop
         );
     }
 
-    const buttonClass = 'btn btn-primary';
     const button = (
         <FormattedMessage
             id='admin.team_channel_settings.removeConfirmModal.remove'
@@ -79,7 +78,6 @@ const RemoveConfirmModal = ({show, onConfirm, onCancel, inChannel, amount}: Prop
             title={title}
             message={message}
             modalClass={modalClass}
-            confirmButtonClass={buttonClass}
             confirmButtonText={button}
             onConfirm={onConfirm}
             onCancel={onCancel}

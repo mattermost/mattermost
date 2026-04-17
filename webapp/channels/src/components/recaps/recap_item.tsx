@@ -211,7 +211,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     />
                 }
                 confirmButtonText={formatMessage({id: 'recaps.delete.confirm.button', defaultMessage: 'Delete'})}
-                confirmButtonClass='btn btn-danger'
+                confirmButtonVariant='destructive'
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
                 onExited={() => setShowDeleteConfirm(false)}

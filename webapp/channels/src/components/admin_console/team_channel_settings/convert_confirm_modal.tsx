@@ -96,7 +96,6 @@ const ConvertConfirmModal = ({show, onConfirm, onCancel, displayName, toPublic}:
             title={title}
             message={message}
             modalClass={modalClass}
-            confirmButtonClass={'btn btn-primary'}
             confirmButtonText={confirmButton}
             cancelButtonText={cancelButton}
             onConfirm={onConfirm}

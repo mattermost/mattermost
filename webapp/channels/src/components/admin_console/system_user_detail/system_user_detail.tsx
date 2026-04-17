@@ -1570,7 +1570,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             )}
                         </div>
                     }
-                    confirmButtonClass='btn btn-danger'
+                    confirmButtonVariant='destructive'
                     confirmButtonText={
                         <FormattedMessage
                             id='deactivate_member_modal.deactivate'
@@ -1602,7 +1602,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     message={
                         this.renderConfirmModal()
                     }
-                    confirmButtonClass='btn btn-primary'
                     confirmButtonText={
                         <FormattedMessage
                             id='admin.userDetail.saveChangesModal.save'

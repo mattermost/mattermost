@@ -441,7 +441,6 @@ function ChannelSettingsConfigurationTab({
                         show={showRemoveSharingConfirmModal}
                         title={confirmModalMessages.removeSharingModalTitle}
                         message={confirmModalMessages.removeSharingModalMessage}
-                        confirmButtonClass='btn btn-primary'
                         confirmButtonText={formatMessage({
                             id: 'channel_settings.remove_sharing_confirm.confirm',
                             defaultMessage: 'Yes, unshare',
