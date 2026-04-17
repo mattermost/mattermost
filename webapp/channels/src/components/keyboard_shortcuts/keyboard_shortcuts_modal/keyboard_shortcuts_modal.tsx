@@ -6,6 +6,8 @@ import {Modal} from 'react-bootstrap';
 import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {isCallsEnabled} from 'selectors/calls';
 
 import KeyboardShortcutSequence, {
@@ -13,8 +15,6 @@ import KeyboardShortcutSequence, {
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-
-import * as UserAgent from 'utils/user_agent';
 
 import './keyboard_shortcuts_modal.scss';
 
