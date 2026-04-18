@@ -68,16 +68,23 @@ ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
 # provisioning). This replaces the standalone `run-failed-tests` CI job,
 # which spent ~4-7 min spinning up a fresh server per run.
 #
-# Pass-1 blobs are renamed to `first-*.zip` so the retry pass doesn't
-# overwrite them (Playwright's blob reporter names sharded outputs
-# `report-<index>.zip`). merge-reports at the end combines both sets so
-# tests that pass on retry appear as `flaky`, not `failed`.
+# IMPORTANT: Playwright's blob reporter WIPES its outputDir at the start
+# of every invocation. If we leave first-pass blobs inside
+# `results/blob-report/`, a follow-on `npm run test:ci` deletes them.
+# So we move first-pass blobs OUT of that directory (into a stash on
+# the mounted volume, outside `results/`), and move them back right
+# before merge-reports. Retry blobs are prefixed with `retry-` to avoid
+# a filename collision with first-pass blobs when both come back.
+STASH_DIR="e2e-tests/playwright/.blob-stash"
+
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
-  cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
-  for f in report-*.zip; do
-    [ -e \"\$f\" ] || continue
-    mv \"\$f\" \"first-\$f\"
-  done
+  rm -rf ${STASH_DIR}
+  mkdir -p ${STASH_DIR}
+  if compgen -G 'e2e-tests/playwright/results/blob-report/*.zip' >/dev/null 2>&1; then
+    for f in e2e-tests/playwright/results/blob-report/*.zip; do
+      mv \"\$f\" \"${STASH_DIR}/first-\$(basename \"\$f\")\"
+    done
+  fi
 " || true
 
 RESULTS_FILE="../playwright/results/reporter/results.json"
@@ -102,17 +109,32 @@ if [ -n "$FAILED_SPECS" ]; then
     -e PW_SHARD \
     -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry.log || true
 
-  # Rename retry blobs so the merge step sees both first-* and retry-*.
+  # Stash retry blobs alongside the first-pass blobs.
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
-    cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
-    for f in report-*.zip; do
-      [ -e \"\$f\" ] || continue
-      mv \"\$f\" \"retry-\$f\"
-    done
+    if compgen -G 'e2e-tests/playwright/results/blob-report/*.zip' >/dev/null 2>&1; then
+      for f in e2e-tests/playwright/results/blob-report/*.zip; do
+        mv \"\$f\" \"${STASH_DIR}/retry-\$(basename \"\$f\")\"
+      done
+    fi
   " || true
+fi
 
-  # Re-merge first-* + retry-* into a single results.json. Tests that
-  # failed in the first pass but passed on retry appear as `flaky`.
+# Move all stashed blobs back into blob-report/ for final merge-reports
+# and for upload-artifact. This step runs whether or not retries ran:
+# if no retries, we just put the first-pass blobs back.
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+  mkdir -p e2e-tests/playwright/results/blob-report
+  if compgen -G '${STASH_DIR}/*.zip' >/dev/null 2>&1; then
+    mv ${STASH_DIR}/*.zip e2e-tests/playwright/results/blob-report/
+  fi
+  rmdir ${STASH_DIR} 2>/dev/null || true
+" || true
+
+# Merge the combined blob set into a single results.json so the per-shard
+# `summary.json` below reflects first-pass + retry outcomes. The cross-
+# shard merge in the CI template's `calculate-results` job will re-merge
+# all shards' blobs from the same `blob-report/` contents.
+if [ -n "$FAILED_SPECS" ]; then
   mme2e_log "Merging first-pass + retry blob reports"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
     cd e2e-tests/playwright
