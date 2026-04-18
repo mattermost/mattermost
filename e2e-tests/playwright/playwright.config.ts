@@ -5,60 +5,18 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
-/**
- * Spec files that mutate global server config and must NOT run in parallel
- * with the main test suite. These are placed in the "chrome-serial" project
- * which depends on "chrome", so Playwright runs them only after all parallel
- * tests on the shard have completed.
- *
- * Each entry here is a regex that matches the file path relative to testDir.
- * When adding a new spec that calls updateConfig() / patchConfig() on
- * server-wide settings (ABAC, notifications, privacy, shared channels, etc.),
- * add it here to avoid flaky failures under PW_WORKERS >= 2.
- */
-const globalConfigSpecs: RegExp[] = [
-    // AccessControlSettings (ABAC enable/disable)
-    /team_settings\/team_settings_membership_policies.*\.spec\.ts$/,
-    /team_settings\/team_settings_policy_editor.*\.spec\.ts$/,
-
-    // ContentFlaggingSettings
-    /content_flagging\/flagging\/flag-messages.*\.spec\.ts$/,
-    /content_flagging\/notifications\/author-notification.*\.spec\.ts$/,
-
-    // ConnectedWorkspacesSettings (shared channels)
-    /shared_channel_configuration.*\.spec\.ts$/,
-
-    // PrivacySettings (anonymous URLs, email/name visibility)
-    /anonymous_urls.*\.spec\.ts$/,
-    /account_settings\/profile\/popover_fields.*\.spec\.ts$/,
-
-    // TeamSettings (managed categories)
-    /managed_categories.*\.spec\.ts$/,
-
-    // EmailSettings / SupportSettings (notification config)
-    /notifications\/system_console.*\.spec\.ts$/,
-
-    // AutoTranslationSettings
-    /autotranslation\/autotranslation_permissions.*\.spec\.ts$/,
-
-    // ServiceSettings (collapsed threads, burn-on-read, email invitations)
-    /message_scroll\/thread_appears_and_scrollable_in_the_rhs.*\.spec\.ts$/,
-    /burn_on_read\/.*\.spec\.ts$/,
-    /team_settings\/invite_user_to_closed_team.*\.spec\.ts$/,
-
-    // GuestAccountsSettings
-    /single_channel_guests.*\.spec\.ts$/,
-
-    // Office365/SAML settings
-    /mobile_security.*\.spec\.ts$/,
-
-    // PluginSettings / FileSettings
-    /plugins\/demo_plugin\/.*\.spec\.ts$/,
-
-    // ServiceSettings (desktop app, self-deleting messages)
-    /desktop_app_update_required.*\.spec\.ts$/,
-    /self_deleting_messages.*\.spec\.ts$/,
-];
+// NOTE: the previous `globalConfigSpecs` list + `chrome-serial` project
+// was removed. Isolating config-mutating specs in a second project made
+// Playwright re-run the entire dependency project on every shard (94%
+// duplication), and even inside chrome-serial it only serialized w.r.t.
+// the main suite — concurrent chrome-serial tests at PW_WORKERS=2 still
+// raced on the shared global config.
+//
+// Going forward, specs that previously belonged to `chrome-serial` must
+// isolate their own setup: create unique teams / channels / users per
+// test, patch only the narrowest config scope they need, and clean up
+// their mutations via `test.afterAll`. Tests must not assume their
+// settings survive past their own `afterAll`.
 
 const chromeUse = {
     browserName: 'chromium' as const,
@@ -117,32 +75,14 @@ export default defineConfig({
             dependencies: ['setup'],
         },
         {
-            // Main parallel project — runs the bulk of the suite with PW_WORKERS
-            // concurrency. Specs that mutate global server config are excluded
-            // here and run in "chrome-serial" after this project completes.
+            // Main project — runs the entire functional suite (other than
+            // @visual) under PW_WORKERS concurrency. Tests that mutate
+            // global server config MUST isolate their own setup and clean
+            // up any config patches in `test.afterAll`; the old
+            // `chrome-serial` escape hatch was removed because it made
+            // Playwright re-run the full chrome suite on every shard.
             name: 'chrome',
             use: chromeUse,
-            testIgnore: globalConfigSpecs,
-            dependencies: ['setup'],
-        },
-        {
-            // Serialized project for specs that mutate global server config.
-            //
-            // IMPORTANT: do NOT set `dependencies: ['chrome']` here. Playwright
-            // does not shard tests in a dependency project — every shard would
-            // run the full "chrome" suite as setup, producing ~94% duplication
-            // across shards (see PR #36054 investigation). Instead, this project
-            // is invoked as a SECOND sharded pass by `server.run_playwright.sh`,
-            // after the "chrome" pass finishes on the same runner. That keeps
-            // the "no concurrent global-config mutation with chrome tests"
-            // invariant while letting both projects shard properly.
-            //
-            // Tests in this project come from different config domains
-            // (ABAC, notifications, privacy, etc.) so they rarely conflict
-            // with each other when 2 run in parallel.
-            name: 'chrome-serial',
-            use: chromeUse,
-            testMatch: globalConfigSpecs,
             dependencies: ['setup'],
         },
         {

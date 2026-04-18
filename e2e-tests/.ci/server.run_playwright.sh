@@ -41,22 +41,13 @@ ${MME2E_DC_SERVER} exec -u "$MME2E_UID" -d -- playwright bash -c "cd e2e-tests/p
 mme2e_log "Wait for LibreTranslate mock server to be ready"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..30}; do curl -s http://localhost:3010/ && exit 0; sleep 1; done; echo 'Mock server failed to start'; exit 1" || true
 
-# Run Playwright tests in TWO sharded passes on the same runner:
-#   pass 1: --project=chrome        — parallel config-safe suite
-#   pass 2: --project=chrome-serial — specs that mutate global server config
+# Run the Playwright functional suite as a single sharded pass under the
+# `chrome` project. Any config-mutating specs must isolate their own setup
+# (unique team/channel/user, afterAll cleanup); the old chrome-serial
+# escape hatch was removed because Playwright's project-dependency
+# implementation re-ran the full chrome suite on every shard.
 #
-# We run them sequentially (not via a Playwright project dependency) because
-# when `chrome-serial` depends on `chrome`, Playwright does NOT shard the
-# dependency project — every shard re-runs the full `chrome` suite as setup,
-# duplicating ~94% of work across shards. See PR #36054 investigation.
-#
-# Both passes share the same PW_SHARD value so shard N runs 1/8 of chrome
-# plus 1/8 of chrome-serial. Blob reports from the first pass are prefixed
-# so the second pass's blob file doesn't overwrite it; `merge-reports` in
-# the CI template picks up both.
-#
-# NB: do not exit the script if some testcases fail — we want both passes
-# to attempt to run even if the first has failures, so we get full signal.
+# NB: do not exit on test failures — we need the retry step below to run.
 #
 # Pass TEST_FILTER and PW_SHARD with `docker compose exec -e VAR` (no =value)
 # so Compose copies them from this shell's environment. Do NOT use
@@ -64,54 +55,31 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 # quotes break the host command line, which previously caused PW_SHARD to be
 # lost and every shard to run the full suite.
 
-mme2e_log "Playwright pass 1/2: chrome (parallel)"
+mme2e_log "Playwright: running chrome project (sharded)"
 ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
   -e TEST_FILTER \
   -e PW_SHARD \
-  -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-chrome.log || true
-
-# Preserve the chrome pass's blob reports so pass 2 doesn't overwrite them.
-# Playwright's blob reporter names sharded outputs `report-<index>.zip`,
-# which collides across two passes with the same PW_SHARD.
-${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
-  cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
-  for f in *.zip; do
-    [ -e \"\$f\" ] || continue
-    mv \"\$f\" \"chrome-\$f\"
-  done
-" || true
-
-mme2e_log "Playwright pass 2/2: chrome-serial (serialized config-mutating specs)"
-${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
-  -e TEST_FILTER \
-  -e PW_SHARD \
-  -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci-serial -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-serial.log || true
-
-# Rename the chrome-serial pass's blob so the retry step below doesn't overwrite it.
-${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
-  cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
-  for f in report-*.zip; do
-    [ -e \"\$f\" ] || continue
-    mv \"\$f\" \"serial-\$f\"
-  done
-" || true
+  -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-first.log || true
 
 # ──────────────────────────────────────────────────────────────────────
 # Inline per-shard retry
 # ──────────────────────────────────────────────────────────────────────
-# If any specs failed in either pass, re-run JUST those specs on the SAME
-# server (no new provisioning). This replaces the previous standalone
-# `run-failed-tests` CI job, which spent ~7 min spinning up a fresh server,
-# then ran 0 tests once chrome-serial specs were split off from test:ci.
+# If any specs failed, re-run JUST those specs on the SAME server (no new
+# provisioning). This replaces the standalone `run-failed-tests` CI job,
+# which spent ~4-7 min spinning up a fresh server per run.
 #
-# A failed spec from either project is re-run against BOTH projects —
-# Playwright silently no-ops the project that doesn't match (testIgnore
-# vs. testMatch), so it's safe and avoids having to classify specs here.
-#
-# All earlier blobs (chrome-*.zip, serial-*.zip) stay in place; retry
-# blobs are renamed to retry-*.zip to avoid collisions. merge-reports at
-# the end combines them so tests that pass on retry are reported as
-# flaky, not failed.
+# Pass-1 blobs are renamed to `first-*.zip` so the retry pass doesn't
+# overwrite them (Playwright's blob reporter names sharded outputs
+# `report-<index>.zip`). merge-reports at the end combines both sets so
+# tests that pass on retry appear as `flaky`, not `failed`.
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
+  cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
+  for f in report-*.zip; do
+    [ -e \"\$f\" ] || continue
+    mv \"\$f\" \"first-\$f\"
+  done
+" || true
+
 RESULTS_FILE="../playwright/results/reporter/results.json"
 FAILED_SPECS=""
 if [ -f "$RESULTS_FILE" ]; then
@@ -129,38 +97,22 @@ if [ -n "$FAILED_SPECS" ]; then
   mme2e_log "Retrying failed specs on the same runner: $FAILED_SPECS"
   SPEC_ARGS=$(echo "$FAILED_SPECS" | tr ',' ' ')
 
-  mme2e_log "Retry pass 1/2: chrome"
   ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
     -e TEST_FILTER \
     -e PW_SHARD \
-    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry-chrome.log || true
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry.log || true
 
-  # Move retry blobs aside before the next retry pass overwrites them.
+  # Rename retry blobs so the merge step sees both first-* and retry-*.
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
     cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
     for f in report-*.zip; do
       [ -e \"\$f\" ] || continue
-      mv \"\$f\" \"retry-chrome-\$f\"
+      mv \"\$f\" \"retry-\$f\"
     done
   " || true
 
-  mme2e_log "Retry pass 2/2: chrome-serial"
-  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
-    -e TEST_FILTER \
-    -e PW_SHARD \
-    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci-serial -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry-serial.log || true
-
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
-    cd e2e-tests/playwright/results/blob-report 2>/dev/null || exit 0
-    for f in report-*.zip; do
-      [ -e \"\$f\" ] || continue
-      mv \"\$f\" \"retry-serial-\$f\"
-    done
-  " || true
-
-  # Re-merge everything (chrome-*, serial-*, retry-chrome-*, retry-serial-*)
-  # into a single results.json. Tests that failed in the first pass but
-  # passed on retry will appear as `flaky` rather than `failed`.
+  # Re-merge first-* + retry-* into a single results.json. Tests that
+  # failed in the first pass but passed on retry appear as `flaky`.
   mme2e_log "Merging first-pass + retry blob reports"
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
     cd e2e-tests/playwright
@@ -174,10 +126,8 @@ fi
 
 # Keep a combined tail log for backwards-compat with anything grepping
 # playwright.log. The authoritative results are the merged blob reports.
-cat ../playwright/logs/playwright-chrome.log \
-    ../playwright/logs/playwright-serial.log \
-    ../playwright/logs/playwright-retry-chrome.log \
-    ../playwright/logs/playwright-retry-serial.log \
+cat ../playwright/logs/playwright-first.log \
+    ../playwright/logs/playwright-retry.log \
     >../playwright/logs/playwright.log 2>/dev/null || true
 
 # Collect run results from the merged results.json. This summary is used
