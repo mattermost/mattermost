@@ -3,17 +3,21 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     unreadMentions: number;
     hasUrgent?: boolean;
     icon?: React.ReactNode;
     className?: string;
+    tooltip?: MessageDescriptor;
 };
 
-export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon, className}: Props) {
+export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon, className, tooltip}: Props) {
     if (unreadMentions > 0) {
-        return (
+        const badge = (
             <span
                 id='unreadMentions'
                 className={classNames({badge: true, urgent: hasUrgent}, className)}
@@ -24,6 +28,16 @@ export default function ChannelMentionBadge({unreadMentions, hasUrgent, icon, cl
                 </span>
             </span>
         );
+
+        if (tooltip) {
+            return (
+                <WithTooltip title={tooltip}>
+                    {badge}
+                </WithTooltip>
+            );
+        }
+
+        return badge;
     }
 
     return null;

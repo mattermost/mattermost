@@ -9,10 +9,10 @@
 
 // Group: @channels @enterprise @ldap_group
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 // # Save setting and get back to the resource page
-const saveAndNavigateBackTo = (name, displayName, page) => {
+const saveAndNavigateBackTo = (name: string, displayName: string, page: string) => {
     cy.get('#saveSetting').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
 
     // * Verify that it redirects to page and wait for a while to load
@@ -23,7 +23,7 @@ const saveAndNavigateBackTo = (name, displayName, page) => {
     cy.findByTestId(`${name}edit`).should('be.visible').click();
 };
 
-const changeRole = (type, fromRole, toRole) => {
+const changeRole = (type: string, fromRole: string, toRole: string) => {
     // # Wait for data grid to load
     cy.get(`#${type}Members`).scrollIntoView().within(() => {
         cy.get('.UserGrid_nameRow').should('be.visible');
@@ -35,7 +35,7 @@ const changeRole = (type, fromRole, toRole) => {
     // # Change role
     cy.get('#role-to-be-menu').then((el) => {
         // * Assert that only one option exists in the dropdown for changing roles
-        expect(el[0].firstElementChild.children.length).equal(1);
+        expect(el[0].firstElementChild!.children.length).equal(1);
 
         // # Click on toRole
         cy.wrap(el).findByText(toRole).click().wait(TIMEOUTS.HALF_SEC);
@@ -44,11 +44,11 @@ const changeRole = (type, fromRole, toRole) => {
 
 describe('System Console', () => {
     const groupDisplayName = 'board';
-    let testTeam;
-    let teamName;
-    let teamDisplayName;
-    let channelName;
-    let channelDisplayName;
+    let testTeam: Cypress.Team;
+    let teamName: string;
+    let teamDisplayName: string;
+    let channelName: string;
+    let channelDisplayName: string;
 
     before(() => {
         // * Check if server has license for LDAP Groups
@@ -65,7 +65,7 @@ describe('System Console', () => {
             channelDisplayName = channel.display_name;
 
             cy.apiGetLDAPGroups().then((res) => {
-                res.body.groups.forEach((group) => {
+                res.body.groups.forEach((group: {name: string; display_name: string; id: string; primary_key: string}) => {
                     if (group.name === groupDisplayName) {
                         cy.apiAddLDAPGroupLink(group.primary_key);
                     }
@@ -76,7 +76,7 @@ describe('System Console', () => {
 
     beforeEach(() => {
         cy.apiGetTeamGroups(testTeam.id).then((resGroups) => {
-            resGroups.body.groups.forEach((group) => {
+            resGroups.body.groups.forEach((group: {name: string; display_name: string; id: string; primary_key: string}) => {
                 if (group.display_name === groupDisplayName) {
                     cy.apiDeleteLinkFromTeamToGroup(group.id, testTeam.id);
                 }

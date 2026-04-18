@@ -11,9 +11,10 @@
 
 import {UserProfile} from '@mattermost/types/users';
 
-import ldapUsers from '../../../../../fixtures/ldap_users.json';
-
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
+
+import ldapUsers from '@/fixtures/ldap_users.json';
+
 
 describe('Extended Session Length', () => {
     const sessionLengthInHours = 1;

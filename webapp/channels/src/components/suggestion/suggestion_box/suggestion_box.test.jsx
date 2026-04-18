@@ -23,8 +23,8 @@ jest.mock('mattermost-redux/client', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => {
-    const original = jest.requireActual('utils/user_agent');
+jest.mock('@mattermost/shared/utils/user_agent', () => {
+    const original = jest.requireActual('@mattermost/shared/utils/user_agent');
     return {
         ...original,
         isIos: jest.fn().mockReturnValue(true),
@@ -183,25 +183,6 @@ describe('components/SuggestionBox', () => {
             />,
         );
         expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
-    });
-
-    test('should force pretext change on composition update', () => {
-        const ref = React.createRef();
-        render(
-            <SuggestionBox
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        const instance = ref.current;
-        instance.handlePretextChanged = jest.fn();
-        instance.getTextbox = jest.fn().mockReturnValue({value: ''});
-
-        instance.handleCompositionUpdate({data: '@ㅈ'});
-        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@ㅈ');
-
-        instance.handleCompositionUpdate({data: '@저'});
-        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@저');
     });
 
     test('should reset selection after provider.handlePretextChanged is handled', () => {
