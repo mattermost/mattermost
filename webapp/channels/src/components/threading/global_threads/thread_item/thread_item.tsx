@@ -29,6 +29,7 @@ import Timestamp from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
 import Avatars from 'components/widgets/users/avatars';
 
+import {usePageForComment} from 'hooks/usePageForComment';
 import {navigateToPageFromPost} from 'utils/page_navigation';
 import {isPageComment, isPagePost} from 'utils/page_utils';
 import {getPostTranslatedMessage, getPostTranslation} from 'utils/post_utils';
@@ -37,7 +38,7 @@ import * as Utils from 'utils/utils';
 import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
-import {renderPageCommentPreview, renderPagePreview, usePagePostForComment} from './page_thread_utils';
+import {renderPageCommentPreview, renderPagePreview} from './page_thread_utils';
 
 import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
@@ -100,7 +101,7 @@ function ThreadItem({
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
 
-    const pagePost = usePagePostForComment(post ?? null);
+    const pagePost = usePageForComment(post ?? null);
 
     useEffect(() => {
         if (channel?.teammate_id) {

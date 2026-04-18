@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
-import {getPostsByIds, getPost as fetchPost, getPostThread} from 'mattermost-redux/actions/posts';
+import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -18,11 +18,13 @@ import {
     searchFilesWithParams,
 } from 'mattermost-redux/actions/search';
 import {getCurrentChannelId, getCurrentChannelNameForSearchShortcut, getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getLatestInteractablePostId, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
+import {fetchPage} from 'actions/pages';
 import {getPageDraft} from 'selectors/page_drafts';
 import {
     getSearchType,
@@ -37,7 +39,7 @@ import {getSelectedPageId} from 'selectors/wiki_rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
+import {ActionTypes, PagePropsKeys, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
@@ -495,20 +497,36 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
     return async (dispatch, getState) => {
         // Fetch the page and its thread to ensure they're in Redux
         const state = getState();
-        let page = getPost(state, pageId);
+        let page = getPageById(state, pageId);
+
+        // Treat empty-string wikiId as absent — callers often pass `wikiId || ''` when unknown.
+        const normalizedWikiId = wikiId || undefined;
+        const fetchWikiId = normalizedWikiId || (page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
 
         if (!page) {
             // Check if this is a draft before trying to fetch as a post
-            const isDraft = wikiId ? getPageDraft(state, wikiId, pageId) : null;
+            const isDraft = fetchWikiId ? getPageDraft(state, fetchWikiId, pageId) : null;
 
-            if (!isDraft) {
-                // Not a draft - fetch the page if not in Redux
-                await dispatch(getPostThread(pageId, false, 0));
-                page = getPost(getState(), pageId);
+            if (!isDraft && fetchWikiId) {
+                // Not a draft - fetch the page if not in Redux. Use fetchPage (dispatches
+                // RECEIVED_PAGE) because getPostThread dispatches RECEIVED_POSTS which the
+                // NON_POST_TYPES guard in the posts reducer now filters out for page-typed posts.
+                const result = await dispatch(fetchPage(pageId, fetchWikiId));
+                if ('error' in result && result.error) {
+                    return {error: result.error};
+                }
+                page = getPageById(getState(), pageId);
+            } else if (!isDraft && !fetchWikiId) {
+                // eslint-disable-next-line no-console
+                console.warn('openWikiRhs: pageId provided without wikiId and page not in Redux', pageId);
             }
 
             // If it's a draft, we don't need to fetch it as a post
         }
+
+        // If caller didn't supply wikiId, derive it from the page so SET_WIKI_ID
+        // still fires and downstream RHS selectors have the wiki context.
+        const effectiveWikiId = normalizedWikiId ?? (page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
 
         // Ensure the channel is loaded
         if (page?.channel_id) {
@@ -531,10 +549,10 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
             });
         }
 
-        if (wikiId) {
+        if (effectiveWikiId) {
             dispatch({
                 type: WikiRhsTypes.SET_WIKI_ID,
-                wikiId,
+                wikiId: effectiveWikiId,
             });
         }
 

@@ -6,7 +6,7 @@ import type {Dispatch} from 'redux';
 import {bindActionCreators} from 'redux';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {publishPage} from 'actions/pages';
 import {closeRightHandSide, openWikiRhs, toggleRhsExpanded} from 'actions/views/rhs';
@@ -21,7 +21,7 @@ import WikiRHS from './wiki_rhs';
 function makeMapStateToProps() {
     return (state: GlobalState) => {
         const pageId = getSelectedPageId(state);
-        const page = pageId ? getPost(state, pageId) : null;
+        const page = pageId ? getPageById(state, pageId) : null;
         const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
         const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
 

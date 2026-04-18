@@ -4,8 +4,8 @@
 import {renderHook, act} from '@testing-library/react';
 
 // Mock all external modules BEFORE they're imported by usePageComments
-jest.mock('mattermost-redux/selectors/entities/posts', () => ({
-    getPost: jest.fn(),
+jest.mock('mattermost-redux/selectors/entities/pages', () => ({
+    getPageById: jest.fn(),
 }));
 
 jest.mock('selectors/wiki_rhs', () => ({
@@ -33,7 +33,7 @@ jest.mock('react-redux', () => ({
 }));
 
 // Import after mocks are set up
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment, createPageCommentReply} from 'actions/pages';
 import {submitPageComment} from 'actions/views/create_page_comment';
@@ -41,7 +41,7 @@ import {getWikiRhsWikiId, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
 
 import {usePageComments} from './usePageComments';
 
-const mockGetPost = getPost as jest.MockedFunction<typeof getPost>;
+const mockGetPageById = getPageById as jest.MockedFunction<typeof getPageById>;
 const mockGetWikiRhsWikiId = getWikiRhsWikiId as jest.MockedFunction<typeof getWikiRhsWikiId>;
 const mockGetFocusedInlineCommentId = getFocusedInlineCommentId as jest.MockedFunction<typeof getFocusedInlineCommentId>;
 const mockCreatePageComment = createPageComment as jest.MockedFunction<typeof createPageComment>;
@@ -63,7 +63,7 @@ describe('usePageComments', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockGetPost.mockReturnValue(mockPage as any);
+        mockGetPageById.mockReturnValue(mockPage as any);
         mockGetWikiRhsWikiId.mockReturnValue(wikiId);
         mockGetFocusedInlineCommentId.mockReturnValue(null);
     });

@@ -9,13 +9,14 @@ import {useHistory} from 'react-router-dom';
 import {LinkVariantIcon, PaperclipIcon, FileMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
+import {createWiki} from 'mattermost-redux/actions/wikis';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import type {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getCurrentRelativeTeamUrl, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
-import {fetchChannelWikis, createWiki} from 'actions/pages';
+import {fetchChannelWikis} from 'actions/pages';
 import {openModal, closeModal} from 'actions/views/modals';
 import {getChannelWikis} from 'selectors/pages';
 

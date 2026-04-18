@@ -148,8 +148,10 @@ export function fetchPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraf
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
-        // Get deleted draft timestamps to filter out recently deleted drafts (HA race condition fix)
-        const deletedDraftTimestamps = state.entities.wikiPages?.deletedDraftTimestamps || {};
+        // Get deleted draft timestamps to filter out recently deleted drafts (HA race condition fix).
+        // Optional chaining tolerates partial state in tests; combineReducers guarantees
+        // entities.pages exists in production.
+        const deletedDraftTimestamps = state.entities.pages?.deletedDraftTimestamps || {};
 
         let serverDrafts: LocalPageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {

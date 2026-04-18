@@ -8,7 +8,7 @@ import type {ThreadsState, UserThread, UserThreadWithPost} from '@mattermost/typ
 import type {IDMappedObjects, RelationOneToMany} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, TeamTypes, ThreadTypes, UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 import type {ExtraData} from './types';
 
@@ -249,6 +249,9 @@ export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, 
         return handleReceivedThread(state, action, extra);
     case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
+    case WikiTypes.DELETED_PAGE:
+        // DELETED_PAGE carries {id, wikiId}; handlePostRemoved only reads id and
+        // root_id, and a page is never a reply (root_id undefined → falsy).
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_THREADS:
         return handleReceiveThreads(state, action);
@@ -295,6 +298,9 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
         });
     case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
+    case WikiTypes.DELETED_PAGE:
+        // DELETED_PAGE carries {id, wikiId}; handlePostRemoved only reads id and
+        // root_id, and a page is never a reply (root_id undefined → falsy).
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_UNREAD_THREADS:
         return handleReceiveThreads(state, action);

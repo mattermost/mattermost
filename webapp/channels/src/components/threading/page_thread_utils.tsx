@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {isPageComment, isPagePost, isPageInlineComment} from 'utils/page_utils';
 import {getPageTitle} from 'utils/post_utils';
@@ -57,6 +57,6 @@ export function usePagePostForInlineComment(post: Post | null): Post | null {
         if (!isPageInlineComment(post) || !post?.root_id) {
             return null;
         }
-        return getPost(state, post.root_id);
+        return getPageById(state, post.root_id) ?? null;
     });
 }

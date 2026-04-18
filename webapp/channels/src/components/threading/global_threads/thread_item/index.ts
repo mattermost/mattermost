@@ -4,6 +4,7 @@
 import {connect} from 'react-redux';
 
 import {isMyChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getPost, isPostPriorityEnabled, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
@@ -22,7 +23,7 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const {threadId} = ownProps;
 
-        const post = getPost(state, threadId);
+        const post = getPageById(state, threadId) ?? getPost(state, threadId);
         const thread = getThread(state, threadId);
 
         if (!post) {

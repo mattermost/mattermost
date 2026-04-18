@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {EditorState} from '@tiptap/pm/state';
-import {NodeSelection, TextSelection} from '@tiptap/pm/state';
+import {NodeSelection, PluginKey, TextSelection} from '@tiptap/pm/state';
 import type {Editor} from '@tiptap/react';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React, {useState, useCallback, useMemo, useEffect, useRef} from 'react';
@@ -23,6 +23,11 @@ import {FORMATTING_ACTIONS, type FormattingAction} from './formatting_actions';
 
 import './formatting_bar_bubble.scss';
 import './ai/image_ai_bubble.scss';
+
+// Stable PluginKey shared between the BubbleMenu instance and our Escape handler.
+// Must be a single instance so tr.setMeta(formattingBubblePluginKey, 'hide')
+// is seen by the correct plugin.
+const formattingBubblePluginKey = new PluginKey('formattingBarBubble');
 
 const MAX_LINK_DISPLAY_LENGTH = 40;
 
@@ -45,7 +50,7 @@ type Props = {
 const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onAddEmoji, onAddComment, onAIRewrite, onImageAIAction, visionEnabled = false}: Props) => {
     const {formatMessage} = useIntl();
     const [mode, setMode] = useState<Mode>('format');
-    const [dismissed, setDismissed] = useState(false);
+    const dismissedRef = useRef(false);
     const [shouldRenderBubble, setShouldRenderBubble] = useState(false);
     const lastSelectionPos = useRef<number | null>(null);
     const capturedImageRef = useRef<HTMLImageElement | null>(null);
@@ -62,7 +67,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
             // Reset dismissed state when selection position changes significantly
             if (lastSelectionPos.current !== null && Math.abs(currentPos - lastSelectionPos.current) > 1) {
-                setDismissed(false);
+                dismissedRef.current = false;
             }
             lastSelectionPos.current = currentPos;
 
@@ -108,16 +113,17 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                setDismissed(true);
+                dismissedRef.current = true;
 
                 // Change selection to trigger shouldShow re-evaluation
                 // This aligns with standard editor behavior where Escape modifies selection
                 const {selection} = editor.state;
-                if (selection instanceof NodeSelection) {
-                    // For image/node selection: move cursor after the node
-                    editor.commands.setTextSelection(selection.to);
-                } else if (!selection.empty) {
-                    // For text selection: collapse to cursor at end of selection
+                if (selection.empty && !(selection instanceof NodeSelection)) {
+                    // For empty selection (e.g., cursor in a link): send "hide" meta so
+                    // TipTap's BubbleMenu plugin hides the popup directly.
+                    editor.view.dispatch(editor.state.tr.setMeta(formattingBubblePluginKey, 'hide'));
+                } else {
+                    // For node selection or text selection: move cursor to end of selection
                     editor.commands.setTextSelection(selection.to);
                 }
             }
@@ -222,7 +228,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
         const editorState = state as EditorState;
 
         // Don't show if user explicitly dismissed with Escape
-        if (dismissed) {
+        if (dismissedRef.current) {
             capturedImageRef.current = null;
             return false;
         }
@@ -278,7 +284,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
 
         const text = editorState.doc.textBetween(selection.from, selection.to).trim();
         return text.length > 0;
-    }, [dismissed, onImageAIAction]);
+    }, [onImageAIAction]);
 
     if (!editor) {
         return null;
@@ -725,6 +731,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddMedia, onA
     return (
         <BubbleMenu
             editor={editor}
+            pluginKey={formattingBubblePluginKey}
             shouldShow={shouldShow}
         >
             {/* key={mode} forces React to unmount/remount when mode changes,

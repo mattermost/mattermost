@@ -7,6 +7,8 @@ import * as WikiActions from 'mattermost-redux/actions/wikis';
 import * as StorageActions from 'actions/storage';
 import * as DraftActions from 'actions/views/drafts';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
+
 import {
     savePageDraft,
     fetchPageDraft,
@@ -50,6 +52,7 @@ describe('page_drafts actions', () => {
                     AllowSyncedDrafts: options.syncEnabled ? 'true' : 'false',
                 },
             },
+            pages: makeInitialPagesState(),
         },
         storage: {
             storage: options.existingDraft ? {

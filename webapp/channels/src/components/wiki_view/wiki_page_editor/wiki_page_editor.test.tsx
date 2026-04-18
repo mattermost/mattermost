@@ -62,22 +62,16 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 },
             },
             wikiPages: {
-                byWiki: {},
-                publishedDraftTimestamps: {},
-                lastPagesInvalidated: {},
-                lastDraftsInvalidated: {},
-                statusField: {
-                    id: 'status_field_id',
-                    name: 'status',
-                    type: 'select',
-                    attrs: {
-                        options: [
-                            {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
-                            {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
-                            {id: 'in_review', name: 'in_review', color: 'dark_blue'},
-                            {id: 'done', name: 'done', color: 'green'},
-                        ],
-                    },
+                id: 'status_field_id',
+                name: 'status',
+                type: 'select',
+                attrs: {
+                    options: [
+                        {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
+                        {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
+                        {id: 'in_review', name: 'in_review', color: 'dark_blue'},
+                        {id: 'done', name: 'done', color: 'green'},
+                    ],
                 },
             } as any,
         },
@@ -480,13 +474,11 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             ...initialState,
             entities: {
                 ...initialState.entities,
-                posts: {
-                    posts: {
+                pages: {
+                    byId: {
                         page1: mockPages[0],
                         page2: mockPages[1],
                     },
-                },
-                wikiPages: {
                     byWiki: {
                         wiki_id_1: ['page1', 'page2'],
                     },
@@ -525,10 +517,8 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 ...initialState,
                 entities: {
                     ...initialState.entities,
-                    posts: {
-                        posts: {},
-                    },
-                    wikiPages: {
+                    pages: {
+                        byId: {},
                         byWiki: {
                             wiki_id_1: [],
                         },
@@ -590,10 +580,8 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 ...initialState,
                 entities: {
                     ...initialState.entities,
-                    posts: {
-                        posts: mixedPosts,
-                    },
-                    wikiPages: {
+                    pages: {
+                        byId: mixedPosts,
                         byWiki: {
                             wiki_id_1: ['page1', 'page2', 'post1'],
                         },

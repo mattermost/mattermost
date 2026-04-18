@@ -21,6 +21,7 @@ import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
 import jobs from './jobs';
 import limits from './limits';
+import pages from './pages';
 import posts from './posts';
 import preferences from './preferences';
 import properties from './properties';
@@ -70,6 +71,7 @@ export default combineReducers({
     scheduledPosts,
     sharedChannels,
     contentFlagging,
+    pages,
     wikiPages,
     wikis,
     properties,

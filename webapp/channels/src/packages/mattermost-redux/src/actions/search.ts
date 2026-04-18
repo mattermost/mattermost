@@ -7,8 +7,9 @@ import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/fi
 import type {PostList, PostSearchResults} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import {SearchTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {PostTypes as PostTypeConstants} from 'mattermost-redux/constants/posts';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
@@ -114,13 +115,27 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
             return {error};
         }
 
-        dispatch(batchActions([
+        const pagePostsFromSearch = Object.values(posts.posts).filter(
+            (p) => p.type === PostTypeConstants.PAGE,
+        );
+
+        const batchedActions = [
             {
                 type: SearchTypes.RECEIVED_SEARCH_POSTS,
                 data: posts,
                 isGettingMore,
             },
             receivedPosts(posts),
+        ];
+
+        if (pagePostsFromSearch.length > 0) {
+            batchedActions.push({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {pages: pagePostsFromSearch},
+            } as any);
+        }
+
+        batchedActions.push(
             {
                 type: SearchTypes.RECEIVED_SEARCH_TERM,
                 data: {
@@ -128,11 +143,13 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
                     params,
                     isEnd: posts.order.length === 0,
                 },
-            },
+            } as any,
             {
                 type: SearchTypes.SEARCH_POSTS_SUCCESS,
-            },
-        ], 'SEARCH_POST_BATCH'));
+            } as any,
+        );
+
+        dispatch(batchActions(batchedActions, 'SEARCH_POST_BATCH'));
 
         // Dispatch truncation info separately to avoid typing conflicts
         const firstInaccessiblePostTime = posts.first_inaccessible_post_time || 0;

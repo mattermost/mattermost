@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {ChannelTypes, PostTypes, ThreadTypes, UserTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, ThreadTypes, UserTypes, WikiTypes} from 'mattermost-redux/action_types';
 
 import {countsReducer, countsIncludingDirectReducer} from './counts';
 import {threadsInTeamReducer, unreadThreadsInTeamReducer} from './threadsInTeam';
@@ -27,7 +27,11 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMRe
         };
     }
     case PostTypes.POST_DELETED:
-    case PostTypes.POST_REMOVED: {
+    case PostTypes.POST_REMOVED:
+    case WikiTypes.DELETED_PAGE: {
+        // DELETED_PAGE carries {id, wikiId}; POST_DELETED/REMOVED carries {id, root_id}.
+        // The branch below only uses id and root_id; missing root_id on DELETED_PAGE is
+        // treated as falsy, which is correct (a page is never a thread reply).
         const post = action.data;
 
         if (post.root_id || !state[post.id]) {

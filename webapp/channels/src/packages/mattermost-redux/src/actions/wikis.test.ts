@@ -4,6 +4,8 @@
 import {WikiTypes, PostTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
+
 import {
     getWiki,
     getChannelWikis,
@@ -69,6 +71,7 @@ describe('mattermost-redux/actions/wikis', () => {
                     entities: {
                         wikis: {byId: {wiki123: mockWiki}},
                         posts: {posts: {}},
+                        pages: makeInitialPagesState(),
                     },
                 }), undefined);
             }
@@ -83,6 +86,7 @@ describe('mattermost-redux/actions/wikis', () => {
         entities: {
             wikis: {byId: {wiki123: mockWiki}},
             posts: {posts: {}},
+            pages: makeInitialPagesState(),
         },
         ...overrides,
     }));
@@ -239,7 +243,7 @@ describe('mattermost-redux/actions/wikis', () => {
     });
 
     describe('getPage', () => {
-        test('should fetch page and dispatch RECEIVED_POST', async () => {
+        test('should fetch page and dispatch RECEIVED_PAGE', async () => {
             const page = {
                 id: 'page123',
                 type: 'page',
@@ -255,18 +259,14 @@ describe('mattermost-redux/actions/wikis', () => {
 
             expect(result.data).toEqual(page);
             expect(dispatch.getActions()).toContainEqual({
-                type: PostTypes.RECEIVED_POST,
-                data: page,
-            });
-            expect(dispatch.getActions()).toContainEqual({
-                type: WikiTypes.RECEIVED_PAGE_STATUS,
-                data: {postId: 'page123', status: 'In Progress'},
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page, wikiId: 'wiki123'},
             });
         });
     });
 
     describe('deletePage', () => {
-        test('should delete page and dispatch actions', async () => {
+        test('should delete page and dispatch DELETED_PAGE', async () => {
             mockClient.deletePage.mockResolvedValue({status: 'OK'} as any);
 
             const dispatch = createMockDispatch();
@@ -275,10 +275,6 @@ describe('mattermost-redux/actions/wikis', () => {
             const result = await deletePage('wiki123', 'page123')(dispatch, getState, undefined);
 
             expect(result.data).toBe(true);
-            expect(dispatch.getActions()).toContainEqual({
-                type: PostTypes.POST_DELETED,
-                data: {id: 'page123'},
-            });
             expect(dispatch.getActions()).toContainEqual({
                 type: WikiTypes.DELETED_PAGE,
                 data: {id: 'page123', wikiId: 'wiki123'},

@@ -752,18 +752,38 @@ export async function waitForWikiViewLoad(page: Page, timeout = 60000) {
             .locator('.channel-tab-panel-content--wiki')
             .count()
             .catch(() => 0);
-        const bodyContent = await page
-            .locator('body')
-            .innerHTML()
-            .catch(() => '[failed to get body]');
-        const hasError = bodyContent.includes('error') || bodyContent.includes('Error');
+        const errorBoundaryCount = await page
+            .locator('.wiki-error-boundary')
+            .count()
+            .catch(() => 0);
+        const loadingCount = await page
+            .locator('[data-testid="wiki-view-loading"]')
+            .count()
+            .catch(() => 0);
+        const wikiViewCount = await page
+            .locator('[data-testid="wiki-view"]')
+            .count()
+            .catch(() => 0);
+        const isWikiUrl = url.includes('/wiki/');
+        const channelTabPanelContent = await page
+            .locator('[id^="channel-tab-panel-"]')
+            .getAttribute('id')
+            .catch(() => 'none');
+
+        // eslint-disable-next-line no-console
+        console.error(
+            `[waitForWikiViewLoad] FAIL: url=${url} isWikiUrl=${isWikiUrl} ` +
+                `tabPanelId=${activeTabPanel} channelTabPanelContent=${channelTabPanelContent} ` +
+                `wikiTabContentCount=${wikiTabContent} wikiViewCount=${wikiViewCount} ` +
+                `errorBoundaryCount=${errorBoundaryCount} loadingCount=${loadingCount}`,
+        );
 
         throw new Error(
             `Wiki view not visible after ${timeout}ms. ` +
-                `URL: ${url}. ` +
-                `Active tab panel: ${activeTabPanel}. ` +
-                `Wiki tab content count: ${wikiTabContent}. ` +
-                `Body contains error text: ${hasError}. ` +
+                `URL: ${url}. isWikiUrl: ${isWikiUrl}. ` +
+                `Active tab panel: ${activeTabPanel}. channelTabPanel: ${channelTabPanelContent}. ` +
+                `Wiki tab content count: ${wikiTabContent}. wikiViewCount: ${wikiViewCount}. ` +
+                `errorBoundaryCount: ${errorBoundaryCount}. loadingCount: ${loadingCount}. ` +
                 `Original error: ${error instanceof Error ? error.message : String(error)}`,
         );
     }
@@ -988,10 +1008,16 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
         throw new Error(`Publish API failed with status ${publishResponse.status()}: ${responseText}`);
     }
 
+    // Extract page ID from the publish response — more reliable than URL extraction
+    // because the wiki may auto-navigate to a different page after publish
+    const publishData = await publishResponse.json().catch(() => null);
+    const pageId = publishData?.id;
+
+    if (!pageId) {
+        throw new Error('Failed to extract page ID from publish response');
+    }
+
     // # Wait for URL to change from draft to published page (navigation after publish)
-    // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}
-    // to: /wiki/{channelId}/{wikiId}/{pageId}
-    // Regex allows optional query string or hash at the end
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
@@ -1000,14 +1026,6 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     await pageViewer.waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT * 2});
-
-    // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
-    const url = page.url();
-    const pageId = getPageIdFromUrl(url);
-
-    if (!pageId) {
-        throw new Error(`Failed to extract page ID from URL: ${url}`);
-    }
 
     return {id: pageId, title: pageTitle};
 }
@@ -1097,10 +1115,16 @@ export async function createChildPageThroughContextMenu(
         throw new Error(`Publish API failed with status ${publishResponse.status()}: ${responseText}`);
     }
 
+    // Extract page ID from the publish response — more reliable than URL extraction
+    // because the wiki may auto-navigate to a different page after publish
+    const publishData = await publishResponse.json().catch(() => null);
+    const pageId = publishData?.id;
+
+    if (!pageId) {
+        throw new Error('Failed to extract page ID from publish response');
+    }
+
     // # Wait for URL to change from draft to published page (navigation after publish)
-    // URL pattern changes from: /wiki/{channelId}/{wikiId}/drafts/{draftId}
-    // to: /wiki/{channelId}/{wikiId}/{pageId}
-    // Regex allows optional query string or hash at the end
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+(?:[?#]|$)/, {timeout: PAGE_LOAD_TIMEOUT});
 
     // # Wait for navigation and network to settle after publish
@@ -1109,14 +1133,6 @@ export async function createChildPageThroughContextMenu(
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
     await pageViewer.waitFor({state: 'visible', timeout: PAGE_LOAD_TIMEOUT * 2});
-
-    // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
-    const url = page.url();
-    const pageId = getPageIdFromUrl(url);
-
-    if (!pageId) {
-        throw new Error(`Failed to extract page ID from URL: ${url}`);
-    }
 
     return {id: pageId, title: pageTitle};
 }

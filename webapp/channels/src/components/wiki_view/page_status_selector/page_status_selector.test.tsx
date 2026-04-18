@@ -6,6 +6,7 @@ import React from 'react';
 import type {PostType} from '@mattermost/types/posts';
 import type {FieldType} from '@mattermost/types/properties';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PageStatusSelector from './page_status_selector';
@@ -49,20 +50,19 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
                 currentUserId: 'user1',
                 profiles: {},
             },
-            posts: {
-                posts: {
+            pages: makeInitialPagesState({
+                byId: {
                     'page-1': {
                         id: 'page-1',
                         type: 'page' as PostType,
                         props: {
                             page_status: 'In progress',
+                            wiki_id: 'wiki-1',
                         },
-                    },
+                    } as any,
                 },
-            },
-            wikiPages: {
-                statusField: mockStatusField,
-            },
+            }),
+            wikiPages: mockStatusField,
         },
     };
 
@@ -75,9 +75,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                wikiPages: {
-                    statusField: null,
-                },
+                wikiPages: null,
             },
         };
 
@@ -104,9 +102,7 @@ describe('components/wiki_view/page_status_selector/PageStatusSelector', () => {
             ...baseState,
             entities: {
                 ...baseState.entities,
-                wikiPages: {
-                    statusField: null,
-                },
+                wikiPages: null,
             },
         };
 

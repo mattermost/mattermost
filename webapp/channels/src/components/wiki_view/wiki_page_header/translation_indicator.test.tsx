@@ -5,6 +5,7 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {PagePropsKeys} from 'utils/constants';
 
@@ -27,22 +28,22 @@ describe('components/wiki_view/wiki_page_header/TranslationIndicator', () => {
         sourcePageProps?: Record<string, unknown>;
     }): DeepPartial<GlobalState> => ({
         entities: {
-            posts: {
-                posts: {
+            pages: makeInitialPagesState({
+                byId: {
                     [mockPageId]: {
                         id: mockPageId,
                         type: 'page',
                         props: overrides?.pageProps || {},
-                    },
+                    } as any,
                     ...(overrides?.sourcePageProps ? {
                         [mockSourcePageId]: {
                             id: mockSourcePageId,
                             type: 'page',
                             props: overrides.sourcePageProps,
-                        },
+                        } as any,
                     } : {}),
                 },
-            },
+            }),
         },
     });
 

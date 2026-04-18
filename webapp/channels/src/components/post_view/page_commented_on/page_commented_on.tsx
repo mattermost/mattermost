@@ -18,6 +18,7 @@ import PostTime from 'components/post_view/post_time';
 import UserProfile from 'components/user_profile';
 import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
+import {usePageForComment} from 'hooks/usePageForComment';
 import {isPageComment, getPageInlineAnchorText, getPageInlineAnchorId} from 'utils/page_utils';
 import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl} from 'utils/url';
@@ -32,7 +33,7 @@ type Props = {
 
 function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props) {
     const rootPost = usePost(rootId);
-    const pagePost = usePost(isPageComment(rootPost) && rootPost?.props?.page_id ? rootPost.props.page_id as string : '');
+    const pagePost = usePageForComment(rootPost);
     const currentTeam = useSelector(getCurrentTeam);
 
     const shouldRender = isPageComment(rootPost) && pagePost;

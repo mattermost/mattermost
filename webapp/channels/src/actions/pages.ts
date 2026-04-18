@@ -11,7 +11,6 @@ import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_t
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {receivedNewPost} from 'mattermost-redux/actions/posts';
-import {createWiki} from 'mattermost-redux/actions/wikis';
 import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -57,7 +56,50 @@ function handleApiError(
     }
 }
 
-export {createWiki};
+// Latest-optimistic-mutation tracker per pageId. Date.now() timestamps can
+// collide on rapid edits, so equality-based rollback guards produce false
+// positives (spurious refetches) and can clobber newer state when a second
+// optimistic dispatch supersedes the first. Each mutation claims a unique id;
+// only the caller still holding the latest id runs its rollback path. WS
+// events and unrelated success dispatches don't touch this Map — they modify
+// store state directly and the optimistic caller still owns rollback decisions.
+const latestOptimisticMutations = new Map<string, number>();
+let nextOptimisticMutationId = 1;
+
+function beginOptimistic(pageId: string): number {
+    const id = nextOptimisticMutationId++;
+    latestOptimisticMutations.set(pageId, id);
+    return id;
+}
+
+function endOptimistic(pageId: string, id: number): void {
+    if (latestOptimisticMutations.get(pageId) === id) {
+        latestOptimisticMutations.delete(pageId);
+    }
+}
+
+function isLatestOptimistic(pageId: string, id: number): boolean {
+    return latestOptimisticMutations.get(pageId) === id;
+}
+
+// requireWikiId resolves the wiki_id for a cached page. The pages reducer silently
+// skips the byWiki membership update when wiki_id is absent, which orphans the page
+// from hierarchy queries. Callers that need the page to land in byWiki must abort
+// rather than dispatch a silent-no-op RECEIVED_PAGE.
+function requireWikiId(
+    page: Post | undefined,
+    callerName: string,
+    pageId: string,
+    dispatch: DispatchFunc,
+): {wikiId: string} | {error: Error} {
+    const wikiId = page?.props?.[PagePropsKeys.WIKI_ID] as string | undefined;
+    if (!wikiId) {
+        const err = new Error(`${callerName}: page ${pageId} has no wiki_id`);
+        dispatch(logError(err));
+        return {error: err};
+    }
+    return {wikiId};
+}
 
 export type {Page, TranslationReference} from 'types/store/pages';
 
@@ -98,34 +140,14 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
                 data: {wikiId, pages: allPages},
             });
 
-            if (allPages.length > 0) {
-                const state = getState();
-                const existingPosts = state.entities.posts.posts;
-
-                const postsToDispatch = allPages.reduce((acc: Record<string, Post>, page: Post) => {
-                    const existingPost = existingPosts[page.id];
-
-                    // If page already exists in Redux with content, preserve the content
-                    // GetWikiPages returns pages without content (for performance)
-                    // Only full GetPage loads content from PageContents table
-                    if (existingPost && existingPost.message && existingPost.message.trim() !== '') {
-                        acc[page.id] = {
-                            ...page,
-                            message: existingPost.message,
-                        };
-                    } else {
-                        acc[page.id] = page;
-                    }
-                    return acc;
-                }, {});
-
-                dispatch({
-                    type: PostActionTypes.RECEIVED_POSTS,
-                    data: {
-                        posts: postsToDispatch,
-                    },
-                });
-            }
+            // Always dispatch so byWiki[wikiId] is populated even for empty wikis;
+            // otherwise arePagesLoaded stays false and callers refetch in a loop.
+            // The reducer preserves any non-empty message already in state, so list
+            // endpoints (which return pages without TipTap content) don't clobber it.
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {wikiId, pages: allPages},
+            });
 
             return {data: allPages};
         } catch (error) {
@@ -139,7 +161,7 @@ export function fetchPages(wikiId: string): ActionFuncAsync<Post[]> {
 // Fetch all pages for a channel
 export function fetchChannelPages(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        let data;
+        let data: {posts?: Record<string, Post>};
         try {
             data = await Client4.getChannelPages(channelId);
         } catch (error) {
@@ -147,11 +169,20 @@ export function fetchChannelPages(channelId: string): ActionFuncAsync {
             return {error};
         }
 
-        dispatch({
-            type: PostActionTypes.RECEIVED_POSTS,
-            data,
-            channelId,
-        });
+        if (data?.posts) {
+            const pages = Object.values(data.posts);
+            if (pages.length > 0) {
+                // Dispatch without wikiId so byId is populated for cross-wiki link search
+                // but byWiki is NOT updated — preserving the invariant that byWiki is only
+                // populated by explicit per-wiki fetches (fetchPages). Without this, eager
+                // loading of all channel pages would add stale entries to byWiki for wikis
+                // the user hasn't visited, causing cross-test pollution in E2E suites.
+                dispatch({
+                    type: WikiTypes.RECEIVED_PAGES,
+                    data: {pages},
+                });
+            }
+        }
 
         return {data};
     };
@@ -227,7 +258,7 @@ export function updateWiki(wikiId: string, patch: {title?: string; description?:
 
             dispatch({
                 type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId},
+                data: {wikiId, timestamp: Date.now()},
             });
 
             return {data: updatedWiki};
@@ -289,25 +320,10 @@ export function fetchPage(pageId: string, wikiId: string): ActionFuncAsync<Page>
             return {error};
         }
 
-        const actions: AnyAction[] = [
-            {
-                type: PostActionTypes.RECEIVED_POST,
-                data,
-            },
-        ];
-
-        const pageStatus = data.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined;
-        if (pageStatus) {
-            actions.push({
-                type: WikiTypes.RECEIVED_PAGE_STATUS,
-                data: {
-                    postId: data.id,
-                    status: pageStatus,
-                },
-            });
-        }
-
-        dispatch(batchActions(actions));
+        dispatch({
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {page: data, wikiId},
+        });
 
         return {data};
     };
@@ -326,8 +342,8 @@ export function fetchChannelDefaultPage(channelId: string): ActionFuncAsync<Page
         }
 
         dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data,
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {page: data, wikiId: data.props?.[PagePropsKeys.WIKI_ID] as string | undefined},
         });
 
         return {data};
@@ -405,8 +421,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             // For edits of existing pages, use optimistic update
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
-                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: optimisticPage, wikiId}},
-                {type: PostActionTypes.RECEIVED_POST, data: optimisticPage},
+                {type: WikiTypes.RECEIVED_PAGE, data: {page: optimisticPage, wikiId}},
                 removeDraftAction,
             ]));
         }
@@ -423,26 +438,13 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
             const actions: AnyAction[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, publishedAt: data.update_at, optimisticId: isFirstTimeDraft ? undefined : pendingPageId}},
-                {type: PostActionTypes.RECEIVED_POST, data},
-                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId: isFirstTimeDraft ? undefined : pendingPageId}},
+                {type: WikiTypes.RECEIVED_PAGE, data: {page: data, wikiId, pendingPageId: isFirstTimeDraft ? undefined : pendingPageId}},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ];
 
             // Only remove optimistic page if it was created (not first-time drafts)
             if (!isFirstTimeDraft) {
                 actions.splice(1, 0, {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}});
-            }
-
-            // Extract and store page status in Redux
-            const publishedPageStatus = data.props?.[PagePropsKeys.PAGE_STATUS] as string | undefined;
-            if (publishedPageStatus) {
-                actions.push({
-                    type: WikiTypes.RECEIVED_PAGE_STATUS,
-                    data: {
-                        postId: data.id,
-                        status: publishedPageStatus,
-                    },
-                });
             }
 
             // Cleanup: Delete user's old drafts for this page
@@ -471,7 +473,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
-                {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId}},
+                {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId, wikiId}},
             ]));
             dispatch(setGlobalItem(draftKey, draft));
 
@@ -496,7 +498,9 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                         },
                     };
                 } catch (fetchError) {
-                    // If we can't fetch the page, fall through to generic error handling
+                    // Log so we don't swallow the conflict-recovery failure silently,
+                    // then fall through to generic error handling.
+                    dispatch(logError(fetchError));
                 }
             }
 
@@ -530,7 +534,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 export function updatePage(pageId: string, newTitle: string, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const originalPost = state.entities.posts.posts[pageId];
+        const originalPost = state.entities.pages.byId[pageId];
 
         if (!originalPost) {
             return {error: new Error('Page not found')};
@@ -542,28 +546,37 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
             update_at: Date.now(),
         };
 
+        const optimisticId = beginOptimistic(pageId);
+
         dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data: optimisticPost,
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {page: optimisticPost, wikiId},
         });
 
         try {
             const data = await Client4.updatePage(wikiId, pageId, newTitle);
 
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
-            });
+            endOptimistic(pageId, optimisticId);
 
             const pageActions = getPageReceiveActions(data);
-            pageActions.forEach((action) => dispatch(action));
+            if (pageActions.length === 0) {
+                // Server returned something that isn't a page-typed post; the
+                // optimistic entry would remain without a confirming dispatch.
+                // eslint-disable-next-line no-console
+                console.warn('updatePage: server response is not a page-typed post', pageId, data?.type);
+            } else {
+                pageActions.forEach((action) => dispatch(action));
+            }
 
             return {data};
         } catch (error) {
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: originalPost,
-            });
+            // Only roll back if we still own the latest mutation; a newer one may have
+            // taken over. Refetch rather than restore the captured snapshot so we pull
+            // authoritative server state instead of risking stale originalPost.
+            if (isLatestOptimistic(pageId, optimisticId)) {
+                endOptimistic(pageId, optimisticId);
+                dispatch(fetchPage(pageId, wikiId));
+            }
 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -576,21 +589,19 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
 export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const originalPost = state.entities.posts.posts[pageId];
+        const originalPost = state.entities.pages.byId[pageId];
 
-        dispatch(batchActions([
-            {
-                type: PostActionTypes.POST_DELETED,
-                data: {id: pageId},
-            },
-            {
-                type: WikiTypes.DELETED_PAGE,
-                data: {id: pageId},
-            },
-        ]));
+        const optimisticId = beginOptimistic(pageId);
+
+        dispatch({
+            type: WikiTypes.DELETED_PAGE,
+            data: {id: pageId, wikiId},
+        });
 
         try {
             await Client4.deletePage(wikiId, pageId);
+
+            endOptimistic(pageId, optimisticId);
 
             const timestamp = Date.now();
             dispatch({
@@ -600,17 +611,15 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
 
             return {data: true};
         } catch (error) {
-            if (originalPost) {
-                dispatch(batchActions([
-                    {
-                        type: PostActionTypes.RECEIVED_POST,
-                        data: originalPost,
-                    },
-                    {
-                        type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                        data: {page: originalPost, wikiId},
-                    },
-                ]));
+            // Only revert if we still own the latest mutation; a newer one may have taken over.
+            if (isLatestOptimistic(pageId, optimisticId)) {
+                endOptimistic(pageId, optimisticId);
+                if (originalPost) {
+                    dispatch({
+                        type: WikiTypes.RECEIVED_PAGE,
+                        data: {page: originalPost, wikiId, isRevert: true},
+                    });
+                }
             }
 
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -672,7 +681,7 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
         }
 
         const state = getState();
-        const originalPost = state.entities.posts.posts[pageId];
+        const originalPost = state.entities.pages.byId[pageId];
 
         if (!originalPost) {
             return {error: new Error('Page not found')};
@@ -690,9 +699,11 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
             update_at: Date.now(),
         };
 
+        const optimisticId = beginOptimistic(pageId);
+
         dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data: optimisticPost,
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {page: optimisticPost, wikiId},
         });
 
         try {
@@ -709,13 +720,15 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
                 newIndex,
             );
 
+            endOptimistic(pageId, optimisticId);
+
             // If the server returned updated siblings (PostList), update Redux store
             // This ensures the frontend has the correct page_sort_order values
             if (response && 'posts' in response && response.posts) {
                 for (const post of Object.values(response.posts)) {
                     dispatch({
-                        type: PostActionTypes.RECEIVED_POST,
-                        data: post,
+                        type: WikiTypes.RECEIVED_PAGE,
+                        data: {page: post, wikiId},
                     });
                 }
             }
@@ -728,10 +741,12 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
 
             return {data: optimisticPost};
         } catch (error) {
-            dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: originalPost,
-            });
+            // Only recover if we still own the latest mutation; refetch to pull
+            // authoritative server state.
+            if (isLatestOptimistic(pageId, optimisticId)) {
+                endOptimistic(pageId, optimisticId);
+                dispatch(fetchPage(pageId, wikiId));
+            }
 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -744,7 +759,7 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
 export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const originalPost = state.entities.posts.posts[pageId];
+        const originalPost = state.entities.pages.byId[pageId];
 
         if (!originalPost) {
             return {error: new Error('Page not found')};
@@ -764,26 +779,29 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
         };
 
         // Build optimistic actions
-        const optimisticActions: AnyAction[] = [
-            {
-                type: PostActionTypes.RECEIVED_POST,
-                data: optimisticPost,
-            },
-        ];
+        const optimisticActions: AnyAction[] = [];
 
-        // For cross-wiki moves, update both source and target wiki page lists
         if (isCrossWikiMove) {
+            // Cross-wiki: remove from source, add to target
             optimisticActions.push(
                 {
                     type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
                     data: {pageId, wikiId: sourceWikiId},
                 },
                 {
-                    type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                    type: WikiTypes.RECEIVED_PAGE,
                     data: {page: optimisticPost, wikiId: targetWikiId},
                 },
             );
+        } else {
+            // Same-wiki parent change
+            optimisticActions.push({
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: optimisticPost, wikiId: sourceWikiId},
+            });
         }
+
+        const optimisticId = beginOptimistic(pageId);
 
         // Dispatch optimistic update immediately so UI reflects the change
         dispatch(batchActions(optimisticActions));
@@ -791,31 +809,29 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
 
+            endOptimistic(pageId, optimisticId);
             return {data: true};
         } catch (error) {
-            // Revert optimistic update on error
-            const revertActions: AnyAction[] = [
-                {
-                    type: PostActionTypes.RECEIVED_POST,
-                    data: originalPost,
-                },
-            ];
-
-            // Revert cross-wiki changes
-            if (isCrossWikiMove) {
-                revertActions.push(
+            // Only revert if we still own the latest mutation; a newer one may have taken over.
+            if (isLatestOptimistic(pageId, optimisticId)) {
+                endOptimistic(pageId, optimisticId);
+                const revertActions: AnyAction[] = [
                     {
-                        type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                        type: WikiTypes.RECEIVED_PAGE,
                         data: {page: originalPost, wikiId: sourceWikiId},
                     },
-                    {
+                ];
+
+                // Revert cross-wiki changes
+                if (isCrossWikiMove) {
+                    revertActions.push({
                         type: WikiTypes.REMOVED_PAGE_FROM_WIKI,
                         data: {pageId, wikiId: targetWikiId},
-                    },
-                );
-            }
+                    });
+                }
 
-            dispatch(batchActions(revertActions));
+                dispatch(batchActions(revertActions));
+            }
 
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -830,8 +846,8 @@ export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<P
             const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, wikiId, undefined);
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: duplicatedPage,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: duplicatedPage, wikiId},
             });
 
             const timestamp = Date.now();
@@ -1010,36 +1026,14 @@ export function fetchPageStatusField(): ActionFuncAsync {
     };
 }
 
-export function fetchPageStatus(postId: string): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        try {
-            const data = await Client4.getPageStatus(postId);
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE_STATUS,
-                data: {
-                    postId,
-                    status: data.status,
-                },
-            });
-
-            return {data};
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-    };
-}
-
-export function updatePageStatus(postId: string, status: string): ActionFuncAsync {
+export function updatePageStatus(postId: string, status: string, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.updatePageStatus(postId, status);
 
-            // Update the post in the posts store with new status in props
+            // Update the page in the pages store with new status in props
             const state = getState();
-            const post = state.entities.posts.posts[postId];
+            const post = state.entities.pages.byId[postId];
 
             if (post) {
                 const updatedPost = {
@@ -1051,8 +1045,8 @@ export function updatePageStatus(postId: string, status: string): ActionFuncAsyn
                 };
 
                 dispatch({
-                    type: PostActionTypes.RECEIVED_POST,
-                    data: updatedPost,
+                    type: WikiTypes.RECEIVED_PAGE,
+                    data: {page: updatedPost, wikiId},
                 });
             }
 
@@ -1103,9 +1097,15 @@ export function setPageTranslationMetadata(
     languageCode: string,
 ): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const page = state.entities.pages.byId[pageId];
+        const result = requireWikiId(page, 'setPageTranslationMetadata', pageId, dispatch);
+        if ('error' in result) {
+            return {error: result.error};
+        }
+        const {wikiId} = result;
+
         try {
-            const state = getState();
-            const page = state.entities.posts.posts[pageId];
             const props = page?.props || {};
 
             const data = await Client4.patchPost({
@@ -1118,8 +1118,8 @@ export function setPageTranslationMetadata(
             });
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
             });
 
             return {data};
@@ -1141,9 +1141,15 @@ export function addPageTranslationReference(
     languageCode: string,
 ): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const sourcePage = state.entities.pages.byId[sourcePageId];
+        const result = requireWikiId(sourcePage, 'addPageTranslationReference', sourcePageId, dispatch);
+        if ('error' in result) {
+            return {error: result.error};
+        }
+        const {wikiId} = result;
+
         try {
-            const state = getState();
-            const sourcePage = state.entities.posts.posts[sourcePageId];
             const existingProps = sourcePage?.props || {};
             const existingTranslations = (existingProps[PagePropsKeys.TRANSLATIONS] || []) as TranslationReference[];
 
@@ -1167,8 +1173,8 @@ export function addPageTranslationReference(
             });
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
             });
 
             return {data};

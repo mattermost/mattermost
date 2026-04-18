@@ -334,12 +334,9 @@ test(
         // # Click the callout button (this used to create nested callouts)
         await clickFormattingButton(page, formattingBar, 'Callout');
 
-        // * Verify there are NO nested callouts (should have 0 callouts after toggle off)
+        // * Verify there are NO callouts after toggle off (not 2 nested callouts)
         const callouts = editor.locator('.callout');
-        const calloutCount = await callouts.count();
-
-        // After toggling off, there should be 0 callouts (not 2 nested callouts)
-        expect(calloutCount).toBe(0);
+        await expect(callouts).toHaveCount(0);
 
         // * Verify no nested callout structure exists
         const nestedCallouts = editor.locator('.callout .callout');

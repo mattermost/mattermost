@@ -4,7 +4,7 @@
 import type {History, Location} from 'history';
 import {useEffect, useLayoutEffect, useState, useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -86,12 +86,12 @@ export function useWikiPageData(
     _isSelectingDraftRef: React.MutableRefObject<boolean>,
 ): UseWikiPageDataResult {
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
     const [isLoading, setLoading] = useState(true);
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
-    const existingPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : undefined));
 
     // Use refs to avoid re-running effect when channel/member objects change reference
     const channelRef = useRef(channel);
@@ -113,12 +113,19 @@ export function useWikiPageData(
     }, [channelId, dispatch]); // Removed channel and member from dependencies - using refs instead
 
     useEffect(() => {
+        // Cancellation flag: if pageId/wikiId/channelId changes while an async fetch
+        // is in flight, stop this effect from dispatching follow-up state changes
+        // so the newer invocation wins without interference from the older one.
+        let cancelled = false;
+
         const loadPageOrDraft = async () => {
             // Reset loading state when pageId/draftId changes to prevent flash of empty content
             setLoading(true);
 
             if (!channelId) {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
                 return;
             }
 
@@ -140,6 +147,9 @@ export function useWikiPageData(
 
                 if (fetchPromises.length > 0) {
                     const results = await Promise.all(fetchPromises);
+                    if (cancelled) {
+                        return;
+                    }
 
                     // Process results in order
                     let resultIndex = 0;
@@ -175,10 +185,18 @@ export function useWikiPageData(
 
             if (pageId) {
                 if (wikiId) {
+                    // Read live state here instead of via `useSelector` closure so a WS
+                    // event that populated byId between renders is seen and we avoid a
+                    // redundant fetchPage. The effect intentionally runs only when
+                    // pageId/wikiId/channelId change.
+                    const existingPage = pageId ? getPageById(store.getState(), pageId) : undefined;
                     const hasPageContent = existingPage?.message?.trim();
 
                     if (!hasPageContent) {
                         const result = await dispatch(fetchPage(pageId, wikiId));
+                        if (cancelled) {
+                            return;
+                        }
 
                         if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
                             const teamName = currentTeamRef.current?.name || '';
@@ -205,6 +223,9 @@ export function useWikiPageData(
                 // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
                 const wikiResult = await dispatch(fetchWiki(wikiId));
+                if (cancelled) {
+                    return;
+                }
                 if (wikiResult.error) {
                     // Wiki was deleted or user doesn't have permission - redirect to channel
                     const teamName = currentTeamRef.current?.name || '';
@@ -219,6 +240,9 @@ export function useWikiPageData(
                 // No wikiId - load default page if available (for channel wiki without explicit wikiId)
                 try {
                     await dispatch(fetchChannelDefaultPage(channelId));
+                    if (cancelled) {
+                        return;
+                    }
                 } catch (error) {
                     // Error loading default page - continue anyway
                 }
@@ -229,6 +253,10 @@ export function useWikiPageData(
         };
 
         loadPageOrDraft();
+
+        return () => {
+            cancelled = true;
+        };
     }, [pageId, draftId, channelId, wikiId, currentUserId, dispatch]);
 
     return {

@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
-import CreateComment from 'components/threading/virtualized_thread_viewer/create_comment';
+import {submitPageComment} from 'actions/views/create_page_comment';
 
 import type {GlobalState} from 'types/store';
 import type {InlineAnchor} from 'types/store/pages';
@@ -22,17 +21,46 @@ type Props = {
 
 const WikiNewCommentView = ({pageId, anchor}: Props) => {
     const {formatMessage} = useIntl();
-    const page = useSelector((state: GlobalState) => getPost(state, pageId));
-    const channel = useSelector((state: GlobalState) =>
-        (page?.channel_id ? getChannel(state, page.channel_id) : undefined),
-    );
+    const dispatch = useDispatch();
+    const page = useSelector((state: GlobalState) => getPageById(state, pageId));
 
-    if (!page || !channel) {
+    const [message, setMessage] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const handleSubmit = useCallback(async () => {
+        if (!message.trim() || submitting || !page) {
+            return;
+        }
+        setSubmitting(true);
+        await dispatch(submitPageComment(pageId, {
+            message,
+            fileInfos: [],
+            uploadsInProgress: [],
+            channelId: page.channel_id,
+            rootId: pageId,
+            createAt: 0,
+            updateAt: 0,
+        }));
+        setSubmitting(false);
+        setMessage('');
+    }, [dispatch, message, pageId, page, submitting]);
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    }, [handleSubmit]);
+
+    if (!page) {
         return null;
     }
 
     return (
-        <div className='WikiNewCommentView'>
+        <div
+            className='WikiNewCommentView'
+            data-testid='comment-create'
+        >
             <blockquote className='WikiNewCommentView__anchor'>
                 {anchor.text || (
                     <FormattedMessage
@@ -43,14 +71,16 @@ const WikiNewCommentView = ({pageId, anchor}: Props) => {
             </blockquote>
 
             <div className='WikiNewCommentView__input-container'>
-                <CreateComment
-                    threadId={pageId}
-                    channel={channel}
-                    isThreadView={false}
+                <textarea
+                    className='WikiNewCommentView__textarea'
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder={formatMessage({
                         id: 'wiki_rhs.new_comment.placeholder',
                         defaultMessage: 'Add your comment...',
                     })}
+                    disabled={submitting}
                 />
             </div>
         </div>

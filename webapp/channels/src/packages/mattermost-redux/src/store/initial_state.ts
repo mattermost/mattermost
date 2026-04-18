@@ -235,14 +235,15 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
-        wikiPages: {
+        pages: {
+            byId: {},
             byWiki: {},
-            publishedDraftTimestamps: {},
-            deletedDraftTimestamps: {},
             lastPagesInvalidated: {},
             lastDraftsInvalidated: {},
-            statusField: null,
+            publishedDraftTimestamps: {},
+            deletedDraftTimestamps: {},
         },
+        wikiPages: null,
         wikis: {
             byChannel: {},
             byId: {},

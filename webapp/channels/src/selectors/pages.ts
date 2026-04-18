@@ -6,6 +6,7 @@ import type {BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {PagePropsKeys} from 'utils/constants';
 import {isDraftPageId} from 'utils/page_utils';
@@ -14,19 +15,18 @@ import {getWikiUrl} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
-// Get single page
-export const getPage = (state: GlobalState, pageId: string): Post | undefined => {
-    return state.entities.posts.posts[pageId];
-};
+// Get single page. Canonical implementation lives in mattermost-redux; re-exported
+// here as `getPage` so webapp components can import from a single selectors module.
+export const getPage = getPageById;
 
 // Get page ancestors for breadcrumb
 export const getPageAncestors = createSelector(
     'getPageAncestors',
-    (state: GlobalState) => state.entities.posts.posts,
+    (state: GlobalState) => state.entities.pages.byId,
     (_state: GlobalState, pageId: string) => pageId,
-    (posts, pageId) => {
+    (pages, pageId) => {
         const ancestors: Post[] = [];
-        let currentPage = posts[pageId];
+        let currentPage = pages[pageId];
         const visited = new Set<string>();
 
         // Walk up the parent chain using page_parent_id
@@ -38,7 +38,7 @@ export const getPageAncestors = createSelector(
                 break;
             }
 
-            const parent = posts[parentId];
+            const parent = pages[parentId];
             if (parent) {
                 ancestors.unshift(parent);
                 visited.add(parentId);
@@ -56,11 +56,11 @@ export const getPageAncestors = createSelector(
 // Filters out pages marked as deleted (post.state === 'DELETED')
 export const getPages = createSelector(
     'getPages',
-    (state: GlobalState) => state.entities.posts.posts,
-    (state: GlobalState, wikiId: string) => state.entities.wikiPages?.byWiki?.[wikiId] || [],
-    (posts, pageIds) => {
+    (state: GlobalState) => state.entities.pages.byId,
+    (state: GlobalState, wikiId: string) => state.entities.pages.byWiki[wikiId] || [],
+    (pages, pageIds) => {
         return pageIds.
-            map((id) => posts[id]).
+            map((id) => pages[id]).
             filter((post) => Boolean(post) && post.type === PostTypes.PAGE && post.state !== 'DELETED');
     },
 );
@@ -77,7 +77,7 @@ export const getPublishedPages = createSelector(
 
 // Check if pages have been loaded for a wiki (byWiki has an entry, even if empty)
 export const arePagesLoaded = (state: GlobalState, wikiId: string): boolean => {
-    return wikiId in (state.entities.wikiPages?.byWiki || {});
+    return wikiId in state.entities.pages.byWiki;
 };
 
 // Get loading state for a wiki (from requests reducer)
@@ -92,29 +92,25 @@ export const getPagesError = (state: GlobalState, wikiId: string): string | null
 
 // Get last pages invalidation timestamp for a wiki
 export const getPagesLastInvalidated = (state: GlobalState, wikiId: string): number => {
-    return state.entities.wikiPages?.lastPagesInvalidated?.[wikiId] || 0;
+    return state.entities.pages.lastPagesInvalidated?.[wikiId] || 0;
 };
 
 // Get last drafts invalidation timestamp for a wiki
 export const getDraftsLastInvalidated = (state: GlobalState, wikiId: string): number => {
-    return state.entities.wikiPages?.lastDraftsInvalidated?.[wikiId] || 0;
+    return state.entities.pages.lastDraftsInvalidated?.[wikiId] || 0;
 };
 
-// Get all pages from all wikis in a channel (for cross-wiki linking)
-// Uses byChannel and byWiki indexes instead of scanning all posts
+// Get all pages from all wikis in a channel (for cross-wiki linking).
+// Reads directly from byId filtered by channel_id — fetchChannelPages populates byId
+// without updating byWiki, so we scan byId here instead of using the byWiki index.
 export const getChannelPages = createSelector(
     'getChannelPages',
-    (state: GlobalState) => state.entities.posts.posts,
-    (state: GlobalState, channelId: string) => state.entities.wikis?.byChannel?.[channelId],
-    (state: GlobalState) => state.entities.wikiPages?.byWiki,
-    (posts, wikiIds, byWiki) => {
-        if (!wikiIds || !byWiki) {
-            return [];
-        }
-        const pageIds = wikiIds.flatMap((wikiId: string) => byWiki[wikiId] || []);
-        return pageIds.
-            map((id: string) => posts[id]).
-            filter((post): post is Post => Boolean(post) && post.type === PostTypes.PAGE);
+    (state: GlobalState) => state.entities.pages.byId,
+    (_state: GlobalState, channelId: string) => channelId,
+    (pages, channelId) => {
+        return Object.values(pages).filter(
+            (page): page is Post => Boolean(page) && page.type === PostTypes.PAGE && page.channel_id === channelId,
+        );
     },
 );
 
@@ -137,8 +133,9 @@ export const getChannelWikis = createSelector(
 );
 
 // Get page status field definition
+// TODO(boards-integration): migrate getPageStatusField to read from entities.properties.fields.byObjectType["post"]["wikis"]
 export const getPageStatusField = (state: GlobalState) => {
-    return state.entities.wikiPages?.statusField ?? null;
+    return state.entities.wikiPages ?? null;
 };
 
 // Get status for a specific page

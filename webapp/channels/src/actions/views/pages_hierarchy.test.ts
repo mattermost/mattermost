@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
 import {ActionTypes} from 'utils/constants';
 
 import {
@@ -148,7 +149,7 @@ describe('pages_hierarchy actions', () => {
                     },
                 },
                 entities: {
-                    posts: {posts: {}},
+                    pages: {byId: {}},
                 },
             }));
 
@@ -170,7 +171,7 @@ describe('pages_hierarchy actions', () => {
                     },
                 },
                 entities: {
-                    posts: {posts: {}},
+                    pages: {byId: {}},
                 },
             }));
 
@@ -196,10 +197,13 @@ describe('pages_hierarchy actions', () => {
                     },
                 },
                 entities: {
-                    posts: {
-                        posts: {
-                            page1: {id: 'page1', message: 'existing content'},
+                    pages: makeInitialPagesState({
+                        byId: {
+                            page1: {id: 'page1', message: 'existing content'} as any,
                         },
+                    }),
+                    posts: {
+                        posts: {},
                     },
                 },
             }));

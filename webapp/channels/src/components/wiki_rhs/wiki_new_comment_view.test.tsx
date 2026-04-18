@@ -6,19 +6,15 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
 import WikiNewCommentView from './wiki_new_comment_view';
 
-jest.mock('components/threading/virtualized_thread_viewer/create_comment', () => ({
-    __esModule: true,
-    default: ({placeholder}: {placeholder?: string}) => (
-        <div data-testid='create-comment'>
-            <input placeholder={placeholder}/>
-        </div>
-    ),
+jest.mock('actions/views/create_page_comment', () => ({
+    submitPageComment: jest.fn(() => () => Promise.resolve({created: true})),
 }));
 
 describe('components/wiki_rhs/WikiNewCommentView', () => {
@@ -28,25 +24,15 @@ describe('components/wiki_rhs/WikiNewCommentView', () => {
 
     const getInitialState = (): DeepPartial<GlobalState> => ({
         entities: {
-            posts: {
-                posts: {
+            pages: makeInitialPagesState({
+                byId: {
                     [mockPageId]: {
                         id: mockPageId,
                         channel_id: mockChannelId,
                         type: 'page',
-                    },
+                    } as any,
                 },
-            },
-            channels: {
-                channels: {
-                    [mockChannelId]: {
-                        id: mockChannelId,
-                        name: 'test-channel',
-                        type: 'O',
-                        delete_at: 0,
-                    },
-                },
-            },
+            }),
         },
     });
 
@@ -61,10 +47,10 @@ describe('components/wiki_rhs/WikiNewCommentView', () => {
         expect(screen.getByText('Selected text for comment')).toBeInTheDocument();
     });
 
-    test('should render CreateComment component', () => {
+    test('should render comment-create container', () => {
         renderWithContext(<WikiNewCommentView {...getBaseProps()}/>, getInitialState());
 
-        expect(screen.getByTestId('create-comment')).toBeInTheDocument();
+        expect(screen.getByTestId('comment-create')).toBeInTheDocument();
     });
 
     test('should render placeholder text', () => {
@@ -87,39 +73,11 @@ describe('components/wiki_rhs/WikiNewCommentView', () => {
     test('should return null when page is not found', () => {
         const stateWithoutPage: DeepPartial<GlobalState> = {
             entities: {
-                posts: {
-                    posts: {},
-                },
-                channels: {
-                    channels: {},
-                },
+                pages: makeInitialPagesState(),
             },
         };
 
         const {container} = renderWithContext(<WikiNewCommentView {...getBaseProps()}/>, stateWithoutPage);
-
-        expect(container.firstChild).toBeNull();
-    });
-
-    test('should return null when channel is not found', () => {
-        const stateWithoutChannel: DeepPartial<GlobalState> = {
-            entities: {
-                posts: {
-                    posts: {
-                        [mockPageId]: {
-                            id: mockPageId,
-                            channel_id: mockChannelId,
-                            type: 'page',
-                        },
-                    },
-                },
-                channels: {
-                    channels: {},
-                },
-            },
-        };
-
-        const {container} = renderWithContext(<WikiNewCommentView {...getBaseProps()}/>, stateWithoutChannel);
 
         expect(container.firstChild).toBeNull();
     });

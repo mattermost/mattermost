@@ -110,6 +110,7 @@ import {
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -743,7 +744,9 @@ export function handleEvent(msg: WebSocketMessage) {
         handlePageTitleUpdatedEvent(msg);
         break;
     case SocketEvents.PAGE_MOVED:
-        handlePageMovedEvent(msg);
+        // Fire-and-forget async handler; log rejections so they don't surface as
+        // unhandled promise rejection warnings.
+        handlePageMovedEvent(msg).catch((err) => dispatch(logError(err)));
         break;
     case SocketEvents.WIKI_CREATED:
         handleWikiCreatedEvent(msg);
@@ -1086,12 +1089,34 @@ export function handlePagePublishedEvent(msg: WebSocketMessage) {
     const sourceWikiId = eventData.source_wiki_id;
     const publishingUserId = eventData.user_id;
 
-    const currentUserId = getCurrentUserId(getState());
+    const state = getState();
+    const currentUserId = getCurrentUserId(state);
     const isCurrentUserPublishing = currentUserId === publishingUserId;
 
+    // When the current user is publishing, the local `publishPageDraft` thunk inserts an
+    // optimistic `pending-*` entry in entities.pages.byWiki. If this WS echo arrives before
+    // the thunk's success dispatch, the bare RECEIVED_PAGE would leave the pending entry
+    // stranded. Locate any pending entry so the byWiki reducer can replace it in-place.
+    //
+    // Safety guard: only swap when there's exactly one pending entry in this wiki. With
+    // two concurrent publishes the WS echo cannot tell which pending id it corresponds to;
+    // picking the first would cross-wire the two drafts. In that case fall through and
+    // let the publishing thunk's own success dispatch (which knows its pendingPageId) do
+    // the swap, followed by INVALIDATE_PAGES to reconcile.
+    let pendingPageId: string | undefined;
+    if (isCurrentUserPublishing) {
+        const currentPageIds = state.entities.pages.byWiki?.[wikiId] || [];
+        const pendingIds = currentPageIds.filter((id) => id.startsWith('pending-'));
+        if (pendingIds.length === 1) {
+            pendingPageId = pendingIds[0];
+        } else if (pendingIds.length > 1) {
+            // eslint-disable-next-line no-console
+            console.warn('handlePagePublishedEvent: multiple pending pages; skipping swap', wikiId, pendingIds);
+        }
+    }
+
     // Dispatch actions individually instead of batching to ensure subscribers are notified
-    dispatch({type: PostTypes.RECEIVED_POST, data: page});
-    dispatch({type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}});
+    dispatch({type: WikiTypes.RECEIVED_PAGE, data: {page, wikiId, pendingPageId}});
 
     // If this page was moved from another wiki, remove it from the source wiki
     if (sourceWikiId && sourceWikiId !== wikiId) {
@@ -1119,16 +1144,10 @@ export function handlePageDeletedEvent(msg: WebSocketMessage) {
     const pageId = eventData.page_id;
     const wikiId = eventData.wiki_id;
 
-    dispatch(batchActions([
-        {
-            type: PostTypes.POST_DELETED,
-            data: {id: pageId},
-        },
-        {
-            type: WikiTypes.DELETED_PAGE,
-            data: {id: pageId, wikiId},
-        },
-    ]));
+    dispatch({
+        type: WikiTypes.DELETED_PAGE,
+        data: {id: pageId, wikiId},
+    });
 }
 
 interface PageTitleUpdatedEventData {
@@ -1146,7 +1165,7 @@ export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
     const updateAt = eventData.update_at;
 
     const state = getState();
-    const existingPage = getPost(state, pageId);
+    const existingPage = getPageById(state, pageId);
 
     if (!existingPage) {
         return;
@@ -1161,16 +1180,10 @@ export function handlePageTitleUpdatedEvent(msg: WebSocketMessage) {
         update_at: updateAt,
     };
 
-    dispatch(batchActions([
-        {
-            type: PostTypes.RECEIVED_POST,
-            data: updatedPage,
-        },
-        {
-            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-            data: {page: updatedPage, wikiId},
-        },
-    ]));
+    dispatch({
+        type: WikiTypes.RECEIVED_PAGE,
+        data: {page: updatedPage, wikiId},
+    });
 }
 
 interface PageMovedEventData {
@@ -1192,7 +1205,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
     const siblingsJson = eventData.siblings;
 
     const state = getState();
-    let existingPage = getPost(state, pageId);
+    let existingPage = getPageById(state, pageId);
 
     // If page doesn't exist locally, fetch it from the server
     // This handles the case where a page is moved to a wiki that the user is currently viewing
@@ -1217,11 +1230,7 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
 
     const actions: MMReduxAction[] = [
         {
-            type: PostTypes.RECEIVED_POST,
-            data: updatedPage,
-        },
-        {
-            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+            type: WikiTypes.RECEIVED_PAGE,
             data: {page: updatedPage, wikiId},
         },
     ];
@@ -1236,8 +1245,8 @@ export async function handlePageMovedEvent(msg: WebSocketMessage) {
                     // Skip the moved page - already added above with parent update
                     if (post.id !== pageId) {
                         actions.push({
-                            type: PostTypes.RECEIVED_POST,
-                            data: post,
+                            type: WikiTypes.RECEIVED_PAGE,
+                            data: {page: post, wikiId},
                         });
                     }
                 }
@@ -2363,7 +2372,7 @@ function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft | WebSocketMess
             // IMPORTANT: If the draft exists in publishedDraftTimestamps, it means it was published.
             // We should ignore ALL incoming draft events for this ID, regardless of timestamps,
             // because the draft should no longer exist - it has been converted to a page.
-            const publishedAt = state.entities.wikiPages?.publishedDraftTimestamps?.[pageId];
+            const publishedAt = state.entities.pages.publishedDraftTimestamps[pageId];
             if (publishedAt) {
                 // Draft was published - ignore any incoming draft events for this ID
                 // This handles HA race conditions where draft events arrive after publish

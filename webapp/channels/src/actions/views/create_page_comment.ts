@@ -4,7 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
 import {setPendingInlineAnchor, setFocusedInlineCommentId, setSubmittingComment} from 'actions/views/wiki_rhs';
@@ -45,7 +45,7 @@ export function submitPageComment(
 
         const state = getState();
 
-        const page = getPost(state, pageId);
+        const page = getPageById(state, pageId);
         if (!page) {
             const error = new Error('Page not found');
             return {error};

@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+import {batchActions} from 'redux-batched-actions';
+
 import type {Post} from '@mattermost/types/posts';
 import type {BreadcrumbPath, Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
+import {PagePropsKeys} from 'mattermost-redux/constants/pages';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError, LogErrorBarMode} from './errors';
@@ -164,32 +168,14 @@ export function getPages(wikiId: string, page: number, perPage: number): ActionF
                 data: {wikiId, pages},
             });
 
-            if (pages && pages.length > 0) {
-                const state = getState();
-                const existingPosts = state.entities.posts.posts;
-
-                const postsToDispatch = pages.reduce((acc: Record<string, Post>, pagePost: Post) => {
-                    const existingPost = existingPosts[pagePost.id];
-
-                    // Preserve existing content if present (GetWikiPages returns pages without content)
-                    if (existingPost && existingPost.message && existingPost.message.trim() !== '') {
-                        acc[pagePost.id] = {
-                            ...pagePost,
-                            message: existingPost.message,
-                        };
-                    } else {
-                        acc[pagePost.id] = pagePost;
-                    }
-                    return acc;
-                }, {});
-
-                dispatch({
-                    type: PostActionTypes.RECEIVED_POSTS,
-                    data: {
-                        posts: postsToDispatch,
-                    },
-                });
-            }
+            // Always dispatch so byWiki[wikiId] is populated even for empty pages;
+            // otherwise arePagesLoaded stays false and callers refetch in a loop.
+            // The reducer preserves any non-empty message already in state, so list
+            // endpoints (which return pages without TipTap content) don't clobber it.
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGES,
+                data: {wikiId, pages: pages || []},
+            });
 
             return {data: pages};
         } catch (error) {
@@ -204,13 +190,34 @@ export function getPages(wikiId: string, page: number, perPage: number): ActionF
 export function getChannelPages(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
-            const data = await Client4.getChannelPages(channelId);
+            const data: {posts?: Record<string, Post>} = await Client4.getChannelPages(channelId);
 
-            dispatch({
-                type: PostActionTypes.RECEIVED_POSTS,
-                data,
-                channelId,
-            });
+            if (data?.posts) {
+                // Group by wikiId so the reducer sees one RECEIVED_PAGES per wiki
+                // instead of N individual RECEIVED_PAGE actions (one re-render each).
+                const pagesByWiki: Record<string, Post[]> = {};
+                for (const page of Object.values(data.posts)) {
+                    const wikiId = (page.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined;
+                    if (wikiId) {
+                        if (!pagesByWiki[wikiId]) {
+                            pagesByWiki[wikiId] = [];
+                        }
+                        pagesByWiki[wikiId].push(page);
+                    } else {
+                        // Channel pages should always carry wiki_id; log so a server-side
+                        // schema regression doesn't silently orphan pages in byId.
+                        // eslint-disable-next-line no-console
+                        console.warn('getChannelPages: page missing wiki_id prop', page.id);
+                    }
+                }
+                const groupActions: AnyAction[] = Object.entries(pagesByWiki).map(([wikiId, pages]) => ({
+                    type: WikiTypes.RECEIVED_PAGES,
+                    data: {wikiId, pages},
+                }));
+                if (groupActions.length > 0) {
+                    dispatch(batchActions(groupActions));
+                }
+            }
 
             return {data};
         } catch (error) {
@@ -227,21 +234,9 @@ export function getPage(wikiId: string, pageId: string): ActionFuncAsync<Post> {
             const data = await Client4.getPage(wikiId, pageId) as Post;
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId},
             });
-
-            // Extract and store page status in Redux
-            const pageStatus = data.props?.page_status as string | undefined;
-            if (pageStatus) {
-                dispatch({
-                    type: WikiTypes.RECEIVED_PAGE_STATUS,
-                    data: {
-                        postId: data.id,
-                        status: pageStatus,
-                    },
-                });
-            }
 
             return {data};
         } catch (error) {
@@ -258,8 +253,8 @@ export function getChannelDefaultWikiPage(channelId: string): ActionFuncAsync<Po
             const data = await Client4.getChannelDefaultWikiPage(channelId) as Post;
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: data, wikiId: (data.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined},
             });
 
             return {data};
@@ -275,11 +270,6 @@ export function deletePage(wikiId: string, pageId: string): ActionFuncAsync<bool
     return async (dispatch, getState) => {
         try {
             await Client4.deletePage(wikiId, pageId);
-
-            dispatch({
-                type: PostActionTypes.POST_DELETED,
-                data: {id: pageId},
-            });
 
             dispatch({
                 type: WikiTypes.DELETED_PAGE,
@@ -329,8 +319,8 @@ export function duplicatePage(wikiId: string, pageId: string, targetWikiId?: str
             const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, targetWikiId || wikiId, parentPageId);
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data: duplicatedPage,
+                type: WikiTypes.RECEIVED_PAGE,
+                data: {page: duplicatedPage, wikiId: targetWikiId || wikiId},
             });
 
             return {data: duplicatedPage};
@@ -479,47 +469,27 @@ export function getPageStatusField(): ActionFuncAsync {
     };
 }
 
-export function getPageStatus(postId: string): ActionFuncAsync {
-    return async (dispatch) => {
-        try {
-            const data = await Client4.getPageStatus(postId);
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE_STATUS,
-                data: {
-                    postId,
-                    status: data.status,
-                },
-            });
-
-            return {data};
-        } catch (error) {
-            dispatch(logError(error));
-            return {error};
-        }
-    };
-}
-
 export function updatePageStatus(postId: string, status: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.updatePageStatus(postId, status);
 
             const state = getState();
-            const post = state.entities.posts.posts[postId];
+            const post = state.entities.pages.byId[postId];
 
             if (post) {
+                const wikiId = (post.props as Record<string, unknown> | undefined)?.[PagePropsKeys.WIKI_ID] as string | undefined;
                 const updatedPost = {
                     ...post,
                     props: {
                         ...post.props,
-                        page_status: status,
+                        [PagePropsKeys.PAGE_STATUS]: status,
                     },
                 };
 
                 dispatch({
-                    type: PostActionTypes.RECEIVED_POST,
-                    data: updatedPost,
+                    type: WikiTypes.RECEIVED_PAGE,
+                    data: {page: updatedPost, wikiId},
                 });
             }
 
@@ -611,26 +581,9 @@ export function publishPageDraft(
             const data = await Client4.publishPageDraft(wikiId, pageId, pageParentId, title, searchText, message, pageStatus, force, baselineEditAt) as Post;
 
             dispatch({
-                type: PostActionTypes.RECEIVED_POST,
-                data,
-            });
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
+                type: WikiTypes.RECEIVED_PAGE,
                 data: {page: data, wikiId},
             });
-
-            // Extract and store page status in Redux
-            const publishedPageStatus = data.props?.page_status as string | undefined;
-            if (publishedPageStatus) {
-                dispatch({
-                    type: WikiTypes.RECEIVED_PAGE_STATUS,
-                    data: {
-                        postId: data.id,
-                        status: publishedPageStatus,
-                    },
-                });
-            }
 
             return {data};
         } catch (error) {

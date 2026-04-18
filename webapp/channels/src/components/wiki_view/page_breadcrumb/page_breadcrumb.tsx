@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 
 import type {BreadcrumbPath} from '@mattermost/types/wikis';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchWiki, getPageBreadcrumb} from 'actions/pages';
@@ -43,7 +43,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const pagesText = formatMessage({id: 'pages_panel.title', defaultMessage: 'Pages'});
     const breadcrumbNavLabel = formatMessage({id: 'page_breadcrumb.navigation_label', defaultMessage: 'Page breadcrumb navigation'});
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
-    const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
+    const currentPage = useSelector((state: GlobalState) => (pageId ? getPageById(state, pageId) : null));
     const pagesLoaded = useSelector((state: GlobalState) => arePagesLoaded(state, wikiId));
     const allDrafts = useSelector((state: GlobalState) => getPageDraftsForWiki(state, wikiId));
     const wiki = useSelector((state: GlobalState) => getWiki(state, wikiId));

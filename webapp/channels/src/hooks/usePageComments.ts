@@ -4,7 +4,7 @@
 import {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment, createPageCommentReply} from 'actions/pages';
 import {submitPageComment} from 'actions/views/create_page_comment';
@@ -23,7 +23,7 @@ import type {PostDraft} from 'types/store/draft';
 export function usePageComments(pageId: string) {
     const dispatch = useDispatch();
 
-    const page = useSelector((state: GlobalState) => getPost(state, pageId));
+    const page = useSelector((state: GlobalState) => getPageById(state, pageId));
     const wikiId = useSelector(getWikiRhsWikiId);
     const focusedInlineCommentId = useSelector(getFocusedInlineCommentId);
 

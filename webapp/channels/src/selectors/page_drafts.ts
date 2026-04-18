@@ -207,14 +207,14 @@ export const getFirstPageDraftForWiki: (state: GlobalState, wikiId: string) => P
     return drafts.length > 0 ? drafts[0] : null;
 };
 
-// Get published draft timestamps from wiki pages state
+// Get published draft timestamps from pages state
 const getPublishedDraftTimestamps = (state: GlobalState): Record<string, number> => {
-    return state.entities.wikiPages?.publishedDraftTimestamps || {};
+    return state.entities.pages.publishedDraftTimestamps || {};
 };
 
-// Get deleted draft timestamps from wiki pages state
+// Get deleted draft timestamps from pages state
 export const getDeletedDraftTimestamps = (state: GlobalState): Record<string, number> => {
-    return state.entities.wikiPages?.deletedDraftTimestamps || {};
+    return state.entities.pages.deletedDraftTimestamps || {};
 };
 
 /**

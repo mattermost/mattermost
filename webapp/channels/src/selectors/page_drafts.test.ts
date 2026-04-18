@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
 
 import type {GlobalState} from 'types/store';
 
@@ -30,9 +31,8 @@ const initialState = {
         preferences: {
             myPreferences: {},
         },
-        wikiPages: {
-            publishedDraftTimestamps: {},
-        },
+        pages: makeInitialPagesState(),
+        wikiPages: null,
     },
     storage: {
         storage: {},

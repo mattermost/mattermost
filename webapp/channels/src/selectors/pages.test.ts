@@ -5,6 +5,8 @@ import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
+import {makeInitialPagesState} from 'tests/helpers/pages_state';
+
 import type {GlobalState} from 'types/store';
 
 import {
@@ -66,19 +68,17 @@ describe('pages selectors', () => {
 
     const initialState: Partial<GlobalState> = {
         entities: {
-            posts: {
-                posts: {
+            pages: makeInitialPagesState({
+                byId: {
                     [pageId1]: mockPage1,
                     [pageId2]: mockPage2,
                     [pageId3]: mockPage3,
                 },
-            },
-            wikiPages: {
                 byWiki: {
                     [wikiId]: [pageId1, pageId2, pageId3],
                 },
-                publishedDraftTimestamps: {},
-            },
+            }),
+            wikiPages: null,
         },
         requests: {
             wiki: {
@@ -89,7 +89,7 @@ describe('pages selectors', () => {
     } as any;
 
     describe('getPage', () => {
-        test('should return page from entities.posts', () => {
+        test('should return page from entities.pages.byId', () => {
             const page = getPage(initialState as GlobalState, pageId1);
 
             expect(page).toEqual(mockPage1);
@@ -103,17 +103,18 @@ describe('pages selectors', () => {
             expect(page).toBeUndefined();
         });
 
-        test('should read from single source of truth (entities.posts)', () => {
+        test('should read from single source of truth (entities.pages.byId)', () => {
             const page = getPage(initialState as GlobalState, pageId1);
 
-            expect(page).toBe(initialState.entities!.posts.posts[pageId1]);
+            expect(page).toBe(initialState.entities!.pages.byId[pageId1]);
         });
 
-        test('should not read from pageSummaries or fullPages (removed)', () => {
+        test('wikiPages slice should only hold the status field definition', () => {
             const state = initialState as GlobalState;
 
-            expect(state.entities!.wikiPages).not.toHaveProperty('pageSummaries');
-            expect(state.entities!.wikiPages).not.toHaveProperty('fullPages');
+            // After the pages/wikiPages split, wikiPages stores the SelectPropertyField | null
+            // directly; byId/byWiki/timestamps now live in entities.pages.
+            expect(state.entities!.wikiPages).toBeNull();
         });
     });
 
@@ -142,17 +143,13 @@ describe('pages selectors', () => {
         test('should stop at missing parent', () => {
             const stateWithMissingParent: Partial<GlobalState> = {
                 entities: {
-                    posts: {
-                        posts: {
+                    pages: makeInitialPagesState({
+                        byId: {
                             [pageId3]: mockPage3,
                         },
-                    },
-                    wikiPages: {
                         byWiki: {[wikiId]: [pageId3]},
-                        loading: {},
-                        error: {},
-                        publishedDraftTimestamps: {},
-                    },
+                    }),
+                    wikiPages: null,
                 },
             } as any;
 
@@ -167,18 +164,14 @@ describe('pages selectors', () => {
 
             const stateWithCircular: Partial<GlobalState> = {
                 entities: {
-                    posts: {
-                        posts: {
+                    pages: makeInitialPagesState({
+                        byId: {
                             [pageId1]: circularPage1,
                             [pageId2]: circularPage2,
                         },
-                    },
-                    wikiPages: {
                         byWiki: {[wikiId]: [pageId1, pageId2]},
-                        loading: {},
-                        error: {},
-                        publishedDraftTimestamps: {},
-                    },
+                    }),
+                    wikiPages: null,
                 },
             } as any;
 
@@ -189,7 +182,7 @@ describe('pages selectors', () => {
     });
 
     describe('getPages', () => {
-        test('should return pages for wiki from entities.posts', () => {
+        test('should return pages for wiki from entities.pages.byId', () => {
             const pages = getPages(initialState as GlobalState, wikiId);
 
             expect(pages).toHaveLength(3);
@@ -201,18 +194,14 @@ describe('pages selectors', () => {
         test('should filter out non-PAGE types', () => {
             const stateWithNonPage: Partial<GlobalState> = {
                 entities: {
-                    posts: {
-                        posts: {
+                    pages: makeInitialPagesState({
+                        byId: {
                             [pageId1]: mockPage1,
-                            regularPost: {...mockPage1, id: 'regularPost', type: 'normal'},
+                            regularPost: {...mockPage1, id: 'regularPost', type: 'normal' as any},
                         },
-                    },
-                    wikiPages: {
                         byWiki: {[wikiId]: [pageId1, 'regularPost']},
-                        loading: {},
-                        error: {},
-                        publishedDraftTimestamps: {},
-                    },
+                    }),
+                    wikiPages: null,
                 },
             } as any;
 
@@ -231,17 +220,13 @@ describe('pages selectors', () => {
         test('should filter out missing pages', () => {
             const stateWithMissing: Partial<GlobalState> = {
                 entities: {
-                    posts: {
-                        posts: {
+                    pages: makeInitialPagesState({
+                        byId: {
                             [pageId1]: mockPage1,
                         },
-                    },
-                    wikiPages: {
                         byWiki: {[wikiId]: [pageId1, 'missing-page']},
-                        loading: {},
-                        error: {},
-                        publishedDraftTimestamps: {},
-                    },
+                    }),
+                    wikiPages: null,
                 },
             } as any;
 
@@ -262,15 +247,14 @@ describe('pages selectors', () => {
             const pages = getPages(initialState as GlobalState, wikiId);
 
             pages.forEach((page) => {
-                expect(page).toBe(initialState.entities!.posts.posts[page.id]);
+                expect(page).toBe(initialState.entities!.pages.byId[page.id]);
             });
         });
     });
 
     describe('getChannelPages', () => {
         const channelId = 'channel123';
-        const wiki1Id = 'wiki1';
-        const wiki2Id = 'wiki2';
+        const otherChannelId = 'channel456';
 
         const channelPage1: Post = {
             ...mockPage1,
@@ -284,82 +268,29 @@ describe('pages selectors', () => {
             channel_id: channelId,
         };
 
-        const channelPage3: Post = {
+        const otherChannelPage: Post = {
             ...mockPage1,
-            id: 'channelPage3',
-            channel_id: channelId,
+            id: 'otherChannelPage',
+            channel_id: otherChannelId,
         };
 
-        test('should return pages from multiple wikis in a channel using indexes', () => {
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {
-                            channelPage1,
-                            channelPage2,
-                            channelPage3,
-                        },
-                    },
-                    wikis: {
-                        byId: {
-                            [wiki1Id]: {id: wiki1Id, channel_id: channelId, title: 'Wiki 1'},
-                            [wiki2Id]: {id: wiki2Id, channel_id: channelId, title: 'Wiki 2'},
-                        },
-                        byChannel: {
-                            [channelId]: [wiki1Id, wiki2Id],
-                        },
-                    },
-                    wikiPages: {
-                        byWiki: {
-                            [wiki1Id]: ['channelPage1', 'channelPage2'],
-                            [wiki2Id]: ['channelPage3'],
-                        },
-                        publishedDraftTimestamps: {},
-                    },
-                },
-            } as any;
+        const makeState = (byId: Record<string, Post>): Partial<GlobalState> => ({
+            entities: {
+                pages: makeInitialPagesState({byId}),
+            } as any,
+        });
+
+        test('should return all pages matching the channelId', () => {
+            const state = makeState({channelPage1, channelPage2, otherChannelPage});
 
             const pages = getChannelPages(state as GlobalState, channelId);
 
-            expect(pages).toHaveLength(3);
-            expect(pages.map((p) => p.id)).toEqual(['channelPage1', 'channelPage2', 'channelPage3']);
+            expect(pages).toHaveLength(2);
+            expect(pages.map((p) => p.id).sort()).toEqual(['channelPage1', 'channelPage2']);
         });
 
-        test('should return empty array when byChannel index is missing', () => {
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {channelPage1},
-                    },
-                    wikis: {
-                        byId: {},
-                        byChannel: {},
-                    },
-                    wikiPages: {
-                        byWiki: {[wiki1Id]: ['channelPage1']},
-                        publishedDraftTimestamps: {},
-                    },
-                },
-            } as any;
-
-            const pages = getChannelPages(state as GlobalState, channelId);
-
-            expect(pages).toEqual([]);
-        });
-
-        test('should return empty array when byWiki index is missing', () => {
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {channelPage1},
-                    },
-                    wikis: {
-                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
-                        byChannel: {[channelId]: [wiki1Id]},
-                    },
-                    wikiPages: {},
-                },
-            } as any;
+        test('should return empty array when no pages match channelId', () => {
+            const state = makeState({otherChannelPage});
 
             const pages = getChannelPages(state as GlobalState, channelId);
 
@@ -374,47 +305,7 @@ describe('pages selectors', () => {
                 type: '' as any,
             };
 
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {
-                            channelPage1,
-                            regularPost,
-                        },
-                    },
-                    wikis: {
-                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
-                        byChannel: {[channelId]: [wiki1Id]},
-                    },
-                    wikiPages: {
-                        byWiki: {[wiki1Id]: ['channelPage1', 'regularPost']},
-                        publishedDraftTimestamps: {},
-                    },
-                },
-            } as any;
-
-            const pages = getChannelPages(state as GlobalState, channelId);
-
-            expect(pages).toHaveLength(1);
-            expect(pages[0].id).toBe('channelPage1');
-        });
-
-        test('should filter out missing posts', () => {
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {channelPage1},
-                    },
-                    wikis: {
-                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
-                        byChannel: {[channelId]: [wiki1Id]},
-                    },
-                    wikiPages: {
-                        byWiki: {[wiki1Id]: ['channelPage1', 'missingPage']},
-                        publishedDraftTimestamps: {},
-                    },
-                },
-            } as any;
+            const state = makeState({channelPage1, regularPost});
 
             const pages = getChannelPages(state as GlobalState, channelId);
 
@@ -423,21 +314,7 @@ describe('pages selectors', () => {
         });
 
         test('should use memoization', () => {
-            const state: Partial<GlobalState> = {
-                entities: {
-                    posts: {
-                        posts: {channelPage1},
-                    },
-                    wikis: {
-                        byId: {[wiki1Id]: {id: wiki1Id, channel_id: channelId}},
-                        byChannel: {[channelId]: [wiki1Id]},
-                    },
-                    wikiPages: {
-                        byWiki: {[wiki1Id]: ['channelPage1']},
-                        publishedDraftTimestamps: {},
-                    },
-                },
-            } as any;
+            const state = makeState({channelPage1});
 
             const pages1 = getChannelPages(state as GlobalState, channelId);
             const pages2 = getChannelPages(state as GlobalState, channelId);
@@ -498,28 +375,29 @@ describe('pages selectors', () => {
     });
 
     describe('Single Source of Truth Validation', () => {
-        test('all selectors should read from entities.posts only', () => {
+        test('all selectors should read from entities.pages.byId', () => {
             const state = initialState as GlobalState;
 
             const page = getPage(state, pageId1);
-            expect(page).toBe(state.entities.posts.posts[pageId1]);
+            expect(page).toBe(state.entities.pages.byId[pageId1]);
 
             const pages = getPages(state, wikiId);
             pages.forEach((p) => {
-                expect(p).toBe(state.entities.posts.posts[p.id]);
+                expect(p).toBe(state.entities.pages.byId[p.id]);
             });
 
             const ancestors = getPageAncestors(state, pageId3);
             ancestors.forEach((p) => {
-                expect(p).toBe(state.entities.posts.posts[p.id]);
+                expect(p).toBe(state.entities.pages.byId[p.id]);
             });
         });
 
-        test('should not use pageSummaries or fullPages caches', () => {
+        test('wikiPages slice should not carry page caches', () => {
             const state = initialState as GlobalState;
 
-            expect(state.entities.wikiPages).not.toHaveProperty('pageSummaries');
-            expect(state.entities.wikiPages).not.toHaveProperty('fullPages');
+            // Legacy {pageSummaries, fullPages} caches were removed when pages got
+            // their own slice; wikiPages is now just the status field definition.
+            expect(state.entities.wikiPages).toBeNull();
         });
     });
 });

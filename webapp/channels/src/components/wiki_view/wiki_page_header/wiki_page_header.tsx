@@ -5,7 +5,7 @@ import React, {useState, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createBookmarkFromPage} from 'actions/channel_bookmarks';
 import {hasUnpublishedChanges} from 'selectors/page_drafts';
@@ -78,12 +78,12 @@ const WikiPageHeader = ({
     const dispatch = useDispatch();
     const [showBookmarkModal, setShowBookmarkModal] = useState(false);
 
-    const page = useSelector((state: GlobalState) => getPost(state, pageId));
+    const page = useSelector((state: GlobalState) => getPageById(state, pageId));
     const showUnpublishedIndicator = useSelector((state: GlobalState) => {
         if (isDraft || !pageId || !wikiId) {
             return false;
         }
-        const pageContent = getPost(state, pageId)?.message || '';
+        const pageContent = getPageById(state, pageId)?.message || '';
         return hasUnpublishedChanges(state, wikiId, pageId, pageContent);
     });
 

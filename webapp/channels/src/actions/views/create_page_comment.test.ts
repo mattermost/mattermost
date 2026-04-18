@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 // Mock modules before imports
-jest.mock('mattermost-redux/selectors/entities/posts', () => ({
-    getPost: jest.fn(),
+jest.mock('mattermost-redux/selectors/entities/pages', () => ({
+    getPageById: jest.fn(),
 }));
 
 jest.mock('selectors/wiki_rhs', () => ({
@@ -27,7 +27,7 @@ jest.mock('utils/page_utils', () => ({
     isPagePost: jest.fn(),
 }));
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
 import {setPendingInlineAnchor, setFocusedInlineCommentId} from 'actions/views/wiki_rhs';
@@ -37,7 +37,7 @@ import {isPagePost} from 'utils/page_utils';
 
 import {submitPageComment} from './create_page_comment';
 
-const mockGetPost = getPost as jest.MockedFunction<typeof getPost>;
+const mockGetPageById = getPageById as jest.MockedFunction<typeof getPageById>;
 const mockGetWikiRhsWikiId = getWikiRhsWikiId as jest.MockedFunction<typeof getWikiRhsWikiId>;
 const mockGetFocusedInlineCommentId = getFocusedInlineCommentId as jest.MockedFunction<typeof getFocusedInlineCommentId>;
 const mockGetPendingInlineAnchor = getPendingInlineAnchor as jest.MockedFunction<typeof getPendingInlineAnchor>;
@@ -63,7 +63,7 @@ describe('create_page_comment actions', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetPost.mockReturnValue(mockPage as any);
+        mockGetPageById.mockReturnValue(mockPage as any);
         mockGetWikiRhsWikiId.mockReturnValue(wikiId);
         mockGetFocusedInlineCommentId.mockReturnValue(null);
         mockGetPendingInlineAnchor.mockReturnValue(null);
@@ -72,7 +72,7 @@ describe('create_page_comment actions', () => {
 
     describe('submitPageComment', () => {
         test('should return error when page is not found', async () => {
-            mockGetPost.mockReturnValue(null as any);
+            mockGetPageById.mockReturnValue(null as any);
 
             const dispatch = jest.fn();
             const getState = jest.fn((): any => mockState);

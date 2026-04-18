@@ -28,8 +28,8 @@ describe('components/wiki_rhs/AllWikiThreads', () => {
             teams: {
                 currentTeamId: mockTeamId,
             },
-            posts: {
-                posts: {
+            pages: {
+                byId: {
                     [pageId1]: {
                         id: pageId1,
                         channel_id: mockChannelId,
@@ -43,11 +43,12 @@ describe('components/wiki_rhs/AllWikiThreads', () => {
                         props: {title: 'Page Two'},
                     } as any,
                 },
-            },
-            wikiPages: {
                 byWiki: {
                     [mockWikiId]: [pageId1, pageId2],
                 },
+            },
+            posts: {
+                posts: {},
             },
         },
     });

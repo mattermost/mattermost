@@ -5,10 +5,12 @@ import React, {useCallback, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {fetchPageStatusField, updatePageStatus} from 'actions/pages';
-import {getPageStatusField, getPageStatus} from 'selectors/pages';
+import {getPageStatusField, getPageStatus, getPage} from 'selectors/pages';
 
 import {SelectableSelectPropertyRenderer} from 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectable_select_property_renderer';
 import type {SelectPropertyMetadata} from 'components/properties_card_view/propertyValueRenderer/select_property_renderer/selectable_select_property_renderer';
+
+import {PagePropsKeys} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -26,6 +28,7 @@ const PageStatusSelector = ({pageId, isDraft, draftStatus, onDraftStatusChange}:
 
     const statusField = useSelector((state: GlobalState) => getPageStatusField(state));
     const publishedPageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
+    const pageWikiId = useSelector((state: GlobalState) => getPage(state, pageId)?.props?.[PagePropsKeys.WIKI_ID] as string | undefined);
 
     // Use draftStatus for drafts, publishedPageStatus for published pages
     const currentStatus = isDraft ? draftStatus : publishedPageStatus;
@@ -39,10 +42,16 @@ const PageStatusSelector = ({pageId, isDraft, draftStatus, onDraftStatusChange}:
     const handleStatusChange = useCallback((newStatus: string) => {
         if (isDraft && onDraftStatusChange) {
             onDraftStatusChange(newStatus);
-        } else {
-            dispatch(updatePageStatus(pageId, newStatus));
+            return;
         }
-    }, [dispatch, isDraft, onDraftStatusChange, pageId]);
+
+        // wikiId is required so the reducer's byWiki membership update fires.
+        if (!pageWikiId) {
+            return;
+        }
+
+        dispatch(updatePageStatus(pageId, newStatus, pageWikiId));
+    }, [dispatch, isDraft, onDraftStatusChange, pageId, pageWikiId]);
 
     if (!statusField) {
         return null;

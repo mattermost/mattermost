@@ -61,7 +61,7 @@ export function togglePageOutline(pageId: string, pageContent?: string, wikiId?:
         } else {
             let content = pageContent;
             if (!content) {
-                const page = state.entities.posts.posts[pageId];
+                const page = state.entities.pages.byId[pageId];
                 content = page?.message || '';
 
                 // Only fetch from server if content is completely missing

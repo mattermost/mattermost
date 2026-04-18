@@ -24,7 +24,8 @@ describe('wiki_actions', () => {
         it('should fetch pages if cache is empty', async () => {
             const state = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {},
                         byWiki: {},
                     },
                     posts: {
@@ -47,16 +48,17 @@ describe('wiki_actions', () => {
         it('should always fetch pages even if cache is populated', async () => {
             const state = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {
+                            page1: {id: 'page1', message: 'Page 1'},
+                            page2: {id: 'page2', message: 'Page 2'},
+                        },
                         byWiki: {
                             wiki1: ['page1', 'page2'],
                         },
                     },
                     posts: {
-                        posts: {
-                            page1: {id: 'page1', message: 'Page 1'},
-                            page2: {id: 'page2', message: 'Page 2'},
-                        },
+                        posts: {},
                     },
                 },
                 storage: {
@@ -76,7 +78,8 @@ describe('wiki_actions', () => {
         it('should always fetch pages even for empty wiki cache', async () => {
             const state = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {},
                         byWiki: {
                             wiki1: [],
                         },
@@ -102,15 +105,16 @@ describe('wiki_actions', () => {
         it('should always fetch drafts regardless of cache', async () => {
             const stateWithCache = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {
+                            page1: {id: 'page1'},
+                        },
                         byWiki: {
                             wiki1: ['page1'],
                         },
                     },
                     posts: {
-                        posts: {
-                            page1: {id: 'page1'},
-                        },
+                        posts: {},
                     },
                 },
                 storage: {
@@ -132,16 +136,17 @@ describe('wiki_actions', () => {
         it('should always fetch regardless of cache state', async () => {
             const stateWithFullCache = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {
+                            page1: {id: 'page1'},
+                            page2: {id: 'page2'},
+                        },
                         byWiki: {
                             wiki1: ['page1', 'page2'],
                         },
                     },
                     posts: {
-                        posts: {
-                            page1: {id: 'page1'},
-                            page2: {id: 'page2'},
-                        },
+                        posts: {},
                     },
                 },
                 storage: {
@@ -162,7 +167,8 @@ describe('wiki_actions', () => {
         it('should fetch for empty cache as well', async () => {
             const stateWithEmptyCache = {
                 entities: {
-                    wikiPages: {
+                    pages: {
+                        byId: {},
                         byWiki: {},
                     },
                     posts: {

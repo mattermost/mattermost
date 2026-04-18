@@ -7,7 +7,7 @@ import {useSelector} from 'react-redux';
 
 import GlobeIcon from '@mattermost/compass-icons/components/globe';
 
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 
 import {PagePropsKeys} from 'utils/constants';
 
@@ -29,7 +29,7 @@ const TranslationIndicator = ({pageId, onNavigateToPage}: Props) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const page = useSelector((state: GlobalState) => getPost(state, pageId));
+    const page = useSelector((state: GlobalState) => getPageById(state, pageId));
 
     // Get translation metadata
     const translatedFrom = page?.props?.[PagePropsKeys.TRANSLATED_FROM] as string | undefined;
@@ -38,7 +38,7 @@ const TranslationIndicator = ({pageId, onNavigateToPage}: Props) => {
 
     // Get source page if this is a translation
     const sourcePage = useSelector((state: GlobalState) =>
-        (translatedFrom ? getPost(state, translatedFrom) : null),
+        (translatedFrom ? getPageById(state, translatedFrom) : null),
     );
 
     // Map language codes to language names

@@ -136,10 +136,25 @@ export function isPageCommentThreadRoot(post: Post | null | undefined): boolean 
 export function getPageReceiveActions(post: Post): AnyAction[] {
     const actions: AnyAction[] = [];
 
-    if (isPagePost(post) && post.props?.[PagePropsKeys.WIKI_ID]) {
+    if (isPagePost(post)) {
+        const wikiId = post.props?.[PagePropsKeys.WIKI_ID];
+        if (!wikiId) {
+            // Page-typed post arriving without wiki_id is almost always a server schema
+            // regression. The dispatch still lands the page in byId so UI lookups work,
+            // but byWiki membership is skipped (orphaned from hierarchy queries). Log so
+            // this surfaces instead of going silent.
+            // eslint-disable-next-line no-console
+            console.warn('getPageReceiveActions: page post missing wiki_id prop', post.id);
+        }
+
+        // Dispatch regardless of wiki_id presence: byId always stores the page,
+        // byWiki reducer skips membership update when wikiId is absent.
         actions.push({
-            type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-            data: {page: post, wikiId: post.props[PagePropsKeys.WIKI_ID]},
+            type: WikiTypes.RECEIVED_PAGE,
+            data: {
+                page: post,
+                wikiId,
+            },
         });
     }
 

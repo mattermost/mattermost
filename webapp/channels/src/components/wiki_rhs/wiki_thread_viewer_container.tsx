@@ -10,17 +10,18 @@ import type {ClientConfig} from '@mattermost/types/config';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {getNewestPostThread, getPostThread, getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {fetchPage} from 'actions/pages';
 import {selectPostCard, openWikiRhs} from 'actions/views/rhs';
 import {updateThreadLastOpened, updateThreadLastUpdateAt} from 'actions/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
@@ -48,7 +49,7 @@ function makeMapStateToProps() {
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
-        const selected = getPost(state, ownProps.rootPostId);
+        const selected = getPageById(state, ownProps.rootPostId);
         const socketStatus = getSocketStatus(state);
         const highlightedPostId = getHighlightedPostId(state);
         const selectedPostFocusedAt = getSelectedPostFocussedAt(state);
@@ -104,7 +105,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             fetchRHSAppsBindings,
             getNewestPostThread,
             getPostThread,
-            getPost: fetchPost,
+            fetchPage,
             getThread: fetchThread,
             selectPostCard,
             updateThreadLastOpened,

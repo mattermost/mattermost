@@ -6,6 +6,7 @@ import type {Post, PostType} from '@mattermost/types/posts';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPageById} from 'mattermost-redux/selectors/entities/pages';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
@@ -45,7 +46,8 @@ export function getFilesSearchExtFilter(state: GlobalState): string[] {
 }
 
 export function getSelectedPostCard(state: GlobalState) {
-    return state.entities.posts.posts[getSelectedPostCardId(state)];
+    const id = getSelectedPostCardId(state);
+    return state.entities.posts.posts[id] ?? getPageById(state, id);
 }
 
 export function getSelectedChannelId(state: GlobalState) {
@@ -73,7 +75,8 @@ export function getActiveRhsComponent(state: GlobalState) {
 }
 
 function getRealSelectedPost(state: GlobalState) {
-    return state.entities.posts.posts[getSelectedPostId(state)];
+    const id = getSelectedPostId(state);
+    return state.entities.posts.posts[id] ?? getPageById(state, id);
 }
 
 export const getSelectedPost = createSelector(

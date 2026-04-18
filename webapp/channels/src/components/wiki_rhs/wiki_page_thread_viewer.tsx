@@ -40,7 +40,7 @@ export type Props = {
     currentTeamId: string;
     actions: {
         getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
-        getPost: (postId: string, includeDeleted?: boolean, retainContent?: boolean) => Promise<ActionResult>;
+        fetchPage: (pageId: string, wikiId: string) => Promise<ActionResult>;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
         updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
@@ -115,13 +115,16 @@ const WikiPageThreadViewer = (props: Props) => {
 
                         props.actions.updateThreadLastUpdateAt(props.focusedInlineCommentId, highestUpdateAt);
 
-                        // Fetch the page post if this is a page comment with page_id
+                        // Fetch the page if this is a page comment with page_id.
+                        // Uses fetchPage (dispatches RECEIVED_PAGE) so the page lands in
+                        // entities.pages.byId; getPost would dispatch RECEIVED_POST which
+                        // the NON_POST_TYPES filter now drops for page-typed responses.
                         const rootPost = posts[order[0]];
-                        if (rootPost?.props?.page_id) {
+                        if (rootPost?.props?.page_id && props.wikiId) {
                             try {
-                                await props.actions.getPost(rootPost.props.page_id);
+                                await props.actions.fetchPage(rootPost.props.page_id as string, props.wikiId);
                             } catch (error) {
-                                // Page post fetch failed, but thread is still usable
+                                // Page fetch failed, but thread is still usable
                             }
                         }
                     }

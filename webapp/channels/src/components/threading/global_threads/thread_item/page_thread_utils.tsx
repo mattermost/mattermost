@@ -4,12 +4,10 @@
 import unescape from 'lodash/unescape';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {Posts, PostTypes} from 'mattermost-redux/constants';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {Posts} from 'mattermost-redux/constants';
 
 import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
@@ -17,8 +15,6 @@ import {getPageAnchorUrl} from 'components/wiki_view/page_anchor';
 
 import {getPageTitle} from 'utils/post_utils';
 import {getWikiUrl} from 'utils/url';
-
-import type {GlobalState} from 'types/store';
 
 type MarkdownPreviewOptions = {
     singleline: boolean;
@@ -123,13 +119,4 @@ export function renderPagePreview(post: Post, hasReplies: boolean): JSX.Element 
             {getPageTitle(post, 'Untitled Page')}
         </div>
     );
-}
-
-export function usePagePostForComment(post: Post | null): Post | null {
-    return useSelector((state: GlobalState) => {
-        if (!post || post.type !== PostTypes.PAGE_COMMENT || !post.props?.page_id) {
-            return null;
-        }
-        return getPost(state, post.props.page_id as string);
-    });
 }

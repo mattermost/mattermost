@@ -50,13 +50,13 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         clearDeletedAnchorIds,
     } = usePageInlineComments(pageId, wikiId || undefined);
 
-    // Derive a stable boolean from page object to avoid unnecessary effect re-runs
-    // when page object reference changes but content state is the same
-    const isPageContentMissing = !page || !page.message || page.message.trim() === '';
+    // Only fetch when the page exists in state but lacks content (hierarchy stub).
+    // If `page` is absent, do not fetch — that path is handled by the parent WikiView
+    // bundle loader, and refetching here would race with optimistic deletes (the
+    // server may still serve a cached non-deleted copy and re-add the page to state).
+    const isPageContentMissing = Boolean(page) && (!page!.message || page!.message.trim() === '');
 
     useEffect(() => {
-        // Load page if it doesn't exist OR if it exists but has no content
-        // (Pages from hierarchy don't have content loaded for performance)
         if (pageId && wikiId && isPageContentMissing) {
             dispatch(fetchPage(pageId, wikiId));
         }

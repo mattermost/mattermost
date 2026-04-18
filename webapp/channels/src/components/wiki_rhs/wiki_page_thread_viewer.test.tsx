@@ -34,7 +34,7 @@ jest.mock('client/web_websocket_client', () => ({
 describe('components/wiki_rhs/WikiPageThreadViewer', () => {
     const defaultActions = {
         getPostThread: jest.fn().mockResolvedValue({data: {order: [], posts: {}}}),
-        getPost: jest.fn().mockResolvedValue({}),
+        fetchPage: jest.fn().mockResolvedValue({}),
         updateThreadLastOpened: jest.fn(),
         updateThreadRead: jest.fn(),
         updateThreadLastUpdateAt: jest.fn(),

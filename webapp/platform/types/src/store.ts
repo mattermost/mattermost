@@ -18,7 +18,7 @@ import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
-import type {PostsState} from './posts';
+import type {Post, PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {SelectPropertyField, PropertiesState} from './properties';
 import type {Recap} from './recaps';
@@ -103,14 +103,15 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
-        wikiPages: {
+        pages: {
+            byId: Record<string, Post>;
             byWiki: Record<string, string[]>;
             lastPagesInvalidated: Record<string, number>;
             lastDraftsInvalidated: Record<string, number>;
-            statusField: SelectPropertyField | null;
             publishedDraftTimestamps: Record<string, number>;
             deletedDraftTimestamps: Record<string, number>;
         };
+        wikiPages: SelectPropertyField | null;
         wikis: {
             byChannel: Record<string, string[]>;
             byId: Record<string, any>;

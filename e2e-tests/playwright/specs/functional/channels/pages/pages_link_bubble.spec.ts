@@ -108,9 +108,12 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Link Persist Wiki'));
 
+    // Use unique name to avoid Redux store accumulation across tests in same session
+    const targetPageName = uniqueName('Target Page');
+
     // # Create a target page to link to
-    const targetPage = await createPageThroughUI(page, 'Target Page');
-    await waitForPageInHierarchy(page, 'Target Page');
+    const targetPage = await createPageThroughUI(page, targetPageName);
+    await waitForPageInHierarchy(page, targetPageName);
 
     // # Create new page with a link
     const newPageButton = getNewPageButton(page);
@@ -118,7 +121,7 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
     await fillCreatePageModal(page, 'Link Persist Test');
 
     const editor = await getEditorAndWait(page);
-    await waitForPageInHierarchy(page, 'Target Page', HIERARCHY_TIMEOUT);
+    await waitForPageInHierarchy(page, targetPageName, HIERARCHY_TIMEOUT);
 
     // # Type short link text and select it
     await typeInEditor(page, 'See ');
@@ -136,10 +139,10 @@ test('link persists after publishing page', {tag: '@pages'}, async ({pw, sharedP
     await expect(linkModal).toBeVisible({timeout: ELEMENT_TIMEOUT});
 
     const searchInput = linkModal.locator('input[id="page-search-input"]');
-    await searchInput.fill('Target Page');
+    await searchInput.fill(targetPageName);
     await page.waitForTimeout(UI_MICRO_WAIT);
 
-    await linkModal.locator('text="Target Page"').first().click();
+    await linkModal.locator(`text="${targetPageName}"`).first().click();
     await linkModal.locator('button:has-text("Insert Link")').click();
     await expect(linkModal).not.toBeVisible();
 
@@ -376,9 +379,12 @@ test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, 
     // # Create wiki through UI
     await createWikiThroughUI(page, uniqueName('Copy Link Wiki'));
 
+    // Use unique name to avoid Redux store accumulation across tests in same session
+    const targetPageName = uniqueName('Target Page');
+
     // # Create a target page to link to
-    const targetPage = await createPageThroughUI(page, 'Target Page');
-    await waitForPageInHierarchy(page, 'Target Page');
+    const targetPage = await createPageThroughUI(page, targetPageName);
+    await waitForPageInHierarchy(page, targetPageName);
 
     // # Create new page for testing copy
     const newPageButton = getNewPageButton(page);
@@ -386,7 +392,7 @@ test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, 
     await fillCreatePageModal(page, 'Copy Link Test');
 
     const editor = await getEditorAndWait(page);
-    await waitForPageInHierarchy(page, 'Target Page', HIERARCHY_TIMEOUT);
+    await waitForPageInHierarchy(page, targetPageName, HIERARCHY_TIMEOUT);
 
     // # Type text and create a link
     await typeInEditor(page, 'Copy ');
@@ -397,7 +403,7 @@ test('copies link URL to clipboard when clicking Copy button', {tag: '@pages'}, 
         await page.keyboard.press('Shift+ArrowLeft');
     }
     await page.waitForTimeout(UI_MICRO_WAIT);
-    await createLinkFromSelection(page, 'Target Page');
+    await createLinkFromSelection(page, targetPageName);
 
     // * Verify link was created in editor
     const pageLink = editor.locator('a').first();
