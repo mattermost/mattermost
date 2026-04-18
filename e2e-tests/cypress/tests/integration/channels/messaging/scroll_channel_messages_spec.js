@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 describe('Scroll channel`s messages in mobile view', () => {
     const sysadmin = getAdminAccount();

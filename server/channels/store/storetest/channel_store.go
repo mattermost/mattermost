@@ -137,6 +137,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SearchMore", func(t *testing.T) { testChannelStoreSearchMore(t, rctx, ss) })
 	t.Run("SearchInTeam", func(t *testing.T) { testChannelStoreSearchInTeam(t, rctx, ss, s) })
 	t.Run("Autocomplete", func(t *testing.T) { testAutocomplete(t, rctx, ss, s) })
+	t.Run("AutocompleteInTeamFiltered", func(t *testing.T) { testAutocompleteInTeamFiltered(t, rctx, ss) })
 	t.Run("SearchForUserInTeam", func(t *testing.T) { testChannelStoreSearchForUserInTeam(t, rctx, ss) })
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, rctx, ss) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, rctx, ss) })
@@ -6352,6 +6353,206 @@ func testChannelStoreSearchInTeam(t *testing.T, rctx request.CTX, ss store.Store
 
 		// The DisplayName-matching channel must be first despite sorting last alphabetically.
 		assert.Equal(t, chDisplayMatch.Id, channels[0].Id, "DisplayName match should be returned first, not cut off by limit")
+	})
+}
+
+func testAutocompleteInTeamFiltered(t *testing.T, rctx request.CTX, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "filter-test-team",
+		Name:        NewTestID(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	user, err := ss.User().Save(rctx, &model.User{
+		Username: NewTestID(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+	_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: user.Id}, -1)
+	require.NoError(t, err)
+
+	otherUser, err := ss.User().Save(rctx, &model.User{
+		Username: NewTestID(),
+		Email:    MakeEmail(),
+	})
+	require.NoError(t, err)
+	_, err = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: team.Id, UserId: otherUser.Id}, -1)
+	require.NoError(t, err)
+
+	// Create public channels (user is a member of all of them)
+	var publicChannels []*model.Channel
+	for range 55 {
+		ch, chErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      team.Id,
+			DisplayName: fmt.Sprintf("AAA Public Channel %03d", len(publicChannels)),
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, chErr)
+		publicChannels = append(publicChannels, ch)
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   ch.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+	}
+
+	// Create private channels the user is a member of
+	private1, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "ZZZ Private Member 1",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+	}, -1)
+	require.NoError(t, nErr)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: private1.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	private2, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "ZZZ Private Member 2",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+	}, -1)
+	require.NoError(t, nErr)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: private2.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	// Create a private channel the user is NOT a member of
+	privateNotMember, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Private Not Member",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+	}, -1)
+	require.NoError(t, nErr)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: privateNotMember.Id, UserId: otherUser.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	// Create a group-constrained private channel the user is a member of
+	gcTrue := true
+	privateGroupConstrained, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:           team.Id,
+		DisplayName:      "ZZZ Private Group Constrained",
+		Name:             NewTestID(),
+		Type:             model.ChannelTypePrivate,
+		GroupConstrained: &gcTrue,
+	}, -1)
+	require.NoError(t, nErr)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: privateGroupConstrained.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	// Create a shared private channel the user is a member of
+	sharedTrue := true
+	privateShared, nErr2 := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "ZZZ Private Shared",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+		Shared:      &sharedTrue,
+	}, -1)
+	require.NoError(t, nErr2)
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: privateShared.Id, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		for _, ch := range publicChannels {
+			_ = ss.Channel().Delete(ch.Id, model.GetMillis())
+		}
+		_ = ss.Channel().Delete(private1.Id, model.GetMillis())
+		_ = ss.Channel().Delete(private2.Id, model.GetMillis())
+		_ = ss.Channel().Delete(privateNotMember.Id, model.GetMillis())
+		_ = ss.Channel().Delete(privateGroupConstrained.Id, model.GetMillis())
+		_ = ss.Channel().Delete(privateShared.Id, model.GetMillis())
+	})
+
+	t.Run("privateOnly filters out public channels before the 50-result cap", func(t *testing.T) {
+		// There are 55 public channels + 2 private member channels.
+		// Without privateOnly, AutocompleteInTeam would return 50 results (mostly public),
+		// and client-side filtering would miss private channels. AutocompleteInTeamFiltered
+		// with privateOnly=true must return both private member channels despite the cap.
+		channels, err := ss.Channel().AutocompleteInTeamFiltered(rctx, team.Id, user.Id, "", false, false, true, false)
+		require.NoError(t, err)
+
+		ids := make([]string, len(channels))
+		for i, ch := range channels {
+			ids[i] = ch.Id
+		}
+		assert.Contains(t, ids, private1.Id, "private member channel 1 should be returned")
+		assert.Contains(t, ids, private2.Id, "private member channel 2 should be returned")
+		assert.Contains(t, ids, privateGroupConstrained.Id, "group-constrained private channel should be included when excludeGroupConstrained=false")
+
+		for _, ch := range channels {
+			assert.Equal(t, model.ChannelTypePrivate, ch.Type, "only private channels should be returned")
+		}
+	})
+
+	t.Run("privateOnly excludes private channels the user is not a member of", func(t *testing.T) {
+		channels, err := ss.Channel().AutocompleteInTeamFiltered(rctx, team.Id, user.Id, "", false, false, true, false)
+		require.NoError(t, err)
+
+		ids := make([]string, len(channels))
+		for i, ch := range channels {
+			ids[i] = ch.Id
+		}
+		assert.NotContains(t, ids, privateNotMember.Id, "private channel user is not a member of should not be returned")
+	})
+
+	t.Run("excludeGroupConstrained removes group-constrained channels", func(t *testing.T) {
+		channels, err := ss.Channel().AutocompleteInTeamFiltered(rctx, team.Id, user.Id, "", false, false, true, true)
+		require.NoError(t, err)
+
+		ids := make([]string, len(channels))
+		for i, ch := range channels {
+			ids[i] = ch.Id
+		}
+		assert.Contains(t, ids, private1.Id, "regular private channel should be returned")
+		assert.Contains(t, ids, private2.Id, "regular private channel should be returned")
+		assert.NotContains(t, ids, privateGroupConstrained.Id, "group-constrained channel should be excluded")
+	})
+
+	t.Run("privateOnly excludes shared channels", func(t *testing.T) {
+		// Shared channels are ineligible for team-scoped ABAC policies; they must not
+		// appear in the picker even when the user is a member and the channel is private.
+		channels, err := ss.Channel().AutocompleteInTeamFiltered(rctx, team.Id, user.Id, "", false, false, true, false)
+		require.NoError(t, err)
+
+		ids := make([]string, len(channels))
+		for i, ch := range channels {
+			ids[i] = ch.Id
+		}
+		assert.Contains(t, ids, private1.Id, "regular private channel should be returned")
+		assert.Contains(t, ids, private2.Id, "regular private channel should be returned")
+		assert.NotContains(t, ids, privateShared.Id, "shared private channel should be excluded")
+	})
+
+	t.Run("without filters behaves like AutocompleteInTeam", func(t *testing.T) {
+		channels, err := ss.Channel().AutocompleteInTeamFiltered(rctx, team.Id, user.Id, "", false, false, false, false)
+		require.NoError(t, err)
+		// Should return public + private member channels (capped at 50)
+		require.LessOrEqual(t, len(channels), model.ChannelSearchDefaultLimit)
+		for _, ch := range channels {
+			if ch.Type == model.ChannelTypePrivate {
+				assert.NotEqual(t, privateNotMember.Id, ch.Id, "private channel user is not a member of should never appear")
+			}
+		}
+
+		// Verify parity with AutocompleteInTeam using the same arguments
+		baseChannels, err := ss.Channel().AutocompleteInTeam(rctx, team.Id, user.Id, "", false, false)
+		require.NoError(t, err)
+
+		filteredIDs := make(map[string]bool, len(channels))
+		for _, ch := range channels {
+			filteredIDs[ch.Id] = true
+		}
+		baseIDs := make(map[string]bool, len(baseChannels))
+		for _, ch := range baseChannels {
+			baseIDs[ch.Id] = true
+		}
+		assert.Equal(t, baseIDs, filteredIDs, "AutocompleteInTeamFiltered with no filters should return the same channels as AutocompleteInTeam")
 	})
 }
 

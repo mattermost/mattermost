@@ -129,6 +129,7 @@ export type ClientConfig = {
     FeatureFlagCallsEnabled: string;
     FeatureFlagCustomProfileAttributes: string;
     FeatureFlagAttributeBasedAccessControl: string;
+    FeatureFlagPermissionPolicies: string;
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
@@ -870,6 +871,7 @@ export type ExperimentalSettings = {
     UsersStatusAndProfileFetchingPollIntervalMilliseconds: number;
     YoutubeReferrerPolicy: boolean;
     ExperimentalChannelCategorySorting: boolean;
+    EnableWatermark: boolean;
 };
 
 export type AnalyticsSettings = {

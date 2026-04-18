@@ -12,7 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {General, Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import {getDirectTeammate, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUserLocale} from 'mattermost-redux/selectors/entities/i18n';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
 import type {UserActivityPost} from 'mattermost-redux/selectors/entities/posts';
@@ -128,6 +128,7 @@ function makeMapStateToProps() {
         const config = getConfig(state);
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enablePostUsernameOverride = config.EnablePostUsernameOverride === 'true';
+        const permissionPoliciesEnabled = isPermissionPoliciesEnabled(state);
         const channel = state.entities.channels.channels[post.channel_id];
         if (!channel) {
             return null;
@@ -251,6 +252,7 @@ function makeMapStateToProps() {
             burnOnReadDurationMinutes: getBurnOnReadDurationMinutes(state),
             burnOnReadSkipConfirmation: getBool(state, ReduxPreferences.CATEGORY_BURN_ON_READ, ReduxPreferences.BURN_ON_READ_SKIP_CONFIRMATION, false),
             isBurnOnReadPost: isPostBurnOnRead,
+            permissionPoliciesEnabled,
         };
     };
 }
