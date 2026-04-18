@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import {getMessageMenusPayload} from '../../../utils';
+import {getMessageMenusPayload} from '@/utils';
 
 const searchOptions = [
     {text: 'SearchOption1', value: 'searchoption1'},

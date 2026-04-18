@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import {spyNotificationAs} from '../../../support/notification';
+import {spyNotificationAs} from '@/support/notification';
 
 describe('reply-notifications', () => {
     let testTeam;

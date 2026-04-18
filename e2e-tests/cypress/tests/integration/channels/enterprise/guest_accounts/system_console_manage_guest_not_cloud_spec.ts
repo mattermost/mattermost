@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @enterprise @guest_account @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {verifyGuest} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Guest Account - Verify Manage Guest Users', () => {
     let guestUser: Cypress.UserProfile;

@@ -13,8 +13,7 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Group} from '@mattermost/types/groups';
 
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+
 import {
     disablePermission,
     enablePermission,
@@ -25,9 +24,12 @@ import {checkboxesTitleToIdMap} from '../system_console/channel_moderation/const
 
 import {enableGroupMention} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import ldapUsers from '@/fixtures/ldap_users.json';
+
 describe('Group Mentions', () => {
     let groupID: string;
-    let boardUser;
+    let boardUser: Cypress.UserProfile;
     let regularUser: UserProfile;
     let testTeam: Team;
 
@@ -77,7 +79,7 @@ describe('Group Mentions', () => {
         });
 
         // # Login once as board user to ensure the user is created in the system
-        boardUser = ldapUsers['board-1'];
+        boardUser = ldapUsers['board-1'] as unknown as Cypress.UserProfile;
         cy.apiLogin(boardUser);
 
         // # Login as sysadmin
