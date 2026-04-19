@@ -49,11 +49,17 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 # When the balancer produces a list, we pass those spec files as positional
 # args and DO NOT pass `--shard` — otherwise Playwright would further
 # subdivide our already-balanced slice.
-BALANCED_SPECS=""
+export BALANCED_SPECS=""
 if [ -n "${PW_SHARD_INDEX:-}" ] && [ -n "${PW_SHARD_TOTAL:-}" ]; then
   BALANCED_SPECS=$(${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc \
     "cd e2e-tests/playwright && node scripts/shard-balancer.mjs ${PW_SHARD_INDEX} ${PW_SHARD_TOTAL}" 2>/dev/null || true)
   BALANCED_SPECS=$(echo "$BALANCED_SPECS" | tr -d '\r' | xargs || true)
+  # IMPORTANT: must be exported so `docker compose exec -e BALANCED_SPECS`
+  # copies it from this shell's environment. Without export the variable
+  # is a local shell assignment, docker-compose can't see it, and inside
+  # the container $BALANCED_SPECS expands to empty — making `npm run test:ci`
+  # run the entire suite on every shard (observed in run 24629474637).
+  export BALANCED_SPECS
   if [ -n "$BALANCED_SPECS" ]; then
     FILE_COUNT=$(echo "$BALANCED_SPECS" | wc -w | tr -d ' ')
     mme2e_log "Shard ${PW_SHARD_INDEX}/${PW_SHARD_TOTAL} (balanced): ${FILE_COUNT} spec files"
