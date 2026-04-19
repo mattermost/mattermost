@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 async function skipIfNoEnterpriseLicense(adminClient: any) {
     const license = await adminClient.getClientLicenseOld();
@@ -31,6 +31,27 @@ async function disableManagedCategories(adminClient: any) {
     });
 }
 
+/**
+ * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
+ * `adminClient.updateConfig(...)` full-config reset). Concurrent tests running in
+ * the same worker-process pool can have their config patches wiped when another
+ * test's initSetup fires mid-run, which is the exact race this helper avoids.
+ *
+ * Creates a uniquely-named team and user per test and adds the user to the team.
+ */
+async function setupManagedCategoriesTest(pw: any) {
+    const {adminClient, adminUser} = await pw.getAdminClient();
+    const suffix = getRandomId();
+    const team = await adminClient.createTeam({
+        name: `mgd-${suffix}`,
+        display_name: `Managed ${suffix}`,
+        type: 'O',
+    });
+    const user = await pw.createNewUserProfile(adminClient, {prefix: 'mgd-user'});
+    await adminClient.addToTeam(team.id, user.id);
+    return {adminClient, adminUser, team, user};
+}
+
 async function createChannelWithManagedCategory(
     adminClient: any,
     teamId: string,
@@ -57,7 +78,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup with admin user and enterprise license
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -112,7 +133,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -172,7 +193,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and disable managed categories
-            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await disableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -198,7 +219,7 @@ test.describe('Managed Channel Categories', () => {
      */
     test('managed category can be assigned when creating a new channel', {tag: '@managed_categories'}, async ({pw}) => {
         // # Initialize setup and enable managed categories
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -242,7 +263,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -280,7 +301,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category (without adding the user)
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -303,7 +324,7 @@ test.describe('Managed Channel Categories', () => {
      */
     test('managed categories sort channels alphabetically', {tag: '@managed_categories'}, async ({pw}) => {
         // # Initialize setup and create two channels with the same managed category
-        const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -357,7 +378,7 @@ test.describe('Managed Channel Categories', () => {
      */
     test('channels in managed categories cannot be favorited', {tag: '@managed_categories'}, async ({pw}) => {
         // # Initialize setup and create a channel with a managed category
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -394,7 +415,7 @@ test.describe('Managed Channel Categories', () => {
      */
     test('managed categories do not show a context menu', {tag: '@managed_categories'}, async ({pw}) => {
         // # Initialize setup and create a channel with a managed category
-        const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+        const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
         await skipIfNoEnterpriseLicense(adminClient);
         await enableManagedCategories(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
@@ -429,7 +450,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -477,7 +498,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -529,7 +550,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create two channels with the same managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -576,7 +597,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel without a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
@@ -626,7 +647,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup
-            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
 
             // # Log in and navigate to the System Console
@@ -654,7 +675,7 @@ test.describe('Managed Channel Categories', () => {
         {tag: '@managed_categories'},
         async ({pw}) => {
             // # Initialize setup and create a channel with a managed category
-            const {adminUser, adminClient, team, user} = await pw.initSetup({withDefaultProfileImage: false});
+            const {adminUser, adminClient, team, user} = await setupManagedCategoriesTest(pw);
             await skipIfNoEnterpriseLicense(adminClient);
             await enableManagedCategories(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
