@@ -61,7 +61,17 @@ function loadDurations(filePath) {
 
 function balanceShards(specFiles, totalShards, durations) {
     const sorted = specFiles
-        .map((f) => ({file: f, duration: durations[f] || DEFAULT_DURATION}))
+        .map((f) => ({
+            file: f,
+            // Lookup order: exact match (new `specs/...` format written by
+            // extract-durations.mjs), then the legacy prefix-less key
+            // (`functional/...`) for caches written before that script was
+            // fixed. Fall back to DEFAULT_DURATION when nothing matches.
+            duration:
+                durations[f] ||
+                durations[f.replace(/^specs\//, '')] ||
+                DEFAULT_DURATION,
+        }))
         .sort((a, b) => b.duration - a.duration);
 
     const shards = Array.from({length: totalShards}, () => ({files: [], total: 0}));
