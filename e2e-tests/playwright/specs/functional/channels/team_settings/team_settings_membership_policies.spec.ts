@@ -6,7 +6,7 @@
  * @reference MM-67669
  */
 
-import {ChannelsPage, expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, getAdminClient, getRandomId, test} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -16,6 +16,27 @@ import {
     createPrivateChannel,
     createTeamAdmin,
 } from './helpers';
+
+/**
+ * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
+ * `adminClient.updateConfig(...)` full-config reset). Concurrent tests running in
+ * the same worker-process pool can have their config patches wiped when another
+ * test's initSetup fires mid-run. Creates a uniquely-named team and user per
+ * test instead.
+ */
+async function setupMembershipPoliciesTest(pw: any) {
+    const {adminClient, adminUser} = await pw.getAdminClient();
+    const suffix = getRandomId();
+    const team = await adminClient.createTeam({
+        name: `mp-${suffix}`,
+        display_name: `MP ${suffix}`,
+        type: 'O',
+    });
+    const user = await pw.createNewUserProfile(adminClient, {prefix: 'mp-user'});
+    await adminClient.addToTeam(team.id, user.id);
+    await adminClient.addToTeam(team.id, adminUser.id);
+    return {adminClient, adminUser, team, user};
+}
 
 test.describe('Team Settings Modal - Membership Policies Tab', () => {
     // Restore AccessControlSettings to the shared baseline expected by
@@ -39,14 +60,12 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_1 Membership Policies tab visible for admin with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser, adminClient, adminConfig} = await pw.initSetup();
-        const config = {...adminConfig};
-        config.AccessControlSettings = {...config.AccessControlSettings, EnableAttributeBasedAccessControl: true};
-        await adminClient.updateConfig(config);
+        const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
+        await enableABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto();
+        await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -60,31 +79,46 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        // Save-and-restore ABAC around this test only. test_setup.ts enables ABAC as
+        // the shared baseline, so we explicitly disable it here and restore the original
+        // value in a finally block. Never call initSetup() — that wipes other concurrent
+        // tests' config patches.
+        const original = await adminClient.getConfig();
+        const originalEnabled = original.AccessControlSettings?.EnableAttributeBasedAccessControl ?? false;
 
-        const teamSettings = await channelsPage.openTeamSettings();
+        try {
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
 
-        // * Tab is not visible
-        await expect(teamSettings.accessPoliciesTab).not.toBeVisible();
+            const {page} = await pw.testBrowser.login(adminUser);
+            const channelsPage = new ChannelsPage(page);
+            await channelsPage.goto(team.name);
+            await channelsPage.toBeVisible();
 
-        await teamSettings.close();
+            const teamSettings = await channelsPage.openTeamSettings();
+
+            // * Tab is not visible
+            await expect(teamSettings.accessPoliciesTab).not.toBeVisible();
+
+            await teamSettings.close();
+        } finally {
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: originalEnabled},
+            });
+        }
     });
 
     test('MM-67669_4 Empty state displayed when no policies exist', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser, adminClient, adminConfig} = await pw.initSetup();
-        const config = {...adminConfig};
-        config.AccessControlSettings = {...config.AccessControlSettings, EnableAttributeBasedAccessControl: true};
-        await adminClient.updateConfig(config);
+        const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
+        await enableABACConfig(adminClient);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto();
+        await channelsPage.goto(team.name);
         await channelsPage.toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
@@ -101,7 +135,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_5 Policy list shows team-scoped policy with channel count', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
@@ -127,7 +161,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_6 Cross-team policy not shown in team settings', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
@@ -159,7 +193,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_7 Team Admin sees Membership Policies tab and team-scoped policies', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team} = await setupMembershipPoliciesTest(pw);
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
@@ -190,7 +224,7 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
     test('MM-67669_8 Team Admin does not see cross-team policies', async ({pw}) => {
         await pw.skipIfNoLicense();
-        const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team} = await setupMembershipPoliciesTest(pw);
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
