@@ -67,10 +67,7 @@ function balanceShards(specFiles, totalShards, durations) {
             // extract-durations.mjs), then the legacy prefix-less key
             // (`functional/...`) for caches written before that script was
             // fixed. Fall back to DEFAULT_DURATION when nothing matches.
-            duration:
-                durations[f] ||
-                durations[f.replace(/^specs\//, '')] ||
-                DEFAULT_DURATION,
+            duration: durations[f] || durations[f.replace(/^specs\//, '')] || DEFAULT_DURATION,
         }))
         .sort((a, b) => b.duration - a.duration);
 
