@@ -134,8 +134,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
 
             await activatePolicy(adminClient, policyId);
             await waitForLatestSyncJob(systemConsolePage.page, 10);
-            await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 10);
+            const __jobId1 = await runSyncJob(systemConsolePage.page);
+            await waitForLatestSyncJob(systemConsolePage.page, 10, __jobId1);
 
             try {
                 await getJobDetailsFromRecentJobs(systemConsolePage.page, privateChannel.display_name);
@@ -146,8 +146,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             // Optional extra sync if user1 not added yet
             const added = await verifyUserInChannel(adminClient, user1.id, privateChannel.id);
             if (!added) {
-                await runSyncJob(systemConsolePage.page);
-                await waitForLatestSyncJob(systemConsolePage.page, 10);
+                const __jobId2 = await runSyncJob(systemConsolePage.page);
+                await waitForLatestSyncJob(systemConsolePage.page, 10, __jobId2);
                 await systemConsolePage.page.waitForTimeout(2000);
             }
         } finally {
@@ -296,8 +296,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
         if (policyId) {
             await activatePolicy(sharedAdminClient, policyId);
-            await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page);
+            const __jobId3 = await runSyncJob(systemConsolePage.page);
+            await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId3);
         }
         await searchInput.clear();
 
@@ -444,8 +444,8 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
             if (policyId) {
                 await activatePolicy(adminClient, policyId);
-                await runSyncJob(systemConsolePage.page);
-                await waitForLatestSyncJob(systemConsolePage.page);
+                const __jobId4 = await runSyncJob(systemConsolePage.page);
+                await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
             }
         } else {
             await systemConsolePage.page.locator('.policy-name').allTextContents();

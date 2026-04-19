@@ -101,8 +101,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // ============================================================
         // STEP 2: Verify user is NOT in channel initially
         // ============================================================
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId1);
 
         const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
         expect(initialInChannel).toBe(false);
@@ -124,8 +124,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Get the Department field to check its value
         await adminClient.getCustomProfileAttributeFields();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId2 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId2);
 
         // ============================================================
         // VERIFICATION: User should now be auto-added to channel
@@ -349,8 +349,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Run sync job
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId3 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId3);
 
         // Wait for membership updates to apply
         await systemConsolePage.page.waitForTimeout(1000);
@@ -410,8 +410,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId4 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
 
         const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userAutoAdded).toBe(true);
@@ -423,8 +423,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await systemConsolePage.page.waitForTimeout(1000);
 
         // Run sync
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId5 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId5);
 
         // Small delay for channel membership update
         await systemConsolePage.page.waitForTimeout(1000);

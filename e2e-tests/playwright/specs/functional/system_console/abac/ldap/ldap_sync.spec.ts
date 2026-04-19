@@ -125,16 +125,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5797 auto-add true', () => {
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId1);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(false);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Engineering'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId2 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId2);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(afterSync).toBe(true);
@@ -171,16 +171,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5797 auto-add true', () => {
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId3 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId3);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(false);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Engineering'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId4 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(afterSync).toBe(true);
@@ -271,16 +271,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5798 auto-add false, admin add
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId5 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId5);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(false);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Engineering'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId6 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId6);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         if (!afterSync) {
@@ -324,16 +324,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5798 auto-add false, admin add
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId7 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId7);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(false);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Product'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId8 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId8);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         if (!afterSync) {
@@ -430,16 +430,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5799 user removed after attrib
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId9 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId9);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(true);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Sales'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId10 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId10);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(afterSync).toBe(false);
@@ -479,16 +479,16 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5799 user removed after attrib
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId11 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId11);
 
         const initialCheck = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(initialCheck).toBe(true);
 
         await updateUserAttributes(sharedAdminClient, user.id, {Department: 'Sales'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId12 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId12);
 
         const afterSync = await verifyUserInChannel(sharedAdminClient, user.id, channel.id);
         expect(afterSync).toBe(false);
@@ -541,24 +541,24 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         }
         await searchInput.clear();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId13 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId13);
 
         const phase1InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase1InChannel).toBe(false);
 
         await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId14 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId14);
 
         const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase2InChannel).toBe(true);
 
         await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId15 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId15);
 
         const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase3InChannel).toBe(false);

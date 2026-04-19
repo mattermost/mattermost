@@ -842,11 +842,63 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
 }
 
 /**
- * Wait for sync job to complete and get the latest job row.
- * Uses page-based polling (reloads the UI). Prefer waitForPolicySyncJob when a
- * policyId is available — it queries the API directly and avoids cross-shard races.
+ * Wait for a sync job to complete.
+ *
+ * When `expectedJobId` is supplied (obtained from `runSyncJob()` which
+ * intercepts the POST /api/v4/jobs response), this polls the job list via
+ * API and filters to that specific job — race-free under PW_WORKERS >= 2,
+ * where another worker's `access_control_sync` job can appear as the
+ * "latest" in the global job list between the trigger and this call.
+ *
+ * When `expectedJobId` is not supplied, falls back to the legacy page-based
+ * polling (reloads the UI, reads the first job row). This path is racy
+ * under concurrency and kept only for backwards compatibility — prefer the
+ * API path by passing the ID returned from `runSyncJob()`, or use
+ * `waitForPolicySyncJob` when you have a `policyId`.
  */
-export async function waitForLatestSyncJob(page: Page, maxRetries: number = 5): Promise<any> {
+export async function waitForLatestSyncJob(
+    page: Page,
+    maxRetries: number = 5,
+    expectedJobId?: string | null,
+): Promise<any> {
+    // Race-safe path: poll the specific job ID via API.
+    if (expectedJobId) {
+        const pollIntervalMs = 2000;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            await page.waitForTimeout(pollIntervalMs);
+
+            let job: any;
+            try {
+                job = await page.evaluate(async (id: string) => {
+                    const resp = await fetch(`/api/v4/jobs/${encodeURIComponent(id)}`, {
+                        credentials: 'include',
+                    });
+                    if (!resp.ok) {
+                        return {status: `http_${resp.status}`};
+                    }
+                    return resp.json();
+                }, expectedJobId);
+            } catch {
+                // Network hiccup — keep polling
+                continue;
+            }
+
+            const status = (job?.status || '').toLowerCase();
+            if (status === 'success') {
+                return job;
+            }
+            if (status === 'error' || status === 'failed' || status === 'canceled' || status === 'cancel_requested') {
+                throw new Error(`Sync job ${expectedJobId} failed with status: ${job.status}`);
+            }
+            // 'pending' or 'in_progress' — keep polling
+        }
+        throw new Error(`Sync job ${expectedJobId} did not complete after ${maxRetries} retries`);
+    }
+
+    // Legacy path: read the top row of the UI sync-jobs table. RACY under
+    // PW_WORKERS >= 2 — another worker's sync job can become "latest"
+    // between the trigger and this call. Kept only for callers that don't
+    // yet propagate the job ID from `runSyncJob()`.
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         // Wait a bit for the job to process
         await page.waitForTimeout(2000);

@@ -335,8 +335,8 @@ test.describe('ABAC Policies - Create Policies', () => {
         await activatePolicy(adminClient, policyId);
 
         // Run sync job with active policy
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId1);
 
         // ============================================================
         // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes
