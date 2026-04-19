@@ -41,6 +41,27 @@ ${MME2E_DC_SERVER} exec -u "$MME2E_UID" -d -- playwright bash -c "cd e2e-tests/p
 mme2e_log "Wait for LibreTranslate mock server to be ready"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..30}; do curl -s http://localhost:3010/ && exit 0; sleep 1; done; echo 'Mock server failed to start'; exit 1" || true
 
+# Compute the balanced spec list for this shard using the duration-based
+# shard balancer. On the first run (no `.test-durations.json` cached yet)
+# the balancer prints nothing and we fall back to Playwright's built-in
+# `--shard=N/M` contiguous split (via PW_SHARD).
+#
+# When the balancer produces a list, we pass those spec files as positional
+# args and DO NOT pass `--shard` — otherwise Playwright would further
+# subdivide our already-balanced slice.
+BALANCED_SPECS=""
+if [ -n "${PW_SHARD_INDEX:-}" ] && [ -n "${PW_SHARD_TOTAL:-}" ]; then
+  BALANCED_SPECS=$(${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc \
+    "cd e2e-tests/playwright && node scripts/shard-balancer.mjs ${PW_SHARD_INDEX} ${PW_SHARD_TOTAL}" 2>/dev/null || true)
+  BALANCED_SPECS=$(echo "$BALANCED_SPECS" | tr -d '\r' | xargs || true)
+  if [ -n "$BALANCED_SPECS" ]; then
+    FILE_COUNT=$(echo "$BALANCED_SPECS" | wc -w | tr -d ' ')
+    mme2e_log "Shard ${PW_SHARD_INDEX}/${PW_SHARD_TOTAL} (balanced): ${FILE_COUNT} spec files"
+  else
+    mme2e_log "Shard balancer produced no list; falling back to --shard=${PW_SHARD_INDEX}/${PW_SHARD_TOTAL}"
+  fi
+fi
+
 # Run the Playwright functional suite as a single sharded pass under the
 # `chrome` project. Any config-mutating specs must isolate their own setup
 # (unique team/channel/user, afterAll cleanup); the old chrome-serial
@@ -49,17 +70,24 @@ ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..3
 #
 # NB: do not exit on test failures — we need the retry step below to run.
 #
-# Pass TEST_FILTER and PW_SHARD with `docker compose exec -e VAR` (no =value)
-# so Compose copies them from this shell's environment. Do NOT use
-# -e "VAR=${VAR}": TEST_FILTER is e.g. --grep-invert "@visual" and embedded
-# quotes break the host command line, which previously caused PW_SHARD to be
-# lost and every shard to run the full suite.
+# Pass TEST_FILTER, PW_SHARD and BALANCED_SPECS with `docker compose exec
+# -e VAR` (no =value) so Compose copies them from this shell's environment.
+# Do NOT use -e "VAR=${VAR}": TEST_FILTER is e.g. --grep-invert "@visual"
+# and embedded quotes break the host command line, which previously caused
+# PW_SHARD to be lost and every shard to run the full suite.
 
 mme2e_log "Playwright: running chrome project (sharded)"
-${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
-  -e TEST_FILTER \
-  -e PW_SHARD \
-  -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-first.log || true
+if [ -n "$BALANCED_SPECS" ]; then
+  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+    -e TEST_FILTER \
+    -e BALANCED_SPECS \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \$BALANCED_SPECS \${TEST_FILTER:+\$TEST_FILTER}" | tee ../playwright/logs/playwright-first.log || true
+else
+  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+    -e TEST_FILTER \
+    -e PW_SHARD \
+    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-first.log || true
+fi
 
 # ──────────────────────────────────────────────────────────────────────
 # Inline per-shard retry
@@ -104,10 +132,20 @@ if [ -n "$FAILED_SPECS" ]; then
   mme2e_log "Retrying failed specs on the same runner: $FAILED_SPECS"
   SPEC_ARGS=$(echo "$FAILED_SPECS" | tr ',' ' ')
 
-  ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
-    -e TEST_FILTER \
-    -e PW_SHARD \
-    -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry.log || true
+  # If we used the balancer for the first pass, we pass the failed specs
+  # as positional args without --shard (the specs are already scoped to
+  # this shard). Otherwise we preserve the previous behavior and pass
+  # --shard through so Playwright applies its alphabetical slice.
+  if [ -n "$BALANCED_SPECS" ]; then
+    ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+      -e TEST_FILTER \
+      -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER}" | tee ../playwright/logs/playwright-retry.log || true
+  else
+    ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
+      -e TEST_FILTER \
+      -e PW_SHARD \
+      -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry.log || true
+  fi
 
   # Stash retry blobs alongside the first-pass blobs.
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "
