@@ -36,6 +36,26 @@ type ClientWithRemotes = {
 };
 
 /**
+ * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
+ * `adminClient.updateConfig(...)` full-config reset). That reset was wiping
+ * ConnectedWorkspacesSettings mid-run when a concurrent test fired initSetup,
+ * causing the share toggle to never appear. Creates a uniquely-named team and
+ * user per test instead.
+ */
+async function setupSharedChannelTest(pw: any) {
+    const {adminClient, adminUser} = await pw.getAdminClient();
+    const suffix = getRandomId();
+    const team = await adminClient.createTeam({
+        name: `shr-${suffix}`,
+        display_name: `Shared ${suffix}`,
+        type: 'O',
+    });
+    const user = await pw.createNewUserProfile(adminClient, {prefix: 'shr-user'});
+    await adminClient.addToTeam(team.id, user.id);
+    return {adminClient, adminUser, team, user};
+}
+
+/**
  * Deletes all remote clusters on the server. Use before TC-WEB-03 so that test sees "No connected
  * workspaces" and does not fail when other tests have created remotes.
  */
@@ -78,7 +98,7 @@ async function ensureConfirmedRemote(adminClient: ClientWithRemotes, teamId: str
 
 test.describe('Shared channel configuration', () => {
     test('Section visible when all conditions are met', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -111,7 +131,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Section hidden when shared channels feature is disabled', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -142,7 +162,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Section when no connected workspace exists', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -180,7 +200,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Section hidden for users without Shared channel manager role', async ({pw}) => {
-        const {adminClient, user, team} = await pw.initSetup();
+        const {adminClient, user, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -226,7 +246,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Enable sharing toggle, verify UI persistence after refresh, disable sharing toggle', async ({pw}) => {
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -296,7 +316,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('UI updates after permission change', async ({pw}) => {
-        const {adminClient, user, team} = await pw.initSetup();
+        const {adminClient, user, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -346,7 +366,7 @@ test.describe('Shared channel configuration', () => {
     test('User with manage shared channels but not manage channel properties: opens settings on Configuration tab, Info tab not visible', async ({
         pw,
     }) => {
-        const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team} = await setupSharedChannelTest(pw);
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(
