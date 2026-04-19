@@ -5,6 +5,7 @@ import {expect} from '@playwright/test';
 import {TeamType} from '@mattermost/types/teams';
 
 import {makeClient} from './client';
+import {getOnPremServerConfig} from './default_config';
 import {createNewTeam} from './team';
 import {createNewUserProfile} from './user';
 
@@ -34,22 +35,25 @@ export async function initSetup({
             );
         }
 
-        // Read the current server config — DO NOT reset it.
+        // Apply the test-suite baseline config via patchConfig (deep-merge),
+        // NOT updateConfig (full-replace).
         //
-        // Historically this line was `adminClient.updateConfig(getOnPremServerConfig())`,
-        // which REPLACES the entire server configuration with a baseline. That was
-        // catastrophic under PW_WORKERS >= 2: every test's initSetup wiped any config
-        // patches that concurrent tests had set, producing widespread non-deterministic
-        // failures in specs that call patchConfig() (ABAC, PrivacySettings,
-        // AutoTranslationSettings, ContentFlaggingSettings, etc.). See PR #36054
-        // investigation: after shard sharding was fixed, ~12 spec files were still
-        // failing purely because of this global-config race.
+        // Historically this line was `adminClient.updateConfig(getOnPremServerConfig())`.
+        // updateConfig REPLACES the entire server config, which wiped any config
+        // patches that concurrent tests had set under PW_WORKERS >= 2 — producing
+        // widespread flakes in specs that call patchConfig() (ABAC, PrivacySettings,
+        // AutoTranslationSettings, ContentFlaggingSettings, etc.). See PR #36054.
         //
-        // Callers that need a reset-to-defaults must do it explicitly via
-        // adminClient.updateConfig(...) with a narrow, scoped patch and restore their
-        // changes in afterAll/afterEach. initSetup now only creates per-test resources
-        // (team + user) and returns a snapshot of the current config for reference.
-        const adminConfig = await adminClient.getConfig();
+        // Changing it to adminClient.getConfig() (no write at all) broke a different
+        // class of tests: the baseline from getOnPremServerConfig() sets required
+        // values like PluginSettings.EnableUploads=true,
+        // ServiceSettings.EnableTesting=true, the playbooks plugin enable,
+        // password-complexity relaxations, etc. Many tests rely on those being set.
+        //
+        // patchConfig gives us both: the baseline keys are idempotently applied,
+        // and anything NOT in the baseline (ABAC, anonymous URLs, autotranslation,
+        // etc.) is preserved across concurrent initSetup calls.
+        const adminConfig = await adminClient.patchConfig(getOnPremServerConfig() as any);
 
         // Create new team
         const team = await createNewTeam(adminClient, teamsOptions);
