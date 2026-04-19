@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC} from '@mattermost/playwright-lib';
+import {expect, test, enableABAC, getAdminClient, TestBrowser, getRandomId} from '@mattermost/playwright-lib';
 
 import {
     CustomProfileAttribute,
@@ -113,77 +113,117 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
 
 // ─── Attribute-Based Policy — Matching User ───────────────────────────────────
 
-test.describe('ABAC Permission Policies - Attribute-Based Access', () => {
-    let lastPolicyName = '';
-    let savedAdminClient: any = null;
+/**
+ * MM-T5826 split into two tests (_a denied, _b allowed) that share a
+ * beforeAll. The beforeAll pays the 31-second AttributeView gate plus the
+ * policy-creation UI work ONCE. Each test then just logs the relevant user
+ * in and asserts the file visibility.
+ */
+test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', () => {
+    let sharedAdminClient: any = null;
+    let sharedPolicyName = '';
+    let sharedTeam: any;
+    let sharedChannelName = '';
+    let userAllowed: Awaited<ReturnType<typeof createUserForABAC>>;
+    let userDenied: Awaited<ReturnType<typeof createUserForABAC>>;
+    let licensed = true;
+    let sharedTestBrowser: TestBrowser | null = null;
 
-    test.afterEach(async () => {
-        if (lastPolicyName && savedAdminClient) {
-            await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
-            lastPolicyName = '';
-            savedAdminClient = null;
+    test.beforeAll(async ({browser}) => {
+        test.setTimeout(240000);
+
+        const {adminClient, adminUser} = await getAdminClient();
+        sharedAdminClient = adminClient;
+
+        try {
+            const lic = await adminClient.getClientLicenseOld();
+            if (!lic || lic.IsLicensed !== 'true') {
+                licensed = false;
+                return;
+            }
+        } catch {
+            licensed = false;
+            return;
         }
-    });
 
-    test('MM-T5826 user with matching attribute is granted download access by attribute-based policy', async ({pw}) => {
-        test.setTimeout(300000);
-        await pw.skipIfNoLicense();
-
-        // Wait 31 seconds to guarantee the server-side AttributeView 30-second
-        // refresh gate has expired before creating users with attributes.
+        // Wait 31s to guarantee the server-side AttributeView 30-second refresh
+        // gate has expired before creating users with attributes.
         await new Promise((resolve) => setTimeout(resolve, 31000));
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
 
         await enableUserManagedAttributes(adminClient);
         const departmentAttr: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttr);
 
-        const userAllowed = await createUserForABAC(adminClient, attributeFieldsMap, [
+        userAllowed = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
         ]);
-        const userDenied = await createUserForABAC(adminClient, attributeFieldsMap, [
+        userDenied = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Sales'},
         ]);
 
-        await adminClient.addToTeam(team.id, userAllowed.id);
-        await adminClient.addToTeam(team.id, userDenied.id);
+        const suffix = getRandomId();
+        sharedTeam = await adminClient.createTeam({
+            name: `abac-dl-${suffix}`,
+            display_name: `ABAC-DL ${suffix}`,
+            type: 'O',
+        } as any);
 
-        const channel = await createPrivateChannelForABAC(adminClient, team.id);
+        await adminClient.addToTeam(sharedTeam.id, userAllowed.id);
+        await adminClient.addToTeam(sharedTeam.id, userDenied.id);
+
+        const channel = await createPrivateChannelForABAC(adminClient, sharedTeam.id);
         await adminClient.addToChannel(userAllowed.id, channel.id);
         await adminClient.addToChannel(userDenied.id, channel.id);
-        const channelName = channel.name;
+        sharedChannelName = channel.name;
 
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
+        sharedTestBrowser = new TestBrowser(browser);
+
+        // Admin posts a file in the channel via the UI.
+        const {channelsPage: adminChannelsPage} = await sharedTestBrowser.login(adminUser);
+        await adminChannelsPage.goto(sharedTeam.name, sharedChannelName);
         await adminChannelsPage.toBeVisible();
         await adminChannelsPage.centerView.postCreate.postMessage('File attachment post', ['sample_text_file.txt']);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // Admin opens system console, creates the attribute-based download policy.
+        const {systemConsolePage} = await sharedTestBrowser.login(adminUser);
         await enableABAC(systemConsolePage.page);
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
 
-        lastPolicyName = `Dept Download Policy ${pw.random.id()}`;
+        sharedPolicyName = `Dept Download Policy ${getRandomId()}`;
         await createPermissionPolicy(systemConsolePage.page, {
-            name: lastPolicyName,
+            name: sharedPolicyName,
             celExpression: 'user.attributes.Department == "Engineering"',
             permissions: ['Download Files'],
         });
+    });
 
-        // DENIED: Sales user does not match → placeholder shown
-        const {page: deniedPage, channelsPage: deniedChannelsPage} = await pw.testBrowser.login(userDenied as any);
-        await deniedChannelsPage.goto(team.name, channelName);
-        await deniedChannelsPage.toBeVisible();
-        await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
-        await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+    test.afterAll(async () => {
+        if (sharedPolicyName && sharedAdminClient) {
+            await deletePermissionPolicyByName(sharedAdminClient, sharedPolicyName).catch(() => {});
+        }
+        await sharedTestBrowser?.close().catch(() => {});
+    });
 
-        // ALLOWED: Engineering user matches → file card visible
-        const {page: allowedPage, channelsPage: allowedChannelsPage} = await pw.testBrowser.login(userAllowed as any);
-        await allowedChannelsPage.goto(team.name, channelName);
-        await allowedChannelsPage.toBeVisible();
-        await expect(allowedPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
-        await expect(allowedPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
+    test('MM-T5826_a user without matching attribute is denied download (Sales → placeholder)', async ({pw}) => {
+        test.setTimeout(60000);
+        test.skip(!licensed, 'No ABAC license');
+
+        const {page, channelsPage} = await pw.testBrowser.login(userDenied as any);
+        await channelsPage.goto(sharedTeam.name, sharedChannelName);
+        await channelsPage.toBeVisible();
+        await expect(page.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
+        await expect(page.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
+    });
+
+    test('MM-T5826_b user with matching attribute is granted download (Engineering → file visible)', async ({pw}) => {
+        test.setTimeout(60000);
+        test.skip(!licensed, 'No ABAC license');
+
+        const {page, channelsPage} = await pw.testBrowser.login(userAllowed as any);
+        await channelsPage.goto(sharedTeam.name, sharedChannelName);
+        await channelsPage.toBeVisible();
+        await expect(page.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
+        await expect(page.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
     });
 });
 
