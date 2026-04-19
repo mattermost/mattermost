@@ -150,6 +150,8 @@ jobs:
       TEST: playwright
       TEST_FILTER: "${{ inputs.test_filter }}"
       PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
+      PW_SHARD_INDEX: "${{ matrix.worker_index }}"
+      PW_SHARD_TOTAL: "${{ inputs.workers }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
@@ -168,6 +170,12 @@ jobs:
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
+      - name: ci/restore-test-durations
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: pw-test-durations-${{ inputs.test_type }}
+          restore-keys: pw-test-durations-
       - name: ci/run-tests
         run: |
           make cloud-init
@@ -230,6 +238,16 @@ jobs:
           # Merge blob reports using Playwright merge-reports (per docs)
           npm install --no-save @playwright/test
           npx playwright merge-reports --config merge.config.mjs ./shard-results/results/blob-report/
+      - name: ci/extract-test-durations
+        working-directory: e2e-tests/playwright
+        if: always()
+        run: node scripts/extract-durations.mjs results/reporter/results.json .test-durations.json || true
+      - name: ci/cache-test-durations
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        if: always()
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: pw-test-durations-${{ inputs.test_type }}-${{ github.run_id }}
       - name: ci/calculate
         id: calculate
         uses: ./.github/actions/calculate-playwright-results
