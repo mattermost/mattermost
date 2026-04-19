@@ -4,11 +4,7 @@
 import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
 import {getAsset} from '../../../../../asset';
-import {
-    createPermissionPolicy,
-    deletePermissionPolicyByName,
-    navigateToPermissionPoliciesPage,
-} from '../support';
+import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissionPoliciesPage} from '../support';
 
 import {setupUserAndChannel} from './helpers';
 

@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-
 import {
     expect,
     test,
@@ -53,6 +52,9 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5797 auto-add true', () => {
         test.setTimeout(120000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         sharedAdminClient = adminClient;
 
         try {
@@ -198,6 +200,9 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5798 auto-add false, admin add
         test.setTimeout(120000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         sharedAdminClient = adminClient;
 
         try {
@@ -355,6 +360,9 @@ test.describe('ABAC LDAP Integration - Sync - MM-T5799 user removed after attrib
         test.setTimeout(120000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         sharedAdminClient = adminClient;
 
         try {

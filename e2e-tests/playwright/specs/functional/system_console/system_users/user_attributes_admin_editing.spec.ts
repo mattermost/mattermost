@@ -17,7 +17,6 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
-
 import {expect, getRandomId, test, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import {
@@ -99,13 +98,18 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
         // for other concurrent tests in the same worker pool. Create a uniquely-named
         // team and user per test instead.
-        ({adminClient, adminUser} = await pw.getAdminClient());
+        const clientInfo = await pw.getAdminClient();
+        if (!clientInfo.adminUser) {
+            throw new Error('Admin user not found');
+        }
+        adminClient = clientInfo.adminClient;
+        adminUser = clientInfo.adminUser;
         const suffix = getRandomId();
         team = await adminClient.createTeam({
             name: `uaae-${suffix}`,
             display_name: `UAAE ${suffix}`,
             type: 'O',
-        });
+        } as any);
         await adminClient.addToTeam(team.id, adminUser.id);
 
         // Create test user to edit

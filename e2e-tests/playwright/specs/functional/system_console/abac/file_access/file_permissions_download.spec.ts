@@ -133,6 +133,9 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
         test.setTimeout(240000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found — cannot proceed with ABAC file-access tests');
+        }
         sharedAdminClient = adminClient;
 
         try {

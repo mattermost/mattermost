@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-
 import {
     expect,
     test,
@@ -58,6 +57,9 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
         test.setTimeout(240000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         sharedAdminClient = adminClient;
 
         // License gate
@@ -199,6 +201,9 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         test.setTimeout(180000);
 
         const {adminClient, adminUser} = await getAdminClient();
+        if (!adminUser) {
+            throw new Error('Admin user not found');
+        }
         sharedAdminClient = adminClient;
 
         try {
@@ -271,10 +276,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         });
 
         await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page
-            .locator('.policy-name')
-            .filter({hasText: policyName})
-            .first();
+        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         if (await policyRowForTest.isVisible({timeout: 3000})) {
             await policyRowForTest.click();
             await systemConsolePage.page.waitForLoadState('networkidle');
