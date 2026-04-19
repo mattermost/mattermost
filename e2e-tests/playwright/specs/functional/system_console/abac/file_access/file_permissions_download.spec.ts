@@ -3,7 +3,6 @@
 
 import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
-import {getAsset} from '../../../../../asset';
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
@@ -14,15 +13,17 @@ import {
     createPermissionPolicy,
     deletePermissionPolicyByName,
     enableUserManagedAttributes,
-    ensureUserAttributes,
     navigateToPermissionPoliciesPage,
 } from '../support';
 
+import {setupUserAndChannel} from './helpers';
+
 /**
- * ABAC Permission Policies - File Access Runtime Enforcement (MM-64508)
+ * ABAC Permission Policies - Download File Runtime Enforcement (MM-64508)
  *
- * Tests that permission policies for download_file_attachment and
- * upload_file_attachment are correctly enforced in the channel UI.
+ * Tests that permission policies for download_file_attachment are correctly
+ * enforced in the channel UI. Covers the straightforward deny/allow pair, the
+ * attribute-matching flow, and the Burn-on-Read + permalink edge cases.
  *
  * CEL strategy:
  *   - DENIED tests:  celExpression = 'false'  → unconditional deny, no attribute dependency
@@ -34,37 +35,6 @@ import {
  *   - `beforeEach` also deletes by name in case afterEach failed (safety net)
  *   - Individual tests just set lastPolicyName and do NOT do their own cleanup
  */
-
-// ─── Shared setup helper ─────────────────────────────────────────────────────
-
-async function setupUserAndChannel(
-    adminClient: any,
-    team: any,
-): Promise<{
-    testUser: any;
-    channelName: string;
-    channelId: string;
-}> {
-    // Ensure at least one user attribute field exists so the permission policy
-    // CEL editor's "Switch to Advanced Mode" button is enabled in the UI.
-    await ensureUserAttributes(adminClient, ['Department']);
-
-    const randomId = Math.random().toString(36).substring(2, 9);
-    const username = `user${randomId}`;
-    const testUser = await adminClient.createUser(
-        {email: `${username}@example.com`, username, password: 'Passwd4Testing!'} as any,
-        '',
-        '',
-    );
-    (testUser as any).password = 'Passwd4Testing!';
-
-    await adminClient.addToTeam(team.id, testUser.id);
-
-    const channel = await createPrivateChannelForABAC(adminClient, team.id);
-    await adminClient.addToChannel(testUser.id, channel.id);
-
-    return {testUser, channelName: channel.name, channelId: channel.id};
-}
 
 // ─── Download Enforcement ────────────────────────────────────────────────────
 
@@ -138,159 +108,6 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
 
         await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
         await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
-    });
-});
-
-// ─── Upload Enforcement ──────────────────────────────────────────────────────
-
-test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
-    let lastPolicyName = '';
-    let savedAdminClient: any = null;
-
-    test.afterEach(async () => {
-        if (lastPolicyName && savedAdminClient) {
-            await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
-            lastPolicyName = '';
-            savedAdminClient = null;
-        }
-    });
-
-    test('MM-T5822 user denied upload sees error when attempting file attachment', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await navigateToPermissionPoliciesPage(systemConsolePage.page);
-
-        lastPolicyName = `Upload Deny ${pw.random.id()}`;
-        await createPermissionPolicy(systemConsolePage.page, {
-            name: lastPolicyName,
-            celExpression: 'false',
-            permissions: ['Upload Files'],
-        });
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
-        await deniedChannelsPage.goto(team.name, channelName);
-        await deniedChannelsPage.toBeVisible();
-
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
-
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 15000});
-        // error text already asserted above
-    });
-
-    test('MM-T5823 user can attach and send a file when no upload restriction policy exists', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser, channelName} = await setupUserAndChannel(adminClient, team);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
-        await userChannelsPage.goto(team.name, channelName);
-        await userChannelsPage.toBeVisible();
-        await userChannelsPage.centerView.postCreate.postMessage('Upload test', ['sample_text_file.txt']);
-
-        await expect(userPage.getByText(/required access to upload/i)).not.toBeVisible();
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]').last()).toBeVisible({timeout: 15000});
-    });
-});
-
-// ─── Combined Enforcement ────────────────────────────────────────────────────
-
-test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
-    let lastPolicyName = '';
-    let savedAdminClient: any = null;
-
-    test.afterEach(async () => {
-        if (lastPolicyName && savedAdminClient) {
-            await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
-            lastPolicyName = '';
-            savedAdminClient = null;
-        }
-    });
-
-    test('MM-T5824 user denied both download and upload sees placeholder and cannot upload', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
-
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage('File for combined test', ['sample_text_file.txt']);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await navigateToPermissionPoliciesPage(systemConsolePage.page);
-
-        lastPolicyName = `Both Deny ${pw.random.id()}`;
-        await createPermissionPolicy(systemConsolePage.page, {
-            name: lastPolicyName,
-            celExpression: 'false',
-            permissions: ['Download Files', 'Upload Files'],
-        });
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
-        await deniedChannelsPage.goto(team.name, channelName);
-        await deniedChannelsPage.toBeVisible();
-
-        await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
-        await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
-
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 15000});
-        // error text already asserted above
-    });
-
-    test('MM-T5825 user can download and upload files when no restriction policies exist', async ({pw}) => {
-        test.setTimeout(180000);
-        await pw.skipIfNoLicense();
-
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        savedAdminClient = adminClient;
-        const {testUser, channelName} = await setupUserAndChannel(adminClient, team);
-
-        const {channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage('File for allowed test', ['sample_text_file.txt']);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await enableABAC(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
-        await userChannelsPage.goto(team.name, channelName);
-        await userChannelsPage.toBeVisible();
-
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
-        await expect(userPage.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
-
-        await userChannelsPage.centerView.postCreate.postMessage('Upload from user', ['sample_text_file.txt']);
-        await expect(userPage.getByText(/required access to upload/i)).not.toBeVisible();
-        await expect(userPage.locator('[data-testid="fileAttachmentList"]').last()).toBeVisible({timeout: 15000});
     });
 });
 
