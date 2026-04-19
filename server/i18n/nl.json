@@ -10125,7 +10125,7 @@
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
+    "translation": "Je licentie ondersteunt geen gebruikersattributen."
   },
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
@@ -10237,7 +10237,7 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+    "translation": "ongeldige patch van gebruikersattribuutveld"
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
@@ -12006,5 +12006,85 @@
   {
     "id": "model.config.is_valid.native_app_settings.download_link.app_error",
     "translation": "Een of meer links voor het downloaden van apps zijn geen geldige URL's."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Bridgetesthelper is uitgeschakeld."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Hostnaam verzoek verschilt van geconfigureerde SiteURL. De geconfigureerde SiteURL zal worden gebruikt voor de slash commando antwoord URL."
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL moet geconfigureerd zijn om slash commando's te gebruiken"
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant is niet uitgegeven aan deze cliënt."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Kaartberichten zijn niet ingeschakeld op deze server."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Verbranden-na-lezen posts zijn niet toegestaan in gedeelde kanalen."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Ongeldig verzoek: ontbrekende of ongeldige X-Requested-With header."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Het opgegeven doeltype is niet geldig."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Kan geen beschermd eigenschapveld maken via API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "Een target_id is nodig bij het maken van een kanaal of team scoped eigenschapveld."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "Je hebt geen toestemming om dit eigenschapveld te verwijderen."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet verwijderen via API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Een geldig target_type (systeem, team of kanaal) is vereist."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "Een target_id is nodig bij het zoeken op kanaal of team target_id."
+  },
+  {
+    "id": "api.property_field.invalid_group_name.app_error",
+    "translation": "De opgegeven eigenschapgroep is niet gevonden."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Ongeldig eigendomsveld patch."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Het objecttype van het eigenschapveld komt niet overeen met URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Kan een v1 eigenschapveld niet patchen via deze API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "Je hebt geen rechten om dit eigenschapveld te bewerken."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "Je hebt geen rechten om opties voor dit eigenschapveld te beheren."
   }
 ]
