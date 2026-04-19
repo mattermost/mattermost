@@ -17,6 +17,7 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
+
 import {expect, getRandomId, test, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import {
