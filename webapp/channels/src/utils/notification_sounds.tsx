@@ -19,7 +19,6 @@ import hello from 'sounds/hello.mp3';
 import ripple from 'sounds/ripple.mp3';
 import upstairs from 'sounds/upstairs.mp3';
 import {DesktopSound} from 'utils/constants';
-import {isEdge} from 'utils/user_agent';
 
 export const DesktopNotificationSounds = {
     DEFAULT: 'default',
@@ -169,7 +168,7 @@ export function getValueOfIncomingCallSoundsSelect(soundName?: string) {
 
 let canDing = true;
 export function ding(name: string) {
-    if (hasSoundOptions() && canDing) {
+    if (canDing) {
         tryNotificationSound(name);
         canDing = false;
         setTimeout(() => {
@@ -185,9 +184,6 @@ export function tryNotificationSound(name: string) {
 
 let currentRing: HTMLAudioElement | null = null;
 export function ring(name: string) {
-    if (!hasSoundOptions()) {
-        return;
-    }
     stopRing();
 
     currentRing = loopNotificationRing(name);
@@ -208,9 +204,6 @@ export function stopRing() {
 let currentTryRing: HTMLAudioElement | null = null;
 let currentTimer: NodeJS.Timeout;
 export function tryNotificationRing(name: string) {
-    if (!hasSoundOptions()) {
-        return;
-    }
     stopTryNotificationRing();
     clearTimeout(currentTimer);
 
@@ -238,10 +231,6 @@ export function loopNotificationRing(name: string) {
     audio.loop = true;
     audio.play();
     return audio;
-}
-
-export function hasSoundOptions() {
-    return (!isEdge());
 }
 
 /**
