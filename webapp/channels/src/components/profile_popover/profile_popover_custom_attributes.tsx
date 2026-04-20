@@ -33,10 +33,15 @@ const ProfilePopoverCustomAttributes = ({
         if (!userProfile.custom_profile_attributes) {
             dispatch(getCustomProfileAttributeValues(userID));
         }
-    });
+    }, [dispatch, userID, userProfile.custom_profile_attributes]);
 
     const attributeSections = customProfileAttributeFields.map((attribute) => {
         if (!hideStatus && userProfile.custom_profile_attributes) {
+            // Hide source_only fields from profile popover
+            if (attribute.attrs?.access_mode === 'source_only') {
+                return null;
+            }
+
             const visibility = attribute.attrs?.visibility || 'when_set';
             if (visibility === 'hidden') {
                 return null;

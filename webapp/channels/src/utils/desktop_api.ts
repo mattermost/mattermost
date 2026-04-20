@@ -4,8 +4,7 @@
 import semver from 'semver';
 
 import type {DesktopAPI, PopoutViewProps, Theme} from '@mattermost/desktop-api';
-
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 declare global {
     interface Window {
@@ -286,6 +285,7 @@ export class DesktopAppAPI {
 
     sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
     sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
+    updatePopoutTitleTemplate = (template: string) => window.desktopAPI?.updatePopoutTitleTemplate?.(template);
 
     /*********************************************************************
      * Helper functions for legacy code

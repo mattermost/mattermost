@@ -83,6 +83,12 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
+	license := c.App.Channels().License()
+
+	if model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
+		team.Name = model.NewId()
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
@@ -127,6 +133,12 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+	// instead check the scheme roles for the team and if the user has the permission to invite users
+	_, schemeUserRole, schemeAdminRole, schemeErr := c.App.GetSchemeRolesForTeam(rteam.Id)
+	if schemeErr != nil || !c.App.RolesGrantPermission([]string{schemeUserRole, schemeAdminRole}, model.PermissionInviteUser.Id) {
+		// If we can't check permissions, fail secure by hiding the invite_id because the team is already created above
+		rteam.InviteId = ""
+	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(&team)
@@ -262,6 +274,20 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
+
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Updating AllowOpenInvite or AllowedDomains requires InviteUser permission
+	if (team.AllowOpenInvite != oldTeam.AllowOpenInvite || team.AllowedDomains != oldTeam.AllowedDomains) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
+	auditRec.AddEventPriorState(oldTeam)
 
 	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
@@ -631,6 +657,10 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		team.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(team); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -667,6 +697,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -706,6 +743,13 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	for _, m := range members {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), m.TeamId, model.PermissionManageTeamRoles) {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -749,6 +793,13 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -856,6 +907,10 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(tm)
 	auditRec.AddEventObjectType("team_member") // TODO verify this is the final state. should it be the team instead?
 	auditRec.Success()
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		tm.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(tm); err != nil {
@@ -1009,6 +1064,15 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range membersWithErrors {
+			if m.Member != nil {
+				m.Member.SanitizeRoleData(currentUserId)
+			}
+		}
 	}
 
 	var (

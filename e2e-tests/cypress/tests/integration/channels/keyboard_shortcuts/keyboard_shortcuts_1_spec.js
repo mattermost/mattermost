@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import * as messages from '../../../fixtures/messages';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as messages from '@/fixtures/messages';
+import timeouts, * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;
@@ -377,6 +377,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').cmdOrCtrlShortcut('{shift}L');
         cy.uiGetPostTextBox().should('be.focused');
 
+        cy.get('[data-testid="searchBoxClose"] > .icon').click();
         // # Post a message and open RHS
         const message = `hello${Date.now()}`;
         cy.postMessage(message);
@@ -386,6 +387,7 @@ describe('Keyboard Shortcuts', () => {
             cy.uiGetReplyTextBox().focus().should('be.focused');
         }).then(() => {
             // # Type CTRL/CMD+SHIFT+L
+            cy.wait(timeouts.ONE_SEC);
             cy.get('body').cmdOrCtrlShortcut('{shift}L');
             cy.uiGetPostTextBox().should('be.focused');
         });

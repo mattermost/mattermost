@@ -1,430 +1,162 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/user_settings/notifications/ManageAutoResponder should match snapshot, default disabled 1`] = `
-<ManageAutoResponder
-  autoResponderActive={false}
-  autoResponderMessage="Hello World!"
-  error=""
-  saving={false}
-  setParentState={[MockFunction]}
-  submit={[MockFunction]}
-  updateSection={[MockFunction]}
->
-  <Memo(SettingItemMax)
-    inputs={
-      Array [
-        <div
-          className="checkbox"
-          id="autoResponderCheckbox"
-        >
-          <label>
-            <input
-              checked={false}
-              id="autoResponderActive"
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Enabled"
-              id="user.settings.notifications.autoResponderEnabled"
-            />
-          </label>
-        </div>,
-        <div
-          className="mt-5"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
-            id="user.settings.notifications.autoResponderHint"
-          />
-        </div>,
-      ]
-    }
-    saving={false}
-    shiftEnter={true}
-    submit={[MockFunction]}
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic direct message replies"
-        id="user.settings.notifications.autoResponder"
-      />
-    }
-    updateSection={[MockFunction]}
+<div>
+  <section
+    class="section-max form-horizontal "
   >
-    <section
-      className="section-max form-horizontal "
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
     >
-      <h4
-        className="col-sm-12 section-title"
-        id="settingTitle"
-      >
-        <FormattedMessage
-          defaultMessage="Automatic direct message replies"
-          id="user.settings.notifications.autoResponder"
-        >
-          <span>
-            Automatic direct message replies
-          </span>
-        </FormattedMessage>
-      </h4>
+      Automatic direct message replies
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
       <div
-        className="sectionContent col-sm-10 col-sm-offset-2"
+        class="setting-list"
+        tabindex="-1"
       >
         <div
-          className="setting-list"
-          tabIndex={-1}
+          class="setting-list-item"
         >
           <div
-            className="setting-list-item"
+            class="checkbox"
+            id="autoResponderCheckbox"
           >
-            <div
-              className="checkbox"
-              id="autoResponderCheckbox"
-              key="autoResponderCheckbox"
-            >
-              <label>
-                <input
-                  checked={false}
-                  id="autoResponderActive"
-                  onChange={[Function]}
-                  type="checkbox"
-                />
-                <FormattedMessage
-                  defaultMessage="Enabled"
-                  id="user.settings.notifications.autoResponderEnabled"
-                >
-                  <span>
-                    Enabled
-                  </span>
-                </FormattedMessage>
-              </label>
-            </div>
-            <div
-              className="mt-5"
-              key="autoResponderHint"
-            >
-              <FormattedMessage
-                defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
-                id="user.settings.notifications.autoResponderHint"
-              >
-                <span>
-                  Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
-                </span>
-              </FormattedMessage>
-            </div>
+            <label>
+              <input
+                class="a11y--active a11y--focused"
+                id="autoResponderActive"
+                type="checkbox"
+              />
+              Enabled
+            </label>
           </div>
           <div
-            className="setting-list-item"
+            class="mt-5"
           >
-            <hr />
-            <div
-              role="alert"
-            />
-            <SaveButton
-              disabled={false}
-              onClick={[Function]}
-              saving={false}
-            >
-              <button
-                className="btn btn-primary "
-                data-testid="saveSetting"
-                disabled={false}
-                id="saveSetting"
-                onClick={[Function]}
-                type="submit"
-              >
-                <Memo(LoadingWrapper)
-                  loading={false}
-                  text={
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Saving"
-                      id="save_button.saving"
-                    />
-                  }
-                >
-                  <span>
-                    <FormattedMessage
-                      defaultMessage="Save"
-                      id="save_button.save"
-                    >
-                      <span>
-                        Save
-                      </span>
-                    </FormattedMessage>
-                  </span>
-                </Memo(LoadingWrapper)>
-              </button>
-            </SaveButton>
-            <button
-              className="btn btn-tertiary"
-              data-testid="cancelButton"
-              id="cancelSetting"
-              onClick={[Function]}
-            >
-              <FormattedMessage
-                defaultMessage="Cancel"
-                id="setting_item_max.cancel"
-              >
-                <span>
-                  Cancel
-                </span>
-              </FormattedMessage>
-            </button>
+            Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
           </div>
         </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-    </section>
-  </Memo(SettingItemMax)>
-</ManageAutoResponder>
+    </div>
+  </section>
+</div>
 `;
 
 exports[`components/user_settings/notifications/ManageAutoResponder should match snapshot, enabled 1`] = `
-<ManageAutoResponder
-  autoResponderActive={true}
-  autoResponderMessage="Hello World!"
-  error=""
-  saving={false}
-  setParentState={[MockFunction]}
-  submit={[MockFunction]}
-  updateSection={[MockFunction]}
->
-  <Memo(SettingItemMax)
-    inputs={
-      Array [
-        <div
-          className="checkbox"
-          id="autoResponderCheckbox"
-        >
-          <label>
-            <input
-              checked={true}
-              id="autoResponderActive"
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Enabled"
-              id="user.settings.notifications.autoResponderEnabled"
-            />
-          </label>
-        </div>,
-        <div
-          id="autoResponderMessage"
-        >
-          <div
-            className="pt-2"
-          >
-            <LocalizedPlaceholderTextarea
-              className="form-control"
-              id="autoResponderMessageInput"
-              maxLength={200}
-              onChange={[Function]}
-              placeholder={
-                Object {
-                  "defaultMessage": "Message",
-                  "id": "user.settings.notifications.autoResponderPlaceholder",
-                }
-              }
-              rows={5}
-              style={
-                Object {
-                  "height": "auto",
-                  "resize": "none",
-                }
-              }
-              value="Hello World!"
-            />
-          </div>
-        </div>,
-        <div
-          className="mt-5"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
-            id="user.settings.notifications.autoResponderHint"
-          />
-        </div>,
-      ]
-    }
-    saving={false}
-    shiftEnter={true}
-    submit={[MockFunction]}
-    title={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Automatic direct message replies"
-        id="user.settings.notifications.autoResponder"
-      />
-    }
-    updateSection={[MockFunction]}
+<div>
+  <section
+    class="section-max form-horizontal "
   >
-    <section
-      className="section-max form-horizontal "
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
     >
-      <h4
-        className="col-sm-12 section-title"
-        id="settingTitle"
-      >
-        <FormattedMessage
-          defaultMessage="Automatic direct message replies"
-          id="user.settings.notifications.autoResponder"
-        >
-          <span>
-            Automatic direct message replies
-          </span>
-        </FormattedMessage>
-      </h4>
+      Automatic direct message replies
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
       <div
-        className="sectionContent col-sm-10 col-sm-offset-2"
+        class="setting-list"
+        tabindex="-1"
       >
         <div
-          className="setting-list"
-          tabIndex={-1}
+          class="setting-list-item"
         >
           <div
-            className="setting-list-item"
+            class="checkbox"
+            id="autoResponderCheckbox"
+          >
+            <label>
+              <input
+                checked=""
+                class="a11y--active a11y--focused"
+                id="autoResponderActive"
+                type="checkbox"
+              />
+              Enabled
+            </label>
+          </div>
+          <div
+            id="autoResponderMessage"
           >
             <div
-              className="checkbox"
-              id="autoResponderCheckbox"
-              key="autoResponderCheckbox"
+              class="pt-2"
             >
-              <label>
-                <input
-                  checked={true}
-                  id="autoResponderActive"
-                  onChange={[Function]}
-                  type="checkbox"
-                />
-                <FormattedMessage
-                  defaultMessage="Enabled"
-                  id="user.settings.notifications.autoResponderEnabled"
-                >
-                  <span>
-                    Enabled
-                  </span>
-                </FormattedMessage>
-              </label>
-            </div>
-            <div
-              id="autoResponderMessage"
-              key="autoResponderMessage"
-            >
-              <div
-                className="pt-2"
+              <textarea
+                class="form-control"
+                id="autoResponderMessageInput"
+                maxlength="200"
+                placeholder="Message"
+                rows="5"
+                style="resize: none; height: auto;"
               >
-                <LocalizedPlaceholderTextarea
-                  className="form-control"
-                  id="autoResponderMessageInput"
-                  maxLength={200}
-                  onChange={[Function]}
-                  placeholder={
-                    Object {
-                      "defaultMessage": "Message",
-                      "id": "user.settings.notifications.autoResponderPlaceholder",
-                    }
-                  }
-                  rows={5}
-                  style={
-                    Object {
-                      "height": "auto",
-                      "resize": "none",
-                    }
-                  }
-                  value="Hello World!"
-                >
-                  <textarea
-                    className="form-control"
-                    id="autoResponderMessageInput"
-                    maxLength={200}
-                    onChange={[Function]}
-                    placeholder="Message"
-                    rows={5}
-                    style={
-                      Object {
-                        "height": "auto",
-                        "resize": "none",
-                      }
-                    }
-                    value="Hello World!"
-                  />
-                </LocalizedPlaceholderTextarea>
-              </div>
-            </div>
-            <div
-              className="mt-5"
-              key="autoResponderHint"
-            >
-              <FormattedMessage
-                defaultMessage="Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications."
-                id="user.settings.notifications.autoResponderHint"
-              >
-                <span>
-                  Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
-                </span>
-              </FormattedMessage>
+                Hello World!
+              </textarea>
             </div>
           </div>
           <div
-            className="setting-list-item"
+            class="mt-5"
           >
-            <hr />
-            <div
-              role="alert"
-            />
-            <SaveButton
-              disabled={false}
-              onClick={[Function]}
-              saving={false}
-            >
-              <button
-                className="btn btn-primary "
-                data-testid="saveSetting"
-                disabled={false}
-                id="saveSetting"
-                onClick={[Function]}
-                type="submit"
-              >
-                <Memo(LoadingWrapper)
-                  loading={false}
-                  text={
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="Saving"
-                      id="save_button.saving"
-                    />
-                  }
-                >
-                  <span>
-                    <FormattedMessage
-                      defaultMessage="Save"
-                      id="save_button.save"
-                    >
-                      <span>
-                        Save
-                      </span>
-                    </FormattedMessage>
-                  </span>
-                </Memo(LoadingWrapper)>
-              </button>
-            </SaveButton>
-            <button
-              className="btn btn-tertiary"
-              data-testid="cancelButton"
-              id="cancelSetting"
-              onClick={[Function]}
-            >
-              <FormattedMessage
-                defaultMessage="Cancel"
-                id="setting_item_max.cancel"
-              >
-                <span>
-                  Cancel
-                </span>
-              </FormattedMessage>
-            </button>
+            Set a custom message that will be automatically sent in response to Direct Messages. Mentions in Public and Private Channels will not trigger the automated reply. Enabling Automatic Replies sets your status to Out of Office and disables email and push notifications.
           </div>
         </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-primary "
+            data-testid="saveSetting"
+            id="saveSetting"
+            type="submit"
+          >
+            <span>
+              Save
+            </span>
+          </button>
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
-    </section>
-  </Memo(SettingItemMax)>
-</ManageAutoResponder>
+    </div>
+  </section>
+</div>
 `;

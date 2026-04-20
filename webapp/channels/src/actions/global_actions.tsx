@@ -4,7 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
-import type {Post} from '@mattermost/types/posts';
+import type {Post, PostType} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -23,6 +23,7 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
@@ -32,7 +33,7 @@ import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
 import {closeRightHandSide, closeMenu as closeRhsMenu, updateRhsState} from 'actions/views/rhs';
-import * as WebsocketActions from 'actions/websocket_actions.jsx';
+import * as WebsocketActions from 'actions/websocket_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsRhsOpen, getPreviousRhsState, getRhsState} from 'selectors/rhs';
 import BrowserStore from 'stores/browser_store';
@@ -172,29 +173,42 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
 export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean> {
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
-        const post = {
+        const post: Post = {
             id: Utils.generateId(),
             user_id: userId || '0',
             channel_id: channelId || getCurrentChannelId(doGetState()),
             message,
-            type: PostTypes.EPHEMERAL,
+            type: PostTypes.EPHEMERAL as PostType,
             create_at: timestamp,
             update_at: timestamp,
             root_id: parentId || '',
             props: {},
-        } as Post;
+            delete_at: 0,
+            edit_at: 0,
+            is_pinned: false,
+            hashtags: '',
+            metadata: {
+                embeds: [],
+                emojis: [],
+                files: [],
+                images: {},
+            },
+            original_id: '',
+            pending_post_id: '',
+            reply_count: 0,
+        };
 
         return doDispatch(handleNewPost(post));
     };
 }
 
 export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number) {
-    const post = {
+    const post: Post = {
         id: Utils.generateId(),
         user_id: user.id,
         channel_id: channelId || getCurrentChannelId(getState()),
         message: '',
-        type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL,
+        type: PostTypes.EPHEMERAL_ADD_TO_CHANNEL as PostType,
         create_at: timestamp,
         update_at: timestamp,
         root_id: postRootId,
@@ -203,7 +217,20 @@ export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: 
             addedUsername,
             addedUserId,
         },
-    } as unknown as Post;
+        edit_at: 0,
+        delete_at: 0,
+        is_pinned: false,
+        original_id: '',
+        pending_post_id: '',
+        reply_count: 0,
+        metadata: {
+            embeds: [],
+            emojis: [],
+            files: [],
+            images: {},
+        },
+        hashtags: '',
+    };
 
     dispatch(handleNewPost(post));
 }
@@ -385,7 +412,9 @@ export async function redirectUserToDefaultTeam(searchParams?: URLSearchParams) 
     if (team && team.delete_at === 0) {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         if (channel) {
-            dispatch(fetchTeamScheduledPosts(team.id, true));
+            if (isScheduledPostsEnabled(state)) {
+                dispatch(fetchTeamScheduledPosts(team.id, true));
+            }
             dispatch(selectChannel(channel.id));
             historyPushWithQueryParams(`/${team.name}/channels/${channel.name}`, searchParams);
             return;

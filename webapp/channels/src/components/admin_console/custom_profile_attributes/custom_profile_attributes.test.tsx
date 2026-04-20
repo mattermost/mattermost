@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 
@@ -28,6 +27,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
     };
 
     const createAttribute = (id: string, name: string, attrs: Record<string, string>): UserPropertyField => ({
@@ -55,10 +59,6 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
     });
 
     const initialState = createInitialState({attr1, attr2});
-
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
 
     test('should not render anything when no attributes exist', () => {
         const {container} = renderWithContext(
@@ -100,9 +100,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             );
 
             const input = await screen.findByDisplayValue('department');
-            fireEvent.change(input, {target: {value: 'new-department'}});
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new-department');
 
-            const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+            const calls = baseProps.registerSaveAction.mock.calls;
+            const saveAction = calls[calls.length - 1][0];
             await act(async () => {
                 await saveAction();
             });
@@ -158,9 +160,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             );
 
             const input = await screen.findByDisplayValue('title');
-            fireEvent.change(input, {target: {value: 'new-title'}});
+            await userEvent.clear(input);
+            await userEvent.type(input, 'new-title');
 
-            const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+            const calls = baseProps.registerSaveAction.mock.calls;
+            const saveAction = calls[calls.length - 1][0];
             await act(async () => {
                 await saveAction();
             });
@@ -199,9 +203,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         );
 
         const input = await screen.findByDisplayValue('department');
-        fireEvent.change(input, {target: {value: 'new-department'}});
+        await userEvent.clear(input);
+        await userEvent.type(input, 'new-department');
 
-        const saveAction = baseProps.registerSaveAction.mock.calls[1][0];
+        const calls = baseProps.registerSaveAction.mock.calls;
+        const saveAction = calls[calls.length - 1][0];
 
         // Verify the save action catches and returns the error
         await expect(saveAction()).resolves.toEqual(

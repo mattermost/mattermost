@@ -7,12 +7,11 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @not_cloud @messaging @plugin
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
-import {drawPlugin} from '../../../utils/plugins';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
+import {drawPlugin} from '@/utils/plugins';
 
 describe('M17448 Does not post draft message', () => {
     before(() => {

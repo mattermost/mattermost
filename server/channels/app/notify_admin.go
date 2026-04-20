@@ -164,7 +164,7 @@ func (a *App) upgradePlanAdminNotifyPost(rctx request.CTX, workspaceName string,
 	props["trial"] = trial
 	post.SetProps(props)
 
-	_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+	_, _, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 
 	if appErr != nil {
 		rctx.Logger().Warn("Error creating post", mlog.Err(appErr))
@@ -205,7 +205,10 @@ func (a *App) CanNotifyAdmin(rctx request.CTX, trial bool) bool {
 		return false
 	}
 
-	coolOffPeriodDaysEnv := os.Getenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
+	coolOffPeriodDaysEnv := a.Srv().notifyAdminCoolOffDaysOverride
+	if coolOffPeriodDaysEnv == "" {
+		coolOffPeriodDaysEnv = os.Getenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
+	}
 	coolOffPeriodDays, parseError := strconv.ParseFloat(coolOffPeriodDaysEnv, 64)
 	if parseError != nil {
 		coolOffPeriodDays = defaultNotifyAdminCoolOffDays

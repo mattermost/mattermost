@@ -10,10 +10,11 @@
 // Stage: @prod
 // Group: @channels @system_console @enterprise @e20_only @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {TERMS_OF_SERVICE_LINK} from '../../../../utils/constants';
-
 import {backToTeam, saveSetting} from './helper';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {TERMS_OF_SERVICE_LINK} from '@/utils/constants';
+
 
 describe('SupportSettings', () => {
     const tosLink = 'https://github.com/mattermost/platform/blob/master/README.md';
@@ -130,7 +131,7 @@ describe('SupportSettings', () => {
 
     it('MM-T1038 - Customization App download link - Change to different', () => {
         // # Edit links in the support email field
-        const link = 'some_link';
+        const link = 'https://github.com/mattermost/desktop/releases';
         cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(link);
 
         // # Save setting then back to team view

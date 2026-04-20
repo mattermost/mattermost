@@ -28,3 +28,12 @@ func (f *FrontendService) OpenInteractiveDialog(dialog model.OpenDialogRequest) 
 func (f *FrontendService) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	f.api.PublishWebSocketEvent(event, payload, broadcast)
 }
+
+// SendToastMessage sends a toast notification to a specific user or user session.
+// The userID parameter specifies the user to send the toast to.
+// If connectionID is set, the toast will only be sent to that specific connection.
+//
+// Minimum server version: 11.5
+func (f *FrontendService) SendToastMessage(userID, connectionID, message string, options model.SendToastMessageOptions) error {
+	return normalizeAppErr(f.api.SendToastMessage(userID, connectionID, message, options))
+}

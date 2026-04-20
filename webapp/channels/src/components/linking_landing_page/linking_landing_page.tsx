@@ -4,6 +4,8 @@
 import React, {PureComponent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import BrowserStore from 'stores/browser_store';
 
 import ExternalLink from 'components/external_link';
@@ -12,11 +14,8 @@ import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
 import MattermostLogoSvg from 'images/logo.svg';
 import {LandingPreferenceTypes} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
-import * as Utils from 'utils/utils';
 
 type Props = {
-    defaultTheme: any;
     desktopAppLink?: string;
     iosAppLink?: string;
     androidAppLink?: string;
@@ -89,7 +88,6 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     }
 
     componentDidMount() {
-        Utils.applyTheme(this.props.defaultTheme);
         if (this.checkLandingPreferenceApp()) {
             this.openMattermostApp();
         }
@@ -202,7 +200,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     this.setState({redirectPage: true, navigating: true});
                     if (UserAgent.isMobile()) {
-                        if (UserAgent.isAndroidWeb()) {
+                        if (UserAgent.isAndroid()) {
                             const timeout = setTimeout(() => {
                                 window.location.replace(this.getDownloadLink()!);
                             }, 2000);
@@ -221,9 +219,9 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
     };
 
     getDownloadLink = () => {
-        if (UserAgent.isIosWeb()) {
+        if (UserAgent.isIos()) {
             return this.props.iosAppLink;
-        } else if (UserAgent.isAndroidWeb()) {
+        } else if (UserAgent.isAndroid()) {
             return this.props.androidAppLink;
         }
 

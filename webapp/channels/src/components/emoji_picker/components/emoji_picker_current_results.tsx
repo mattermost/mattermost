@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import throttle from 'lodash/throttle';
-import React, {forwardRef, memo, useCallback} from 'react';
+import React, {forwardRef, memo, useCallback, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {FixedSizeList} from 'react-window';
 import type {ListItemKeySelector, ListOnScrollProps} from 'react-window';
@@ -16,6 +16,8 @@ import EmojiPickerCategoryOrEmojiRow from 'components/emoji_picker/components/em
 import {ITEM_HEIGHT, EMOJI_ROWS_OVERSCAN_COUNT, EMOJI_CONTAINER_HEIGHT, CUSTOM_EMOJIS_PER_PAGE, EMOJI_SCROLL_THROTTLE_DELAY, CATEGORIES_CONTAINER_HEIGHT} from 'components/emoji_picker/constants';
 import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
 import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
+
+import {EmojiPickerContext} from './emoji_picker_context';
 
 interface Props {
     categoryOrEmojisRows: CategoryOrEmojiRow[];
@@ -86,6 +88,13 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
         incrementEmojiPickerPage();
     };
 
+    const context = useMemo(() => ({
+        cursorRowIndex,
+        cursorEmojiId,
+        onEmojiClick,
+        onEmojiMouseOver,
+    }), [cursorEmojiId, cursorRowIndex, onEmojiClick, onEmojiMouseOver]);
+
     return (
         <div
             className='emoji-picker__items'
@@ -96,44 +105,36 @@ const EmojiPickerCurrentResults = forwardRef<InfiniteLoader, Props>(({categoryOr
                 role='grid'
                 aria-labelledby='emojiPickerSearch'
             >
-                <AutoSizer>
-                    {({height, width}) => (
-                        <InfiniteLoader
-                            ref={ref}
-                            itemCount={categoryOrEmojisRows.length + 1} // +1 for the loading row
-                            isItemLoaded={handleIsItemLoaded}
-                            loadMoreItems={handleLoadMoreItems}
-                        >
-                            {({onItemsRendered, ref}) => (
-                                <FixedSizeList
-                                    ref={ref}
-                                    onItemsRendered={onItemsRendered}
-                                    height={height}
-                                    width={width}
-                                    layout='vertical'
-                                    overscanCount={EMOJI_ROWS_OVERSCAN_COUNT}
-                                    itemCount={categoryOrEmojisRows.length}
-                                    itemData={categoryOrEmojisRows}
-                                    itemKey={getItemKey}
-                                    itemSize={ITEM_HEIGHT}
-                                    onScroll={throttledScroll}
-                                >
-                                    {({index, style, data}) => (
-                                        <EmojiPickerCategoryOrEmojiRow
-                                            index={index}
-                                            style={style}
-                                            data={data}
-                                            cursorRowIndex={cursorRowIndex}
-                                            cursorEmojiId={cursorEmojiId}
-                                            onEmojiClick={onEmojiClick}
-                                            onEmojiMouseOver={onEmojiMouseOver}
-                                        />
-                                    )}
-                                </FixedSizeList>
-                            )}
-                        </InfiniteLoader>
-                    )}
-                </AutoSizer>
+                <EmojiPickerContext.Provider value={context}>
+                    <AutoSizer>
+                        {({height, width}) => (
+                            <InfiniteLoader
+                                ref={ref}
+                                itemCount={categoryOrEmojisRows.length + 1} // +1 for the loading row
+                                isItemLoaded={handleIsItemLoaded}
+                                loadMoreItems={handleLoadMoreItems}
+                            >
+                                {({onItemsRendered, ref}) => (
+                                    <FixedSizeList
+                                        ref={ref}
+                                        onItemsRendered={onItemsRendered}
+                                        height={height}
+                                        width={width}
+                                        layout='vertical'
+                                        overscanCount={EMOJI_ROWS_OVERSCAN_COUNT}
+                                        itemCount={categoryOrEmojisRows.length}
+                                        itemData={categoryOrEmojisRows}
+                                        itemKey={getItemKey}
+                                        itemSize={ITEM_HEIGHT}
+                                        onScroll={throttledScroll}
+                                    >
+                                        {EmojiPickerCategoryOrEmojiRow}
+                                    </FixedSizeList>
+                                )}
+                            </InfiniteLoader>
+                        )}
+                    </AutoSizer>
+                </EmojiPickerContext.Provider>
             </div>
         </div>
     );

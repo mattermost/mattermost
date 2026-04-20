@@ -10,13 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @onboarding
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {generateRandomUser} from '../../../support/api/user';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {generateRandomUser} from '@/support/api/user';
 import {
     getWelcomeEmailTemplate,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Onboarding', () => {
     let siteName;
@@ -71,7 +71,8 @@ describe('Onboarding', () => {
         cy.get('#input_email').should('be.focused').and('be.visible').type(email);
         cy.get('#input_name').should('be.visible').type(username);
         cy.get('#input_password-input').should('be.visible').type(password);
-        cy.findByText('Create Account').click();
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+        cy.findByText('Create account').click();
 
         cy.findByText('You’re almost done!').should('be.visible');
 

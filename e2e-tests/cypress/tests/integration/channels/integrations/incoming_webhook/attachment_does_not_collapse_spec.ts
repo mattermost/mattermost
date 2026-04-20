@@ -10,8 +10,8 @@
 // Group: @channels @incoming_webhook
 
 describe('Integrations/Incoming Webhook', () => {
-    let incomingWebhook;
-    let testChannel;
+    let incomingWebhook: {data: unknown; url: string}; // apiCreateWebhook returns untyped body
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // # Create and visit new channel and create incoming webhook

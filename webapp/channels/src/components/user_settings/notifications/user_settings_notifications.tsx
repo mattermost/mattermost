@@ -12,7 +12,6 @@ import {components} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
 
 import ExternalLink from 'components/external_link';
@@ -33,7 +32,7 @@ import SendTestNotificationNotice from './send_test_notification_notice';
 import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
-import type {PropsFromRedux} from './index';
+import type {OwnProps, PropsFromRedux} from './index';
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -41,16 +40,6 @@ const COMMA_REGEX = /,/g;
 type MultiInputValue = {
     label: string;
     value: string;
-}
-
-export type OwnProps = {
-    user: UserProfile;
-    updateSection: (section: string) => void;
-    activeSection: string;
-    closeModal: () => void;
-    collapseModal: () => void;
-    adminMode?: boolean;
-    userPreferences?: PreferencesType;
 }
 
 export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;

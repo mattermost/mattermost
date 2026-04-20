@@ -1,12 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PanelHeader from './panel_header';
+
+jest.mock('components/with_tooltip', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => (
+        <div data-testid='with-tooltip'>{children}</div>
+    ),
+}));
 
 describe('components/drafts/panel/panel_header', () => {
     const baseProps: React.ComponentProps<typeof PanelHeader> = {
@@ -19,15 +25,15 @@ describe('components/drafts/panel/panel_header', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PanelHeader
                 {...baseProps}
             />,
         );
 
-        expect(wrapper.find('div.PanelHeader__actions').hasClass('PanelHeader__actions show')).toBe(false);
-        expect(wrapper.find(WithTooltip).exists()).toBe(false);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.queryByTestId('with-tooltip')).not.toBeInTheDocument();
+        expect(screen.getByText('actions').closest('.PanelHeader__actions')).not.toHaveClass('show');
+        expect(container).toMatchSnapshot();
     });
 
     it('should show sync icon when draft is from server', () => {
@@ -36,13 +42,13 @@ describe('components/drafts/panel/panel_header', () => {
             remote: true,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PanelHeader
                 {...props}
             />,
         );
 
-        expect(wrapper.find(WithTooltip).exists()).toBe(true);
-        expect(wrapper).toMatchSnapshot();
+        expect(screen.getByTestId('with-tooltip')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });

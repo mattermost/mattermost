@@ -15,6 +15,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
@@ -30,6 +31,7 @@ import type {StaticPage} from 'types/store/lhs';
 
 const DraftsLink = makeAsyncComponent('DraftsLink', lazy(() => import('components/drafts/drafts_link/drafts_link')));
 const GlobalThreadsLink = makeAsyncComponent('GlobalThreadsLink', lazy(() => import('components/threading/global_threads_link')));
+const RecapsLink = makeAsyncComponent('RecapsLink', lazy(() => import('components/recaps_link')));
 const UnreadChannelIndicator = makeAsyncComponent('UnreadChannelIndicator', lazy(() => import('../unread_channel_indicator')));
 const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('../unread_channels')));
 
@@ -440,11 +442,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const renderedCategories = categories.map(this.renderCategory);
+            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+
+            const renderedManagedCategories = managedCategories.map(this.renderCategory);
+            const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
                     {unreadsCategory}
+                    {renderedManagedCategories}
                     <DragDropContext
                         onDragEnd={this.onDragEnd}
                         onBeforeDragStart={this.onBeforeDragStart}
@@ -462,7 +469,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {renderedCategories}
+                                        {renderedNonManagedCategories}
                                         {provided.placeholder}
                                     </div>
                                 );
@@ -495,6 +502,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
             <>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
+                <RecapsLink/>
                 <div
                     id='sidebar-left'
                     role='application'

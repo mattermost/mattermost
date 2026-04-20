@@ -6,12 +6,13 @@ import {useIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
-import type {Post, PostPriorityMetadata} from '@mattermost/types/posts';
+import type {Post, PostPriorityMetadata, PostTranslation} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {UserProfile} from '@mattermost/types/users';
@@ -42,7 +43,6 @@ import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
-import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -84,6 +84,11 @@ export function isEdited(post: Post): boolean {
 
 export function getImageSrc(src: string, hasImageProxy = false): string {
     if (!src) {
+        return src;
+    }
+
+    // Don't proxy base64-encoded images
+    if (src.startsWith('data:image/')) {
         return src;
     }
 
@@ -154,6 +159,11 @@ export function shouldShowActionsMenu(state: GlobalState, post: Post): boolean {
     }
 
     if (isSystemMessage(post)) {
+        return false;
+    }
+
+    // Hide plugin/app actions for burn-on-read posts
+    if (post.type === Constants.PostTypes.BURN_ON_READ) {
         return false;
     }
 
@@ -324,10 +334,7 @@ export function postMessageOnKeyPress(
         return {allowSending: false, ignoreKeyPress: true};
     }
 
-    if (
-        message.trim() === '' ||
-        !(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)
-    ) {
+    if (!(sendMessageOnCtrlEnter || sendCodeBlockOnCtrlEnter)) {
         return {allowSending: true};
     }
 
@@ -336,6 +343,9 @@ export function postMessageOnKeyPress(
     if (sendMessageOnCtrlEnter) {
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, true, caretPosition);
     } else if (sendCodeBlockOnCtrlEnter) {
+        if (message.trim() === '') {
+            return {allowSending: true};
+        }
         return sendOnCtrlEnter(message, ctrlOrMetaKeyPressed, false, caretPosition);
     }
 
@@ -457,7 +467,7 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
     );
 }
 
-export function usePostAriaLabel(post: Post | undefined) {
+export function usePostAriaLabel(post: Post | undefined, autotranslated: boolean) {
     const intl = useIntl();
 
     const getDisplayName = useMemo(makeGetDisplayName, []);
@@ -487,17 +497,26 @@ export function usePostAriaLabel(post: Post | undefined) {
             emojiMap,
             mentions,
             teammateNameDisplaySetting,
+            autotranslated,
         );
     });
 }
 
-export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction> | undefined, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string): string {
+export function createAriaLabelForPost(post: Post, author: string, isFlagged: boolean, reactions: Record<string, Reaction> | undefined, intl: IntlShape, emojiMap: EmojiMap, mentions: Record<string, UserProfile>, teammateNameDisplaySetting: string, autotranslated: boolean): string {
     const {formatMessage, formatTime, formatDate} = intl;
 
-    let message = post.state === Posts.POST_DELETED ? formatMessage({
-        id: 'post_body.deleted',
-        defaultMessage: '(message deleted)',
-    }) : post.message || '';
+    const translation = getPostTranslation(post, intl.locale);
+    const isTranslated = autotranslated && post.type === '' && translation?.state === 'ready';
+    let message = post.message || '';
+
+    if (post.state === Posts.POST_DELETED) {
+        message = formatMessage({
+            id: 'post_body.deleted',
+            defaultMessage: '(message deleted)',
+        });
+    } else if (isTranslated) {
+        message = getPostTranslatedMessage(message, translation);
+    }
     let match;
 
     // Match all the shorthand forms of emojis first
@@ -615,6 +634,25 @@ export function createAriaLabelForPost(post: Post, author: string, isFlagged: bo
         });
     }
 
+    if (isTranslated) {
+        const originalLanguage = translation?.source_lang || 'unknown';
+        const originalLanguageName = originalLanguage === 'unknown' ? intl.formatMessage({
+            id: 'show_translation.unknown_language',
+            defaultMessage: 'Unknown',
+        }) : intl.formatDisplayName(originalLanguage, {type: 'language'});
+
+        const targetLanguageName = intl.formatDisplayName(intl.locale, {type: 'language'});
+
+        ariaLabel += formatMessage({
+            id: 'post.ariaLabel.translated',
+            defaultMessage: ', translated from {sourceLanguage} to {targetLanguage}',
+        },
+        {
+            sourceLanguage: originalLanguageName,
+            targetLanguage: targetLanguageName,
+        });
+    }
+
     return ariaLabel;
 }
 
@@ -641,12 +679,14 @@ export function areConsecutivePostsBySameUser(post: Post, previousPost: Post): b
     const notFromWebhook = !(post.props && post.props.from_webhook) && !(previousPost.props && previousPost.props.from_webhook);
     const notSystemMessage = !isSystemMessage(post) && !isSystemMessage(previousPost);
     const sameAiGeneratedStatus = post.props?.ai_generated_by === previousPost.props?.ai_generated_by;
+    const notBoRMessage = post.type !== Constants.PostTypes.BURN_ON_READ && previousPost.type !== Constants.PostTypes.BURN_ON_READ; // And neither is a burn-on-read post
 
     return sameUser &&
         withinTimeWindow &&
         notFromWebhook &&
         notSystemMessage &&
-        sameAiGeneratedStatus;
+        sameAiGeneratedStatus &&
+        notBoRMessage;
 }
 
 // Checks if a post has valid AI-generated metadata
@@ -869,4 +909,13 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.priority === PostPriority.URGENT &&
         priority?.persistent_notifications
     );
+}
+
+export function getPostTranslation(post: Post, locale: string): PostTranslation | undefined {
+    const normalizedLocale = locale.split('-')[0];
+    return post.metadata?.translations?.[normalizedLocale];
+}
+
+export function getPostTranslatedMessage(originalMessage: string, translation: PostTranslation): string {
+    return translation.object?.message || originalMessage;
 }

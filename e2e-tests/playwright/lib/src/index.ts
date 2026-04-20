@@ -6,12 +6,14 @@ export {testConfig} from './test_config';
 export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
-export {duration, wait} from './util';
+export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
+export {duration, getRandomId, wait, newTestPassword} from './util';
 
 export {
     ChannelsPage,
     LandingLoginPage,
     LoginPage,
+    RecapsPage,
     ResetPasswordPage,
     SignupPage,
     ScheduledPostsPage,
@@ -51,14 +53,7 @@ export {
     ScheduledDraftModal,
     ScheduledPost,
     SendMessageNowModal,
-    SystemConsoleSidebar,
-    SystemConsoleNavbar,
-    SystemUsers,
-    SystemUsersFilterPopover,
-    SystemUsersFilterMenu,
-    SystemUsersColumnToggleMenu,
     SystemConsoleFeatureDiscovery,
-    SystemConsoleMobileSecurity,
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
@@ -68,3 +63,35 @@ export {
 } from './ui/components';
 
 export {TestArgs, ScreenshotOptions} from './types';
+
+export {
+    enableAutotranslationConfig,
+    disableAutotranslationConfig,
+    enableChannelAutotranslation,
+    disableChannelAutotranslation,
+    setUserChannelAutotranslation,
+    setMockSourceLanguage,
+} from './autotranslation_helpers';
+export type {EnableAutotranslationOptions} from './autotranslation_helpers';
+export {
+    hasAutotranslationLicense,
+    hasSharedChannelsLicense,
+    hasCustomPermissionsSchemesLicense,
+} from './license_helpers';
+// ABAC (Attribute-Based Access Control) helpers
+export {
+    createUserWithAttributes,
+    enableABAC,
+    disableABAC,
+    navigateToABACPage,
+    navigateToPermissionPoliciesPage,
+    navigateToAttributeBasedAccessPage,
+    createBasicPolicy,
+    createAdvancedPolicy,
+    editPolicy,
+    deletePolicy,
+    runSyncJob,
+    verifyUserInChannel,
+    verifyUserNotInChannel,
+    updateUserAttributes,
+} from './server';

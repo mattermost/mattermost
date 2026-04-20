@@ -143,6 +143,11 @@ export const useUserPropertyFields = () => {
             const currentByName = byNamesLower(current.data);
 
             const warnings = Object.values(pending.data).reduce<NonNullable<UserPropertyFields['warnings']>>((acc, field) => {
+                // Skip validation for protected fields - they can't be edited
+                if (field.attrs?.protected) {
+                    return acc;
+                }
+
                 if (!field.name) {
                     // name not provided
                     acc[field.id] = {name: ValidationWarningNameRequired};
@@ -180,6 +185,20 @@ export const useUserPropertyFields = () => {
             }
 
             return next;
+        },
+        isEqual: (a, b) => {
+            if (a.order.length !== b.order.length) {
+                return false;
+            }
+            if (!a.order.every((id, i) => id === b.order[i])) {
+                return false;
+            }
+            const aKeys = Object.keys(a.data);
+            const bKeys = Object.keys(b.data);
+            if (aKeys.length !== bKeys.length) {
+                return false;
+            }
+            return aKeys.every((key) => a.data[key] === b.data[key]);
         },
 
     }), []));
@@ -298,6 +317,11 @@ export const newPendingField = (patch: UserPropertyFieldPatch & Pick<UserPropert
         create_at: 0,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             visibility: 'when_set' satisfies FieldVisibility,
             sort_order: 0,

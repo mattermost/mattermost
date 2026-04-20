@@ -7,15 +7,14 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel
 
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('Archived channels', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup().then(({team, user}) => {
@@ -100,10 +99,10 @@ describe('Archived channels', () => {
     });
 });
 
-function verifyViewingArchivedChannel(channel) {
+function verifyViewingArchivedChannel(channel: Cypress.Channel) {
     // * Verify that we've switched to the correct channel and that the header contains the archived icon
     cy.get('#channelHeaderTitle').should('contain', channel.display_name);
-    cy.get('#channelHeaderInfo .icon__archive').should('be.visible');
+    cy.findByTestId('channel-header-archive-icon').should('be.visible');
 
     // * Verify that the channel is visible in the sidebar with the archived icon
     cy.get(`#sidebarItem_${channel.name}`).should('be.visible').
@@ -113,7 +112,7 @@ function verifyViewingArchivedChannel(channel) {
     cy.get('#channelArchivedMessage').should('be.visible');
 }
 
-function verifyUsername(username) {
+function verifyUsername(username: string) {
     // * Verify that we've logged in as the test user
     cy.uiOpenUserMenu().findByText(`@${username}`);
 

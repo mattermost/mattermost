@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Move thread', () => {
     let user1;
@@ -63,6 +63,15 @@ describe('Move thread', () => {
 
             // # Got to Private channel
             cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
+        });
+    });
+
+    afterEach(() => {
+        // # Close any open modals to prevent test pollution
+        cy.get('body').then(($body) => {
+            if ($body.find('.modal.in').length > 0) {
+                cy.get('body').type('{esc}');
+            }
         });
     });
 

@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     attachFile,
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Upload Files - Image', () => {
     before(() => {
@@ -87,18 +88,6 @@ describe('Upload Files - Image', () => {
             originalWidth: 400,
             originalHeight: 479,
             mimeType: 'image/tiff',
-        };
-
-        testImage(properties);
-    });
-
-    it('MM-T2264_6 - PSD', () => {
-        const properties = {
-            filePath: 'mm_file_testing/Images/PSD.psd',
-            fileName: 'PSD.psd',
-            originalWidth: 400,
-            originalHeight: 479,
-            mimeType: 'application/psd',
         };
 
         testImage(properties);

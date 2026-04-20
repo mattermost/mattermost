@@ -5,26 +5,48 @@ import {Client4} from '@mattermost/client';
 import {UserProfile, UserTimezone} from '@mattermost/types/users';
 import {DateTime} from 'luxon';
 
-import {getRandomId} from '@/util';
+import {getRandomId, newTestPassword} from '@/util';
 import {testConfig} from '@/test_config';
 import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY} from '@/constant';
 
-export async function createNewUserProfile(client: Client4, prefix = 'user') {
-    const randomUser = await createRandomUser(prefix);
+export async function createNewUserProfile(
+    client: Client4,
+    options: {prefix?: string; disableTutorial?: boolean; disableOnboarding?: boolean} = {
+        prefix: 'user',
+        disableTutorial: true,
+        disableOnboarding: true,
+    },
+) {
+    const randomUser = await createRandomUser(options.prefix);
 
     const newUser = await client.createUser(randomUser, '', '');
+    // Set password to the created user profile so it can be used to login later
     newUser.password = randomUser.password;
+
+    if (options.disableTutorial) {
+        await client.savePreferences(newUser.id, [
+            {user_id: newUser.id, category: 'tutorial_step', name: newUser.id, value: '999'},
+            {user_id: newUser.id, category: 'crt_thread_pane_step', name: newUser.id, value: '999'},
+        ]);
+    }
+
+    if (options.disableOnboarding) {
+        await client.savePreferences(newUser.id, [
+            {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_show', value: 'false'},
+            {user_id: newUser.id, category: 'onboarding_task_list', name: 'onboarding_task_list_open', value: 'false'},
+        ]);
+    }
 
     return newUser;
 }
 
 export async function createRandomUser(prefix = 'user') {
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
 
     const user = {
         email: `${prefix}${randomId}@sample.mattermost.com`,
         username: `${prefix}${randomId}`,
-        password: 'passwd',
+        password: newTestPassword(),
         first_name: `First${randomId}`,
         last_name: `Last${randomId}`,
         nickname: `Nickname${randomId}`,

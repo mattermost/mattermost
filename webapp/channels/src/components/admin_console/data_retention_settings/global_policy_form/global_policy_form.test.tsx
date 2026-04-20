@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import GlobalPolicyForm from 'components/admin_console/data_retention_settings/global_policy_form/global_policy_form';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 describe('components/PluginManagement', () => {
     const defaultProps = {
@@ -28,7 +29,10 @@ describe('components/PluginManagement', () => {
 
     test('should match snapshot', () => {
         const props = {...defaultProps};
-        const wrapper = shallow(<GlobalPolicyForm {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<GlobalPolicyForm {...props}/>);
+
+        expect(screen.getByText('Global Retention Policy')).toBeInTheDocument();
+        expect(screen.getByText('Applies to all teams and channels, but does not apply to custom retention policies.')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 });

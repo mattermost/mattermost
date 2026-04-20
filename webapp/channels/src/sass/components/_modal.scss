@@ -4,14 +4,6 @@
 
 @use 'sass:color';
 
-.browser--ie {
-    .modal {
-        .modal-dialog {
-            transform: translateY(0);
-        }
-    }
-}
-
 .modal-backdrop {
     &.in {
         opacity: 0.64;
@@ -21,7 +13,7 @@
 .modal-body {
     overflow: auto;
     max-height: calc(90vh - 80px);
-    padding: 2px 32px;
+    padding: 4px 32px;
 
     &.overflow--visible {
         overflow: visible;
@@ -325,7 +317,7 @@
                 background: transparent;
                 color: functions.v(center-channel-color);
                 font-size: 22px;
-                line-height: 28px;
+                line-height: 44px;
             }
         }
 
@@ -335,7 +327,7 @@
             color: functions.v(center-channel-color);
             font-size: 22px;
             font-weight: 600;
-            line-height: 28px;
+            line-height: 44px;
             word-break: break-word;
         }
     }
@@ -754,10 +746,6 @@
     display: flex;
     flex-direction: column;
 
-    .browser--ie & {
-        flex: 20;
-    }
-
     >div:not([data-simplebar]) {
         overflow: auto;
         min-height: 100%;
@@ -1065,8 +1053,8 @@
         .no-channel-message {
             width: 100%;
             margin-top: 40px;
-            color: variables.$gray;
-            font-size: 1.25em;
+            color: (--center-channel-color, 0.72);
+            font-size: 1em;
             text-align: center;
         }
     }

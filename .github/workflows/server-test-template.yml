@@ -17,6 +17,10 @@ on:
       fullyparallel:
         required: false
         type: boolean
+        default: true
+      allow-failure:
+        required: false
+        type: boolean
         default: false
       enablecoverage:
         required: false
@@ -29,6 +33,23 @@ on:
         required: false
         default: false
         type: boolean
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
+      # -- Test sharding inputs (leave defaults for non-sharded callers) --
+      shard-index:
+        required: false
+        type: number
+        default: -1 # -1 = no sharding; run all tests
+      shard-total:
+        required: false
+        type: number
+        default: 1
 
 permissions:
   id-token: write
@@ -38,20 +59,35 @@ jobs:
   test:
     name: ${{ inputs.name }}
     runs-on: ubuntu-latest-8-cores
-    continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
+    continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
       - name: buildenv/docker-login
         # Only FIPS requires login for private build container. (Forks won't have credentials.)
         if: inputs.fips-enabled
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Restore test timing data
+        if: inputs.shard-total > 1
+        id: timing-cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: |
+            server/prev-report.xml
+            server/prev-gotestsum.json
+          # Always restore from master — timing is only saved on the default
+          # branch and is stable enough for shard balancing.
+          key: server-test-timing-master
+          restore-keys: |
+            server-test-timing-
+
       - name: Setup BUILD_IMAGE
         id: build
         run: |
@@ -59,7 +95,7 @@ jobs:
             echo "BUILD_IMAGE=mattermost/mattermost-build-server-fips:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}-fips" >> "${GITHUB_OUTPUT}"
           else
-            echo "BUILD_IMAGE=mattermostdevelopment/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
+            echo "BUILD_IMAGE=mattermost/mattermost-build-server:${{ inputs.go-version }}" >> "${GITHUB_OUTPUT}"
             echo "LOG_ARTIFACT_NAME=${{ inputs.logsartifact }}" >> "${GITHUB_OUTPUT}"
           fi
 
@@ -69,6 +105,9 @@ jobs:
           echo "${{ github.event.pull_request.number }}" > server/pr-number
 
       - name: Run docker compose
+        env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
@@ -78,13 +117,81 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
 
+      # ── Test-level sharding ────────────────────────────────────────────
+      # When shard-total > 1, we split tests across N parallel runners.
+      #
+      # Two-tier splitting strategy:
+      #   - "Light" packages (< 5 min): assigned whole to a shard
+      #   - "Heavy" packages (≥ 5 min, e.g. api4, app): individual tests
+      #     are distributed across shards using -run regex filters
+      #
+      # See server/scripts/shard-split.js for the full algorithm.
+      # ─────────────────────────────────────────────────────────────────────
+
+      - name: Setup Go for test discovery
+        if: inputs.shard-total > 1
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Split tests across shards
+        if: inputs.shard-total > 1
+        id: test_split
+        working-directory: server
+        env:
+          SHARD_INDEX: ${{ inputs.shard-index }}
+          SHARD_TOTAL: ${{ inputs.shard-total }}
+        run: |
+          set -euo pipefail
+
+          # ── List all test packages ──
+          echo "::group::Listing test packages"
+          TE_PKGS=$(find ./public/ ./ -name '*_test.go' -not -path './enterprise/*' -not -path './cmd/mmctl/*' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|' \
+            | sed 's|github.com/mattermost/mattermost/server/v8/public/|github.com/mattermost/mattermost/server/public/|')
+          EE_PKGS=$(find ./enterprise/ -name '*_test.go' 2>/dev/null \
+            | sed 's|/[^/]*$||' | sort -u \
+            | sed 's|^\./|github.com/mattermost/mattermost/server/v8/|')
+          ALL_PKGS=$(printf '%s\n%s' "$TE_PKGS" "$EE_PKGS" | grep -v '^$' | sort -u)
+          TOTAL_PKGS=$(echo "$ALL_PKGS" | wc -l)
+          echo "Found $TOTAL_PKGS test packages"
+          echo "::endgroup::"
+
+          if [[ "$TOTAL_PKGS" -eq 0 ]]; then
+            echo "WARNING: No test packages found"
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$ALL_PKGS" > all-packages.txt
+
+          # ── Run shard solver ──
+          node scripts/shard-split.js
+
+          echo "has_packages=true" >> "$GITHUB_OUTPUT"
+
       - name: Run Tests
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
             export RACE_MODE="-race"
           fi
+
+          TEST_TARGET="${{ inputs.test-target }}${RACE_MODE}"
+          BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${TEST_TARGET}"
+
+          # When sharding is active, use the multi-run wrapper script.
+          # run-shard-tests.sh detects heavy runs itself and falls back to
+          # light-only mode when shard-heavy-runs.txt is absent or empty.
+          if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
+            cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
+            chmod +x server/run-shard-tests.sh
+            DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
+          fi
+
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
@@ -94,17 +201,21 @@ jobs:
             --env ENABLE_FULLY_PARALLEL_TESTS="${{ inputs.fullyparallel }}" \
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env RACE_MODE \
+            --env TEST_TARGET \
+            --env BUILD_NUMBER \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
-            make test-server$RACE_MODE BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
+            $DOCKER_CMD
       - name: Upload coverage to Codecov
         if: ${{ inputs.enablecoverage }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+          flags: server
 
       - name: Stop docker compose
         run: |
@@ -113,7 +224,7 @@ jobs:
 
       - name: Archive logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: ${{ steps.build.outputs.LOG_ARTIFACT_NAME }}
           path: |
@@ -122,3 +233,4 @@ jobs:
             server/cover.out
             server/test-name
             server/pr-number
+

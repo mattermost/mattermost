@@ -23,4 +23,10 @@ export default class LinkOnlyRenderer extends RemoveMarkdown {
 
         return output;
     }
+
+    // Override text() to NOT decode HTML entities since this renderer outputs HTML.
+    // Decoding entities in an HTML context could allow HTML injection attacks.
+    public text(text: string) {
+        return text.replace('\n', ' ');
+    }
 }

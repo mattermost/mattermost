@@ -252,7 +252,8 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
-	respBytes, err := io.ReadAll(resp.Body)
+	limitedReader := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
+	respBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -280,7 +281,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
 			return "", appErr
 		}
 	}
@@ -330,16 +331,7 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	// Allow access to plugin routes for action buttons
-	var httpClient *http.Client
-	subpath, _ := utils.GetSubpathFromConfig(a.Config())
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
-	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(inURL.Path, path.Join(subpath, "plugins")) {
-		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
-		httpClient = a.HTTPService().MakeClient(true)
-	} else {
-		httpClient = a.HTTPService().MakeClient(false)
-	}
+	httpClient := a.getPostActionClient(rctx, inURL, req)
 
 	resp, httpErr := httpClient.Do(req)
 	if httpErr != nil {
@@ -351,6 +343,20 @@ func (a *App) DoActionRequest(rctx request.CTX, rawURL string, body []byte) (*ht
 	}
 
 	return resp, nil
+}
+
+func (a *App) getPostActionClient(rctx request.CTX, inURL *url.URL, req *http.Request) *http.Client {
+	// Allow access to plugin routes for action buttons
+	var httpClient *http.Client
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if inURL.Hostname() == siteURL.Hostname() && strings.HasPrefix(path.Clean(inURL.Path), path.Join(subpath, "plugins")) {
+		req.Header.Set(model.HeaderAuth, "Bearer "+rctx.Session().Token)
+		httpClient = a.HTTPService().MakeClient(true)
+	} else {
+		httpClient = a.HTTPService().MakeClient(false)
+	}
+	return httpClient
 }
 
 type LocalResponseWriter struct {
@@ -386,13 +392,15 @@ func (ch *Channels) doPluginRequest(rctx request.CTX, method, rawURL string, val
 	if err != nil {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	result := strings.Split(inURL.Path, "/")
+	result := strings.Split(path.Clean(inURL.Path), "/")
 	if len(result) < 2 {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=Unable to find pluginId", http.StatusBadRequest)
 	}
+
 	if result[0] != "plugins" {
 		return nil, model.NewAppError("doPluginRequest", "api.post.do_action.action_integration.app_error", nil, "err=plugins not in path", http.StatusBadRequest)
 	}
+
 	pluginID := result[1]
 
 	path := strings.TrimPrefix(inURL.Path, "plugins/"+pluginID)
@@ -470,11 +478,11 @@ func (a *App) OpenInteractiveDialog(rctx request.CTX, request model.OpenDialogRe
 		return appErr
 	}
 
+	request.TriggerId = clientTriggerId
+
 	if dialogErr := request.IsValid(); dialogErr != nil {
 		rctx.Logger().Warn("Interactive dialog is invalid", mlog.Err(dialogErr))
 	}
-
-	request.TriggerId = clientTriggerId
 
 	jsonRequest, err := json.Marshal(request)
 	if err != nil {

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @auto_response @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Auto Response In DMs', () => {
     const AUTO_RESPONSE_MESSAGE = 'Out of Office';

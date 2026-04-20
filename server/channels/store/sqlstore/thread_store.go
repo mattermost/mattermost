@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"strconv"
 	"time"
 
 	sq "github.com/mattermost/squirrel"
@@ -626,14 +625,8 @@ func (s *SqlThreadStore) MarkAllAsReadByChannels(userID string, channelIDs []str
 
 	now := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.Set("LastViewed", now).
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
+		Set("LastViewed", now).
 		Set("UnreadMentions", 0).
 		Set("LastUpdated", now).
 		Where(sq.Eq{"ThreadMemberships.UserId": userID}).
@@ -672,14 +665,7 @@ func (s *SqlThreadStore) MarkAllAsRead(userId string, threadIds []string) error 
 func (s *SqlThreadStore) MarkAllAsReadByTeam(userId, teamId string) error {
 	timestamp := model.GetMillis()
 
-	var query sq.UpdateBuilder
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = s.getQueryBuilder().Update("ThreadMemberships").From("Threads")
-	} else {
-		query = s.getQueryBuilder().Update("ThreadMemberships", "Threads")
-	}
-
-	query = query.
+	query := s.getQueryBuilder().Update("ThreadMemberships").From("Threads").
 		Where("Threads.PostId = ThreadMemberships.PostId").
 		Where(sq.Eq{"ThreadMemberships.UserId": userId}).
 		Where(sq.Or{sq.Eq{"Threads.ThreadTeamId": teamId}, sq.Eq{"Threads.ThreadTeamId": ""}}).
@@ -1072,6 +1058,14 @@ func (s *SqlThreadStore) GetThreadUnreadReplyCount(threadMembership *model.Threa
 	return unreadReplies, nil
 }
 
+func threadMembershipSliceColumns() []string {
+	return []string{"PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions"}
+}
+
+func threadMembershipToSlice(m *model.ThreadMembership) []any {
+	return []any{m.PostId, m.UserId, m.Following, m.LastViewed, m.LastUpdated, m.UnreadMentions}
+}
+
 // SaveMultipleMemberships saves multiple NEW thread memberships in a single query and meant to be used only in the import
 // process. Unlike MaintainMembership, this method does not update the thread participants (which is handled separately
 // in the post creation).
@@ -1080,16 +1074,11 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 		return memberships, nil
 	}
 
-	query := s.getQueryBuilder().
-		Insert("ThreadMemberships").
-		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions")
-
 	for _, member := range memberships {
 		if err := member.IsValid(); err != nil {
 			return memberships, err
 		}
 		member.LastUpdated = model.GetMillis()
-		query = query.Values(member.PostId, member.UserId, member.Following, member.LastViewed, member.LastUpdated, member.UnreadMentions)
 	}
 
 	tx, err := s.GetMaster().Beginx()
@@ -1098,10 +1087,20 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	_, err = tx.ExecBuilder(query)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to save thread memberships")
+	chunks := chunkSlice(memberships, len(threadMembershipSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().
+			Insert("ThreadMemberships").
+			Columns(threadMembershipSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(threadMembershipToSlice(member)...)
+		}
+		_, err = tx.ExecBuilder(query)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to save thread memberships")
+		}
 	}
+
 	err = tx.Commit()
 	if err != nil {
 		return nil, errors.Wrap(err, "commit_transaction")
@@ -1111,30 +1110,19 @@ func (s *SqlThreadStore) SaveMultipleMemberships(memberships []*model.ThreadMemb
 }
 
 func (s *SqlThreadStore) updateThreadParticipantsForUserTx(trx *sqlxTxWrapper, postID, userID string) error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		userIdParam, err := jsonArray([]string{userID}).Value()
-		if err != nil {
-			return err
-		}
-		if s.IsBinaryParamEnabled() {
-			userIdParam = AppendBinaryFlag(userIdParam.([]byte))
-		}
+	userIdParam, err := jsonArray([]string{userID}).Value()
+	if err != nil {
+		return err
+	}
+	if s.IsBinaryParamEnabled() {
+		userIdParam = AppendBinaryFlag(userIdParam.([]byte))
+	}
 
-		if _, err := trx.ExecRaw(`UPDATE Threads
-					SET participants = participants || $1::jsonb
-					WHERE postid=$2
-					AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
-			return err
-		}
-	} else {
-		// CONCAT('$[', JSON_LENGTH(Participants), ']') just generates $[n]
-		// which is the positional syntax required for appending.
-		if _, err := trx.Exec(`UPDATE Threads
-			SET Participants = JSON_ARRAY_INSERT(Participants, CONCAT('$[', JSON_LENGTH(Participants), ']'), ?)
-			WHERE PostId=?
-			AND NOT JSON_CONTAINS(Participants, ?)`, userID, postID, strconv.Quote(userID)); err != nil {
-			return err
-		}
+	if _, err := trx.ExecRaw(`UPDATE Threads
+				SET participants = participants || $1::jsonb
+				WHERE postid=$2
+				AND NOT participants ? $3`, userIdParam, postID, userID); err != nil {
+		return err
 	}
 
 	return nil

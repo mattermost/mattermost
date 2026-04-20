@@ -14,11 +14,13 @@ function mapStateToProps(state: GlobalState) {
     const pluggableId = getPluggableId(state);
     const pluginComponent = rhsPlugins.find((element) => element.id === pluggableId);
     const pluginTitle = pluginComponent ? pluginComponent.title : '';
+    const pluginId = pluginComponent ? pluginComponent.pluginId : undefined;
 
     return {
         showPluggable: Boolean(pluginComponent),
         pluggableId,
         title: pluginTitle,
+        pluginId,
     };
 }
 

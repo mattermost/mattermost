@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -22,6 +23,7 @@ const (
 	GuestRolesCreationMigrationKey                 = "GuestRolesCreationMigrationComplete"
 	SystemConsoleRolesCreationMigrationKey         = "SystemConsoleRolesCreationMigrationComplete"
 	CustomGroupAdminRoleCreationMigrationKey       = "CustomGroupAdminRoleCreationMigrationComplete"
+	SharedChannelManagerRoleCreationMigrationKey   = "SystemSharedChannelManagerRoleCreationMigrationComplete"
 	ContentExtractionConfigDefaultTrueMigrationKey = "ContentExtractionConfigDefaultTrueMigrationComplete"
 	PlaybookRolesCreationMigrationKey              = "PlaybookRolesCreationMigrationComplete"
 	FirstAdminSetupCompleteKey                     = model.SystemFirstAdminSetupComplete
@@ -29,6 +31,7 @@ const (
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
+	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -105,7 +108,7 @@ func (s *Server) doAdvancedPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark advanced permissions migration as completed: %w", err)
 	}
 
@@ -176,7 +179,7 @@ func (s *Server) doEmojisPermissionsMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark emojis permissions migration as completed: %w", err)
 	}
 
@@ -269,7 +272,7 @@ func (s *Server) doGuestRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark guest roles creation migration as completed: %w", err)
 	}
 
@@ -316,39 +319,55 @@ func (s *Server) doSystemConsoleRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark system console roles creation migration as completed: %w", err)
 	}
 
 	return nil
 }
 
-func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+func (s *Server) doSingleRoleCreationMigration(migrationKey, roleId string) error {
 	// If the migration is already marked as completed, don't do it again.
 	var nfErr *store.ErrNotFound
-	if _, err := s.Store().System().GetByName(CustomGroupAdminRoleCreationMigrationKey); err == nil {
+	if _, err := s.Store().System().GetByName(migrationKey); err == nil {
 		return nil
 	} else if !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query migration: %w", err)
 	}
 
 	roles := model.MakeDefaultRoles()
-	if _, err := s.Store().Role().GetByName(context.Background(), model.SystemCustomGroupAdminRoleId); err != nil {
-		if _, err := s.Store().Role().Save(roles[model.SystemCustomGroupAdminRoleId]); err != nil {
-			return fmt.Errorf("failed to create new role %s: %w", model.SystemCustomGroupAdminRoleId, err)
+	role := roles[roleId]
+	if role == nil {
+		return fmt.Errorf("unknown role id: %q", roleId)
+	}
+	var nfRoleErr *store.ErrNotFound
+	if _, err := s.Store().Role().GetByName(context.Background(), roleId); err != nil {
+		if !errors.As(err, &nfRoleErr) {
+			return fmt.Errorf("could not query role %q: %w", roleId, err)
+		}
+		if _, err := s.Store().Role().Save(role); err != nil {
+			return fmt.Errorf("failed to create new role %q: %w", roleId, err)
 		}
 	}
 
 	system := model.System{
-		Name:  CustomGroupAdminRoleCreationMigrationKey,
+		Name:  migrationKey,
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
-		return fmt.Errorf("failed to mark custom group admin role creation migration as completed: %w", err)
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
+		return fmt.Errorf("failed to mark %s migration as completed: %w", migrationKey, err)
 	}
 
 	return nil
+}
+
+func (s *Server) doCustomGroupAdminRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(CustomGroupAdminRoleCreationMigrationKey, model.SystemCustomGroupAdminRoleId)
+}
+
+func (s *Server) doSharedChannelManagerRoleCreationMigration() error {
+	return s.doSingleRoleCreationMigration(SharedChannelManagerRoleCreationMigrationKey, model.SharedChannelManagerRoleId)
 }
 
 func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
@@ -369,7 +388,7 @@ func (s *Server) doContentExtractionConfigDefaultTrueMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark content extraction config migration as completed: %w", err)
 	}
 
@@ -488,7 +507,7 @@ func (s *Server) doPlaybooksRolesCreationMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark playbook roles creation migration as completed: %w", err)
 	}
 
@@ -536,7 +555,7 @@ func (s *Server) doFirstAdminSetupCompleteMigration() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark first admin setup migration as completed: %w", err)
 	}
 
@@ -568,7 +587,7 @@ func (s *Server) doRemainingSchemaMigrations() error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark the remaining schema migrations as completed: %w", err)
 	}
 
@@ -624,9 +643,9 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	// Using page size of 100 and not iterating through all pages because the
 	// number of fields are static and defined here and not expected to be more than 100 for now.
-	existingProperties, appErr := s.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-	if appErr != nil {
-		return fmt.Errorf("failed to search for existing content flagging properties: %w", appErr)
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing content flagging properties: %w", err)
 	}
 
 	existingPropertiesMap := map[string]*model.PropertyField{}
@@ -718,13 +737,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(property); err != nil {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
 			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(group.ID, propertiesToUpdate); err != nil {
+		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}
@@ -732,6 +751,68 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	if err := s.Store().System().SaveOrUpdate(&model.System{Name: contentFlaggingSetupDoneKey, Value: contentFlaggingMigrationVersion}); err != nil {
 		return fmt.Errorf("failed to save content flagging setup done flag in system store %w", err)
 	}
+
+	return nil
+}
+
+func (s *Server) doSetupManagedCategoryProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(managedCategorySetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil {
+		return s.cacheManagedCategoryIDs()
+	}
+
+	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register managed category group: %w", err)
+	}
+
+	_, err = s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		field := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.ManagedCategoryPropertyFieldName,
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyValueTargetTypeChannel,
+			TargetType:        "system",
+			TargetID:          "",
+			Protected:         true,
+			PermissionField:   model.NewPointer(model.PermissionLevelNone),
+			PermissionValues:  model.NewPointer(model.PermissionLevelMember),
+			PermissionOptions: model.NewPointer(model.PermissionLevelMember),
+		}
+
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName); retryErr != nil {
+				return fmt.Errorf("failed to create managed category field: %w", err)
+			}
+		}
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to save managed category setup done flag: %w", err)
+	}
+
+	return s.cacheManagedCategoryIDs()
+}
+
+func (s *Server) cacheManagedCategoryIDs() error {
+	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category group: %w", err)
+	}
+
+	field, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", model.ManagedCategoryPropertyFieldName)
+	if err != nil {
+		return fmt.Errorf("failed to get managed category field: %w", err)
+	}
+
+	s.Channels().managedCategoryGroupID = group.ID
+	s.Channels().managedCategoryFieldID = field.ID
 
 	return nil
 }
@@ -827,6 +908,73 @@ func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 	return nil
 }
 
+func (s *Server) doAccessControlPolicyV0_3Migration(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(model.MigrationKeyAccessControlPolicyV0_3); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	policyTypes := []string{model.AccessControlPolicyTypeParent, model.AccessControlPolicyTypeChannel}
+
+	const pageSize = 100
+	for _, policyType := range policyTypes {
+		cursor := model.AccessControlPolicyCursor{}
+		policies, err := utils.Pager(func(_ int) ([]*model.AccessControlPolicy, error) {
+			results, _, err := s.Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				Type:   policyType,
+				Cursor: cursor,
+				Limit:  pageSize,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if len(results) > 0 {
+				cursor = model.AccessControlPolicyCursor{ID: results[len(results)-1].ID}
+			}
+			return results, nil
+		}, pageSize)
+		if err != nil {
+			return fmt.Errorf("failed to search access control policies: %w", err)
+		}
+
+		for _, policy := range policies {
+			if policy.Version != model.AccessControlPolicyVersionV0_2 {
+				continue
+			}
+
+			policy.Version = model.AccessControlPolicyVersionV0_3
+			for i, rule := range policy.Rules {
+				for j, action := range rule.Actions {
+					if action == "*" {
+						policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+					}
+				}
+			}
+
+			if _, err := s.Store().AccessControlPolicy().Save(rctx, policy); err != nil {
+				return fmt.Errorf("failed to save migrated access control policy id=%s: %w", policy.ID, err)
+			}
+
+			if policy.Type == model.AccessControlPolicyTypeChannel {
+				s.Store().Channel().InvalidateChannel(policy.ID)
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  model.MigrationKeyAccessControlPolicyV0_3,
+		Value: "true",
+	}
+
+	if err := s.Store().System().Save(&system); err != nil {
+		return fmt.Errorf("failed to mark access control policy v0.3 migration as completed: %w", err)
+	}
+
+	return nil
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -842,6 +990,7 @@ func (s *Server) doAppMigrations() {
 		{"GuestRolesCreationMigration", s.doGuestRolesCreationMigration},
 		{"System Console Roles Creation Migration", s.doSystemConsoleRolesCreationMigration},
 		{"Custom Group Admin Role Creation Migration", s.doCustomGroupAdminRoleCreationMigration},
+		{"Shared Channel Manager Role Creation Migration", s.doSharedChannelManagerRoleCreationMigration},
 		// This migration always run after dependent migrations such as the guest roles migration.
 		{"Permissions Migrations", s.doPermissionsMigrations},
 		{"Content Extraction Config Default True Migration", s.doContentExtractionConfigDefaultTrueMigration},
@@ -850,6 +999,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
 	}
 
 	for i := range m1 {
@@ -871,6 +1021,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
+		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
 	}
 
 	rctx := request.EmptyContext(s.Log())

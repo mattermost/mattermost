@@ -63,10 +63,12 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsSinceUpdateForSync", func(t *testing.T) { testGetPostsSinceUpdateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceCreateForSync", func(t *testing.T) { testGetPostsSinceCreateForSync(t, rctx, ss, s) })
 	t.Run("GetPostsSinceForSyncExcludeMetadata", func(t *testing.T) { testGetPostsSinceForSyncExcludeMetadata(t, rctx, ss, s) })
+	t.Run("GetPostsSinceForSyncExcludedPostTypes", func(t *testing.T) { testGetPostsSinceForSyncExcludedPostTypes(t, rctx, ss, s) })
 	t.Run("GetPostsForReporting", func(t *testing.T) { testGetPostsForReporting(t, rctx, ss, s) })
 	t.Run("SetPostReminder", func(t *testing.T) { testSetPostReminder(t, rctx, ss, s) })
 	t.Run("GetPostReminders", func(t *testing.T) { testGetPostReminders(t, rctx, ss, s) })
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
+	t.Run("DeleteAllPostRemindersForPost", func(t *testing.T) { testDeleteAllPostRemindersForPost(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestoreContentFlaggedPost(t, rctx, ss) })
@@ -244,6 +246,19 @@ func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		assert.Greater(t, rchannel3.LastPostAt, rchannel2.LastPostAt)
 		assert.Equal(t, int64(3), rchannel3.TotalMsgCount)
+	})
+
+	t.Run("Save post with type card", func(t *testing.T) {
+		o1 := model.Post{}
+		o1.ChannelId = model.NewId()
+		o1.UserId = model.NewId()
+		o1.Message = NewTestID()
+		o1.Type = model.PostTypeCard
+
+		p, err := ss.Post().Save(rctx, &o1)
+		require.NoError(t, err, "couldn't save item")
+		assert.Equal(t, model.PostTypeCard, p.Type)
+		assert.Equal(t, o1.Message, p.Message)
 	})
 
 	t.Run("Save post with priority metadata set", func(t *testing.T) {
@@ -644,13 +659,13 @@ func testPostStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = NewTestID()
 
-	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 	o1, err = ss.Post().Save(rctx, o1)
 	require.NoError(t, err)
 
-	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false, false, false)
 	require.Equal(t, 0, strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)), "Invalid Etag")
 
 	r1, err := ss.Post().Get(rctx, o1.Id, model.GetPostsOptions{}, "", map[string]bool{})
@@ -1224,7 +1239,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Verify etag generation for the channel containing the post.
-		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag1 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag1, model.CurrentVersion+"."), "Invalid Etag")
 
 		// Verify the created post.
@@ -1250,7 +1265,7 @@ func testPostStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.IsType(t, &store.ErrNotFound{}, err)
 
 		// Verify etag generation for the channel containing the now deleted post.
-		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false)
+		etag2 := ss.Post().GetEtag(rootPost.ChannelId, false, false, false)
 		require.Equal(t, 0, strings.Index(etag2, model.CurrentVersion+"."), "Invalid Etag")
 	})
 
@@ -5727,6 +5742,66 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 	})
 }
 
+func testGetPostsSinceForSyncExcludedPostTypes(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channelID := model.NewId()
+	first := model.GetMillis()
+
+	data := []*model.Post{
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "regular post", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "card post", Type: model.PostTypeCard},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "another regular", Type: model.PostTypeDefault},
+		{Id: model.NewId(), ChannelId: channelID, UserId: model.NewId(), Message: "join post", Type: model.PostTypeJoinChannel},
+	}
+
+	for i, p := range data {
+		p.UpdateAt = first + (int64(i) * 300000)
+		p.CreateAt = first + (int64(i) * 300000)
+		p.RemoteId = model.NewPointer(model.NewId())
+		_, err := ss.Post().Save(rctx, p)
+		require.NoError(t, err, "couldn't save post")
+	}
+
+	t.Run("ExcludedPostTypes filters out specified types", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:         channelID,
+			ExcludedPostTypes: []string{model.PostTypeCard},
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 3, "should exclude the card post")
+
+		for _, post := range posts {
+			require.NotEqual(t, model.PostTypeCard, post.Type)
+		}
+	})
+
+	t.Run("ExcludedPostTypes with multiple types", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId:         channelID,
+			ExcludedPostTypes: []string{model.PostTypeCard, model.PostTypeJoinChannel},
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 2, "should exclude card and join posts")
+
+		for _, post := range posts {
+			require.Equal(t, model.PostTypeDefault, post.Type)
+		}
+	})
+
+	t.Run("empty ExcludedPostTypes returns all posts", func(t *testing.T) {
+		opt := model.GetPostsSinceForSyncOptions{
+			ChannelId: channelID,
+		}
+		cursor := model.GetPostsSinceForSyncCursor{}
+		posts, _, err := ss.Post().GetPostsSinceForSync(opt, cursor, 100)
+		require.NoError(t, err)
+		require.Len(t, posts, 4, "should return all posts when no exclusions")
+	})
+}
+
 // buildReportPostQueryParams is a test helper to build ReportPostQueryParams for store tests.
 // Store tests focus on SQL query logic, not parameter resolution/validation (which happens in API layer).
 func buildReportPostQueryParams(channelId, timeField, sortDirection string, perPage int, includeDeleted, excludeSystemPosts bool) model.ReportPostQueryParams {
@@ -5973,8 +6048,7 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		//
 		// For reporting queries, we expect the query to use index seeks, not table scans
 		//
-		// Note: The actual query plan depends on the database (PostgreSQL vs MySQL),
-		// data distribution, and statistics. This test just verifies the query executes
+		// Note: The actual query plan depends on data distribution and statistics. This test just verifies the query executes
 		// efficiently by checking that it completes in a reasonable time.
 
 		// Create a larger dataset to better test index usage
@@ -6104,5 +6178,194 @@ func testRestoreContentFlaggedPost(t *testing.T, rctx request.CTX, ss store.Stor
 		thread, err := ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.Equal(t, int64(1), thread.ReplyCount)
+	})
+}
+
+func testDeleteAllPostRemindersForPost(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("should permanently delete all reminders for a post", func(t *testing.T) {
+		userID1 := NewTestID()
+		userID2 := NewTestID()
+		userID3 := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Create multiple reminders for the same post from different users
+		reminder1 := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder1))
+
+		reminder2 := &model.PostReminder{
+			TargetTime: 2000,
+			PostId:     p1.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder2))
+
+		reminder3 := &model.PostReminder{
+			TargetTime: 3000,
+			PostId:     p1.Id,
+			UserId:     userID3,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder3))
+
+		// Verify reminders were created
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 3, count)
+
+		// Delete all reminders for the post
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify all reminders were deleted
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+	})
+
+	t.Run("should only delete reminders for the specified post", func(t *testing.T) {
+		userID1 := NewTestID()
+		userID2 := NewTestID()
+
+		// Create two posts
+		p1 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post 1",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		p2 := &model.Post{
+			UserId:    userID1,
+			ChannelId: NewTestID(),
+			Message:   "test post 2",
+			Type:      model.PostTypeDefault,
+		}
+		p2, err = ss.Post().Save(rctx, p2)
+		require.NoError(t, err)
+
+		// Create reminders for both posts
+		reminder1 := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder1))
+
+		reminder2 := &model.PostReminder{
+			TargetTime: 2000,
+			PostId:     p1.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder2))
+
+		reminder3 := &model.PostReminder{
+			TargetTime: 3000,
+			PostId:     p2.Id,
+			UserId:     userID1,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder3))
+
+		reminder4 := &model.PostReminder{
+			TargetTime: 4000,
+			PostId:     p2.Id,
+			UserId:     userID2,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder4))
+
+		// Delete all reminders for post1 only
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify post1 reminders are deleted
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+
+		// Verify post2 reminders are still present
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p2.Id)
+		require.NoError(t, err)
+		require.Equal(t, 2, count)
+	})
+
+	t.Run("should not error when deleting from post with no reminders", func(t *testing.T) {
+		userID := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Verify no reminders exist
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
+
+		// Delete should not error
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+	})
+
+	t.Run("should not error when deleting from non-existent post", func(t *testing.T) {
+		nonExistentPostId := model.NewId()
+
+		// Delete should not error even for non-existent post
+		err := ss.Post().DeleteAllPostRemindersForPost(nonExistentPostId)
+		require.NoError(t, err)
+	})
+
+	t.Run("should handle deleting single reminder for post", func(t *testing.T) {
+		userID := NewTestID()
+
+		p1 := &model.Post{
+			UserId:    userID,
+			ChannelId: NewTestID(),
+			Message:   "test post",
+			Type:      model.PostTypeDefault,
+		}
+		p1, err := ss.Post().Save(rctx, p1)
+		require.NoError(t, err)
+
+		// Create a single reminder
+		reminder := &model.PostReminder{
+			TargetTime: 1000,
+			PostId:     p1.Id,
+			UserId:     userID,
+		}
+		require.NoError(t, ss.Post().SetPostReminder(reminder))
+
+		// Verify reminder was created
+		var count int
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 1, count)
+
+		// Delete all reminders for the post
+		err = ss.Post().DeleteAllPostRemindersForPost(p1.Id)
+		require.NoError(t, err)
+
+		// Verify reminder was deleted
+		err = s.GetMaster().Get(&count, `SELECT COUNT(*) FROM PostReminders WHERE PostId=?`, p1.Id)
+		require.NoError(t, err)
+		require.Equal(t, 0, count)
 	})
 }

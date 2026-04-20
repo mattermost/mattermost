@@ -174,6 +174,11 @@ describe('findFirstAvailableAttributeFromList', () => {
         create_at: 0,
         update_at: 0,
         delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 1,
             visibility: 'when_set',
@@ -222,6 +227,17 @@ describe('findFirstAvailableAttributeFromList', () => {
 
         const result = findFirstAvailableAttributeFromList(attributes, false);
         expect(result?.name).toBe('admin_managed_attribute');
+    });
+
+    test('returns first attribute that is plugin-managed (protected)', () => {
+        const attributes = [
+            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe_attribute'), // Not synced or protected
+            createMockAttribute('protected_attribute', {protected: true, source_plugin_id: 'com.example.plugin'}), // Protected by plugin
+        ];
+
+        const result = findFirstAvailableAttributeFromList(attributes, false);
+        expect(result?.name).toBe('protected_attribute');
     });
 
     test('skips attributes with spaces even when synced', () => {

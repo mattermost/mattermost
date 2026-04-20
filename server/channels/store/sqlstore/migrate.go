@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/db"
 	"github.com/mattermost/morph"
-	"github.com/mattermost/morph/drivers"
 	ps "github.com/mattermost/morph/drivers/postgres"
 	"github.com/mattermost/morph/models"
 	mbindata "github.com/mattermost/morph/sources/embedded"
@@ -111,13 +110,7 @@ func (ss *SqlStore) initMorph(dryRun, enableLogging bool) (*morph.Morph, error) 
 		return nil, err
 	}
 
-	var driver drivers.Driver
-	switch ss.DriverName() {
-	case model.DatabaseDriverPostgres:
-		driver, err = ps.WithInstance(ss.GetMaster().DB.DB)
-	default:
-		err = fmt.Errorf("unsupported database type %s for migration", ss.DriverName())
-	}
+	driver, err := ps.WithInstance(ss.GetMaster().DB.DB)
 	if err != nil {
 		return nil, err
 	}
