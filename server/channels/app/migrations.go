@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -907,6 +908,73 @@ func (s *Server) doDeleteDmsPreferencesMigration(rctx request.CTX) error {
 	return nil
 }
 
+func (s *Server) doAccessControlPolicyV0_3Migration(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(model.MigrationKeyAccessControlPolicyV0_3); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	policyTypes := []string{model.AccessControlPolicyTypeParent, model.AccessControlPolicyTypeChannel}
+
+	const pageSize = 100
+	for _, policyType := range policyTypes {
+		cursor := model.AccessControlPolicyCursor{}
+		policies, err := utils.Pager(func(_ int) ([]*model.AccessControlPolicy, error) {
+			results, _, err := s.Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+				Type:   policyType,
+				Cursor: cursor,
+				Limit:  pageSize,
+			})
+			if err != nil {
+				return nil, err
+			}
+			if len(results) > 0 {
+				cursor = model.AccessControlPolicyCursor{ID: results[len(results)-1].ID}
+			}
+			return results, nil
+		}, pageSize)
+		if err != nil {
+			return fmt.Errorf("failed to search access control policies: %w", err)
+		}
+
+		for _, policy := range policies {
+			if policy.Version != model.AccessControlPolicyVersionV0_2 {
+				continue
+			}
+
+			policy.Version = model.AccessControlPolicyVersionV0_3
+			for i, rule := range policy.Rules {
+				for j, action := range rule.Actions {
+					if action == "*" {
+						policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+					}
+				}
+			}
+
+			if _, err := s.Store().AccessControlPolicy().Save(rctx, policy); err != nil {
+				return fmt.Errorf("failed to save migrated access control policy id=%s: %w", policy.ID, err)
+			}
+
+			if policy.Type == model.AccessControlPolicyTypeChannel {
+				s.Store().Channel().InvalidateChannel(policy.ID)
+			}
+		}
+	}
+
+	system := model.System{
+		Name:  model.MigrationKeyAccessControlPolicyV0_3,
+		Value: "true",
+	}
+
+	if err := s.Store().System().Save(&system); err != nil {
+		return fmt.Errorf("failed to mark access control policy v0.3 migration as completed: %w", err)
+	}
+
+	return nil
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -953,6 +1021,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Empty Drafts Migration", s.doDeleteEmptyDraftsMigration},
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
+		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
 	}
 
 	rctx := request.EmptyContext(s.Log())

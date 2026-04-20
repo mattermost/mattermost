@@ -11,10 +11,10 @@ import type {PlaywrightExtended} from '@mattermost/playwright-lib';
  * @objective Verify a user can create a selected-channels AI recap and receive the mocked summary without reloading the page
  */
 test('creates selected-channels recap and auto-renders mocked summary', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapHighlight = `Deterministic highlight ${await pw.random.id()}`;
-    const recapActionItem = `Deterministic action item ${await pw.random.id()}`;
-    const recapTitle = `AI recap ${await pw.random.id()}`;
-    const sourceMessage = `Please summarize this update ${await pw.random.id()}`;
+    const recapHighlight = `Deterministic highlight ${pw.random.id()}`;
+    const recapActionItem = `Deterministic action item ${pw.random.id()}`;
+    const recapTitle = `AI recap ${pw.random.id()}`;
+    const sourceMessage = `Please summarize this update ${pw.random.id()}`;
 
     // # Initialize the test server state and configure one deterministic recap agent.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -82,11 +82,11 @@ test('creates selected-channels recap and auto-renders mocked summary', {tag: '@
  * @objective Verify the all-unreads recap flow skips channel selection and only summarizes unread channels
  */
 test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Unread recap ${await pw.random.id()}`;
-    const sourceMessageOne = `Unread source one ${await pw.random.id()}`;
-    const sourceMessageTwo = `Unread source two ${await pw.random.id()}`;
-    const highlightOne = `Unread highlight one ${await pw.random.id()}`;
-    const highlightTwo = `Unread highlight two ${await pw.random.id()}`;
+    const recapTitle = `Unread recap ${pw.random.id()}`;
+    const sourceMessageOne = `Unread source one ${pw.random.id()}`;
+    const sourceMessageTwo = `Unread source two ${pw.random.id()}`;
+    const highlightOne = `Unread highlight one ${pw.random.id()}`;
+    const highlightTwo = `Unread highlight two ${pw.random.id()}`;
 
     // # Initialize the test server state, clear baseline unread state, and configure two deterministic recap completions.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -190,9 +190,9 @@ test('disables recap creation when the bridge is unavailable', {tag: '@ai_recaps
  * @objective Verify marking a recap as read moves it from the Unread tab to the Read tab
  */
 test('moves a recap from unread to read when marked read', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Read state recap ${await pw.random.id()}`;
-    const recapHighlight = `Read state highlight ${await pw.random.id()}`;
-    const sourceMessage = `Read state source ${await pw.random.id()}`;
+    const recapTitle = `Read state recap ${pw.random.id()}`;
+    const recapHighlight = `Read state highlight ${pw.random.id()}`;
+    const sourceMessage = `Read state source ${pw.random.id()}`;
 
     // # Initialize the test server state, configure the recap bridge, and seed a completed recap for the user.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -243,9 +243,9 @@ test('moves a recap from unread to read when marked read', {tag: '@ai_recaps'}, 
  * @objective Verify deleting a recap removes it from the recaps list
  */
 test('deletes a recap from the recaps page', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Delete recap ${await pw.random.id()}`;
-    const recapHighlight = `Delete recap highlight ${await pw.random.id()}`;
-    const sourceMessage = `Delete recap source ${await pw.random.id()}`;
+    const recapTitle = `Delete recap ${pw.random.id()}`;
+    const recapHighlight = `Delete recap highlight ${pw.random.id()}`;
+    const sourceMessage = `Delete recap source ${pw.random.id()}`;
 
     // # Initialize the test server state, configure the recap bridge, and seed a completed recap for the user.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -292,10 +292,10 @@ test('deletes a recap from the recaps page', {tag: '@ai_recaps'}, async ({pw}) =
  * @objective Verify regenerating a recap returns it to processing and replaces the rendered summary with the latest mocked response
  */
 test('regenerates a recap with a new mocked summary', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Regenerated recap ${await pw.random.id()}`;
-    const firstHighlight = `Original summary ${await pw.random.id()}`;
-    const secondHighlight = `Regenerated summary ${await pw.random.id()}`;
-    const sourceMessage = `Regenerate source ${await pw.random.id()}`;
+    const recapTitle = `Regenerated recap ${pw.random.id()}`;
+    const firstHighlight = `Original summary ${pw.random.id()}`;
+    const secondHighlight = `Regenerated summary ${pw.random.id()}`;
+    const sourceMessage = `Regenerate source ${pw.random.id()}`;
 
     // # Initialize the test server state, queue two recap completions, and seed the first completed recap.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -353,9 +353,9 @@ test('regenerates a recap with a new mocked summary', {tag: '@ai_recaps'}, async
  * @objective Verify a failed recap renders the failed state and can recover after regeneration
  */
 test('recovers a failed recap through regeneration', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Failed recap ${await pw.random.id()}`;
-    const recoveredHighlight = `Recovered highlight ${await pw.random.id()}`;
-    const sourceMessage = `Failed recap source ${await pw.random.id()}`;
+    const recapTitle = `Failed recap ${pw.random.id()}`;
+    const recoveredHighlight = `Recovered highlight ${pw.random.id()}`;
+    const sourceMessage = `Failed recap source ${pw.random.id()}`;
 
     // # Initialize the test server state, queue a failing completion followed by a successful completion, and seed the failed recap.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -408,9 +408,9 @@ test('recovers a failed recap through regeneration', {tag: '@ai_recaps'}, async 
  * @objective Verify recap channel card actions can mark a source channel as read and navigate back into that channel
  */
 test('executes recap channel card actions', {tag: '@ai_recaps'}, async ({pw}) => {
-    const recapTitle = `Channel actions recap ${await pw.random.id()}`;
-    const recapHighlight = `Channel action highlight ${await pw.random.id()}`;
-    const sourceMessage = `Channel action source ${await pw.random.id()}`;
+    const recapTitle = `Channel actions recap ${pw.random.id()}`;
+    const recapHighlight = `Channel action highlight ${pw.random.id()}`;
+    const sourceMessage = `Channel action source ${pw.random.id()}`;
 
     // # Initialize the test server state, configure the recap bridge, and seed a completed recap with one unread channel.
     const {adminClient, adminUser, team, user, userClient} = await pw.initSetup();
@@ -482,13 +482,13 @@ async function setupRecapBridge(
 
     const {agent, service} = await pw.createMockAIAgent(adminClient, {
         agent: {
-            id: `recap-agent-${await pw.random.id()}`,
+            id: `recap-agent-${pw.random.id()}`,
             displayName: 'Recap Summary Agent',
-            username: `recap.summary.${await pw.random.id()}`,
+            username: `recap.summary.${pw.random.id()}`,
             is_default: true,
         },
         service: {
-            id: `recap-service-${await pw.random.id()}`,
+            id: `recap-service-${pw.random.id()}`,
             name: 'Recap Summary Service',
             type: 'anthropic',
         },
@@ -519,7 +519,7 @@ async function createUnreadChannelFixture(
     const channel = await adminClient.createChannel(
         pw.random.channel({
             teamId,
-            name: `recap${await pw.random.id()}`,
+            name: `recap${pw.random.id()}`,
             displayName,
             unique: false,
         }),
