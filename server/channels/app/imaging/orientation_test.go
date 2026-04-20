@@ -69,27 +69,40 @@ func TestMakeImageUpright(t *testing.T) {
 		require.True(t, img == out, "Upright orientation should return the original image unchanged")
 	})
 
-	// For the 90°-rotated orientations the stored pixel buffer is landscape
-	// (640×480) and MakeImageUpright must produce portrait (480×640).
+	// Flip and 180° orientations: the stored pixel buffer is already portrait
+	// (480×640), so MakeImageUpright must preserve those dimensions.
 	for _, tc := range []struct {
 		file        string
 		orientation int
-		wantW       int
-		wantH       int
 	}{
-		{"up-mirrored.jpg", UprightMirrored, 480, 640},
-		{"down.jpg", UpsideDown, 480, 640},
-		{"down-mirrored.jpg", UpsideDownMirrored, 480, 640},
-		{"left-mirrored.jpg", RotatedCWMirrored, 480, 640},
-		{"left.jpg", RotatedCCW, 480, 640},
-		{"right-mirrored.jpg", RotatedCCWMirrored, 480, 640},
-		{"right.jpg", RotatedCW, 480, 640},
+		{"up-mirrored.jpg", UprightMirrored},
+		{"down.jpg", UpsideDown},
+		{"down-mirrored.jpg", UpsideDownMirrored},
 	} {
 		t.Run(tc.file, func(t *testing.T) {
 			img := openFile(tc.file)
 			out := MakeImageUpright(img, tc.orientation)
-			require.Equal(t, tc.wantW, out.Bounds().Dx(), "width")
-			require.Equal(t, tc.wantH, out.Bounds().Dy(), "height")
+			require.Equal(t, 480, out.Bounds().Dx(), "width")
+			require.Equal(t, 640, out.Bounds().Dy(), "height")
+		})
+	}
+
+	// 90°-rotated orientations: the stored pixel buffer is landscape (640×480)
+	// and MakeImageUpright must swap the axes to produce portrait (480×640).
+	for _, tc := range []struct {
+		file        string
+		orientation int
+	}{
+		{"left-mirrored.jpg", RotatedCWMirrored},
+		{"left.jpg", RotatedCCW},
+		{"right-mirrored.jpg", RotatedCCWMirrored},
+		{"right.jpg", RotatedCW},
+	} {
+		t.Run(tc.file, func(t *testing.T) {
+			img := openFile(tc.file)
+			out := MakeImageUpright(img, tc.orientation)
+			require.Equal(t, 480, out.Bounds().Dx(), "width")
+			require.Equal(t, 640, out.Bounds().Dy(), "height")
 		})
 	}
 
