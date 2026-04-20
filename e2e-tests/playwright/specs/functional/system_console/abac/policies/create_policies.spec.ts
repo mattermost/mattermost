@@ -21,6 +21,7 @@ import {
     createBasicPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    waitForPolicySyncJob,
     getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
 } from '../support';
@@ -310,8 +311,8 @@ test.describe('ABAC Policies - Create Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page);
+        // Wait for initial sync job to complete (15 retries × 2s = 30s for queued parallel jobs)
+        await waitForLatestSyncJob(systemConsolePage.page, 15);
 
         // Get policy ID and activate it for auto-add to work
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
@@ -334,9 +335,10 @@ test.describe('ABAC Policies - Create Policies', () => {
         // Activate the policy so auto-add works
         await activatePolicy(adminClient, policyId);
 
-        // Run sync job with active policy
-        const __jobId1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId1);
+        // Run sync job with active policy; poll by policyId to avoid picking up a
+        // concurrent shard's job completing first (15 retries × 2s = 30s budget)
+        await runSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId, 15);
 
         // ============================================================
         // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes

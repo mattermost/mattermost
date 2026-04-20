@@ -20,6 +20,13 @@ test.describe('ABAC Basic Operations - Enable/Disable', () => {
         // # Ensure user attributes exist BEFORE logging in
         await ensureUserAttributes(adminClient);
 
+        // # Reset ABAC to disabled via API before testing the UI toggle.
+        // Parallel tests may have already enabled it, which would leave the radio
+        // pre-selected and the Save button permanently disabled (no dirty state).
+        const config = await adminClient.getConfig();
+        config.AccessControlSettings.EnableAttributeBasedAccessControls = false;
+        await adminClient.updateConfig(config);
+
         // # Now login - this ensures the UI will have the attributes loaded
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 

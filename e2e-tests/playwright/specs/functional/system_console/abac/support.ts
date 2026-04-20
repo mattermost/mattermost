@@ -1143,7 +1143,7 @@ export async function getPolicyIdByName(
     policyName: string,
     retries: number = 3,
 ): Promise<string | null> {
-    const searchUrl = `${client.getBaseRoute()}/access_control/policies/search`;
+    const searchUrl = `${client.getBaseRoute()}/access_control_policies/search`;
 
     // Extract the base name without the random ID suffix for search
     // e.g., "Auto-Add Policy 48b0141" -> "Auto-Add Policy"

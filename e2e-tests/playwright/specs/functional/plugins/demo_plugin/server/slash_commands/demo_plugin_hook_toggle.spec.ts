@@ -10,6 +10,10 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
 
+    // Add test user to the demo_plugin private channel (it's private; not joined by default)
+    const demoChannel = await adminClient.getChannelByName(team.id, 'demo_plugin');
+    await adminClient.addToChannel(user.id, demoChannel.id);
+
     // 2. Login
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto();

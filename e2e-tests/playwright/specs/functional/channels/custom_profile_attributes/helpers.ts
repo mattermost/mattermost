@@ -383,9 +383,21 @@ export async function setupCustomProfileAttributeFields(
             try {
                 const createdField = await adminClient.createCustomProfileAttributeField(field);
                 fieldsMap[createdField.id] = createdField;
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log(`Failed to create field ${field.name}:`, error);
+            } catch {
+                // Creation failed — likely a race with a parallel test that created
+                // the same field name between our getCustomProfileAttributeFields()
+                // call and this createCustomProfileAttributeField() call.
+                // Re-fetch to pick up the field the other test just created.
+                try {
+                    const currentFields = await adminClient.getCustomProfileAttributeFields();
+                    const raceCreated = currentFields.find((f) => f.name === field.name);
+                    if (raceCreated) {
+                        fieldsMap[raceCreated.id] = raceCreated;
+                    }
+                } catch {
+                    // nothing to do — fieldsMap will be missing this field and the
+                    // test will surface a clear error via getFieldIdByName()
+                }
             }
         }
     }
