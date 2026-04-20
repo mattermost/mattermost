@@ -126,10 +126,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Mirror updateTeam/patchTeam: setting AllowOpenInvite or AllowedDomains requires
-	// PermissionInviteUser. Since the team doesn't exist yet, approximate the post-create
-	// authorization by combining the creator's system permissions with the default
-	// team_user/team_admin roles the creator will hold on the new team.
+	// Setting AllowOpenInvite or AllowedDomains requires PermissionInviteUser, matching updateTeam/patchTeam.
 	if (team.AllowOpenInvite || team.AllowedDomains != "") && !creatorCanInviteUsersOnTeam(c, &team) {
 		c.SetPermissionError(model.PermissionInviteUser)
 		return
@@ -141,10 +138,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet.
-	// Instead, approximate SessionHasPermissionToTeam by combining the creator's system roles with the new team's default roles.
+	// The creator's session doesn't yet reflect their team_admin role, so check the team's default roles directly.
 	if !creatorCanInviteUsersOnTeam(c, rteam) {
-		// Hide the invite_id when the creator won't have permission to invite users on this team.
 		rteam.InviteId = ""
 	}
 
@@ -158,10 +153,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// creatorCanInviteUsersOnTeam reports whether the session creating the team
-// would have PermissionInviteUser on that team once created. The creator
-// becomes both team_user and team_admin, so only those scheme defaults matter
-// (guest defaults are irrelevant).
+// creatorCanInviteUsersOnTeam checks whether the creator will have PermissionInviteUser on the new team,
+// using the team's scheme (if any) or the built-in team roles as defaults.
 func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
 		return true

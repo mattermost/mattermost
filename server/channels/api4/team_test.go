@@ -280,14 +280,9 @@ func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
-	// Remove PermissionInviteUser from the default team user role. By default,
-	// team_admin inherits from team_user, so the creator (who is made both
-	// team_user and team_admin) ends up without PermissionInviteUser either way.
+	// team_admin inherits from team_user by default, so removing from team_user is enough.
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
-	// Regular user creates a team with no invite-restricted fields. The team is
-	// still created, but InviteId is hidden because the creator cannot invite
-	// users on the new team.
 	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
 		DisplayName: "Team Without Invite Permission",
 		Name:        GenerateTestTeamName(),
@@ -382,10 +377,7 @@ func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
 	assert.Equal(t, creatorDomain, persistedTeam.AllowedDomains, "system admins should persist allowed domains")
 }
 
-// TestCreateTeamInviteUserPermissionScheme exercises the scheme branch of
-// creatorCanInviteUsersOnTeam: when the creator lacks system-level InviteUser,
-// authorization for invite-restricted fields should come from the scheme's
-// default team_user/team_admin roles, not the built-in team roles.
+// Exercises the scheme branch of creatorCanInviteUsersOnTeam.
 func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
 	th := Setup(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
@@ -395,18 +387,11 @@ func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
 	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
-	// Remove InviteUser from the built-in team roles so the fallback branch
-	// of creatorCanInviteUsersOnTeam cannot accidentally grant it. Newly
-	// created schemes inherit their default-role permissions from the built-ins
-	// at creation time, so this also means the scheme roles start without it.
+	// Remove InviteUser from the built-in team roles; new schemes inherit from these at creation, so their defaults start without it too.
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
-	// SystemManager has PermissionSysconsoleWriteUserManagementPermissions
-	// (required to set SchemeId on create) but does not have system-level
-	// PermissionInviteUser. That makes it the appropriate caller to exercise
-	// the scheme branch. Setup does not auto-login SystemManagerClient, so
-	// do it explicitly.
+	// SystemManager has SchemeWrite but not system-level InviteUser, so it exercises the scheme branch.
 	th.LoginSystemManager(t)
 	managerClient := th.SystemManagerClient
 
