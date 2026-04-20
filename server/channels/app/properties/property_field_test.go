@@ -26,7 +26,8 @@ func TestHooksOnlyScopeToManagedGroups(t *testing.T) {
 			GroupID:    unmanagedGroup.ID,
 			Name:       "test-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		result, err := th.service.CreatePropertyField(rctx, field)
 		require.NoError(t, err)
@@ -38,7 +39,8 @@ func TestHooksOnlyScopeToManagedGroups(t *testing.T) {
 			GroupID:    unmanagedGroup.ID,
 			Name:       "get-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		})
 		result, err := th.service.GetPropertyField(rctx, unmanagedGroup.ID, field.ID)
 		require.NoError(t, err)
