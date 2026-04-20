@@ -207,9 +207,9 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) {
-			return appErr
+		var deleteAppErr *model.AppError
+		if errors.As(err, &deleteAppErr) {
+			return deleteAppErr
 		}
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
