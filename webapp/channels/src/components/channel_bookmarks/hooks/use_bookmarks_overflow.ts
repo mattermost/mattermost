@@ -118,23 +118,19 @@ export function useBookmarksOverflow(order: string[]) {
     // Single shared ResizeObserver for items and container. Item width
     // changes (e.g. rename) and container resizes (viewport/sidebar)
     // both trigger overflow recalculation.
-    const {register} = useObservedRefs({
+    const {register: registerItemRef} = useObservedRefs({
         onResize: debouncedCalculateOverflow,
         refs: itemRefs,
     });
-
-    const registerItemRef = useCallback((id: string, element: HTMLElement | null) => {
-        register(id, element);
-    }, [register]);
 
     // Register/unregister the container element. containerEl is state
     // (from callback ref) so this re-runs when the element mounts.
     useEffect(() => {
         if (containerEl) {
-            register('__container', containerEl);
+            registerItemRef('__container', containerEl);
         }
-        return () => register('__container', null);
-    }, [containerEl, register]);
+        return () => registerItemRef('__container', null);
+    }, [containerEl, registerItemRef]);
 
     // Recalculate on order changes and initial mount.
     // During active reorder this is blocked by isPausedRef; the pending
