@@ -334,7 +334,6 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	return result.String()
 }
 
-
 func (ps *PlatformService) RestartMetrics() error {
 	return ps.resetMetrics()
 }
