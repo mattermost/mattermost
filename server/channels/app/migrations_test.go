@@ -56,3 +56,102 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.Equal(t, "v5", data.Value)
 	})
 }
+
+func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+
+	// Clear any prior backfill marker so the migration body executes against an empty CPA group.
+	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, err)
+
+	err = th.Server.doSetupCPADisplayNameBackfill()
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, cpaDisplayNameBackfillVersion, data.Value)
+}
+
+func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
+	th := Setup(t)
+
+	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, err)
+
+	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+		Name: "department",
+		Type: model.PropertyFieldTypeText,
+	})
+	require.NoError(t, convErr)
+	fieldA, appErr := th.App.CreateCPAField(th.Context, fieldABase)
+	require.Nil(t, appErr)
+	require.Equal(t, "", fieldA.Attrs.DisplayName, "seed invariant: fieldA must have empty display_name")
+
+	fieldBBase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+		Name: "job_title",
+		Type: model.PropertyFieldTypeText,
+	})
+	require.NoError(t, convErr)
+	fieldBBase.Attrs.DisplayName = "Job Title"
+	fieldB, appErr := th.App.CreateCPAField(th.Context, fieldBBase)
+	require.Nil(t, appErr)
+	require.Equal(t, "Job Title", fieldB.Attrs.DisplayName, "seed invariant: fieldB must have display_name set")
+
+	err = th.Server.doSetupCPADisplayNameBackfill()
+	require.NoError(t, err)
+
+	updatedFieldA, appErr := th.App.GetCPAField(th.Context, fieldA.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "department", updatedFieldA.Attrs.DisplayName,
+		"fieldA: display_name must be backfilled to field name")
+
+	updatedFieldB, appErr := th.App.GetCPAField(th.Context, fieldB.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "Job Title", updatedFieldB.Attrs.DisplayName,
+		"fieldB: display_name must not be overwritten when already set")
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, cpaDisplayNameBackfillVersion, data.Value)
+}
+
+func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
+	th := Setup(t)
+
+	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, err)
+
+	fieldBase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+		Name: "location",
+		Type: model.PropertyFieldTypeText,
+	})
+	require.NoError(t, convErr)
+	seeded, appErr := th.App.CreateCPAField(th.Context, fieldBase)
+	require.Nil(t, appErr)
+
+	err = th.Server.doSetupCPADisplayNameBackfill()
+	require.NoError(t, err)
+
+	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, cpaDisplayNameBackfillVersion, data1.Value)
+
+	updatedAfterFirst, appErr := th.App.GetCPAField(th.Context, seeded.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "location", updatedAfterFirst.Attrs.DisplayName)
+
+	// Second run: idempotency check fires immediately, returns nil without any DB writes.
+	err = th.Server.doSetupCPADisplayNameBackfill()
+	require.NoError(t, err)
+
+	data2, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, cpaDisplayNameBackfillVersion, data2.Value)
+
+	updatedAfterSecond, appErr := th.App.GetCPAField(th.Context, seeded.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "location", updatedAfterSecond.Attrs.DisplayName,
+		"second run must not change display_name")
+}

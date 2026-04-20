@@ -32,6 +32,8 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
+	cpaDisplayNameBackfillVersion                  = "v1"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -800,6 +802,95 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
+func (s *Server) doSetupCPADisplayNameBackfill() error {
+	// If the migration is already marked as completed at the current version, skip it.
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query CPA display_name backfill migration: %w", err)
+	}
+
+	if data != nil && data.Value == cpaDisplayNameBackfillVersion {
+		return nil
+	}
+
+	// Resolve the CPA property group. The group is registered at startup
+	// (RegisterBuiltinGroups) before doAppMigrations runs, so it always exists here.
+	group, err := s.propertyService.GetPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get CPA property group for display_name backfill: %w", err)
+	}
+	groupID := group.ID
+
+	const perPage = 100
+	var cursor model.PropertyFieldSearchCursor
+	var fieldsToUpdate []*model.PropertyField
+	skipped := 0
+
+	for {
+		fields, searchErr := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{
+			PerPage: perPage,
+			Cursor:  cursor,
+		})
+		if searchErr != nil {
+			return fmt.Errorf("failed to search CPA fields for display_name backfill: %w", searchErr)
+		}
+
+		if len(fields) == 0 {
+			break
+		}
+
+		for _, pf := range fields {
+			cpaField, convErr := model.NewCPAFieldFromPropertyField(pf)
+			if convErr != nil {
+				return fmt.Errorf("failed to convert property field %q during display_name backfill: %w", pf.ID, convErr)
+			}
+
+			// Backfill if display_name is absent OR empty-string.
+			// This covers fields created before Phase 1 (no key in JSONB),
+			// fields created after Phase 1 with no explicit display_name (stored as ""),
+			// and fields patched with display_name="" between Phase 1 and Phase 2 deploys.
+			if cpaField.Attrs.DisplayName != "" {
+				skipped++
+				continue
+			}
+
+			cpaField.Attrs.DisplayName = cpaField.Name
+			fieldsToUpdate = append(fieldsToUpdate, cpaField.ToPropertyField())
+		}
+
+		if len(fields) < perPage {
+			break
+		}
+
+		lastField := fields[len(fields)-1]
+		cursor = model.PropertyFieldSearchCursor{
+			PropertyFieldID: lastField.ID,
+			CreateAt:        lastField.CreateAt,
+		}
+	}
+
+	if len(fieldsToUpdate) > 0 {
+		if _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
+			return fmt.Errorf("failed to update CPA fields during display_name backfill: %w", updateErr)
+		}
+	}
+
+	mlog.Info("CPA display_name backfill migration completed",
+		mlog.Int("backfilled", len(fieldsToUpdate)),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  cpaDisplayNameBackfillKey,
+		Value: cpaDisplayNameBackfillVersion,
+	}); err != nil {
+		return fmt.Errorf("failed to mark CPA display_name backfill as complete: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1000,6 +1091,7 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	for i := range m1 {
