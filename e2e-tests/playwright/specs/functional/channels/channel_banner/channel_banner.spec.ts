@@ -91,9 +91,12 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
     await channelsPage.toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
+    await channelsPage.centerView.toBeVisible();
 
-    // Post a message and open the thread
-    await channelsPage.centerView.postMessage('Message without banner');
+    // Focus and type character-by-character to avoid React clearing a programmatic fill()
+    await channelsPage.centerView.postCreate.input.click();
+    await channelsPage.centerView.postCreate.input.pressSequentially('Message without banner');
+    await channelsPage.centerView.postCreate.sendMessage();
     const post = await channelsPage.centerView.getLastPost();
     await post.reply();
 
