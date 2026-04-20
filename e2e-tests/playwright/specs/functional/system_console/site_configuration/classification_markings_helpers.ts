@@ -41,3 +41,45 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
         // Property routes may be unavailable when the feature flag is off; ignore.
     }
 }
+
+export type SetupGlobalBannerOptions = {
+    /** Level id to store in global_banner.level_id (locks placement + level after load) */
+    levelId: string;
+    enabled?: boolean;
+    placement?: 'top' | 'top_and_bottom';
+};
+
+/**
+ * Creates (or patches) the classification property field so it includes a persisted
+ * global_banner configuration, pre-locking placement and level for lock-behavior tests.
+ */
+export async function setupClassificationFieldWithGlobalBanner(
+    adminClient: Client4,
+    levels: Array<{id?: string; name: string; color: string; rank: number}>,
+    bannerOpts: SetupGlobalBannerOptions,
+) {
+    // Ensure a clean slate first
+    await deleteClassificationMarkingsFieldIfExists(adminClient);
+
+    // Create the field
+    const created = await adminClient.createPropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, {
+        name: CLASSIFICATION_FIELD_NAME,
+        type: 'select',
+        target_type: TARGET_TYPE,
+        target_id: '',
+        attrs: {
+            options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
+            managed: 'admin',
+            global_banner: {
+                enabled: bannerOpts.enabled ?? true,
+                placement: bannerOpts.placement ?? 'top',
+                level_id: bannerOpts.levelId,
+            },
+        },
+        permission_field: 'sysadmin',
+        permission_values: 'sysadmin',
+        permission_options: 'sysadmin',
+    } as Parameters<Client4['createPropertyField']>[2]);
+
+    return created;
+}
