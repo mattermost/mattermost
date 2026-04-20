@@ -18,7 +18,8 @@ import {
     createBasicPolicy,
     createAdvancedPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
+    waitForPolicySyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
@@ -51,10 +52,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
      *       In production, attributes would be synced from LDAP server.
      */
     test('MM-T5798 User added by admin after LDAP attribute sync (auto-add false)', async ({pw}) => {
-        // NOTE: This test documents current ABAC behavior with auto-add=false:
-        // - The test verifies that with auto-add=false, sync jobs DON'T automatically add users
-        // - Instead, admin must manually add qualifying users to channels
-        // - However, current implementation requires sync job to run first so server knows who qualifies
         test.setTimeout(180000);
 
         await pw.skipIfNoLicense();
@@ -74,7 +71,6 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         const user1 = await createUserWithAttributes(adminClient, {Department: 'Sales'});
         await adminClient.addToTeam(team.id, user1.id);
 
-        // Create channel and policy
         const channel1 = await createPrivateChannelForABAC(adminClient, team.id);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -87,54 +83,37 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             attribute: 'Department',
             operator: '==',
             value: 'Engineering',
-            autoSync: false, // Auto-add FALSE
+            autoSync: false,
             channels: [channel1.display_name],
         });
 
-        // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
-        await systemConsolePage.page.waitForTimeout(1000);
+        // Get policy ID via API (no DOM scraping, no page reload needed)
+        const policyId1 = (await getPolicyIdByName(adminClient, policy1Name))!;
+        await activatePolicy(adminClient, policyId1);
 
-        const policyRow1 = systemConsolePage.page.locator('.policy-name').first();
-        const policyId1 = (await policyRow1.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId1) {
-            await activatePolicy(adminClient, policyId1);
-        }
-        await searchInput.clear();
-
-        // Run initial sync - user should NOT be in channel
+        // Initial sync — user has non-qualifying attribute, should not be added
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId1, 15);
 
         const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
         expect(user1InitialCheck).toBe(false);
 
-        // Simulate LDAP sync by updating user's attribute to qualifying value
-        // In real LDAP scenario, this would happen during LDAP sync from external server
+        // Simulate LDAP sync: update attribute to qualifying value
         await updateUserAttributes(adminClient, user1.id, {Department: 'Engineering'});
 
-        // Run sync job - with auto-add=false, this tests whether users are auto-added or not
-        // The expected behavior: sync job should NOT auto-add users when autoSync=false
+        // Sync again — auto-add=false, so user is NOT auto-added even when qualifying
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId1, 15);
 
-        // Verify user behavior after sync
         const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
 
-        if (user1AfterSync) {
-            // If user WAS auto-added, this documents current behavior
-        } else {
-            // If user was NOT auto-added, then admin can manually add
+        if (!user1AfterSync) {
+            // Expected: admin must manually add qualifying user when auto-add=false
             await adminClient.addToChannel(user1.id, channel1.id);
-
             const user1AfterAdminAdd = await verifyUserInChannel(adminClient, user1.id, channel1.id);
             expect(user1AfterAdminAdd).toBe(true);
         }
 
-        // Final verification
         const user1Final = await verifyUserInChannel(adminClient, user1.id, channel1.id);
         expect(user1Final).toBe(true);
 
@@ -142,63 +121,46 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // STEP 2: Test with `∈ in` operator
         // ============================================================
 
-        // Create user with attribute that has non-qualifying value for 'in' check
         const user2 = await createUserWithAttributes(adminClient, {Department: 'Marketing'});
         await adminClient.addToTeam(team.id, user2.id);
 
-        // Create second channel
         const channel2 = await createPrivateChannelForABAC(adminClient, team.id);
 
         await navigateToABACPage(systemConsolePage.page);
 
-        // Create policy with 'in' operator (user.attributes.Department in ["Engineering", "Product"])
         const policy2Name = `LDAP Sync In ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "Product"]',
-            autoSync: false, // Auto-add FALSE
+            autoSync: false,
             channels: [channel2.display_name],
         });
 
-        // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page);
-        await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-        await systemConsolePage.page.waitForTimeout(1000);
+        const policyId2 = (await getPolicyIdByName(adminClient, policy2Name))!;
+        await activatePolicy(adminClient, policyId2);
 
-        const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-        const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId2) {
-            await activatePolicy(adminClient, policyId2);
-        }
-        await searchInput.clear();
-
-        // Run initial sync - user should NOT be in channel
+        // Initial sync — non-qualifying, should not be added
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId2, 15);
 
         const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
         expect(user2InitialCheck).toBe(false);
 
-        // Simulate LDAP sync by updating to qualifying value
+        // Simulate LDAP sync: update to qualifying value
         await updateUserAttributes(adminClient, user2.id, {Department: 'Product'});
 
-        // Run sync job - testing same behavior as Step 1
+        // Sync again — auto-add=false, admin must manually add
         await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForPolicySyncJob(adminClient, policyId2, 15);
 
-        // Verify user behavior after sync
         const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
 
-        if (user2AfterSync) {
-            // User was auto-added
-        } else {
+        if (!user2AfterSync) {
             await adminClient.addToChannel(user2.id, channel2.id);
-
             const user2AfterAdminAdd = await verifyUserInChannel(adminClient, user2.id, channel2.id);
             expect(user2AfterAdminAdd).toBe(true);
         }
 
-        // Final verification
         const user2Final = await verifyUserInChannel(adminClient, user2.id, channel2.id);
         expect(user2Final).toBe(true);
     });

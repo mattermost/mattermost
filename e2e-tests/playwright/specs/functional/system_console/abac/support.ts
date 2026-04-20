@@ -1215,8 +1215,15 @@ export async function createPermissionPolicy(
         celExpression: string;
         permissions: Array<'Download Files' | 'Upload Files'>;
         role?: 'system_guest' | 'system_user' | 'system_admin';
+        adminClient?: Client4;
     },
 ): Promise<void> {
+    // Ensure user attributes exist — a parallel test may have deleted all CPA fields,
+    // which disables the "Switch to Advanced Mode" button in the permission policy editor.
+    if (options.adminClient) {
+        await ensureUserAttributes(options.adminClient);
+    }
+
     await navigateToPermissionPoliciesPage(page);
 
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});

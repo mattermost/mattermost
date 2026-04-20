@@ -72,6 +72,7 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
             name: lastPolicyName,
             celExpression: 'false',
             permissions: ['Download Files'],
+            adminClient,
         });
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -197,6 +198,7 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
             name: sharedPolicyName,
             celExpression: 'user.attributes.Department == "Engineering"',
             permissions: ['Download Files'],
+            adminClient: sharedAdminClient,
         });
     });
 
@@ -269,6 +271,7 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
             name: lastPolicyName,
             celExpression: 'false',
             permissions: ['Download Files'],
+            adminClient,
         });
         await systemConsolePage.page.waitForTimeout(1000);
 
@@ -322,6 +325,7 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
 
         lastPolicyName = `Permalink Download Deny ${pw.random.id()}`;
         await createPermissionPolicy(systemConsolePage.page, {
+            adminClient,
             name: lastPolicyName,
             celExpression: 'false',
             permissions: ['Download Files'],
