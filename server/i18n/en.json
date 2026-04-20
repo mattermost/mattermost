@@ -7839,18 +7839,6 @@
     "translation": "Unable to get property fields for update."
   },
   {
-    "id": "app.property_field.update.immutable_object_type.app_error",
-    "translation": "Cannot change object_type of an existing property field."
-  },
-  {
-    "id": "app.property_field.update.immutable_target_id.app_error",
-    "translation": "Cannot change target_id of an existing property field."
-  },
-  {
-    "id": "app.property_field.update.immutable_target_type.app_error",
-    "translation": "Cannot change target_type of an existing property field."
-  },
-  {
     "id": "app.property_field.update.linked_options_change.app_error",
     "translation": "Cannot modify options of a linked field. Options are inherited from the source."
   },

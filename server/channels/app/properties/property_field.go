@@ -234,39 +234,6 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
-		// TargetType, TargetID, and ObjectType are identity fields that define a
-		// field's scope. They are set at creation and must not change. Allowing
-		// mutations would let a caller escalate scope (e.g., channel → system)
-		// or change semantics (e.g., promote to template) without going through
-		// the creation-time validation that enforces permission and linking rules.
-		if field.TargetType != existing.TargetType {
-			return nil, nil, model.NewAppError(
-				"UpdatePropertyFields",
-				"app.property_field.update.immutable_target_type.app_error",
-				nil,
-				fmt.Sprintf("target_type is immutable (was %q, got %q)", existing.TargetType, field.TargetType),
-				http.StatusBadRequest,
-			)
-		}
-		if field.TargetID != existing.TargetID {
-			return nil, nil, model.NewAppError(
-				"UpdatePropertyFields",
-				"app.property_field.update.immutable_target_id.app_error",
-				nil,
-				fmt.Sprintf("target_id is immutable (was %q, got %q)", existing.TargetID, field.TargetID),
-				http.StatusBadRequest,
-			)
-		}
-		if field.ObjectType != existing.ObjectType {
-			return nil, nil, model.NewAppError(
-				"UpdatePropertyFields",
-				"app.property_field.update.immutable_object_type.app_error",
-				nil,
-				fmt.Sprintf("object_type is immutable (was %q, got %q)", existing.ObjectType, field.ObjectType),
-				http.StatusBadRequest,
-			)
-		}
-
 		// Block type changes on linked fields
 		if existing.LinkedFieldID != nil && *existing.LinkedFieldID != "" && field.Type != existing.Type {
 			return nil, nil, model.NewAppError(
@@ -343,9 +310,14 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			}
 		}
 
-		// TargetType and TargetID are immutable (enforced above), so only
-		// a name change can introduce a uniqueness conflict.
-		if existing.Name != field.Name {
+		// Any change to Name or identity fields (TargetType/TargetID/ObjectType)
+		// can shift the uniqueness domain. The DB unique index catches same-level
+		// collisions, but cross-level hierarchy conflicts (system ↔ team ↔ channel)
+		// are only caught here.
+		if existing.Name != field.Name ||
+			existing.TargetType != field.TargetType ||
+			existing.TargetID != field.TargetID ||
+			existing.ObjectType != field.ObjectType {
 			conflictLevel, cErr := ps.fieldStore.CheckPropertyNameConflict(field, field.ID)
 			if cErr != nil {
 				return nil, nil, fmt.Errorf("failed to check property name conflict: %w", cErr)
