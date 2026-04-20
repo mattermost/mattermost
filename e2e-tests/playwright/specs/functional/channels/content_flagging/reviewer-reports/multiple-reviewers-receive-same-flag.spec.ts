@@ -21,11 +21,13 @@ test('Verify multiple reviewers receive same flagged post', async ({pw}) => {
     const secondUser = await pw.random.user('reviewer');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
     // Create third user and add to team
     const thirdUser = await pw.random.user('reviewer');
     const {id: thirdUserID} = await adminClient.createUser(thirdUser, '', '');
     await adminClient.addToTeam(team.id, thirdUserID);
+    await adminClient.updateUserRoles(thirdUserID, 'system_user system_admin');
 
     // Setup content flagging *after* roles are set
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
