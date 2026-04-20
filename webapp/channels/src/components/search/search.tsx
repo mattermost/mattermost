@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useRef} from 'react';
-import type {ChangeEvent, FormEvent} from 'react';
+import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
+
+import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
@@ -17,13 +19,13 @@ import type Provider from 'components/suggestion/provider';
 import SearchChannelProvider from 'components/suggestion/search_channel_provider';
 import SearchDateProvider from 'components/suggestion/search_date_provider';
 import SearchUserProvider from 'components/suggestion/search_user_provider';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import Popover from 'components/widgets/popover';
 
 import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import type {SearchType} from 'types/store/rhs';
 
@@ -244,7 +246,7 @@ const Search = ({
         setFocused(true);
     };
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const handleChange = (e: React.ChangeEvent<SuggestionBoxElement>): void => {
         const term = e.target.value;
         updateSearchTerms(term);
     };
@@ -278,7 +280,7 @@ const Search = ({
         setIndexChangedViaKeyPress(changedViaKeyPress);
     };
 
-    const handleEnterKey = (e: ChangeEvent<HTMLInputElement>): void => {
+    const handleEnterKey = (e: React.KeyboardEvent<SuggestionBoxElement>): void => {
         e.preventDefault();
 
         if (indexChangedViaKeyPress) {

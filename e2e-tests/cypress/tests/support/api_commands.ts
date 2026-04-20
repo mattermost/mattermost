@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT, ResponseT} from 'tests/types';
-
 import {getAdminAccount, User} from './env';
+
+import {ChainableT, ResponseT} from '@/types';
+
 
 // *****************************************************************************
 // Read more:
@@ -16,8 +17,8 @@ import {getAdminAccount, User} from './env';
 // https://api.mattermost.com/#tag/commands
 // *****************************************************************************
 
-type CypressResponseAny = Cypress.Response<any>
-function apiCreateCommand(command: Record<string, any> = {}): Cypress.Chainable<{data: CypressResponseAny['body']; status: CypressResponseAny['status']}> {
+type CypressResponseBody = Cypress.Response<unknown>
+function apiCreateCommand(command: Record<string, unknown> = {}): Cypress.Chainable<{data: CypressResponseBody['body']; status: CypressResponseBody['status']}> {
     const options = {
         url: '/api/v4/commands',
         headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -53,12 +54,12 @@ Cypress.Commands.add('apiEmailTest', apiEmailTest);
 // https://api.mattermost.com/#tag/posts
 // *****************************************************************************
 
-function apiCreatePost(channelId: string, message: string, rootId: string, props: Record<string, any>, token = '', failOnStatusCode = true): ResponseT {
+function apiCreatePost(channelId: string, message: string, rootId: string, props: Record<string, unknown>, token = '', failOnStatusCode = true): ResponseT {
     const headers: Record<string, string> = {'X-Requested-With': 'XMLHttpRequest'};
     if (token !== '') {
         headers.Authorization = `Bearer ${token}`;
     }
-    return cy.request<any>({
+    return cy.request({
         headers,
         failOnStatusCode,
         url: '/api/v4/posts',
@@ -121,7 +122,7 @@ Cypress.Commands.add('apiUnpinPosts', apiUnpinPosts);
 // https://api.mattermost.com/#tag/webhooks
 // *****************************************************************************
 
-function apiCreateWebhook(hook: Record<string, any> = {}, isIncoming = true): ChainableT<{data: CypressResponseAny['body']; url: string}> {
+function apiCreateWebhook(hook: Record<string, unknown> = {}, isIncoming = true): ChainableT<{data: Cypress.IncomingWebhook | Cypress.OutgoingWebhook; url: string}> {
     const hookUrl = isIncoming ? '/api/v4/hooks/incoming' : '/api/v4/hooks/outgoing';
     const options = {
         url: hookUrl,
@@ -138,7 +139,7 @@ function apiCreateWebhook(hook: Record<string, any> = {}, isIncoming = true): Ch
 
 Cypress.Commands.add('apiCreateWebhook', apiCreateWebhook);
 
-function apiGetTeam(teamId: string): ChainableT<any> {
+function apiGetTeam(teamId: string): ChainableT<Cypress.Response<unknown>> {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `api/v4/teams/${teamId}`,
@@ -177,7 +178,7 @@ function apiGetLDAPSync(): Cypress.Chainable<LDAPSyncResponse > {
         timeout: 60000,
     }).then((response) => {
         expect(response.status).to.equal(200);
-        return cy.wrap(response);
+        return cy.wrap(response as unknown as LDAPSyncResponse);
     });
 }
 Cypress.Commands.add('apiGetLDAPSync', apiGetLDAPSync);
@@ -199,7 +200,7 @@ function apiGetGroups(page = 0, perPage = 100): ResponseT {
 }
 Cypress.Commands.add('apiGetGroups', apiGetGroups);
 
-function apiPatchGroup(groupID: string, patch: Record<string, any>): ResponseT {
+function apiPatchGroup(groupID: string, patch: Record<string, unknown>): ResponseT {
     return cy.request({
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         url: `/api/v4/groups/${groupID}/patch`,
@@ -351,7 +352,7 @@ function apiLinkGroupChannel(groupID: string, channelID: string): ResponseT {
 }
 Cypress.Commands.add('apiLinkGroupChannel', apiLinkGroupChannel);
 
-function simulateSubscription(subscription, withLimits = true) {
+function simulateSubscription(subscription: Partial<Cypress.Subscription>, withLimits = true) {
     cy.intercept('GET', '**/api/v4/cloud/subscription', {
         statusCode: 200,
         body: subscription,

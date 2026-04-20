@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -60,6 +61,9 @@ type Channels struct {
 	// previously fetched notices
 	cachedNotices model.ProductNotices
 
+	managedCategoryGroupID string
+	managedCategoryFieldID string
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
@@ -69,6 +73,9 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
+
+	attributeViewRefreshMut  sync.Mutex
+	attributeViewRefreshLast time.Time
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies

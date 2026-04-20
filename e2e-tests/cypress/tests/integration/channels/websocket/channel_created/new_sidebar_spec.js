@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @websocket
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Handle removed user - new sidebar', () => {
     it('MM-27202 should add new channels to the sidebar when created from another session', () => {
