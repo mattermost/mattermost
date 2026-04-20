@@ -723,7 +723,6 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.adding}
                                 spinningText={buttonActiveText}

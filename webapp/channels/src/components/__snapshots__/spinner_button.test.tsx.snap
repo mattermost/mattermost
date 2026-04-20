@@ -2,7 +2,9 @@
 
 exports[`components/SpinnerButton should match snapshot with children 1`] = `
 <div>
-  <button>
+  <button
+    class="btn btn-primary"
+  >
     <span
       id="child1"
     />
@@ -15,13 +17,18 @@ exports[`components/SpinnerButton should match snapshot with children 1`] = `
 
 exports[`components/SpinnerButton should match snapshot with required props 1`] = `
 <div>
-  <button />
+  <button
+    class="btn btn-primary"
+  >
+    Test
+  </button>
 </div>
 `;
 
 exports[`components/SpinnerButton should match snapshot with spinning 1`] = `
 <div>
   <button
+    class="btn btn-primary"
     disabled=""
   >
     <span

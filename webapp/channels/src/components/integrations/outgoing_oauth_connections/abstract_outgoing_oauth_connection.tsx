@@ -510,7 +510,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </Link>
                         <SpinnerButton
-                            className='btn btn-primary'
                             type='submit'
                             spinning={isSubmitting}
                             spinningText={intl.formatMessage(props.loading)}

@@ -13,7 +13,9 @@ describe('components/SpinnerButton', () => {
             <SpinnerButton
                 spinning={false}
                 spinningText='Test'
-            />,
+            >
+                {'Test'}
+            </SpinnerButton>,
         );
         expect(container).toMatchSnapshot();
     });
@@ -23,7 +25,9 @@ describe('components/SpinnerButton', () => {
             <SpinnerButton
                 spinning={true}
                 spinningText='Test'
-            />,
+            >
+                {'Test'}
+            </SpinnerButton>,
         );
         expect(container).toMatchSnapshot();
     });
@@ -49,7 +53,9 @@ describe('components/SpinnerButton', () => {
                 spinning={false}
                 onClick={onClick}
                 spinningText='Test'
-            />,
+            >
+                {'Test'}
+            </SpinnerButton>,
         );
 
         await userEvent.click(screen.getByRole('button'));
@@ -63,7 +69,9 @@ describe('components/SpinnerButton', () => {
                 className='btn btn-success'
                 spinningText='Test'
                 spinning={false}
-            />,
+            >
+                {'Test'}
+            </SpinnerButton>,
         );
 
         const button = screen.getByRole('button');

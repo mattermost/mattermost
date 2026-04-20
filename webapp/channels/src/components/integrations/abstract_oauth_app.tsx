@@ -539,7 +539,6 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}
