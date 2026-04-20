@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -350,7 +349,8 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should fail on nonexisting value", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get("", model.NewId())
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	groupID := model.NewId()
@@ -381,7 +381,8 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should not be able to retrieve an existing value when specifying a different group ID", func(t *testing.T) {
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should be able to retrieve an existing property value with matching groupID", func(t *testing.T) {
@@ -418,7 +419,8 @@ func testGetPropertyValue(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 		// Try to get the value with a different group ID
 		value, err := ss.PropertyValue().Get(model.NewId(), newValue.ID)
 		require.Zero(t, value)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("null columns, before createdBy and updatedBy migrations", func(t *testing.T) {

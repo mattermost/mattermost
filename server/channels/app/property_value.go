@@ -5,11 +5,13 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID string) (teamID, channelID string, err *model.AppError) {
@@ -71,6 +73,10 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 func (a *App) GetPropertyValue(rctx request.CTX, groupID, valueID string) (*model.PropertyValue, *model.AppError) {
 	value, err := a.Srv().propertyService.GetPropertyValue(rctx, groupID, valueID)
 	if err != nil {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(err, &notFoundErr) {
+			return nil, model.NewAppError("GetPropertyValue", "app.property_value.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		if appErr := mapPropertyServiceError("GetPropertyValue", err); appErr != nil {
 			return nil, appErr
 		}

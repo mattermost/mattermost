@@ -7867,6 +7867,10 @@
     "translation": "Invalid input provided."
   },
   {
+    "id": "app.property_value.not_found.app_error",
+    "translation": "The specified property value does not exist."
+  },
+  {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
     "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },

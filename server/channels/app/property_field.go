@@ -84,6 +84,10 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, fieldID)
 	if err != nil {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(err, &notFoundErr) {
+			return nil, model.NewAppError("GetPropertyField", "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		if appErr := mapPropertyServiceError("GetPropertyField", err); appErr != nil {
 			return nil, appErr
 		}
@@ -112,6 +116,10 @@ func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) 
 func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(err, &notFoundErr) {
+			return nil, model.NewAppError("GetPropertyFieldByName", "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		if appErr := mapPropertyServiceError("GetPropertyFieldByName", err); appErr != nil {
 			return nil, appErr
 		}

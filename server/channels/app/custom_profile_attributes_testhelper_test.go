@@ -4,7 +4,6 @@
 package app
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // CPA test helpers — test-only shims that mirror the old app-layer CPA
@@ -44,7 +44,8 @@ func (th *TestHelper) GetCPAField(tb testing.TB, fieldID string) (*model.CPAFiel
 
 	field, appErr := th.App.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
-		if errors.Is(appErr, sql.ErrNoRows) {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		}
 		return nil, appErr
@@ -136,7 +137,8 @@ func (th *TestHelper) PatchCPAField(tb testing.TB, fieldID string, patch *model.
 	groupID := th.CpaGroupID(tb)
 	patched, appErr := th.App.UpdatePropertyField(rctx, groupID, existing.ToPropertyField(), false, "")
 	if appErr != nil {
-		if errors.Is(appErr, sql.ErrNoRows) {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		}
 		return nil, appErr
@@ -157,7 +159,8 @@ func (th *TestHelper) DeleteCPAField(tb testing.TB, fieldID string) *model.AppEr
 
 	appErr := th.App.DeletePropertyField(rctx, groupID, fieldID, false, "")
 	if appErr != nil {
-		if errors.Is(appErr, sql.ErrNoRows) {
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
 		}
 		return appErr

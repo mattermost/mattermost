@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -64,6 +65,9 @@ func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, e
 
 	var field model.PropertyField
 	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyField", id)
+		}
 		return nil, errors.Wrap(err, "property_field_get_select")
 	}
 
@@ -79,6 +83,9 @@ func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (
 
 	var field model.PropertyField
 	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyField", name)
+		}
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
 	}
 

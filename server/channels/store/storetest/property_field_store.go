@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
@@ -219,7 +218,8 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field, err := ss.PropertyField().Get("", model.NewId())
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	groupID := model.NewId()
@@ -254,7 +254,8 @@ func testGetPropertyField(t *testing.T, _ request.CTX, ss store.Store, s SqlStor
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
 		field, err := ss.PropertyField().Get(model.NewId(), newField.ID)
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("null columns, before createdBy, updatedBy, protected and permissions migrations", func(t *testing.T) {
@@ -336,7 +337,8 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should fail on nonexisting field", func(t *testing.T) {
 		field, err := ss.PropertyField().GetFieldByName("", "", "nonexistent-field-name")
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	groupID := model.NewId()
@@ -367,13 +369,15 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 	t.Run("should not be able to retrieve an existing field when specifying a different group ID", func(t *testing.T) {
 		field, err := ss.PropertyField().GetFieldByName(model.NewId(), targetID, "unique-field-name")
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should not be able to retrieve an existing field when specifying a different target ID", func(t *testing.T) {
 		field, err := ss.PropertyField().GetFieldByName(groupID, model.NewId(), "unique-field-name")
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	// Test with multiple fields with the same name but different groups
@@ -464,7 +468,8 @@ func testGetFieldByName(t *testing.T, _ request.CTX, ss store.Store) {
 		// Verify it can't be retrieved after deletion
 		field, err = ss.PropertyField().GetFieldByName(groupID, targetID, "to-be-deleted-field")
 		require.Zero(t, field)
-		require.ErrorIs(t, err, sql.ErrNoRows)
+		var enf *store.ErrNotFound
+		require.ErrorAs(t, err, &enf)
 	})
 
 	t.Run("should not retrieve fields with matching name but different DeleteAt status", func(t *testing.T) {

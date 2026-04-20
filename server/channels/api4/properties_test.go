@@ -846,7 +846,7 @@ func TestPatchPropertyField(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("patch with wrong group name should fail", func(t *testing.T) {
+	t.Run("patch with wrong group name should fail 404", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -863,11 +863,12 @@ func TestPatchPropertyField(t *testing.T) {
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		// Try to patch using the other group's name — field belongs to `group`, not `otherGroup`
+		// Try to patch using the other group's name — field belongs to `group`, not `otherGroup`.
+		// A field not found because of a wrong group must surface as 404, not a generic 500.
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), otherGroup.Name, "post", createdField.ID, patch)
 		require.Error(t, err)
-		// GetPropertyField with the wrong groupID should not find the field
-		require.NotEqual(t, http.StatusOK, resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "app.property_field.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("options-only update should check options permission", func(t *testing.T) {
@@ -1390,7 +1391,7 @@ func TestDeletePropertyField(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
-	t.Run("delete with wrong group name should fail", func(t *testing.T) {
+	t.Run("delete with wrong group name should fail 404", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
@@ -1404,12 +1405,13 @@ func TestDeletePropertyField(t *testing.T) {
 		createdField, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
 
-		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`
-		th.LoginBasic(t)
-		resp, err := th.Client.DeletePropertyField(context.Background(), otherGroup.Name, "post", createdField.ID)
+		// Try to delete using the other group's name — field belongs to `group`, not `otherGroup`.
+		// A field not found because of a wrong group must surface as 404, not a generic 500.
+		th.LoginSystemAdmin(t)
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), otherGroup.Name, "post", createdField.ID)
 		require.Error(t, err)
-		// GetPropertyField with the wrong groupID should not find the field
-		require.NotEqual(t, http.StatusOK, resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "app.property_field.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("user without permission should not be able to delete", func(t *testing.T) {

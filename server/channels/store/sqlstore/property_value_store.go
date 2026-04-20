@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -105,6 +106,9 @@ func (s *SqlPropertyValueStore) Get(groupID, id string) (*model.PropertyValue, e
 
 	var value model.PropertyValue
 	if err := s.GetReplica().GetBuilder(&value, builder); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, store.NewErrNotFound("PropertyValue", id)
+		}
 		return nil, errors.Wrap(err, "property_value_get_select")
 	}
 
