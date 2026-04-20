@@ -10758,10 +10758,6 @@
     "translation": "制限されたDM内ではリアクションできません"
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "既存のジョブを取得できませんでした。"
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "投稿に対するデータベースから投稿の優先度に関するデータを完全に削除できませんでした。"
   },

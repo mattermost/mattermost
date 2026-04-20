@@ -10724,10 +10724,6 @@
     "translation": "Değerlendiriciler için yeni işaretlenmiş iletilerin bildirimleri kapatılamaz."
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Var olan görevler alınamadı."
-  },
-  {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Etkileşimli pencere gönderiminde geçersiz bir yanıtla karşılaşıldı."
   },

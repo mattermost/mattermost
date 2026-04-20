@@ -10728,10 +10728,6 @@
     "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Unable to get existing jobs."
-  },
-  {
     "id": "app.lookup_interactive_dialog.decode_json_error",
     "translation": "Encountered an error decoding JSON response from interactive dialog lookup."
   },

@@ -10780,10 +10780,6 @@
     "translation": "Fel på \"get common teams for channel\""
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Kan inte hämta befintliga jobb."
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "Misslyckades med att permanent radera prioritetsdata från databasen för inlägget."
   },

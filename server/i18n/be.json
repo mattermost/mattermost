@@ -10692,10 +10692,6 @@
     "translation": "Не атрымалася абнавіць пароль карыстальніка."
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Немагчыма атрымаць існуючыя задачы."
-  },
-  {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Сустрэты няправільны адказ ад адпраўкі інтэрактыўнага дыялогу."
   },
