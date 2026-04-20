@@ -9,8 +9,8 @@
 
 // Group: @channels @system_console @enterprise @cloud_only
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {SupportSettings} from '../../../../utils/constants';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {SupportSettings} from '@/utils/constants';
 
 describe('SupportSettings', () => {
     before(() => {

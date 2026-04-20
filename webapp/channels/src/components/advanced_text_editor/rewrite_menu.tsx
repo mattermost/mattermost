@@ -8,6 +8,8 @@ import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import {
     AiSummarizeIcon,
+    CloseIcon,
+    ContentCopyIcon,
     CreationOutlineIcon,
     TextShortIcon,
     TextLongIcon,
@@ -26,13 +28,13 @@ import {RewriteAction} from './rewrite_action';
 
 import './use_rewrite.scss';
 
-interface MenuItemConfig {
+export interface MenuItemConfig {
     action: RewriteAction;
     label: MessageDescriptor;
     icon: React.ReactElement;
 }
 
-const menuItems: MenuItemConfig[] = [
+export const menuItems: MenuItemConfig[] = [
     {
         action: RewriteAction.SHORTEN,
         label: defineMessage({id: 'texteditor.rewrite.shorten', defaultMessage: 'Shorten'}),
@@ -264,5 +266,183 @@ export default function RewriteMenu({
                 />
             ))}
         </Menu.Container>
+    );
+}
+
+export interface RewriteSubmenuProps {
+    isProcessing: boolean;
+    draftMessage: string;
+    onMenuAction: (action: RewriteAction) => () => void;
+}
+
+export function RewriteSubmenu({isProcessing, draftMessage, onMenuAction}: RewriteSubmenuProps) {
+    const showMenuItem = !isProcessing && draftMessage.trim();
+
+    if (!showMenuItem) {
+        return null;
+    }
+
+    return (
+        <>
+            {menuItems.map((item) => (
+                <Menu.Item
+                    key={`rewrite-${item.action}`}
+                    role='menuitemradio'
+                    aria-checked={false}
+                    labels={<FormattedMessage {...item.label}/>}
+                    leadingElement={item.icon}
+                    onClick={onMenuAction(item.action)}
+                />
+            ))}
+        </>
+    );
+}
+
+export interface RewriteSubMenuHeaderProps {
+    isProcessing: boolean;
+    draftMessage: string;
+    originalMessage: string;
+    prompt: string;
+    setPrompt: (prompt: string) => void;
+    selectedAgentId: string;
+    setSelectedAgentId: (id: string) => void;
+    agents: Agent[];
+    onCustomPromptKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    onCancelProcessing: () => void;
+    customPromptRef: React.RefObject<HTMLInputElement>;
+}
+
+export function RewriteSubMenuHeader({
+    isProcessing,
+    draftMessage,
+    originalMessage,
+    prompt,
+    setPrompt,
+    selectedAgentId,
+    setSelectedAgentId,
+    agents,
+    onCustomPromptKeyDown,
+    onCancelProcessing,
+    customPromptRef,
+}: RewriteSubMenuHeaderProps) {
+    const {formatMessage} = useIntl();
+
+    let placeholderText = formatMessage({
+        id: 'texteditor.rewrite.prompt',
+        defaultMessage: 'Ask AI to edit message...',
+    });
+
+    if (isProcessing) {
+        if (prompt) {
+            placeholderText = prompt;
+        } else if (draftMessage.trim()) {
+            placeholderText = formatMessage({
+                id: 'texteditor.rewrite.placeholder.rewriting',
+                defaultMessage: 'Rewriting...',
+            });
+        }
+    } else if (!draftMessage.trim()) {
+        placeholderText = formatMessage({
+            id: 'texteditor.rewrite.create',
+            defaultMessage: 'Create a new message...',
+        });
+    } else if (originalMessage) {
+        placeholderText = formatMessage({
+            id: 'texteditor.rewrite.nextPrompt',
+            defaultMessage: 'What would you like AI to do next?',
+        });
+    }
+
+    return (
+        <div className='rewrite-menu-header'>
+            {!isProcessing && agents && agents.length > 0 && (
+                <AgentDropdown
+                    selectedBotId={selectedAgentId}
+                    onBotSelect={setSelectedAgentId}
+                    bots={agents}
+                    disabled={isProcessing}
+                    showLabel={true}
+                />
+            )}
+            {isProcessing &&
+                <div className='rewrite-menu-header-processing'>
+                    <LoadingSpinner/>
+                    <FormattedMessage
+                        id='texteditor.rewrite.rewriting'
+                        defaultMessage='Rewriting'
+                    />
+                    <button
+                        className='btn btn-xs'
+                        type='button'
+                        onClick={onCancelProcessing}
+                    >
+                        <CloseIcon size={14}/>
+                        <FormattedMessage
+                            id='texteditor.rewrite.stopGenerating'
+                            defaultMessage='Stop generating'
+                        />
+                    </button>
+                </div>
+            }
+            {!isProcessing &&
+                <Input
+                    ref={customPromptRef}
+                    inputPrefix={<CreationOutlineIcon size={18}/>}
+                    label={placeholderText}
+                    placeholder={placeholderText}
+                    disabled={isProcessing}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={onCustomPromptKeyDown}
+                />
+            }
+        </div>
+    );
+}
+
+export interface RewriteSubMenuFooterProps {
+    isProcessing: boolean;
+    originalMessage: string;
+    lastAction: RewriteAction;
+    onUndoMessage: () => void;
+    onRegenerateMessage: () => void;
+}
+
+export function RewriteSubMenuFooter({
+    isProcessing,
+    originalMessage,
+    lastAction,
+    onUndoMessage,
+    onRegenerateMessage,
+}: RewriteSubMenuFooterProps) {
+    if (isProcessing || !originalMessage || !lastAction) {
+        return null;
+    }
+
+    return (
+        <div className='rewrite-menu-footer'>
+            <button
+                className='btn btn-tertiary btn-xs'
+                type='button'
+                onClick={onUndoMessage}
+            >
+                <CloseIcon size={14}/>
+                <FormattedMessage
+                    id='texteditor.rewrite.discard'
+                    defaultMessage='Discard'
+                />
+            </button>
+            <button
+                className='btn btn-quaternary btn-xs'
+                type='button'
+                onClick={onRegenerateMessage}
+            >
+                <ContentCopyIcon size={14}/>
+                <FormattedMessage
+                    id='texteditor.rewrite.regenerate'
+                    defaultMessage='Regenerate'
+                />
+            </button>
+        </div>
     );
 }

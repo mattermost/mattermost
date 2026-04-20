@@ -10,10 +10,11 @@
 // Stage: @prod
 // Group: @channels @not_cloud @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {stubClipboard} from '../../../utils';
-
 import {downloadAttachmentAndVerifyItsProperties} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {stubClipboard} from '@/utils';
+
 
 describe('Upload Files', () => {
     let testTeam;

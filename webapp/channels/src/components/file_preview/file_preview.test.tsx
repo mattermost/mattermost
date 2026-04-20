@@ -149,4 +149,34 @@ describe('FilePreview', () => {
 
         expect(screen.getByAltText('file preview')).toHaveAttribute('src', getFileUrl(fileId));
     });
+
+    test('should add compact classes when compactMode is true', () => {
+        const props = {
+            ...baseProps,
+            compactMode: true,
+        };
+
+        const {container} = renderWithContext(
+            <FilePreview {...props}/>,
+        );
+
+        expect(container.querySelector('.file-preview.post-image__column.compact')).toBeInTheDocument();
+        expect(container.querySelector('.post-image__detail.compact')).toBeInTheDocument();
+        expect(container.querySelector('.file-preview__remove.compact')).toBeInTheDocument();
+    });
+
+    test('should not add compact classes when compactMode is false', () => {
+        const props = {
+            ...baseProps,
+            compactMode: false,
+        };
+
+        const {container} = renderWithContext(
+            <FilePreview {...props}/>,
+        );
+
+        expect(container.querySelector('.file-preview.post-image__column.compact')).not.toBeInTheDocument();
+        expect(container.querySelector('.post-image__detail.compact')).not.toBeInTheDocument();
+        expect(container.querySelector('.file-preview__remove.compact')).not.toBeInTheDocument();
+    });
 });
