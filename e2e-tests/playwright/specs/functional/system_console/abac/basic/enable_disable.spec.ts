@@ -24,7 +24,7 @@ test.describe('ABAC Basic Operations - Enable/Disable', () => {
         // Parallel tests may have already enabled it, which would leave the radio
         // pre-selected and the Save button permanently disabled (no dirty state).
         const config = await adminClient.getConfig();
-        config.AccessControlSettings.EnableAttributeBasedAccessControls = false;
+        config.AccessControlSettings.EnableAttributeBasedAccessControl = false;
         await adminClient.updateConfig(config);
 
         // # Now login - this ensures the UI will have the attributes loaded
