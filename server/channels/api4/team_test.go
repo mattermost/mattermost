@@ -297,6 +297,70 @@ func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 	require.Empty(t, rteam.InviteId, "should have hidden invite_id when user lacks invite permission")
 }
 
+func TestCreateTeamInviteUserPermission(t *testing.T) {
+	th := Setup(t)
+	creatorDomain := strings.SplitN(th.BasicUser.Email, "@", 2)[1]
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	createdTeam, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+		DisplayName:     "Team Without Invite Permission",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+		AllowedDomains:  creatorDomain,
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.Empty(t, createdTeam.InviteId, "should have hidden invite_id when user lacks invite permission")
+
+	assert.False(t, createdTeam.AllowOpenInvite, "should not allow creating an open invite team without invite permission")
+	assert.Empty(t, createdTeam.AllowedDomains, "should not allow setting allowed domains without invite permission")
+
+	persistedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), createdTeam.Id, "")
+	require.NoError(t, err)
+
+	assert.False(t, persistedTeam.AllowOpenInvite, "should not persist open invite when creator lacks invite permission")
+	assert.Empty(t, persistedTeam.AllowedDomains, "should not persist allowed domains when creator lacks invite permission")
+}
+
+func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
+	th := Setup(t)
+	creatorDomain := strings.SplitN(th.SystemAdminUser.Email, "@", 2)[1]
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	createdTeam, resp, err := th.SystemAdminClient.CreateTeam(context.Background(), &model.Team{
+		DisplayName:     "System Admin Team With Invite Permission",
+		Name:            GenerateTestTeamName(),
+		Email:           th.GenerateTestEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+		AllowedDomains:  creatorDomain,
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	assert.True(t, createdTeam.AllowOpenInvite, "system admins should still be able to create open invite teams")
+	assert.Equal(t, creatorDomain, createdTeam.AllowedDomains, "system admins should still be able to set allowed domains")
+	require.NotEmpty(t, createdTeam.InviteId, "system admins should receive the invite_id when they can invite users")
+
+	persistedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), createdTeam.Id, "")
+	require.NoError(t, err)
+
+	assert.True(t, persistedTeam.AllowOpenInvite, "system admins should persist open invite team settings")
+	assert.Equal(t, creatorDomain, persistedTeam.AllowedDomains, "system admins should persist allowed domains")
+}
+
 func TestGetTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 
