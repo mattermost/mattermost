@@ -30,23 +30,6 @@ func init() {
 	groupIDsQueryParamRegex = regexp.MustCompile(groupIDsParamPattern)
 }
 
-func canInviteUsersOnCreatedTeam(c *Context, team *model.Team) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
-		return true
-	}
-
-	if team.SchemeId != nil && *team.SchemeId != "" {
-		scheme, appErr := c.App.GetScheme(*team.SchemeId)
-		if appErr != nil {
-			return false
-		}
-
-		return c.App.RolesGrantPermission([]string{scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}, model.PermissionInviteUser.Id)
-	}
-
-	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
-}
-
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(createTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Teams.Handle("", api.APISessionRequired(getAllTeams)).Methods(http.MethodGet)
@@ -171,6 +154,23 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func canInviteUsersOnCreatedTeam(c *Context, team *model.Team) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
+		return true
+	}
+
+	if team.SchemeId != nil && *team.SchemeId != "" {
+		scheme, appErr := c.App.GetScheme(*team.SchemeId)
+		if appErr != nil {
+			return false
+		}
+
+		return c.App.RolesGrantPermission([]string{scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}, model.PermissionInviteUser.Id)
+	}
+
+	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
