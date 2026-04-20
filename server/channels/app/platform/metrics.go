@@ -13,7 +13,6 @@ import (
 	"net/http/pprof"
 	"path"
 	"runtime"
-	"slices"
 	"strings"
 	"sync"
 	"text/template"
@@ -303,33 +302,29 @@ func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
 
 // addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format.
 // It parses using expfmt, mutates the label sets in-place, then re-encodes.
+// Returns an empty string and logs a warning if any parsing or encoding error occurs.
 func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	parser := expfmt.NewTextParser(prommodel.LegacyValidation)
 	families, err := parser.TextToMetricFamilies(strings.NewReader(metricsText))
-	if err != nil && len(families) == 0 {
-		return metricsText
+	if err != nil {
+		mlog.Warn("Failed to parse plugin metrics", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		return ""
 	}
 
-	label := &dto.LabelPair{
+	pluginIDLabel := &dto.LabelPair{
 		Name:  strPtr("plugin_id"),
 		Value: strPtr(pluginID),
 	}
 
-	names := make([]string, 0, len(families))
-	for name := range families {
-		names = append(names, name)
-	}
-	slices.Sort(names)
-
 	var result strings.Builder
 	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
-	for _, name := range names {
-		family := families[name]
+	for name, family := range families {
 		for _, metric := range family.Metric {
-			metric.Label = append(metric.Label, label)
+			metric.Label = append(metric.Label, pluginIDLabel)
 		}
 		if encErr := enc.Encode(family); encErr != nil {
-			return metricsText
+			mlog.Warn("Failed to encode plugin metrics", mlog.String("plugin_id", pluginID), mlog.String("family", name), mlog.Err(encErr))
+			return ""
 		}
 	}
 	if closer, ok := enc.(expfmt.Closer); ok {

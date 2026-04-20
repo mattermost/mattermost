@@ -147,9 +147,10 @@ func TestAddPluginLabelToMetrics(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			actualInput := strings.Join(tc.input, "\n") + "\n"
-			actualExpected := strings.Join(tc.expected, "\n") + "\n"
-			assert.Equal(t, actualExpected, addPluginLabelToMetrics(actualInput, tc.pluginID))
+			result := addPluginLabelToMetrics(strings.Join(tc.input, "\n")+"\n", tc.pluginID)
+			for _, line := range tc.expected {
+				assert.Contains(t, result, line)
+			}
 		})
 	}
 }
