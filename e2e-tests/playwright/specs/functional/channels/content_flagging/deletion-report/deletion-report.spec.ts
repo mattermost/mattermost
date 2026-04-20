@@ -25,28 +25,32 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
 
     await setupContentFlagging(adminClient, [reviewerUser.id]);
 
-    const message = `Sensitive post by @${authorUser.username} to be removed`;
+    const message = `Sensitive 2 post by @${authorUser.username} to be removed`;
     const {post} = await createPost(adminClient, authorUserClient, team, authorUser, message);
 
     // Flag and remove the post
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message contains sensitive data');
-    await reviewerUserClient.removeFlaggedPost(post.id, 'Removing: data spillage confirmed');
 
     // Login as reviewer and navigate to content review DM
     const {channelsPage} = await pw.testBrowser.login(reviewerUser);
     await channelsPage.goto(team.name, '@content-review');
     await channelsPage.toBeVisible();
 
-    // The deletion report summary should be posted as a message in the reviewer's thread
-    // It contains a markdown summary table with step/status/detail columns
-    // const lastPost = await channelsPage.centerView.getLastPost();
-    // await lastPost.toBeVisible();
+    const lastPost = await channelsPage.centerView.getLastPost();
+    await lastPost.toContainText(message);
+
+    await reviewerUserClient.removeFlaggedPost(post.id, 'Removing: data spillage confirmed');
+
+    await channelsPage.goto(team.name, '@content-review');
+    await channelsPage.toBeVisible();
+
+    await lastPost.toContainText('Content deleted as part of Content Flagging review process');
 
     const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
     await viewDetailButton.click();
 
     // Verify the summary table headers are present (rendered as markdown table)
-    await channelsPage.sidebarRight.toContainText('Step', 4000);
+    await channelsPage.sidebarRight.toContainText('Step');
     await channelsPage.sidebarRight.toContainText('Status');
     await channelsPage.sidebarRight.toContainText('Detail');
 
