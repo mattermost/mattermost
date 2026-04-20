@@ -5553,8 +5553,8 @@ func testGetNthRecentPostTime(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Clean up far-future posts so they don't leak into other tests (per review feedback).
 	defer func() {
 		for _, p := range []*model.Post{p1, p2, b1, p3, s1, p4} {
-			if err := ss.Post().PermanentDelete(rctx, p.Id); err != nil {
-				t.Logf("failed to delete post %s: %v", p.Id, err)
+			if delErr := ss.Post().PermanentDelete(rctx, p.Id); delErr != nil {
+				t.Logf("failed to delete post %s: %v", p.Id, delErr)
 			}
 		}
 	}()
