@@ -2324,6 +2324,198 @@ func TestHookServeMetrics(t *testing.T) {
 		// The plugin didn't implement ServeMetrics, so it shouldn't add any metrics
 		assert.NotContains(t, bodyStr, "plugin_id=\""+pluginIDs[0]+"\"", "Response should not contain plugin metrics from non-implementing plugin")
 	})
+
+	t.Run("should not collect plugin metrics when PluginMetricsCollection is disabled", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+			cfg.FeatureFlags.PluginMetricsCollection = false
+		})
+
+		pluginCode := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("# HELP plugin_metric Plugin metric\n# TYPE plugin_metric counter\nplugin_metric 1\n"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginIDs[0]))
+
+		serverMetrics := "# HELP server_metric Server metric\n# TYPE server_metric gauge\nserver_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
+
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter)
+
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		resp, err := http.Get(server.URL + "/metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+		assert.Contains(t, bodyStr, "server_metric 100")
+		assert.NotContains(t, bodyStr, "plugin_id=")
+	})
+
+	t.Run("should omit plugin metrics when plugin returns non-200", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+		})
+
+		pluginCode := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginIDs[0]))
+
+		serverMetrics := "# HELP server_metric Server metric\n# TYPE server_metric gauge\nserver_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
+
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter)
+
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		resp, err := http.Get(server.URL + "/metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+		assert.Contains(t, bodyStr, "server_metric 100")
+		assert.NotContains(t, bodyStr, "plugin_id=")
+	})
+
+	t.Run("should omit plugin metrics when plugin returns empty body", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t, StartMetrics)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.MetricsSettings.Enable = true
+			*cfg.MetricsSettings.ListenAddress = ":0"
+		})
+
+		pluginCode := `
+		package main
+
+		import (
+			"net/http"
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{pluginCode}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginIDs[0]))
+
+		serverMetrics := "# HELP server_metric Server metric\n# TYPE server_metric gauge\nserver_metric 100\n"
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(serverMetrics))
+		})
+
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
+
+		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
+		require.NotNil(t, metricsRouter)
+
+		server := httptest.NewServer(metricsRouter)
+		defer server.Close()
+
+		resp, err := http.Get(server.URL + "/metrics")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		bodyStr := string(body)
+		assert.Contains(t, bodyStr, "server_metric 100")
+		assert.NotContains(t, bodyStr, "plugin_id=")
+	})
 }
 
 func TestUserHasJoinedChannel(t *testing.T) {

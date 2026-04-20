@@ -161,3 +161,8 @@ func TestAddPluginLabelToMetrics(t *testing.T) {
 		})
 	}
 }
+
+func TestAddPluginLabelToMetricsMalformedInput(t *testing.T) {
+	result := addPluginLabelToMetrics("not valid prometheus text {{{", "my-plugin")
+	assert.Equal(t, "", result)
+}
