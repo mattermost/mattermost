@@ -312,8 +312,8 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	}
 
 	pluginIDLabel := &dto.LabelPair{
-		Name:  strPtr("plugin_id"),
-		Value: strPtr(pluginID),
+		Name:  model.NewPointer("plugin_id"),
+		Value: model.NewPointer(pluginID),
 	}
 
 	var result strings.Builder
@@ -334,7 +334,6 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	return result.String()
 }
 
-func strPtr(s string) *string { return &s }
 
 func (ps *PlatformService) RestartMetrics() error {
 	return ps.resetMetrics()
