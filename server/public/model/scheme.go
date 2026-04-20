@@ -18,6 +18,17 @@ const (
 	SchemeScopeChannel         = "channel"
 	SchemeScopePlaybook        = "playbook"
 	SchemeScopeRun             = "run"
+
+	SchemeRoleDisplayNameTeamAdmin      = "Team Admin Role for Scheme"
+	SchemeRoleDisplayNameTeamUser       = "Team User Role for Scheme"
+	SchemeRoleDisplayNameTeamGuest      = "Team Guest Role for Scheme"
+	SchemeRoleDisplayNameChannelAdmin   = "Channel Admin Role for Scheme"
+	SchemeRoleDisplayNameChannelUser    = "Channel User Role for Scheme"
+	SchemeRoleDisplayNameChannelGuest   = "Channel Guest Role for Scheme"
+	SchemeRoleDisplayNamePlaybookAdmin  = "Playbook Admin Role for Scheme"
+	SchemeRoleDisplayNamePlaybookMember = "Playbook Member Role for Scheme"
+	SchemeRoleDisplayNameRunAdmin       = "Run Admin Role for Scheme"
+	SchemeRoleDisplayNameRunMember      = "Run Member Role for Scheme"
 )
 
 type Scheme struct {

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/permissions"
 )
 
 type roleEntry struct {
@@ -40,7 +40,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	roles := model.MakeDefaultRoles()
+	roles := permissions.DefaultRolesWithMigrationsApplied()
 
 	roleNames := make([]string, 0, len(roles))
 	for name := range roles {
