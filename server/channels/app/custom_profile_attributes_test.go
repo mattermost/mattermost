@@ -1239,7 +1239,8 @@ func TestPatchCPAField_GrandfatherSkipsValidationOnUnchangedName(t *testing.T) {
 // Do NOT "fix" this test by adding CPA name validation in App.CreatePropertyField ahead of
 // #36173 landing — doing so would conflict with @davidkrauser's diff.
 //
-// See spec.md §Out of Scope and PLAN-server.md §Architecture Overview for full context.
+// See spec.md §Out of Scope and the CPAAttrs godoc block in
+// server/public/model/custom_profile_attributes.go (§Non-enforcement) for full context.
 func TestCreatePropertyField_BypassesCPANameValidation_ExpectedBehavior(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -929,6 +929,12 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 				expectedValue: "Department Head",
 			},
 			{
+				name:          "all-whitespace display_name is trimmed to empty and allowed",
+				displayName:   "   ",
+				expectError:   false,
+				expectedValue: "",
+			},
+			{
 				name:          "display_name at exactly 255 runes is accepted",
 				displayName:   strings.Repeat("a", PropertyFieldNameMaxRunes),
 				expectError:   false,
@@ -979,6 +985,13 @@ func TestValidateCPAFieldName(t *testing.T) {
 		{name: "single uppercase", input: "A1", wantErrID: ""},
 		{name: "underscore separator", input: "a_b_c", wantErrID: ""},
 		{name: "all uppercase", input: "DEPT", wantErrID: ""},
+		// Case sensitivity of reserved-word lookup
+		{name: "case-sensitive: IN is not reserved", input: "IN", wantErrID: ""},
+		{name: "case-sensitive: In is not reserved", input: "In", wantErrID: ""},
+		// Single-character valid names
+		{name: "single lowercase letter", input: "a", wantErrID: ""},
+		{name: "single underscore", input: "_", wantErrID: ""},
+		{name: "single uppercase letter", input: "A", wantErrID: ""},
 
 		// Reject — charset
 		{name: "space in name", input: "My Field", wantErrID: "model.cpa_field.name.invalid_charset.app_error"},
@@ -991,6 +1004,7 @@ func TestValidateCPAFieldName(t *testing.T) {
 
 		// Reject — reserved words
 		{name: "reserved: in", input: "in", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
+		{name: "reserved: as", input: "as", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
 		{name: "reserved: true", input: "true", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
 		{name: "reserved: false", input: "false", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
 		{name: "reserved: null", input: "null", wantErrID: "model.cpa_field.name.reserved_word.app_error"},
@@ -1047,7 +1061,7 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 			"DisplayName must survive the ToPropertyField → NewCPAFieldFromPropertyField round-trip")
 	})
 
-	t.Run("empty DisplayName is omitted from attrs", func(t *testing.T) {
+	t.Run("empty DisplayName round-trips as empty string", func(t *testing.T) {
 		field := &CPAField{
 			PropertyField: PropertyField{
 				ID:      NewId(),
@@ -1067,6 +1081,21 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "", roundTripped.Attrs.DisplayName)
 	})
+}
+
+// TestCPAAttrs_JSONOmitEmpty pins down the wire-format contract that PR #36173's
+// typed-attrs strategy relies on: empty DisplayName must be dropped from a direct
+// JSON marshal of CPAAttrs, and a non-empty DisplayName must be present.
+func TestCPAAttrs_JSONOmitEmpty(t *testing.T) {
+	emptyJSON, err := json.Marshal(CPAAttrs{Visibility: "default_visible"})
+	require.NoError(t, err)
+	require.NotContains(t, string(emptyJSON), "display_name",
+		"omitempty must drop empty DisplayName from direct CPAAttrs JSON")
+
+	setJSON, err := json.Marshal(CPAAttrs{Visibility: "default_visible", DisplayName: "Department"})
+	require.NoError(t, err)
+	require.Contains(t, string(setJSON), "display_name",
+		"non-empty DisplayName must be present in direct CPAAttrs JSON")
 }
 
 func TestSanitizeAndValidatePropertyValue(t *testing.T) {

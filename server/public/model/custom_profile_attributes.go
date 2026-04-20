@@ -86,6 +86,7 @@ var CPAFieldNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 // the ABAC visual builder (ToCEL) does not currently emit.
 //
 // List sourced from cel-go v0.27.0 CEL.g4 lexer rules.
+// Grouped: literals (true/false/null), operator-keywords (in/as), then alphabetical reserved keywords.
 var CPAFieldNameReservedWords = map[string]struct{}{
 	"true": {}, "false": {}, "null": {},
 	"in": {}, "as": {},
@@ -227,7 +228,7 @@ type CPAAttrs struct {
 	Protected      bool                                                  `json:"protected"`
 	SourcePluginID string                                                `json:"source_plugin_id"`
 	AccessMode     string                                                `json:"access_mode"`
-	DisplayName    string                                                `json:"display_name,omitempty"`
+	DisplayName    string                                                `json:"display_name,omitempty"` // omitempty applies only to direct JSON marshal of CPAAttrs; ToPropertyField always writes the key into the underlying StringInterface map.
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -375,6 +376,7 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 	}
 
 	// Sanitize and validate display_name
+	// Reuses PropertyFieldNameMaxRunes to keep the DisplayName cap aligned with the Name cap; do NOT introduce a separate constant.
 	c.Attrs.DisplayName = strings.TrimSpace(c.Attrs.DisplayName)
 	if utf8.RuneCountInString(c.Attrs.DisplayName) > PropertyFieldNameMaxRunes {
 		return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error", map[string]any{
