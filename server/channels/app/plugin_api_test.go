@@ -3410,30 +3410,34 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
+
 		// Create 20 property fields
-		groupID := model.NewId()
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
 				UpdateAt: model.GetMillis(),
 			}
 
-			created, err := api.CreatePropertyField(field)
+			var created *model.PropertyField
+			created, err = api.CreatePropertyField(field)
 			require.NoError(t, err)
 			createdFields = append(createdFields, created)
 		}
 
 		// Delete one field
-		err := api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
 
 		// Should now be able to create another field
 		newField := &model.PropertyField{
-			GroupID:  groupID,
+			GroupID:  group.ID,
 			Name:     "new_field",
 			Type:     model.PropertyFieldTypeText,
 			CreateAt: model.GetMillis(),
@@ -3450,12 +3454,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
 
 		// Create and delete 5 fields
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("deleted_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3465,14 +3471,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 			created, err := api.CreatePropertyField(field)
 			require.NoError(t, err)
 
-			err = api.DeletePropertyField(groupID, created.ID)
+			err = api.DeletePropertyField(group.ID, created.ID)
 			require.NoError(t, err)
 		}
 
 		// Should be able to create multiple active fields
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("active_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),

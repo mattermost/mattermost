@@ -77,6 +77,17 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	return th
 }
 
+// RegisterPropertyGroup registers a new property group with the given version and a unique name.
+func (th *TestHelper) RegisterPropertyGroup(tb testing.TB, version int) *model.PropertyGroup {
+	tb.Helper()
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
+		Name:    "testgroup" + model.NewId(),
+		Version: version,
+	})
+	require.NoError(tb, err)
+	return group
+}
+
 // CreateTeam creates a team for testing hierarchy
 func (th *TestHelper) CreateTeam(tb testing.TB) *model.Team {
 	team := &model.Team{

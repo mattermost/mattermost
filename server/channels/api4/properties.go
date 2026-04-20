@@ -471,16 +471,16 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check target access based on object type
-	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, true) {
-		return
-	}
-
 	group := getV2Group(c, "patchPropertyValues")
 	if c.Err != nil {
 		return
 	}
 	groupID := group.ID
+
+	// Check target access based on object type
+	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, true) {
+		return
+	}
 
 	var items []model.PropertyValuePatchItem
 	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
