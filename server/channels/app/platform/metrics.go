@@ -320,7 +320,17 @@ func addPluginLabelToMetrics(metricsText, pluginID string) string {
 	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
 	for name, family := range families {
 		for _, metric := range family.Metric {
-			metric.Label = append(metric.Label, pluginIDLabel)
+			replaced := false
+			for _, l := range metric.Label {
+				if l.GetName() == "plugin_id" {
+					l.Value = model.NewPointer(pluginID)
+					replaced = true
+					break
+				}
+			}
+			if !replaced {
+				metric.Label = append(metric.Label, pluginIDLabel)
+			}
 		}
 		if encErr := enc.Encode(family); encErr != nil {
 			mlog.Warn("Failed to encode plugin metrics", mlog.String("plugin_id", pluginID), mlog.String("family", name), mlog.Err(encErr))

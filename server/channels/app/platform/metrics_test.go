@@ -135,6 +135,13 @@ func TestAddPluginLabelToMetrics(t *testing.T) {
 				`my_metric{plugin_id="p"} 1`,
 			},
 		},
+		"existing plugin_id label is replaced not duplicated": {
+			input:    []string{`my_metric{plugin_id="old-plugin"} 42`},
+			pluginID: "new-plugin",
+			expected: []string{
+				`my_metric{plugin_id="new-plugin"} 42`,
+			},
+		},
 		"multiple metrics are sorted and separated": {
 			input:    []string{"metric_a 1", "metric_b 2"},
 			pluginID: "plug",
