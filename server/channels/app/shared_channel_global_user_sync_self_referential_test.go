@@ -453,7 +453,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Cursor updates only when sync is successful
 		EnsureCleanState(t, th, ss)
 
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var failureMode atomic.Bool
 		failureMode.Store(false)
 		var syncHandler *SelfReferentialSyncHandler
@@ -462,7 +462,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/api/v4/remotecluster/msg":
-				atomic.AddInt32(&syncAttempts, 1)
+				syncAttempts.Add(1)
 
 				if failureMode.Load() {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -520,7 +520,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > 0
+			return syncAttempts.Load() > 0
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was updated
@@ -539,13 +539,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Second sync - should fail
-		initialAttempts := atomic.LoadInt32(&syncAttempts)
+		initialAttempts := syncAttempts.Load()
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err) // The method itself shouldn't error, just the remote call
 
 		// Wait for failed sync attempt
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > initialAttempts
+			return syncAttempts.Load() > initialAttempts
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was NOT updated on failure
@@ -557,13 +557,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		failureMode.Store(false)
 
 		// Third sync - should succeed and update cursor
-		preSuccessAttempts := atomic.LoadInt32(&syncAttempts)
+		preSuccessAttempts := syncAttempts.Load()
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Wait for successful sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > preSuccessAttempts
+			return syncAttempts.Load() > preSuccessAttempts
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was updated after successful sync
@@ -579,12 +579,12 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Ensures cursor is only updated when flag is enabled
 		EnsureCleanState(t, th, ss)
 
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 
 		// Create test HTTP server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncMessageCount, 1)
+				syncMessageCount.Add(1)
 			}
 			writeOKResponse(w)
 		}))
@@ -622,13 +622,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Verify no sync messages were sent
 		require.Never(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 2*time.Second, 100*time.Millisecond, "No sync should occur with feature flag disabled")
 
 		// Verify cursor was not updated
@@ -645,13 +645,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Verify sync messages were sent
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 5*time.Second, 100*time.Millisecond, "Sync should occur with feature flag enabled")
 
 		// Verify cursor was updated
@@ -667,13 +667,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Tests cursor updates in both scenarios
 		EnsureCleanState(t, th, ss)
 
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 		var connectionOpenSyncOccurred atomic.Bool
 
 		// Create test HTTP server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncMessageCount, 1)
+				syncMessageCount.Add(1)
 
 				// Parse message to check if it's a user sync
 				bodyBytes, _ := io.ReadAll(r.Body)
@@ -724,12 +724,12 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Verify no automatic sync occurs within a reasonable time
 		require.Never(t, func() bool {
-			return connectionOpenSyncOccurred.Load() || atomic.LoadInt32(&syncMessageCount) > 0
+			return connectionOpenSyncOccurred.Load() || syncMessageCount.Load() > 0
 		}, 2*time.Second, 100*time.Millisecond, "No automatic sync should occur when config is disabled")
 
 		// Test 2: Connection open with sync enabled
 		// Reset counters
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		connectionOpenSyncOccurred.Store(false)
 
 		// Enable config option
@@ -767,7 +767,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond, "Automatic sync should occur when config is enabled")
 
 		// Verify sync occurred
-		assert.Greater(t, atomic.LoadInt32(&syncMessageCount), int32(0), "Should have sync messages when config enabled")
+		assert.Greater(t, syncMessageCount.Load(), int32(0), "Should have sync messages when config enabled")
 
 		// Verify cursor was updated
 		updatedCluster, err2 := ss.RemoteCluster().Get(selfCluster2.RemoteId, true)
@@ -849,7 +849,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - No partial data should be persisted
 		EnsureCleanState(t, th, ss)
 
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var serverOnline atomic.Bool
 		serverOnline.Store(true)
 
@@ -862,9 +862,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 			}
 
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncAttempts, 1)
+				syncAttempts.Add(1)
 				// On second attempt, go offline
-				if atomic.LoadInt32(&syncAttempts) >= 2 {
+				if syncAttempts.Load() >= 2 {
 					serverOnline.Store(false)
 					w.WriteHeader(http.StatusServiceUnavailable)
 					return
@@ -903,7 +903,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 1
+			return syncAttempts.Load() >= 1
 		}, 5*time.Second, 100*time.Millisecond)
 
 		// Get cursor after first sync
@@ -926,7 +926,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for second sync attempt
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 2
+			return syncAttempts.Load() >= 2
 		}, 5*time.Second, 100*time.Millisecond)
 
 		// Verify cursor was not updated after failed sync

@@ -65,7 +65,7 @@ func (cfs *ContentFlaggingNotificationSettings) IsValid() *AppError {
 		}
 	}
 
-	if cfs.EventTargetMapping[EventFlagged] == nil || len(cfs.EventTargetMapping[EventFlagged]) == 0 {
+	if len(cfs.EventTargetMapping[EventFlagged]) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled", nil, "", http.StatusBadRequest)
 	}
 
