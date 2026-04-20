@@ -591,7 +591,6 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={this.props.loading}
