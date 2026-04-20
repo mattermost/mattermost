@@ -7,6 +7,7 @@ import type {MouseEvent} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
 
@@ -154,23 +155,25 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                             }}
                         />
                     </div>
-                    <button
+                    <Button
                         type='button'
-                        className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                        emphasis='tertiary'
+                        className={classNames({disabled: firstPage})}
                         onClick={firstPage ? undefined : this.previousPage}
                         disabled={firstPage}
                     >
                         <PreviousIcon/>
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         type='button'
-                        className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                        emphasis='tertiary'
+                        className={classNames({disabled: lastPage})}
                         onClick={lastPage ? undefined : this.nextPage}
                         disabled={lastPage}
                         data-testid='page-link-next'
                     >
                         <NextIcon/>
-                    </button>
+                    </Button>
                 </div>}
             </div>
         );

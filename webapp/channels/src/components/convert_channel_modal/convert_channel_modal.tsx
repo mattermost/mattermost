@@ -102,9 +102,9 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                         data-testid='convertChannelCancel'
                     >
@@ -112,7 +112,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             id='convert_channel.cancel'
                             defaultMessage='No, cancel'
                         />
-                    </button>
+                    </Button>
                     <Button
                         type='button'
                         emphasis='primary'

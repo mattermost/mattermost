@@ -177,13 +177,13 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary cancel-button"
+              class="btn btn-tertiary"
               type="button"
             >
               Cancel
             </button>
             <button
-              class="btn btn-primary save-button"
+              class="btn btn-primary"
               type="button"
             >
               Save
@@ -383,13 +383,13 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary cancel-button"
+              class="btn btn-tertiary"
               type="button"
             >
               Cancel
             </button>
             <button
-              class="btn btn-primary save-button"
+              class="btn btn-primary"
               type="button"
             >
               Save
@@ -589,13 +589,13 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary cancel-button"
+              class="btn btn-tertiary"
               type="button"
             >
               Cancel
             </button>
             <button
-              class="btn btn-primary save-button"
+              class="btn btn-primary"
               type="button"
             >
               Save
@@ -785,13 +785,13 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary cancel-button"
+              class="btn btn-tertiary"
               type="button"
             >
               Cancel
             </button>
             <button
-              class="btn btn-primary save-button"
+              class="btn btn-primary"
               type="button"
             >
               Save
@@ -981,13 +981,13 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
             class="modal-footer"
           >
             <button
-              class="btn btn-tertiary cancel-button"
+              class="btn btn-tertiary"
               type="button"
             >
               Cancel
             </button>
             <button
-              class="btn btn-primary save-button"
+              class="btn btn-primary"
               disabled=""
               type="button"
             >

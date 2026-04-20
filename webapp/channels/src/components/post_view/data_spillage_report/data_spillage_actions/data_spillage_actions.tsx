@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import './data_spillage_actions.scss';
+import {Button} from '@mattermost/shared/components/button';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -59,8 +60,9 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
             className='DataSpillageAction'
             data-testid='data-spillage-action'
         >
-            <button
-                className='btn btn-danger btn-sm'
+            <Button
+                size='sm'
+                variant='destructive'
                 data-testid='data-spillage-action-remove-message'
                 onClick={handleRemoveMessage}
             >
@@ -68,10 +70,11 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
                     id='data_spillage_report.remove_message.button_text'
                     defaultMessage='Remove message'
                 />
-            </button>
+            </Button>
 
-            <button
-                className='btn btn-tertiary btn-sm'
+            <Button
+                emphasis='tertiary'
+                size='sm'
                 data-testid='data-spillage-action-keep-message'
                 onClick={handleKeepMessage}
             >
@@ -79,7 +82,7 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
                     id='data_spillage_report.keep_message.button_text'
                     defaultMessage='Keep message'
                 />
-            </button>
+            </Button>
         </div>
     );
 }

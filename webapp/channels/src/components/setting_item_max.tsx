@@ -6,6 +6,8 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import SaveButton from 'components/save_button';
 
 import Constants from 'utils/constants';
@@ -256,14 +258,14 @@ const SettingItemMax = ({
                             {serverError}
                         </div>
                         {submit}
-                        <button
+                        <Button
                             id='cancelSetting'
                             data-testid='cancelButton'
-                            className='btn btn-tertiary'
+                            emphasis='tertiary'
                             onClick={handleUpdateSection}
                         >
                             {cancelButtonText}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

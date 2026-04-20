@@ -192,16 +192,16 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                     {serverError}
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='edit_channel_purpose_modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
+                    </Button>
                     <Button
                         type='button'
                         emphasis='primary'

@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -214,14 +215,14 @@ class JobTable extends React.PureComponent<Props, State> {
                     {
                         !this.props.hideJobCreateButton &&
                         <div>
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >
                                 {this.props.createJobButtonText}
-                            </button>
+                            </Button>
                         </div>
                     }
                     <div className='help-text'>

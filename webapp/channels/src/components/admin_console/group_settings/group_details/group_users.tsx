@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -132,26 +134,24 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                         }}
                     />
                 </div>
-                <button
+                <Button
                     type='button'
-                    className={
-                        'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')
-                    }
+                    emphasis='tertiary'
+                    className={classNames('prev', {disabled: firstPage})}
                     onClick={this.previousPage}
                     disabled={firstPage}
                 >
                     <PreviousIcon/>
-                </button>
-                <button
+                </Button>
+                <Button
                     type='button'
-                    className={
-                        'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')
-                    }
+                    emphasis='tertiary'
+                    className={classNames('next', {disabled: lastPage})}
                     onClick={this.nextPage}
                     disabled={lastPage}
                 >
                     <NextIcon/>
-                </button>
+                </Button>
             </div>
         );
     };

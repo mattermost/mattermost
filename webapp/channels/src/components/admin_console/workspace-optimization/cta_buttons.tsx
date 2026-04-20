@@ -4,6 +4,8 @@
 import React from 'react';
 import {useHistory} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import './dashboard.scss';
 
 type CtaButtonsProps = {
@@ -44,12 +46,13 @@ const CtaButtons = ({
                 </button>
             )}
             {learnMoreLink && learnMoreText && (
-                <button
-                    className='btn btn-tertiary btn-sm learnMoreButton'
+                <Button
+                    emphasis='tertiary'
+                    size='sm'
                     onClick={getClickHandler('learn-more', learnMoreLink)}
                 >
                     {learnMoreText}
-                </button>
+                </Button>
             )}
         </div>
     );

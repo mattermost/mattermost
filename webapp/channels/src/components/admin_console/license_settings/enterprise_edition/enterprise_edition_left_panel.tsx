@@ -8,6 +8,7 @@ import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineM
 import {useSelector} from 'react-redux';
 
 import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -159,8 +160,8 @@ const EnterpriseEditionLeftPanel = ({
                             })}
                             disabled={!isLicenseSetByEnvVar}
                         >
-                            <button
-                                className='btn btn-primary upload-license-btn'
+                            <Button
+                                emphasis='primary'
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isLicenseSetByEnvVar}
                             >
@@ -169,7 +170,7 @@ const EnterpriseEditionLeftPanel = ({
                                     id='admin.license.uploadLicense'
                                     defaultMessage='Upload license'
                                 />
-                            </button>
+                            </Button>
                         </WithTooltip>
                         <input
                             ref={fileInputRef}
@@ -438,8 +439,8 @@ const renderAddNewLicenseButton = (
                 })}
                 disabled={!isLicenseSetByEnvVar}
             >
-                <button
-                    className={'btn btn-secondary'}
+                <Button
+                    emphasis='secondary'
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isLicenseSetByEnvVar}
                 >
@@ -447,7 +448,7 @@ const renderAddNewLicenseButton = (
                         id='admin.license.keyAddNew'
                         defaultMessage='Add a new license'
                     />
-                </button>
+                </Button>
             </WithTooltip>
             <input
                 ref={fileInputRef}

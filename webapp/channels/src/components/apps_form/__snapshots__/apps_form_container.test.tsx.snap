@@ -232,14 +232,14 @@ exports[`components/apps_form/AppsFormContainer should match snapshot 1`] = `
             >
               <div>
                 <button
-                  class="btn btn-tertiary cancel-button"
+                  class="btn btn-tertiary"
                   id="appsModalCancel"
                   type="button"
                 >
                   Cancel
                 </button>
                 <button
-                  class="btn btn-primary save-button"
+                  class="btn btn-primary"
                   id="appsModalSubmit"
                   type="submit"
                 >

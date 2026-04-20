@@ -1744,7 +1744,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary next"
         type="button"
       >
         <i
@@ -2612,7 +2612,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         21 - 40 of 55
       </div>
       <button
-        class="btn btn-tertiary prev "
+        class="btn btn-tertiary prev"
         type="button"
       >
         <i
@@ -2621,7 +2621,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         />
       </button>
       <button
-        class="btn btn-tertiary next "
+        class="btn btn-tertiary next"
         type="button"
       >
         <i
@@ -3284,7 +3284,7 @@ exports[`components/admin_console/group_settings/group_details/GroupUsers should
         41 - 55 of 55
       </div>
       <button
-        class="btn btn-tertiary prev "
+        class="btn btn-tertiary prev"
         type="button"
       >
         <i

@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import ExternalLink from 'components/external_link';
 
@@ -65,21 +66,22 @@ export default function SaveConfirmationModal({onExited, onConfirm, title, subti
                 }
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
-                </button>
-                <button
+                </Button>
+                <Button
                     data-testid='save-confirmation-button'
                     type='button'
-                    className='btn btn-primary btn-danger'
+                    emphasis='primary'
+                    variant='destructive'
                     onClick={() => onConfirm?.()}
                 >
                     {buttonText}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

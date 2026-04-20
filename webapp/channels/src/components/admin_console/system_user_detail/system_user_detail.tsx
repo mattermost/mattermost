@@ -1368,8 +1368,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         })}
                                         disabled={this.state.user?.auth_service !== Constants.MAGIC_LINK_SERVICE}
                                     >
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.toggleOpenModalResetPassword}
                                             disabled={this.state.user?.auth_service === Constants.MAGIC_LINK_SERVICE}
                                         >
@@ -1377,22 +1377,22 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.resetPwd'
                                                 defaultMessage='Reset Password'
                                             />
-                                        </button>
+                                        </Button>
                                     </WithTooltip>
                                     {this.state.user?.mfa_active && (
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.handleRemoveMFA}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.resetMfa'
                                                 defaultMessage='Remove MFA'
                                             />
-                                        </button>
+                                        </Button>
                                     )}
                                     {this.state.user?.delete_at !== 0 && (
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.handleActivateUser}
                                             disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
@@ -1401,11 +1401,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage='Activate'
                                             />
                                             {this.getManagedByLdapText()}
-                                        </button>
+                                        </Button>
                                     )}
                                     {this.state.user?.delete_at === 0 && (
-                                        <button
-                                            className='btn btn-secondary btn-danger'
+                                        <Button
+                                            emphasis='secondary'
+                                            variant='destructive'
                                             onClick={this.toggleOpenModalDeactivateMember}
                                             disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
@@ -1414,7 +1415,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage='Deactivate'
                                             />
                                             {this.getManagedByLdapText()}
-                                        </button>
+                                        </Button>
                                     )}
 
                                     {
@@ -1516,9 +1517,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             onClick={this.handleSubmit}
                         />
                         {this.hasUnsavedChanges() && (
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={this.handleCancel}
                                 disabled={this.state.isSaving}
                                 style={{marginLeft: '12px'}}
@@ -1527,7 +1528,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     id='admin.user_item.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </button>
+                            </Button>
                         )}
                     </div>
                     <div

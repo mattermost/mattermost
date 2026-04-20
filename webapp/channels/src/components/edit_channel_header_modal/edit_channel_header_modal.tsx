@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
@@ -272,27 +273,27 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.hideModal}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         disabled={this.state.saving}
                         type='button'
-                        className='btn btn-primary save-button'
+                        emphasis='primary'
                         onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );

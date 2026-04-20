@@ -11,7 +11,7 @@ exports[`components/admin_console/workspace-optimization/cta_buttons should matc
       Action Text
     </button>
     <button
-      class="btn btn-tertiary btn-sm learnMoreButton"
+      class="btn btn-tertiary btn-sm"
     >
       Learn More
     </button>

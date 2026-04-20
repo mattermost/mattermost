@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Redirect} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
@@ -94,15 +95,16 @@ const Recaps = () => {
                     )}
                 </div>
                 {!hasNoRecaps && (
-                    <button
-                        className='btn btn-tertiary recap-add-button'
+                    <Button
+                        emphasis='tertiary'
+                        className='recap-add-button'
                         onClick={handleAddRecap}
                         disabled={!agentsBridgeEnabled.available}
                         title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
                     >
                         <PlusIcon size={12}/>
                         {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                    </button>
+                    </Button>
                 )}
             </div>
 
