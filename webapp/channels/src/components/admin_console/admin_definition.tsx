@@ -2275,7 +2275,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             key: 'MobileSecuritySettings.EphemeralMode',
                             title: 'Mobile Ephemeral Mode',
-                            description: defineMessage({id: 'admin.mobileSecurity.sections.ephemeralMode.description', defaultMessage: 'Configure Mobile Ephemeral Mode to control how mobile clients handle data persistence. When enabled, mobile devices will follow server-configured policies for data retention and cache management.'}),
+                            description: defineMessage({id: 'admin.mobileSecurity.sections.ephemeralMode.description', defaultMessage: 'Configure data persistence and cache management policies for mobile devices.'}),
                             license_sku: LicenseSkus.EnterpriseAdvanced,
                             component: LicensedSectionContainer,
                             componentProps: {
@@ -2304,7 +2304,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'number',
                                     key: 'MobileEphemeralModeSettings.DisconnectionTimeoutSeconds',
                                     label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutTitle', defaultMessage: 'Disconnection Timeout (seconds):'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutDescription', defaultMessage: 'Grace period before a disconnected app is considered offline. The server connection must fail for the full duration before the Data Persistence Timer begins. This prevents false triggers from brief network interruptions such as momentary mobile signal loss. Setting this below 5 seconds is not recommended as it may cause unnecessary content deletion during normal connectivity fluctuations.'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutDescription', defaultMessage: 'Grace period after losing server connection before the device is considered offline. Helps avoid false triggers from brief network interruptions. Values below 5 are not recommended.'}),
                                     isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
                                     validate: (value: number) => {
                                         const maxResult = validators.maxValue(
@@ -2324,8 +2324,8 @@ const AdminDefinition: AdminDefinitionType = {
                                     type: 'number',
                                     key: 'MobileEphemeralModeSettings.OfflinePersistenceTimerHours',
                                     label: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceTitle', defaultMessage: 'Offline Persistence Timer (hours):'}),
-                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceDescription', defaultMessage: 'Controls how long cached content is kept after the device loses server connectivity. When this timer expires, cached content is deleted while session credentials are preserved. Set to 0 to delete cached content as soon as the device is considered offline (see Disconnection Timeout).'}),
-                                    disabled_help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.disabled', defaultMessage: 'This setting is only configurable when Mobile Ephemeral Mode is enabled and Auto Cache Cleanup is not set to 0 (zero-persistence mode).'}),
+                                    help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistenceDescription', defaultMessage: 'How long cached content is kept after the device goes offline. When the timer expires, cached content is deleted but session credentials are preserved. Set to 0 for immediate cleanup.'}),
+                                    disabled_help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.disabled', defaultMessage: 'How long cached content is kept after the device goes offline. When the timer expires, cached content is deleted but session credentials are preserved. Set to 0 for immediate cleanup. Requires Mobile Ephemeral Mode to be enabled and Auto Cache Cleanup to be greater than 0.'}),
                                     isDisabled: it.any(
                                         it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
                                         it.stateEquals('MobileEphemeralModeSettings.AutoCacheCleanupDays', 0),
