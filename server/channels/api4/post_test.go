@@ -4636,7 +4636,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	require.Eventually(t, func() bool {
 		infos, resp, err = client.GetFileInfosForPost(context.Background(), post.Id, "")
 		return err == nil && len(infos) == 3
-	}, 10*time.Second, 200*time.Millisecond, "expected 3 file infos, got %d", len(infos))
+	}, 10*time.Second, 200*time.Millisecond, "expected 3 file infos")
 
 	found := false
 	for _, info := range infos {
