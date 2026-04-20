@@ -1104,3 +1104,164 @@ func TestDeleteCPAValues(t *testing.T) {
 		require.Len(t, values, 3)
 	})
 }
+
+func TestCreateCPAField_RejectsInvalidName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	tests := []struct {
+		name      string
+		fieldName string
+		wantErrID string
+	}{
+		{
+			name:      "space in name",
+			fieldName: "My Field",
+			wantErrID: "model.cpa_field.name.invalid_charset.app_error",
+		},
+		{
+			name:      "leading digit",
+			fieldName: "7department",
+			wantErrID: "model.cpa_field.name.invalid_charset.app_error",
+		},
+		{
+			name:      "reserved word in",
+			fieldName: "in",
+			wantErrID: "model.cpa_field.name.reserved_word.app_error",
+		},
+		{
+			name:      "reserved word true",
+			fieldName: "true",
+			wantErrID: "model.cpa_field.name.reserved_word.app_error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+				Name: tt.fieldName,
+				Type: model.PropertyFieldTypeText,
+			})
+			require.NoError(t, err)
+
+			_, appErr := th.App.CreateCPAField(rctx, field)
+			require.NotNil(t, appErr, "expected error for name %q", tt.fieldName)
+			require.Equal(t, tt.wantErrID, appErr.Id)
+		})
+	}
+}
+
+func TestCreateCPAField_AcceptsValidName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	validNames := []string{"department", "_private", "A1", "a_b_c", "Department", "DEPT"}
+	for _, n := range validNames {
+		t.Run(n, func(t *testing.T) {
+			field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+				Name: n,
+				Type: model.PropertyFieldTypeText,
+			})
+			require.NoError(t, err)
+
+			created, appErr := th.App.CreateCPAField(rctx, field)
+			require.Nil(t, appErr, "unexpected error for name %q: %v", n, appErr)
+			require.NotEmpty(t, created.ID)
+
+			_ = th.App.DeleteCPAField(rctx, created.ID)
+		})
+	}
+}
+
+func TestPatchCPAField_GrandfatherSkipsValidationOnUnchangedName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaID, cErr := th.App.CpaGroupID()
+	require.Nil(t, cErr)
+
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	// Seed a field with an invalid CPA name directly via CreatePropertyField (bypassing CPA validation).
+	// This simulates a pre-existing legacy field whose name violates the new CEL rule.
+	legacyField, err := th.App.CreatePropertyField(rctx, &model.PropertyField{
+		GroupID: cpaID,
+		Name:    "My Legacy Field",
+		Type:    model.PropertyFieldTypeText,
+		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet},
+	}, false, "")
+	require.Nil(t, err)
+	defer func() { _ = th.App.DeleteCPAField(rctx, legacyField.ID) }()
+
+	t.Run("patching only visibility leaves invalid name unchanged (grandfather passes)", func(t *testing.T) {
+		newVisibility := model.CustomProfileAttributesVisibilityAlways
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsVisibility: newVisibility,
+			},
+		}
+		patched, appErr := th.App.PatchCPAField(rctx, legacyField.ID, patch)
+		require.Nil(t, appErr, "grandfather: patching non-name attrs on a legacy field must not trigger validation")
+		require.Equal(t, "My Legacy Field", patched.Name, "name must remain unchanged")
+		require.Equal(t, newVisibility, patched.Attrs.Visibility)
+	})
+
+	t.Run("patching name to another invalid value returns validation error", func(t *testing.T) {
+		stillInvalidName := "still invalid name"
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer(stillInvalidName),
+		}
+		_, appErr := th.App.PatchCPAField(rctx, legacyField.ID, patch)
+		require.NotNil(t, appErr, "renaming to an invalid name must be rejected")
+		require.Equal(t, "model.cpa_field.name.invalid_charset.app_error", appErr.Id)
+	})
+
+	t.Run("patching name to a valid value succeeds", func(t *testing.T) {
+		validName := "my_legacy_field"
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer(validName),
+		}
+		patched, appErr := th.App.PatchCPAField(rctx, legacyField.ID, patch)
+		require.Nil(t, appErr, "renaming to a valid CEL identifier must succeed")
+		require.Equal(t, validName, patched.Name)
+	})
+}
+
+// TestCreatePropertyField_BypassesCPANameValidation_ExpectedBehavior asserts the documented
+// Option C bypass: the generic property-field App API does NOT enforce the CPA name regex
+// on master. This is intentional and time-bounded.
+//
+// PR #36173's AttributeValidationHook will close the bypass at the property-service layer.
+// Do NOT "fix" this test by adding CPA name validation in App.CreatePropertyField ahead of
+// #36173 landing — doing so would conflict with @davidkrauser's diff.
+//
+// See spec.md §Out of Scope and PLAN-server.md §Architecture Overview for full context.
+func TestCreatePropertyField_BypassesCPANameValidation_ExpectedBehavior(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaID, cErr := th.App.CpaGroupID()
+	require.Nil(t, cErr)
+
+	rctx := th.emptyContextWithCallerID(anonymousCallerId)
+
+	// "My Field" violates CPAFieldNamePattern — would be rejected by CreateCPAField.
+	// Via CreatePropertyField (the generic property API), it must succeed.
+	field := &model.PropertyField{
+		GroupID: cpaID,
+		Name:    "My Field",
+		Type:    model.PropertyFieldTypeText,
+	}
+
+	created, appErr := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, appErr,
+		"CreatePropertyField must NOT enforce the CPA name regex on master — "+
+			"that enforcement belongs to PR #36173's AttributeValidationHook")
+	require.NotEmpty(t, created.ID)
+
+	_ = th.App.DeleteCPAField(rctx, created.ID)
+}

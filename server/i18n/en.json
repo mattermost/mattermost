@@ -5903,6 +5903,10 @@
     "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
   },
   {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
+    "translation": "CPA field display_name exceeds the maximum length of {{.MaxRunes}} characters."
+  },
+  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search User Attribute fields"
   },
@@ -11299,6 +11303,14 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
+  },
+  {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Invalid CPA field name '{{.Name}}': must match ^[A-Za-z_][A-Za-z0-9_]*$ (CEL identifier rule)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Invalid CPA field name '{{.Name}}': this is a CEL reserved word and cannot be used as a field identifier."
   },
   {
     "id": "model.dcr.is_valid.client_name.app_error",
