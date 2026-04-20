@@ -81,7 +81,7 @@ func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 func (th *TestHelper) RegisterPropertyGroup(tb testing.TB, version int) *model.PropertyGroup {
 	tb.Helper()
 	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{
-		Name:    "testgroup" + model.NewId(),
+		Name:    model.NewId(),
 		Version: version,
 	})
 	require.NoError(tb, err)

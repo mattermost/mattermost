@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_]*$`)
+var validPropertyGroupNameRegex = regexp.MustCompile(`^[a-z0-9][a-z0-9_]*$`)
 
 const (
 	PropertyGroupVersionV1 = 1
@@ -55,7 +55,7 @@ func (pg *PropertyGroup) IsValid() *AppError {
 	return nil
 }
 
-// IsValidPropertyGroupName checks that the name matches [a-z][a-z0-9_]*.
+// IsValidPropertyGroupName checks that the name matches [a-z0-9][a-z0-9_]*.
 // Names starting with "_" are reserved.
 func IsValidPropertyGroupName(name string) bool {
 	return name != "" && validPropertyGroupNameRegex.MatchString(name)

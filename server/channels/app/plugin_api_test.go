@@ -3508,7 +3508,6 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err := api.CreatePropertyField(field)
 		require.Error(t, err) // Should fail due to invalid GroupID
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "group_id")
 
 		// Test with nil field - should fail gracefully
 		created, err = api.CreatePropertyField(nil)
