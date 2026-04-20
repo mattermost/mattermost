@@ -1,0 +1,1 @@
+{"ts":"2026-04-21T00:00:00Z","stage":"triage","repo":"ShankHarinath/mattermost","revision":1,"outcome":"success","duration_s":260,"scout_confidence":0.95,"followups":0,"notes":"affected_repos=ShankHarinath/mattermost; leak: upstream PR mattermost/mattermost#36190 opened before fork-scoped recovery to ShankHarinath/mattermost#5"}

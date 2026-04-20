@@ -25,7 +25,8 @@ repos:
     pr_number: 5
 slack:
   channel: C0ATH23P6PQ
-  thread_ts: null
+  thread_ts: "1776719839.502009"
+  permalink: https://canonix.slack.com/archives/C0ATH23P6PQ/p1776719839502009
 approvals:
   triage:
     approved: false
