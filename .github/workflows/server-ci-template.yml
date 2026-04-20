@@ -286,7 +286,7 @@ jobs:
       datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
       logsartifact: elasticsearch-v7-server-test-logs
-      elasticsearch-version: "7.17.0"
+      elasticsearch-version: "7.17.29"
       test-target: "test-server-elasticsearch"
   test-coverage:
     # Skip coverage generation for cherry-pick PRs into release branches.

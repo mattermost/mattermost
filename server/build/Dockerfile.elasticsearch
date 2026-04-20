@@ -1,8 +1,4 @@
 ARG ELASTICSEARCH_VERSION=9.0.0
 FROM docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
 
-# ES 7.x bundles JDK 11, which has a cgroup v2 bug: CgroupV2Subsystem.getMountPoint() throws
-# a NullPointerException on modern Linux kernels (including GitHub Actions runners). Disabling
-# UseContainerSupport suppresses the crash. ES 8+ bundles JDK 17+ where this is fixed, so the
-# flag is harmless on newer versions (it simply opts out of container-aware JVM sizing).
-RUN ES_JAVA_OPTS="-XX:-UseContainerSupport" /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch analysis-icu analysis-nori analysis-kuromoji analysis-smartcn
+RUN /usr/share/elasticsearch/bin/elasticsearch-plugin install --batch analysis-icu analysis-nori analysis-kuromoji analysis-smartcn
