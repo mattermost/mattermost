@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button} from 'react-bootstrap';
 
 import PermissionRow from 'components/admin_console/permission_schemes_settings/permission_row';
 
@@ -62,7 +61,7 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
         const ADDITIONAL_VALUES = {
             edit_post: {
                 editTimeLimitButton: (
-                    <Button
+                    <button
                         onClick={jest.fn()}
                     />
                 ),

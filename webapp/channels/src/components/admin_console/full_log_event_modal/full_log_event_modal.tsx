@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState, memo} from 'react';
-import {Button, Modal} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {LogObject} from '@mattermost/types/admin';
 
 type Props = {
@@ -57,7 +58,10 @@ const FullLogEventModal = ({
                         defaultMessage='Data copied'
                     />
                 ) : (
-                    <Button onClick={copyLog}>
+                    <Button
+                        emphasis='quaternary'
+                        onClick={copyLog}
+                    >
                         <FormattedMessage
                             id='admin.server_logs.CopyLog'
                             defaultMessage='Copy log'
@@ -75,16 +79,16 @@ const FullLogEventModal = ({
                 }
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={onModalDismissed}
                 >
                     <FormattedMessage
                         id='admin.manage_roles.cancel'
                         defaultMessage='Cancel'
                     />
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

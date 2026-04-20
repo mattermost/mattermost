@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -196,7 +196,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                     <div className='terms-of-service__footer medium-center'>
                         <div className='terms-of-service__button-group'>
                             <Button
-                                bsStyle={'primary'}
+                                emphasis={'primary'}
                                 disabled={this.state.loadingAgree || this.state.loadingDisagree}
                                 id='acceptTerms'
                                 onClick={this.handleAcceptTerms}
@@ -209,8 +209,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                                 />
                             </Button>
                             <Button
-                                bsStyle={'default'}
-                                className='btn-quaternary'
+                                emphasis={'quaternary'}
                                 disabled={this.state.loadingAgree || this.state.loadingDisagree}
                                 id='rejectTerms'
                                 onClick={this.handleRejectTerms}

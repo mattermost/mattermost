@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button, Modal} from 'react-bootstrap';
+import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
+
+import {Button} from '@mattermost/shared/components/button';
 
 import AirgappedTrialActivationConfirmSvg from 'components/common/svg_images_components/airgapped_trial_activation_confirm_svg';
 import ExternalLink from 'components/external_link';
@@ -62,7 +64,7 @@ function AirGappedModal({onClose}: Props) {
                 </div>
                 <div className='buttons'>
                     <Button
-                        className='btn btn-primary'
+                        emphasis='primary'
                         onClick={() => onClose?.()}
                     >
                         {formatMessage({id: 'air_gapped_modal.close', defaultMessage: 'Close'})}
