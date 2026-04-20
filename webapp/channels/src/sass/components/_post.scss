@@ -599,27 +599,6 @@
         }
     }
 
-    .browser--ie & {
-        .post__header {
-            .col__reply {
-                .comment-icon__container {
-                    flex: 0 1 auto;
-                    align-items: center;
-                }
-
-                > .open,
-                > div {
-                    flex: 0 1 30px;
-                    align-items: center;
-
-                    &:first-child {
-                        flex: 0 1 25px;
-                    }
-                }
-            }
-        }
-    }
-
     &.post--system {
         .post__header {
             .post-menu {

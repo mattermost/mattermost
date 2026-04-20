@@ -8,10 +8,10 @@
 
 import {
     expect,
+    getRandomId,
     hasCustomPermissionsSchemesLicense,
     hasSharedChannelsLicense,
     test,
-    getRandomId,
 } from '@mattermost/playwright-lib';
 
 /**
@@ -55,7 +55,7 @@ async function deleteAllRemoteClusters(adminClient: {
  * and workspaces to appear in the workspace selector.
  */
 async function ensureConfirmedRemote(adminClient: ClientWithRemotes, teamId: string): Promise<void> {
-    const suffix = await getRandomId();
+    const suffix = getRandomId();
     const password = `e2e-remote-pwd-${suffix}`;
     const {invite} = await adminClient.createRemoteCluster({
         name: `e2e-remote-${suffix}`,
@@ -86,7 +86,7 @@ test.describe('Shared channel configuration', () => {
             },
         });
 
-        const channelName = `shared-config-01-${await getRandomId()}`;
+        const channelName = `shared-config-01-${getRandomId()}`;
         await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -118,7 +118,7 @@ test.describe('Shared channel configuration', () => {
             },
         });
 
-        const channelName = `shared-config-02-${await getRandomId()}`;
+        const channelName = `shared-config-02-${getRandomId()}`;
         await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -152,7 +152,7 @@ test.describe('Shared channel configuration', () => {
 
         await deleteAllRemoteClusters(adminClient);
 
-        const channelName = `shared-config-03-${await getRandomId()}`;
+        const channelName = `shared-config-03-${getRandomId()}`;
         await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -201,7 +201,7 @@ test.describe('Shared channel configuration', () => {
         ];
         await adminClient.patchRole(channelRole.id, {permissions: channelPermissions});
 
-        const channelName = `shared-config-04-${await getRandomId()}`;
+        const channelName = `shared-config-04-${getRandomId()}`;
         const channel = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -240,7 +240,7 @@ test.describe('Shared channel configuration', () => {
             test.skip(true, 'Skipping - Remote Cluster Service not available or invitation handshake failed');
         }
 
-        const channelName = `shared-config-06-${await getRandomId()}`;
+        const channelName = `shared-config-06-${getRandomId()}`;
         const channel = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -309,7 +309,7 @@ test.describe('Shared channel configuration', () => {
         const withPermission = [...new Set([...(systemRole.permissions as string[]), 'manage_shared_channels'])];
         await adminClient.patchRole(systemRole.id, {permissions: withPermission});
 
-        const channelName = `shared-config-10-${await getRandomId()}`;
+        const channelName = `shared-config-10-${getRandomId()}`;
         const channel = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -371,7 +371,7 @@ test.describe('Shared channel configuration', () => {
         await adminClient.addToTeam(team.id, sharedChannelUser.id);
         await adminClient.updateUserRoles(sharedChannelUser.id, 'system_user system_shared_channel_manager');
 
-        const channelName = `shared-config-permissions-${await getRandomId()}`;
+        const channelName = `shared-config-permissions-${getRandomId()}`;
         const channel = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,

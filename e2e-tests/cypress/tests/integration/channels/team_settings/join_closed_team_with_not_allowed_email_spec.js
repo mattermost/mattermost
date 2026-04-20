@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getRandomId, stubClipboard, newTestPassword} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getRandomId, stubClipboard, newTestPassword} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
