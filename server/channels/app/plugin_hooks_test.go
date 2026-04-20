@@ -2129,7 +2129,7 @@ func TestHookServeMetrics(t *testing.T) {
 		})
 
 		// Register the metrics handler
-		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
 
 		// Get the metrics router
 		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
@@ -2140,7 +2140,7 @@ func TestHookServeMetrics(t *testing.T) {
 		defer server.Close()
 
 		// Make a request to the metrics endpoint
-		resp, err := http.Get(server.URL + "/test-metrics")
+		resp, err := http.Get(server.URL + "/metrics")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -2230,7 +2230,7 @@ func TestHookServeMetrics(t *testing.T) {
 		})
 
 		// Register the metrics handler
-		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
 
 		// Get the metrics router
 		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
@@ -2241,7 +2241,7 @@ func TestHookServeMetrics(t *testing.T) {
 		defer server.Close()
 
 		// Make a request to the metrics endpoint
-		resp, err := http.Get(server.URL + "/test-metrics")
+		resp, err := http.Get(server.URL + "/metrics")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
@@ -2298,7 +2298,7 @@ func TestHookServeMetrics(t *testing.T) {
 		})
 
 		// Register the metrics handler
-		th.App.Srv().Platform().HandleMetrics("/test-metrics", handler)
+		th.App.Srv().Platform().HandleMetrics("/metrics", handler)
 
 		// Get the metrics router
 		metricsRouter := th.App.Srv().Platform().GetMetricsRouter()
@@ -2309,7 +2309,7 @@ func TestHookServeMetrics(t *testing.T) {
 		defer server.Close()
 
 		// Make a request to the metrics endpoint
-		resp, err := http.Get(server.URL + "/test-metrics")
+		resp, err := http.Get(server.URL + "/metrics")
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
