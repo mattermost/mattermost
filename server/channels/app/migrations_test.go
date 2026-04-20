@@ -57,14 +57,23 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	})
 }
 
+// clearCPABackfillMarker removes the System-key marker for the CPA display_name backfill
+// so the migration body actually executes when called from a test. Setup(t) runs
+// doAppMigrations which now includes the backfill; without clearing, the System key is
+// already at v1 and doSetupCPADisplayNameBackfill short-circuits at the idempotency check
+// — the test would then pass for the wrong reason.
+func clearCPABackfillMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, err, "failed to clear CPA backfill marker for test isolation")
+}
+
 func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 	th := Setup(t)
 
-	// Clear any prior backfill marker so the migration body executes against an empty CPA group.
-	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
-	require.NoError(t, err)
+	clearCPABackfillMarker(t, th)
 
-	err = th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill()
 	require.NoError(t, err)
 
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -76,9 +85,12 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	th := Setup(t)
 
-	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
-	require.NoError(t, err)
+	clearCPABackfillMarker(t, th)
 
+	// fieldA exercises the "display_name present as empty string in JSONB" case — the true
+	// idempotency boundary. Phase 1's ToPropertyField always writes the key into the underlying
+	// StringInterface map, so a Phase-1-but-pre-Phase-2 field is stored with an explicit empty
+	// value, not a missing key.
 	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: "department",
 		Type: model.PropertyFieldTypeText,
@@ -98,7 +110,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "Job Title", fieldB.Attrs.DisplayName, "seed invariant: fieldB must have display_name set")
 
-	err = th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill()
 	require.NoError(t, err)
 
 	updatedFieldA, appErr := th.App.GetCPAField(th.Context, fieldA.ID)
@@ -120,8 +132,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	th := Setup(t)
 
-	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
-	require.NoError(t, err)
+	clearCPABackfillMarker(t, th)
 
 	fieldBase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: "location",
@@ -131,7 +142,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	seeded, appErr := th.App.CreateCPAField(th.Context, fieldBase)
 	require.Nil(t, appErr)
 
-	err = th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill()
 	require.NoError(t, err)
 
 	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -141,6 +152,13 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	updatedAfterFirst, appErr := th.App.GetCPAField(th.Context, seeded.ID)
 	require.Nil(t, appErr)
 	require.Equal(t, "location", updatedAfterFirst.Attrs.DisplayName)
+
+	// Snapshot UpdateAt before the second run so we can prove the second run is a no-op
+	// at the DB-write level. PropertyField.UpdateAt is set to model.GetMillis() on every
+	// write, so a re-run would change it. (model.System exposes only Name + Value, so the
+	// System key cannot be probed the same way; the System-key SaveOrUpdate is gated by
+	// the same short-circuit that gates the field write, so the field check is sufficient.)
+	firstFieldUpdate := updatedAfterFirst.UpdateAt
 
 	// Second run: idempotency check fires immediately, returns nil without any DB writes.
 	err = th.Server.doSetupCPADisplayNameBackfill()
@@ -154,4 +172,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "location", updatedAfterSecond.Attrs.DisplayName,
 		"second run must not change display_name")
+
+	require.Equal(t, firstFieldUpdate, updatedAfterSecond.UpdateAt,
+		"second run must not re-write the field row")
 }
