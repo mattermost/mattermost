@@ -4,6 +4,8 @@
 import {createMemoryHistory} from 'history';
 import React from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {RequestStatus} from 'mattermost-redux/constants';
 
 import * as loginActions from 'actions/views/login';
@@ -16,7 +18,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {showNotification} from 'utils/notifications';
-import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -32,7 +33,7 @@ jest.mock('utils/desktop_api', () => ({
     setSessionExpired: jest.fn(),
 }));
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 

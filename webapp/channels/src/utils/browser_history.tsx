@@ -4,10 +4,11 @@
 import {createBrowserHistory} from 'history';
 import type {History} from 'history';
 
+import {isDesktopApp, getDesktopVersion} from '@mattermost/shared/utils/user_agent';
+
 import {getModule} from 'module_registry';
 import DesktopApp from 'utils/desktop_api';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 const b = createBrowserHistory({basename: window.basename});
 const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '5.0.0');
