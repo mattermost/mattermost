@@ -298,7 +298,7 @@ func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) 
 	for _, value := range values {
 		field, ok := fieldMap[value.FieldID]
 		if !ok {
-			return fmt.Errorf("field %s not found", value.FieldID)
+			return fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
 		if err := h.validateValueAgainstField(field, value); err != nil {
 			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)

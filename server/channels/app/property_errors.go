@@ -13,10 +13,11 @@ import (
 
 // mapPropertyServiceError translates known sentinel errors from the property
 // service / PropertyHook chain into HTTP-shaped AppErrors. Returns nil if err
-// is not a recognised sentinel; callers should fall back to wrapping with
-// their own default 500 in that case.
+// is not a recognised sentinel and does not wrap an AppError; callers should
+// fall back to wrapping with their own default 500 in that case.
 //
-// Already-typed AppErrors are returned as-is.
+// Sentinel matches take priority over a wrapped AppError so that hook code
+// wrapping an inner AppError with a sentinel still drives the mapping.
 //
 // User-facing DetailedError is left empty on access-control rejections to
 // avoid leaking field IDs, plugin IDs, and sync source names. The full
@@ -24,11 +25,6 @@ import (
 func mapPropertyServiceError(where string, err error) *model.AppError {
 	if err == nil {
 		return nil
-	}
-
-	var appErr *model.AppError
-	if errors.As(err, &appErr) {
-		return appErr
 	}
 
 	switch {
@@ -52,6 +48,13 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 		return model.NewAppError(where, "app.property_field.managed_admin.permission.app_error", nil, "", http.StatusForbidden).Wrap(err)
 	case errors.Is(err, properties.ErrSanitization):
 		return model.NewAppError(where, "app.property_value.sanitization.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, properties.ErrFieldNotFound):
+		return model.NewAppError(where, "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	var appErr *model.AppError
+	if errors.As(err, &appErr) {
+		return appErr
 	}
 
 	return nil

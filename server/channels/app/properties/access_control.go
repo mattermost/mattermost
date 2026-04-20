@@ -32,6 +32,7 @@ var (
 	ErrAccessDenied      = errors.New("access denied")
 	ErrSyncLocked        = errors.New("field is managed by external sync")
 	ErrInvalidAccessMode = errors.New("invalid access_mode")
+	ErrFieldNotFound     = errors.New("property field not found")
 )
 
 const (
@@ -181,7 +182,7 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 	for _, field := range fields {
 		existingField, exists := existingFieldMap[field.ID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", field.ID)
+			return nil, fmt.Errorf("field %s: %w", field.ID, ErrFieldNotFound)
 		}
 
 		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
@@ -295,7 +296,7 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
@@ -342,7 +343,7 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
@@ -389,7 +390,7 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, ErrFieldNotFound)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
 			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
@@ -437,7 +438,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 	for {
 		iterations++
 		if iterations > propertyAccessMaxPaginationIterations {
-			return fmt.Errorf("PreDeletePropertyValuesForTarget: exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+			return fmt.Errorf("exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
 		}
 
 		opts := model.PropertyValueSearchOpts{
@@ -687,7 +688,7 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	case "saml":
 		expectedCallerID = model.CallerIDSAMLSync
 	default:
-		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrSyncLocked)
+		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrInvalidFieldAttrs)
 	}
 
 	if callerID != expectedCallerID {
@@ -719,7 +720,7 @@ func (h *AccessControlHook) getCallerValuesForField(groupID, fieldID, callerID s
 	for {
 		iterations++
 		if iterations > propertyAccessMaxPaginationIterations {
-			return nil, fmt.Errorf("getCallerValuesForField: exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
+			return nil, fmt.Errorf("exceeded maximum pagination iterations (%d)", propertyAccessMaxPaginationIterations)
 		}
 
 		opts := model.PropertyValueSearchOpts{

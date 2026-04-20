@@ -64,7 +64,7 @@ func (h *FieldLimitHook) PreCreatePropertyField(_ request.CTX, field *model.Prop
 		if limit, hasLimit := config.PerObjectType[field.ObjectType]; hasLimit {
 			count, err := h.propertyService.countActivePropertyFieldsForGroupObjectType(field.GroupID, field.ObjectType)
 			if err != nil {
-				return nil, fmt.Errorf("PreCreatePropertyField: failed to count fields: %w", err)
+				return nil, fmt.Errorf("failed to count fields: %w", err)
 			}
 			if count >= limit {
 				return nil, fmt.Errorf("limit_reached: field limit of %d reached for object type %q: %w", limit, field.ObjectType, ErrFieldLimitReached)
@@ -76,7 +76,7 @@ func (h *FieldLimitHook) PreCreatePropertyField(_ request.CTX, field *model.Prop
 	if config.GlobalLimit > 0 {
 		count, err := h.propertyService.countActivePropertyFieldsForGroup(field.GroupID)
 		if err != nil {
-			return nil, fmt.Errorf("PreCreatePropertyField: failed to count group fields: %w", err)
+			return nil, fmt.Errorf("failed to count group fields: %w", err)
 		}
 		if count >= config.GlobalLimit {
 			return nil, fmt.Errorf("group_limit_reached: global field limit of %d reached for group: %w", config.GlobalLimit, ErrGroupFieldLimitReached)

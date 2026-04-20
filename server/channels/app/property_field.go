@@ -143,6 +143,9 @@ func (a *App) CountPropertyFieldsForGroup(rctx request.CTX, groupID string, incl
 	}
 
 	if err != nil {
+		if appErr := mapPropertyServiceError("CountPropertyFieldsForGroup", err); appErr != nil {
+			return 0, appErr
+		}
 		return 0, model.NewAppError("CountPropertyFieldsForGroup", "app.property_field.count_for_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return count, nil
@@ -159,6 +162,9 @@ func (a *App) CountPropertyFieldsForTarget(rctx request.CTX, groupID, targetType
 	}
 
 	if err != nil {
+		if appErr := mapPropertyServiceError("CountPropertyFieldsForTarget", err); appErr != nil {
+			return 0, appErr
+		}
 		return 0, model.NewAppError("CountPropertyFieldsForTarget", "app.property_field.count_for_target.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return count, nil
@@ -188,6 +194,9 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 		if err != nil {
+			if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
+				return nil, appErr
+			}
 			return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 

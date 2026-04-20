@@ -7799,6 +7799,10 @@
     "translation": "You do not have permission to mark this property field as admin-managed."
   },
   {
+    "id": "app.property_field.not_found.app_error",
+    "translation": "The specified property field does not exist."
+  },
+  {
     "id": "app.property_field.search.app_error",
     "translation": "Unable to search property fields."
   },
