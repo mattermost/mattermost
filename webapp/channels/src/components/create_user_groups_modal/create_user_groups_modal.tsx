@@ -318,7 +318,6 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                                     deleteUserCallback={this.deleteUserCallback}
                                     backButtonText={defineMessage({id: 'multiselect.cancelButton', defaultMessage: 'Cancel'})}
                                     backButtonClick={this.doHide}
-                                    backButtonClass={'multiselect-back'}
                                     saving={this.state.saving}
                                 />
                             </div>

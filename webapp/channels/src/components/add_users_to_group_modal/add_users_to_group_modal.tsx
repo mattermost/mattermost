@@ -157,7 +157,6 @@ const AddUsersToGroupModal = (props: Props) => {
                                     buttonSubmitText={defineMessage({id: 'multiselect.addPeopleToGroup', defaultMessage: 'Add People'})}
                                     buttonSubmitLoadingText={defineMessage({id: 'multiselect.adding', defaultMessage: 'Adding...'})}
                                     backButtonClick={goBack}
-                                    backButtonClass={'multiselect-back'}
                                     saving={saving}
                                 />
                             </div>

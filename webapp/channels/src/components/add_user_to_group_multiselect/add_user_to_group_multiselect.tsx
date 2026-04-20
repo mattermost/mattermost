@@ -52,7 +52,6 @@ export type Props = {
     buttonSubmitText?: string | MessageDescriptor;
     buttonSubmitLoadingText?: string | MessageDescriptor;
     backButtonClick?: () => void;
-    backButtonClass?: string;
     backButtonText?: string | MessageDescriptor;
 
     actions: {
@@ -241,7 +240,6 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 focusOnLoad={this.props.focusOnLoad}
                 savingEnabled={this.props.savingEnabled}
                 backButtonClick={this.props.backButtonClick}
-                backButtonClass={this.props.backButtonClass}
                 backButtonText={this.props.backButtonText}
                 maxValues={maxValues}
                 numRemainingText={numRemainingText}
