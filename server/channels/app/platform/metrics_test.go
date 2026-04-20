@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -92,39 +93,63 @@ func TestMetricsRouter(t *testing.T) {
 
 func TestAddPluginLabelToMetrics(t *testing.T) {
 	for name, tc := range map[string]struct {
-		input    string
+		input    []string
 		pluginID string
-		expected string
+		expected []string
 	}{
 		"metric without labels": {
-			input:    "my_metric 42\n",
+			input:    []string{"my_metric 42"},
 			pluginID: "com.example.plugin",
-			expected: `my_metric{plugin_id="com.example.plugin"} 42` + "\n\n",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{plugin_id="com.example.plugin"} 42`,
+			},
 		},
 		"metric with existing labels": {
-			input:    `my_metric{env="prod"} 42` + "\n",
+			input:    []string{`my_metric{env="prod"} 42`},
 			pluginID: "com.example.plugin",
-			expected: `my_metric{env="prod",plugin_id="com.example.plugin"} 42` + "\n\n",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{env="prod",plugin_id="com.example.plugin"} 42`,
+			},
 		},
 		"help and type comments are preserved": {
-			input:    "# HELP my_metric A metric\n# TYPE my_metric gauge\nmy_metric 42\n",
+			input: []string{
+				"# HELP my_metric A metric",
+				"# TYPE my_metric gauge",
+				"my_metric 42",
+			},
 			pluginID: "my-plugin",
-			expected: "# HELP my_metric A metric\n# TYPE my_metric gauge\n" + `my_metric{plugin_id="my-plugin"} 42` + "\n\n",
+			expected: []string{
+				"# HELP my_metric A metric",
+				"# TYPE my_metric gauge",
+				`my_metric{plugin_id="my-plugin"} 42`,
+			},
 		},
-		"empty lines are preserved": {
-			input:    "\nmy_metric 1\n",
+		"empty lines are dropped": {
+			// blank lines carry no semantic meaning in Prometheus text format
+			input:    []string{"", "my_metric 1"},
 			pluginID: "p",
-			expected: "\n" + `my_metric{plugin_id="p"} 1` + "\n\n",
+			expected: []string{
+				"# TYPE my_metric untyped",
+				`my_metric{plugin_id="p"} 1`,
+			},
 		},
-		"multiple metrics": {
-			input:    "metric_a 1\nmetric_b 2\n",
+		"multiple metrics are sorted and separated": {
+			input:    []string{"metric_a 1", "metric_b 2"},
 			pluginID: "plug",
-			expected: `metric_a{plugin_id="plug"} 1` + "\n" + `metric_b{plugin_id="plug"} 2` + "\n\n",
+			expected: []string{
+				"# TYPE metric_a untyped",
+				`metric_a{plugin_id="plug"} 1`,
+				"# TYPE metric_b untyped",
+				`metric_b{plugin_id="plug"} 2`,
+			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			result := addPluginLabelToMetrics(tc.input, tc.pluginID)
-			assert.Equal(t, tc.expected, result)
+			actualInput := strings.Join(tc.input, "\n") + "\n"
+			actualExpected := strings.Join(tc.expected, "\n") + "\n"
+			assert.Equal(t, actualExpected, addPluginLabelToMetrics(actualInput, tc.pluginID))
 		})
 	}
 }

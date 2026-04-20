@@ -13,6 +13,7 @@ import (
 	"net/http/pprof"
 	"path"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 	"text/template"
@@ -21,6 +22,9 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
+	prommodel "github.com/prometheus/common/model"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -297,49 +301,45 @@ func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
 	})
 }
 
-// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format
+// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format.
+// It parses using expfmt, mutates the label sets in-place, then re-encodes.
 func addPluginLabelToMetrics(metricsText, pluginID string) string {
+	parser := expfmt.NewTextParser(prommodel.LegacyValidation)
+	families, err := parser.TextToMetricFamilies(strings.NewReader(metricsText))
+	if err != nil && len(families) == 0 {
+		return metricsText
+	}
+
+	label := &dto.LabelPair{
+		Name:  strPtr("plugin_id"),
+		Value: strPtr(pluginID),
+	}
+
+	names := make([]string, 0, len(families))
+	for name := range families {
+		names = append(names, name)
+	}
+	slices.Sort(names)
+
 	var result strings.Builder
-
-	for line := range strings.SplitSeq(metricsText, "\n") {
-		// Skip empty lines, comments (# HELP, # TYPE), and already labeled lines
-		if line == "" || strings.HasPrefix(line, "#") {
-			fmt.Fprintf(&result, "%s\n", line)
-			continue
+	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
+	for _, name := range names {
+		family := families[name]
+		for _, metric := range family.Metric {
+			metric.Label = append(metric.Label, label)
 		}
-
-		// Find the metric name and value parts
-		// Format: metric_name{labels} value
-		// or: metric_name value
-		if idx := strings.IndexAny(line, "{ "); idx != -1 {
-			metricName := line[:idx]
-			rest := line[idx:]
-
-			if rest[0] == '{' {
-				// Already has labels: metric_name{existing="labels"} value
-				// Find the closing brace and insert our label
-				closeBrace := strings.Index(rest, "}")
-				if closeBrace != -1 {
-					// Insert plugin_id at the end of existing labels
-					fmt.Fprintf(&result, "%s%s,plugin_id=\"%s\"%s\n",
-						metricName, rest[:closeBrace], pluginID, rest[closeBrace:])
-				} else {
-					// Malformed, keep as-is
-					fmt.Fprintf(&result, "%s\n", line)
-				}
-			} else {
-				// No labels: metric_name value
-				// Add our label
-				fmt.Fprintf(&result, "%s{plugin_id=\"%s\"}%s\n", metricName, pluginID, rest)
-			}
-		} else {
-			// No space or brace found, keep as-is
-			fmt.Fprintf(&result, "%s\n", line)
+		if encErr := enc.Encode(family); encErr != nil {
+			return metricsText
 		}
+	}
+	if closer, ok := enc.(expfmt.Closer); ok {
+		closer.Close()
 	}
 
 	return result.String()
 }
+
+func strPtr(s string) *string { return &s }
 
 func (ps *PlatformService) RestartMetrics() error {
 	return ps.resetMetrics()
