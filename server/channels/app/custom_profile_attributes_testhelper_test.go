@@ -66,7 +66,7 @@ func (th *TestHelper) ListCPAFields(tb testing.TB) ([]*model.CPAField, *model.Ap
 	pfs, appErr := th.App.SearchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{
 		GroupID:    groupID,
 		ObjectType: model.PropertyFieldObjectTypeUser,
-		PerPage:    200,
+		PerPage:    250,
 	})
 	if appErr != nil {
 		return nil, appErr
@@ -177,7 +177,7 @@ func (th *TestHelper) ListCPAValues(tb testing.TB, userID string) ([]*model.Prop
 	return th.App.SearchPropertyValues(request.TestContext(tb), th.CpaGroupID(tb), model.PropertyValueSearchOpts{
 		TargetIDs:  []string{userID},
 		TargetType: model.PropertyValueTargetTypeUser,
-		PerPage:    200,
+		PerPage:    250,
 	})
 }
 

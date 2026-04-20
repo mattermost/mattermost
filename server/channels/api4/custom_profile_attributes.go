@@ -41,7 +41,7 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	pfs, appErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeUser,
-		PerPage:    200, // global limit for the protected_attributes group
+		PerPage:    250,
 	})
 	if appErr != nil {
 		c.Err = appErr
@@ -314,7 +314,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	values, appErr := c.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
 		TargetIDs:  []string{c.Params.UserId},
 		TargetType: model.PropertyValueTargetTypeUser,
-		PerPage:    200,
+		PerPage:    250,
 	})
 	if appErr != nil {
 		c.Err = appErr
