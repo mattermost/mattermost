@@ -5,6 +5,8 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -34,15 +36,16 @@ export function RevokeSessionsButton() {
 
     return (
         <SystemPermissionGate permissions={[Permissions.REVOKE_USER_ACCESS_TOKEN]}>
-            <button
-                className='btn btn-tertiary btn-danger'
+            <Button
+                emphasis='tertiary'
+                variant='destructive'
                 onClick={handleModalToggle}
             >
                 <FormattedMessage
                     id='admin.system_users.revokeAllSessions'
                     defaultMessage='Revoke All Sessions'
                 />
-            </button>
+            </Button>
             <ConfirmModal
                 show={showModal}
                 title={

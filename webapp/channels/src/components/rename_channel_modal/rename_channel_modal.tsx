@@ -124,16 +124,16 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='generic_btn.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
+                    </Button>
                     <Button
                         type='button'
                         emphasis='primary'

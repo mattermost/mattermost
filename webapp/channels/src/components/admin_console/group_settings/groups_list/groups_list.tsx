@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
@@ -518,22 +519,24 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <button
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames({disabled: firstPage})}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
                         >
                             <PreviousIcon/>
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='button'
-                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
+                            emphasis='tertiary'
+                            className={classNames({disabled: lastPage})}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
                         >
                             <NextIcon/>
-                        </button>
+                        </Button>
                     </div>
                 }
             </div>

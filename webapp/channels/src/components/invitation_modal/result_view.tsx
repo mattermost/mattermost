@@ -90,16 +90,16 @@ export default function ResultView(props: Props) {
                 )}
             </Modal.Body>
             <Modal.Footer className={classNames('InviteView__footer', props.footerClass)}>
-                <button
+                <Button
                     onClick={props.inviteMore}
-                    className='btn btn-tertiary ResultView__inviteMore'
+                    emphasis='tertiary'
                     data-testid='invite-more'
                 >
                     <FormattedMessage
                         id='invitation_modal.invite.more'
                         defaultMessage='Invite More People'
                     />
-                </button>
+                </Button>
                 <Button
                     onClick={props.onDone}
                     emphasis='primary'

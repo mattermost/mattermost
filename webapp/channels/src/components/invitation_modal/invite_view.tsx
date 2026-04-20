@@ -93,7 +93,7 @@ export default function InviteView(props: Props) {
     });
 
     const copyButton = (
-        <button
+        <Button
             onClick={copyText.onClick}
             data-testid='InviteView__copyInviteLink'
             aria-label={
@@ -102,7 +102,7 @@ export default function InviteView(props: Props) {
                     defaultMessage: 'team invite link {inviteURL}',
                 }, {inviteURL})
             }
-            className='btn btn-secondary'
+            emphasis='secondary'
             aria-live='polite'
         >
             {!copyText.copiedRecently && (
@@ -123,7 +123,7 @@ export default function InviteView(props: Props) {
                     />
                 </>
             )}
-        </button>
+        </Button>
     );
 
     const errorProperties = {
