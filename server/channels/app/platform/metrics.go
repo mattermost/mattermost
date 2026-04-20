@@ -242,52 +242,59 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
-	if ps.metrics != nil {
-		wrappedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var buf bytes.Buffer
-
-			// Strip Accept-Encoding to force plaintext response (no gzip)
-			plainReq := r.Clone(r.Context())
-			plainReq.Header.Del("Accept-Encoding")
-
-			rec := httptest.NewRecorder()
-			h.ServeHTTP(rec, plainReq)
-			buf.Write(rec.Body.Bytes())
-
-			if ps.pluginEnv != nil && ps.pluginEnv.GetPluginsEnvironment() != nil {
-				env := ps.pluginEnv.GetPluginsEnvironment()
-				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-					pluginRec := httptest.NewRecorder()
-					pluginReq, err := http.NewRequest("GET", "/metrics", nil)
-					if err != nil {
-						return true
-					}
-
-					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
-
-					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
-						buf.WriteString("\n")
-						// Add plugin_id label to all metrics from this plugin
-						labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id)
-						buf.WriteString(labeledMetrics)
-					}
-
-					return true
-				}, plugin.ServeMetricsID)
-			}
-
-			// Copy content type from main metrics response
-			if contentType := rec.Header().Get("Content-Type"); contentType != "" {
-				w.Header().Set("Content-Type", contentType)
-			}
-			w.WriteHeader(rec.Code)
-			if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
-				mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
-			}
-		})
-
-		ps.metrics.router.Handle(route, wrappedHandler)
+	if ps.metrics == nil {
+		return
 	}
+
+	if route == "/metrics" && ps.Config().FeatureFlags.PluginMetricsCollection {
+		h = ps.wrapMetricsHandler(h)
+	}
+
+	ps.metrics.router.Handle(route, h)
+}
+
+func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+
+		// Strip Accept-Encoding to force plaintext response (no gzip)
+		plainReq := r.Clone(r.Context())
+		plainReq.Header.Del("Accept-Encoding")
+
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, plainReq)
+		buf.Write(rec.Body.Bytes())
+
+		if ps.pluginEnv != nil && ps.pluginEnv.GetPluginsEnvironment() != nil {
+			env := ps.pluginEnv.GetPluginsEnvironment()
+			env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+				pluginRec := httptest.NewRecorder()
+				pluginReq, err := http.NewRequest("GET", "/metrics", nil)
+				if err != nil {
+					return true
+				}
+
+				hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+				if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+					buf.WriteString("\n")
+					labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id)
+					buf.WriteString(labeledMetrics)
+				}
+
+				return true
+			}, plugin.ServeMetricsID)
+		}
+
+		// Copy content type from main metrics response
+		if contentType := rec.Header().Get("Content-Type"); contentType != "" {
+			w.Header().Set("Content-Type", contentType)
+		}
+		w.WriteHeader(rec.Code)
+		if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+			mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+		}
+	})
 }
 
 // addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format

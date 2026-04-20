@@ -104,6 +104,9 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// Collect plugin metrics and serve them on the /metrics endpoint
+	PluginMetricsCollection bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -152,6 +155,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.PluginMetricsCollection = true
 }
 
 // ToMap returns the feature flags as a map[string]string

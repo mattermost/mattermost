@@ -90,7 +90,41 @@ func TestMetricsRouter(t *testing.T) {
 	}
 }
 
-// NOTE: Integration tests for HandleMetrics with plugin ServeMetrics hooks
-// are located in server/server/channels/app/plugin_hooks_test.go
-// Testing plugin hooks at the platform level requires complex mocking of plugin.Environment
-// which is better suited for integration tests in the app package
+func TestAddPluginLabelToMetrics(t *testing.T) {
+	for name, tc := range map[string]struct {
+		input    string
+		pluginID string
+		expected string
+	}{
+		"metric without labels": {
+			input:    "my_metric 42\n",
+			pluginID: "com.example.plugin",
+			expected: `my_metric{plugin_id="com.example.plugin"} 42` + "\n\n",
+		},
+		"metric with existing labels": {
+			input:    `my_metric{env="prod"} 42` + "\n",
+			pluginID: "com.example.plugin",
+			expected: `my_metric{env="prod",plugin_id="com.example.plugin"} 42` + "\n\n",
+		},
+		"help and type comments are preserved": {
+			input:    "# HELP my_metric A metric\n# TYPE my_metric gauge\nmy_metric 42\n",
+			pluginID: "my-plugin",
+			expected: "# HELP my_metric A metric\n# TYPE my_metric gauge\n" + `my_metric{plugin_id="my-plugin"} 42` + "\n\n",
+		},
+		"empty lines are preserved": {
+			input:    "\nmy_metric 1\n",
+			pluginID: "p",
+			expected: "\n" + `my_metric{plugin_id="p"} 1` + "\n\n",
+		},
+		"multiple metrics": {
+			input:    "metric_a 1\nmetric_b 2\n",
+			pluginID: "plug",
+			expected: `metric_a{plugin_id="plug"} 1` + "\n" + `metric_b{plugin_id="plug"} 2` + "\n\n",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			result := addPluginLabelToMetrics(tc.input, tc.pluginID)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
