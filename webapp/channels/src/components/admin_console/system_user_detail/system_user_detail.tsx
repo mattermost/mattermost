@@ -1420,8 +1420,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                                     {
                                         this.props.showManageUserSettings &&
-                                        <button
-                                            className='manageUserSettingsBtn btn btn-tertiary'
+                                        <Button
+                                            emphasis='tertiary'
+                                            className='manageUserSettingsBtn'
                                             onClick={this.openConfirmEditUserSettingsModal}
                                             id='manageUserSettingsBtn'
                                         >
@@ -1429,7 +1430,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.manageSettings'
                                                 defaultMessage='Manage User Settings'
                                             />
-                                        </button>
+                                        </Button>
                                     }
 
                                     {
@@ -1444,8 +1445,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage: 'Please upgrade to Enterprise to manage user settings',
                                             })}
                                         >
-                                            <button
-                                                className='manageUserSettingsBtn btn disabled'
+                                            <Button
+                                                emphasis='tertiary'
+                                                className='manageUserSettingsBtn disabled'
+                                                disabled={true}
                                             >
                                                 <div className='RestrictedIndicator__content'>
                                                     <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
@@ -1454,7 +1457,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     id='admin.user_item.manageSettings'
                                                     defaultMessage='Manage User Settings'
                                                 />
-                                            </button>
+                                            </Button>
                                         </WithTooltip>
                                     }
                                 </>

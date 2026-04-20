@@ -236,7 +236,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
 
                 nextButton = (
                     <SaveButton
-                        btnClass='btn-tertiary'
+                        emphasis='tertiary'
                         extraClasses='pull-right'
                         onClick={this.nextPage}
                         saving={this.state.nextLoading}
