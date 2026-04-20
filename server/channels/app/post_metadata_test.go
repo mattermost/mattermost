@@ -244,13 +244,11 @@ func TestPreparePostForClient(t *testing.T) {
 	})
 
 	t.Run("burn on read post priority read from master", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-		t.Cleanup(func() {
-			os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-		})
-
 		// Verifies BoR post priority is correctly fetched when using master context
 		th := setup(t)
+
+		// Enable BurnOnRead feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 		// Enable BoR feature with license and config
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -1027,7 +1025,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
-			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewTestPassword()
 		})
 
 		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
@@ -3259,6 +3257,94 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 		require.False(t, isMemberForPreviews)
 	})
+
+	t.Run("permalink embed with PreviewPost type does not panic", func(t *testing.T) {
+		// Verify that the code correctly type-asserts embed.Data as *model.PreviewPost
+		// (not *model.Permalink) and does not panic.
+		refChannelID := th.BasicChannel.Id
+		fileID := model.NewId()
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: refChannelID,
+								FileIds:   model.StringArray{fileID},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: fileID, Name: "photo.png", Extension: "png"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		// With AccessControl == nil (no enterprise), sanitizeFileAttachmentsForUser returns early.
+		// The key assertion is that the function does NOT panic on the *model.PreviewPost type assertion.
+		sanitizedPost, isMemberForPreviews, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
+		require.True(t, isMemberForPreviews)
+
+		// Without enterprise ABAC, files should remain untouched.
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Len(t, previewData.Post.Metadata.Files, 1, "files should be preserved when ABAC is not active")
+		assert.Len(t, previewData.Post.FileIds, 1)
+	})
+
+	t.Run("post with no top-level files still reaches embed sanitization without error", func(t *testing.T) {
+		// Verifies that the guard removal in SanitizePostMetadataForUser allows sanitization
+		// to proceed even when the post itself has no files, only permalink embeds with files.
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{},
+			Metadata: &model.PostMetadata{
+				Files: nil,
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: th.BasicChannel.Id,
+								FileIds:   model.StringArray{model.NewId()},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: model.NewId(), Name: "doc.pdf", Extension: "pdf"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
+
+		// Without enterprise ABAC, the embed files should remain.
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
+	})
 }
 
 func TestGetLinkMetadataFromCache(t *testing.T) {
@@ -3365,13 +3451,10 @@ func TestGetLinkMetadataFromCache(t *testing.T) {
 }
 
 func TestPreparePostForClient_BurnOnReadSenderExpireAt(t *testing.T) {
-	// Set feature flag before setup
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	// Enable Enterprise Advanced license and BoR config
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))

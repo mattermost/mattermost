@@ -32,7 +32,7 @@ interface TestSettings {
  * @param {TestSettings} settings - Settings object
  */
 function checkCreateTeamPage(settings: TestSettings) {
-    if (settings.user.userType === 'Guest' || settings.user.isGuest) {
+    if (settings.user!.userType === 'Guest' || settings.user!.isGuest) {
         cy.findByText('Create a team').scrollIntoView().should('not.exist');
     } else {
         cy.findByText('Create a team').scrollIntoView().should('be.visible');
@@ -45,7 +45,7 @@ Cypress.Commands.add('checkCreateTeamPage', checkCreateTeamPage);
  * doSamlLogin check that the login page is loaded with the correct settings (siteName) and logs in using SAML.
  * @param {TestSettings} settings - Settings object to perform SAML tests.
  */
-function doSamlLogin(settings) {
+function doSamlLogin(settings: TestSettings) {
     // # Go to login page
     cy.apiLogout();
     cy.visit('/login');
@@ -61,7 +61,7 @@ Cypress.Commands.add('doSamlLogin', doSamlLogin);
  * doSamlLogout logs out and checks that it reloads the login page with the correct settings (siteName).
  * @param {TestSettings} settings - Settings object to perform SAML tests.
  */
-function doSamlLogout(settings) {
+function doSamlLogout(settings: TestSettings) {
     cy.checkLeftSideBar(settings);
 
     // # Logout then check login page
@@ -74,9 +74,9 @@ Cypress.Commands.add('doSamlLogout', doSamlLogout);
 /**
  * getInvitePeopleLink gets the invite people link from the invite people modal
  * @param {TestSettings} settings - Settings object to perform SAML tests.
- * @returns {ChainableT<any>} - the invite people link wrapped in a cypress chainable
+ * @returns {ChainableT<string>} - the invite people link wrapped in a cypress chainable
  */
-function getInvitePeopleLink(settings: TestSettings): ChainableT<any> {
+function getInvitePeopleLink(settings: TestSettings) {
     cy.checkLeftSideBar(settings);
 
     // # Open team menu and click 'Invite People'
@@ -101,7 +101,7 @@ Cypress.Commands.add('getInvitePeopleLink', getInvitePeopleLink);
  * @returns {TestSettings} - The settings to use for SAML tests
  */
 function setTestSettings(loginButtonText: string, config: AdminConfig): ChainableT<TestSettings> {
-    return cy.wrap({
+    return cy.wrap<TestSettings>({
         loginButtonText,
         siteName: config.TeamSettings.SiteName,
         siteUrl: config.ServiceSettings.SiteURL,

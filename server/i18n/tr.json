@@ -4939,10 +4939,6 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} sizi konuk olarak {{ .TeamDisplayName }} takımına katılmaya davet etti"
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Enterprise lisansın süresi dolmuş olduğundan bazı özellikler kullanımdan kaldırılabilir. Lütfen şimdi lisansı yenileyin."
-  },
-  {
     "id": "api.user.create_password_token.error",
     "translation": "Parola sıfırlama kodu oluşturulamadı"
   },
@@ -10022,10 +10018,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Özel profil öznitelikleri özellik grubu kaydedilemedi"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Özel profil özniteliği alanı oluşturulamadı"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",

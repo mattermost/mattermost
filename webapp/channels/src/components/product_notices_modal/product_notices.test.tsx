@@ -3,12 +3,18 @@
 
 import React from 'react';
 
+import {isDesktopApp, getDesktopVersion} from '@mattermost/shared/utils/user_agent';
+
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 import ProductNoticesModal from './product_notices_modal';
 
-jest.mock('utils/user_agent');
+const getDesktopVersionMock = jest.mocked(getDesktopVersion);
+const isDesktopAppMock = jest.mocked(isDesktopApp);
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
+    getDesktopVersion: jest.fn(),
+    isDesktopApp: jest.fn(),
+}));
 
 describe('ProductNoticesModal', () => {
     const noticesData = [{
@@ -50,8 +56,8 @@ describe('ProductNoticesModal', () => {
     beforeEach(() => {
         baseProps.actions.getInProductNotices.mockClear();
         baseProps.actions.updateNoticesAsViewed.mockClear();
-        (isDesktopApp as any).mockReset();
-        (getDesktopVersion as any).mockReset();
+        isDesktopAppMock.mockReset();
+        getDesktopVersionMock.mockReset();
     });
 
     test('Should match snapshot when there are no notices', async () => {
@@ -208,40 +214,36 @@ describe('ProductNoticesModal', () => {
         Date.now = jest.fn().mockReturnValue(1599868800000);
 
         // Simulate socket disconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: false,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: false,
+                }}
+            />,
+        );
 
         // Simulate socket reconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: true,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: true,
+                }}
+            />,
+        );
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'web', baseProps.version);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(2);
     });
 
     test('Should call for getInProductNotices with desktop as client if isDesktopApp returns true', () => {
-        (getDesktopVersion as any).mockReturnValue('4.5.0');
-        (isDesktopApp as any).mockReturnValue(true);
+        getDesktopVersionMock.mockReturnValue('4.5.0');
+        isDesktopAppMock.mockReturnValue(true);
         renderWithContext(<ProductNoticesModal {...baseProps}/>);
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledWith(baseProps.currentTeamId, 'desktop', '4.5.0');
     });
@@ -257,32 +259,28 @@ describe('ProductNoticesModal', () => {
         Date.now = jest.fn().mockReturnValue(1599760196593);
 
         // Simulate socket disconnect
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: false,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: false,
+                }}
+            />,
+        );
 
         // Simulate socket reconnect on the same day
-        await act(async () => {
-            rerender(
-                <ProductNoticesModal
-                    ref={ref}
-                    {...baseProps}
-                    socketStatus={{
-                        ...baseProps.socketStatus,
-                        connected: true,
-                    }}
-                />,
-            );
-        });
+        rerender(
+            <ProductNoticesModal
+                ref={ref}
+                {...baseProps}
+                socketStatus={{
+                    ...baseProps.socketStatus,
+                    connected: true,
+                }}
+            />,
+        );
 
         expect(baseProps.actions.getInProductNotices).toHaveBeenCalledTimes(1);
     });

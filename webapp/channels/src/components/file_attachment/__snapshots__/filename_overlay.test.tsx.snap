@@ -41,7 +41,11 @@ exports[`components/file_attachment/FilenameOverlay should match snapshot, compa
         </g>
       </svg>
     </span>
-    test_filename
+    <span
+      class="post-image__filename"
+    >
+      test_filename
+    </span>
   </a>
 </div>
 `;

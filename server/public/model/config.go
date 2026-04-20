@@ -45,8 +45,9 @@ const (
 	MinioSecretKey = "miniosecretkey"
 	MinioBucket    = "mattermost-test"
 
-	PasswordMaximumLength = 72
-	PasswordMinimumLength = 5
+	PasswordMaximumLength     = 72
+	PasswordMinimumLength     = 5
+	PasswordFIPSMinimumLength = 14
 
 	ServiceGitlab = "gitlab"
 
@@ -1217,6 +1218,7 @@ type ExperimentalSettings struct {
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1266,6 +1268,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ExperimentalChannelCategorySorting == nil {
 		s.ExperimentalChannelCategorySorting = NewPointer(false)
+	}
+
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = NewPointer(false)
 	}
 }
 
@@ -1490,6 +1496,7 @@ type SqlSettings struct {
 	Trace                             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	AtRestEncryptKey                  *string               `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
 	QueryTimeout                      *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
+	AnalyticsQueryTimeout             *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	DisableDatabaseSearch             *bool                 `access:"environment_database,write_restrictable,cloud_restrictable"`
 	MigrationsStatementTimeoutSeconds *int                  `access:"environment_database,write_restrictable,cloud_restrictable"`
 	ReplicaLagSettings                []*ReplicaLagSettings `access:"environment_database,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -1545,6 +1552,10 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewPointer(30)
+	}
+
+	if s.AnalyticsQueryTimeout == nil {
+		s.AnalyticsQueryTimeout = NewPointer(300)
 	}
 
 	if s.DisableDatabaseSearch == nil {
@@ -1734,7 +1745,11 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewPointer(8)
+		if FIPSEnabled {
+			s.MinimumLength = NewPointer(PasswordFIPSMinimumLength)
+		} else {
+			s.MinimumLength = NewPointer(8)
+		}
 	}
 
 	if s.Lowercase == nil {
@@ -2409,6 +2424,7 @@ type TeamSettings struct {
 	// In seconds.
 	UserStatusAwayTimeout               *int64  `access:"experimental_features"`
 	MaxChannelsPerTeam                  *int64  `access:"site_users_and_teams"`
+	EnableManagedChannelCategories      *bool   `access:"site_users_and_teams"`
 	MaxNotificationsPerChannel          *int64  `access:"environment_push_notification_server"`
 	EnableConfirmNotificationsToChannel *bool   `access:"site_notifications"`
 	TeammateNameDisplay                 *string `access:"site_users_and_teams"`
@@ -2479,6 +2495,10 @@ func (s *TeamSettings) SetDefaults() {
 
 	if s.MaxChannelsPerTeam == nil {
 		s.MaxChannelsPerTeam = NewPointer(int64(2000))
+	}
+
+	if s.EnableManagedChannelCategories == nil {
+		s.EnableManagedChannelCategories = NewPointer(false)
 	}
 
 	if s.MaxNotificationsPerChannel == nil {
@@ -4197,8 +4217,12 @@ func (o *Config) IsValid() *AppError {
 		}
 	}
 
-	if *o.PasswordSettings.MinimumLength < PasswordMinimumLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
-		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": PasswordMinimumLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
+	minPasswordLength := PasswordMinimumLength
+	if FIPSEnabled {
+		minPasswordLength = PasswordFIPSMinimumLength
+	}
+	if *o.PasswordSettings.MinimumLength < minPasswordLength || *o.PasswordSettings.MinimumLength > PasswordMaximumLength {
+		return NewAppError("Config.IsValid", "model.config.is_valid.password_length.app_error", map[string]any{"MinLength": minPasswordLength, "MaxLength": PasswordMaximumLength}, "", http.StatusBadRequest)
 	}
 
 	if appErr := o.RateLimitSettings.isValid(); appErr != nil {
@@ -4355,6 +4379,10 @@ func (s *SqlSettings) isValid() *AppError {
 
 	if *s.QueryTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_query_timeout.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.AnalyticsQueryTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_analytics_query_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.DataSource == "" {
@@ -4965,6 +4993,12 @@ func (s *ImageProxySettings) isValid() *AppError {
 
 			if *s.RemoteImageProxyOptions == "" {
 				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			// RemoteImageProxyOptions is used as the HMAC key for URL signing,
+			// so it is subject to the same FIPS minimum key length as passwords.
+			if FIPSEnabled && len(*s.RemoteImageProxyOptions) < PasswordFIPSMinimumLength {
+				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error", map[string]any{"MinLength": PasswordFIPSMinimumLength}, "", http.StatusBadRequest)
 			}
 		default:
 			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)

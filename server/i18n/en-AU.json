@@ -4492,10 +4492,6 @@
     "translation": "Mattermost Enterprise licence has been disabled."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Your Enterprise Edition licence has expired and some features may be disabled. Please renew your licence now."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Questions?"
   },
@@ -10030,10 +10026,6 @@
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Unable to get Custom Profile Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",

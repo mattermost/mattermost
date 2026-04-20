@@ -612,7 +612,7 @@ func TestEditChannelBookmark(t *testing.T) {
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		ucb, resp, err := client2.UpdateChannelBookmark(context.Background(), cb.ChannelId, cb.Id, patch)
@@ -1013,7 +1013,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		bookmarks, resp, err := client2.UpdateChannelBookmarkSortOrder(context.Background(), th.BasicChannel.Id, cb.Id, 0)
@@ -1387,7 +1387,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 
 		// create a client for basic user 2
 		client2 := th.CreateClient()
-		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
 		require.NoError(t, lErr)
 
 		dbm, resp, err := client2.DeleteChannelBookmark(context.Background(), th.BasicChannel.Id, cb.Id)

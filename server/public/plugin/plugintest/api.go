@@ -4599,6 +4599,82 @@ func (_m *API) ReadFile(path string) ([]byte, *model.AppError) {
 	return r0, r1
 }
 
+// ReceiveSharedChannelAttachmentSyncMsg provides a mock function with given fields: remoteID, channelID, fi, data
+func (_m *API) ReceiveSharedChannelAttachmentSyncMsg(remoteID string, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	ret := _m.Called(remoteID, channelID, fi, data)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelAttachmentSyncMsg")
+	}
+
+	var r0 *model.FileInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, *model.FileInfo, io.Reader) (*model.FileInfo, error)); ok {
+		return rf(remoteID, channelID, fi, data)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, *model.FileInfo, io.Reader) *model.FileInfo); ok {
+		r0 = rf(remoteID, channelID, fi, data)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.FileInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, *model.FileInfo, io.Reader) error); ok {
+		r1 = rf(remoteID, channelID, fi, data)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ReceiveSharedChannelProfileImageSyncMsg provides a mock function with given fields: remoteID, userID, image
+func (_m *API) ReceiveSharedChannelProfileImageSyncMsg(remoteID string, userID string, image []byte) error {
+	ret := _m.Called(remoteID, userID, image)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelProfileImageSyncMsg")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, []byte) error); ok {
+		r0 = rf(remoteID, userID, image)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ReceiveSharedChannelSyncMsg provides a mock function with given fields: remoteID, msg
+func (_m *API) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	ret := _m.Called(remoteID, msg)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReceiveSharedChannelSyncMsg")
+	}
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, *model.SyncMsg) (model.SyncResponse, error)); ok {
+		return rf(remoteID, msg)
+	}
+	if rf, ok := ret.Get(0).(func(string, *model.SyncMsg) model.SyncResponse); ok {
+		r0 = rf(remoteID, msg)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, *model.SyncMsg) error); ok {
+		r1 = rf(remoteID, msg)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterCollectionAndTopic provides a mock function with given fields: collectionType, topicType
 func (_m *API) RegisterCollectionAndTopic(collectionType string, topicType string) error {
 	ret := _m.Called(collectionType, topicType)

@@ -5,7 +5,7 @@ import React from 'react';
 
 import TeamMembersDropdown from 'components/team_members_dropdown/team_members_dropdown';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/team_members_dropdown', () => {
@@ -40,37 +40,37 @@ describe('components/team_members_dropdown', () => {
     };
 
     test('should match snapshot for team_members_dropdown', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot opening dropdown upwards', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <TeamMembersDropdown
                 {...baseProps}
                 index={4}
                 totalUsers={5}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with group-constrained team', () => {
         baseProps.currentTeam.group_constrained = true;
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot for a bot with group-constrained team', () => {
         baseProps.currentTeam.group_constrained = true;
         baseProps.user = bot;
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <TeamMembersDropdown {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

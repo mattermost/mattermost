@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @multi_team_and_dm
 
-import {beRead, beUnread} from '../../../support/assertions';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {beRead, beUnread} from '@/support/assertions';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Multi-user group header', () => {
     let testUser;

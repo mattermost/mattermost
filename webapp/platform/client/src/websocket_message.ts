@@ -31,6 +31,7 @@ export type WebSocketMessage = (
     Messages.ChannelCreated |
     Messages.ChannelUpdated |
     Messages.ChannelConverted |
+    Messages.SharedChannelRemoteUpdated |
     Messages.ChannelSchemeUpdated |
     Messages.ChannelDeleted |
     Messages.ChannelRestored |
@@ -71,6 +72,7 @@ export type WebSocketMessage = (
     Messages.SidebarCategoryUpdated |
     Messages.SidebarCategoryDeleted |
     Messages.SidebarCategoryOrderUpdated |
+    Messages.PropertyValuesUpdated |
 
     Messages.EmojiAdded |
 
