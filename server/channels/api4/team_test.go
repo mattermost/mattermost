@@ -280,17 +280,19 @@ func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
-	// Remove PermissionInviteUser from the default team user role
+	// Remove PermissionInviteUser from the default team user role. By default,
+	// team_admin inherits from team_user, so the creator (who is made both
+	// team_user and team_admin) ends up without PermissionInviteUser either way.
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 
-	// Regular user creates a team - InviteId should be hidden
-	// since the team user role lacks invite permission
+	// Regular user creates a team with no invite-restricted fields. The team is
+	// still created, but InviteId is hidden because the creator cannot invite
+	// users on the new team.
 	rteam, _, err := th.Client.CreateTeam(context.Background(), &model.Team{
-		DisplayName:    "Team Without Invite Permission",
-		Name:           GenerateTestTeamName(),
-		Email:          th.GenerateTestEmail(),
-		Type:           model.TeamOpen,
-		AllowedDomains: "simulator.amazonses.com,localhost",
+		DisplayName: "Team Without Invite Permission",
+		Name:        GenerateTestTeamName(),
+		Email:       th.GenerateTestEmail(),
+		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, rteam.Email, "should not have sanitized email")
@@ -299,7 +301,6 @@ func TestCreateTeamInviteIdHiddenWithoutInvitePermission(t *testing.T) {
 
 func TestCreateTeamInviteUserPermission(t *testing.T) {
 	th := Setup(t)
-	creatorDomain := strings.SplitN(th.BasicUser.Email, "@", 2)[1]
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
@@ -307,26 +308,46 @@ func TestCreateTeamInviteUserPermission(t *testing.T) {
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
 	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 
-	createdTeam, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
-		DisplayName:     "Team Without Invite Permission",
-		Name:            GenerateTestTeamName(),
-		Email:           th.GenerateTestEmail(),
-		Type:            model.TeamOpen,
-		AllowOpenInvite: true,
-		AllowedDomains:  creatorDomain,
+	t.Run("AllowOpenInvite=true is rejected with 403", func(t *testing.T) {
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Open Invite Team Without Permission",
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
-	require.NoError(t, err)
-	CheckCreatedStatus(t, resp)
-	require.Empty(t, createdTeam.InviteId, "should have hidden invite_id when user lacks invite permission")
 
-	assert.False(t, createdTeam.AllowOpenInvite, "should not allow creating an open invite team without invite permission")
-	assert.Empty(t, createdTeam.AllowedDomains, "should not allow setting allowed domains without invite permission")
+	t.Run("non-empty AllowedDomains is rejected with 403", func(t *testing.T) {
+		creatorDomain := strings.SplitN(th.BasicUser.Email, "@", 2)[1]
 
-	persistedTeam, _, err := th.SystemAdminClient.GetTeam(context.Background(), createdTeam.Id, "")
-	require.NoError(t, err)
+		_, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName:    "Restricted Domains Team Without Permission",
+			Name:           GenerateTestTeamName(),
+			Email:          th.GenerateTestEmail(),
+			Type:           model.TeamOpen,
+			AllowedDomains: creatorDomain,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	assert.False(t, persistedTeam.AllowOpenInvite, "should not persist open invite when creator lacks invite permission")
-	assert.Empty(t, persistedTeam.AllowedDomains, "should not persist allowed domains when creator lacks invite permission")
+	t.Run("team without invite-restricted fields is still created", func(t *testing.T) {
+		createdTeam, resp, err := th.Client.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Plain Team Without Invite Permission",
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, createdTeam.AllowOpenInvite)
+		assert.Empty(t, createdTeam.AllowedDomains)
+		assert.Empty(t, createdTeam.InviteId, "InviteId should be hidden from creators that can't invite users")
+	})
 }
 
 func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
@@ -359,6 +380,103 @@ func TestCreateTeamInviteUserPermissionSystemAdmin(t *testing.T) {
 
 	assert.True(t, persistedTeam.AllowOpenInvite, "system admins should persist open invite team settings")
 	assert.Equal(t, creatorDomain, persistedTeam.AllowedDomains, "system admins should persist allowed domains")
+}
+
+// TestCreateTeamInviteUserPermissionScheme exercises the scheme branch of
+// creatorCanInviteUsersOnTeam: when the creator lacks system-level InviteUser,
+// authorization for invite-restricted fields should come from the scheme's
+// default team_user/team_admin roles, not the built-in team roles.
+func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
+	th := Setup(t)
+	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
+	err := th.App.SetPhase2PermissionsMigrationStatus(true)
+	require.NoError(t, err)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
+
+	// Remove InviteUser from the built-in team roles so the fallback branch
+	// of creatorCanInviteUsersOnTeam cannot accidentally grant it. Newly
+	// created schemes inherit their default-role permissions from the built-ins
+	// at creation time, so this also means the scheme roles start without it.
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionInviteUser.Id, model.TeamAdminRoleId)
+
+	// SystemManager has PermissionSysconsoleWriteUserManagementPermissions
+	// (required to set SchemeId on create) but does not have system-level
+	// PermissionInviteUser. That makes it the appropriate caller to exercise
+	// the scheme branch. Setup does not auto-login SystemManagerClient, so
+	// do it explicitly.
+	th.LoginSystemManager(t)
+	managerClient := th.SystemManagerClient
+
+	t.Run("scheme admin role grants InviteUser - create succeeds", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+		require.NotEmpty(t, scheme.DefaultTeamUserRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team With Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.True(t, rteam.AllowOpenInvite, "AllowOpenInvite should be preserved when scheme grants InviteUser")
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser")
+	})
+
+	t.Run("scheme roles do not grant InviteUser - create is rejected", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		_, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName:     "Scheme Team Without Invite " + model.NewId(),
+			Name:            GenerateTestTeamName(),
+			Email:           th.GenerateTestEmail(),
+			Type:            model.TeamOpen,
+			SchemeId:        &scheme.Id,
+			AllowOpenInvite: true,
+		})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("scheme roles do not grant InviteUser but no invite-restricted fields - create succeeds with hidden invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Without Invite Fields " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.Empty(t, rteam.InviteId, "InviteId should be hidden when scheme does not grant InviteUser")
+	})
 }
 
 func TestGetTeam(t *testing.T) {

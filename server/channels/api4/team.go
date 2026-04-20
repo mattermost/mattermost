@@ -126,11 +126,13 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Align create with update/patch handlers by refusing invite-controlled fields
-	// when the creator will not have invite permission on the new team.
-	if !canInviteUsersOnCreatedTeam(c, &team) {
-		team.AllowOpenInvite = false
-		team.AllowedDomains = ""
+	// Mirror updateTeam/patchTeam: setting AllowOpenInvite or AllowedDomains requires
+	// PermissionInviteUser. Since the team doesn't exist yet, approximate the post-create
+	// authorization by combining the creator's system permissions with the default
+	// team_user/team_admin roles the creator will hold on the new team.
+	if (team.AllowOpenInvite || team.AllowedDomains != "") && !creatorCanInviteUsersOnTeam(c, &team) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
 	}
 
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
@@ -141,8 +143,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet.
 	// Instead, approximate SessionHasPermissionToTeam by combining the creator's system roles with the new team's default roles.
-	if !canInviteUsersOnCreatedTeam(c, rteam) {
-		// If we can't check permissions, fail secure by hiding the invite_id because the team is already created above.
+	if !creatorCanInviteUsersOnTeam(c, rteam) {
+		// Hide the invite_id when the creator won't have permission to invite users on this team.
 		rteam.InviteId = ""
 	}
 
@@ -156,7 +158,11 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func canInviteUsersOnCreatedTeam(c *Context, team *model.Team) bool {
+// creatorCanInviteUsersOnTeam reports whether the session creating the team
+// would have PermissionInviteUser on that team once created. The creator
+// becomes both team_user and team_admin, so only those scheme defaults matter
+// (guest defaults are irrelevant).
+func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
 		return true
 	}
@@ -164,6 +170,10 @@ func canInviteUsersOnCreatedTeam(c *Context, team *model.Team) bool {
 	if team.SchemeId != nil && *team.SchemeId != "" {
 		scheme, appErr := c.App.GetScheme(*team.SchemeId)
 		if appErr != nil {
+			c.Logger.Warn("Failed to fetch scheme while checking invite permission for new team",
+				mlog.String("scheme_id", *team.SchemeId),
+				mlog.Err(appErr),
+			)
 			return false
 		}
 
