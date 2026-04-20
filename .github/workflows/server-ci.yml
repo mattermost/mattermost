@@ -295,7 +295,7 @@ jobs:
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
-      runner: ubuntu-22.04 # Coverage is non-blocking (allow-failure), no need for 8-core
+      # runner: ubuntu-22.04 # Coverage is non-blocking (allow-failure), no need for 8-core
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   test-mmctl:
