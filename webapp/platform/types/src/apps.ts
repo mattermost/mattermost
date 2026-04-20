@@ -499,7 +499,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/i,
+        /^[+-]\d{1,3}[dwmHMS]$/,
     ];
 
     for (const pattern of relativePatterns) {
@@ -585,6 +585,9 @@ function isAppField(v: unknown): v is AppField {
 
     // Validate datetime_config fields
     if (field.datetime_config !== undefined) {
+        if (typeof field.datetime_config !== 'object' || field.datetime_config === null) {
+            return false;
+        }
         if (field.datetime_config.min_date !== undefined) {
             if (typeof field.datetime_config.min_date !== 'string' || !isValidDateString(field.datetime_config.min_date)) {
                 return false;
