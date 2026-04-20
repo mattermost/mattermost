@@ -1,0 +1,53 @@
+issue:
+  repo: ShankHarinath/mattermost
+  number: 4
+  url: https://github.com/ShankHarinath/mattermost/issues/4
+  title: "[Bug]: Lookup triggers on input in every field"
+  reporter: ShankHarinath
+  created_at: "2026-04-20T21:02:35Z"
+classification:
+  class: bug
+  confidence: 0.95
+scout:
+  confidence: 0.95
+  recommended_next_step: proceed
+  root_cause_file: webapp/channels/src/components/apps_form/apps_form_component.tsx
+  root_cause_symbol: AppsForm.renderElements
+  prior_fix_pr: https://github.com/mattermost/mattermost/pull/35640
+  prior_issue: https://github.com/mattermost/mattermost/issues/35626
+bug_dir: 4-dialog-lookup-spam
+branch: phoenix/4-dialog-lookup-spam
+repos:
+  - repo: ShankHarinath/mattermost
+    role: primary
+    worktree_path: /Users/shashank/Canonix/phoenix-worktrees/mattermost-4-dialog-lookup-spam
+    pr_url: https://github.com/ShankHarinath/mattermost/pull/5
+    pr_number: 5
+slack:
+  channel: C0ATH23P6PQ
+  thread_ts: null
+approvals:
+  triage:
+    approved: false
+    by: null
+  plan:
+    approved: false
+    by: null
+  implement:
+    approved: false
+    by: null
+revisions:
+  triage:
+    - rev: 1
+      at: "2026-04-21T00:00:00Z"
+      trigger: ShankHarinath
+      scout_confidence_before: null
+      scout_confidence_after: 0.95
+followups: []
+status: triaged
+created_at: "2026-04-21T00:00:00Z"
+updated_at: "2026-04-21T00:00:00Z"
+leak_signals:
+  - kind: cross_repo_pr_leak
+    detail: "gh pr create without --repo flag opened PR #36190 on upstream mattermost/mattermost instead of fork. Recovery PR opened on fork at ShankHarinath/mattermost#5. Upstream leak PR could not be closed (shim correctly refuses upstream access)."
+    upstream_pr: https://github.com/mattermost/mattermost/pull/36190
