@@ -5236,7 +5236,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise licentie werd uitgeschakeld."
+    "translation": "Je {{.SkuName}} licentie is verlopen"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7967,15 +7967,15 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Jouw Mattermost abonnement is aan vernieuwing toe"
+    "translation": "Je Mattermost licentie moet vernieuwd worden"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, jouw abonnement is ingesteld om te verlopen in {{.Days}} dagen. We hopen dat je de flexibele, veilige teamsamenwerking ervaart die Mattermost mogelijk maakt. Verleng snel jouw Mattermost abonnement om er zeker van te zijn dat jouw team kan blijven profiteren van deze voordelen."
+    "translation": "Je {{.SkuName}} licentie voor <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> verloopt over {{.Days}} dagen. We hopen dat je geniet van de veilige, bedrijfskritische samenwerking die Mattermost mogelijk maakt."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Je licentie is aan vernieuwing toe"
+    "translation": "Je {{.SkuName}} licentie moet vernieuwd worden"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -10025,35 +10025,35 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Kan de eigenschappengroep Aangepaste profielattributen niet ophalen."
+    "translation": "Kan de eigenschapgroep Gebruikersattributen niet ophalen."
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Kan geen aangepast profielattribuutveld krijgen"
+    "translation": "Kan gebruikersattribuutveld niet krijgen"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Veldlimiet aangepaste profielattributen bereikt"
+    "translation": "Gebruikersattributen veldlimiet bereikt"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Kan aangepast profielattribuutveld niet verwijderen"
+    "translation": "Kan gebruikersattribuutveld niet verwijderen"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Kan de waarden van aangepaste profielattributen niet ophalen"
+    "translation": "Kan de waarden van gebruikersattributen niet ophalen"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Aangepast profielattribuutveld niet gevonden"
+    "translation": "Gebruikersattribuutveld niet gevonden"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Kan aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan gebruikersattribuutveld niet bijwerken"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
+    "translation": "Niet in velden met gebruikersattributen kunnen zoeken"
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
@@ -10157,11 +10157,11 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+    "translation": "Kan het aantal velden voor de groep Gebruikersattributen niet tellen"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+    "translation": "Kan gebruikersattribuutvelden niet upsertten"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10229,7 +10229,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+    "translation": "Kan het eigenschapveld niet converteren naar een gebruikersattribuutveld"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -10281,7 +10281,7 @@
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Kan aangepaste profielattribuutwaarden voor gebruiker niet verwijderen"
+    "translation": "Kan waarden van gebruikersattributen voor gebruiker niet verwijderen"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
@@ -10377,7 +10377,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan waarde voor een gesynchroniseerd veld van gebruikersattributen niet bijwerken"
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -10697,7 +10697,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan de waarde van een door de beheerder beheerd veld met gebruikersattributen niet bijwerken"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
@@ -10893,7 +10893,7 @@
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Kan aangepast Custom Profile Attribute niet patchen"
+    "translation": "Kan gebruikersattribuutveld niet patchen"
   },
   {
     "id": "app.post.rewrite.agent_call_failed",
@@ -12086,5 +12086,401 @@
   {
     "id": "api.property_field.update.no_options_permission.app_error",
     "translation": "Je hebt geen rechten om opties voor dit eigenschapveld te beheren."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet bijwerken via API."
+  },
+  {
+    "id": "api.property_value.invalid_group_name.app_error",
+    "translation": "De opgegeven groepsnaam is ongeldig of bestaat niet."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Het opgegeven objecttype is ongeldig."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Het verzoek bevat dubbele veld-ID's."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "De inhoud van het verzoek moet ten minste één bijwerking van de waarde van de eigenschap bevatten."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Een of meer veld-ID's in het verzoek zijn ongeldig."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "Je hebt geen toestemming om waarden in te stellen voor een of meer velden."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Zoveel waarden van eigenschappen kunnen niet worden bijgewerkt. Alleen {{.Max}} waarden van eigenschappen kunnen in één keer worden bijgewerkt."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "Je hebt geen toegang tot de waarden van eigenschappen van een andere gebruiker."
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Praat met een Mattermost expert</a> voor hulp met plannen en verlengingsopties."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Hulp nodig?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Verleng snel om ervoor te zorgen dat je team kan blijven profiteren van deze voordelen."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Je Mattermost licentie is verlopen"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Je {{.SkuName}} licentie voor <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> is verlopen en sommige functies zijn mogelijk uitgeschakeld."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Verleng je licentie nu om de volledige mogelijkheden van Mattermost te kunnen blijven gebruiken."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Kan geen weergave maken in een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Kan geen weergave in een verwijderd kanaal verwijderen."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Kan geen weergave krijgen van een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Kan geen berichten krijgen voor een weergave van een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Kan weergaven voor een verwijderd kanaal niet weergeven."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Kan een weergave in een verwijderd kanaal niet bijwerken."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Kan de sorteervolgorde van weergaven in een verwijderd kanaal niet bijwerken."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Ongeldige configuratie voor AI bridge test helper."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Kanaallid toevoegen afgewezen door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Kanaalarchief afgekeurd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Kan waarde van gebruikersattribuut niet krijgen"
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Er bestaat al een beleid met deze naam. Kies een andere naam."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Kan de berichten voor de weergave niet krijgen."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Kan eigenschapvelden voor groep niet tellen."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Kan eigenschapvelden voor doel niet tellen."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Kan geen eigenschapveld maken."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Kan eigenschap \"{{.Name}}\" niet maken: een eigenschap met deze naam bestaat al op het niveau {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Kan geen beschermd eigenschapveld maken."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Kan eigenschapveld niet verwijderen."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Kan eigenschapveld voor verwijderen niet krijgen."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Eigendomsveld niet gevonden."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet verwijderen."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Kan eigenschap veld niet krijgen."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Kan eigenschapveld niet op naam krijgen."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Kan eigenschap veld niet krijgen."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "Een of meer veld-ID's van de eigenschap zijn niet gevonden in de opgegeven groep."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Ongeldige invoer verstrekt."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Kan niet zoeken in eigenschapvelden."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Kan eigenschapvelden niet bijwerken."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Kan eigenschapvelden niet ophalen om bij te werken."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Kan eigenschap niet bijwerken naar \"{{.Name}}\": een eigenschap met deze naam bestaat al op het niveau {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet bijwerken."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Kan eigenschapgroep niet krijgen."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Kan eigenschapgroep niet registreren."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Kan eigenschapwaarde niet creëren."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Kan geen waarden voor eigenschappen maken."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Kan waarde van eigenschap niet verwijderen."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Kan eigenschapwaarden voor veld niet verwijderen."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Kan de waarden van eigenschappen voor het doelwit niet verwijderen."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Kan de waarde van de eigenschap niet krijgen."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet ophalen."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Ongeldige invoer verstrekt."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Niet-herkend objecttype \"{{.ObjectType}}\" voor propertywaarde broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Kan de waarden van eigendommen niet doorzoeken."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Kan de waarde van de eigenschap niet bijwerken."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet bijwerken."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Kan de waarden van eigenschappen niet upsertten."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet upsertten."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Toevoegen teamlid afgewezen door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Aantal weergaven voor kanaal niet geteld."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Kan de weergave niet maken."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Aantal weergaven voor kanaal niet geteld."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Dit kanaal heeft het maximale aantal weergaven bereikt."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Kan de weergave niet verwijderen."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Weergave niet gevonden."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Kan view niet ophalen."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Kan geen weergaven krijgen voor dit kanaal."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Ongeldige invoer bij het ophalen van weergaven voor kanaal."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Kan de weergave niet bijwerken."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Kan de sorteervolgorde van de weergave niet bijwerken."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Ongeldige invoer voor sorteervolgorde bijwerken."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} is niet gestart."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} gezondheidscontrole mislukt: kon controle niet voltooien."
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} versie {{.Version}} lager is dan min ondersteunde versie van {{.MinVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Ongeldige RemoteImageProxyOptions voor atmos/camo: HMAC-sleutel moet minimaal {{.MinLength}} bytes zijn voor naleving van FIPS."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Ongeldige analytische query timeout voor SQL-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaal ID."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Ongeldige view creatietijd."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Ongeldige view creator ID."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Beschrijving is te lang."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Ongeldig weergave-ID."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "De weergavetitel is verplicht en moet uit minder dan 256 tekens bestaan."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Ongeldig weergavetype."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Ongeldige weergavetijd."
   }
 ]
