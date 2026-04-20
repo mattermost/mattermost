@@ -51,6 +51,7 @@ MMCTL_BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 MMCTL_GIT_COMMIT = $(shell git rev-parse HEAD)
 MMCTL_GIT_TREE_STATE = $(shell if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then echo "dirty"; else echo "clean"; fi)
 MMCTL_COMMIT_DATE = $(shell TZ=UTC git log -1 --date=format-local:'%Y-%m-%dT%H:%M:%SZ' --format='%cd' 2>/dev/null || echo "dev")
+MMCTL_LDFLAGS += -s -w
 MMCTL_LDFLAGS += -X "$(MMCTL_PKG).buildDate=$(MMCTL_BUILD_DATE)"
 MMCTL_LDFLAGS += -X "$(MMCTL_PKG).gitCommit=$(MMCTL_GIT_COMMIT)"
 MMCTL_LDFLAGS += -X "$(MMCTL_PKG).gitTreeState=$(MMCTL_GIT_TREE_STATE)"
@@ -120,6 +121,11 @@ ifeq ($(FIPS_ENABLED),true)
 endif
 
 DELVE ?= dlv
+# Strip debug symbols and DWARF info from production binaries to reduce size by ~50%.
+# Go panic stack traces still work (they use runtime.pclntab, not DWARF).
+# pprof profiling still works (uses runtime metadata).
+# For delve/core-dump debugging, build locally without these flags.
+LDFLAGS += -s -w
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)"
