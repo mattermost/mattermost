@@ -231,9 +231,6 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 // PostGetPropertyField applies read access control to a single field.
 func (h *AccessControlHook) PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	if field == nil {
-		return nil, nil
-	}
 	if !h.isGroupManaged(field.GroupID) {
 		return field, nil
 	}

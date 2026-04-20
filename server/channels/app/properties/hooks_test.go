@@ -221,25 +221,24 @@ func TestPostHookFiltering(t *testing.T) {
 	rctx := th.Context
 	groupID := model.NewId()
 
-	t.Run("post-hook returns nil to filter out single field", func(t *testing.T) {
-		// Create a field first
+	t.Run("post-hook returning nil field without error surfaces errNilHookResult", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    groupID,
-			Name:       "filterable-" + model.NewId(),
+			Name:       "nil-return-field-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
 			TargetType: "user",
 		})
 
 		hook := &testHook{
 			postGetFieldFn: func(f *model.PropertyField) (*model.PropertyField, error) {
-				return nil, nil // filter out the field
+				return nil, nil
 			},
 		}
 		th.service.AddHook(hook)
 		defer func() { th.service.hooks = th.service.hooks[:len(th.service.hooks)-1] }()
 
 		result, err := th.service.GetPropertyField(rctx, groupID, field.ID)
-		require.NoError(t, err)
+		require.ErrorIs(t, err, errNilHookResult)
 		assert.Nil(t, result)
 	})
 

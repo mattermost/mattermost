@@ -47,7 +47,9 @@ type PropertyHook interface {
 	// Field post-hooks (read operations)
 	//
 	// PostGetPropertyField is called after retrieving a single field (by ID or by name).
-	// Return nil field to indicate the field is not accessible.
+	// Implementations must return a non-nil field; returning nil is treated as a
+	// hook bug and the dispatcher surfaces errNilHookResult. To block a caller
+	// from seeing a field, return a sentinel error instead.
 	PostGetPropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error)
 	// PostGetPropertyFields is called after retrieving multiple fields (by IDs or search).
 	// Implementations must preserve slice length — the dispatcher enforces this and will
@@ -220,7 +222,7 @@ func (ps *PropertyService) runPostGetPropertyField(rctx request.CTX, field *mode
 			return nil, err
 		}
 		if field == nil {
-			return nil, nil
+			return nil, errNilHookResult
 		}
 	}
 	return field, nil
