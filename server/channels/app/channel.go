@@ -1547,6 +1547,12 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 		return err
 	}
 
+	deleteAt := model.GetMillis()
+
+	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
+		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if user != nil {
 		T := i18n.GetUserTranslations(user.Locale)
 
@@ -1600,12 +1606,6 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	deleteAt := model.GetMillis()
-
-	if err := a.Srv().Store().Channel().Delete(channel.Id, deleteAt); err != nil {
-		return model.NewAppError("DeleteChannel", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
