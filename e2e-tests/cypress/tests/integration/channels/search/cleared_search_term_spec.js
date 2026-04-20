@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @search
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Search', () => {
     const term = 'London';

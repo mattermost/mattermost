@@ -9,6 +9,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Team} from '@mattermost/types/teams';
 
 import {loadMe} from 'mattermost-redux/actions/users';
@@ -50,7 +51,6 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';

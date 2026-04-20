@@ -5,11 +5,12 @@
 package mocks
 
 import (
-	"context"
+	context "context"
 
 	model "github.com/mattermost/mattermost/server/public/model"
-	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
+
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 
 	time "time"
 )
@@ -467,6 +468,24 @@ func (_m *SearchEngineInterface) IsEnabled() bool {
 	return r0
 }
 
+// IsHealthy provides a mock function with no fields
+func (_m *SearchEngineInterface) IsHealthy() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsHealthy")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // IsIndexingEnabled provides a mock function with no fields
 func (_m *SearchEngineInterface) IsIndexingEnabled() bool {
 	ret := _m.Called()
@@ -757,6 +776,11 @@ func (_m *SearchEngineInterface) SearchUsersInTeam(teamId string, restrictedToCh
 	}
 
 	return r0, r1
+}
+
+// SetHealthy provides a mock function with given fields: healthy
+func (_m *SearchEngineInterface) SetHealthy(healthy bool) {
+	_m.Called(healthy)
 }
 
 // Start provides a mock function with given fields: ctx
