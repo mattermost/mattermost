@@ -375,6 +375,64 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 		require.Contains(t, ids, jobs[1].Id)
 		require.Contains(t, ids, jobs[2].Id)
 	})
+
+	t.Run("policy_id with no matching jobs returns empty list not error", func(t *testing.T) {
+		unknownPolicyID := model.NewId()
+		resp, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+unknownPolicyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, 200, resp.StatusCode)
+
+		var received []*model.Job
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&received))
+		require.Empty(t, received)
+	})
+
+	t.Run("policy_id filter respects page and per_page pagination", func(t *testing.T) {
+		// Two jobs match policyID (jobs[0] at t0, jobs[1] at t0+1). Sorted newest-first,
+		// so page=0,per_page=1 → jobs[1]; page=1,per_page=1 → jobs[0]; page=2 → empty.
+		resp0, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp0.Body.Close()
+
+		var page0 []*model.Job
+		require.NoError(t, json.NewDecoder(resp0.Body).Decode(&page0))
+		require.Len(t, page0, 1)
+		require.Equal(t, jobs[1].Id, page0[0].Id, "page 0 should be the newest job")
+
+		resp1, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=1&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp1.Body.Close()
+
+		var page1 []*model.Job
+		require.NoError(t, json.NewDecoder(resp1.Body).Decode(&page1))
+		require.Len(t, page1, 1)
+		require.Equal(t, jobs[0].Id, page1[0].Id, "page 1 should be the older job")
+
+		resp2, err := th.SystemAdminClient.DoAPIGet(
+			context.Background(),
+			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=2&per_page=1&policy_id="+policyID,
+			"",
+		)
+		require.NoError(t, err)
+		defer resp2.Body.Close()
+
+		var page2 []*model.Job
+		require.NoError(t, json.NewDecoder(resp2.Body).Decode(&page2))
+		require.Empty(t, page2, "page beyond last should be empty")
+	})
 }
 
 func TestGetJobsByType_TeamAdminAccessControlSync(t *testing.T) {
