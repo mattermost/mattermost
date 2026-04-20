@@ -492,3 +492,203 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
     expect(await systemConsolePage.mobileSecurity.tenantId.input.isDisabled()).toBe(false);
     expect(await systemConsolePage.mobileSecurity.clientId.input.isDisabled()).toBe(false);
 });
+
+/**
+ * @objective Verify timer settings are disabled when Mobile Ephemeral Mode is not enabled, and become editable when enabled
+ */
+test('should disable Mobile Ephemeral Mode sub-settings when toggle is off and enable them when toggle is on', {tag: '@mobile_ephemeral_mode'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
+
+    const config = await adminClient.getConfig();
+    test.skip(
+        config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
+        'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
+    );
+
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
+
+    // # Log in as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Visit system console
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    // # Go to Mobile Security section
+    await systemConsolePage.sidebar.mobileSecurity.click();
+    await systemConsolePage.mobileSecurity.toBeVisible();
+
+    // * Verify Mobile Ephemeral Mode toggle is off by default
+    await systemConsolePage.mobileSecurity.enableMobileEphemeralMode.toBeFalse();
+
+    // * Verify all sub-settings are disabled
+    expect(await systemConsolePage.mobileSecurity.disconnectionTimeout.input.isDisabled()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.input.isDisabled()).toBe(true);
+    expect(await systemConsolePage.mobileSecurity.autoCacheCleanup.input.isDisabled()).toBe(true);
+
+    // # Enable Mobile Ephemeral Mode toggle
+    await systemConsolePage.mobileSecurity.enableMobileEphemeralMode.selectTrue();
+
+    // * Verify all sub-settings are now enabled
+    expect(await systemConsolePage.mobileSecurity.disconnectionTimeout.input.isDisabled()).toBe(false);
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.input.isDisabled()).toBe(false);
+    expect(await systemConsolePage.mobileSecurity.autoCacheCleanup.input.isDisabled()).toBe(false);
+});
+
+/**
+ * @objective Verify all Mobile Ephemeral Mode settings persist after save and navigation
+ */
+test('should save and persist all Mobile Ephemeral Mode settings after navigation', {tag: '@mobile_ephemeral_mode'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
+
+    const config = await adminClient.getConfig();
+    test.skip(
+        config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
+        'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
+    );
+
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
+
+    // # Enable Mobile Ephemeral Mode setting via config API
+    config.MobileEphemeralModeSettings.Enable = true;
+    await adminClient.updateConfig(config);
+
+    // # Log in as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Visit system console
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    // # Go to Mobile Security section
+    await systemConsolePage.sidebar.mobileSecurity.click();
+    await systemConsolePage.mobileSecurity.toBeVisible();
+
+    // # Set custom values
+    await systemConsolePage.mobileSecurity.disconnectionTimeout.fill('120');
+    await systemConsolePage.mobileSecurity.offlinePersistenceTimer.fill('48');
+    await systemConsolePage.mobileSecurity.autoCacheCleanup.fill('14');
+
+    // # Save settings
+    await systemConsolePage.mobileSecurity.save();
+    await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+
+    // # Navigate away and back
+    await systemConsolePage.sidebar.users.click();
+    await systemConsolePage.users.toBeVisible();
+    await systemConsolePage.sidebar.mobileSecurity.click();
+    await systemConsolePage.mobileSecurity.toBeVisible();
+
+    // * Verify Mobile Ephemeral Mode is still enabled
+    await systemConsolePage.mobileSecurity.enableMobileEphemeralMode.toBeTrue();
+
+    // * Verify all values persisted correctly
+    expect(await systemConsolePage.mobileSecurity.disconnectionTimeout.getValue()).toBe('120');
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.getValue()).toBe('48');
+    expect(await systemConsolePage.mobileSecurity.autoCacheCleanup.getValue()).toBe('14');
+});
+
+/**
+ * @objective Verify offline persistence timer is disabled when auto cache cleanup is set to 0 (zero-persistence mode)
+ */
+test('should disable offline persistence timer when auto cache cleanup is set to zero', {tag: '@mobile_ephemeral_mode'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
+
+    const config = await adminClient.getConfig();
+    test.skip(
+        config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
+        'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
+    );
+
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
+
+    // # Enable Mobile Ephemeral Mode setting via config API
+    config.MobileEphemeralModeSettings.Enable = true;
+    await adminClient.updateConfig(config);
+
+    // # Log in as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Visit system console
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    // # Go to Mobile Security section
+    await systemConsolePage.sidebar.mobileSecurity.click();
+    await systemConsolePage.mobileSecurity.toBeVisible();
+
+    // * Verify offline persistence timer is enabled
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.input.isDisabled()).toBe(false);
+
+    // # Set auto cache cleanup to 0
+    await systemConsolePage.mobileSecurity.autoCacheCleanup.clear();
+    await systemConsolePage.mobileSecurity.autoCacheCleanup.fill('0');
+
+    // * Verify offline persistence timer is now disabled
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.input.isDisabled()).toBe(true);
+
+    // # Set auto cache cleanup back to 7
+    await systemConsolePage.mobileSecurity.autoCacheCleanup.clear();
+    await systemConsolePage.mobileSecurity.autoCacheCleanup.fill('7');
+
+    // * Verify offline persistence timer is enabled again
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.input.isDisabled()).toBe(false);
+});
+
+/**
+ * @objective Verify Mobile Ephemeral Mode settings show correct defaults on first enable
+ */
+test('should show correct default values when Mobile Ephemeral Mode is first enabled', {tag: '@mobile_ephemeral_mode'}, async ({pw}) => {
+    const {adminUser, adminClient} = await pw.initSetup();
+
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
+
+    const config = await adminClient.getConfig();
+    test.skip(
+        config.FeatureFlags.MobileEphemeralMode !== true && config.FeatureFlags.MobileEphemeralMode !== 'true',
+        'Skipping test - MobileEphemeralMode feature flag is not enabled on the server',
+    );
+
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
+
+    // # Log in as admin
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+    // # Visit system console
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    // # Go to Mobile Security section
+    await systemConsolePage.sidebar.mobileSecurity.click();
+    await systemConsolePage.mobileSecurity.toBeVisible();
+
+    // # Enable Mobile Ephemeral Mode
+    await systemConsolePage.mobileSecurity.enableMobileEphemeralMode.selectTrue();
+
+    // * Verify default values
+    expect(await systemConsolePage.mobileSecurity.disconnectionTimeout.getValue()).toBe('60');
+    expect(await systemConsolePage.mobileSecurity.offlinePersistenceTimer.getValue()).toBe('24');
+    expect(await systemConsolePage.mobileSecurity.autoCacheCleanup.getValue()).toBe('7');
+});

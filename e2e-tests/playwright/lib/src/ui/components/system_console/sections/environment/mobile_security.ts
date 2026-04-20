@@ -3,7 +3,7 @@
 
 import {Locator, expect} from '@playwright/test';
 
-import {RadioSetting, TextInputSetting, DropdownSetting, AdminSectionPanel} from '../../base_components';
+import {RadioSetting, TextInputSetting, NumberInputSetting, DropdownSetting, AdminSectionPanel} from '../../base_components';
 
 /**
  * System Console -> Environment -> Mobile Security
@@ -17,6 +17,7 @@ export default class MobileSecurity {
     // Panels
     readonly generalMobileSecurity: GeneralMobileSecurityPanel;
     readonly microsoftIntune: MicrosoftIntunePanel;
+    readonly mobileEphemeralMode: MobileEphemeralModePanel;
 
     // Save section
     readonly saveButton: Locator;
@@ -32,6 +33,9 @@ export default class MobileSecurity {
         );
         this.microsoftIntune = new MicrosoftIntunePanel(
             container.locator('.AdminSectionPanel').filter({hasText: 'Microsoft Intune'}),
+        );
+        this.mobileEphemeralMode = new MobileEphemeralModePanel(
+            container.locator('.AdminSectionPanel').filter({hasText: 'Mobile Ephemeral Mode'}),
         );
 
         this.saveButton = container.getByRole('button', {name: 'Save'});
@@ -77,6 +81,20 @@ export default class MobileSecurity {
     get clientId() {
         return this.microsoftIntune.clientId;
     }
+
+    // Convenience shortcuts for Mobile Ephemeral Mode settings
+    get enableMobileEphemeralMode() {
+        return this.mobileEphemeralMode.enableMobileEphemeralMode;
+    }
+    get disconnectionTimeout() {
+        return this.mobileEphemeralMode.disconnectionTimeout;
+    }
+    get offlinePersistenceTimer() {
+        return this.mobileEphemeralMode.offlinePersistenceTimer;
+    }
+    get autoCacheCleanup() {
+        return this.mobileEphemeralMode.autoCacheCleanup;
+    }
 }
 
 class GeneralMobileSecurityPanel extends AdminSectionPanel {
@@ -101,6 +119,33 @@ class GeneralMobileSecurityPanel extends AdminSectionPanel {
         );
         this.allowPdfLinkNavigation = new RadioSetting(
             this.body.getByRole('group', {name: /Allow Link Navigation in Secure PDFs/}),
+        );
+    }
+}
+
+class MobileEphemeralModePanel extends AdminSectionPanel {
+    readonly enableMobileEphemeralMode: RadioSetting;
+    readonly disconnectionTimeout: NumberInputSetting;
+    readonly offlinePersistenceTimer: NumberInputSetting;
+    readonly autoCacheCleanup: NumberInputSetting;
+
+    constructor(container: Locator) {
+        super(container, 'Mobile Ephemeral Mode');
+
+        this.enableMobileEphemeralMode = new RadioSetting(
+            this.body.getByRole('group', {name: /Enable Mobile Ephemeral Mode/}),
+        );
+        this.disconnectionTimeout = new NumberInputSetting(
+            this.body.locator('.form-group').filter({hasText: 'Disconnection Timeout (seconds):'}),
+            'Disconnection Timeout (seconds):',
+        );
+        this.offlinePersistenceTimer = new NumberInputSetting(
+            this.body.locator('.form-group').filter({hasText: 'Offline Persistence Timer (hours):'}),
+            'Offline Persistence Timer (hours):',
+        );
+        this.autoCacheCleanup = new NumberInputSetting(
+            this.body.locator('.form-group').filter({hasText: 'Auto Cache Cleanup (days):'}),
+            'Auto Cache Cleanup (days):',
         );
     }
 }

@@ -786,6 +786,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         IntegratedBoards: false,
         CJKSearch: false,
+        MobileEphemeralMode: true,
     },
     ImportSettings: {
         Directory: './import',
