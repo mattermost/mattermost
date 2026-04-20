@@ -1990,10 +1990,6 @@
     "translation": "invalid User Attribute field patch"
   },
   {
-    "id": "api.custom_profile_attributes.license_error",
-    "translation": "Your license does not support User Attributes."
-  },
-  {
     "id": "api.custom_status.disabled",
     "translation": "Custom status feature has been disabled. Please contact your system administrator for details."
   },
@@ -5791,34 +5787,6 @@
     "translation": "group name is not unique"
   },
   {
-    "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Unable to count the number of fields for the User Attributes group"
-  },
-  {
-    "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Unable to retrieve the User Attributes property group."
-  },
-  {
-    "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Unable to delete User Attribute values for user"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Unable to get User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.get_property_value.app_error",
-    "translation": "Unable to get User Attribute value"
-  },
-  {
-    "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "User Attributes field limit reached"
-  },
-  {
-    "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Unable to get User Attribute values"
-  },
-  {
     "id": "app.custom_profile_attributes.patch_field.app_error",
     "translation": "Unable to patch User Attribute field"
   },
@@ -5827,24 +5795,8 @@
     "translation": "Unable to convert the property field to a User Attribute field"
   },
   {
-    "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Unable to delete User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Cannot update value for an admin-managed User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Cannot update value for a synced User Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
     "translation": "User Attribute field not found"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Unable to update User Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
@@ -5853,14 +5805,6 @@
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
     "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
-  },
-  {
-    "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Unable to search User Attribute fields"
-  },
-  {
-    "id": "app.custom_profile_attributes.validate_value.app_error",
-    "translation": "Failed to validate property value"
   },
   {
     "id": "app.data_spillage.assign_reviewer.no_reviewer_field.app_error",
@@ -7329,10 +7273,6 @@
   {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
-  },
-  {
-    "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "Failed to evaluate permission policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
