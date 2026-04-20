@@ -5474,15 +5474,15 @@ func getPostIds(posts []*model.Post, morePosts ...*model.Post) []string {
 }
 
 func testGetNthRecentPostTime(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Skip("https://mattermost.atlassian.net/browse/MM-64438")
-
 	_, err := ss.Post().GetNthRecentPostTime(0)
 	assert.Error(t, err)
 	_, err = ss.Post().GetNthRecentPostTime(-1)
 	assert.Error(t, err)
 
+	// Use timestamps 1 hour in the future so these posts are always "most recent"
+	// regardless of what parallel tests create concurrently (MM-64438).
 	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + diff
+	now := utils.MillisFromTime(time.Now()) + 3600000
 
 	p1 := &model.Post{}
 	p1.ChannelId = model.NewId()
