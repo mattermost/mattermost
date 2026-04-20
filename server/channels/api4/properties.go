@@ -680,6 +680,13 @@ func executePatchPropertyValues(c *Context, r *http.Request, groupName, objectTy
 				map[string]any{"FieldID": item.FieldID}, "", http.StatusNotFound)
 			return nil
 		}
+		if field.ObjectType != objectType {
+			// 404 matches the shape of a non-existent field so that callers cannot
+			// distinguish "no such field" from "field exists but in a different
+			// object-type bucket".
+			c.Err = model.NewAppError("executePatchPropertyValues", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+			return nil
+		}
 		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), field) {
 			c.Err = model.NewAppError("executePatchPropertyValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
 			return nil

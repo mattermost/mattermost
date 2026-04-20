@@ -1921,6 +1921,35 @@ func TestPatchPropertyValues(t *testing.T) {
 		CheckNotFoundStatus(t, resp)
 	})
 
+	t.Run("field with mismatched object type should fail 404", func(t *testing.T) {
+		// A field in the same group but scoped to a different ObjectType must not
+		// be patchable through the URL of a peer ObjectType; the mismatch collapses
+		// to 404 so callers cannot distinguish "no such field" from "field exists
+		// but in a different object-type bucket".
+		userField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdUserField, appErr := th.App.CreatePropertyField(th.Context, userField, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginSystemAdmin(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: createdUserField.ID, Value: json.RawMessage(`"test"`)},
+		}
+		_, resp, err := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Equal(t, "api.property_field.object_type_mismatch.app_error", err.(*model.AppError).Id)
+	})
+
 	t.Run("channel member can set values on channel-scoped field with values permission member", func(t *testing.T) {
 		th.LoginBasic(t)
 
