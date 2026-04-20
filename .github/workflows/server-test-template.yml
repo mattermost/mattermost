@@ -22,6 +22,14 @@ on:
         required: false
         type: boolean
         default: false
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
       # -- Test sharding inputs (leave defaults for non-sharded callers) --
       shard-index:
         required: false
@@ -75,6 +83,8 @@ jobs:
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
       - name: Run docker compose
+        env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
@@ -143,11 +153,11 @@ jobs:
         env:
           BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
             export RACE_MODE="-race"
           fi
 
-          TEST_TARGET="test-server${RACE_MODE}"
+          TEST_TARGET="${{ inputs.test-target }}${RACE_MODE}"
           BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
           DOCKER_CMD="make ${TEST_TARGET}"
 
@@ -186,8 +196,10 @@ jobs:
           disable_search: true
           files: server/cover.out
       - name: Stop docker compose
+        if: ${{ always() }}
         run: |
           cd server/build
+          docker compose --ansi never logs --no-color > ../../docker-compose.log 2>&1
           docker compose --ansi never stop
       - name: Archive logs
         if: ${{ always() }}
@@ -200,4 +212,5 @@ jobs:
             server/cover.out
             server/test-name
             server/pr-number
+            docker-compose.log
 

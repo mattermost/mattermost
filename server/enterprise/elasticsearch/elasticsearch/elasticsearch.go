@@ -28,7 +28,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
-const elasticsearchMaxVersion = 8
+const elasticsearchMinVersion = 7
+const elasticsearchMaxVersion = 9
 
 var (
 	purgeIndexListAllowedIndexes = []string{common.IndexBaseChannels}
@@ -106,7 +107,7 @@ func (es *ElasticsearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	version, major, appErr := checkMaxVersion(es.client, es.Platform.Config())
+	version, major, appErr := checkVersion(es.client, es.Platform.Config())
 	if appErr != nil {
 		return appErr
 	}
@@ -1245,7 +1246,7 @@ func (es *ElasticsearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Co
 		return appErr
 	}
 
-	_, _, appErr = checkMaxVersion(client, cfg)
+	_, _, appErr = checkVersion(client, cfg)
 	if appErr != nil {
 		return appErr
 	}
@@ -1830,19 +1831,22 @@ func (es *ElasticsearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime
 	return nil
 }
 
-func checkMaxVersion(client *elastic.TypedClient, cfg *model.Config) (string, int, *model.AppError) {
+func checkVersion(client *elastic.TypedClient, cfg *model.Config) (string, int, *model.AppError) {
 	resp, err := client.API.Core.Info().Do(context.Background())
 	if err != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	major, _, _, esErr := common.GetVersionComponents(resp.Version.Int)
 	if esErr != nil {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(err)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.start.parse_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusInternalServerError).Wrap(esErr)
 	}
 
+	if major < elasticsearchMinVersion {
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.min_version.app_error", map[string]any{"Version": major, "MinVersion": elasticsearchMinVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+	}
 	if major > elasticsearchMaxVersion {
-		return "", 0, model.NewAppError("Elasticsearch.checkMaxVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
+		return "", 0, model.NewAppError("Elasticsearch.checkVersion", "ent.elasticsearch.max_version.app_error", map[string]any{"Version": major, "MaxVersion": elasticsearchMaxVersion, "Backend": model.ElasticsearchSettingsESBackend}, "", http.StatusBadRequest)
 	}
 	return resp.Version.Int, major, nil
 }
