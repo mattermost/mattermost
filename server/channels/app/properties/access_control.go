@@ -20,18 +20,22 @@ package properties
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
-	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
+var (
+	ErrAccessDenied      = errors.New("access denied")
+	ErrSyncLocked        = errors.New("field is managed by external sync")
+	ErrInvalidAccessMode = errors.New("invalid access_mode")
+)
+
 const (
-	// propertyAccessPaginationPageSize is the default page size for pagination when fetching property values
-	propertyAccessPaginationPageSize = 100
-	// propertyAccessMaxPaginationIterations is the maximum number of pagination iterations before returning an error
+	propertyAccessPaginationPageSize      = 100
 	propertyAccessMaxPaginationIterations = 10
 )
 
@@ -96,24 +100,21 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 	callerID := h.extractCallerID(rctx)
 
 	if h.isCallerPlugin(callerID) {
-		// Caller is a plugin — auto-set source_plugin_id
 		if field.Attrs == nil {
 			field.Attrs = make(model.StringInterface)
 		}
 		field.Attrs[model.PropertyAttrsSourcePluginID] = callerID
 	} else {
-		// Non-plugin caller — reject source_plugin_id and protected
 		if h.getSourcePluginID(field) != "" {
-			return nil, fmt.Errorf("PreCreatePropertyField: source_plugin_id can only be set by a plugin")
+			return nil, fmt.Errorf("source_plugin_id can only be set by a plugin: %w", ErrAccessDenied)
 		}
 		if model.IsPropertyFieldProtected(field) {
-			return nil, fmt.Errorf("PreCreatePropertyField: protected can only be set by a plugin")
+			return nil, fmt.Errorf("protected can only be set by a plugin: %w", ErrAccessDenied)
 		}
 	}
 
-	// Validate access mode
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
+		return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
 	}
 
 	return field, nil
@@ -128,26 +129,25 @@ func (h *AccessControlHook) PreUpdatePropertyField(rctx request.CTX, groupID str
 
 	callerID := h.extractCallerID(rctx)
 
-	// Get existing field to check access
 	existingField, err := h.propertyService.getPropertyField(groupID, field.ID)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 
 	if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 
 	if err := h.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 
 	if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
 	}
 
 	return field, nil
@@ -168,19 +168,16 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		fieldIDs[i] = field.ID
 	}
 
-	// Fetch existing fields
 	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyFields: %w", err)
+		return nil, err
 	}
 
-	// Build map for easy lookup
 	existingFieldMap := make(map[string]*model.PropertyField, len(existingFields))
 	for _, field := range existingFields {
 		existingFieldMap[field.ID] = field
 	}
 
-	// Check write access for all fields before allowing any updates
 	for _, field := range fields {
 		existingField, exists := existingFieldMap[field.ID]
 		if !exists {
@@ -188,19 +185,19 @@ func (h *AccessControlHook) PreUpdatePropertyFields(rctx request.CTX, groupID st
 		}
 
 		if err := h.checkFieldWriteAccess(existingField, callerID); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		if err := h.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		if err := h.validateProtectedFieldUpdate(field, callerID); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %s: %w", field.ID, err.Error(), ErrInvalidAccessMode)
 		}
 	}
 
@@ -223,14 +220,10 @@ func (h *AccessControlHook) PreDeletePropertyField(rctx request.CTX, groupID str
 
 	existingField, err := h.propertyService.getPropertyField(groupID, id)
 	if err != nil {
-		return fmt.Errorf("PreDeletePropertyField: %w", err)
+		return err
 	}
 
-	if err := h.checkFieldDeleteAccess(existingField, callerID); err != nil {
-		return fmt.Errorf("PreDeletePropertyField: %w", err)
-	}
-
-	return nil
+	return h.checkFieldDeleteAccess(existingField, callerID)
 }
 
 // Field Post-Hooks
@@ -275,11 +268,11 @@ func (h *AccessControlHook) PreCreatePropertyValue(rctx request.CTX, value *mode
 
 	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
 	if err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
+		return nil, err
 	}
 
 	if err := h.checkValueWriteAccess(field, callerID); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
+		return nil, err
 	}
 
 	return value, nil
@@ -296,16 +289,16 @@ func (h *AccessControlHook) PreCreatePropertyValues(rctx request.CTX, values []*
 
 	fieldMap, err := h.getFieldsForValues(values)
 	if err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValues: %w", err)
+		return nil, err
 	}
 
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("PreCreatePropertyValues: field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s not found", value.FieldID)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
-			return nil, fmt.Errorf("PreCreatePropertyValues: field %s: %w", value.FieldID, err)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
 
@@ -322,11 +315,11 @@ func (h *AccessControlHook) PreUpdatePropertyValue(rctx request.CTX, groupID str
 
 	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
+		return nil, err
 	}
 
 	if err := h.checkValueWriteAccess(field, callerID); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
+		return nil, err
 	}
 
 	return value, nil
@@ -343,16 +336,16 @@ func (h *AccessControlHook) PreUpdatePropertyValues(rctx request.CTX, groupID st
 
 	fieldMap, err := h.getFieldsForValues(values)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValues: %w", err)
+		return nil, err
 	}
 
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("PreUpdatePropertyValues: field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s not found", value.FieldID)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyValues: field %s: %w", value.FieldID, err)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
 
@@ -369,11 +362,11 @@ func (h *AccessControlHook) PreUpsertPropertyValue(rctx request.CTX, value *mode
 
 	field, err := h.propertyService.getPropertyField(value.GroupID, value.FieldID)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
+		return nil, err
 	}
 
 	if err := h.checkValueWriteAccess(field, callerID); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
+		return nil, err
 	}
 
 	return value, nil
@@ -390,16 +383,16 @@ func (h *AccessControlHook) PreUpsertPropertyValues(rctx request.CTX, values []*
 
 	fieldMap, err := h.getFieldsForValues(values)
 	if err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValues: %w", err)
+		return nil, err
 	}
 
 	for _, value := range values {
 		field, exists := fieldMap[value.FieldID]
 		if !exists {
-			return nil, fmt.Errorf("PreUpsertPropertyValues: field %s not found", value.FieldID)
+			return nil, fmt.Errorf("field %s not found", value.FieldID)
 		}
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
-			return nil, fmt.Errorf("PreUpsertPropertyValues: field %s: %w", value.FieldID, err)
+			return nil, fmt.Errorf("field %s: %w", value.FieldID, err)
 		}
 	}
 
@@ -416,19 +409,15 @@ func (h *AccessControlHook) PreDeletePropertyValue(rctx request.CTX, groupID str
 
 	value, err := h.propertyService.getPropertyValue(groupID, id)
 	if err != nil {
-		return fmt.Errorf("PreDeletePropertyValue: %w", err)
+		return err
 	}
 
 	field, err := h.propertyService.getPropertyField(groupID, value.FieldID)
 	if err != nil {
-		return fmt.Errorf("PreDeletePropertyValue: %w", err)
+		return err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
-		return fmt.Errorf("PreDeletePropertyValue: %w", err)
-	}
-
-	return nil
+	return h.checkValueWriteAccess(field, callerID)
 }
 
 // PreDeletePropertyValuesForTarget enforces write access for all affected fields
@@ -463,7 +452,7 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 		values, err := h.propertyService.searchPropertyValues(groupID, opts)
 		if err != nil {
-			return fmt.Errorf("PreDeletePropertyValuesForTarget: %w", err)
+			return err
 		}
 
 		for _, value := range values {
@@ -492,12 +481,12 @@ func (h *AccessControlHook) PreDeletePropertyValuesForTarget(rctx request.CTX, g
 
 	fields, err := h.propertyService.getPropertyFields(groupID, fieldIDSlice)
 	if err != nil {
-		return fmt.Errorf("PreDeletePropertyValuesForTarget: %w", err)
+		return err
 	}
 
 	for _, field := range fields {
 		if err := h.checkValueWriteAccess(field, callerID); err != nil {
-			return fmt.Errorf("PreDeletePropertyValuesForTarget: field %s: %w", field.ID, err)
+			return fmt.Errorf("field %s: %w", field.ID, err)
 		}
 	}
 
@@ -514,14 +503,10 @@ func (h *AccessControlHook) PreDeletePropertyValuesForField(rctx request.CTX, gr
 
 	field, err := h.propertyService.getPropertyField(groupID, fieldID)
 	if err != nil {
-		return fmt.Errorf("PreDeletePropertyValuesForField: %w", err)
+		return err
 	}
 
-	if err := h.checkValueWriteAccess(field, callerID); err != nil {
-		return fmt.Errorf("PreDeletePropertyValuesForField: %w", err)
-	}
-
-	return nil
+	return h.checkValueWriteAccess(field, callerID)
 }
 
 // Value Post-Hooks
@@ -540,7 +525,7 @@ func (h *AccessControlHook) PostGetPropertyValue(rctx request.CTX, value *model.
 
 	filtered, err := h.applyValueReadAccessControl([]*model.PropertyValue{value}, callerID)
 	if err != nil {
-		return nil, fmt.Errorf("PostGetPropertyValue: %w", err)
+		return nil, err
 	}
 
 	if len(filtered) == 0 {
@@ -560,12 +545,7 @@ func (h *AccessControlHook) PostGetPropertyValues(rctx request.CTX, values []*mo
 
 	callerID := h.extractCallerID(rctx)
 
-	filtered, err := h.applyValueReadAccessControl(values, callerID)
-	if err != nil {
-		return nil, fmt.Errorf("PostGetPropertyValues: %w", err)
-	}
-
-	return filtered, nil
+	return h.applyValueReadAccessControl(values, callerID)
 }
 
 // Access Control Helper Methods
@@ -623,7 +603,7 @@ func (h *AccessControlHook) ensureSourcePluginIDUnchanged(existingField, updated
 	updatedSourcePluginID := h.getSourcePluginID(updatedField)
 
 	if existingSourcePluginID != updatedSourcePluginID {
-		return fmt.Errorf("source_plugin_id is immutable and cannot be changed from '%s' to '%s'", existingSourcePluginID, updatedSourcePluginID)
+		return fmt.Errorf("source_plugin_id is immutable and cannot be changed from '%s' to '%s': %w", existingSourcePluginID, updatedSourcePluginID, ErrAccessDenied)
 	}
 
 	return nil
@@ -637,11 +617,11 @@ func (h *AccessControlHook) validateProtectedFieldUpdate(updatedField *model.Pro
 
 	sourcePluginID := h.getSourcePluginID(updatedField)
 	if sourcePluginID == "" {
-		return fmt.Errorf("cannot set protected=true on a field without a source_plugin_id")
+		return fmt.Errorf("cannot set protected=true on a field without a source_plugin_id: %w", ErrAccessDenied)
 	}
 
 	if sourcePluginID != callerID {
-		return fmt.Errorf("cannot set protected=true: only source plugin '%s' can modify this field", sourcePluginID)
+		return fmt.Errorf("cannot set protected=true: only source plugin '%s' can modify this field: %w", sourcePluginID, ErrAccessDenied)
 	}
 
 	return nil
@@ -656,11 +636,11 @@ func (h *AccessControlHook) checkFieldWriteAccess(field *model.PropertyField, ca
 
 	sourcePluginID := h.getSourcePluginID(field)
 	if sourcePluginID == "" {
-		return fmt.Errorf("field %s is protected, but has no associated source plugin", field.ID)
+		return fmt.Errorf("field %s is protected, but has no associated source plugin: %w", field.ID, ErrAccessDenied)
 	}
 
 	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s'", field.ID, sourcePluginID)
+		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
 	}
 
 	return nil
@@ -683,7 +663,7 @@ func (h *AccessControlHook) checkFieldDeleteAccess(field *model.PropertyField, c
 	}
 
 	if sourcePluginID != callerID {
-		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s'", field.ID, sourcePluginID)
+		return fmt.Errorf("field %s is protected and can only be modified by source plugin '%s': %w", field.ID, sourcePluginID, ErrAccessDenied)
 	}
 
 	return nil
@@ -707,17 +687,11 @@ func (h *AccessControlHook) checkSyncLock(field *model.PropertyField, callerID s
 	case "saml":
 		expectedCallerID = model.CallerIDSAMLSync
 	default:
-		return fmt.Errorf("field %s has unknown sync source %q", field.ID, syncSource)
+		return fmt.Errorf("field %s has unknown sync source %q: %w", field.ID, syncSource, ErrSyncLocked)
 	}
 
 	if callerID != expectedCallerID {
-		return model.NewAppError(
-			"checkSyncLock",
-			"app.property.sync_lock.app_error",
-			map[string]any{"FieldID": field.ID, "SyncSource": syncSource},
-			fmt.Sprintf("field %s is managed by %s sync and cannot be modified by caller %q", field.ID, syncSource, callerID),
-			http.StatusBadRequest,
-		)
+		return fmt.Errorf("field %s is managed by %s sync and cannot be modified by caller %q: %w", field.ID, syncSource, callerID, ErrSyncLocked)
 	}
 
 	return nil

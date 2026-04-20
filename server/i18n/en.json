@@ -7711,12 +7711,20 @@
     "translation": "Prepackged plugin version could not be parsed."
   },
   {
+    "id": "app.property.access_denied.app_error",
+    "translation": "You do not have permission to perform this operation."
+  },
+  {
+    "id": "app.property.invalid_access_mode.app_error",
+    "translation": "The access_mode attribute is invalid."
+  },
+  {
     "id": "app.property.license_error",
     "translation": "Your license does not support this property group."
   },
   {
     "id": "app.property.sync_lock.app_error",
-    "translation": "Property field {{.FieldID}} is managed by {{.SyncSource}} sync and cannot be modified directly."
+    "translation": "This property field is managed by external sync and cannot be modified directly."
   },
   {
     "id": "app.property_field.count_for_group.app_error",
@@ -7732,11 +7740,11 @@
   },
   {
     "id": "app.property_field.create.group_limit_reached.app_error",
-    "translation": "The maximum number of property fields ({{.Limit}}) for this group has been reached."
+    "translation": "The maximum number of property fields for this group has been reached."
   },
   {
     "id": "app.property_field.create.limit_reached.app_error",
-    "translation": "The maximum number of property fields ({{.Limit}}) for object type {{.ObjectType}} has been reached."
+    "translation": "The maximum number of property fields for this object type has been reached."
   },
   {
     "id": "app.property_field.create.name_conflict.app_error",
@@ -7777,6 +7785,10 @@
   {
     "id": "app.property_field.get_many.fields_not_found.app_error",
     "translation": "One or more property field IDs were not found in the specified group."
+  },
+  {
+    "id": "app.property_field.invalid_attrs.app_error",
+    "translation": "Invalid property field attributes."
   },
   {
     "id": "app.property_field.invalid_input.app_error",
@@ -7855,6 +7867,10 @@
     "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
   {
+    "id": "app.property_value.sanitization.app_error",
+    "translation": "Property value could not be normalized."
+  },
+  {
     "id": "app.property_value.search.app_error",
     "translation": "Unable to search property values."
   },
@@ -7876,7 +7892,7 @@
   },
   {
     "id": "app.property_value.validate.app_error",
-    "translation": "Property value for field {{.FieldID}} failed validation."
+    "translation": "Property value failed validation."
   },
   {
     "id": "app.reaction.bulk_get_for_post_ids.app_error",

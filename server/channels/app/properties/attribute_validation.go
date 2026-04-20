@@ -5,12 +5,18 @@ package properties
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+var (
+	ErrInvalidFieldAttrs = errors.New("invalid field attrs")
+	ErrInvalidValue      = errors.New("invalid property value")
+	ErrAdminRequired     = errors.New("admin privileges required")
 )
 
 // PermissionChecker checks whether a user has a specific permission.
@@ -56,10 +62,10 @@ func (h *AttributeValidationHook) isGroupManaged(groupID string) bool {
 
 func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField) error {
 	if err := model.ValidatePropertyFieldVisibility(field); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
-		return err
+		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
 	return nil
 }
@@ -84,23 +90,11 @@ func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, fiel
 		// permission checker isn't wired up or if the caller is
 		// unidentifiable — we never silently promote to sysadmin.
 		if h.permissionChecker == nil {
-			return nil, model.NewAppError(
-				"enforceGroupPermissions",
-				"app.property_field.managed_admin.permission.app_error",
-				nil,
-				"cannot set managed=admin: no permission checker configured",
-				http.StatusForbidden,
-			)
+			return nil, fmt.Errorf("missing permission to set managed=admin: no permission checker configured: %w", ErrAdminRequired)
 		}
 		callerID := h.propertyService.extractCallerID(rctx)
 		if callerID == "" || !h.permissionChecker(callerID, model.PermissionManageSystem) {
-			return nil, model.NewAppError(
-				"enforceGroupPermissions",
-				"app.property_field.managed_admin.permission.app_error",
-				nil,
-				"only system admins can set managed=admin",
-				http.StatusForbidden,
-			)
+			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
 		field.PermissionValues = &sysadmin
 	} else {
@@ -120,15 +114,10 @@ func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field
 	}
 
 	if err := h.validateFieldAttrs(field); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
+		return nil, err
 	}
 
-	field, err := h.enforceGroupPermissions(rctx, field)
-	if err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
-	}
-
-	return field, nil
+	return h.enforceGroupPermissions(rctx, field)
 }
 
 func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error) {
@@ -137,15 +126,10 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, group
 	}
 
 	if err := h.validateFieldAttrs(field); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 
-	field, err := h.enforceGroupPermissions(rctx, field)
-	if err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
-	}
-
-	return field, nil
+	return h.enforceGroupPermissions(rctx, field)
 }
 
 func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
@@ -155,12 +139,12 @@ func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, grou
 
 	for i, field := range fields {
 		if err := h.validateFieldAttrs(field); err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		updated, err := h.enforceGroupPermissions(rctx, field)
 		if err != nil {
-			return nil, fmt.Errorf("PreUpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 		fields[i] = updated
 	}
@@ -317,13 +301,7 @@ func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) 
 			return fmt.Errorf("field %s not found", value.FieldID)
 		}
 		if err := h.validateValueAgainstField(field, value); err != nil {
-			return model.NewAppError(
-				"validateValues",
-				"app.property_value.validate.app_error",
-				map[string]any{"FieldID": value.FieldID},
-				fmt.Sprintf("field %s: %s", value.FieldID, err.Error()),
-				http.StatusBadRequest,
-			)
+			return fmt.Errorf("field %s: %s: %w", value.FieldID, err.Error(), ErrInvalidValue)
 		}
 	}
 
@@ -332,42 +310,42 @@ func (h *AttributeValidationHook) validateValues(values []*model.PropertyValue) 
 
 func (h *AttributeValidationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeValidationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
 
 func (h *AttributeValidationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeValidationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
 
 func (h *AttributeValidationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.validateValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeValidationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.validateValues(values); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }

@@ -1,0 +1,58 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"errors"
+	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+)
+
+// mapPropertyServiceError translates known sentinel errors from the property
+// service / PropertyHook chain into HTTP-shaped AppErrors. Returns nil if err
+// is not a recognised sentinel; callers should fall back to wrapping with
+// their own default 500 in that case.
+//
+// Already-typed AppErrors are returned as-is.
+//
+// User-facing DetailedError is left empty on access-control rejections to
+// avoid leaking field IDs, plugin IDs, and sync source names. The full
+// chain remains available for operator logs via Wrap(err).
+func mapPropertyServiceError(where string, err error) *model.AppError {
+	if err == nil {
+		return nil
+	}
+
+	var appErr *model.AppError
+	if errors.As(err, &appErr) {
+		return appErr
+	}
+
+	switch {
+	case errors.Is(err, properties.ErrAccessDenied):
+		return model.NewAppError(where, "app.property.access_denied.app_error", nil, "", http.StatusForbidden).Wrap(err)
+	case errors.Is(err, properties.ErrSyncLocked):
+		return model.NewAppError(where, "app.property.sync_lock.app_error", nil, "", http.StatusForbidden).Wrap(err)
+	case errors.Is(err, properties.ErrInvalidAccessMode):
+		return model.NewAppError(where, "app.property.invalid_access_mode.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, properties.ErrFieldLimitReached):
+		return model.NewAppError(where, "app.property_field.create.limit_reached.app_error", nil, err.Error(), http.StatusUnprocessableEntity).Wrap(err)
+	case errors.Is(err, properties.ErrGroupFieldLimitReached):
+		return model.NewAppError(where, "app.property_field.create.group_limit_reached.app_error", nil, err.Error(), http.StatusUnprocessableEntity).Wrap(err)
+	case errors.Is(err, properties.ErrLicenseRequired):
+		return model.NewAppError(where, "app.property.license_error", nil, "", http.StatusForbidden).Wrap(err)
+	case errors.Is(err, properties.ErrInvalidFieldAttrs):
+		return model.NewAppError(where, "app.property_field.invalid_attrs.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, properties.ErrInvalidValue):
+		return model.NewAppError(where, "app.property_value.validate.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+	case errors.Is(err, properties.ErrAdminRequired):
+		return model.NewAppError(where, "app.property_field.managed_admin.permission.app_error", nil, "", http.StatusForbidden).Wrap(err)
+	case errors.Is(err, properties.ErrSanitization):
+		return model.NewAppError(where, "app.property_value.sanitization.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
+}

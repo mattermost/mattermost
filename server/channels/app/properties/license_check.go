@@ -4,12 +4,13 @@
 package properties
 
 import (
-	"fmt"
-	"net/http"
+	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+var ErrLicenseRequired = errors.New("license_error: an Enterprise license is required")
 
 // LicenseProvider is a function that returns the current license.
 type LicenseProvider func() *model.License
@@ -45,13 +46,7 @@ func (h *LicenseCheckHook) isGroupManaged(groupID string) bool {
 
 func (h *LicenseCheckHook) checkLicense() error {
 	if !model.MinimumEnterpriseLicense(h.licenseProvider()) {
-		return model.NewAppError(
-			"LicenseCheckHook",
-			"app.property.license_error",
-			nil,
-			"an Enterprise license is required",
-			http.StatusForbidden,
-		)
+		return ErrLicenseRequired
 	}
 	return nil
 }
@@ -63,7 +58,7 @@ func (h *LicenseCheckHook) PreCreatePropertyField(_ request.CTX, field *model.Pr
 		return field, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
+		return nil, err
 	}
 	return field, nil
 }
@@ -73,7 +68,7 @@ func (h *LicenseCheckHook) PreUpdatePropertyField(_ request.CTX, groupID string,
 		return field, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyField: %w", err)
+		return nil, err
 	}
 	return field, nil
 }
@@ -83,7 +78,7 @@ func (h *LicenseCheckHook) PreUpdatePropertyFields(_ request.CTX, groupID string
 		return fields, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyFields: %w", err)
+		return nil, err
 	}
 	return fields, nil
 }
@@ -109,7 +104,7 @@ func (h *LicenseCheckHook) PostGetPropertyField(_ request.CTX, field *model.Prop
 		return field, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PostGetPropertyField: %w", err)
+		return nil, err
 	}
 	return field, nil
 }
@@ -119,7 +114,7 @@ func (h *LicenseCheckHook) PostGetPropertyFields(_ request.CTX, fields []*model.
 		return fields, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PostGetPropertyFields: %w", err)
+		return nil, err
 	}
 	return fields, nil
 }
@@ -131,7 +126,7 @@ func (h *LicenseCheckHook) PreCreatePropertyValue(_ request.CTX, value *model.Pr
 		return value, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
@@ -141,7 +136,7 @@ func (h *LicenseCheckHook) PreCreatePropertyValues(_ request.CTX, values []*mode
 		return values, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
@@ -151,7 +146,7 @@ func (h *LicenseCheckHook) PreUpdatePropertyValue(_ request.CTX, groupID string,
 		return value, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
@@ -161,7 +156,7 @@ func (h *LicenseCheckHook) PreUpdatePropertyValues(_ request.CTX, groupID string
 		return values, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
@@ -171,7 +166,7 @@ func (h *LicenseCheckHook) PreUpsertPropertyValue(_ request.CTX, value *model.Pr
 		return value, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
@@ -181,7 +176,7 @@ func (h *LicenseCheckHook) PreUpsertPropertyValues(_ request.CTX, values []*mode
 		return values, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
@@ -214,7 +209,7 @@ func (h *LicenseCheckHook) PostGetPropertyValue(_ request.CTX, value *model.Prop
 		return value, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PostGetPropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
@@ -224,7 +219,7 @@ func (h *LicenseCheckHook) PostGetPropertyValues(_ request.CTX, values []*model.
 		return values, nil
 	}
 	if err := h.checkLicense(); err != nil {
-		return nil, fmt.Errorf("PostGetPropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }

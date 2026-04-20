@@ -5,12 +5,15 @@ package properties
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
+
+var ErrSanitization = errors.New("value sanitization failed")
 
 // AttributeSanitizationHook normalizes property values before they are
 // validated or stored. It trims whitespace from string values, filters
@@ -60,13 +63,13 @@ func sanitizeValueForField(field *model.PropertyField, value *model.PropertyValu
 
 		var str string
 		if err := json.Unmarshal(value.Value, &str); err != nil {
-			return fmt.Errorf("expected string value for field type %s: %w", field.Type, err)
+			return fmt.Errorf("expected string value for field type %s: %s: %w", field.Type, err.Error(), ErrSanitization)
 		}
 
 		trimmed := strings.TrimSpace(str)
 		sanitized, err := json.Marshal(trimmed)
 		if err != nil {
-			return fmt.Errorf("failed to marshal sanitized string value: %w", err)
+			return fmt.Errorf("failed to marshal sanitized string value: %s: %w", err.Error(), ErrSanitization)
 		}
 		value.Value = sanitized
 
@@ -75,7 +78,7 @@ func sanitizeValueForField(field *model.PropertyField, value *model.PropertyValu
 
 		var values []string
 		if err := json.Unmarshal(value.Value, &values); err != nil {
-			return fmt.Errorf("expected string array value for field type %s: %w", field.Type, err)
+			return fmt.Errorf("expected string array value for field type %s: %s: %w", field.Type, err.Error(), ErrSanitization)
 		}
 
 		filtered := make([]string, 0, len(values))
@@ -88,7 +91,7 @@ func sanitizeValueForField(field *model.PropertyField, value *model.PropertyValu
 
 		sanitized, err := json.Marshal(filtered)
 		if err != nil {
-			return fmt.Errorf("failed to marshal sanitized array value: %w", err)
+			return fmt.Errorf("failed to marshal sanitized array value: %s: %w", err.Error(), ErrSanitization)
 		}
 		value.Value = sanitized
 	}
@@ -141,42 +144,42 @@ func (h *AttributeSanitizationHook) sanitizeValues(values []*model.PropertyValue
 
 func (h *AttributeSanitizationHook) PreCreatePropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.sanitizeValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeSanitizationHook) PreCreatePropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.sanitizeValues(values); err != nil {
-		return nil, fmt.Errorf("PreCreatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
 
 func (h *AttributeSanitizationHook) PreUpdatePropertyValue(_ request.CTX, _ string, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.sanitizeValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeSanitizationHook) PreUpdatePropertyValues(_ request.CTX, _ string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.sanitizeValues(values); err != nil {
-		return nil, fmt.Errorf("PreUpdatePropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }
 
 func (h *AttributeSanitizationHook) PreUpsertPropertyValue(_ request.CTX, value *model.PropertyValue) (*model.PropertyValue, error) {
 	if err := h.sanitizeValues([]*model.PropertyValue{value}); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValue: %w", err)
+		return nil, err
 	}
 	return value, nil
 }
 
 func (h *AttributeSanitizationHook) PreUpsertPropertyValues(_ request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	if err := h.sanitizeValues(values); err != nil {
-		return nil, fmt.Errorf("PreUpsertPropertyValues: %w", err)
+		return nil, err
 	}
 	return values, nil
 }

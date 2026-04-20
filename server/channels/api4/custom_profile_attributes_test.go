@@ -669,7 +669,7 @@ func TestPatchCPAValues(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
@@ -678,7 +678,7 @@ func TestPatchCPAValues(t *testing.T) {
 			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
@@ -688,7 +688,7 @@ func TestPatchCPAValues(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})
@@ -1040,7 +1040,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err := th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
@@ -1049,7 +1049,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			createdSAMLField.ID: json.RawMessage(`"SAML Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 
@@ -1059,7 +1059,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			createdLDAPField.ID: json.RawMessage(`"LDAP Value"`),
 		}
 		_, resp, err = th.Client.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})
@@ -1612,7 +1612,7 @@ func TestCPABackwardCompatAfterRefactor(t *testing.T) {
 			th.BasicUser.Id,
 			map[string]json.RawMessage{createdLDAPField.ID: json.RawMessage(`"attempted write"`)},
 		)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
 		CheckErrorID(t, err, "app.property.sync_lock.app_error")
 	})

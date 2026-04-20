@@ -4,11 +4,16 @@
 package properties
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+var (
+	ErrFieldLimitReached      = errors.New("per-object-type field limit reached")
+	ErrGroupFieldLimitReached = errors.New("group field limit reached")
 )
 
 // FieldLimitConfig defines limits for a specific property group.
@@ -62,13 +67,7 @@ func (h *FieldLimitHook) PreCreatePropertyField(_ request.CTX, field *model.Prop
 				return nil, fmt.Errorf("PreCreatePropertyField: failed to count fields: %w", err)
 			}
 			if count >= limit {
-				return nil, model.NewAppError(
-					"PreCreatePropertyField",
-					"app.property_field.create.limit_reached.app_error",
-					map[string]any{"Limit": limit, "ObjectType": field.ObjectType},
-					fmt.Sprintf("field limit of %d reached for object type %q", limit, field.ObjectType),
-					http.StatusUnprocessableEntity,
-				)
+				return nil, fmt.Errorf("limit_reached: field limit of %d reached for object type %q: %w", limit, field.ObjectType, ErrFieldLimitReached)
 			}
 		}
 	}
@@ -80,13 +79,7 @@ func (h *FieldLimitHook) PreCreatePropertyField(_ request.CTX, field *model.Prop
 			return nil, fmt.Errorf("PreCreatePropertyField: failed to count group fields: %w", err)
 		}
 		if count >= config.GlobalLimit {
-			return nil, model.NewAppError(
-				"PreCreatePropertyField",
-				"app.property_field.create.group_limit_reached.app_error",
-				map[string]any{"Limit": config.GlobalLimit},
-				fmt.Sprintf("global field limit of %d reached for group", config.GlobalLimit),
-				http.StatusUnprocessableEntity,
-			)
+			return nil, fmt.Errorf("group_limit_reached: global field limit of %d reached for group: %w", config.GlobalLimit, ErrGroupFieldLimitReached)
 		}
 	}
 
