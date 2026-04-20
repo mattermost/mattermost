@@ -12346,5 +12346,133 @@
   {
     "id": "app.property_value.upsert_many.app_error",
     "translation": "Nie można wstawić wartości właściwości."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Dodanie członka zespołu odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Nie udało się policzyć wyświetleń dla Kanału."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Nie można utworzyć widoku."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Nie udało się policzyć wyświetleń dla Kanału."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Ten Kanał osiągnął maksymalną liczbę wyświetleń."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Nie można usunąć widoku."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Nie można uzyskać widoku."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Nie możesz uzyskać wyświetleń dla tego Kanału."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Nieprawidłowe dane wejściowe podczas pobierania widoków dla Kanału."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Nie można zaktualizować widoku."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Nie można zaktualizować kolejności sortowania widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Nieprawidłowe dane wejściowe dla aktualizacji kolejności sortowania widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} nie jest uruchomiony."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} kontrola stanu nie powiodła się: nie można ukończyć kontroli."
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} Wersja {{.Version}} jest niższa niż min. wspierana wersja {{.MinVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Nieprawidłowe opcje RemoteImageProxyOptions dla atmos/camo: klucz HMAC musi mieć co najmniej {{.MinLength}} bajtów, aby zapewnić zgodność ze standardem FIPS."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu zapytania analitycznego dla ustawień SQL. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału widoku."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Nieprawidłowy czas utworzenia widoku."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Nieprawidłowy identyfikator twórcy widoku."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Opis widoku jest zbyt długi."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator widoku."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "Tytuł widoku jest wymagany i nie może zawierać więcej niż 256 znaków."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ widoku."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Nieprawidłowy czas aktualizacji widoku."
   }
 ]
