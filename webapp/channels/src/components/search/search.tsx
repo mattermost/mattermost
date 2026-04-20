@@ -169,12 +169,6 @@ const Search = ({
     }, [hideSearchBar, currentChannelName]);
 
     useEffect((): void => {
-        if (isMobileView && isSideBarRight) {
-            handleFocus();
-        }
-    }, [isMobileView, isSideBarRight]);
-
-    useEffect((): void => {
         if (!isMobileView) {
             setVisibleSearchHintOptions(determineVisibleSearchHintOptions(searchTerms, searchType));
         }
