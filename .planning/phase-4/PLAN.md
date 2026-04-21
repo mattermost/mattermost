@@ -1005,16 +1005,19 @@ Add a comment block above the validator export documenting the grandfather contr
 
 ## Implementation summary
 
-- Completed the Phase 4 takeover from the existing dirty worktree without reverting the in-scope edits already present in the branch.
-- Finished and verified the Stage 2 scope:
-  - Display name column and identifier hint in the admin table
-  - Client-side CPA identifier validation with lenient-grandfather behavior
-  - CEL-safe duplicate-name generation and collision suffixing
-  - Delete modal label fallback to `display_name`
-  - Mandatory lead follow-ups: grandfather-contract comment and rename-clears-grandfather regression coverage
-- Validation run:
+- Commit SHA: `736b73fe82f7584183bb637e68573688c8f7cb10` (code) and `7009381d56719d294040e0250ac5cb3b059a4ee0` (final Phase 4 summary sync)
+- Diff stat: `11 files changed, 676 insertions(+), 43 deletions(-)` for the code commit
+- Tests run:
   - `cd webapp/channels && npm test -- --runInBand src/utils/properties.test.ts src/components/admin_console/system_properties/user_properties_utils.test.ts src/components/admin_console/system_properties/user_properties_table.test.tsx src/components/admin_console/system_properties/user_properties_delete_modal.test.tsx src/components/admin_console/system_properties/user_properties_dot_menu.test.tsx` - passed
   - `cd webapp && npm run check-types` - passed
-  - `cd webapp/channels && npm run check` - passed
-- Note: `webapp/package.json` does not define a root `lint` script in this worktree, so `webapp/channels npm run check` was used as the lint-equivalent validation for the touched Phase 4 files.
-- Note: the plan text above says the reserved-word set contains 22 entries, but the current server source at `server/public/model/custom_profile_attributes.go` contains 21. The TypeScript constant and drift-guard test match the server source exactly.
+  - `cd webapp && npm run lint` - failed (`Missing script: "lint"`)
+  - `cd webapp/channels && npm run check` - passed (eslint + stylelint fallback for the touched Phase 4 files)
+- Typecheck: passed
+- Lint: root `webapp` lint command is unavailable in this worktree; package-level `webapp/channels npm run check` passed as the lint-equivalent validation
+- Deviations:
+  - The plan text above says the reserved-word set contains 22 entries, but the current server source at `server/public/model/custom_profile_attributes.go` contains 21. The TypeScript constant and drift-guard test match the server source exactly.
+  - `.planning` is ignored by default in this worktree, so the required plan-summary artifact had to be force-added in a follow-up docs commit.
+  - The exact `cd webapp && npm run lint` command required by the phase instructions is not defined in this worktree; `cd webapp/channels && npm run check` was used for actual lint validation after recording the missing-script failure.
+- Reviewer notes:
+  - Kept the `name` input cap at 40 and did not change shared `MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH`.
+  - Added the mandatory rename-clears-grandfather regression test and the grandfather-contract comment in `utils/properties.ts`.
