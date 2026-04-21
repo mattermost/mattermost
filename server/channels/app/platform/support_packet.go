@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -22,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -200,6 +200,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		d.LDAP.ServerName = severName
 		d.LDAP.ServerVersion = serverVersion
+	} else {
+		d.LDAP.Status = model.StatusDisabled
 	}
 
 	/* SAML */
@@ -223,11 +225,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Email Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
 		emailSettings := ps.Config().EmailSettings
-		siteURL := model.SafeDereference(ps.Config().ServiceSettings.SiteURL)
-		hostname := siteURL
-		if u, parseErr := url.Parse(siteURL); parseErr == nil {
-			hostname = u.Hostname()
-		}
+		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
 		mailCfg := &mail.SMTPConfig{
 			Hostname:                          hostname,
 			ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
@@ -257,21 +255,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		pushCtx, pushCancel := context.WithTimeout(rctx.Context(), 10*time.Second)
-		defer pushCancel()
-		req, reqErr := http.NewRequestWithContext(pushCtx, http.MethodGet, pushServerURL, nil)
-		if reqErr != nil {
+		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
 			d.Notifications.Push.Status = model.StatusFail
-			d.Notifications.Push.Error = reqErr.Error()
+			d.Notifications.Push.Error = pushErr.Error()
 		} else {
-			resp, httpErr := http.DefaultClient.Do(req)
-			if httpErr != nil {
-				d.Notifications.Push.Status = model.StatusFail
-				d.Notifications.Push.Error = httpErr.Error()
-			} else {
-				resp.Body.Close()
-				d.Notifications.Push.Status = model.StatusOk
-			}
+			d.Notifications.Push.Status = model.StatusOk
 		}
 	} else {
 		d.Notifications.Push.Status = model.StatusDisabled
@@ -287,6 +275,22 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
+func testPushProxyConnection(ctx context.Context, serverURL string) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {

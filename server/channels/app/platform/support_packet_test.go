@@ -281,6 +281,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusDisabled, packet.LDAP.Status)
 		assert.Equal(t, "", packet.LDAP.ServerName)
 		assert.Equal(t, "", packet.LDAP.ServerVersion)
 	})
@@ -509,7 +510,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
-		assert.Equal(t, "disabled", packet.Notifications.Push.Status)
+		assert.Equal(t, model.StatusDisabled, packet.Notifications.Push.Status)
 		assert.Empty(t, packet.Notifications.Push.Error)
 	})
 
@@ -566,7 +567,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
-		assert.Equal(t, "disabled", packet.Notifications.Email.Status)
+		assert.Equal(t, model.StatusDisabled, packet.Notifications.Email.Status)
 		assert.Empty(t, packet.Notifications.Email.Error)
 	})
 
