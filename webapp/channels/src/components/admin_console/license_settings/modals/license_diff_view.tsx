@@ -141,7 +141,7 @@ const getEntryTransitionBanner = (newSkuShortName: string | undefined): BannerCo
             },
             description: {
                 id: 'admin.license.diff.banner.entry_to_advanced.description',
-                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, mobile security hardening for mission-critical operations',
+                defaultMessage: 'Mattermost Enterprise Advanced includes all Enterprise features, unlocks unlimited message history, and adds exclusive capabilities like Zero Trust security, sensitive information controls, and mobile security hardening for mission-critical operations',
             },
             showPlanDiffLink: false,
         };
