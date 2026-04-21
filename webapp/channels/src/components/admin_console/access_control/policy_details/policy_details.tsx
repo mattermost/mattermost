@@ -657,7 +657,6 @@ function PolicyDetails({
                         />
                     }
                     confirmButtonVariant='destructive'
-                    isDeleteModal={true}
                     compassDesign={true}
                 >
                     <FormattedMessage

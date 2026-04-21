@@ -33,7 +33,6 @@ export type Props = {
     cancelButtonText?: React.ReactNode;
     cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
-    isDeleteModal?: boolean;
     id?: string;
     autoCloseOnCancelButton?: boolean;
     autoCloseOnConfirmButton?: boolean;
@@ -121,7 +120,6 @@ export const GenericModal: React.FC<Props> = ({
     cancelButtonText,
     cancelButtonClassName,
     isConfirmDisabled,
-    isDeleteModal,
     container,
     ariaLabel,
     ariaLabelledby,
@@ -204,7 +202,6 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = isDeleteModal ? 'btn-danger' : '';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
@@ -218,7 +215,7 @@ export const GenericModal: React.FC<Props> = ({
             <button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('btn btn-primary', buttonTypeClass, {
+                className={classNames('btn btn-primary', {
                     'btn-danger': confirmButtonVariant === 'destructive',
                     disabled: isConfirmDisabled,
                 })}
