@@ -11,6 +11,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ChannelBanner from 'components/channel_banner/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
@@ -238,6 +239,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         return (
             <>
                 <div className={classNames('ThreadViewer', this.props.className)}>
+                    <ChannelBanner channelId={this.props.channel?.id || ''}/>
                     <div className='post-right-comments-container'>
                         <>
                             <FileUploadOverlay

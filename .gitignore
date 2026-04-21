@@ -160,6 +160,7 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+.planning/
 
 **/CLAUDE.local.md
 **/CLAUDE.md

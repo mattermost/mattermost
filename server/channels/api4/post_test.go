@@ -4614,7 +4614,6 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
-	t.Skip("MM-46902")
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
@@ -4622,17 +4621,22 @@ func TestGetFileInfosForPost(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 	for i := range 3 {
-		fileResp, _, _ := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		fileResp, _, uploadErr := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, uploadErr, "failed to upload file %d", i)
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
-	post, _, _ = client.CreatePost(context.Background(), post)
-
-	infos, resp, err := client.GetFileInfosForPost(context.Background(), post.Id, "")
+	post, _, err = client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
-	require.Len(t, infos, 3, "missing file infos")
+	// File info association can be async; poll until all 3 are visible (MM-46902).
+	var infos []*model.FileInfo
+	var resp *model.Response
+	require.Eventually(t, func() bool {
+		infos, resp, err = client.GetFileInfosForPost(context.Background(), post.Id, "")
+		return err == nil && len(infos) == 3
+	}, 10*time.Second, 200*time.Millisecond, "expected 3 file infos")
 
 	found := false
 	for _, info := range infos {
@@ -5326,14 +5330,14 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 }
 
 func TestPostReminder(t *testing.T) {
-	t.Skip("MM-60329")
-
 	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-	targetTime := time.Now().UTC().Unix()
+	// Set target time 1s in the future so the reminder processor picks it up
+	// on its next tick rather than relying on it already being in the past (MM-60329).
+	targetTime := time.Now().UTC().Unix() + 1
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
 		TargetTime: targetTime,
 		PostId:     th.BasicPost.Id,
@@ -5374,7 +5378,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 					return
 				}
-			case <-time.After(5 * time.Second):
+			case <-time.After(15 * time.Second):
 				return
 			}
 		}

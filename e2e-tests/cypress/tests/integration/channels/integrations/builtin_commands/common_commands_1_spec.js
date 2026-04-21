@@ -10,10 +10,11 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
-
 import {verifyEphemeralMessage} from './helper';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
+
 
 describe('Integrations', () => {
     let testUser;

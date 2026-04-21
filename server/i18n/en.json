@@ -56,6 +56,10 @@
     "translation": "Get fields limit is not valid."
   },
   {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Permission policies feature is not enabled."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -242,6 +246,10 @@
   {
     "id": "api.channel.add_members.user_denied",
     "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Failed to build access control subject for user."
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -1278,6 +1286,54 @@
     "translation": "me"
   },
   {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Unable to change mobile log settings for that user."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Manage mobile app log attachment for yourself or another user."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Mobile app log attachment is now disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Mobile app log attachment is now enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Mobile app log attachment is currently disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Mobile app log attachment is currently enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Failed to update mobile app log attachment setting. Please try again."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Usage: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Could not find user \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "you"
+  },
+  {
     "id": "api.command_msg.desc",
     "translation": "Send Direct Message to a user"
   },
@@ -2221,6 +2277,10 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "You do not have the required access to download this file."
+  },
+  {
     "id": "api.file.get_file.invalid_flagged_post.app_error",
     "translation": "Mismatched flagged post ID specified."
   },
@@ -2315,6 +2375,10 @@
   {
     "id": "api.file.test_connection_s3_settings_nil.app_error",
     "translation": "File storage settings has unset values."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "You do not have the required access to upload files to this channel."
   },
   {
     "id": "api.file.upload_file.get_channel.app_error",
@@ -5103,6 +5167,14 @@
     "translation": "Failed to parse request"
   },
   {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Failed to retrieve the access control subject."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Failed to retrieve the access control attribute group."
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -6963,10 +7035,6 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Unable to get existing jobs."
-  },
-  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -7313,6 +7381,10 @@
   {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Failed to evaluate permission policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -8335,6 +8407,34 @@
   {
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "One or more channels were not found."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Channel {{.ChannelId}} does not belong to this team."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "At least one channel is required."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Unable to verify policy ownership for this team."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Failed to reconcile team scope on policy."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "You cannot create a policy that would exclude yourself."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Failed to validate policy rules."
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -10089,8 +10189,16 @@
     "translation": "The parent is already imported."
   },
   {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Permission policies cannot inherit from other policies."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Action(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10109,12 +10217,28 @@
     "translation": "Invalid policy revision."
   },
   {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "Rule(s) is not valid."
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
     "translation": "Policy must either import or define rules."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Invalid scope value for this access control policy."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Scope ID must be a valid ID when scope is set."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Scope ID cannot be set without a scope."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
@@ -12414,11 +12538,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 144+"
+    "translation": "Version 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

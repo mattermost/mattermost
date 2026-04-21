@@ -10,25 +10,17 @@
 // Stage: @prod
 // Group: @channels @not_cloud @plugin
 
-import {demoPlugin} from '../../../utils';
+import {demoPlugin} from '@/utils';
 
 describe('Link tooltips', () => {
     before(() => {
         cy.shouldNotRunOnCloudEdition();
         cy.shouldHavePluginUploadEnabled();
 
-        // # Set plugin settings, including demo plugin defaults so that
-        // OnConfigurationChange can create the demo user with a valid email
+        // # Set plugin settings
         const newSettings = {
             PluginSettings: {
                 Enable: true,
-                Plugins: {
-                    [demoPlugin.id]: {
-                        channelname: 'demo_plugin',
-                        username: 'demo_plugin',
-                        lastname: 'Plugin User',
-                    },
-                },
             },
             ServiceSettings: {
                 EnableGifPicker: true,

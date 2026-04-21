@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {spyNotificationAs} from '../../../support/notification';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {spyNotificationAs} from '@/support/notification';
 
 describe('Direct Message', () => {
     let testTeam;
