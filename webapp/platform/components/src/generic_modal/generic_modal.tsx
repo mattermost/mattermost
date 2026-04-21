@@ -6,7 +6,7 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {ButtonVariant} from '@mattermost/shared/components/button';
+import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
 
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
@@ -31,7 +31,6 @@ export type Props = {
     confirmButtonText?: React.ReactNode;
     confirmButtonVariant?: ButtonVariant;
     cancelButtonText?: React.ReactNode;
-    cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
     id?: string;
     autoCloseOnCancelButton?: boolean;
@@ -118,7 +117,6 @@ export const GenericModal: React.FC<Props> = ({
     confirmButtonText,
     confirmButtonVariant,
     cancelButtonText,
-    cancelButtonClassName,
     isConfirmDisabled,
     container,
     ariaLabel,
@@ -212,18 +210,19 @@ export const GenericModal: React.FC<Props> = ({
             confirmButtonTextContent = confirmButtonText;
         }
         confirmButtonElement = (
-            <button
+            <Button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('btn btn-primary', {
-                    'btn-danger': confirmButtonVariant === 'destructive',
+                emphasis='primary'
+                variant={confirmButtonVariant}
+                className={classNames({
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
                 disabled={isConfirmDisabled}
             >
                 {confirmButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
@@ -240,13 +239,13 @@ export const GenericModal: React.FC<Props> = ({
             cancelButtonTextContent = cancelButtonText;
         }
         cancelButtonElement = (
-            <button
+            <Button
                 type='button'
-                className={classNames('btn btn-tertiary')}
+                emphasis='tertiary'
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
-            </button>
+            </Button>
         );
     }
 
