@@ -7420,7 +7420,7 @@
   },
   {
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "Failed to evaluate permission policy."
+    "translation": ""
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
