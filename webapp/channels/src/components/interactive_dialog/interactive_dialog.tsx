@@ -274,7 +274,6 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                             id='interactiveDialogSubmit'
                             type='submit'
                             autoFocus={!elements || elements.length === 0}
-                            className='save-button'
                             spinning={this.state.submitting}
                             spinningText={
                                 <FormattedMessage

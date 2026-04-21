@@ -727,7 +727,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 key='submit'
                 type='submit'
                 autoFocus={!fields || fields.length === 0}
-                className='save-button'
                 spinning={Boolean(this.state.submitting)}
                 spinningText={defineMessage({
                     id: 'interactive_dialog.submitting',
@@ -746,7 +745,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         id={'appsModalSubmit' + o.value}
                         key={o.value}
                         type='submit'
-                        className='save-button'
                         spinning={this.state.submitting === o.value}
                         spinningText={o.label}
                         onClick={(e: React.MouseEvent) => this.handleSubmit(e, field.name, o.value)}
