@@ -113,6 +113,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
+	d.Server.GoVersion = runtime.Version()
 	installationType := ps.installTypeOverride
 	if installationType == "" {
 		installationType = os.Getenv(envVarInstallType)
@@ -121,6 +122,15 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
+	d.Server.ProcessID = os.Getpid()
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()

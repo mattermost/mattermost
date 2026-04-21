@@ -28,7 +28,6 @@ exports[`components/FileUpload should match snapshot 1`] = `
         </svg>
       </button>
       <input
-        accept=""
         aria-label="Upload files"
         id="fileUploadInput"
         multiple=""
