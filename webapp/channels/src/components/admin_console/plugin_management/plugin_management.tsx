@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
@@ -1151,9 +1150,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                     label={<FormattedMessage {...messages.uploadTitle}/>}
                                 >
                                     <div className='file__upload'>
-                                        <button
+                                        <Button
                                             type='button'
-                                            className={classNames(['btn', {'btn-tertiary': enableUploads}])}
+                                            emphasis='tertiary'
                                             onClick={this.handleChooseFileClick}
                                             disabled={!enableUploadButton || this.props.isDisabled}
                                         >
@@ -1161,7 +1160,7 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
                                                 id='admin.plugin.choose'
                                                 defaultMessage='Choose File'
                                             />
-                                        </button>
+                                        </Button>
                                         <input
                                             ref={this.fileInput}
                                             type='file'

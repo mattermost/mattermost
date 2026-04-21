@@ -6,6 +6,8 @@ import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import {StyledPopoverContainer} from 'components/styled_popover_container';
@@ -117,15 +119,16 @@ export function SystemUsersFilterPopover(props: Props) {
 
     return (
         <div className='systemUsersFilterContainer'>
-            <button
+            <Button
                 {...getReferenceProps()}
                 ref={floatingRefs.setReference}
-                className='btn btn-md btn-tertiary'
+                emphasis='tertiary'
+                size='md'
                 aria-controls='systemUsersFilterPopover'
             >
                 <i className='icon icon-filter-variant'/>
                 {formatMessage({id: 'admin.system_users.filtersMenu', defaultMessage: 'Filters ({count})'}, {count: filtersCount})}
-            </button>
+            </Button>
             {isMounted && (
                 <FloatingFocusManager
                     context={floatingContext}
@@ -157,13 +160,14 @@ export function SystemUsersFilterPopover(props: Props) {
                             />
                         </div>
                         <div className='footer'>
-                            <button
-                                className='btn btn-md btn-primary'
+                            <Button
+                                emphasis='primary'
+                                size='md'
                                 onClick={handleApplyFilters}
                                 type='submit'
                             >
                                 {formatMessage({id: 'admin.system_users.filtersPopover.apply', defaultMessage: 'Apply'})}
-                            </button>
+                            </Button>
                         </div>
                     </StyledPopoverContainer>
                 </FloatingFocusManager>

@@ -198,8 +198,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             </div>
             <div className='content-footer'>
                 <div className='btn-upload-wrapper'>
-                    <button
-                        className={`btn ${(fileObj?.name && fileObj?.name.length > 0) && 'btn-primary'}`}
+                    <Button
+                        emphasis='primary'
                         disabled={!(fileObj?.name && fileObj?.name.length > 0)}
                         onClick={handleSubmit}
                         id='upload-button'
@@ -213,7 +213,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 defaultMessage='Upload'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>

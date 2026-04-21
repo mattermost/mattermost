@@ -5,6 +5,7 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
@@ -88,8 +89,10 @@ const ProfilePopoverCustomStatus = ({
         );
     } else if (canSetCustomStatus) {
         customStatusContent = (
-            <button
-                className='btn btn-sm btn-quaternary user-popover__set-status'
+            <Button
+                emphasis='quaternary'
+                size='sm'
+                className='user-popover__set-status'
                 onClick={showCustomStatusModal}
             >
                 <i className='icon icon-emoticon-plus-outline'/>
@@ -97,7 +100,7 @@ const ProfilePopoverCustomStatus = ({
                     id='user_profile.custom_status.set_status'
                     defaultMessage='Set a status'
                 />
-            </button>
+            </Button>
         );
     }
 

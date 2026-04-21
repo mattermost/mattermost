@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -226,9 +227,11 @@ class SearchableUserList extends React.PureComponent<Props, State> {
 
             if (pageEnd < this.props.total) {
                 nextButton = (
-                    <button
+                    <Button
                         id='searchableUserListNextBtn'
-                        className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                        emphasis='tertiary'
+                        size='sm'
+                        className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                     >
@@ -236,22 +239,24 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                             id='filtered_user_list.next'
                             defaultMessage='Next'
                         />
-                    </button>
+                    </Button>
                 );
             }
 
             if (this.props.page > 0) {
                 previousButton = (
-                    <button
+                    <Button
                         id='searchableUserListPrevBtn'
-                        className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                        emphasis='tertiary'
+                        size='sm'
+                        className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                     >
                         <FormattedMessage
                             id='filtered_user_list.prev'
                             defaultMessage='Previous'
                         />
-                    </button>
+                    </Button>
                 );
             }
         }

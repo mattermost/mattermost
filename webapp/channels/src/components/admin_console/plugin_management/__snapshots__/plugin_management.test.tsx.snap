@@ -3576,7 +3576,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                     class="file__upload"
                   >
                     <button
-                      class="btn"
+                      class="btn btn-tertiary"
                       disabled=""
                       type="button"
                     >
