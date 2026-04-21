@@ -44,7 +44,7 @@ func NewIndexerWorker(name string,
 	licenseFn func() *model.License,
 	createBulkProcessorFn func() error,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
-	closeBulkProcessorFn func() error,
+	closeBulkProcessorFn func() (int64, error),
 ) *IndexerWorker {
 	return &IndexerWorker{
 		name:                   name,
@@ -79,7 +79,7 @@ type IndexerWorker struct {
 	license func() *model.License
 
 	createBulkProcessor    func() error
-	closeBulkProcessor     func() error
+	closeBulkProcessor     func() (int64, error)
 	addItemToBulkProcessor func(indexName, indexOp, docID string, body io.ReadSeeker) error
 }
 
@@ -239,9 +239,27 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 
 	err := worker.createBulkProcessor()
 	if err != nil {
-		worker.logger.Error("Worker: Failed to setup bulk processor", mlog.Err(err))
+		logger.Error("Worker: Failed to setup bulk processor", mlog.Err(err))
+		appErr := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.create_bulk_processor.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err2 := worker.jobServer.SetJobError(job, appErr); err2 != nil {
+			logger.Error("Worker: Failed to set job error", mlog.Err(err2), mlog.NamedErr("set_error", appErr))
+		}
 		return
 	}
+
+	// closeOnce ensures the bulk processor is flushed and closed exactly once
+	// regardless of which exit path is taken. numFailed is set by the first call
+	// and read by the success path; logging is handled by closeBulkProcessor itself.
+	var (
+		closeOnce sync.Once
+		numFailed int64
+	)
+	doClose := func() {
+		closeOnce.Do(func() {
+			numFailed, _ = worker.closeBulkProcessor()
+		})
+	}
+	defer doClose()
 
 	worker.initEntitiesToIndex(job)
 	progress, err := initProgress(logger, worker.jobServer, job, worker.backend)
@@ -254,14 +272,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	cancelWatcherChan := make(chan struct{}, 1)
 	cancelContext = cancelContext.WithContext(cancelCtx)
 	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
-
-	defer func() {
-		cancelCancelWatcher()
-		err := worker.closeBulkProcessor()
-		if err != nil {
-			logger.Warn("Error while closing the bulk indexer", mlog.Err(err), mlog.String("job_id", job.Id))
-		}
-	}()
+	defer cancelCancelWatcher()
 
 	for {
 		select {
@@ -321,6 +332,19 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 			}
 
 			if progress.IsDone(job) {
+				doClose()
+				if numFailed > 0 {
+					logger.Error("Worker: Indexing job finished with bulk write failures; some documents were not indexed",
+						mlog.Int("num_failed", numFailed),
+						mlog.Int("done_posts_count", progress.DonePostsCount),
+					)
+					appErr := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+						map[string]any{"NumFailed": numFailed}, "", http.StatusInternalServerError)
+					if err2 := worker.jobServer.SetJobError(job, appErr); err2 != nil {
+						logger.Error("Worker: Failed to set job error", mlog.Err(err2), mlog.NamedErr("set_error", appErr))
+					}
+					return
+				}
 				if err := worker.jobServer.SetJobSuccess(job); err != nil {
 					logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 					if err2 := worker.jobServer.SetJobError(job, err); err2 != nil {
