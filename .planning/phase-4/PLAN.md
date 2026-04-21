@@ -1005,7 +1005,7 @@ Add a comment block above the validator export documenting the grandfather contr
 
 ## Implementation summary
 
-- Commit SHA: `736b73fe82f7584183bb637e68573688c8f7cb10` (code) and `7009381d56719d294040e0250ac5cb3b059a4ee0` (final Phase 4 summary sync)
+- Commit SHA: `736b73fe82f7584183bb637e68573688c8f7cb10`
 - Diff stat: `11 files changed, 676 insertions(+), 43 deletions(-)` for the code commit
 - Tests run:
   - `cd webapp/channels && npm test -- --runInBand src/utils/properties.test.ts src/components/admin_console/system_properties/user_properties_utils.test.ts src/components/admin_console/system_properties/user_properties_table.test.tsx src/components/admin_console/system_properties/user_properties_delete_modal.test.tsx src/components/admin_console/system_properties/user_properties_dot_menu.test.tsx` - passed
