@@ -6,7 +6,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button, type ButtonVariant} from '@mattermost/shared/components/button';
 
 import SaveButton from 'components/save_button';
 
@@ -47,7 +47,7 @@ type Props = {
     cancelButtonText?: ReactNode;
     shiftEnter?: boolean;
     saveButtonText?: string;
-    saveButtonClassName?: string;
+    saveButtonVariant?: ButtonVariant;
     isValid?: boolean;
 }
 
@@ -67,7 +67,7 @@ const SettingItemMax = ({
     saveButtonText,
     isValid,
     isFullWidth,
-    saveButtonClassName,
+    saveButtonVariant,
     title: titleFromProps,
     inputs: inputsFromProps,
     cancelButtonText: cancelButtonTextFromProps,
@@ -184,7 +184,7 @@ const SettingItemMax = ({
                 saving={saving}
                 disabled={saving || isValid === false}
                 onClick={handleSubmit}
-                btnClass={saveButtonClassName}
+                variant={saveButtonVariant}
             />
         );
     }

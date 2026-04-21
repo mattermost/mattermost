@@ -253,14 +253,7 @@ export default class SettingPicture extends Component<Props, State> {
     render() {
         const img = this.renderImg();
 
-        let confirmButtonClass = 'btn';
-        let disableSaveButtonFocus = false;
-        if (this.props.submitActive || this.state.removeSrc || this.state.setDefaultSrc) {
-            confirmButtonClass += ' btn-primary';
-        } else {
-            confirmButtonClass += ' btn-inactive disabled';
-            disableSaveButtonFocus = true;
-        }
+        const disableSaveButtonFocus = !this.props.submitActive && !this.state.removeSrc && !this.state.setDefaultSrc;
 
         let imgRender;
         if (img) {
@@ -302,12 +295,12 @@ export default class SettingPicture extends Component<Props, State> {
                             defaultMessage='Select'
                         />
                     </Button>
-                    <button
+                    <Button
                         tabIndex={disableSaveButtonFocus ? -1 : 0}
                         data-testid='saveSettingPicture'
                         disabled={disableSaveButtonFocus}
                         ref={this.confirmButton}
-                        className={confirmButtonClass}
+                        emphasis='primary'
                         onClick={this.handleSave}
                         aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
                     >
@@ -320,7 +313,7 @@ export default class SettingPicture extends Component<Props, State> {
                                 defaultMessage='Save'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </span>
             );
         }

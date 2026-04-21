@@ -205,7 +205,7 @@ exports[`components/SettingItemMin should match snapshot, on loading picture 1`]
             </button>
             <button
               aria-label="Uploading..."
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -301,7 +301,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on fil
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -380,7 +380,7 @@ exports[`components/SettingItemMin should match snapshot, profile picture on sou
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -466,7 +466,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on file 1`] 
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -569,7 +569,7 @@ exports[`components/SettingItemMin should match snapshot, team icon on source 1`
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
@@ -672,7 +672,7 @@ exports[`components/SettingItemMin should match snapshot, user icon on source 1`
             </button>
             <button
               aria-label="Save"
-              class="btn btn-inactive disabled"
+              class="btn btn-primary"
               data-testid="saveSettingPicture"
               disabled=""
               tabindex="-1"
