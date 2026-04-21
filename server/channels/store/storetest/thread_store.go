@@ -418,8 +418,24 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
-		t.Skip("MM-41797")
+		// Create posts with explicit timestamp spacing to avoid timestamp
+		// collisions that make MarkAsRead boundaries ambiguous (MM-41797).
+		// makeSomePosts doesn't set CreateAt, so posts can share the same
+		// millisecond, causing MarkAsRead(rootPost.CreateAt) to also mark
+		// the replies as read.
 		newPosts := makeSomePosts(false)
+
+		// Ensure replies have later timestamps than the root post.
+		// The root post is newPosts[0], replies are newPosts[1] and newPosts[2].
+		baseTime := newPosts[0].CreateAt
+		for i := 1; i < len(newPosts); i++ {
+			if newPosts[i].RootId != "" && newPosts[i].CreateAt <= baseTime {
+				newPosts[i].CreateAt = baseTime + int64(i)*1000
+				_, sErr := ss.Post().Overwrite(rctx, newPosts[i])
+				require.NoError(t, sErr, "failed to update post timestamp")
+			}
+		}
+
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
