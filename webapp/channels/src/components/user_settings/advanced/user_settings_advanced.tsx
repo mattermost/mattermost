@@ -660,7 +660,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             </div>,
                         ]}
                         saveButtonText={'Deactivate'}
-                        saveButtonClassName={'btn-danger'}
+                        saveButtonVariant='destructive'
                         setting={'deactivateAccount'}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
