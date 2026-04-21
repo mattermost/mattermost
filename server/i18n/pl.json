@@ -12470,5 +12470,25 @@
   {
     "id": "model.view.is_valid.update_at.app_error",
     "translation": "Nieprawidłowy czas aktualizacji widoku."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Funkcja Polityki uprawnień nie jest włączona."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Nie udało się utworzyć podmiotu kontroli dostępu dla użytkownika."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Nie można zaktualizować zarządzanej kategorii dla tego kanału bez odpowiednich uprawnień."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Nie można ustawić członków na kanale z ograniczeniami grupowymi."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Nie można ustawić członków na kanale wymuszonym przez politykę."
   }
 ]
