@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -557,6 +558,21 @@ func TestAttributeValidationHook(t *testing.T) {
 		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
 		require.Error(t, upsertErr)
 		assert.Contains(t, upsertErr.Error(), "expected string array")
+	})
+
+	t.Run("upsert with unknown field id returns ErrFieldNotFound", func(t *testing.T) {
+		value := &model.PropertyValue{
+			GroupID:    group.ID,
+			FieldID:    model.NewId(),
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			Value:      json.RawMessage(`"anything"`),
+		}
+		_, upsertErr := th.service.UpsertPropertyValue(th.Context, value)
+		require.Error(t, upsertErr)
+		assert.ErrorIs(t, upsertErr, ErrFieldNotFound)
+		var resultsMismatchErr *store.ErrResultsMismatch
+		assert.ErrorAs(t, upsertErr, &resultsMismatchErr, "original store error should remain in chain")
 	})
 
 	// Group permission enforcement tests

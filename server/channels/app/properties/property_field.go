@@ -4,11 +4,13 @@
 package properties
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // Private implementation methods (database access)
@@ -44,8 +46,20 @@ func (ps *PropertyService) getPropertyField(groupID, id string) (*model.Property
 	return ps.fieldStore.Get(groupID, id)
 }
 
+// getPropertyFields wraps store.ErrResultsMismatch with ErrFieldNotFound so
+// hook callers surface a 404 via mapPropertyServiceError instead of a generic
+// 500. The original store error stays in the chain, which keeps
+// App.GetPropertyFields' own ErrResultsMismatch->400 branch working.
 func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
-	return ps.fieldStore.GetMany(groupID, ids)
+	fields, err := ps.fieldStore.GetMany(groupID, ids)
+	if err != nil {
+		var resultsMismatchErr *store.ErrResultsMismatch
+		if errors.As(err, &resultsMismatchErr) {
+			return nil, fmt.Errorf("%w: %w", ErrFieldNotFound, err)
+		}
+		return nil, err
+	}
+	return fields, nil
 }
 
 func (ps *PropertyService) getPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
