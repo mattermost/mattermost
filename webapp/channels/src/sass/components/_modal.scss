@@ -4,14 +4,6 @@
 
 @use 'sass:color';
 
-.browser--ie {
-    .modal {
-        .modal-dialog {
-            transform: translateY(0);
-        }
-    }
-}
-
 .modal-backdrop {
     &.in {
         opacity: 0.64;
@@ -753,10 +745,6 @@
 .more-modal__list {
     display: flex;
     flex-direction: column;
-
-    .browser--ie & {
-        flex: 20;
-    }
 
     >div:not([data-simplebar]) {
         overflow: auto;

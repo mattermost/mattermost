@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @filesearch
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {interceptFileUpload, waitUntilUploadComplete} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Channel files', () => {
     const wordFile = 'word-file.doc';

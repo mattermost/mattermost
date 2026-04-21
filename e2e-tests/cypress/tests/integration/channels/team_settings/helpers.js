@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     getJoinEmailTemplate,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 export const allowOnlyUserFromSpecificDomain = (domain) => {
     // # Open 'Team Settings' modal

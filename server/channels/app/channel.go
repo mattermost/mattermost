@@ -1753,16 +1753,10 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	if channel.Type == model.ChannelTypePrivate {
 		if ok, appErr := a.ChannelAccessControlled(rctx, channel.Id); ok {
 			if acs := a.Srv().Channels().AccessControl; acs != nil {
-				groupID, err := a.CpaGroupID()
-				if err != nil {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get group: %v, user_id: %s, channel_id: %s", err, user.Id, channel.Id), http.StatusInternalServerError)
-				}
-
-				s, getSubjectErr := a.Srv().Store().Attributes().GetSubject(rctx, user.Id, groupID)
-				if getSubjectErr != nil {
-					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil,
-						fmt.Sprintf("failed to get subject: %v, user_id: %s, channel_id: %s", getSubjectErr, user.Id, channel.Id), http.StatusForbidden)
+				s, buildErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+				if buildErr != nil {
+					return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.abac_subject_build_failed.app_error", nil,
+						fmt.Sprintf("failed to build subject: %v, user_id: %s, channel_id: %s", buildErr, user.Id, channel.Id), http.StatusInternalServerError)
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
@@ -1771,7 +1765,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 						Type: model.AccessControlPolicyTypeChannel,
 						ID:   channel.Id,
 					},
-					Action: "join_channel",
+					Action: "membership",
 				})
 				if evalErr != nil {
 					return nil, evalErr
@@ -3190,6 +3184,23 @@ func (a *App) AutocompleteChannelsForTeam(rctx request.CTX, teamID, userID, term
 	channelList, err := a.Srv().Store().Channel().AutocompleteInTeam(rctx, teamID, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return channelList, nil
+}
+
+func (a *App) AutocompleteChannelsForTeamFiltered(rctx request.CTX, teamID, userID, term string, privateOnly, excludeGroupConstrained bool) (model.ChannelList, *model.AppError) {
+	includeDeleted := true
+	term = strings.TrimSpace(term)
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channelList, err := a.Srv().Store().Channel().AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, user.IsGuest(), privateOnly, excludeGroupConstrained)
+	if err != nil {
+		return nil, model.NewAppError("AutocompleteChannelsForTeamFiltered", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return channelList, nil
