@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -37,8 +38,8 @@ func TestGenerateSupportPacket(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
-	// Set MM_LOG_PATH to allow log file reads from our temp directory
-	t.Setenv("MM_LOG_PATH", dir)
+	// Override log root path to allow log file reads from our temp directory
+	th.Service.SetLogRootPathOverride(dir)
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -165,7 +166,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetSupportPacketDiagnostics(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	t.Setenv(envVarInstallType, "docker")
+	th.Service.installTypeOverride = "docker"
 
 	licenseUsers := 100
 	license := model.NewTestLicense("ldap")
@@ -206,9 +207,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
+		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
+		assert.True(t, d.Server.OpenFileDescriptors == -1 || d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.OpenFileDescriptors)
+		assert.True(t, d.Server.MaxFileDescriptors == -1 || d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.MaxFileDescriptors)
+		assert.Positive(t, d.Server.ProcessID)
+		assert.False(t, d.Server.StartedAt.IsZero())
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.False(t, d.Server.HostStartedAt.IsZero())
+			assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
+		} else {
+			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on unsupported platforms")
+		}
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)
@@ -489,6 +501,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
+	// t.Setenv is correct here: this test verifies that feature flags set via
+	// environment variables (the production mechanism) appear in the sanitized
+	// config output. UpdateConfig won't work because SetDefaults() resets
+	// FeatureFlags before applyEnvironmentMap() re-applies env overrides.
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)

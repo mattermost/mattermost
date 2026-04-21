@@ -9,6 +9,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Team} from '@mattermost/types/teams';
 
 import {loadMe} from 'mattermost-redux/actions/users';
@@ -50,7 +51,6 @@ import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
-import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -437,23 +437,18 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     }, [sessionExpired, formatMessage, onDismissSessionExpired, extraParam, siteName, searchParam]);
 
     const getAlternateLink = useCallback(() => {
+        if (!showSignup) {
+            return undefined;
+        }
+
         const linkLabel = formatMessage({
             id: 'login.noAccount',
             defaultMessage: 'Don\'t have an account?',
         });
-        if (showSignup) {
-            return (
-                <AlternateLinkLayout
-                    className='login-body-alternate-link'
-                    alternateLinkPath={'/signup_user_complete'}
-                    alternateLinkLabel={linkLabel}
-                />
-            );
-        }
         return (
             <AlternateLinkLayout
                 className='login-body-alternate-link'
-                alternateLinkPath={'/access_problem'}
+                alternateLinkPath={'/signup_user_complete'}
                 alternateLinkLabel={linkLabel}
             />
         );

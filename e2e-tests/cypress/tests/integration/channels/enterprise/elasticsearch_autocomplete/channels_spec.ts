@@ -13,14 +13,15 @@
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import {getAdminAccount} from '../../../../support/env';
-
 import {
     createPrivateChannel,
     createPublicChannel,
     enableElasticSearch,
     searchAndVerifyChannel,
 } from './helpers';
+
+import {getAdminAccount} from '@/support/env';
+
 
 describe('Autocomplete with Elasticsearch - Channel', () => {
     let testTeam: Team;

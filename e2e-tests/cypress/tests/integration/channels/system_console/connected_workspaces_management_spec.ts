@@ -9,8 +9,8 @@
 
 // Group: @channels @system_console
 
-import timeouts from '../../../fixtures/timeouts';
-import {getRandomId, stubClipboard} from '../../../utils';
+import timeouts from '@/fixtures/timeouts';
+import {getRandomId, stubClipboard} from '@/utils';
 
 describe('Connected Workspaces', () => {
     let testTeam: Cypress.Team;

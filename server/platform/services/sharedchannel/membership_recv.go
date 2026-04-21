@@ -9,7 +9,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 const (
@@ -27,7 +26,7 @@ const (
 //
 // Out-of-order messages resolve naturally: if an old "add" arrives after a newer "remove",
 // the sender's next sync cycle will send a corrective "remove" because the history shows the user left.
-func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster, response *remotecluster.Response) error {
+func (scs *Service) onReceiveMembershipChanges(syncMsg *model.SyncMsg, rc *model.RemoteCluster) error {
 	// Check if feature flag is enabled
 	if !scs.server.Config().FeatureFlags.EnableSharedChannelsMemberSync {
 		return nil
@@ -125,7 +124,14 @@ func (scs *Service) processMemberAdd(change *model.MembershipChangeMsg, channel 
 		}
 	}
 
-	if user.GetRemoteID() != rc.RemoteId {
+	// Only process users that originated from the sending remote.
+	// Local users (RemoteID == "") are managed locally, and users from other
+	// remotes should not be manipulated by this sender.
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership add sync failed: %w", ErrRemoteIDMismatch)
 	}
 
@@ -169,7 +175,12 @@ func (scs *Service) processMemberRemove(change *model.MembershipChangeMsg, rc *m
 	if userErr != nil {
 		return fmt.Errorf("cannot get user for channel remove: %w", userErr)
 	}
-	if user.GetRemoteID() != rc.RemoteId {
+
+	remoteID := user.GetRemoteID()
+	if remoteID == "" {
+		return nil
+	}
+	if remoteID != rc.RemoteId {
 		return fmt.Errorf("membership remove sync failed: %w", ErrRemoteIDMismatch)
 	}
 

@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -47,11 +46,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
 		_ = rcService.Start()
-
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
 
 		// Wait for remote cluster service to be active
 		require.Eventually(t, func() bool {
@@ -524,7 +518,6 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		assert.Contains(t, syncedInSecondCall, user3.Id, "Second sync must include the new user")
 	})
 	t.Run("Test 4: Sync failure and recovery", func(t *testing.T) {
-		t.Skip("MM-64687")
 		// This test verifies that membership sync handles remote server failures gracefully
 		// and successfully syncs members once the remote server recovers.
 		// We test that:
@@ -536,6 +529,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var failureMode atomic.Bool
 		failureMode.Store(true)
 		var successfulSyncs []string
+		var syncsMu sync.Mutex
 		var selfCluster *model.RemoteCluster
 		var syncHandler *SelfReferentialSyncHandler
 
@@ -603,10 +597,14 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		// Initialize sync handler with callbacks
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnBatchSync = func(userIds []string, messageNumber int32) {
+			syncsMu.Lock()
 			successfulSyncs = append(successfulSyncs, userIds...)
+			syncsMu.Unlock()
 		}
 		syncHandler.OnIndividualSync = func(userId string, messageNumber int32) {
+			syncsMu.Lock()
 			successfulSyncs = append(successfulSyncs, userId)
+			syncsMu.Unlock()
 		}
 
 		// Add a user to sync
@@ -627,7 +625,9 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		initialAttempts := syncAttempts.Load()
 		assert.Greater(t, initialAttempts, int32(0), "Should have attempted sync")
+		syncsMu.Lock()
 		assert.Empty(t, successfulSyncs, "No successful syncs during failure mode")
+		syncsMu.Unlock()
 
 		// Recover from failure mode
 		failureMode.Store(false)
@@ -637,6 +637,8 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Wait for successful sync with more robust checking
 		require.Eventually(t, func() bool {
+			syncsMu.Lock()
+			defer syncsMu.Unlock()
 			return slices.Contains(successfulSyncs, testUser.Id)
 		}, 15*time.Second, 100*time.Millisecond, "Should have successful sync after recovery")
 
@@ -990,9 +992,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 
 		// Create a remote user belonging to cluster-2
 		userFromCluster2 := th.CreateUser(t)
-		userFromCluster2.RemoteId = &clusters[1].RemoteId
-		userFromCluster2, appErr = th.App.UpdateUser(th.Context, userFromCluster2, false)
-		require.Nil(t, appErr)
+		userFromCluster2 = th.SetUserRemoteID(t, userFromCluster2.Id, clusters[1].RemoteId)
 		_, _, appErr = th.App.AddUserToTeam(th.Context, team.Id, userFromCluster2.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
@@ -1084,9 +1084,10 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 		var syncMessageCount atomic.Int32
 
 		// Disable feature flag from the beginning to prevent any automatic sync
-		os.Setenv("MM_FEATUREFLAGS_ENABLESHAREDCHANNELMEMBERSYNC", "false")
-		rErr := th.App.ReloadConfig()
-		require.NoError(t, rErr)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = false })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableSharedChannelsMemberSync = true })
+		})
 
 		// Create test HTTP server that counts sync messages
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -113,16 +113,7 @@ func TestFindFile(t *testing.T) {
 		for _, testCase := range testCases {
 			t.Run(testCase.Description, func(t *testing.T) {
 				if testCase.Cwd != nil {
-					prevDir, err := os.Getwd()
-					require.NoError(t, err)
-
-					err = os.Chdir(*testCase.Cwd)
-					require.NoError(t, err)
-
-					defer func() {
-						err = os.Chdir(prevDir)
-						require.NoError(t, err)
-					}()
+					t.Chdir(*testCase.Cwd)
 				}
 				assert.Equal(t, testCase.Expected, FindFile(testCase.FileName))
 			})
@@ -220,16 +211,13 @@ func TestCheckDirectoryConflict(t *testing.T) {
 	})
 
 	t.Run("relative paths", func(t *testing.T) {
-		tmpDir, err := os.MkdirTemp("", "parent")
-		require.NoError(t, err)
-		defer os.RemoveAll(tmpDir)
+		tmpDir := t.TempDir()
 
 		subDir := filepath.Join(tmpDir, "subdir")
-		err = os.MkdirAll(subDir, 0700)
+		err := os.MkdirAll(subDir, 0700)
 		require.NoError(t, err)
 
-		err = os.Chdir(tmpDir)
-		require.NoError(t, err)
+		t.Chdir(tmpDir)
 
 		conflict, err := CheckDirectoryConflict(".", ".")
 		require.NoError(t, err)

@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @system_console @authentication
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {reUrl, getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {reUrl, getRandomId, newTestPassword} from '@/utils';
 
 describe('Authentication', () => {
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         // # Do email test if setup properly
@@ -117,9 +117,10 @@ describe('Authentication', () => {
 
             cy.apiUpdateConfig(newConfig);
 
-            // * Ensure password has a minimum length of 8 and no password requirements are checked
+            // * Ensure password has the default minimum length and no password requirements are checked
+            // Note: default MinimumLength is 8 on non-FIPS builds and 14 on FIPS builds
             cy.apiGetConfig().then(({config: {PasswordSettings}}) => {
-                expect(PasswordSettings.MinimumLength).equal(8);
+                expect(PasswordSettings.MinimumLength).to.be.oneOf([8, 14]);
                 expect(PasswordSettings.Lowercase).equal(false);
                 expect(PasswordSettings.Number).equal(false);
                 expect(PasswordSettings.Uppercase).equal(false);
@@ -129,7 +130,9 @@ describe('Authentication', () => {
             cy.visit('/admin_console/authentication/password');
             cy.get('.admin-console__header').should('be.visible').and('have.text', 'Password');
 
-            cy.findByTestId('passwordMinimumLengthinput').should('be.visible').and('have.value', '8');
+            cy.findByTestId('passwordMinimumLengthinput').should('be.visible').invoke('val').then((val) => {
+                expect(val).to.be.oneOf(['8', '14']);
+            });
             cy.findByText('At least one lowercase letter').siblings().should('not.be.checked');
             cy.findByText('At least one uppercase letter').siblings().should('not.be.checked');
             cy.findByText('At least one number').siblings().should('not.be.checked');
@@ -147,7 +150,7 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
-        cy.get('#input_password-input').type('Test123456!');
+        cy.get('#input_password-input').type(newTestPassword());
 
         cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
@@ -181,7 +184,7 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
-        cy.get('#input_password-input').type('Test123456!');
+        cy.get('#input_password-input').type(newTestPassword());
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 
@@ -209,12 +212,8 @@ describe('Authentication', () => {
         // # Go to front page
         cy.visit('/login');
 
-        // * Assert that create account button is visible
-        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').click();
-
-        // * Verify redirection to access problem page since account creation is disabled
-        cy.url().should('include', '/access_problem');
-        cy.findByText('Contact your workspace admin');
+        // * Assert that create account button is not visible
+        cy.findByText('Don\'t have an account?', {timeout: TIMEOUTS.ONE_MIN}).should('not.exist');
 
         // # Go to sign up with email page
         cy.visit('/signup_user_complete');
@@ -245,7 +244,7 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
-        cy.get('#input_password-input').type('Test123456!');
+        cy.get('#input_password-input').type(newTestPassword());
 
         cy.get('#input_name').clear().type(`Test${getRandomId()}`);
 

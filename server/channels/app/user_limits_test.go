@@ -280,7 +280,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestCreateUserOrGuest@example.com",
 			Username:      "username_123",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -311,7 +311,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -349,7 +349,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -377,7 +377,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -396,7 +396,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -418,7 +418,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCount@example.com",
 			Username:      "seat_test_user",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -449,7 +449,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCountGuest@example.com",
 			Username:      "seat_test_guest",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -474,7 +474,7 @@ func TestCreateUserOrGuestSeatCountEnforcement(t *testing.T) {
 		user := &model.User{
 			Email:         "TestSeatCountGuest@example.com",
 			Username:      "seat_test_guest",
-			Password:      "Password1",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 

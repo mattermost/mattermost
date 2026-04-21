@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
 var (
@@ -28,6 +29,43 @@ var (
 	mockTypeReqContext = mock.AnythingOfType("*request.Context")
 	mockTypeContext    = mock.MatchedBy(func(ctx context.Context) bool { return true })
 )
+
+// stubRemoteClusterService is a no-op implementation of RemoteClusterServiceIFace for tests
+// that only need to satisfy the non-nil check in SendChannelInvite (remote offline path).
+type stubRemoteClusterService struct{}
+
+func (s *stubRemoteClusterService) Shutdown() error { return nil }
+func (s *stubRemoteClusterService) Start() error    { return nil }
+func (s *stubRemoteClusterService) Active() bool    { return false }
+func (s *stubRemoteClusterService) AddTopicListener(topic string, listener remotecluster.TopicListener) string {
+	return ""
+}
+func (s *stubRemoteClusterService) RemoveTopicListener(listenerId string) {}
+func (s *stubRemoteClusterService) AddConnectionStateListener(listener remotecluster.ConnectionStateListener) string {
+	return ""
+}
+func (s *stubRemoteClusterService) RemoveConnectionStateListener(listenerId string) {}
+func (s *stubRemoteClusterService) SendMsg(ctx context.Context, msg model.RemoteClusterMsg, rc *model.RemoteCluster, f remotecluster.SendMsgResultFunc) error {
+	return nil
+}
+func (s *stubRemoteClusterService) SendFile(ctx context.Context, us *model.UploadSession, fi *model.FileInfo, rc *model.RemoteCluster, rp remotecluster.ReaderProvider, f remotecluster.SendFileResultFunc) error {
+	return nil
+}
+func (s *stubRemoteClusterService) SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider remotecluster.ProfileImageProvider, f remotecluster.SendProfileImageResultFunc) error {
+	return nil
+}
+func (s *stubRemoteClusterService) AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, siteURL string, defaultTeamId string) (*model.RemoteCluster, error) {
+	return nil, nil
+}
+func (s *stubRemoteClusterService) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) remotecluster.Response {
+	return remotecluster.Response{}
+}
+func (s *stubRemoteClusterService) ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error) {
+	return nil, nil
+}
+func (s *stubRemoteClusterService) PingNow(rc *model.RemoteCluster) {}
+
+var _ remotecluster.RemoteClusterServiceIFace = (*stubRemoteClusterService)(nil)
 
 // setupMockServerWithConfig sets up the standard mocks that all tests need
 func setupMockServerWithConfig(mockServer *MockServerIface) {
@@ -380,5 +418,100 @@ func TestOnReceiveChannelInvite(t *testing.T) {
 				require.Equal(t, tc.expectSuccess, err == nil)
 			})
 		}
+	})
+}
+
+func TestSendChannelInvite_ExistingSharedConnection(t *testing.T) {
+	channelID := model.NewId()
+	userID := model.NewId()
+	remoteID := model.NewId()
+	sharedChannel := &model.SharedChannel{ChannelId: channelID}
+	channel := &model.Channel{Id: channelID}
+	// Remote with LastPingAt 0 is offline (IsOnline() returns false)
+	rc := &model.RemoteCluster{RemoteId: remoteID, Name: "test-remote", DisplayName: "Test Remote", LastPingAt: 0}
+
+	t.Run("when remote is offline and existing connection is not soft deleted, returns ErrChannelAlreadyShared", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		existingScr := &model.SharedChannelRemote{
+			ChannelId: channelID,
+			RemoteId:  remoteID,
+			DeleteAt:  0, // not soft deleted -> already connected
+		}
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(existingScr, nil)
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+		mockApp.On("SendEphemeralPost", mockTypeReqContext, userID, mock.MatchedBy(func(post *model.Post) bool {
+			return post != nil && post.ChannelId == channelID && post.Message != ""
+		})).Return(nil, true).Once()
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, model.ErrChannelAlreadyShared)
+		mockApp.AssertExpectations(t)
+	})
+
+	t.Run("when remote is offline and existing connection is soft deleted, restores and succeeds", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+		existingScr := &model.SharedChannelRemote{
+			ChannelId: channelID,
+			RemoteId:  remoteID,
+			DeleteAt:  12345, // soft deleted
+		}
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(existingScr, nil)
+		mockSharedChannelStore.On("UpdateRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.DeleteAt == 0 && scr.CreatorId == userID &&
+				scr.IsInviteAccepted && !scr.IsInviteConfirmed && scr.LastMembersSyncAt == 0
+		})).Return(nil, nil).Once()
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.NoError(t, err)
+		mockSharedChannelStore.AssertExpectations(t)
+	})
+
+	t.Run("when remote is offline and no existing connection, saves new and succeeds", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{server: mockServer, app: mockApp}
+
+		mockStore := &mocks.Store{}
+		mockSharedChannelStore := mocks.SharedChannelStore{}
+
+		mockSharedChannelStore.On("Get", channelID).Return(sharedChannel, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channelID, remoteID).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
+		mockSharedChannelStore.On("SaveRemote", mock.MatchedBy(func(scr *model.SharedChannelRemote) bool {
+			return scr.ChannelId == channelID && scr.RemoteId == remoteID && scr.CreatorId == userID &&
+				scr.IsInviteAccepted && !scr.IsInviteConfirmed
+		})).Return(nil, nil).Once()
+		mockStore.On("SharedChannel").Return(&mockSharedChannelStore)
+		mockServer.On("GetStore").Return(mockStore)
+		mockServer.On("GetRemoteClusterService").Return(&stubRemoteClusterService{})
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.NoError(t, err)
+		mockSharedChannelStore.AssertExpectations(t)
 	})
 }

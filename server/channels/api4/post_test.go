@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -872,9 +871,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 }
 
 func TestMoveThread(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable MoveThreads feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.MoveThreadsEnabled = true })
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
@@ -1213,7 +1213,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
@@ -1271,7 +1271,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Joram Wilander", Password: model.NewTestPassword(), Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
 
 	directChannel, _ := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, th.BasicUser2.Id)
 
@@ -4614,7 +4614,6 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
-	t.Skip("MM-46902")
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
@@ -4622,17 +4621,22 @@ func TestGetFileInfosForPost(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 	for i := range 3 {
-		fileResp, _, _ := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		fileResp, _, uploadErr := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, uploadErr, "failed to upload file %d", i)
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
-	post, _, _ = client.CreatePost(context.Background(), post)
-
-	infos, resp, err := client.GetFileInfosForPost(context.Background(), post.Id, "")
+	post, _, err = client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
-	require.Len(t, infos, 3, "missing file infos")
+	// File info association can be async; poll until all 3 are visible (MM-46902).
+	var infos []*model.FileInfo
+	var resp *model.Response
+	require.Eventually(t, func() bool {
+		infos, resp, err = client.GetFileInfosForPost(context.Background(), post.Id, "")
+		return err == nil && len(infos) == 3
+	}, 10*time.Second, 200*time.Millisecond, "expected 3 file infos")
 
 	found := false
 	for _, info := range infos {
@@ -5325,15 +5329,41 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	require.Nil(t, action["integration"])
 }
 
+func waitForPostReminderEphemeral(t *testing.T, userWSClient *model.WebSocketClient, timeout time.Duration) *model.Post {
+	t.Helper()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventEphemeralMessage {
+				continue
+			}
+			data := ev.GetData()
+			postJSON, ok := data["post"].(string)
+			require.True(t, ok)
+			var parsedPost model.Post
+			err := json.Unmarshal([]byte(postJSON), &parsedPost)
+			require.NoError(t, err)
+			if parsedPost.GetProp("type") != model.PostTypeReminder {
+				continue
+			}
+			return &parsedPost
+		case <-timer.C:
+			require.Fail(t, "timed out waiting for post reminder ephemeral websocket event")
+			return nil
+		}
+	}
+}
 func TestPostReminder(t *testing.T) {
-	t.Skip("MM-60329")
-
 	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-	targetTime := time.Now().UTC().Unix()
+	// Set target time 1s in the future so the reminder processor picks it up
+	// on its next tick rather than relying on it already being in the past (MM-60329).
+	targetTime := time.Now().UTC().Unix() + 1
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
 		TargetTime: targetTime,
 		PostId:     th.BasicPost.Id,
@@ -5348,39 +5378,53 @@ func TestPostReminder(t *testing.T) {
 	user, _, err := client.GetUser(context.Background(), post.UserId, "")
 	require.NoError(t, err)
 
-	var caught bool
-	func() {
-		for {
-			select {
-			case ev := <-userWSClient.EventChannel:
-				if ev.EventType() == model.WebsocketEventEphemeralMessage {
-					caught = true
-					data := ev.GetData()
+	parsedPost := waitForPostReminderEphemeral(t, userWSClient, 15*time.Second)
+	require.NotNil(t, parsedPost)
 
-					post, ok := data["post"].(string)
-					require.True(t, ok)
+	assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+	assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
+	assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
 
-					var parsedPost model.Post
-					err := json.Unmarshal([]byte(post), &parsedPost)
-					require.NoError(t, err)
+	require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+	require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
+	require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+	require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
+}
 
-					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
-					assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
-					assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
+func TestPostReminderReplyEphemeralUsesThreadRoot(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-					require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
-					require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
-					require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
-					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
-					return
-				}
-			case <-time.After(5 * time.Second):
-				return
-			}
-		}
-	}()
+	replyPost := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "reply for reminder " + model.NewId(),
+	}
+	replyCreated, _, err := client.CreatePost(context.Background(), replyPost)
+	require.NoError(t, err)
 
-	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
+	targetTime := time.Now().UTC().Unix() + 1
+	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
+		TargetTime: targetTime,
+		PostId:     replyCreated.Id,
+		UserId:     th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	user, _, err := client.GetUser(context.Background(), replyCreated.UserId, "")
+	require.NoError(t, err)
+
+	parsedPost := waitForPostReminderEphemeral(t, userWSClient, 15*time.Second)
+	require.NotNil(t, parsedPost)
+
+	assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+	assert.Equal(t, th.BasicPost.Id, parsedPost.RootId, "ephemeral should be threaded under the thread root so RHS/center thread views show the ack")
+	assert.Equal(t, replyCreated.Id, parsedPost.GetProp("post_id").(string))
+	require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+	require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+	require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 }
 
 func TestPostGetInfo(t *testing.T) {
@@ -6051,12 +6095,10 @@ func TestRestorePostVersion(t *testing.T) {
 }
 
 func TestRevealPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6095,22 +6137,22 @@ func TestRevealPost(t *testing.T) {
 		return user2, client2
 	}
 
-	t.Run("feature not enabled, should still allow reveal", func(t *testing.T) {
+	t.Run("feature not enabled, reveal returns 501", func(t *testing.T) {
 		enableBurnOnReadFeature(th)
 		post := createBurnOnReadPost(th.SystemAdminClient, th.BasicChannel)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.BurnOnRead = false
 		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.FeatureFlags.BurnOnRead = true
+			})
+		})
 
-		revealedPost, resp, err := th.Client.RevealPost(context.Background(), post.Id)
-		require.NoError(t, err)
-		CheckOKStatus(t, resp)
-		require.NotNil(t, revealedPost)
-		require.Equal(t, post.Id, revealedPost.Id)
-		require.Equal(t, "burn on read message", revealedPost.Message)
-		require.NotNil(t, revealedPost.Metadata)
-		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+		_, resp, err := th.Client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
 	})
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -6307,12 +6349,10 @@ func TestRevealPost(t *testing.T) {
 }
 
 func TestCreateBurnOnReadPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
@@ -6437,12 +6477,10 @@ func TestCreateBurnOnReadPost(t *testing.T) {
 }
 
 func TestBurnPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_BURNONREAD", "true")
-	t.Cleanup(func() {
-		os.Unsetenv("MM_FEATUREFLAGS_BURNONREAD")
-	})
-
 	th := SetupEnterprise(t).InitBasic(t)
+
+	// Enable BurnOnRead feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.BurnOnRead = true })
 
 	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
 	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
