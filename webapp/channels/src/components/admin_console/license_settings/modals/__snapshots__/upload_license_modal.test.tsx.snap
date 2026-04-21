@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal should match snapshot when is licensed 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`components/admin_console/license_settings/modals/upload_license_modal should match snapshot when is not licensed 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
