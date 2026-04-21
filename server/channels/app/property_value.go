@@ -215,8 +215,8 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 	}
 
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
-		if appErr := mapPropertyServiceError("DeletePropertyValue", err); appErr != nil {
-			return appErr
+		if mappedErr := mapPropertyServiceError("DeletePropertyValue", err); mappedErr != nil {
+			return mappedErr
 		}
 		return model.NewAppError("DeletePropertyValue", "app.property_value.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
