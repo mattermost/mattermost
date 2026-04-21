@@ -199,29 +199,32 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 
 	// Strip files from the referenced post for recipients denied download access.
 	// Clone to avoid mutating the shared hook arg across concurrent recipients.
+	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip files.
 	embedData := permalinkPreviewedPost
 	if permalinkPreviewedPost.Post != nil &&
 		(len(permalinkPreviewedPost.Post.FileIds) > 0 ||
 			(permalinkPreviewedPost.Post.Metadata != nil && len(permalinkPreviewedPost.Post.Metadata.Files) > 0)) {
 		session := webConn.GetSession()
+		stripFiles := true
 		if session != nil {
 			rctxWithSession := rctx.WithSession(session)
-			if !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
-				postCopy := permalinkPreviewedPost.Post.Clone()
-				if postCopy.Metadata == nil {
-					postCopy.Metadata = &model.PostMetadata{}
-				}
-				actualCount := len(postCopy.Metadata.Files)
-				if actualCount == 0 {
-					actualCount = len(postCopy.FileIds)
-				}
-				postCopy.Metadata.RedactedFileCount = actualCount
-				postCopy.Metadata.Files = nil
-				postCopy.FileIds = model.StringArray{}
-				previewCopy := *permalinkPreviewedPost
-				previewCopy.Post = postCopy
-				embedData = &previewCopy
+			stripFiles = !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
+		}
+		if stripFiles {
+			postCopy := permalinkPreviewedPost.Post.Clone()
+			if postCopy.Metadata == nil {
+				postCopy.Metadata = &model.PostMetadata{}
 			}
+			actualCount := len(postCopy.Metadata.Files)
+			if actualCount == 0 {
+				actualCount = len(postCopy.FileIds)
+			}
+			postCopy.Metadata.RedactedFileCount = actualCount
+			postCopy.Metadata.Files = nil
+			postCopy.FileIds = model.StringArray{}
+			previewCopy := *permalinkPreviewedPost
+			previewCopy.Post = postCopy
+			embedData = &previewCopy
 		}
 	}
 
@@ -431,15 +434,13 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	}
 
 	// The ABAC evaluator resolves role from rctx.Session(), not Subject.Role.
+	// Fail-secure: if the session is nil we cannot evaluate permissions, so strip files.
 	session := webConn.GetSession()
-	if session == nil {
-		return nil
-	}
-
-	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-
-	if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
-		return nil
+	if session != nil {
+		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+		if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+			return nil
+		}
 	}
 
 	post, postErr := getPostFromMessage(msg)

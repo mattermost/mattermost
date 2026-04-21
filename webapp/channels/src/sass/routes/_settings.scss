@@ -355,10 +355,6 @@
                             font: normal normal normal 14px/1 FontAwesome;
                             pointer-events: none;
                             text-rendering: auto;
-
-                            .browser--ie & {
-                                display: none;
-                            }
                         }
                     }
 

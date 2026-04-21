@@ -107,8 +107,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
 	}
+	d.Server.ProcessID = os.Getpid()
+	d.Server.StartedAt = ps.startTime.UTC()
+	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
+		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
+	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
+	d.Server.GoVersion = runtime.Version()
 	installationType := ps.installTypeOverride
 	if installationType == "" {
 		installationType = os.Getenv(envVarInstallType)
@@ -117,6 +123,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()

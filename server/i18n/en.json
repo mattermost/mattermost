@@ -1286,6 +1286,54 @@
     "translation": "me"
   },
   {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Unable to change mobile log settings for that user."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Manage mobile app log attachment for yourself or another user."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Mobile app log attachment is now disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Mobile app log attachment is now enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Mobile app log attachment is currently disabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Mobile app log attachment is currently enabled for {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Failed to update mobile app log attachment setting. Please try again."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Usage: /mobile-logs [on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Could not find user \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "you"
+  },
+  {
     "id": "api.command_msg.desc",
     "translation": "Send Direct Message to a user"
   },
