@@ -118,6 +118,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
 	d.Server.ProcessID = os.Getpid()
 
 	/* Config */
