@@ -20,7 +20,6 @@ import {
     TableWrapper,
 } from '../classification_markings_styled';
 import type {ClassificationLevel} from '../utils/presets';
-
 import LevelColorCell from './level_color_cell';
 import LevelNameCell from './level_name_cell';
 
