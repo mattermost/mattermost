@@ -1383,6 +1383,27 @@ func (s *RetryLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID str
 
 }
 
+func (s *RetryLayerChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool, privateOnly bool, excludeGroupConstrained bool) (model.ChannelList, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 
 	tries := 0
@@ -8441,6 +8462,27 @@ func (s *RetryLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder
 	tries := 0
 	for {
 		result, err := s.PostStore.GetPostReminders(now)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+
+	tries := 0
+	for {
+		result, err := s.PostStore.GetPostRemindersForPost(postId)
 		if err == nil {
 			return result, nil
 		}

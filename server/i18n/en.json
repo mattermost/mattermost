@@ -6056,15 +6056,15 @@
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": "{{.FileNames}}"
+    "translation": "Removed {{.FileCount}} from the file system"
   },
   {
     "id": "app.data_spillage.report.detail.no_files",
     "translation": "No files found."
   },
   {
-    "id": "app.data_spillage.report.detail.no_revisions",
-    "translation": "No revisions found."
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "No data found."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
@@ -6132,23 +6132,23 @@
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": "Post's File Attachments from File System"
+    "translation": "Post's file attachments from file system"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": "FileInfo Rows"
+    "translation": "`FileInfo` rows"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
-    "translation": "Persistent Notifications"
+    "translation": "Persistent notifications"
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": "The Post Itself"
+    "translation": "The post itself"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": "Priority Data"
+    "translation": "Post priority data"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
@@ -6156,7 +6156,7 @@
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": "Thread & Associated Data"
+    "translation": "Thread & associated data"
   },
   {
     "id": "app.data_spillage.report.summary",

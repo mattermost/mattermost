@@ -1801,7 +1801,7 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		}
 	} else {
 		if report != nil {
-			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileNames": strings.Join(fileNames, ", ")}, nil)
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileCount": len(fileNames)}, nil)
 		}
 	}
 
