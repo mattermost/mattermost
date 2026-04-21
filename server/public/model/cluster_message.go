@@ -63,6 +63,8 @@ const (
 	ClusterGossipEventResponseGetPluginStatuses     = "gossip_response_plugin_statuses"
 	ClusterGossipEventRequestSaveConfig             = "gossip_request_save_config"
 	ClusterGossipEventResponseSaveConfig            = "gossip_response_save_config"
+	ClusterGossipEventRequestReloadConfig           = "gossip_request_reload_config"
+	ClusterGossipEventResponseReloadConfig          = "gossip_response_reload_config"
 	ClusterGossipEventRequestWebConnCount           = "gossip_request_webconn_count"
 	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
 	ClusterGossipEventRequestWSQueues               = "gossip_request_ws_queues"
