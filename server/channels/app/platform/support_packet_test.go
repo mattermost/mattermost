@@ -443,6 +443,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusDisabled, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
@@ -467,6 +468,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusOk, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsOSBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "2.5.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"opensearch-plugin"}, packet.ElasticSearch.ServerPlugins)
@@ -492,6 +494,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.StatusFail, packet.ElasticSearch.Status)
 		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
