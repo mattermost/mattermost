@@ -31,9 +31,13 @@ type SupportPacketDiagnostics struct {
 		TotalMemoryMB          uint64  `yaml:"total_memory_mb"`
 		ContainerCPULimit      float64 `yaml:"container_cpu_limit,omitempty"`
 		ContainerMemoryLimitMB uint64  `yaml:"container_memory_limit_mb,omitempty"`
+		OpenFileDescriptors    int64   `yaml:"open_file_descriptors"`
+		MaxFileDescriptors     int64   `yaml:"max_file_descriptors"`
 		Hostname               string  `yaml:"hostname"`
+		ProcessID              int     `yaml:"process_id"`
 		Version                string  `yaml:"version"`
 		BuildHash              string  `yaml:"build_hash"`
+		GoVersion              string  `yaml:"go_version"`
 		InstallationType       string  `yaml:"installation_type"`
 	} `yaml:"server"`
 

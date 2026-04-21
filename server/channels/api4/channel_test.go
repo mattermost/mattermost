@@ -3277,6 +3277,74 @@ func TestSearchAllChannels(t *testing.T) {
 	})
 }
 
+func TestSearchAllChannelsNonSysConsoleFiltered(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Create a team admin user
+	teamAdmin := th.CreateUser(t)
+	th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, teamAdmin, th.BasicTeam)
+	teamAdminClient := th.CreateClient()
+	_, _, err := teamAdminClient.Login(context.Background(), teamAdmin.Email, teamAdmin.Password)
+	require.NoError(t, err)
+
+	// Create >50 public channels so the 50-result cap would normally cut off private channels
+	pubCount := 0
+	for range 55 {
+		ch, _, chErr := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			DisplayName: fmt.Sprintf("Public Cap Channel %03d", pubCount),
+			Name:        model.NewId()[:20],
+			Type:        model.ChannelTypeOpen,
+		})
+		require.NoError(t, chErr)
+		_, _, err = th.SystemAdminClient.AddChannelMember(context.Background(), ch.Id, teamAdmin.Id)
+		require.NoError(t, err)
+		pubCount++
+	}
+
+	// Create private channels the team admin is a member of
+	private1, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Private Filter Test 1",
+		Name:        model.NewId()[:20],
+		Type:        model.ChannelTypePrivate,
+	})
+	require.NoError(t, err)
+	_, _, err = th.SystemAdminClient.AddChannelMember(context.Background(), private1.Id, teamAdmin.Id)
+	require.NoError(t, err)
+
+	private2, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+		TeamId:      th.BasicTeam.Id,
+		DisplayName: "Private Filter Test 2",
+		Name:        model.NewId()[:20],
+		Type:        model.ChannelTypePrivate,
+	})
+	require.NoError(t, err)
+	_, _, err = th.SystemAdminClient.AddChannelMember(context.Background(), private2.Id, teamAdmin.Id)
+	require.NoError(t, err)
+
+	t.Run("private filter returns private member channels despite >50 public channels", func(t *testing.T) {
+		channels, _, err := teamAdminClient.SearchAllChannelsForUserWithOpts(
+			context.Background(),
+			&model.ChannelSearch{
+				TeamIds: []string{th.BasicTeam.Id},
+				Private: true,
+			},
+		)
+		require.NoError(t, err)
+
+		ids := make([]string, 0, len(channels))
+		for _, ch := range channels {
+			ids = append(ids, ch.Id)
+			assert.Equal(t, model.ChannelTypePrivate, ch.Type, "only private channels should be returned")
+		}
+		assert.Contains(t, ids, private1.Id)
+		assert.Contains(t, ids, private2.Id)
+	})
+}
+
 func TestSearchAllChannelsPaged(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -5073,7 +5141,6 @@ func TestAddChannelMembers(t *testing.T) {
 
 func TestAddChannelMemberFromThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	t.Skip("MM-41285")
 	th := Setup(t).InitBasic(t)
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -5123,12 +5190,11 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(context.Background(), publicChannel.Id, user.Id, rpost.Id)
 	require.NoError(t, err)
 
-	// Threadmembership should exist for added user
-	ut, _, err := th.Client.GetUserThread(context.Background(), user.Id, team.Id, rpost.Id, false)
-	require.NoError(t, err)
-	// Should have two mentions. There might be a race condition
-	// here between the "added user to the channel" message and the GetUserThread call
-	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
+	// Thread membership and mention counts may take a moment to propagate (MM-41285).
+	require.Eventually(t, func() bool {
+		ut, _, getErr := th.Client.GetUserThread(context.Background(), user.Id, team.Id, rpost.Id, false)
+		return getErr == nil && ut.UnreadMentions >= 2
+	}, 10*time.Second, 200*time.Millisecond, "expected at least 2 unread mentions in thread")
 
 	var caught bool
 	func() {
@@ -5147,7 +5213,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 					require.EqualValues(t, float64(0), data["previous_unread_replies"])
 					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 				}
-			case <-time.After(2 * time.Second):
+			case <-time.After(15 * time.Second):
 				return
 			}
 		}
