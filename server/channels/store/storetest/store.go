@@ -243,5 +243,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ReadReceiptStore,
 		&s.TemporaryPostStore,
 		&s.ViewStore,
+		&s.SharedChannelInvitationStore,
 	)
 }
