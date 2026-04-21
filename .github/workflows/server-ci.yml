@@ -195,20 +195,10 @@ jobs:
           echo "Making sure docs are updated"
           make mmctl-docs
           if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
-  test-postgres-binary:
-    if: github.event_name == 'push' # Only run postgres binary tests on master/release pushes: odds are low this regresses, so save the cycles for pull requests.
-    name: Postgres with binary parameters
-    needs: go
-    uses: ./.github/workflows/server-test-template.yml
-    secrets: inherit
-    with:
-      name: Postgres with binary parameters
-      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
-      drivername: postgres
-      logsartifact: postgres-binary-server-test-logs
-      go-version: ${{ needs.go.outputs.version }}
-      fips-enabled: false
-      fullyparallel: false
+  # NOTE: Postgres with binary parameters has been moved to server-ci-weekly.yml
+  # (runs Monday 1am EST / 5am UTC). Low regression risk doesn't justify
+  # consuming 8-core runners on every push.
+
   # -- Sharded into 4 parallel runners for ~88% wall-time improvement --
   test-postgres-normal:
     name: Postgres (shard ${{ matrix.shard }})
@@ -255,11 +245,11 @@ jobs:
       elasticsearch-version: "8.9.0"
       test-target: "test-server-elasticsearch"
 
+  # FIPS tests: run on PRs when go.mod changed or branch name contains "fips".
+  # Sharded for fast iteration. Weekly workflow provides regular full coverage.
   test-postgres-normal-fips:
-    # Always run on pushes to master/release branches.
-    # For PRs, run when the branch name contains "fips" or any go.mod was changed.
-    if: github.event_name == 'push' || contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
-    name: Postgres FIPS (shard ${{ matrix.shard }})
+    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
+    name: "Postgres FIPS (shard ${{ matrix.shard }})"
     needs: go
     strategy:
       fail-fast: false
@@ -305,6 +295,7 @@ jobs:
       enablecoverage: true
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      # runner: ubuntu-22.04 # Coverage is non-blocking (allow-failure), no need for 8-core
       shard-index: ${{ matrix.shard }}
       shard-total: 4
   test-mmctl:
@@ -320,9 +311,8 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
   test-mmctl-fips:
+    if: contains(github.head_ref, 'fips') || needs.go.outputs.gomod-changed == 'true'
     name: Run mmctl tests (FIPS)
-    # Skip FIPS testing for forks, which won't have docker login credentials.
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
@@ -330,9 +320,10 @@ jobs:
       name: mmctl
       datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
       drivername: postgres
-      logsartifact: mmctl-test-logs
+      logsartifact: mmctl-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+
   build-mattermost-server:
     name: Build mattermost server app
     needs: go

@@ -11,6 +11,7 @@ import type {Job, JobType} from '@mattermost/types/jobs';
 import {elasticsearchPurgeIndexes, elasticsearchTest, rebuildChannelsIndex} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
+import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
@@ -61,6 +62,7 @@ export const messages = defineMessages({
     passwordDescription: {id: 'admin.elasticsearch.passwordDescription', defaultMessage: '(Optional) The password to authenticate to the Elasticsearch server.'},
     sniffTitle: {id: 'admin.elasticsearch.sniffTitle', defaultMessage: 'Enable Cluster Sniffing:'},
     sniffDescription: {id: 'admin.elasticsearch.sniffDescription', defaultMessage: 'When true, sniffing finds and connects to all data nodes in your cluster automatically.'},
+    sniffWarning: {id: 'admin.elasticsearch.sniffWarning', defaultMessage: 'Do not enable cluster sniffing with cloud-hosted providers such as Elastic Cloud or Amazon OpenSearch Service.'},
     testHelpText: {id: 'admin.elasticsearch.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".'},
     elasticsearch_test_button: {id: 'admin.elasticsearch.elasticsearch_test_button', defaultMessage: 'Test Connection'},
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
@@ -89,6 +91,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.passwordDescription,
     messages.sniffTitle,
     messages.sniffDescription,
+    messages.sniffWarning,
     messages.testHelpText,
     messages.elasticsearch_test_button,
     messages.bulkIndexingTitle,
@@ -407,7 +410,17 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 <BooleanSetting
                     id='sniff'
                     label={<FormattedMessage {...messages.sniffTitle}/>}
-                    helpText={<FormattedMessage {...messages.sniffDescription}/>}
+                    helpText={
+                        <>
+                            <FormattedMessage {...messages.sniffDescription}/>
+                            {this.state.sniff && (
+                                <div className='alert alert-warning'>
+                                    <WarningIcon/>
+                                    <FormattedMessage {...messages.sniffWarning}/>
+                                </div>
+                            )}
+                        </>
+                    }
                     value={this.state.sniff}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
