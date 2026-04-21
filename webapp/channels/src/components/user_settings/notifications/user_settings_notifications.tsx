@@ -20,6 +20,7 @@ import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
+import {toUTCUnixInSeconds} from 'utils/datetime';
 import {notificationSoundKeys, stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
@@ -36,6 +37,11 @@ import type {OwnProps, PropsFromRedux} from './index';
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
+const DO_NOT_DISTURB_SCHEDULE_SECTION = 'do_not_disturb_schedule';
+const DND_SCHEDULE_ENABLED_KEY = 'dnd_schedule_enabled';
+const DND_SCHEDULE_FROM_TIME_KEY = 'dnd_schedule_from_time';
+const DND_SCHEDULE_TO_TIME_KEY = 'dnd_schedule_to_time';
+const DND_SCHEDULE_ALLOW_WEEKENDS_KEY = 'dnd_schedule_allow_weekends';
 
 type MultiInputValue = {
     label: string;
@@ -67,6 +73,10 @@ type State = {
     autoResponderActive: boolean;
     autoResponderMessage: UserNotifyProps['auto_responder_message'];
     notifyCommentsLevel: UserNotifyProps['comments'];
+    dndScheduleEnabled: boolean;
+    dndScheduleFromTime: string;
+    dndScheduleToTime: string;
+    dndAllowNotificationsOnWeekends: boolean;
     isSaving: boolean;
     serverError: string;
     desktopAndMobileSettingsDifferent: boolean;
@@ -90,6 +100,10 @@ function getDefaultStateFromProps(props: Props): State {
         id: 'user.settings.notifications.autoResponderDefault',
         defaultMessage: 'Hello, I am out of office and unable to respond to messages.',
     });
+    let dndScheduleEnabled = false;
+    let dndScheduleFromTime = '09:00';
+    let dndScheduleToTime = '17:00';
+    let dndAllowNotificationsOnWeekends = false;
     let desktopAndMobileSettingsDifferent = true;
 
     if (props.user.notify_props) {
@@ -137,6 +151,13 @@ function getDefaultStateFromProps(props: Props): State {
         if (props.user.notify_props.auto_responder_message) {
             autoResponderMessage = props.user.notify_props.auto_responder_message;
         }
+
+        const notifyProps = props.user.notify_props as UserNotifyProps & Record<string, string | undefined>;
+
+        dndScheduleEnabled = notifyProps[DND_SCHEDULE_ENABLED_KEY] === 'true';
+        dndScheduleFromTime = notifyProps[DND_SCHEDULE_FROM_TIME_KEY] || dndScheduleFromTime;
+        dndScheduleToTime = notifyProps[DND_SCHEDULE_TO_TIME_KEY] || dndScheduleToTime;
+        dndAllowNotificationsOnWeekends = notifyProps[DND_SCHEDULE_ALLOW_WEEKENDS_KEY] === 'true';
 
         if (props.user.notify_props.desktop && props.user.notify_props.push) {
             desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(props.user.notify_props.desktop, props.user.notify_props.push, props.user.notify_props?.desktop_threads, props.user.notify_props?.push_threads, props.isCollapsedThreadsEnabled);
@@ -207,6 +228,10 @@ function getDefaultStateFromProps(props: Props): State {
         autoResponderActive,
         autoResponderMessage,
         notifyCommentsLevel: comments,
+        dndScheduleEnabled,
+        dndScheduleFromTime,
+        dndScheduleToTime,
+        dndAllowNotificationsOnWeekends,
         isSaving: false,
         serverError: '',
         desktopAndMobileSettingsDifferent,
@@ -252,6 +277,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.auto_responder_message = this.state.autoResponderMessage;
         data.first_name = this.state.firstNameKey ? 'true' : 'false';
         data.channel = this.state.channelKey ? 'true' : 'false';
+
+        const notifyData = data as UserNotifyProps & Record<string, string>;
+        notifyData[DND_SCHEDULE_ENABLED_KEY] = this.state.dndScheduleEnabled ? 'true' : 'false';
+        notifyData[DND_SCHEDULE_FROM_TIME_KEY] = this.state.dndScheduleFromTime;
+        notifyData[DND_SCHEDULE_TO_TIME_KEY] = this.state.dndScheduleToTime;
+        notifyData[DND_SCHEDULE_ALLOW_WEEKENDS_KEY] = this.state.dndAllowNotificationsOnWeekends ? 'true' : 'false';
 
         if (this.state.desktopAndMobileSettingsDifferent) {
             data.push = this.state.pushActivity;
@@ -485,6 +516,97 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handleCloseSettingsModal = () => {
         this.props.closeModal();
+    };
+
+    handleChangeForDndScheduleEnabled = async (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({dndScheduleEnabled: checked});
+
+        if (checked) {
+            await this.applyTimedDndFromSchedule();
+        }
+    };
+
+    handleChangeForDndScheduleFromTime = (event: ChangeEvent<HTMLInputElement>) => {
+        this.setState({dndScheduleFromTime: event.target.value});
+    };
+
+    handleChangeForDndScheduleToTime = (event: ChangeEvent<HTMLInputElement>) => {
+        this.setState({dndScheduleToTime: event.target.value});
+    };
+
+    handleChangeForDndAllowNotificationsOnWeekends = (event: ChangeEvent<HTMLInputElement>) => {
+        const {target: {checked}} = event;
+        this.setState({dndAllowNotificationsOnWeekends: checked});
+    };
+
+    getMinutesFromTimeValue = (value: string): number => {
+        const [hoursString = '0', minutesString = '0'] = value.split(':');
+        const hours = Number.parseInt(hoursString, 10);
+        const minutes = Number.parseInt(minutesString, 10);
+
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+            return 0;
+        }
+
+        return (hours * 60) + minutes;
+    };
+
+    isNowInDndScheduleWindow = (now: Date, fromMinutes: number, toMinutes: number): boolean => {
+        const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+        if (fromMinutes === toMinutes) {
+            return true;
+        }
+
+        if (fromMinutes < toMinutes) {
+            return currentMinutes >= fromMinutes && currentMinutes < toMinutes;
+        }
+
+        return currentMinutes >= fromMinutes || currentMinutes < toMinutes;
+    };
+
+    getNextDndEndDate = (now: Date, toMinutes: number): Date => {
+        const endDate = new Date(now);
+        endDate.setSeconds(0, 0);
+        endDate.setHours(Math.floor(toMinutes / 60), toMinutes % 60, 0, 0);
+
+        if (endDate <= now) {
+            endDate.setDate(endDate.getDate() + 1);
+        }
+
+        return endDate;
+    };
+
+    applyTimedDndFromSchedule = async () => {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        if (this.state.dndAllowNotificationsOnWeekends && isWeekend) {
+            return;
+        }
+
+        const fromMinutes = this.getMinutesFromTimeValue(this.state.dndScheduleFromTime);
+        const toMinutes = this.getMinutesFromTimeValue(this.state.dndScheduleToTime);
+
+        if (!this.isNowInDndScheduleWindow(now, fromMinutes, toMinutes)) {
+            return;
+        }
+
+        const endDate = this.getNextDndEndDate(now, toMinutes);
+
+        const result = await this.props.setStatus({
+            user_id: this.props.user.id,
+            status: Constants.UserStatuses.DND,
+            dnd_end_time: toUTCUnixInSeconds(endDate),
+            manual: true,
+            last_activity_at: toUTCUnixInSeconds(now),
+        });
+
+        if (result.error) {
+            this.setState({serverError: result.error.message});
+        }
     };
 
     createKeywordsWithNotificationSection = () => {
@@ -975,11 +1097,132 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         );
     };
 
+    createDoNotDisturbScheduleSection = () => {
+        const isSectionExpanded = this.props.activeSection === DO_NOT_DISTURB_SCHEDULE_SECTION;
+        const serverError = this.state.serverError;
+
+        let max = null;
+        if (isSectionExpanded) {
+            const inputs = (
+                <fieldset>
+                    <legend className='form-legend hidden-label'>
+                        <FormattedMessage
+                            id='user.settings.notifications.dndSchedule.title'
+                            defaultMessage='Do not disturb schedule'
+                        />
+                    </legend>
+                    <div className='setting-list__hint pb-3'>
+                        <FormattedMessage
+                            id='user.settings.notifications.dndSchedule.description'
+                            defaultMessage='Configure when notifications are silenced outside your working hours. (Skeleton only)'
+                        />
+                    </div>
+                    <div className='checkbox'>
+                        <label>
+                            <input
+                                id='notificationDndScheduleAllowNotifications'
+                                type='checkbox'
+                                checked={this.state.dndScheduleEnabled}
+                                onChange={this.handleChangeForDndScheduleEnabled}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.dndSchedule.allowNotifications'
+                                defaultMessage='Allow notifications'
+                            />
+                        </label>
+                    </div>
+                    <div className='mt-4'>
+                        <label htmlFor='notificationDndScheduleFromTime'>
+                            <FormattedMessage
+                                id='user.settings.notifications.dndSchedule.fromTime'
+                                defaultMessage='From'
+                            />
+                        </label>
+                        <input
+                            id='notificationDndScheduleFromTime'
+                            type='time'
+                            className='form-control'
+                            value={this.state.dndScheduleFromTime}
+                            onChange={this.handleChangeForDndScheduleFromTime}
+                            disabled={!this.state.dndScheduleEnabled}
+                        />
+                    </div>
+                    <div className='mt-4'>
+                        <label htmlFor='notificationDndScheduleToTime'>
+                            <FormattedMessage
+                                id='user.settings.notifications.dndSchedule.toTime'
+                                defaultMessage='To'
+                            />
+                        </label>
+                        <input
+                            id='notificationDndScheduleToTime'
+                            type='time'
+                            className='form-control'
+                            value={this.state.dndScheduleToTime}
+                            onChange={this.handleChangeForDndScheduleToTime}
+                            disabled={!this.state.dndScheduleEnabled}
+                        />
+                    </div>
+                    <div className='checkbox mt-4'>
+                        <label>
+                            <input
+                                id='notificationDndScheduleAllowNotificationsOnWeekends'
+                                type='checkbox'
+                                checked={this.state.dndAllowNotificationsOnWeekends}
+                                onChange={this.handleChangeForDndAllowNotificationsOnWeekends}
+                                disabled={!this.state.dndScheduleEnabled}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.dndSchedule.allowNotificationsOnWeekends'
+                                defaultMessage='Allow notifications on weekends'
+                            />
+                        </label>
+                    </div>
+                </fieldset>
+            );
+
+            max = (
+                <SettingItemMax
+                    title={this.props.intl.formatMessage({
+                        id: 'user.settings.notifications.dndSchedule.title',
+                        defaultMessage: 'Do not disturb schedule',
+                    })}
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    saving={this.state.isSaving}
+                    serverError={serverError}
+                    updateSection={this.handleUpdateSection}
+                />
+            );
+        }
+
+        return (
+            <SettingItem
+                title={this.props.intl.formatMessage({
+                    id: 'user.settings.notifications.dndSchedule.title',
+                    defaultMessage: 'Do not disturb schedule',
+                })}
+                active={isSectionExpanded}
+                describe={this.props.intl.formatMessage({
+                    id: this.state.dndScheduleEnabled ?
+                        'user.settings.notifications.dndSchedule.enabled' :
+                        'user.settings.notifications.dndSchedule.disabled',
+                    defaultMessage: this.state.dndScheduleEnabled ? 'Enabled' : 'Disabled',
+                })}
+                section={DO_NOT_DISTURB_SCHEDULE_SECTION}
+                updateSection={this.handleUpdateSection}
+                max={max}
+                areAllSectionsInactive={this.props.activeSection === ''}
+            />
+        );
+    };
+
     render() {
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
         const commentsSection = this.createCommentsSection();
         const autoResponderSection = this.createAutoResponderSection();
+        const doNotDisturbScheduleSection = this.createDoNotDisturbScheduleSection();
 
         const areAllSectionsInactive = this.props.activeSection === '';
 
@@ -1079,6 +1322,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
+                    <div className='divider-light'/>
+                    {doNotDisturbScheduleSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
                     {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
