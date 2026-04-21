@@ -22,6 +22,16 @@ func TestProcessWebSocketEvents(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("non-nil event is processed and returns nil", func(t *testing.T) {
+		ch := make(chan *model.WebSocketEvent, 1)
+		ch <- model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		close(ch)
+
+		c := &model.WebSocketClient{EventChannel: ch}
+		err := processWebSocketEvents(c)
+		require.NoError(t, err)
+	})
+
 	t.Run("ListenError is surfaced after channel closes", func(t *testing.T) {
 		ch := make(chan *model.WebSocketEvent)
 		close(ch)
