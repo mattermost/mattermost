@@ -6059,12 +6059,12 @@
     "translation": "Removed {{.FileCount}} from the file system"
   },
   {
-    "id": "app.data_spillage.report.detail.no_files",
-    "translation": "No files found."
-  },
-  {
     "id": "app.data_spillage.report.detail.no_data_found",
     "translation": "No data found."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "No files found."
   },
   {
     "id": "app.data_spillage.report.detail.no_rows_to_delete",
