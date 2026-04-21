@@ -3187,8 +3187,24 @@
     "translation": "Property field object type does not match URL."
   },
   {
+    "id": "api.property_field.patch.cannot_link_existing.app_error",
+    "translation": "Cannot set linked_field_id on an existing field. It can only be set at creation time."
+  },
+  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
+  },
+  {
+    "id": "api.property_field.patch.linked_field_change.app_error",
+    "translation": "Cannot change link target. Unlink first, then create a new linked field."
+  },
+  {
+    "id": "api.property_field.patch.linked_options_change.app_error",
+    "translation": "Cannot modify options of a linked field. Options are inherited from the source."
+  },
+  {
+    "id": "api.property_field.patch.linked_type_change.app_error",
+    "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -3233,6 +3249,10 @@
   {
     "id": "api.property_value.target_user.forbidden.app_error",
     "translation": "You do not have permission to access property values for another user."
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "Template fields cannot have values."
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -7831,6 +7851,34 @@
     "translation": "Unable to create property field."
   },
   {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "Cannot link to a field in a different group."
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "The linked source field has been deleted."
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "Cannot link to a field that is itself linked. Chains are not allowed."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "The linked source field was not found."
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "Can only link to template fields."
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "Only the source plugin can create linked fields from a protected template."
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "Linked field target type must match the source template's target type."
+  },
+  {
     "id": "app.property_field.create.name_conflict.app_error",
     "translation": "Cannot create property \"{{.Name}}\": a property with this name already exists at the {{.ConflictLevel}} level."
   },
@@ -7839,12 +7887,20 @@
     "translation": "Cannot create a protected property field."
   },
   {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "Template fields cannot have a linked field."
+  },
+  {
     "id": "app.property_field.delete.app_error",
     "translation": "Unable to delete property field."
   },
   {
     "id": "app.property_field.delete.get_existing.app_error",
     "translation": "Unable to get property field for deletion."
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "Cannot delete a field with active linked dependents. Unlink or delete dependent fields first."
   },
   {
     "id": "app.property_field.delete.not_found.app_error",
@@ -7883,8 +7939,28 @@
     "translation": "Unable to update property fields."
   },
   {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "Cannot change link target. Unlink first, then create a new linked field."
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "Cannot set linked_field_id on an existing field. It can only be set at creation time."
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "Unable to update property field due to a conflict. Please retry."
+  },
+  {
     "id": "app.property_field.update.get_existing.app_error",
     "translation": "Unable to get property fields for update."
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "Cannot modify options of a linked field. Options are inherited from the source."
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
     "id": "app.property_field.update.name_conflict.app_error",
@@ -7893,6 +7969,10 @@
   {
     "id": "app.property_field.update.protected.app_error",
     "translation": "Cannot update a protected property field."
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "Cannot change type of a field with active linked dependents."
   },
   {
     "id": "app.property_group.get.app_error",
@@ -7941,6 +8021,10 @@
   {
     "id": "app.property_value.search.app_error",
     "translation": "Unable to search property values."
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "Template fields cannot have values."
   },
   {
     "id": "app.property_value.update.app_error",
