@@ -116,6 +116,7 @@ type SqlStoreStores struct {
 	ContentFlagging            store.ContentFlaggingStore
 	recap                      store.RecapStore
 	readReceipt                store.ReadReceiptStore
+	postReadStatus             store.PostReadStatusStore
 	temporaryPost              store.TemporaryPostStore
 }
 
@@ -302,6 +303,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
 	store.stores.recap = newSqlRecapStore(store)
 	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
+	store.stores.postReadStatus = newSqlPostReadStatusStore(store)
 	store.stores.temporaryPost = newSqlTemporaryPostStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
@@ -913,6 +915,10 @@ func (ss *SqlStore) Recap() store.RecapStore {
 
 func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
 	return ss.stores.readReceipt
+}
+
+func (ss *SqlStore) PostReadStatus() store.PostReadStatusStore {
+	return ss.stores.postReadStatus
 }
 
 func (ss *SqlStore) TemporaryPost() store.TemporaryPostStore {

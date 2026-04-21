@@ -74,6 +74,7 @@ type Store struct {
 	RecapStore                      mocks.RecapStore
 	ReadReceiptStore                mocks.ReadReceiptStore
 	TemporaryPostStore              mocks.TemporaryPostStore
+	PostReadStatusStore             mocks.PostReadStatusStore
 	ViewStore                       mocks.ViewStore
 }
 
@@ -188,6 +189,7 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 		Tables: []model.DatabaseTable{},
 	}, nil
 }
+func (s *Store) PostReadStatus() store.PostReadStatusStore { return &s.PostReadStatusStore }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {
 	return mock.AssertExpectationsForObjects(t,

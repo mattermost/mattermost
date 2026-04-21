@@ -846,6 +846,26 @@ func (_m *Store) PostPriority() store.PostPriorityStore {
 	return r0
 }
 
+// PostReadStatus provides a mock function with no fields
+func (_m *Store) PostReadStatus() store.PostReadStatusStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for PostReadStatus")
+	}
+
+	var r0 store.PostReadStatusStore
+	if rf, ok := ret.Get(0).(func() store.PostReadStatusStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PostReadStatusStore)
+		}
+	}
+
+	return r0
+}
+
 // Preference provides a mock function with no fields
 func (_m *Store) Preference() store.PreferenceStore {
 	ret := _m.Called()

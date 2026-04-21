@@ -340,6 +340,10 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(clientPostList.Order) > 0 {
+		c.App.QueuePostReadStatus(clientPostList.Order, c.AppContext.Session().UserId)
+	}
+
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -419,6 +423,10 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if len(clientPostList.Order) > 0 {
+		c.App.QueuePostReadStatus(clientPostList.Order, userId)
 	}
 
 	if etag != "" {
@@ -523,6 +531,10 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if len(clientPostList.Order) > 0 {
+		c.App.QueuePostReadStatus(clientPostList.Order, c.AppContext.Session().UserId)
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventGetFlaggedPosts, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
@@ -574,6 +586,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	}
+
+	postIDs := []string{post.Id}
+	if previewPost := post.GetPreviewPost(); previewPost != nil {
+		postIDs = append(postIDs, previewPost.Post.Id)
+	}
+	c.App.QueuePostReadStatus(postIDs, c.AppContext.Session().UserId)
 
 	w.Header().Set(model.HeaderEtagServer, post.Etag())
 	if err := post.EncodeJSON(w); err != nil {
@@ -649,6 +667,14 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		post = c.App.PreparePostForClient(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true})
 		post.StripActionIntegrations()
 		posts = append(posts, post)
+	}
+
+	if len(posts) > 0 {
+		ids := make([]string, len(posts))
+		for i, p := range posts {
+			ids[i] = p.Id
+		}
+		c.App.QueuePostReadStatus(ids, c.AppContext.Session().UserId)
 	}
 
 	w.Header().Set(model.HeaderFirstInaccessiblePostTime, strconv.FormatInt(firstInaccessiblePostTime, 10))
@@ -899,6 +925,10 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(clientPostList.Order) > 0 {
+		c.App.QueuePostReadStatus(clientPostList.Order, c.AppContext.Session().UserId)
+	}
+
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 
 	if err := clientPostList.EncodeJSON(w); err != nil {
@@ -1005,6 +1035,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request, teamId stri
 		if !isMemberForAllPreviews {
 			model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access_on_previews", true)
 		}
+	}
+
+	if len(clientPostList.Order) > 0 {
+		c.App.QueuePostReadStatus(clientPostList.Order, c.AppContext.Session().UserId)
 	}
 
 	results = model.MakePostSearchResults(clientPostList, results.Matches)
@@ -1876,6 +1910,8 @@ func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
+
+	c.App.QueueSinglePostReadStatus(revealedPost.Id, userId)
 
 	auditRec.Success()
 	auditRec.AddEventResultState(revealedPost)

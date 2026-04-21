@@ -101,6 +101,7 @@ type Store interface {
 	ContentFlagging() ContentFlaggingStore
 	Recap() RecapStore
 	ReadReceipt() ReadReceiptStore
+	PostReadStatus() PostReadStatusStore
 	TemporaryPost() TemporaryPostStore
 }
 
@@ -1219,6 +1220,10 @@ type ReadReceiptStore interface {
 	GetByPost(rctx request.CTX, postID string) ([]*model.ReadReceipt, error)
 	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
 	GetUnreadCountForPost(rctx request.CTX, post *model.Post) (int64, error)
+}
+
+type PostReadStatusStore interface {
+	SaveMultiple(statuses []*model.PostReadStatus) error
 }
 
 type TemporaryPostStore interface {

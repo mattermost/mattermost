@@ -90,6 +90,7 @@ func (a *App) handleWebhookEvents(rctx request.CTX, post *model.Post, team *mode
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
+		a.QueueSinglePostReadStatus(post.Id, hook.Id)
 		a.TriggerWebhook(rctx, payload, hook, post, channel)
 	}
 

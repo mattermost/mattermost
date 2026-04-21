@@ -713,6 +713,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 
 	// Collect user IDs of whom we want to acknowledge the websocket event for notification metrics
 	usersToAck := []string{}
+	allUserIDs := make([]string, 0, len(profileMap))
 	for id, profile := range profileMap {
 		userNotificationLevel := profile.NotifyProps[model.DesktopNotifyProp]
 		channelNotificationLevel := channelMemberNotifyPropsMap[id][model.DesktopNotifyProp]
@@ -720,7 +721,11 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		if shouldAckWebsocketNotification(channel.Type, userNotificationLevel, channelNotificationLevel) {
 			usersToAck = append(usersToAck, id)
 		}
+
+		allUserIDs = append(allUserIDs, id)
 	}
+	// Queue read statuses in a single batch for all notification recipients.
+	a.Srv().Platform().QueuePostReadStatusForPost(post.Id, allUserIDs)
 	usePostedAckHook(message, post.UserId, channel.Type, usersToAck)
 
 	appErr := a.publishWebsocketEventForPost(rctx, post, message)

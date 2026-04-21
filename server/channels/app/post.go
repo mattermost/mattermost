@@ -74,6 +74,8 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, false, err
 	}
 
+	a.QueueSinglePostReadStatus(rp.Id, post.UserId)
+
 	// Update the Channel LastViewAt only if:
 	// the post does NOT have from_webhook prop set (e.g. Zapier app), and
 	// the post does NOT have from_bot set (e.g. from discovering the user is a bot within CreatePost), and

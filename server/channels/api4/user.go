@@ -3595,6 +3595,10 @@ func getThreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if thread.Post != nil {
+		c.App.QueueSinglePostReadStatus(thread.Post.Id, c.AppContext.Session().UserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(thread); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -3678,6 +3682,18 @@ func getThreadsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if len(threads.Threads) > 0 {
+		postIDs := make([]string, 0, len(threads.Threads))
+		for _, t := range threads.Threads {
+			if t.Post != nil {
+				postIDs = append(postIDs, t.Post.Id)
+			}
+		}
+		if len(postIDs) > 0 {
+			c.App.QueuePostReadStatus(postIDs, c.AppContext.Session().UserId)
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(threads); err != nil {

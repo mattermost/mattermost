@@ -49,6 +49,7 @@ type RetryLayer struct {
 	PostAcknowledgementStore        store.PostAcknowledgementStore
 	PostPersistentNotificationStore store.PostPersistentNotificationStore
 	PostPriorityStore               store.PostPriorityStore
+	PostReadStatusStore             store.PostReadStatusStore
 	PreferenceStore                 store.PreferenceStore
 	ProductNoticesStore             store.ProductNoticesStore
 	PropertyFieldStore              store.PropertyFieldStore
@@ -193,6 +194,10 @@ func (s *RetryLayer) PostPersistentNotification() store.PostPersistentNotificati
 
 func (s *RetryLayer) PostPriority() store.PostPriorityStore {
 	return s.PostPriorityStore
+}
+
+func (s *RetryLayer) PostReadStatus() store.PostReadStatusStore {
+	return s.PostReadStatusStore
 }
 
 func (s *RetryLayer) Preference() store.PreferenceStore {
@@ -449,6 +454,11 @@ type RetryLayerPostPersistentNotificationStore struct {
 
 type RetryLayerPostPriorityStore struct {
 	store.PostPriorityStore
+	Root *RetryLayer
+}
+
+type RetryLayerPostReadStatusStore struct {
+	store.PostReadStatusStore
 	Root *RetryLayer
 }
 
@@ -9534,6 +9544,27 @@ func (s *RetryLayerPostPriorityStore) Save(priority *model.PostPriority) (*model
 
 }
 
+func (s *RetryLayerPostReadStatusStore) SaveMultiple(statuses []*model.PostReadStatus) error {
+
+	tries := 0
+	for {
+		err := s.PostReadStatusStore.SaveMultiple(statuses)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPreferenceStore) CleanupFlagsBatch(limit int64) (int64, error) {
 
 	tries := 0
@@ -18216,6 +18247,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PostAcknowledgementStore = &RetryLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
 	newStore.PostPersistentNotificationStore = &RetryLayerPostPersistentNotificationStore{PostPersistentNotificationStore: childStore.PostPersistentNotification(), Root: &newStore}
 	newStore.PostPriorityStore = &RetryLayerPostPriorityStore{PostPriorityStore: childStore.PostPriority(), Root: &newStore}
+	newStore.PostReadStatusStore = &RetryLayerPostReadStatusStore{PostReadStatusStore: childStore.PostReadStatus(), Root: &newStore}
 	newStore.PreferenceStore = &RetryLayerPreferenceStore{PreferenceStore: childStore.Preference(), Root: &newStore}
 	newStore.ProductNoticesStore = &RetryLayerProductNoticesStore{ProductNoticesStore: childStore.ProductNotices(), Root: &newStore}
 	newStore.PropertyFieldStore = &RetryLayerPropertyFieldStore{PropertyFieldStore: childStore.PropertyField(), Root: &newStore}
