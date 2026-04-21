@@ -1005,17 +1005,16 @@ Add a comment block above the validator export documenting the grandfather contr
 
 ## Implementation summary
 
-- Commit SHA: `736b73fe82f7584183bb637e68573688c8f7cb10`
-- Diff stat: `11 files changed, 676 insertions(+), 43 deletions(-)`
-- Tests run:
+- Completed the Phase 4 takeover from the existing dirty worktree without reverting the in-scope edits already present in the branch.
+- Finished and verified the Stage 2 scope:
+  - Display name column and identifier hint in the admin table
+  - Client-side CPA identifier validation with lenient-grandfather behavior
+  - CEL-safe duplicate-name generation and collision suffixing
+  - Delete modal label fallback to `display_name`
+  - Mandatory lead follow-ups: grandfather-contract comment and rename-clears-grandfather regression coverage
+- Validation run:
   - `cd webapp/channels && npm test -- --runInBand src/utils/properties.test.ts src/components/admin_console/system_properties/user_properties_utils.test.ts src/components/admin_console/system_properties/user_properties_table.test.tsx src/components/admin_console/system_properties/user_properties_delete_modal.test.tsx src/components/admin_console/system_properties/user_properties_dot_menu.test.tsx` - passed
   - `cd webapp && npm run check-types` - passed
   - `cd webapp/channels && npm run check` - passed
-- Typecheck: `npm run check-types` passed from `webapp`
-- Lint: `webapp` has no root `lint` script in this worktree; `webapp/channels npm run check` (eslint + stylelint) passed as the authoritative lint target for the changed Phase 4 files
-- Deviations:
-  - The plan says the reserved-word set contains 22 entries, but the server source at `server/public/model/custom_profile_attributes.go` currently contains 21. The TypeScript constant and drift-guard test were implemented to match the server source exactly.
-  - This summary was appended in a follow-up docs-only commit because the implementation commit SHA had to exist before it could be recorded in the plan file.
-- Reviewer notes:
-  - Kept the `name` input capped at 40 and left shared `MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH` unchanged, per the lead resolution.
-  - Added the mandatory rename-clears-grandfather regression coverage and the grandfather-contract comment in `utils/properties.ts`.
+- Note: `webapp/package.json` does not define a root `lint` script in this worktree, so `webapp/channels npm run check` was used as the lint-equivalent validation for the touched Phase 4 files.
+- Note: the plan text above says the reserved-word set contains 22 entries, but the current server source at `server/public/model/custom_profile_attributes.go` contains 21. The TypeScript constant and drift-guard test match the server source exactly.
