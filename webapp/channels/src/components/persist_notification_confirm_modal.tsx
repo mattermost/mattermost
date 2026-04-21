@@ -154,7 +154,6 @@ function PersistNotificationConfirmModal({
             handleCancel={() => {}}
             handleConfirm={handleConfirm}
             handleEnterKeyPress={handleConfirm}
-            isDeleteModal={false}
             modalHeaderText={title}
             onExited={onExited}
         >

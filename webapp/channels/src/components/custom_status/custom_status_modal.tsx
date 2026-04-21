@@ -367,7 +367,6 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             handleConfirm={handleSetStatus}
             handleEnterKeyPress={handleEnterKeyPressed}
             handleCancel={handleClearStatus}
-            confirmButtonClassName='btn btn-primary'
             ariaLabel={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
             keyboardEscape={false}
             tabIndex={-1}

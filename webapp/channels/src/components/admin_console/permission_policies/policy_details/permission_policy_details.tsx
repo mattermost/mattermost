@@ -718,7 +718,7 @@ function PermissionPolicyDetails({
                                     defaultMessage='Delete Policy'
                                 />
                             }
-                            confirmButtonClassName='btn btn-danger'
+                            confirmButtonVariant='destructive'
                             isDeleteModal={true}
                             compassDesign={true}
                         >

@@ -6,6 +6,8 @@ import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {ButtonVariant} from '@mattermost/shared/components/button';
+
 import {useFocusTrap} from '../hooks/useFocusTrap';
 import {useStackedModal} from '../hooks/useStackedModal';
 import './generic_modal.scss';
@@ -27,7 +29,7 @@ export type Props = {
     handleEnterKeyPress?: () => void;
     handleKeydown?: (event?: React.KeyboardEvent<HTMLDivElement>) => void;
     confirmButtonText?: React.ReactNode;
-    confirmButtonClassName?: string;
+    confirmButtonVariant?: ButtonVariant;
     cancelButtonText?: React.ReactNode;
     cancelButtonClassName?: string;
     isConfirmDisabled?: boolean;
@@ -115,7 +117,7 @@ export const GenericModal: React.FC<Props> = ({
     handleEnterKeyPress,
     handleKeydown,
     confirmButtonText,
-    confirmButtonClassName,
+    confirmButtonVariant,
     cancelButtonText,
     cancelButtonClassName,
     isConfirmDisabled,
@@ -216,7 +218,8 @@ export const GenericModal: React.FC<Props> = ({
             <button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                className={classNames('btn btn-primary', buttonTypeClass, {
+                    'btn-danger': confirmButtonVariant === 'destructive',
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
