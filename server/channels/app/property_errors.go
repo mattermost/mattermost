@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // mapPropertyServiceError translates known sentinel errors from the property
@@ -48,6 +49,11 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 		return model.NewAppError(where, "app.property_field.managed_admin.permission.app_error", nil, "", http.StatusForbidden).Wrap(err)
 	case errors.Is(err, properties.ErrFieldNotFound):
 		return model.NewAppError(where, "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	var conflictErr *store.ErrConflict
+	if errors.As(err, &conflictErr) {
+		return model.NewAppError(where, "app.property_field.update.conflict.app_error", nil, "concurrent modification detected; please retry", http.StatusConflict).Wrap(err)
 	}
 
 	var appErr *model.AppError

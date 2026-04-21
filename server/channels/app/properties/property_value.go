@@ -4,19 +4,70 @@
 package properties
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// rejectTemplateValues checks that none of the given values target a template
+// field. Template fields are definition-only and must never hold values.
+// This is enforced at the service layer to cover all entry points (API,
+// CPA endpoints, plugin API).
+func (ps *PropertyService) rejectTemplateValues(values []*model.PropertyValue) error {
+	// Collect unique field IDs
+	seen := make(map[string]struct{}, len(values))
+	for _, v := range values {
+		if v == nil {
+			continue
+		}
+		seen[v.FieldID] = struct{}{}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+
+	fieldIDs := make([]string, 0, len(seen))
+	for id := range seen {
+		fieldIDs = append(fieldIDs, id)
+	}
+
+	// Batch lookup from master to avoid replication lag
+	fields, err := ps.fieldStore.GetMany(store.WithMaster(context.Background()), "", fieldIDs)
+	if err != nil {
+		return fmt.Errorf("failed to look up fields for template check: %w", err)
+	}
+
+	for _, field := range fields {
+		if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+			return model.NewAppError(
+				"PropertyService",
+				"app.property_value.template_no_values.app_error",
+				nil,
+				fmt.Sprintf("template field %q cannot have values", field.ID),
+				http.StatusBadRequest,
+			)
+		}
+	}
+	return nil
+}
 
 // Private implementation methods (database access)
 
 func (ps *PropertyService) createPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues([]*model.PropertyValue{value}); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Create(value)
 }
 
 func (ps *PropertyService) createPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.CreateMany(values)
 }
 
@@ -45,6 +96,9 @@ func (ps *PropertyService) updatePropertyValue(groupID string, value *model.Prop
 }
 
 func (ps *PropertyService) updatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Update(groupID, values)
 }
 
@@ -58,6 +112,9 @@ func (ps *PropertyService) upsertPropertyValue(value *model.PropertyValue) (*mod
 }
 
 func (ps *PropertyService) upsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	if err := ps.rejectTemplateValues(values); err != nil {
+		return nil, err
+	}
 	return ps.valueStore.Upsert(values)
 }
 

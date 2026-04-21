@@ -23,7 +23,7 @@ func readMigrationSQL(t *testing.T, filename string) string {
 	return string(data)
 }
 
-func TestMigration000168(t *testing.T) {
+func TestMigration000170(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -37,8 +37,8 @@ func TestMigration000168(t *testing.T) {
 
 	master := store.GetMaster()
 
-	upSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.up.sql")
-	downSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.down.sql")
+	upSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.up.sql")
+	downSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.down.sql")
 
 	// Insert a group simulating pre-migration CPA state.
 	groupID := model.NewId()
@@ -206,7 +206,7 @@ func TestMigration000168(t *testing.T) {
 	assert.Equal(t, groupID, val.GroupID, "value GroupID should remain unchanged after down")
 }
 
-func TestMigration000168DownPreservesNonUserFields(t *testing.T) {
+func TestMigration000170DownPreservesNonUserFields(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -220,8 +220,8 @@ func TestMigration000168DownPreservesNonUserFields(t *testing.T) {
 
 	master := store.GetMaster()
 
-	upSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.up.sql")
-	downSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.down.sql")
+	upSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.up.sql")
+	downSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.down.sql")
 
 	groupID := model.NewId()
 	_, err = master.Exec("INSERT INTO PropertyGroups (ID, Name) VALUES (?, ?)", groupID, "custom_profile_attributes")
@@ -299,7 +299,7 @@ func TestMigration000168DownPreservesNonUserFields(t *testing.T) {
 	assert.Equal(t, "sysadmin", channelField.PermissionOptions.String)
 }
 
-func TestMigration000168NoOpOnFreshDB(t *testing.T) {
+func TestMigration000170NoOpOnFreshDB(t *testing.T) {
 	logger := mlog.CreateTestLogger(t)
 
 	settings, err := makeSqlSettings(model.DatabaseDriverPostgres)
@@ -313,8 +313,8 @@ func TestMigration000168NoOpOnFreshDB(t *testing.T) {
 
 	master := store.GetMaster()
 
-	upSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.up.sql")
-	downSQL := readMigrationSQL(t, "000168_migrate_cpa_to_protected_attributes.down.sql")
+	upSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.up.sql")
+	downSQL := readMigrationSQL(t, "000170_migrate_cpa_to_protected_attributes.down.sql")
 
 	// On a fresh database with no CPA group, both up and down should be
 	// safe no-ops (the UPDATE statements match zero rows).

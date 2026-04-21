@@ -246,7 +246,17 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("getPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
@@ -304,7 +314,17 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
+	if c.Err != nil {
+		return
+	}
+
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
@@ -407,6 +427,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				return false
 			}
 		}
+	case model.PropertyFieldObjectTypeTemplate:
+		// Templates don't have value targets — this should not be reached
+		// if value endpoints properly reject template object type
+		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return false
 	default:
 		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.invalid_object_type.app_error", nil, "", http.StatusBadRequest)
 		return false
@@ -537,6 +562,26 @@ func executePatchPropertyField(c *Context, r *http.Request, groupID, objectType,
 
 	if existingField.Protected {
 		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.update.protected_via_api.app_error", nil, "", http.StatusForbidden)
+		return nil, nil
+	}
+
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		if patch.Type != nil {
+			c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.patch.linked_type_change.app_error", nil, "cannot modify type of a linked field", http.StatusBadRequest)
+			return nil, nil
+		}
+		if patch.Attrs != nil {
+			if _, hasOpts := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; hasOpts {
+				c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.patch.linked_options_change.app_error", nil, "cannot modify options of a linked field", http.StatusBadRequest)
+				return nil, nil
+			}
+		}
+		if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" && *patch.LinkedFieldID != *existingField.LinkedFieldID {
+			c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.patch.linked_field_change.app_error", nil, "cannot change link target; unlink first then create a new linked field", http.StatusBadRequest)
+			return nil, nil
+		}
+	} else if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" {
+		c.Err = model.NewAppError("executePatchPropertyField", "api.property_field.patch.cannot_link_existing.app_error", nil, "linked_field_id can only be set at creation time", http.StatusBadRequest)
 		return nil, nil
 	}
 
@@ -722,7 +767,7 @@ func executePatchPropertyValues(c *Context, r *http.Request, groupName, objectTy
 // Returns true if the only change is to attrs.options.
 func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
 	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil {
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
 		return false
 	}
 

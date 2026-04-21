@@ -23,9 +23,11 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 var (
@@ -93,6 +95,8 @@ func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker
 // PreCreatePropertyField enforces access control on field creation.
 // When the caller is an installed plugin, source_plugin_id is automatically set.
 // When the caller is not a plugin, source_plugin_id and protected are rejected.
+// When linking to a source template, security attributes are validated and
+// inherited from the source.
 func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
 	if !h.isGroupManaged(field.GroupID) {
 		return field, nil
@@ -114,11 +118,64 @@ func (h *AccessControlHook) PreCreatePropertyField(rctx request.CTX, field *mode
 		}
 	}
 
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		if err := h.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+			return nil, fmt.Errorf("PreCreatePropertyField: %w", err)
+		}
+	}
+
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
 		return nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidAccessMode)
 	}
 
 	return field, nil
+}
+
+// validateAndInheritLinkedFieldSecurity enforces that linked fields inherit
+// the source template's security posture. If the source is protected, only
+// the source plugin may create linked fields. Security attrs (protected,
+// source_plugin_id, access_mode) are copied from the source onto the field.
+func (h *AccessControlHook) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
+	source, err := h.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+	if err != nil {
+		if store.IsErrNotFound(err) {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_not_found.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+		return fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
+	}
+
+	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
+		return nil
+	}
+
+	sourcePluginID := h.getSourcePluginID(source)
+	if sourcePluginID == "" || callerID != sourcePluginID {
+		return model.NewAppError(
+			"CreatePropertyField",
+			"app.property_field.create.linked_source_protected.app_error",
+			nil,
+			"only the source plugin can create linked fields from a protected template",
+			http.StatusForbidden,
+		)
+	}
+
+	if field.Attrs == nil {
+		field.Attrs = make(model.StringInterface)
+	}
+
+	field.Attrs[model.PropertyAttrsProtected] = true
+	field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
+	if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
+		field.Attrs[model.PropertyAttrsAccessMode] = v
+	}
+
+	return nil
 }
 
 // PreUpdatePropertyField enforces access control on field updates.

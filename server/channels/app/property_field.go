@@ -221,7 +221,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	updated, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
+	updated, propagated, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
 			return nil, appErr
@@ -229,8 +229,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Broadcast websocket events for both requested and propagated fields
 	for _, field := range updated {
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, connectionID)
+	}
+	for _, field := range propagated {
+		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, "")
 	}
 
 	return updated, nil

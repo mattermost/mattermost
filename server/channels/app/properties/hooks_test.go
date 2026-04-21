@@ -523,7 +523,7 @@ func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 			TargetType: "user",
 		})
 		field.Name = "updated"
-		_, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
+		_, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "batch update blocked")
 	})
@@ -555,7 +555,7 @@ func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 
 		field1.Name = "a"
 		field2.Name = "b"
-		results, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field1, field2})
+		results, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field1, field2})
 		require.NoError(t, err)
 		require.Len(t, results, 2)
 		assert.Equal(t, "modified-a", results[0].Name)
