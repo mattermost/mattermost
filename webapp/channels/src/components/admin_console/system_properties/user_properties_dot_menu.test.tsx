@@ -192,7 +192,7 @@ describe('UserPropertyDotMenu', () => {
             // Verify createField was called with the correct parameters
             expect(createField).toHaveBeenCalledWith(expect.objectContaining({
                 id: baseField.id,
-                name: 'Test Field (copy)',
+                name: 'Test_Field_copy',
             }));
         });
     });

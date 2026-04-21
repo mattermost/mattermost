@@ -22,7 +22,7 @@ import DotMenu from './user_properties_dot_menu';
 import OrphanedFieldDeleteButton from './user_properties_orphaned_delete_button';
 import SelectType from './user_properties_type_menu';
 import type {UserPropertyFields} from './user_properties_utils';
-import {isCreatePending, useUserPropertyFields, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
+import {isCreatePending, useUserPropertyFields, ValidationWarningNameInvalidCEL, ValidationWarningNameRequired, ValidationWarningNameTaken, ValidationWarningNameUnique} from './user_properties_utils';
 import UserPropertyValues from './user_properties_values';
 
 import {AdminConsoleListTable} from '../list_table';
@@ -110,16 +110,18 @@ export function UserPropertiesTable({
             col.accessor('name', {
                 size: 180,
                 header: () => {
-                    // TODO(cpa-display-name Phase 4 task 4.1): rename this header from
-                    // 'Attribute' to 'Identifier'; add helper text explaining the CEL constraint;
-                    // add a new 'Display name' column (col.accessor('attrs.display_name', ...))
-                    // wired to attrs.display_name via EditCell; wire validateCPAFieldName.
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage
-                                id='admin.system_properties.user_properties.table.property'
-                                defaultMessage='Attribute'
+                                id='admin.system_properties.user_properties.table.identifier'
+                                defaultMessage='Identifier'
                             />
+                            <IdentifierHint>
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.identifier.hint'
+                                    defaultMessage='CEL identifier used in policies'
+                                />
+                            </IdentifierHint>
                         </ColHeaderLeft>
                     );
                 },
@@ -154,6 +156,14 @@ export function UserPropertiesTable({
                                 defaultMessage='Attribute name already taken.'
                             />
                         );
+                    } else if (warningId === ValidationWarningNameInvalidCEL) {
+                        warning = (
+                            <FormattedMessage
+                                tagName={DangerText}
+                                id='admin.system_properties.user_properties.table.validation.name_invalid_cel'
+                                defaultMessage='Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.'
+                            />
+                        );
                     }
 
                     return (
@@ -173,6 +183,47 @@ export function UserPropertiesTable({
                             />
                             {!toDelete && warning}
                         </>
+                    );
+                },
+                enableHiding: false,
+                enableSorting: false,
+            }),
+            col.accessor((row) => row.attrs?.display_name ?? '', {
+                id: 'display_name',
+                size: 200,
+                header: () => (
+                    <ColHeaderLeft>
+                        <FormattedMessage
+                            id='admin.system_properties.user_properties.table.display_name'
+                            defaultMessage='Display name'
+                        />
+                    </ColHeaderLeft>
+                ),
+                cell: ({getValue, row}) => {
+                    const toDelete = row.original.delete_at !== 0;
+                    const isProtected = Boolean(row.original.attrs?.protected);
+
+                    return (
+                        <EditCell
+                            value={getValue()}
+                            label={formatMessage({
+                                id: 'admin.system_properties.user_properties.table.display_name.input.label',
+                                defaultMessage: 'Display Name',
+                            })}
+                            testid='property-display-name-input'
+                            deleted={toDelete}
+                            disabled={isProtected}
+                            maxLength={255}
+                            setValue={(value: string) => {
+                                updateField({
+                                    ...row.original,
+                                    attrs: {
+                                        ...row.original.attrs,
+                                        display_name: value.trim() || undefined,
+                                    },
+                                });
+                            }}
+                        />
                     );
                 },
                 enableHiding: false,
@@ -341,6 +392,12 @@ const ColHeaderRight = styled.div`
     display: inline-block;
     width: 100%;
     text-align: right;
+`;
+
+const IdentifierHint = styled.div`
+    font-size: 11px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    margin-top: 2px;
 `;
 
 const ActionsRoot = styled.div`
