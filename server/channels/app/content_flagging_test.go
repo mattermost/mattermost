@@ -2703,10 +2703,9 @@ func TestPermanentDeleteFlaggedPostReport(t *testing.T) {
 	}
 
 	// File steps should report details about the deleted files
-	deletedFileDetails, ok := stepsByName["app.data_spillage.report.step.file_attachments"].DetailParams["FileNames"].(string)
+	fileCount, ok := stepsByName["app.data_spillage.report.step.file_attachments"].DetailParams["FileCount"].(int)
 	require.True(t, ok)
-	require.Contains(t, deletedFileDetails, fileInfo1.Name)
-	require.Contains(t, deletedFileDetails, fileInfo2.Name)
+	require.Equal(t, 2, fileCount)
 
 	// Edit history step should have sub-steps for each revision
 	editStep := stepsByName["app.data_spillage.report.step.edit_histories"]
@@ -2749,7 +2748,7 @@ func TestDeleteEditHistories(t *testing.T) {
 		step := findEditStep(report)
 		require.NotNil(t, step)
 		require.Equal(t, model.StepSuccess, step.Status)
-		require.Equal(t, "app.data_spillage.report.detail.no_revisions", step.Detail)
+		require.Equal(t, "app.data_spillage.report.detail.no_data_found", step.Detail)
 		require.Empty(t, step.SubSteps)
 	})
 
@@ -2840,7 +2839,7 @@ func TestDeleteEditHistories(t *testing.T) {
 		step := findEditStep(report)
 		require.NotNil(t, step)
 		require.Equal(t, model.StepSuccess, step.Status)
-		require.Equal(t, "app.data_spillage.report.detail.no_revisions", step.Detail)
+		require.Equal(t, "app.data_spillage.report.detail.no_data_found", step.Detail)
 	})
 }
 
