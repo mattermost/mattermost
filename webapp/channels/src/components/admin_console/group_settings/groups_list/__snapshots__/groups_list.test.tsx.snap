@@ -152,11 +152,11 @@ exports[`components/admin_console/group_settings/GroupsList.tsx should match sna
             Is Not Configured
           </span>
         </div>
-        <a
+        <button
           class="btn btn-primary search-groups-btn"
         >
           Search
-        </a>
+        </button>
       </div>
       <div
         class="group-list-link-unlink"

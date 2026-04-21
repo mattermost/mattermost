@@ -610,16 +610,15 @@ export default class UserAccessTokenSection extends React.PureComponent<Props, S
             );
         } else {
             newTokenSection = (
-                <a
-                    className='btn btn-primary'
-                    href='#'
+                <Button
+                    emphasis='primary'
                     onClick={this.startCreatingToken}
                 >
                     <FormattedMessage
                         id='user.settings.tokens.create'
                         defaultMessage='Create Token'
                     />
-                </a>
+                </Button>
             );
         }
 
