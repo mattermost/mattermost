@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -33,6 +34,10 @@ func websocketCmdF(cmd *cobra.Command, args []string) error {
 
 	c.Listen()
 	fmt.Fprintln(os.Stderr, "Press CTRL+C to exit")
+	return processWebSocketEvents(c)
+}
+
+func processWebSocketEvents(c *model.WebSocketClient) error {
 	for event := range c.EventChannel {
 		if event == nil {
 			continue
