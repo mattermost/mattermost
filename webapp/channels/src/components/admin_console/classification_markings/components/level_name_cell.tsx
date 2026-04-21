@@ -3,9 +3,8 @@
 
 import React, {useEffect, useState} from 'react';
 
-import type {ClassificationLevel} from '../utils/presets';
-
 import {BorderlessInput} from '../../system_properties/controls';
+import type {ClassificationLevel} from '../utils/presets';
 
 type LevelNameCellProps = {
     value: string;

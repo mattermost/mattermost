@@ -3,9 +3,9 @@
 
 import React, {useEffect, useState} from 'react';
 
-import type {ClassificationLevel} from '../utils/presets';
-
 import ClassificationColorInput from './classification_color_input';
+
+import type {ClassificationLevel} from '../utils/presets';
 
 type LevelColorCellProps = {
     value: string;
