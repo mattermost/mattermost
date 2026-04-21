@@ -5,6 +5,8 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
@@ -56,15 +58,11 @@ export default class MfaSection extends React.PureComponent<Props, State> {
         }
     }
 
-    public setupMfa = (e: React.MouseEvent<HTMLElement>) => {
-        e.preventDefault();
-
+    public setupMfa = () => {
         getHistory().push('/mfa/setup');
     };
 
-    public removeMfa = async (e: React.MouseEvent<HTMLElement>) => {
-        e.preventDefault();
-
+    public removeMfa = async () => {
         const {error} = await this.props.actions.deactivateMfa();
 
         if (error) {
@@ -135,26 +133,24 @@ export default class MfaSection extends React.PureComponent<Props, State> {
             }
 
             content = (
-                <a
-                    className='btn btn-primary'
-                    href='#'
+                <Button
+                    emphasis='primary'
                     onClick={this.removeMfa}
                 >
                     {buttonText}
-                </a>
+                </Button>
             );
         } else {
             content = (
-                <a
-                    className='btn btn-primary'
-                    href='#'
+                <Button
+                    emphasis='primary'
                     onClick={this.setupMfa}
                 >
                     <FormattedMessage
                         id='user.settings.mfa.add'
                         defaultMessage='Add MFA to Account'
                     />
-                </a>
+                </Button>
             );
         }
 

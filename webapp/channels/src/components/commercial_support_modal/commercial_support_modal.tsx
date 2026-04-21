@@ -7,6 +7,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {SupportPacketContent} from '@mattermost/types/admin';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -227,17 +228,17 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     <span className='error-text'>{this.state.error}</span>
                                 </div>
                             )}
-                            <a
-                                className='btn btn-primary DownloadSupportPacket'
+                            <Button
+                                emphasis='primary'
+                                className='DownloadSupportPacket'
                                 onClick={this.downloadSupportPacket}
-                                rel='noopener noreferrer'
                             >
                                 { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'
                                 />
-                            </a>
+                            </Button>
                         </div>
                     </div>
                 </Modal.Body>

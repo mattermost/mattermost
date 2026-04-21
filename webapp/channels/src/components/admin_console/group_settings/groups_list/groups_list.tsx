@@ -418,18 +418,19 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         />
                     </span>
                 </div>
-                <a
+                <Button
                     onClick={() => {
                         this.setState({page: 0});
                         this.searchGroups(0);
                     }}
-                    className='btn btn-primary search-groups-btn'
+                    emphasis='primary'
+                    className='search-groups-btn'
                 >
                     <FormattedMessage
                         id='search_bar.search'
                         defaultMessage='Search'
                     />
-                </a>
+                </Button>
             </div>
         );
     }

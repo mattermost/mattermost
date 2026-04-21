@@ -61,13 +61,12 @@ exports[`components/ChannelMembersModal should match snapshot 1`] = `
               </span>
                Members
             </h1>
-            <a
-              class="btn btn-md btn-primary"
-              href="#"
+            <button
+              class="btn btn-primary"
               id="showInviteModal"
             >
                Add Members
-            </a>
+            </button>
           </div>
           <div
             class="modal-body"

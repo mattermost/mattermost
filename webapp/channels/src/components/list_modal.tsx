@@ -194,13 +194,13 @@ export default class ListModal extends React.PureComponent<Props, State> {
                             <span className='name'>{this.props.titleText}</span>
                         </Modal.Title>
                         {this.props.titleBarButtonText && this.props.titleBarButtonOnClick &&
-                            <a
-                                className='btn btn-md btn-primary'
-                                href='#'
+                            <Button
+                                emphasis='primary'
+                                size='md'
                                 onClick={this.props.titleBarButtonOnClick}
                             >
                                 {this.props.titleBarButtonText}
-                            </a>}
+                            </Button>}
                     </Modal.Header>
                     <Modal.Body>
                         <div className='filtered-user-list'>

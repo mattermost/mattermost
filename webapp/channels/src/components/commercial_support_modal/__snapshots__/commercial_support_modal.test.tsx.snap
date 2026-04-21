@@ -47,15 +47,14 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
         <div
           class="CommercialSupportModal__download"
         >
-          <a
+          <button
             class="btn btn-primary DownloadSupportPacket"
-            rel="noopener noreferrer"
           >
             <i
               class="icon icon-download-outline"
             />
             Download Support Packet
-          </a>
+          </button>
         </div>
       </div>
     </div>
