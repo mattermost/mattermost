@@ -335,11 +335,11 @@ func TestPatchRole(t *testing.T) {
 
 		th.LoginSystemManager(t)
 
-		_, resp, err := th.SystemManagerClient.PatchRole(context.Background(), systemUserRole.Id, &model.RolePatch{
+		_, systemUserResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemUserRole.Id, &model.RolePatch{
 			Permissions: &patchedPermissions,
 		})
 		if assert.Error(t, err, "system_manager must not be able to patch system_user") {
-			CheckForbiddenStatus(t, resp)
+			CheckForbiddenStatus(t, systemUserResp)
 		}
 
 		systemUserRole, appErr = th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
@@ -367,11 +367,11 @@ func TestPatchRole(t *testing.T) {
 
 		th.LoginSystemManager(t)
 
-		_, resp, err := th.SystemManagerClient.PatchRole(context.Background(), systemGuestRole.Id, &model.RolePatch{
+		_, systemGuestResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemGuestRole.Id, &model.RolePatch{
 			Permissions: &patchedPermissions,
 		})
 		if assert.Error(t, err, "system_manager must not be able to patch system_guest") {
-			CheckForbiddenStatus(t, resp)
+			CheckForbiddenStatus(t, systemGuestResp)
 		}
 
 		systemGuestRole, appErr = th.App.GetRoleByName(th.Context, model.SystemGuestRoleId)
