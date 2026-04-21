@@ -97,54 +97,52 @@ func TestLicenseCheckHook(t *testing.T) {
 		assert.NotEmpty(t, created.ID)
 	})
 
+	countCalls := []struct {
+		name string
+		call func(groupID string) error
+	}{
+		{"CountActivePropertyFieldsForGroup", func(id string) error {
+			_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, id)
+			return err
+		}},
+		{"CountAllPropertyFieldsForGroup", func(id string) error {
+			_, err := th.service.CountAllPropertyFieldsForGroup(th.Context, id)
+			return err
+		}},
+		{"CountActivePropertyFieldsForTarget", func(id string) error {
+			_, err := th.service.CountActivePropertyFieldsForTarget(th.Context, id, "user", model.NewId())
+			return err
+		}},
+		{"CountAllPropertyFieldsForTarget", func(id string) error {
+			_, err := th.service.CountAllPropertyFieldsForTarget(th.Context, id, "user", model.NewId())
+			return err
+		}},
+	}
+
 	t.Run("blocks field counts without license on managed group", func(t *testing.T) {
 		currentLicense = enterpriseLicense
 		th.CreatePropertyFieldDirect(t, makeField())
-
 		currentLicense = nil
-
-		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, group.ID)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "license_error")
-
-		_, err = th.service.CountAllPropertyFieldsForGroup(th.Context, group.ID)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "license_error")
-
-		_, err = th.service.CountActivePropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "license_error")
-
-		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "license_error")
+		for _, c := range countCalls {
+			err := c.call(group.ID)
+			require.Error(t, err, c.name)
+			assert.Contains(t, err.Error(), "license_error", c.name)
+		}
 	})
 
 	t.Run("allows field counts with license on managed group", func(t *testing.T) {
 		currentLicense = enterpriseLicense
-
-		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, group.ID)
-		require.NoError(t, err)
-
-		_, err = th.service.CountAllPropertyFieldsForGroup(th.Context, group.ID)
-		require.NoError(t, err)
-
-		_, err = th.service.CountActivePropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
-		require.NoError(t, err)
-
-		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, group.ID, "user", model.NewId())
-		require.NoError(t, err)
+		for _, c := range countCalls {
+			require.NoError(t, c.call(group.ID), c.name)
+		}
 	})
 
 	t.Run("allows field counts without license on unmanaged group", func(t *testing.T) {
 		currentLicense = nil
 		otherGroup, groupErr := th.service.RegisterPropertyGroup("count_no_license_needed")
 		require.NoError(t, groupErr)
-
-		_, err := th.service.CountActivePropertyFieldsForGroup(th.Context, otherGroup.ID)
-		require.NoError(t, err)
-
-		_, err = th.service.CountAllPropertyFieldsForTarget(th.Context, otherGroup.ID, "user", model.NewId())
-		require.NoError(t, err)
+		for _, c := range countCalls {
+			require.NoError(t, c.call(otherGroup.ID), c.name)
+		}
 	})
 }
