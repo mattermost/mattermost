@@ -10925,6 +10925,18 @@
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.auto_cache_cleanup.app_error",
+    "translation": "Invalid Auto Cache Cleanup value. Must be between {{.Min}} and {{.Max}} days."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.disconnection_timeout.app_error",
+    "translation": "Invalid Disconnection Timeout value. Must be between {{.Min}} and {{.Max}} seconds."
+  },
+  {
+    "id": "model.config.is_valid.mobile_ephemeral_mode.offline_persistence.app_error",
+    "translation": "Invalid Offline Persistence Timer value. Must be between {{.Min}} and {{.Max}} hours."
+  },
+  {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
     "translation": "Message export job BatchSize must be a positive integer."
   },
