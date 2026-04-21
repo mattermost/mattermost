@@ -164,6 +164,103 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
 
+  "/api/v4/remotecluster/{remote_id}/shared_channel_invitations/{shared_channel_invitation_id}":
+    delete:
+      tags:
+        - shared channels
+      summary: Remove or withdraw a shared channel invitation.
+      description: |
+        Removes a stored invitation for the given remote cluster.
+
+        For **failed** or **rejected** invitations, the row is deleted.
+
+        For **pending** invitations, behavior depends on direction: a pending **sent**
+        invitation withdraws the share (same as uninvite) when applicable; a **received**
+        pending invitation is deleted if no active remote link exists.
+
+        ##### Permissions
+        `manage_secure_connections` or `manage_shared_channels`
+      operationId: DeleteSharedChannelInvitation
+      parameters:
+        - name: remote_id
+          in: path
+          description: The remote cluster GUID the invitation belongs to
+          required: true
+          schema:
+            type: string
+        - name: shared_channel_invitation_id
+          in: path
+          description: The invitation record GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Invitation removed or withdrawal processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  "/api/v4/channels/{channel_id}/shared_channel_invitations":
+    get:
+      tags:
+        - shared channels
+      summary: Get shared channel invitations for a channel.
+      description: |
+        Returns invitation records for the given channel (all remotes), including
+        pending, failed, and rejected invitations.
+
+        ##### Permissions
+        `manage_shared_channels`
+      operationId: GetSharedChannelInvitationsByChannel
+      parameters:
+        - name: channel_id
+          in: path
+          description: The channel GUID
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: The page to select
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of invitations per page
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Shared channel invitations fetch successful. Result may be empty.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedChannelInvitation"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
   "/api/v4/sharedchannels/remote_info/{remote_id}":
     get:
       tags:

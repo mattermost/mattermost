@@ -103,7 +103,7 @@ describe('Client4', () => {
             client.setUrl('http://mattermost.example.com');
 
             const remoteId = 'abcdefghijklmnopqrstuvwxyz';
-            const payload = [];
+            const payload = [] as any;
 
             nock(client.getBaseRoute()).
                 get(`/remotecluster/${remoteId}/shared_channel_invitations${buildQueryString({page: 0, per_page: 60})}`).
