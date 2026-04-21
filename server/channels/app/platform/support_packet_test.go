@@ -244,7 +244,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Cluster.NumberOfNodes)
 
 		/* LDAP */
-		assert.Empty(t, d.LDAP.Status)
+		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
 		assert.Empty(t, d.LDAP.Error)
 		assert.Empty(t, d.LDAP.ServerName)
 		assert.Empty(t, d.LDAP.ServerVersion)
@@ -253,6 +253,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.SAML.ProviderType)
 
 		/* Elastic Search */
+		assert.Equal(t, model.StatusDisabled, d.ElasticSearch.Status)
 		assert.Empty(t, d.ElasticSearch.ServerVersion)
 		assert.Empty(t, d.ElasticSearch.ServerPlugins)
 	})
