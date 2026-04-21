@@ -46,8 +46,6 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 		return model.NewAppError(where, "app.property_value.validate.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 	case errors.Is(err, properties.ErrAdminRequired):
 		return model.NewAppError(where, "app.property_field.managed_admin.permission.app_error", nil, "", http.StatusForbidden).Wrap(err)
-	case errors.Is(err, properties.ErrSanitization):
-		return model.NewAppError(where, "app.property_value.sanitization.app_error", nil, err.Error(), http.StatusBadRequest).Wrap(err)
 	case errors.Is(err, properties.ErrFieldNotFound):
 		return model.NewAppError(where, "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}

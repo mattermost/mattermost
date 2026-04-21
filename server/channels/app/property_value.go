@@ -42,6 +42,7 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	if value == nil {
 		return nil, model.NewAppError("CreatePropertyValue", "app.property_value.invalid_input.app_error", nil, "property value is required", http.StatusBadRequest)
 	}
+	value.Value = model.SanitizePropertyValue(value.Value)
 
 	createdValue, err := a.Srv().propertyService.CreatePropertyValue(rctx, value)
 	if err != nil {
@@ -57,6 +58,9 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
 	if len(values) == 0 {
 		return nil, model.NewAppError("CreatePropertyValues", "app.property_value.invalid_input.app_error", nil, "property values are required", http.StatusBadRequest)
+	}
+	for _, v := range values {
+		v.Value = model.SanitizePropertyValue(v.Value)
 	}
 
 	createdValues, err := a.Srv().propertyService.CreatePropertyValues(rctx, values)
@@ -114,6 +118,7 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 	if value == nil {
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.invalid_input.app_error", nil, "property value is required", http.StatusBadRequest)
 	}
+	value.Value = model.SanitizePropertyValue(value.Value)
 
 	updatedValue, err := a.Srv().propertyService.UpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
@@ -129,6 +134,9 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
 	if len(values) == 0 {
 		return nil, model.NewAppError("UpdatePropertyValues", "app.property_value.invalid_input.app_error", nil, "property values are required", http.StatusBadRequest)
+	}
+	for _, v := range values {
+		v.Value = model.SanitizePropertyValue(v.Value)
 	}
 
 	updatedValues, err := a.Srv().propertyService.UpdatePropertyValues(rctx, groupID, values)
@@ -146,6 +154,7 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	if value == nil {
 		return nil, model.NewAppError("UpsertPropertyValue", "app.property_value.invalid_input.app_error", nil, "property value is required", http.StatusBadRequest)
 	}
+	value.Value = model.SanitizePropertyValue(value.Value)
 
 	upsertedValue, err := a.Srv().propertyService.UpsertPropertyValue(rctx, value)
 	if err != nil {
@@ -163,6 +172,9 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue, objectType, targetID, connectionID string) ([]*model.PropertyValue, *model.AppError) {
 	if len(values) == 0 {
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.invalid_input.app_error", nil, "property values are required", http.StatusBadRequest)
+	}
+	for _, v := range values {
+		v.Value = model.SanitizePropertyValue(v.Value)
 	}
 
 	result, err := a.Srv().propertyService.UpsertPropertyValues(rctx, values)

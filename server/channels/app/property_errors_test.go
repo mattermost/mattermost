@@ -102,13 +102,6 @@ func TestMapPropertyServiceError(t *testing.T) {
 			expectDetail:   false,
 		},
 		{
-			name:           "sanitization",
-			sentinel:       properties.ErrSanitization,
-			expectedID:     "app.property_value.sanitization.app_error",
-			expectedStatus: http.StatusBadRequest,
-			expectDetail:   true,
-		},
-		{
 			name:           "field not found",
 			sentinel:       properties.ErrFieldNotFound,
 			expectedID:     "app.property_field.not_found.app_error",

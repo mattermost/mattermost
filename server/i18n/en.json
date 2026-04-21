@@ -7875,10 +7875,6 @@
     "translation": "Unrecognized object type \"{{.ObjectType}}\" for property value broadcast."
   },
   {
-    "id": "app.property_value.sanitization.app_error",
-    "translation": "Property value could not be normalized."
-  },
-  {
     "id": "app.property_value.search.app_error",
     "translation": "Unable to search property values."
   },
