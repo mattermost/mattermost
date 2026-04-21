@@ -139,7 +139,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				Direction: model.SharedChannelInvitationDirectionSent,
 				CreatorId: userId,
 			}
-			queuedInv.PreSave()
 			if _, invErr := scs.server.GetStore().SharedChannelInvitation().Save(queuedInv); invErr != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation for offline-queued invite",
 					mlog.String("channel_id", channel.Id),
@@ -181,7 +180,6 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			Direction: model.SharedChannelInvitationDirectionSent,
 			CreatorId: userId,
 		}
-		pendingInv.PreSave()
 		savedInv, invErr := scs.server.GetStore().SharedChannelInvitation().Save(pendingInv)
 		if invErr != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not save pending invitation record",
@@ -304,6 +302,19 @@ func (scs *Service) truncateInvitationErrMsg(msg string) string {
 }
 
 func (scs *Service) persistOutgoingInvitationFailed(channelId, userId string, rc *model.RemoteCluster, errMsg string) {
+	st := scs.server.GetStore().SharedChannelInvitation()
+	if pendingID := scs.findPendingSentInvitationID(channelId, rc.RemoteId); pendingID != "" {
+		if _, err := st.UpdateStatus(pendingID, model.SharedChannelInvitationStatusFailed, scs.truncateInvitationErrMsg(errMsg)); err != nil {
+			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not persist failed invitation record",
+				mlog.String("channel_id", channelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("invitation_id", pendingID),
+				mlog.Err(err),
+			)
+		}
+		return
+	}
+
 	inv := &model.SharedChannelInvitation{
 		ChannelId: channelId,
 		RemoteId:  rc.RemoteId,
@@ -312,8 +323,7 @@ func (scs *Service) persistOutgoingInvitationFailed(channelId, userId string, rc
 		ErrMsg:    scs.truncateInvitationErrMsg(errMsg),
 		CreatorId: userId,
 	}
-	inv.PreSave()
-	if _, err := scs.server.GetStore().SharedChannelInvitation().Save(inv); err != nil {
+	if _, err := st.Save(inv); err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not persist failed invitation record",
 			mlog.String("channel_id", channelId),
 			mlog.String("remote_id", rc.RemoteId),
@@ -356,7 +366,7 @@ func (scs *Service) findPendingSentInvitationID(channelID, remoteID string) stri
 		Direction: model.SharedChannelInvitationDirectionSent,
 		Status:    model.SharedChannelInvitationStatusPending,
 	}
-	invitations, err := scs.server.GetStore().SharedChannelInvitation().GetAll(opts, 0, 1)
+	invitations, err := scs.server.GetStore().SharedChannelInvitation().GetAllFromMaster(opts, 0, 1)
 	if err != nil {
 		scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "SharedChannelService: could not list pending sent invitations",
 			mlog.String("channel_id", channelID),

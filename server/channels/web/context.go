@@ -745,6 +745,17 @@ func (c *Context) RequireRemoteId() *Context {
 	return c
 }
 
+func (c *Context) RequireSharedChannelInvitationId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.SharedChannelInvitationId) {
+		c.SetInvalidURLParam("shared_channel_invitation_id")
+	}
+	return c
+}
+
 func (c *Context) RequireSyncableId() *Context {
 	if c.Err != nil {
 		return c

@@ -74,14 +74,20 @@ func (s SqlSharedChannelInvitationStore) Save(invitation *model.SharedChannelInv
 	return invitation, nil
 }
 
-func (s SqlSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
+func (s SqlSharedChannelInvitationStore) getInvitation(id string, fromMaster bool) (*model.SharedChannelInvitation, error) {
 	query := s.getQueryBuilder().
 		Select(sharedChannelInvitationColumns()...).
 		From("SharedChannelInvitations").
 		Where(sq.Eq{"Id": id})
 
 	var invitation model.SharedChannelInvitation
-	if err := s.GetReplica().GetBuilder(&invitation, query); err != nil {
+	var err error
+	if fromMaster {
+		err = s.GetMaster().GetBuilder(&invitation, query)
+	} else {
+		err = s.GetReplica().GetBuilder(&invitation, query)
+	}
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("SharedChannelInvitation", id)
 		}
@@ -90,7 +96,11 @@ func (s SqlSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInv
 	return &invitation, nil
 }
 
-func (s SqlSharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error) {
+func (s SqlSharedChannelInvitationStore) Get(id string) (*model.SharedChannelInvitation, error) {
+	return s.getInvitation(id, false)
+}
+
+func (s SqlSharedChannelInvitationStore) getAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int, fromMaster bool) ([]*model.SharedChannelInvitation, error) {
 	query := s.getQueryBuilder().
 		Select(sharedChannelInvitationColumns()...).
 		From("SharedChannelInvitations").
@@ -112,10 +122,24 @@ func (s SqlSharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitati
 	}
 
 	var invitations []*model.SharedChannelInvitation
-	if err := s.GetReplica().SelectBuilder(&invitations, query); err != nil {
+	var err error
+	if fromMaster {
+		err = s.GetMaster().SelectBuilder(&invitations, query)
+	} else {
+		err = s.GetReplica().SelectBuilder(&invitations, query)
+	}
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to list SharedChannelInvitations")
 	}
 	return invitations, nil
+}
+
+func (s SqlSharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error) {
+	return s.getAll(opts, offset, limit, false)
+}
+
+func (s SqlSharedChannelInvitationStore) GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error) {
+	return s.getAll(opts, offset, limit, true)
 }
 
 func (s SqlSharedChannelInvitationStore) UpdateStatus(id, status, errMsg string) (*model.SharedChannelInvitation, error) {
@@ -132,7 +156,7 @@ func (s SqlSharedChannelInvitationStore) UpdateStatus(id, status, errMsg string)
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return nil, errors.Wrap(err, "failed to update SharedChannelInvitation status")
 	}
-	return s.Get(id)
+	return s.getInvitation(id, true)
 }
 
 func (s SqlSharedChannelInvitationStore) Delete(id string) error {

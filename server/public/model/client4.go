@@ -7616,6 +7616,31 @@ func (c *Client4) GetSharedChannelInvitationsByRemote(ctx context.Context, remot
 	return DecodeJSONFromResponse[[]*SharedChannelInvitation](r)
 }
 
+func (c *Client4) GetSharedChannelInvitationsByChannel(ctx context.Context, channelId string, page, perPage int) ([]*SharedChannelInvitation, *Response, error) {
+	values := url.Values{}
+	if page != 0 {
+		values.Set("page", fmt.Sprintf("%d", page))
+	}
+	if perPage != 0 {
+		values.Set("per_page", fmt.Sprintf("%d", perPage))
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.channelRoute(channelId).Join("shared_channel_invitations"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*SharedChannelInvitation](r)
+}
+
+func (c *Client4) DeleteSharedChannelInvitation(ctx context.Context, remoteId, invitationId string) (*Response, error) {
+	r, err := c.doAPIDelete(ctx, c.sharedChannelInvitationsRoute(remoteId).Join(invitationId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) InviteRemoteClusterToChannel(ctx context.Context, remoteId, channelId string) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.channelRemoteRoute(remoteId, channelId).Join("invite"), "")
 	if err != nil {

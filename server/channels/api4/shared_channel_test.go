@@ -654,6 +654,159 @@ func TestGetSharedChannelInvitationsByRemoteCluster(t *testing.T) {
 	})
 }
 
+func TestGetSharedChannelInvitationsForChannel(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{Name: "rc_ch_inv", SiteURL: "http://ch-inv.example.com", CreatorId: th.SystemAdminUser.Id})
+	require.Nil(t, appErr)
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	_, err := th.App.Srv().Store().SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusPending,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	otherCh := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	_, err = th.App.Srv().Store().SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: otherCh.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	t.Run("forbidden for user without manage shared channels", func(t *testing.T) {
+		_, resp, err := th.Client.GetSharedChannelInvitationsByChannel(context.Background(), ch.Id, 0, 100)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("lists only invitations for the requested channel", func(t *testing.T) {
+		list, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByChannel(context.Background(), ch.Id, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Len(t, list, 1)
+		require.Equal(t, ch.Id, list[0].ChannelId)
+		require.Equal(t, model.SharedChannelInvitationStatusPending, list[0].Status)
+	})
+
+	t.Run("not found for unknown channel id", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByChannel(context.Background(), model.NewId(), 0, 100)
+		CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
+func TestDeleteSharedChannelInvitation(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
+		th := Setup(t)
+
+		resp, err := th.SystemAdminClient.DeleteSharedChannelInvitation(context.Background(), model.NewId(), model.NewId())
+		CheckNotImplementedStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{Name: "rc_del_inv", SiteURL: "http://del-inv.example.com", CreatorId: th.SystemAdminUser.Id})
+	require.Nil(t, appErr)
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	failedInv := &model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		ErrMsg:    "nope",
+		CreatorId: th.BasicUser.Id,
+	}
+	failedInv, err := th.App.Srv().Store().SharedChannelInvitation().Save(failedInv)
+	require.NoError(t, err)
+
+	t.Run("regular user is forbidden", func(t *testing.T) {
+		resp, err := th.Client.DeleteSharedChannelInvitation(context.Background(), rc.RemoteId, failedInv.Id)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("not found for unknown invitation id", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteSharedChannelInvitation(context.Background(), rc.RemoteId, model.NewId())
+		CheckNotFoundStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("bad request when invitation belongs to another remote", func(t *testing.T) {
+		otherRC, appErr2 := th.App.AddRemoteCluster(&model.RemoteCluster{Name: "rc_del_inv_other", SiteURL: "http://del-inv-other.example.com", CreatorId: th.SystemAdminUser.Id})
+		require.Nil(t, appErr2)
+
+		resp, err := th.SystemAdminClient.DeleteSharedChannelInvitation(context.Background(), otherRC.RemoteId, failedInv.Id)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("deletes failed invitation row", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteSharedChannelInvitation(context.Background(), rc.RemoteId, failedInv.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		_, getErr := th.App.Srv().Store().SharedChannelInvitation().Get(failedInv.Id)
+		require.Error(t, getErr)
+	})
+
+	pendingInv := &model.SharedChannelInvitation{
+		ChannelId: ch.Id,
+		RemoteId:  rc.RemoteId,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusPending,
+		CreatorId: th.BasicUser.Id,
+	}
+	pendingInv, err = th.App.Srv().Store().SharedChannelInvitation().Save(pendingInv)
+	require.NoError(t, err)
+
+	sc := &model.SharedChannel{
+		ChannelId: ch.Id,
+		TeamId:    ch.TeamId,
+		Home:      true,
+		ShareName: ch.Name,
+		CreatorId: th.BasicUser.Id,
+		RemoteId:  "",
+	}
+	_, err = th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scr := &model.SharedChannelRemote{
+		ChannelId:         ch.Id,
+		CreatorId:         th.BasicUser.Id,
+		RemoteId:          rc.RemoteId,
+		IsInviteAccepted:  true,
+		IsInviteConfirmed: false,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	t.Run("pending sent withdraws remote and clears invitation", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteSharedChannelInvitation(context.Background(), rc.RemoteId, pendingInv.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		_, getErr := th.App.Srv().Store().SharedChannelInvitation().Get(pendingInv.Id)
+		require.Error(t, getErr)
+
+		hasRemote, hasErr := th.App.Srv().Store().SharedChannel().HasRemote(ch.Id, rc.RemoteId)
+		require.NoError(t, hasErr)
+		require.False(t, hasRemote)
+	})
+}
+
 func TestInviteRemoteClusterToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -767,6 +920,13 @@ func TestSharedChannelEndpointsWithSharedChannelManagerRole(t *testing.T) {
 
 	t.Run("getSharedChannelInvitationsByRemote should allow shared_channel_manager", func(t *testing.T) {
 		_, resp, err := scmClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 0, 100)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+	})
+
+	t.Run("getSharedChannelInvitationsByChannel should allow shared_channel_manager", func(t *testing.T) {
+		ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+		_, resp, err := scmClient.GetSharedChannelInvitationsByChannel(context.Background(), ch.Id, 0, 100)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 	})

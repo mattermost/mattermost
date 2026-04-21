@@ -3431,6 +3431,26 @@
     "translation": "FileInfo.Name is required."
   },
   {
+    "id": "api.shared_channel.delete_invitation.app_error",
+    "translation": "Could not remove the shared channel invitation."
+  },
+  {
+    "id": "api.shared_channel.delete_invitation.invalid_direction",
+    "translation": "This invitation cannot be removed."
+  },
+  {
+    "id": "api.shared_channel.delete_invitation.invalid_status",
+    "translation": "This invitation cannot be removed."
+  },
+  {
+    "id": "api.shared_channel.delete_invitation.not_found",
+    "translation": "Shared channel invitation not found."
+  },
+  {
+    "id": "api.shared_channel.delete_invitation.remote_mismatch",
+    "translation": "That invitation does not belong to this connection."
+  },
+  {
     "id": "api.shared_channel.get_invitations.error",
     "translation": "Could not fetch shared channel invitations."
   },
@@ -7333,10 +7353,6 @@
   {
     "id": "app.pdp.access_evaluation.app_error",
     "translation": "Failed evaluate access control policy."
-  },
-  {
-    "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "Failed to evaluate permission policy."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",

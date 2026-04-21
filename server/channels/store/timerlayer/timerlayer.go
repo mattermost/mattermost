@@ -10437,6 +10437,22 @@ func (s *TimerLayerSharedChannelInvitationStore) GetAll(opts model.SharedChannel
 	return result, err
 }
 
+func (s *TimerLayerSharedChannelInvitationStore) GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset int, limit int) ([]*model.SharedChannelInvitation, error) {
+	start := time.Now()
+
+	result, err := s.SharedChannelInvitationStore.GetAllFromMaster(opts, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SharedChannelInvitationStore.GetAllFromMaster", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
 	start := time.Now()
 

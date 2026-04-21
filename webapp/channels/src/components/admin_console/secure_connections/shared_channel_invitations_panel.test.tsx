@@ -8,7 +8,7 @@ import type {SharedChannelInvitation} from '@mattermost/types/shared_channels';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import SharedChannelInvitationsPanel from './shared_channel_invitations_panel';
 
@@ -150,6 +150,45 @@ describe('SharedChannelInvitationsPanel', () => {
         });
     });
 
+    test('header shows failed and pending counts after load', async () => {
+        getInvitations.mockResolvedValue([
+            makeInvitation({id: 'inv-f', status: 'failed'}),
+            makeInvitation({id: 'inv-p1', status: 'pending'}),
+            makeInvitation({id: 'inv-p2', status: 'pending'}),
+        ]);
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+
+        await waitFor(() => {
+            expect(screen.getByText('1 failed')).toBeInTheDocument();
+            expect(screen.getByText('2 pending')).toBeInTheDocument();
+        });
+    });
+
+    test('collapsing hides invitation panel content', async () => {
+        getInvitations.mockResolvedValue([]);
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        await userEvent.click(
+            screen.getByRole('button', {name: 'Show or hide invitation activity'}),
+        );
+
+        expect(
+            screen.queryByText(
+                'There are no stored invitation records for this connection. Pending rows clear after success; failed or rejected invitations appear here.',
+            ),
+        ).not.toBeInTheDocument();
+    });
+
     test('refetches when refresh changes', async () => {
         getInvitations.mockResolvedValue([]);
 
@@ -172,6 +211,54 @@ describe('SharedChannelInvitationsPanel', () => {
 
         await waitFor(() => expect(getInvitations).toHaveBeenCalledTimes(2));
         expect(getInvitations).toHaveBeenLastCalledWith(remoteId, 0, 500);
+    });
+
+    test('ignores stale list response after remoteId changes', async () => {
+        let resolveFirst!: (value: SharedChannelInvitation[]) => void;
+        let resolveSecond!: (value: SharedChannelInvitation[]) => void;
+        let invocation = 0;
+        getInvitations.mockImplementation(() => {
+            invocation++;
+            if (invocation === 1) {
+                return new Promise<SharedChannelInvitation[]>((resolve) => {
+                    resolveFirst = resolve;
+                });
+            }
+            return new Promise<SharedChannelInvitation[]>((resolve) => {
+                resolveSecond = resolve;
+            });
+        });
+
+        const {rerender} = renderWithContext(
+            <SharedChannelInvitationsPanel remoteId='remote-first'/>,
+            minimalState,
+        );
+
+        await waitFor(() => expect(invocation).toBe(1));
+
+        rerender(<SharedChannelInvitationsPanel remoteId='remote-second'/>);
+
+        await waitFor(() => expect(invocation).toBe(2));
+
+        resolveSecond([
+            makeInvitation({id: 'inv-fresh', channel_id: 'channel-in-store'}),
+        ]);
+
+        await waitFor(() => {
+            expect(screen.getByText('Channel In Store')).toBeInTheDocument();
+        });
+
+        resolveFirst([
+            makeInvitation({
+                id: 'inv-stale',
+                channel_id: 'channel-missing-from-store',
+            }),
+        ]);
+
+        await waitFor(() => {
+            expect(screen.queryByText('channel-missing-from-store')).not.toBeInTheDocument();
+        });
+        expect(screen.getByText('Channel In Store')).toBeInTheDocument();
     });
 
     test('renders table rows with direction, status, details, and recorded time', async () => {

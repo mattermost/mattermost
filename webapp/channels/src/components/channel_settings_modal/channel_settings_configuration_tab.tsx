@@ -25,6 +25,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 
 import type {GlobalState} from 'types/store';
 
+import ChannelSharedInvitationsPanel from './channel_shared_invitations_panel';
 import ShareChannelWithWorkspaces from './share_channel_with_workspaces';
 import type {WorkspaceWithStatus} from './share_channel_with_workspaces/types';
 
@@ -461,6 +462,10 @@ function ChannelSettingsConfigurationTab({
                         onRemotesChange={setWorkspaceRemotes}
                         enabled={sharingEnabled}
                         onToggle={setSharingEnabled}
+                    />
+                    <ChannelSharedInvitationsPanel
+                        channelId={channel.id}
+                        refresh={shareChannelKey}
                     />
                 </>
             )}

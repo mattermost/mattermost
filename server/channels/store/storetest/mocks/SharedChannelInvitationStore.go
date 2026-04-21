@@ -128,6 +128,36 @@ func (_m *SharedChannelInvitationStore) GetAll(opts model.SharedChannelInvitatio
 	return r0, r1
 }
 
+// GetAllFromMaster provides a mock function with given fields: opts, offset, limit
+func (_m *SharedChannelInvitationStore) GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset int, limit int) ([]*model.SharedChannelInvitation, error) {
+	ret := _m.Called(opts, offset, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAllFromMaster")
+	}
+
+	var r0 []*model.SharedChannelInvitation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(model.SharedChannelInvitationFilterOpts, int, int) ([]*model.SharedChannelInvitation, error)); ok {
+		return rf(opts, offset, limit)
+	}
+	if rf, ok := ret.Get(0).(func(model.SharedChannelInvitationFilterOpts, int, int) []*model.SharedChannelInvitation); ok {
+		r0 = rf(opts, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.SharedChannelInvitation)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(model.SharedChannelInvitationFilterOpts, int, int) error); ok {
+		r1 = rf(opts, offset, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: invitation
 func (_m *SharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
 	ret := _m.Called(invitation)

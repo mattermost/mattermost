@@ -13189,6 +13189,27 @@ func (s *RetryLayerSharedChannelInvitationStore) GetAll(opts model.SharedChannel
 
 }
 
+func (s *RetryLayerSharedChannelInvitationStore) GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset int, limit int) ([]*model.SharedChannelInvitation, error) {
+
+	tries := 0
+	for {
+		result, err := s.SharedChannelInvitationStore.GetAllFromMaster(opts, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
 
 	tries := 0

@@ -67,6 +67,7 @@ type Params struct {
 	LogsPerPage                        int
 	Permanent                          bool
 	RemoteId                           string
+	SharedChannelInvitationId          string
 	SyncableId                         string
 	SyncableType                       model.GroupSyncableType
 	BotUserId                          string
@@ -185,6 +186,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.SchemeId = props["scheme_id"]
 	params.GroupId = props["group_id"]
 	params.RemoteId = props["remote_id"]
+	params.SharedChannelInvitationId = props["shared_channel_invitation_id"]
 	params.InvoiceId = props["invoice_id"]
 	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
 	params.ExcludeOffline, _ = strconv.ParseBool(query.Get("exclude_offline"))

@@ -97,6 +97,58 @@ describe('Client4', () => {
 
             expect(result).toEqual(payload);
         });
+
+        test('should default pagination to page 0 and per_page 60', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const remoteId = 'abcdefghijklmnopqrstuvwxyz';
+            const payload = [];
+
+            nock(client.getBaseRoute()).
+                get(`/remotecluster/${remoteId}/shared_channel_invitations${buildQueryString({page: 0, per_page: 60})}`).
+                reply(200, payload);
+
+            const result = await client.getSharedChannelInvitationsByRemote(remoteId);
+
+            expect(result).toEqual(payload);
+        });
+    });
+
+    describe('getSharedChannelInvitationsByChannel', () => {
+        test('should request the channel shared_channel_invitations route with pagination query', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const channelId = 'ch000000000000000000000000';
+            const payload: unknown[] = [];
+
+            nock(client.getBaseRoute()).
+                get(`/channels/${channelId}/shared_channel_invitations${buildQueryString({page: 0, per_page: 60})}`).
+                reply(200, payload);
+
+            const result = await client.getSharedChannelInvitationsByChannel(channelId);
+
+            expect(result).toEqual(payload);
+        });
+    });
+
+    describe('deleteSharedChannelInvitation', () => {
+        test('should DELETE the invitation resource under the remote cluster route', async () => {
+            const client = new Client4();
+            client.setUrl('http://mattermost.example.com');
+
+            const remoteId = 'abcdefghijklmnopqrstuvwxyz';
+            const invitationId = 'inv000000000000000000000000';
+
+            nock(client.getBaseRoute()).
+                delete(`/remotecluster/${remoteId}/shared_channel_invitations/${invitationId}`).
+                reply(200, {status: 'OK'});
+
+            const result = await client.deleteSharedChannelInvitation(remoteId, invitationId);
+
+            expect(result.status).toBe('OK');
+        });
     });
 });
 

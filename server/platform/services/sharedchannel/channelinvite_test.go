@@ -59,6 +59,8 @@ func registerSharedChannelInvitationStoreMocks(inv *mocks.SharedChannelInvitatio
 		Return(saveReturn, nil).
 		Run(func(args mock.Arguments) {
 			src := args.Get(0).(*model.SharedChannelInvitation)
+			// Mirror SqlSharedChannelInvitationStore.Save: PreSave mutates before persist.
+			src.PreSave()
 			*saveReturn = *src
 			if saveReturn.Id == "" {
 				saveReturn.Id = model.NewId()
@@ -66,7 +68,7 @@ func registerSharedChannelInvitationStoreMocks(inv *mocks.SharedChannelInvitatio
 			cp := *saveReturn
 			calls.saved = append(calls.saved, &cp)
 		})
-	inv.On("GetAll", mock.Anything, mock.Anything, mock.Anything).
+	inv.On("GetAllFromMaster", mock.Anything, mock.Anything, mock.Anything).
 		Return([]*model.SharedChannelInvitation{}, nil).Maybe()
 	inv.On("Delete", mock.AnythingOfType("string")).
 		Return(nil).
@@ -842,7 +844,7 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 			UpdateAt:  1,
 		}
 		invMock := mocks.NewSharedChannelInvitationStore(t)
-		invMock.On("GetAll", mock.MatchedBy(func(o model.SharedChannelInvitationFilterOpts) bool {
+		invMock.On("GetAllFromMaster", mock.MatchedBy(func(o model.SharedChannelInvitationFilterOpts) bool {
 			return o.ChannelId == channel.Id && o.RemoteId == rc.RemoteId &&
 				o.Direction == model.SharedChannelInvitationDirectionSent &&
 				o.Status == model.SharedChannelInvitationStatusPending

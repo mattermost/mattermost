@@ -2240,10 +2240,25 @@ export default class Client4 {
         );
     };
 
-    getSharedChannelInvitationsByRemote = (remoteId: string, page = 0, perPage = 500) => {
+    /** `perPage` defaults to 60, matching the REST API `per_page` default. Pass a larger value when more rows are needed in one request. */
+    getSharedChannelInvitationsByRemote = (remoteId: string, page = 0, perPage = 60) => {
         return this.doFetch<SharedChannelInvitation[]>(
             `${this.getRemoteClusterRoute(remoteId)}/shared_channel_invitations${buildQueryString({page, per_page: perPage})}`,
             {method: 'GET'},
+        );
+    };
+
+    getSharedChannelInvitationsByChannel = (channelId: string, page = 0, perPage = 60) => {
+        return this.doFetch<SharedChannelInvitation[]>(
+            `${this.getChannelRoute(channelId)}/shared_channel_invitations${buildQueryString({page, per_page: perPage})}`,
+            {method: 'GET'},
+        );
+    };
+
+    deleteSharedChannelInvitation = (remoteId: string, invitationId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRemoteClusterRoute(remoteId)}/shared_channel_invitations/${invitationId}`,
+            {method: 'DELETE'},
         );
     };
 

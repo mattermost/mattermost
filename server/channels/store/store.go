@@ -1056,6 +1056,7 @@ type SharedChannelInvitationStore interface {
 	Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error)
 	Get(id string) (*model.SharedChannelInvitation, error)
 	GetAll(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error)
+	GetAllFromMaster(opts model.SharedChannelInvitationFilterOpts, offset, limit int) ([]*model.SharedChannelInvitation, error)
 	UpdateStatus(id, status, errMsg string) (*model.SharedChannelInvitation, error)
 	Delete(id string) error
 	DeleteByChannelId(channelID string) error

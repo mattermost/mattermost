@@ -117,6 +117,14 @@ func testSharedChannelInvitationGetAll(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, err)
 	require.Len(t, onePage, 1)
 	require.Equal(t, invA1.Direction, onePage[0].Direction)
+
+	pendingFromMaster, err := ss.SharedChannelInvitation().GetAllFromMaster(model.SharedChannelInvitationFilterOpts{
+		RemoteId: remoteA,
+		Status:   model.SharedChannelInvitationStatusPending,
+	}, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, pendingFromMaster, 1)
+	require.Equal(t, pending[0].Id, pendingFromMaster[0].Id)
 }
 
 func testSharedChannelInvitationUpdateStatus(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -132,7 +140,7 @@ func testSharedChannelInvitationUpdateStatus(t *testing.T, rctx request.CTX, ss 
 	saved, err := ss.SharedChannelInvitation().Save(inv)
 	require.NoError(t, err)
 
-	longMsg := strings.Repeat("x", 400)
+	longMsg := strings.Repeat("é", 400)
 	updated, err := ss.SharedChannelInvitation().UpdateStatus(saved.Id, model.SharedChannelInvitationStatusFailed, longMsg)
 	require.NoError(t, err)
 	require.Equal(t, model.SharedChannelInvitationStatusFailed, updated.Status)
