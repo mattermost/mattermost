@@ -5,7 +5,10 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import FilterList from './filter_list';
+
 import './filter.scss';
 
 export type Filters = {
@@ -230,9 +233,11 @@ class Filter extends React.PureComponent<Props, State> {
                         {filters}
                     </div>
 
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-primary btn-sm Filter_apply'
+                        emphasis='primary'
+                        size='sm'
+                        className='Filter_apply'
                         disabled={!this.state.optionsModified}
                         onClick={this.onFilter}
                     >
@@ -240,7 +245,7 @@ class Filter extends React.PureComponent<Props, State> {
                             id='admin.filter.apply'
                             defaultMessage='Apply'
                         />
-                    </button>
+                    </Button>
                 </div>
             </div>
         );

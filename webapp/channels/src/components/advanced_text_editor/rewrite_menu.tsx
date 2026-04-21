@@ -426,8 +426,9 @@ export function RewriteSubMenuFooter({
 
     return (
         <div className='rewrite-menu-footer'>
-            <button
-                className='btn btn-tertiary btn-xs'
+            <Button
+                emphasis='tertiary'
+                size='xs'
                 type='button'
                 onClick={onUndoMessage}
             >
@@ -436,9 +437,10 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.discard'
                     defaultMessage='Discard'
                 />
-            </button>
-            <button
-                className='btn btn-quaternary btn-xs'
+            </Button>
+            <Button
+                emphasis='quaternary'
+                size='xs'
                 type='button'
                 onClick={onRegenerateMessage}
             >
@@ -447,7 +449,7 @@ export function RewriteSubMenuFooter({
                     id='texteditor.rewrite.regenerate'
                     defaultMessage='Regenerate'
                 />
-            </button>
+            </Button>
         </div>
     );
 }

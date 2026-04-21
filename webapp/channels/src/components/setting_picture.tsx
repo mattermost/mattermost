@@ -289,9 +289,10 @@ export default class SettingPicture extends Component<Props, State> {
                         aria-hidden={true}
                         tabIndex={-1}
                     />
-                    <button
+                    <Button
                         data-testid='inputSettingPictureButton'
-                        className='btn btn-primary btn-file'
+                        emphasis='primary'
+                        className='btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
                         aria-label={localizeMessage({id: 'setting_picture.select', defaultMessage: 'Select'})}
@@ -300,7 +301,7 @@ export default class SettingPicture extends Component<Props, State> {
                             id='setting_picture.select'
                             defaultMessage='Select'
                         />
-                    </button>
+                    </Button>
                     <button
                         tabIndex={disableSaveButtonFocus ? -1 : 0}
                         data-testid='saveSettingPicture'

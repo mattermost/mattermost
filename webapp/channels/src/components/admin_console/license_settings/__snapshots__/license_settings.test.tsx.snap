@@ -1118,7 +1118,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -1780,7 +1780,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -2428,7 +2428,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -3092,7 +3092,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -3740,7 +3740,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -4389,7 +4389,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -5035,7 +5035,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -8103,7 +8103,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>
@@ -8751,7 +8751,7 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
                       License details
                     </span>
                     <button
-                      class="btn btn-primary btn-sm add-seats-button "
+                      class="btn btn-primary btn-sm"
                     >
                       + Add seats
                     </button>

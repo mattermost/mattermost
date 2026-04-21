@@ -91,8 +91,9 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         } = this.props;
         return (
             <div className='purchase-card'>
-                <button
-                    className='btn btn-primary btn-lg'
+                <Button
+                    emphasis='primary'
+                    size='lg'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         this.contactSalesFunc();
@@ -102,7 +103,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
                         defaultMessage='Contact sales'
                     />
-                </button>
+                </Button>
                 <ExternalLink
                     location='feature_discovery'
                     className='btn btn-tertiary btn-lg'

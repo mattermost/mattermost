@@ -93,16 +93,18 @@ const EnterpriseEditionLeftPanel = ({
     const isEntrySku = unsanitizedLicense.SkuShortName === LicenseSkus.Entry;
 
     const viewPlansButton = isAirGapped ? null : (
-        <button
+        <Button
             id='enterprise_edition_view_plans'
             onClick={openPricingModal}
-            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
+            emphasis='tertiary'
+            size='sm'
+            className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     // For Entry SKU, render a simplified panel
@@ -218,15 +220,16 @@ const EnterpriseEditionLeftPanel = ({
             <div className='licenseInformation'>
                 <div className='licenseInformation__Header'>
                     <span className='licenseInformation__Title'>{'License details'}</span>
-                    <button
-                        className='btn btn-primary btn-sm add-seats-button '
+                    <Button
+                        emphasis='primary'
+                        size='sm'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
                             id={'admin.license.enterpriseEdition.add.seats'}
                             defaultMessage='+ Add seats'
                         />
-                    </button>
+                    </Button>
                 </div>
                 {
                     renderLicenseContent(
@@ -488,16 +491,16 @@ const renderRemoveButton = (
     return (
         <>
             <div className='remove-button'>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-danger'
+                    variant='destructive'
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'
                     data-testid='remove-button'
                 >
                     {removeButtonText}
-                </button>
+                </Button>
             </div>
         </>
     );

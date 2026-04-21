@@ -5,6 +5,7 @@ import React, {useEffect, useState, memo, useCallback} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Audit} from '@mattermost/types/audits';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -68,14 +69,15 @@ const Audits = ({
                         defaultMessage='User Activity Logs'
                     />
                 </h4>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-tertiary pull-right'
+                    emphasis='tertiary'
+                    className='pull-right'
                     onClick={reload}
                 >
                     <ReloadIcon/>
                     <FormattedMessage {...messages.reload}/>
-                </button>
+                </Button>
             </div>
         );
     };

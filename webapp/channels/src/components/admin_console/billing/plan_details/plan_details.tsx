@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import Tag from 'components/widgets/tag/tag';
 
@@ -132,15 +134,16 @@ export const PlanDetailsTopElements = ({
     };
 
     const viewPlansButton = isAirGapped ? null : (
-        <button
+        <Button
             onClick={openPricingModal}
-            className='btn btn-secondary PlanDetails__viewPlansButton'
+            emphasis='secondary'
+            className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     return (

@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -101,17 +102,18 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                         teamId={this.props.currentTeam?.id}
                         permissions={[Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST]}
                     >
-                        <button
+                        <Button
                             id='invitePeople'
                             type='button'
-                            className='btn btn-primary btn-sm invite-people-btn'
+                            emphasis='primary'
+                            size='sm'
                             onClick={this.handleInvitePeople}
                         >
                             <FormattedMessage
                                 id='team_member_modal.invitePeople'
                                 defaultMessage='Invite People'
                             />
-                        </button>
+                        </Button>
                     </TeamPermissionGate>
                 }
                 enforceFocus={false}
