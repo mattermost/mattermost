@@ -32,12 +32,12 @@ type SupportPacketDiagnostics struct {
 		TotalMemoryMB    uint64    `yaml:"total_memory_mb"`
 		Hostname         string    `yaml:"hostname"`
 		ProcessID        int       `yaml:"process_id"`
+		StartedAt        time.Time `yaml:"started_at"`
+		HostStartedAt    time.Time `yaml:"host_started_at,omitempty"`
 		Version          string    `yaml:"version"`
 		BuildHash        string    `yaml:"build_hash"`
 		GoVersion        string    `yaml:"go_version"`
 		InstallationType string    `yaml:"installation_type"`
-		StartedAt        time.Time `yaml:"started_at"`
-		HostStartedAt    time.Time `yaml:"host_started_at,omitempty"`
 	} `yaml:"server"`
 
 	Config struct {
