@@ -50,6 +50,16 @@ on:
         required: false
         type: number
         default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
+      race-enabled:
+        description: "Run tests with Go race detector (-race)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write
@@ -58,7 +68,7 @@ permissions:
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ${{ inputs.runner }}
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
@@ -175,7 +185,7 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
+          if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
             export RACE_MODE="-race"
           fi
 

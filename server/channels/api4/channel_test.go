@@ -5141,7 +5141,6 @@ func TestAddChannelMembers(t *testing.T) {
 
 func TestAddChannelMemberFromThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	t.Skip("MM-41285")
 	th := Setup(t).InitBasic(t)
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -5191,12 +5190,11 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 	_, _, err = th.SystemAdminClient.AddChannelMemberWithRootId(context.Background(), publicChannel.Id, user.Id, rpost.Id)
 	require.NoError(t, err)
 
-	// Threadmembership should exist for added user
-	ut, _, err := th.Client.GetUserThread(context.Background(), user.Id, team.Id, rpost.Id, false)
-	require.NoError(t, err)
-	// Should have two mentions. There might be a race condition
-	// here between the "added user to the channel" message and the GetUserThread call
-	require.LessOrEqual(t, int64(2), ut.UnreadMentions)
+	// Thread membership and mention counts may take a moment to propagate (MM-41285).
+	require.Eventually(t, func() bool {
+		ut, _, getErr := th.Client.GetUserThread(context.Background(), user.Id, team.Id, rpost.Id, false)
+		return getErr == nil && ut.UnreadMentions >= 2
+	}, 10*time.Second, 200*time.Millisecond, "expected at least 2 unread mentions in thread")
 
 	var caught bool
 	func() {
@@ -5215,7 +5213,7 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 					require.EqualValues(t, float64(0), data["previous_unread_replies"])
 					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
 				}
-			case <-time.After(2 * time.Second):
+			case <-time.After(15 * time.Second):
 				return
 			}
 		}
