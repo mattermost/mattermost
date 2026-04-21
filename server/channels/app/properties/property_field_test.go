@@ -750,6 +750,83 @@ func TestUpdatePropertyField(t *testing.T) {
 		assert.Contains(t, appErr.DetailedError, "system-level")
 	})
 
+	t.Run("updating TargetType that creates conflict should fail", func(t *testing.T) {
+		groupID := model.NewId()
+		team := th.CreateTeam(t)
+		channel1 := th.CreateChannel(t, team.Id)
+		channel2 := th.CreateChannel(t, team.Id)
+
+		// Create two channel-level properties with the same name in different channels
+		// (no conflict since channel-level properties in different channels don't conflict)
+		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channel1.Id,
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SharedName",
+		})
+
+		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channel2.Id,
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SharedName",
+		})
+
+		// Try to update channel2's property to system-level - should conflict with channel1's property
+		channel2Field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		channel2Field.TargetID = ""
+
+		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		require.Error(t, err)
+		assert.Nil(t, result)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "channel-level")
+	})
+
+	t.Run("updating TargetID that creates conflict should fail", func(t *testing.T) {
+		groupID := model.NewId()
+		team := th.CreateTeam(t)
+		channel1 := th.CreateChannel(t, team.Id)
+		channel2 := th.CreateChannel(t, team.Id)
+
+		// Create two channel-level properties with the same name in different channels
+		// (no conflict since channel-level properties in different channels don't conflict)
+		th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channel1.Id,
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SharedName",
+		})
+
+		channel2Field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			ObjectType: "channel",
+			GroupID:    groupID,
+			TargetType: string(model.PropertyFieldTargetLevelChannel),
+			TargetID:   channel2.Id,
+			Type:       model.PropertyFieldTypeText,
+			Name:       "SharedName",
+		})
+
+		// Update channel2's property TargetID to channel1 - should conflict
+		// because channel1 already has a property with the same name.
+		// Note: This conflict is caught by the database unique constraint, not the
+		// hierarchical conflict check (which only checks cross-level conflicts).
+		// We only verify an error occurs without checking the specific error type.
+		channel2Field.TargetID = channel1.Id
+
+		result, err := th.service.UpdatePropertyField(rctx, groupID, channel2Field)
+		require.Error(t, err)
+		assert.Nil(t, result)
+	})
+
 	t.Run("legacy property updates should skip conflict check", func(t *testing.T) {
 		groupID := model.NewId()
 
