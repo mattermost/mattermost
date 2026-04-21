@@ -4,8 +4,10 @@
 import React from 'react';
 import type {InputActionMeta} from 'react-select';
 
+import {Client4} from 'mattermost-redux/client';
+
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, waitFor, screen} from 'tests/react_testing_utils';
 
 import {UsersEmailsInput} from './users_emails_input';
 
@@ -103,6 +105,10 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
     });
 
     describe('delimiter handling on paste', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         it('should split pasted values on spaces', async () => {
             const ref = React.createRef<UsersEmailsInput>();
             renderWithContext(
@@ -148,6 +154,25 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             expect(count).toBe(2);
             expect(baseProps.onChange).toHaveBeenCalled();
+        });
+
+        it('should paste plain text from the clipboard (text/plain) into the field (MM-66082)', async () => {
+            jest.spyOn(Client4, 'getUserByEmail').mockRejectedValue(new Error('not found'));
+
+            const user = userEvent.setup();
+            renderWithContext(
+                <UsersEmailsInput
+                    {...baseProps}
+                />,
+            );
+
+            const input = screen.getByRole('combobox');
+            await user.click(input);
+            await user.paste('pasted-user@example.com');
+
+            await waitFor(() => {
+                expect(baseProps.onChange).toHaveBeenCalledWith(['pasted-user@example.com']);
+            });
         });
     });
 });

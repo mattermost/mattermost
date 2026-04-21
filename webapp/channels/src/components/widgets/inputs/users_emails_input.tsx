@@ -219,9 +219,14 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
 
     Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
+            // Use the standard MIME type first; 'Text' is legacy (IE) and often returns
+            // nothing in modern browsers, which would block the default paste and paste nothing (MM-66082).
+            const clipboardText = e.clipboardData?.getData('text/plain') || e.clipboardData?.getData('Text') || '';
+            if (!clipboardText.trim()) {
+                return;
+            }
             e.preventDefault();
-            const clipboardText = e.clipboardData?.getData('Text') || '';
-            this.appendDelimitedValues(clipboardText);
+            void this.appendDelimitedValues(clipboardText);
 
             if (this.props.onPaste) {
                 this.props.onPaste(e);
