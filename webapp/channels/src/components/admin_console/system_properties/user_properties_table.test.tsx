@@ -214,6 +214,7 @@ describe('UserPropertiesTable', () => {
         await waitFor(() => {
             expect(screen.getByText(/Identifier must start with a letter or underscore/)).toBeInTheDocument();
         });
+        expect(screen.getByTestId('property-field-validation-error')).toBeInTheDocument();
     });
 
     it('editing display_name of a legacy invalid-named field does not fire CEL warning', async () => {

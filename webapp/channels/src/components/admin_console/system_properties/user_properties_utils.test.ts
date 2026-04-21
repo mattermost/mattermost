@@ -404,6 +404,35 @@ describe('useUserPropertyFields', () => {
         }));
     });
 
+    it('should preserve required warning precedence when multiple names are empty', async () => {
+        const {result, rerender} = renderHookWithContext(() => {
+            return useUserPropertyFields();
+        }, getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [fields,,, ops] = result.current;
+            ops.update({...fields.data[field0.id], name: ''});
+            ops.update({...fields.data[field1.id], name: ''});
+        });
+        rerender();
+
+        const [fields] = result.current;
+        expect(fields.warnings).toEqual(expect.objectContaining({
+            [field0.id]: {name: ValidationWarningNameRequired},
+            [field1.id]: {name: ValidationWarningNameRequired},
+        }));
+    });
+
     it('should flag CEL invalid name on new field', async () => {
         const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
 

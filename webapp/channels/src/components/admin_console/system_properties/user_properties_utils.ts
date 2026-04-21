@@ -163,6 +163,7 @@ export const useUserPropertyFields = () => {
                 } else {
                     // name not provided
                     acc[field.id] = {name: ValidationWarningNameRequired};
+                    return acc;
                 }
 
                 if (pendingByName[field.name.toLowerCase()]?.filter((x) => x.delete_at === 0)?.length > 1) {

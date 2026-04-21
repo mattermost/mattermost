@@ -158,11 +158,12 @@ export function UserPropertiesTable({
                         );
                     } else if (warningId === ValidationWarningNameInvalidCEL) {
                         warning = (
-                            <FormattedMessage
-                                tagName={DangerText}
-                                id='admin.system_properties.user_properties.table.validation.name_invalid_cel'
-                                defaultMessage='Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.'
-                            />
+                            <DangerText data-testid='property-field-validation-error'>
+                                <FormattedMessage
+                                    id='admin.system_properties.user_properties.table.validation.name_invalid_cel'
+                                    defaultMessage='Identifier must start with a letter or underscore and contain only letters, numbers, and underscores. Reserved CEL words are not allowed.'
+                                />
+                            </DangerText>
                         );
                     }
 
