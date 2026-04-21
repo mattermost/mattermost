@@ -30,10 +30,6 @@ import dragster from 'utils/dragster';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {hasPlainText, createFileFromClipboardDataItem} from 'utils/paste';
 import {
-    isIosChrome,
-    isMobileApp,
-} from 'utils/user_agent';
-import {
     clearFileInput,
     generateId,
     isFileTransfer,
@@ -605,17 +601,6 @@ export class FileUpload extends PureComponent<Props, State> {
 
     render() {
         const {formatMessage} = this.props.intl;
-        let multiple = true;
-        if (isMobileApp()) {
-            // iOS WebViews don't upload videos properly in multiple mode
-            multiple = false;
-        }
-
-        let accept = '';
-        if (isIosChrome()) {
-            // iOS Chrome can't upload videos at all
-            accept = 'image/*';
-        }
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
 
@@ -660,8 +645,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         type='file'
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
-                        multiple={multiple}
-                        accept={accept}
+                        multiple={true}
                     />
                 </div>
             );
@@ -696,8 +680,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         className='file-attachment-menu-item-input'
                         onChange={this.handleChange}
                         onClick={this.handleLocalFileUploaded}
-                        multiple={multiple}
-                        accept={accept}
+                        multiple={true}
                     />
                     <MenuWrapper>
                         <WithTooltip
