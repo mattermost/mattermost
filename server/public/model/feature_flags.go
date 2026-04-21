@@ -104,6 +104,11 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// Send a lightweight reload signal to HA peers instead of the full config
+	// payload when saving config to a DB-backed store. Eliminates UDP MTU
+	// failures on large configs (>65 KB).
+	HAConfigReloadSignal bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -152,6 +157,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.HAConfigReloadSignal = true
 }
 
 // ToMap returns the feature flags as a map[string]string
