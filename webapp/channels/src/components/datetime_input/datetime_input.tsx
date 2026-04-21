@@ -229,7 +229,7 @@ type Props = {
     relativeDate?: boolean;
     timePickerInterval?: number;
     allowPastDates?: boolean;
-    allowManualTimeEntry?: boolean;
+    manualTimeEntry?: boolean;
     minDateTime?: Moment;
     maxDateTime?: Moment;
 }
@@ -242,7 +242,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     relativeDate,
     timePickerInterval,
     allowPastDates = false,
-    allowManualTimeEntry = false,
+    manualTimeEntry = false,
     minDateTime,
     maxDateTime,
 }: Props) => {
@@ -310,7 +310,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     // Uses default 30-minute interval if not specified
     // Skip for manual entry fields (user types exact minutes)
     useEffect(() => {
-        if (time && !allowManualTimeEntry) {
+        if (time && !manualTimeEntry) {
             const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
             const rounded = getRoundedTime(time, interval);
 
@@ -319,7 +319,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 handleChange(rounded);
             }
         }
-    }, [time, timePickerInterval, handleChange, allowManualTimeEntry]);
+    }, [time, timePickerInterval, handleChange, manualTimeEntry]);
 
     const setTimeAndOptions = () => {
         // Use displayTime if available, otherwise use currentTime for generating dropdown
@@ -358,7 +358,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
 
             // For manual entry, use exact time (no rounding)
             // For dropdown, use rounded time
-            effectiveTime = allowManualTimeEntry ?
+            effectiveTime = manualTimeEntry ?
                 nowInTimezone :
                 getRoundedTime(nowInTimezone, timePickerInterval || 60);
         }
@@ -478,7 +478,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 className='dateTime__time'
                 ref={timeContainerRef}
             >
-                {allowManualTimeEntry ? (
+                {manualTimeEntry ? (
                     <TimeInputManual
                         time={displayTime}
                         timezone={timezone}

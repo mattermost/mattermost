@@ -52,7 +52,12 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     // Resolve datetime config (datetime_config takes precedence over deprecated top-level fields)
     const locationTimezone = field.datetime_config?.location_timezone;
     const timePickerInterval = field.datetime_config?.time_interval ?? field.time_interval ?? DEFAULT_TIME_INTERVAL_MINUTES;
-    const allowManualTimeEntry = field.datetime_config?.allow_manual_time_entry ?? false;
+
+    // manual_time_entry supersedes the deprecated allow_manual_time_entry. Either enabling
+    // it turns it on (booleans can't distinguish explicit-false from not-set across the wire).
+    // The OR covers direct Apps Framework bindings that may still carry the deprecated key;
+    // dialog-sourced AppFields are pre-normalized by dialog_conversion and only carry manual_time_entry.
+    const manualTimeEntry = Boolean(field.datetime_config?.manual_time_entry) || Boolean(field.datetime_config?.allow_manual_time_entry);
 
     // Use location_timezone if specified, otherwise fall back to user's timezone
     const timezone = locationTimezone || userTimezone;
@@ -120,7 +125,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 relativeDate={!locationTimezone}
                 timePickerInterval={timePickerInterval}
                 allowPastDates={allowPastDates}
-                allowManualTimeEntry={allowManualTimeEntry}
+                manualTimeEntry={manualTimeEntry}
                 setIsInteracting={setIsInteracting}
                 minDateTime={minDateTime}
                 maxDateTime={maxDateTime}

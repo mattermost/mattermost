@@ -9,6 +9,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"math/big"
 	"strings"
@@ -1619,5 +1620,59 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.Equal(t, "2025-01-01T00:00:00Z", cfg.MinDate)
 		assert.Equal(t, "2025-12-31T23:59:59Z", cfg.MaxDate)
 		assert.Equal(t, 30, cfg.TimeInterval)
+	})
+
+	t.Run("ManualTimeEntry resolves via OR across new and deprecated fields", func(t *testing.T) {
+		cases := []struct {
+			name     string
+			newField bool
+			oldField bool
+			expected bool
+		}{
+			{"both false", false, false, false},
+			{"only new true", true, false, true},
+			{"only deprecated true", false, true, true},
+			{"both true", true, true, true},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				element := DialogElement{
+					DisplayName: "Test DateTime",
+					Name:        "test_datetime",
+					Type:        "datetime",
+					DateTimeConfig: &DialogDateTimeConfig{
+						ManualTimeEntry:      tc.newField,
+						AllowManualTimeEntry: tc.oldField,
+					},
+				}
+				cfg := element.EffectiveDateTimeConfig()
+				assert.Equal(t, tc.expected, cfg.ManualTimeEntry)
+			})
+		}
+	})
+
+	t.Run("ManualTimeEntry marshals under manual_time_entry JSON key", func(t *testing.T) {
+		cfg := DialogDateTimeConfig{ManualTimeEntry: true}
+		b, err := json.Marshal(cfg)
+		require.NoError(t, err)
+		assert.Contains(t, string(b), `"manual_time_entry":true`)
+	})
+
+	t.Run("deprecated allow_manual_time_entry payload still enables manual entry end-to-end", func(t *testing.T) {
+		// Simulate a legacy integrator sending only the deprecated field.
+		payload := []byte(`{"allow_manual_time_entry":true}`)
+		var cfg DialogDateTimeConfig
+		require.NoError(t, json.Unmarshal(payload, &cfg))
+		require.False(t, cfg.ManualTimeEntry, "new field should remain zero-value after unmarshal")
+		require.True(t, cfg.AllowManualTimeEntry, "deprecated field should unmarshal under its legacy tag")
+
+		element := DialogElement{
+			DisplayName:    "Test",
+			Name:           "t",
+			Type:           "datetime",
+			DateTimeConfig: &cfg,
+		}
+		effective := element.EffectiveDateTimeConfig()
+		assert.True(t, effective.ManualTimeEntry, "deprecated field alone should enable manual entry after EffectiveDateTimeConfig")
 	})
 }

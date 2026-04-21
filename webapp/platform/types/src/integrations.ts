@@ -203,6 +203,9 @@ export type DialogElement = {
         max_date?: string;
         time_interval?: number;
         location_timezone?: string;
+        manual_time_entry?: boolean;
+
+        /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
         allow_manual_time_entry?: boolean;
     };
 

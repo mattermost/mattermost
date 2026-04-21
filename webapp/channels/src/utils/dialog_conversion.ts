@@ -466,8 +466,12 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.datetime_config?.location_timezone) {
             mergedConfig.location_timezone = element.datetime_config.location_timezone;
         }
-        if (element.datetime_config?.allow_manual_time_entry !== undefined) {
-            mergedConfig.allow_manual_time_entry = element.datetime_config.allow_manual_time_entry;
+
+        // manual_time_entry supersedes the deprecated allow_manual_time_entry. OR-merge
+        // the two sources into a single normalized key so downstream consumers don't
+        // need to repeat the precedence logic.
+        if (element.datetime_config?.manual_time_entry || element.datetime_config?.allow_manual_time_entry) {
+            mergedConfig.manual_time_entry = true;
         }
         if (minDate !== undefined) {
             mergedConfig.min_date = String(minDate);

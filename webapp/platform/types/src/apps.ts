@@ -443,7 +443,10 @@ export type DateTimeConfig = {
     max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
-    allow_manual_time_entry?: boolean; // Allow text entry for time
+    manual_time_entry?: boolean; // Allow text entry for time
+
+    /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
+    allow_manual_time_entry?: boolean;
 };
 
 // This should go in mattermost-redux
@@ -599,6 +602,12 @@ function isAppField(v: unknown): v is AppField {
             }
         }
         if (field.datetime_config.time_interval !== undefined && typeof field.datetime_config.time_interval !== 'number') {
+            return false;
+        }
+        if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
+            return false;
+        }
+        if (field.datetime_config.allow_manual_time_entry !== undefined && typeof field.datetime_config.allow_manual_time_entry !== 'boolean') {
             return false;
         }
     }

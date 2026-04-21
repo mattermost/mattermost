@@ -16,9 +16,12 @@ jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
 
 jest.mock('components/datetime_input/datetime_input', () => ({
     __esModule: true,
-    default: function MockDateTimeInput({time, handleChange}: {time: any; handleChange: any}) {
+    default: function MockDateTimeInput({time, handleChange, manualTimeEntry}: {time: any; handleChange: any; manualTimeEntry?: boolean}) {
         return (
-            <div data-testid='datetime-input'>
+            <div
+                data-testid='datetime-input'
+                data-manual-time-entry={String(Boolean(manualTimeEntry))}
+            >
                 <button onClick={() => handleChange(time)}>
                     {time ? time.format('MMM D, YYYY h:mm A') : 'Select datetime'}
                 </button>
@@ -200,6 +203,31 @@ describe('AppsFormDateTimeField', () => {
 
             // DateTimeInput should receive allowPastDates=true
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
+        });
+    });
+
+    describe('manualTimeEntry resolution (OR precedence)', () => {
+        it('is false when neither field is set', () => {
+            renderComponent();
+            expect(screen.getByTestId('datetime-input')).toHaveAttribute('data-manual-time-entry', 'false');
+        });
+
+        it('is true when only the new manual_time_entry is set', () => {
+            const field = {...defaultField, datetime_config: {manual_time_entry: true}};
+            renderComponent({field});
+            expect(screen.getByTestId('datetime-input')).toHaveAttribute('data-manual-time-entry', 'true');
+        });
+
+        it('is true when only the deprecated allow_manual_time_entry is set', () => {
+            const field = {...defaultField, datetime_config: {allow_manual_time_entry: true}};
+            renderComponent({field});
+            expect(screen.getByTestId('datetime-input')).toHaveAttribute('data-manual-time-entry', 'true');
+        });
+
+        it('is true when either field is true (OR semantics)', () => {
+            const field = {...defaultField, datetime_config: {manual_time_entry: false, allow_manual_time_entry: true}};
+            renderComponent({field});
+            expect(screen.getByTestId('datetime-input')).toHaveAttribute('data-manual-time-entry', 'true');
         });
     });
 });

@@ -348,7 +348,10 @@ type DialogDateTimeConfig struct {
 	TimeInterval int `json:"time_interval,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
-	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	// ManualTimeEntry: Allow manual text entry for time instead of dropdown
+	ManualTimeEntry bool `json:"manual_time_entry,omitempty"`
+	// Deprecated: Use ManualTimeEntry instead. Kept for backward compatibility;
+	// when both are provided, either field being true enables manual time entry.
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
@@ -402,7 +405,10 @@ func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
 			cfg.TimeInterval = e.DateTimeConfig.TimeInterval
 		}
 		cfg.LocationTimezone = e.DateTimeConfig.LocationTimezone
-		cfg.AllowManualTimeEntry = e.DateTimeConfig.AllowManualTimeEntry
+		// ManualTimeEntry is OR'd with the deprecated AllowManualTimeEntry. Booleans can't
+		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
+		// so either field being true must enable the feature during the deprecation window.
+		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
 	}
 	return cfg
 }

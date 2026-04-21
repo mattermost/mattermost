@@ -132,6 +132,61 @@ describe('isAppBinding — isAppField datetime_config validation', () => {
         });
     });
 
+    describe('datetime_config.manual_time_entry', () => {
+        test('accepts boolean true', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {manual_time_entry: true},
+            });
+            expect(isAppBinding(binding)).toBe(true);
+        });
+
+        test('accepts boolean false', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {manual_time_entry: false},
+            });
+            expect(isAppBinding(binding)).toBe(true);
+        });
+
+        test('rejects non-boolean value', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {manual_time_entry: 'true'},
+            });
+            expect(isAppBinding(binding)).toBe(false);
+        });
+    });
+
+    describe('datetime_config.allow_manual_time_entry (deprecated)', () => {
+        test('accepts boolean', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {allow_manual_time_entry: true},
+            });
+            expect(isAppBinding(binding)).toBe(true);
+        });
+
+        test('rejects non-boolean value', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {allow_manual_time_entry: 1},
+            });
+            expect(isAppBinding(binding)).toBe(false);
+        });
+
+        test('accepts both new and deprecated fields set simultaneously', () => {
+            const binding = bindingWithField({
+                ...baseField,
+                datetime_config: {
+                    manual_time_entry: true,
+                    allow_manual_time_entry: false,
+                },
+            });
+            expect(isAppBinding(binding)).toBe(true);
+        });
+    });
+
     describe('datetime_config shape', () => {
         test('accepts empty object', () => {
             const binding = bindingWithField({

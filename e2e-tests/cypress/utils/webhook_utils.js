@@ -540,7 +540,7 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
                 type: 'datetime',
                 help_text: 'Type any time: 9am, 14:30, 3:45pm - no rounding',
                 datetime_config: {
-                    allow_manual_time_entry: true,
+                    manual_time_entry: true,
                 },
                 optional: true,
             },
@@ -562,7 +562,7 @@ function getTimezoneManualDialog(triggerId, webhookBaseUrl) {
                 help_text: 'Type time in GMT: 9am, 14:30, 3:45pm - no rounding',
                 datetime_config: {
                     location_timezone: 'Europe/London',
-                    allow_manual_time_entry: true,
+                    manual_time_entry: true,
                 },
                 optional: true,
             },

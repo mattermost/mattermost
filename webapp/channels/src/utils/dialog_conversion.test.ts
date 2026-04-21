@@ -1774,6 +1774,90 @@ describe('dialog_conversion', () => {
                 expect(form.fields?.[0]?.datetime_config?.time_interval).toBe(30);
             });
 
+            it('normalizes deprecated allow_manual_time_entry into manual_time_entry', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            allow_manual_time_entry: true,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
+            it('preserves manual_time_entry when set directly', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            manual_time_entry: true,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBe(true);
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
+            it('omits manual_time_entry when neither source is true', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        datetime_config: {
+                            time_interval: 30,
+                        },
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]?.datetime_config?.manual_time_entry).toBeUndefined();
+                expect(form.fields?.[0]?.datetime_config?.allow_manual_time_entry).toBeUndefined();
+            });
+
             it('datetime_config should take precedence over legacy fields', () => {
                 const elements: DialogElement[] = [
                     {
