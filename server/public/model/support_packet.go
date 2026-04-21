@@ -33,6 +33,7 @@ type SupportPacketDiagnostics struct {
 		ProcessID        int    `yaml:"process_id"`
 		Version          string `yaml:"version"`
 		BuildHash        string `yaml:"build_hash"`
+		GoVersion        string `yaml:"go_version"`
 		InstallationType string `yaml:"installation_type"`
 	} `yaml:"server"`
 
