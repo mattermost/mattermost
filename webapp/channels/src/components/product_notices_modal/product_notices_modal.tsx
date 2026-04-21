@@ -192,7 +192,6 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
             return (
                 <ExternalLink
                     id='actionButton'
-                    className='GenericModal__button actionButton'
                     location='product_notices_modal'
                     href={presentNoticeInfo.actionParam || ''}
                 >

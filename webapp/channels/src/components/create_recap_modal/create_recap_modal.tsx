@@ -8,6 +8,7 @@ import {useHistory, useRouteMatch} from 'react-router-dom';
 
 import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
@@ -220,25 +221,25 @@ const CreateRecapModal = ({onExited}: Props) => {
             </div>
             <div className='create-recap-modal-footer-actions'>
                 {currentStep > 1 && (
-                    <button
+                    <Button
                         type='button'
-                        className='GenericModal__button btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
                     >
                         <ChevronLeftIcon size={16}/>
                         {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
-                    </button>
+                    </Button>
                 )}
-                <button
+                <Button
                     type='submit'
-                    className='GenericModal__button btn btn-primary'
+                    emphasis='primary'
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
                 >
                     {confirmButtonText}
                     {currentStep < 3 && <ChevronRightIcon size={16}/>}
-                </button>
+                </Button>
             </div>
         </div>
     );

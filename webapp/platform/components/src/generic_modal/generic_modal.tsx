@@ -216,7 +216,7 @@ export const GenericModal: React.FC<Props> = ({
             <button
                 autoFocus={autoFocusConfirmButton}
                 type='submit'
-                className={classNames('GenericModal__button btn btn-primary', buttonTypeClass, confirmButtonClassName, {
+                className={classNames('btn btn-primary', buttonTypeClass, confirmButtonClassName, {
                     disabled: isConfirmDisabled,
                 })}
                 onClick={handleConfirmCallback}
@@ -242,7 +242,7 @@ export const GenericModal: React.FC<Props> = ({
         cancelButtonElement = (
             <button
                 type='button'
-                className={classNames('GenericModal__button btn btn-tertiary', cancelButtonClassName)}
+                className={classNames('btn btn-tertiary', cancelButtonClassName)}
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
