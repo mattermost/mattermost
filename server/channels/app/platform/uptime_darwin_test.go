@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-//go:build !linux && !darwin
+//go:build darwin
 
 package platform
 
@@ -13,8 +13,9 @@ import (
 )
 
 func TestGetHostUptimeSeconds(t *testing.T) {
-	seconds, err := getHostUptimeSeconds()
-	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrHostUptimeUnsupportedPlatform)
-	assert.Equal(t, int64(0), seconds)
+	t.Run("returns a positive value from kern.boottime", func(t *testing.T) {
+		seconds, err := getHostUptimeSeconds()
+		require.NoError(t, err)
+		assert.Positive(t, seconds)
+	})
 }

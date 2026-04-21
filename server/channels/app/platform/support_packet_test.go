@@ -213,11 +213,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Positive(t, d.Server.TotalMemoryMB)
 		assert.Positive(t, d.Server.ProcessID)
 		assert.False(t, d.Server.StartedAt.IsZero())
-		if runtime.GOOS == "linux" {
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 			assert.False(t, d.Server.HostStartedAt.IsZero())
 			assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
 		} else {
-			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on non-Linux platforms")
+			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on unsupported platforms")
 		}
 
 		/* Config */
