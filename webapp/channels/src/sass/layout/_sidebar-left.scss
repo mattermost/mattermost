@@ -1132,6 +1132,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
             position: absolute;
             visibility: hidden;
         }
+
+        // Keep urgent mention badges visible on hover so the tooltip can be discovered
+        .badge.urgent {
+            position: relative;
+            visibility: visible;
+        }
     }
 
     .SidebarChannel > .active.SidebarLink,

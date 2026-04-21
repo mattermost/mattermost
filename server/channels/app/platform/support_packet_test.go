@@ -207,9 +207,11 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
+		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
+		assert.Positive(t, d.Server.ProcessID)
 		assert.False(t, d.Server.StartedAt.IsZero())
 		if runtime.GOOS == "linux" {
 			assert.False(t, d.Server.HostStartedAt.IsZero())

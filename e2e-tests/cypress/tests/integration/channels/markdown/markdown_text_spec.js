@@ -9,7 +9,7 @@
 
 // Group: @channels @markdown @not_cloud
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const testCases = [
     {name: 'Markdown - basic', fileKey: 'markdown_basic'},

@@ -109,6 +109,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
+	d.Server.GoVersion = runtime.Version()
 	installationType := ps.installTypeOverride
 	if installationType == "" {
 		installationType = os.Getenv(envVarInstallType)
@@ -117,6 +118,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.ProcessID = os.Getpid()
 	d.Server.StartedAt = ps.startTime.UTC()
 	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
 		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
