@@ -62,6 +62,9 @@ on:
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
+permissions:
+  contents: read
+
 jobs:
   generate-build-variables:
     runs-on: ubuntu-24.04
