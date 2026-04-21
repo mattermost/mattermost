@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -134,4 +135,61 @@ type PropertyValueSearch struct {
 type PropertyValuePatchItem struct {
 	FieldID string          `json:"field_id"`
 	Value   json.RawMessage `json:"value"`
+}
+
+// SanitizePropertyValue normalizes a raw property value's JSON:
+//   - a top-level JSON string has surrounding whitespace trimmed;
+//   - a top-level JSON array of strings has each element trimmed and empty
+//     entries dropped;
+//   - any other shape (numbers, booleans, objects, nested arrays) passes
+//     through unchanged.
+//
+// Returns the original bytes when no change is needed so callers can
+// compare by identity if they want to skip writes.
+func SanitizePropertyValue(raw json.RawMessage) json.RawMessage {
+	if len(raw) == 0 {
+		return raw
+	}
+
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		trimmed := strings.TrimSpace(s)
+		if trimmed == s {
+			return raw
+		}
+		out, err := json.Marshal(trimmed)
+		if err != nil {
+			return raw
+		}
+		return out
+	}
+
+	var arr []string
+	if err := json.Unmarshal(raw, &arr); err == nil {
+		filtered := make([]string, 0, len(arr))
+		changed := false
+		for _, v := range arr {
+			t := strings.TrimSpace(v)
+			if t != v {
+				changed = true
+			}
+			if t == "" {
+				if v != "" {
+					changed = true
+				}
+				continue
+			}
+			filtered = append(filtered, t)
+		}
+		if !changed && len(filtered) == len(arr) {
+			return raw
+		}
+		out, err := json.Marshal(filtered)
+		if err != nil {
+			return raw
+		}
+		return out
+	}
+
+	return raw
 }

@@ -213,3 +213,38 @@ func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
 		assert.Error(t, cursor.IsValid())
 	})
 }
+
+func TestSanitizePropertyValue(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"empty bytes", "", ""},
+		{"string trimmed", `"  hello  "`, `"hello"`},
+		{"string unchanged", `"hello"`, `"hello"`},
+		{"string all whitespace", `"   "`, `""`},
+		{"string already empty", `""`, `""`},
+		{"string array trimmed and filtered", `["  a  ", "", "  ", "b"]`, `["a","b"]`},
+		{"string array unchanged", `["a","b"]`, `["a","b"]`},
+		{"string array all empty", `["", "   ", ""]`, `[]`},
+		{"number passthrough", `42`, `42`},
+		{"boolean passthrough", `true`, `true`},
+		{"null passthrough", `null`, `null`},
+		{"object passthrough", `{"key":"  val  "}`, `{"key":"  val  "}`},
+		{"nested array passthrough", `[["a","b"]]`, `[["a","b"]]`},
+		{"mixed array passthrough", `["a",1]`, `["a",1]`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := SanitizePropertyValue(json.RawMessage(tc.in))
+			assert.Equal(t, tc.want, string(got))
+		})
+	}
+
+	t.Run("returns identity when no change", func(t *testing.T) {
+		raw := json.RawMessage(`"hello"`)
+		got := SanitizePropertyValue(raw)
+		assert.Equal(t, &raw[0], &got[0], "expected same backing array when unchanged")
+	})
+}
