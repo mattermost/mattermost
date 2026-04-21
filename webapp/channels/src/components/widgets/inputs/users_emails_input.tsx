@@ -226,7 +226,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 return;
             }
             e.preventDefault();
-            void this.appendDelimitedValues(clipboardText);
+            this.appendDelimitedValues(clipboardText).catch(() => undefined);
 
             if (this.props.onPaste) {
                 this.props.onPaste(e);
