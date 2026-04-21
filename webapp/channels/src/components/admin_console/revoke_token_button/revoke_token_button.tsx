@@ -4,6 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface RevokeTokenButtonProps {
@@ -28,16 +30,16 @@ const RevokeTokenButton = (props: RevokeTokenButtonProps) => {
     };
 
     return (
-        <button
+        <Button
             type='button'
-            className='btn btn-danger'
+            variant='destructive'
             onClick={handleClick}
         >
             <FormattedMessage
                 id='admin.revoke_token_button.delete'
                 defaultMessage='Delete'
             />
-        </button>
+        </Button>
     );
 };
 
