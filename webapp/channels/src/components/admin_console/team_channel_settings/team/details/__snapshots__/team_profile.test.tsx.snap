@@ -82,7 +82,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="btn ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+            class="btn btn-secondary btn-danger"
             type="button"
           >
             <i
@@ -179,7 +179,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile should match snaps
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="btn ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+            class="btn btn-secondary btn-danger"
             type="button"
           >
             <i
@@ -276,7 +276,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="btn ArchiveButton ArchiveButton___archived cloud-limits-disabled"
+            class="btn btn-secondary btn-danger"
             type="button"
           >
             <i
@@ -372,23 +372,18 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
         <div
           class="AdminChannelDetails_archiveContainer"
         >
-          <div
-            class="disabled-overlay-wrapper"
-          >
-            <button
-              class="btn btn-danger ArchiveButton ArchiveButton___archived cloud-limits-disabled"
-              disabled=""
-              style="pointer-events: none;"
-              type="button"
-            >
-              <i
-                class="icon icon-archive-arrow-up-outline"
-              />
-              Unarchive Team
-            </button>
-          </div>
           <button
-            class="btn btn-secondary upgrade-options-button"
+            class="btn btn-secondary btn-danger"
+            disabled=""
+            type="button"
+          >
+            <i
+              class="icon icon-archive-arrow-up-outline"
+            />
+            Unarchive Team
+          </button>
+          <button
+            class="btn btn-secondary"
             type="button"
           >
             View upgrade options
@@ -482,7 +477,7 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
           class="AdminChannelDetails_archiveContainer"
         >
           <button
-            class="btn ArchiveButton ArchiveButton___unarchived cloud-limits-disabled"
+            class="btn btn-secondary btn-danger"
             type="button"
           >
             <i
