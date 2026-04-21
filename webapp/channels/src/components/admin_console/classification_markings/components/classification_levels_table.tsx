@@ -8,6 +8,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 
+import LevelColorCell from './level_color_cell';
+import LevelNameCell from './level_name_cell';
+
 import {AdminConsoleListTable} from '../../list_table';
 import {
     ActionsCell,
@@ -20,8 +23,6 @@ import {
     TableWrapper,
 } from '../classification_markings_styled';
 import type {ClassificationLevel} from '../utils/presets';
-import LevelColorCell from './level_color_cell';
-import LevelNameCell from './level_name_cell';
 
 type ClassificationLevelsTableProps = {
     levels: ClassificationLevel[];
