@@ -78,17 +78,31 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Translate to PropertyField and route through the generic property API.
-	// Permission levels are enforced by the attribute validation hook for the
-	// protected_attributes group — no need to set them here.
+	// Every server-controlled field on the decoded payload is explicitly
+	// overwritten below so the no-mass-assignment invariant is local to this
+	// handler: scope is fixed for CPA, identity/audit fields are store-owned,
+	// and Protected plus all Permission* are enforced by the property hooks
+	// registered for the protected_attributes group.
 	field := pf.ToPropertyField()
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
+	field.ID = ""
 	field.GroupID = group.ID
 	field.ObjectType = model.PropertyFieldObjectTypeUser
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+	field.TargetID = ""
+	field.Protected = false
+	field.PermissionField = nil
+	field.PermissionValues = nil
+	field.PermissionOptions = nil
+	field.CreatedBy = ""
+	field.UpdatedBy = ""
+	field.CreateAt = 0
+	field.UpdateAt = 0
+	field.DeleteAt = 0
 
 	createdField := executeCreatePropertyField(c, r, field)
 	if c.Err != nil {
