@@ -9321,6 +9321,10 @@
     "translation": "Error occurred while marshalling JSON request"
   },
   {
+    "id": "ent.cluster.reload_config.error",
+    "translation": "Error occurred while reloading config from the database"
+  },
+  {
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
