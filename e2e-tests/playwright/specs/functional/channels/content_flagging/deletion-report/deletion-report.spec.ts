@@ -49,20 +49,22 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     const viewDetailButton = await channelsPage.getFlaggedPostViewDetailButton(post.id);
     await viewDetailButton.click();
 
+    await channelsPage.sidebarRight.toBeVisible();
+
     // Verify the summary table headers are present (rendered as markdown table)
     await channelsPage.sidebarRight.toContainText('Step');
     await channelsPage.sidebarRight.toContainText('Status');
     await channelsPage.sidebarRight.toContainText('Detail');
 
-    await channelsPage.sidebarRight.toContainText("Post's File Attachments from File System");
-    await channelsPage.sidebarRight.toContainText('FileInfo Rows');
-    await channelsPage.sidebarRight.toContainText('Edit Histories');
-    await channelsPage.sidebarRight.toContainText('Priority Data');
-    await channelsPage.sidebarRight.toContainText('Persistent Notifications');
+    await channelsPage.sidebarRight.toContainText("Post's file attachments from file system");
+    await channelsPage.sidebarRight.toContainText('FileInfo rows');
+    await channelsPage.sidebarRight.toContainText('Edit histories');
+    await channelsPage.sidebarRight.toContainText('Post priority data');
+    await channelsPage.sidebarRight.toContainText('Persistent notifications');
     await channelsPage.sidebarRight.toContainText('Acknowledgements');
     await channelsPage.sidebarRight.toContainText('Reminders');
-    await channelsPage.sidebarRight.toContainText('Thread & Associated Data');
-    await channelsPage.sidebarRight.toContainText('The Post Itself');
+    await channelsPage.sidebarRight.toContainText('Thread & associated data');
+    await channelsPage.sidebarRight.toContainText('The post itself');
 
     // Verify file attachment is present with the expected filename pattern
     const rhsLastPost = await channelsPage.sidebarRight.getLastPost();
