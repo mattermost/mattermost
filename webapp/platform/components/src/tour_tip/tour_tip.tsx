@@ -7,6 +7,8 @@ import React, {useRef} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {Placement} from 'tippy.js';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
 import type {Props as PunchOutCoordsHeightAndWidth} from '../common/hooks/useMeasurePunchouts';
@@ -157,22 +159,24 @@ export const TourTip = ({
                     <div className='tour-tip__dot-ctr'>{dots}</div>
                     <div className={'tour-tip__btn-ctr'}>
                         {step !== 0 && prevBtn && (
-                            <button
+                            <Button
                                 id='tipPreviousButton'
-                                className='btn btn-sm btn-tertiary'
+                                emphasis='tertiary'
+                                size='sm'
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
-                            </button>
+                            </Button>
                         )}
                         {nextBtn && (
-                            <button
+                            <Button
                                 id='tipNextButton'
-                                className='btn btn-sm btn-primary'
+                                emphasis='primary'
+                                size='sm'
                                 onClick={handleNext}
                             >
                                 {nextBtn}
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
