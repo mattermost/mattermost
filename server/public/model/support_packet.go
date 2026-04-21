@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"time"
 )
 
 const (
@@ -25,18 +26,20 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"license"`
 
 	Server struct {
-		OS                  string `yaml:"os"`
-		Architecture        string `yaml:"architecture"`
-		CPUCores            int    `yaml:"cpu_cores"`
-		TotalMemoryMB       uint64 `yaml:"total_memory_mb"`
-		OpenFileDescriptors int64  `yaml:"open_file_descriptors"`
-		MaxFileDescriptors  int64  `yaml:"max_file_descriptors"`
-		Hostname            string `yaml:"hostname"`
-		ProcessID           int    `yaml:"process_id"`
-		Version             string `yaml:"version"`
-		BuildHash           string `yaml:"build_hash"`
-		GoVersion           string `yaml:"go_version"`
-		InstallationType    string `yaml:"installation_type"`
+		OS                  string    `yaml:"os"`
+		Architecture        string    `yaml:"architecture"`
+		CPUCores            int       `yaml:"cpu_cores"`
+		TotalMemoryMB       uint64    `yaml:"total_memory_mb"`
+		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
+		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
+		Hostname            string    `yaml:"hostname"`
+		ProcessID           int       `yaml:"process_id"`
+		StartedAt           time.Time `yaml:"started_at"`
+		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
+		Version             string    `yaml:"version"`
+		BuildHash           string    `yaml:"build_hash"`
+		GoVersion           string    `yaml:"go_version"`
+		InstallationType    string    `yaml:"installation_type"`
 	} `yaml:"server"`
 
 	Config struct {

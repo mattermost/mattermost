@@ -120,6 +120,8 @@ type PlatformService struct {
 
 	pdpService einterfaces.PolicyDecisionPointInterface
 
+	startTime time.Time
+
 	// installTypeOverride overrides MM_INSTALL_TYPE in support packet diagnostics.
 	installTypeOverride string
 
@@ -150,6 +152,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Store:               sc.Store,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
+		startTime:           time.Now(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
