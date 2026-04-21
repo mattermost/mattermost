@@ -202,7 +202,7 @@ export const GenericModal: React.FC<Props> = ({
     // Build confirm button if provided.
     let confirmButtonElement;
     if (handleConfirm) {
-        const buttonTypeClass = isDeleteModal ? 'delete' : 'confirm';
+        const buttonTypeClass = isDeleteModal ? 'btn-danger' : '';
         let confirmButtonTextContent: React.ReactNode = (
             <FormattedMessage
                 id='generic_modal.confirm'
