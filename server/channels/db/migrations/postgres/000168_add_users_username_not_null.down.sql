@@ -1,0 +1,2 @@
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_username_not_empty;
+ALTER TABLE users ALTER COLUMN username DROP NOT NULL;
