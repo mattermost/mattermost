@@ -9,7 +9,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
  * fields that have not been backfilled yet.
  *
  * Use for ALL human-readable label rendering (visible text, aria-label,
- * title, section headings, delete-modal titles, etc.).
+ * title, section headings, etc.).
  *
  * Do NOT use for:
  *   - CEL expression construction  → use field.name

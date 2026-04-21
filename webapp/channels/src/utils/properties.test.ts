@@ -50,5 +50,16 @@ describe('utils/properties', () => {
                 attrs: undefined as any,
             })).toBe('dept_head');
         });
+
+        test('returns non-ASCII display_name verbatim', () => {
+            expect(getUserPropertyFieldLabel({
+                name: 'employee_number',
+                attrs: {sort_order: 0, visibility: 'always', value_type: '', display_name: '员工编号'},
+            })).toBe('员工编号');
+            expect(getUserPropertyFieldLabel({
+                name: 'preferences',
+                attrs: {sort_order: 0, visibility: 'always', value_type: '', display_name: 'Préférences'},
+            })).toBe('Préférences');
+        });
     });
 });
