@@ -88,7 +88,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           </div>
         </div>
         <button
-          class="btn btn-primary "
+          class="btn btn-primary"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"
@@ -252,7 +252,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           </div>
         </div>
         <button
-          class="btn btn-primary "
+          class="btn btn-primary"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"
@@ -416,7 +416,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           </div>
         </div>
         <button
-          class="btn btn-primary "
+          class="btn btn-primary"
           data-testid="saveSetting"
           id="saveItems"
           type="submit"

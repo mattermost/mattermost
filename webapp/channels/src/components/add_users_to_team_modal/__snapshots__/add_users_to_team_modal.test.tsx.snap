@@ -125,7 +125,7 @@ exports[`components/admin_console/add_users_to_team_modal/AddUsersToTeamModal sh
                     </div>
                   </div>
                   <button
-                    class="btn btn-primary "
+                    class="btn btn-primary"
                     data-testid="saveSetting"
                     id="saveItems"
                     type="submit"

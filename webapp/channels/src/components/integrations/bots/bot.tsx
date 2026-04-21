@@ -403,7 +403,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='mt-2'>
                                     <SaveButton
-                                        btnClass='btn-sm btn-primary'
+                                        emphasis='primary'
+                                        size='sm'
                                         savingMessage={
                                             <FormattedMessage
                                                 id='user.settings.tokens.save'
