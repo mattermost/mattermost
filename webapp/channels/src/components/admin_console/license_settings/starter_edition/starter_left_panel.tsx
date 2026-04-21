@@ -35,16 +35,18 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     const intl = useIntl();
 
     const viewPlansButton = isAirGapped ? null : (
-        <button
+        <Button
             id='starter_edition_view_plans'
             onClick={openPricingModal}
-            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
+            emphasis='tertiary'
+            size='sm'
+            className='PlanDetails__viewPlansButton'
         >
             {intl.formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     return (

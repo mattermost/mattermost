@@ -282,8 +282,10 @@ export default class LogList extends React.PureComponent<Props, State> {
         };
 
         const errorsButton: JSX.Element = (
-            <button
-                className='btn btn-tertiary btn-sm ml-2'
+            <Button
+                emphasis='tertiary'
+                size='sm'
+                className='ml-2'
                 onClick={this.showErrors}
             >
                 <FormattedMessage
@@ -291,7 +293,7 @@ export default class LogList extends React.PureComponent<Props, State> {
                     defaultMessage='Show last {n} errors'
                     values={{n: this.getErrorCount()}}
                 />
-            </button>
+            </Button>
         );
 
         const filterOptions: FilterOptions = {

@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Post} from '@mattermost/types/posts';
 
 import {selectPostFromRightHandSideSearch} from 'actions/views/rhs';
@@ -27,8 +28,9 @@ export default function DataSpillageFooter({post}: Props) {
             className='DataSpillageFooter'
             data-testid='data-spillage-footer'
         >
-            <button
-                className='btn btn-primary btn-sm'
+            <Button
+                emphasis='primary'
+                size='sm'
                 data-testid='data-spillage-action-view-details'
                 onClick={onClick}
             >
@@ -36,7 +38,7 @@ export default function DataSpillageFooter({post}: Props) {
                     id='data_spillage_report.view_details.button_text'
                     defaultMessage='View details'
                 />
-            </button>
+            </Button>
         </div>
     );
 }

@@ -6,7 +6,7 @@ exports[`components/admin_console/workspace-optimization/cta_buttons should matc
     class="ctaButtons"
   >
     <button
-      class="btn btn-primary btn-sm actionButton annnouncementBar__purchaseNow"
+      class="btn btn-primary btn-sm annnouncementBar__purchaseNow"
     >
       Action Text
     </button>

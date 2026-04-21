@@ -118,14 +118,15 @@ const Recaps = () => {
                         <p className='recaps-placeholder-description'>
                             {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
                         </p>
-                        <button
-                            className='btn btn-primary recaps-placeholder-button'
+                        <Button
+                            emphasis='primary'
+                            className='recaps-placeholder-button'
                             onClick={handleAddRecap}
                             disabled={!agentsBridgeEnabled.available}
                             title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
                         >
                             {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
-                        </button>
+                        </Button>
                     </div>
                 ) : (
                     <RecapsList recaps={displayedRecaps}/>
