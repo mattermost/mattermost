@@ -405,29 +405,33 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
                     nextButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.next'
                                 defaultMessage='Next'
                             />
-                        </button>
+                        </Button>
                     );
                 }
 
                 if (this.state.page > 0) {
                     previousButton = (
-                        <button
-                            className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                        <Button
+                            emphasis='tertiary'
+                            size='sm'
+                            className='filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
                                 id='filtered_user_list.prev'
                                 defaultMessage='Previous'
                             />
-                        </button>
+                        </Button>
                     );
                 }
             }

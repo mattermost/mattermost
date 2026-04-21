@@ -139,7 +139,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                       colspan="4"
                     >
                       <button
-                        class="btn btn-sm btn-tertiary"
+                        class="btn btn-tertiary btn-sm"
                         disabled=""
                       >
                         <i
@@ -170,7 +170,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   </p>
                 </div>
                 <button
-                  class="btn btn-sm btn-tertiary"
+                  class="btn btn-tertiary btn-sm"
                   disabled=""
                 >
                   <i
@@ -634,7 +634,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                       colspan="4"
                     >
                       <button
-                        class="btn btn-sm btn-tertiary"
+                        class="btn btn-tertiary btn-sm"
                         disabled=""
                       >
                         <i
@@ -665,7 +665,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                   </p>
                 </div>
                 <button
-                  class="btn btn-sm btn-tertiary"
+                  class="btn btn-tertiary btn-sm"
                   disabled=""
                 >
                   <i
