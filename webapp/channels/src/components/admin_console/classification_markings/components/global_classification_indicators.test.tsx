@@ -7,7 +7,7 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import GlobalClassificationIndicators from './global_classification_indicators';
 
-import type {GlobalBanner} from '../utils';
+import type {GlobalBannerConfig} from '../utils';
 
 const LEVELS = [
     {id: 'lvl-1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
@@ -15,14 +15,13 @@ const LEVELS = [
     {id: 'lvl-3', name: 'TOP SECRET', color: '#FF8C00', rank: 3},
 ];
 
-const DEFAULT_BANNER: GlobalBanner = {enabled: false, placement: 'top', level_id: ''};
-const ENABLED_BANNER: GlobalBanner = {enabled: true, placement: 'top', level_id: 'lvl-1'};
+const DEFAULT_BANNER: GlobalBannerConfig = {enabled: false, placement: 'top', level_id: ''};
+const ENABLED_BANNER: GlobalBannerConfig = {enabled: true, placement: 'top', level_id: 'lvl-1'};
 
 function makeProps(overrides: Record<string, unknown> = {}) {
     return {
         levels: LEVELS,
         globalBanner: DEFAULT_BANNER,
-        locked: false,
         onChange: jest.fn(),
         ...overrides,
     };
@@ -34,12 +33,6 @@ describe('GlobalClassificationIndicators', () => {
 
         expect(screen.getByText('Global Classification Indicators')).toBeInTheDocument();
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
-    });
-
-    test('renders the locked notice', () => {
-        renderWithContext(<GlobalClassificationIndicators {...makeProps()}/>);
-
-        expect(screen.getByText(/Global classification placement and level are locked/)).toBeInTheDocument();
     });
 
     test('renders the enable toggle', () => {
@@ -95,28 +88,12 @@ describe('GlobalClassificationIndicators', () => {
 
     test('calls onChange with placement top when Top only is clicked', () => {
         const onChange = jest.fn();
-        const banner: GlobalBanner = {...ENABLED_BANNER, placement: 'top_and_bottom'};
+        const banner: GlobalBannerConfig = {...ENABLED_BANNER, placement: 'top_and_bottom'};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner, onChange})}/>);
 
         fireEvent.click(screen.getByRole('radio', {name: /Top only/i}));
 
         expect(onChange).toHaveBeenCalledWith({placement: 'top'});
-    });
-
-    test('enable toggle remains editable when locked', () => {
-        renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: ENABLED_BANNER, locked: true})}/>);
-
-        const trueRadio = screen.getAllByRole('radio', {name: /True/i})[0] as HTMLInputElement;
-        expect(trueRadio.disabled).toBe(false);
-    });
-
-    test('placement controls are disabled when locked', () => {
-        renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: ENABLED_BANNER, locked: true})}/>);
-
-        const topOnlyRadio = screen.getByRole('radio', {name: /Top only/i}) as HTMLInputElement;
-        const topAndBottomRadio = screen.getByRole('radio', {name: /Top and bottom/i}) as HTMLInputElement;
-        expect(topOnlyRadio.disabled).toBe(true);
-        expect(topAndBottomRadio.disabled).toBe(true);
     });
 
     test('all controls are disabled when disabled prop is true', () => {
@@ -133,5 +110,31 @@ describe('GlobalClassificationIndicators', () => {
 
         expect(screen.getByText('Global Classification Indicators')).toBeInTheDocument();
         expect(screen.getByText('Global classification level')).toBeInTheDocument();
+    });
+
+    test('shows inline error when banner is enabled and the selected level no longer exists', () => {
+        const banner: GlobalBannerConfig = {enabled: true, placement: 'top', level_id: 'missing-id'};
+        renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
+
+        expect(
+            screen.getByText(/The previously selected level no longer exists\. Select a level from the current classification levels\./),
+        ).toBeInTheDocument();
+    });
+
+    test('does not show the missing-level error when the selected level still exists', () => {
+        renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: ENABLED_BANNER})}/>);
+
+        expect(
+            screen.queryByText(/The previously selected level no longer exists/),
+        ).not.toBeInTheDocument();
+    });
+
+    test('does not show the missing-level error when the banner is disabled', () => {
+        const banner: GlobalBannerConfig = {enabled: false, placement: 'top', level_id: 'missing-id'};
+        renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
+
+        expect(
+            screen.queryByText(/The previously selected level no longer exists/),
+        ).not.toBeInTheDocument();
     });
 });

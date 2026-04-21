@@ -3928,6 +3928,65 @@ func (s *AccessControlSettings) SetDefaults() {
 	}
 }
 
+const (
+	ClassificationMarkingsGlobalBannerPlacementTop          = "top"
+	ClassificationMarkingsGlobalBannerPlacementTopAndBottom = "top_and_bottom"
+	ClassificationMarkingsGlobalBannerPlacementDefault      = ClassificationMarkingsGlobalBannerPlacementTop
+)
+
+type ClassificationMarkingsGlobalBannerSettings struct {
+	Enabled   *bool
+	Placement *string
+	LevelID   *string
+}
+
+func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
+	if s.Enabled == nil {
+		s.Enabled = NewPointer(false)
+	}
+
+	if s.Placement == nil {
+		s.Placement = NewPointer(ClassificationMarkingsGlobalBannerPlacementDefault)
+	}
+
+	if s.LevelID == nil {
+		s.LevelID = NewPointer("")
+	}
+}
+
+func (s *ClassificationMarkingsGlobalBannerSettings) IsValid() *AppError {
+	if s.Placement != nil && *s.Placement != "" {
+		switch *s.Placement {
+		case ClassificationMarkingsGlobalBannerPlacementTop,
+			ClassificationMarkingsGlobalBannerPlacementTopAndBottom:
+		default:
+			return NewAppError("ClassificationMarkingsGlobalBannerSettings.IsValid", "model.config.is_valid.classification_markings.global_banner.placement.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+type ClassificationMarkingsSettings struct {
+	GlobalBanner *ClassificationMarkingsGlobalBannerSettings
+}
+
+func (s *ClassificationMarkingsSettings) SetDefaults() {
+	if s.GlobalBanner == nil {
+		s.GlobalBanner = &ClassificationMarkingsGlobalBannerSettings{}
+	}
+	s.GlobalBanner.SetDefaults()
+}
+
+func (s *ClassificationMarkingsSettings) IsValid() *AppError {
+	if s.GlobalBanner != nil {
+		if appErr := s.GlobalBanner.IsValid(); appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
 type ConfigFunc func() *Config
 
 const (
@@ -3976,52 +4035,53 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //	    Product bool `access:write_restrictable`
 //	}
 type Config struct {
-	ServiceSettings             ServiceSettings
-	TeamSettings                TeamSettings
-	ClientRequirements          ClientRequirements
-	SqlSettings                 SqlSettings
-	LogSettings                 LogSettings
-	ExperimentalAuditSettings   ExperimentalAuditSettings
-	PasswordSettings            PasswordSettings
-	FileSettings                FileSettings
-	EmailSettings               EmailSettings
-	RateLimitSettings           RateLimitSettings
-	PrivacySettings             PrivacySettings
-	SupportSettings             SupportSettings
-	AnnouncementSettings        AnnouncementSettings
-	ThemeSettings               ThemeSettings
-	GitLabSettings              SSOSettings
-	GoogleSettings              SSOSettings
-	Office365Settings           Office365Settings
-	OpenIdSettings              SSOSettings
-	LdapSettings                LdapSettings
-	ComplianceSettings          ComplianceSettings
-	LocalizationSettings        LocalizationSettings
-	SamlSettings                SamlSettings
-	NativeAppSettings           NativeAppSettings
-	IntuneSettings              IntuneSettings
-	CacheSettings               CacheSettings
-	ClusterSettings             ClusterSettings
-	MetricsSettings             MetricsSettings
-	ExperimentalSettings        ExperimentalSettings
-	AnalyticsSettings           AnalyticsSettings
-	ElasticsearchSettings       ElasticsearchSettings
-	DataRetentionSettings       DataRetentionSettings
-	MessageExportSettings       MessageExportSettings
-	JobSettings                 JobSettings
-	PluginSettings              PluginSettings
-	DisplaySettings             DisplaySettings
-	GuestAccountsSettings       GuestAccountsSettings
-	ImageProxySettings          ImageProxySettings
-	CloudSettings               CloudSettings  // telemetry: none
-	FeatureFlags                *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings              ImportSettings // telemetry: none
-	ExportSettings              ExportSettings
-	WranglerSettings            WranglerSettings
-	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
-	AccessControlSettings       AccessControlSettings
-	ContentFlaggingSettings     ContentFlaggingSettings
-	AutoTranslationSettings     AutoTranslationSettings
+	ServiceSettings                ServiceSettings
+	TeamSettings                   TeamSettings
+	ClientRequirements             ClientRequirements
+	SqlSettings                    SqlSettings
+	LogSettings                    LogSettings
+	ExperimentalAuditSettings      ExperimentalAuditSettings
+	PasswordSettings               PasswordSettings
+	FileSettings                   FileSettings
+	EmailSettings                  EmailSettings
+	RateLimitSettings              RateLimitSettings
+	PrivacySettings                PrivacySettings
+	SupportSettings                SupportSettings
+	AnnouncementSettings           AnnouncementSettings
+	ThemeSettings                  ThemeSettings
+	GitLabSettings                 SSOSettings
+	GoogleSettings                 SSOSettings
+	Office365Settings              Office365Settings
+	OpenIdSettings                 SSOSettings
+	LdapSettings                   LdapSettings
+	ComplianceSettings             ComplianceSettings
+	LocalizationSettings           LocalizationSettings
+	SamlSettings                   SamlSettings
+	NativeAppSettings              NativeAppSettings
+	IntuneSettings                 IntuneSettings
+	CacheSettings                  CacheSettings
+	ClusterSettings                ClusterSettings
+	MetricsSettings                MetricsSettings
+	ExperimentalSettings           ExperimentalSettings
+	AnalyticsSettings              AnalyticsSettings
+	ElasticsearchSettings          ElasticsearchSettings
+	DataRetentionSettings          DataRetentionSettings
+	MessageExportSettings          MessageExportSettings
+	JobSettings                    JobSettings
+	PluginSettings                 PluginSettings
+	DisplaySettings                DisplaySettings
+	GuestAccountsSettings          GuestAccountsSettings
+	ImageProxySettings             ImageProxySettings
+	CloudSettings                  CloudSettings  // telemetry: none
+	FeatureFlags                   *FeatureFlags  `access:"*_read" json:",omitempty"`
+	ImportSettings                 ImportSettings // telemetry: none
+	ExportSettings                 ExportSettings
+	WranglerSettings               WranglerSettings
+	ConnectedWorkspacesSettings    ConnectedWorkspacesSettings
+	AccessControlSettings          AccessControlSettings
+	ContentFlaggingSettings        ContentFlaggingSettings
+	AutoTranslationSettings        AutoTranslationSettings
+	ClassificationMarkingsSettings ClassificationMarkingsSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4141,6 +4201,7 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
+	o.ClassificationMarkingsSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4298,6 +4359,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
+	if appErr := o.ClassificationMarkingsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 

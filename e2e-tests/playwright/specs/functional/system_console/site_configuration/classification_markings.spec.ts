@@ -16,6 +16,7 @@ import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
+    resetGlobalBannerConfig,
     setClassificationMarkingsFeatureFlag,
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
@@ -333,21 +334,24 @@ test.describe('System Console - Classification markings', () => {
     );
 
     /**
-     * @objective After a level is saved in the global banner, placement and level controls become
-     * read-only (locked), while the enable toggle remains editable.
+     * @objective Placement and level controls remain editable after a banner level has been
+     * persisted — the write-once lock behavior no longer exists.
      */
     test(
-        'MM-T6209 classification markings: global banner locked after first save with level',
+        'MM-T6209 classification markings: global banner placement and level remain editable after save',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            // # Seed a field with a persisted global_banner.level_id via API (skip the UI save step)
+            // # Seed a field and banner config via API (skip the UI save step)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1}],
+                [
+                    {id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'nato-restricted', name: 'NATO RESTRICTED', color: '#FFD700', rank: 2},
+                ],
                 {levelId: 'nato-unclassified', enabled: true, placement: 'top'},
             );
 
@@ -356,47 +360,52 @@ test.describe('System Console - Classification markings', () => {
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
             await page.waitForLoadState('networkidle');
 
-            // * Locked notice is visible
-            await expect(page.getByText(/Global classification placement and level are locked/)).toBeVisible();
+            // * No locked notice should be present
+            await expect(page.getByText(/Global classification placement and level are locked/)).not.toBeVisible();
 
-            // * Placement and level inputs are disabled
-            await expect(page.locator('input[name="globalBannerPlacement"]').first()).toBeDisabled();
-            await expect(page.getByTestId('globalBannerLevel__input')).toBeDisabled();
+            // * Placement inputs are editable
+            await expect(page.locator('input[name="globalBannerPlacement"]').first()).not.toBeDisabled();
 
-            // * The preset dropdown is also disabled while locked
-            await expect(page.getByTestId('classificationPreset__input')).toBeDisabled();
+            // * Delete buttons for saved level rows are not disabled by a lock
+            await expect(page.getByRole('button', {name: 'Delete level'}).first()).not.toBeDisabled();
 
-            // * Delete button for the locked level row is disabled
-            const deleteButton = page.getByRole('button', {name: 'Delete level'}).first();
-            await expect(deleteButton).toBeDisabled();
+            // # Switch placement to "top_and_bottom" and save
+            await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
+            await page.getByRole('button', {name: 'Save', exact: true}).click();
+            await page.waitForLoadState('networkidle');
 
-            // * Enable toggle for global banner is still interactive
-            const globalBannerFalseRadio = page.locator('input[name="globalBannerEnabled"][value="false"]');
-            await expect(globalBannerFalseRadio).not.toBeDisabled();
-            await globalBannerFalseRadio.click();
+            // * No server error
+            await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
 
-            // The save button should become available after toggling
-            await expect(page.getByRole('button', {name: 'Save', exact: true})).toBeVisible();
+            // # Reload and verify the new placement persisted
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked();
+
+            await resetGlobalBannerConfig(adminClient);
         },
     );
 
     /**
-     * @objective Disabling classification markings + saving deletes the field and clears the lock;
-     * re-enabling opens the global banner for configuration again.
+     * @objective When the level currently referenced by the global banner is removed, saving
+     * surfaces a validation error forcing the admin to pick a valid level.
      */
     test(
-        'MM-T6210 classification markings: disabling classification resets global banner lock',
+        'MM-T6210 classification markings: deleting referenced banner level blocks save until resolved',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            // # Seed a locked global banner via API
+            // # Seed two levels and a banner pointing at the first one
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [{id: 'secret-id', name: 'SECRET', color: '#C8102E', rank: 1}],
-                {levelId: 'secret-id', enabled: true, placement: 'top'},
+                [
+                    {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
+                ],
+                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -404,22 +413,32 @@ test.describe('System Console - Classification markings', () => {
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
             await page.waitForLoadState('networkidle');
 
-            // * Lock notice is present
-            await expect(page.getByText(/Global classification placement and level are locked/)).toBeVisible();
+            // # Delete the level used by the banner (first row)
+            await page.getByRole('button', {name: 'Delete level'}).first().click();
 
-            // # Disable classification markings (escape hatch: delete the field)
-            await page.locator('input[name="classificationEnabled"][value="false"]').click();
+            // # Try to save — banner still references the deleted level
+            await page.getByRole('button', {name: 'Save', exact: true}).click();
+
+            // * Validation error is shown
+            await expect(
+                page.getByText(/The global classification banner is configured with a level that no longer exists/i),
+            ).toBeVisible();
+
+            // # Pick a valid replacement level
+            await page.getByTestId('globalBannerLevel').click();
+            const dropdownMenu = page.locator('.DropDown__menu').last();
+            await expect(dropdownMenu).toBeVisible();
+            await dropdownMenu.getByText('CONFIDENTIAL', {exact: true}).click();
+
+            // # Save again
             await page.getByRole('button', {name: 'Save', exact: true}).click();
             await page.waitForLoadState('networkidle');
 
-            // # Re-enable classification markings
-            await page.locator('input[name="classificationEnabled"][value="true"]').click();
+            // * No save error and banner now references the replacement level
+            await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
+            await expect(page.getByTestId('globalBannerLevel')).toContainText('CONFIDENTIAL');
 
-            // * Global Classification Indicators section is visible again
-            await expect(page.getByText('Global Classification Indicators')).toBeVisible();
-
-            // * Locked notice is gone — controls are editable
-            await expect(page.getByText(/Global classification placement and level are locked/)).not.toBeVisible();
+            await resetGlobalBannerConfig(adminClient);
         },
     );
 

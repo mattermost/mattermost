@@ -3,11 +3,16 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
+import type {DeepPartial} from '@mattermost/types/utilities';
+import type {AdminConfig} from '@mattermost/types/config';
 import type {PropertyField} from '@mattermost/types/properties';
+
+import {patchConfig} from 'mattermost-redux/actions/admin';
+import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -20,6 +25,8 @@ import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import type {GlobalState} from 'types/store';
+
 import {
     AddLevelButton,
     AddLevelButtonRow,
@@ -29,7 +36,7 @@ import {
 } from './classification_markings_styled';
 import ClassificationLevelsTable from './components/classification_levels_table';
 import GlobalClassificationIndicators from './components/global_classification_indicators';
-import type {GlobalBanner} from './utils';
+import type {GlobalBannerConfig, GlobalBannerPlacement} from './utils';
 import {DEFAULT_GLOBAL_BANNER, fetchClassificationField, processClassificationField, saveCreateField, saveDeleteField, savePatchField} from './utils';
 import {classificationPresetDropdownStyles} from './utils/preset_dropdown_styles';
 import type {ClassificationLevel} from './utils/presets';
@@ -57,9 +64,8 @@ const msg = defineMessages({
     globalBannerPlacementTopAndBottom: {id: 'admin.classification_markings.global_banner.placement.top_and_bottom', defaultMessage: 'Top and bottom'},
     globalBannerLevelTitle: {id: 'admin.classification_markings.global_banner.level.title', defaultMessage: 'Global classification level'},
     globalBannerLevelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Choose from a variety of pre-defined banner options. To manually set the banner text and color, select "Custom banner".'},
-    globalBannerLockedNotice: {id: 'admin.classification_markings.global_banner.locked_notice', defaultMessage: 'Global classification placement and level are locked once configured. To change them, disable classification markings, save, and re-enable.'},
     errorGlobalBannerNoLevel: {id: 'admin.classification_markings.error.global_banner_no_level', defaultMessage: 'A global classification level must be selected when the global banner is enabled.'},
-    deleteLevelLockedTooltip: {id: 'admin.classification_markings.levels.delete_locked', defaultMessage: 'Cannot delete the level used by the global classification banner while it is locked.'},
+    errorGlobalBannerLevelMissing: {id: 'admin.classification_markings.error.global_banner_level_missing', defaultMessage: 'The global classification banner is configured with a level that no longer exists. Select a level that exists in the current classification levels.'},
 });
 
 export const searchableStrings = Object.values(msg);
@@ -68,38 +74,69 @@ type Props = {
     disabled?: boolean;
 };
 
+function normalizePlacement(value: string | undefined): GlobalBannerPlacement {
+    return value === 'top_and_bottom' ? 'top_and_bottom' : 'top';
+}
+
+function readGlobalBannerFromConfig(config: Partial<AdminConfig> | undefined): GlobalBannerConfig {
+    const banner = config?.ClassificationMarkingsSettings?.GlobalBanner;
+    if (!banner) {
+        return {...DEFAULT_GLOBAL_BANNER};
+    }
+    return {
+        enabled: Boolean(banner.Enabled),
+        placement: normalizePlacement(banner.Placement),
+        level_id: banner.LevelID ?? '',
+    };
+}
+
+function buildGlobalBannerPatch(banner: GlobalBannerConfig): DeepPartial<AdminConfig> {
+    return {
+        ClassificationMarkingsSettings: {
+            GlobalBanner: {
+                Enabled: banner.enabled,
+                Placement: banner.placement,
+                LevelID: banner.level_id,
+            },
+        },
+    };
+}
+
 export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
-    // Remote state
+    const adminConfig = useSelector((state: GlobalState) => getConfig(state));
+    const configGlobalBanner = useMemo(() => readGlobalBannerFromConfig(adminConfig), [adminConfig]);
+
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string>();
     const [existingField, setExistingField] = useState<PropertyField | null>(null);
 
-    // Local editable state
     const [enabled, setEnabled] = useState(false);
     const [presetId, setPresetId] = useState<string>(PRESET_CUSTOM);
     const [levels, setLevels] = useState<ClassificationLevel[]>([]);
-    const [globalBanner, setGlobalBanner] = useState<GlobalBanner>({...DEFAULT_GLOBAL_BANNER});
+    const [globalBanner, setGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
 
-    // Track the last-persisted state (used for change detection and lock derivation)
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
     const [initialPresetId, setInitialPresetId] = useState<string>(PRESET_CUSTOM);
-    const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBanner>({...DEFAULT_GLOBAL_BANNER});
+    const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
 
-    // Confirm modal for preset switch
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
     const [hasAcknowledgedPresetWarning, setHasAcknowledgedPresetWarning] = useState(false);
 
-    // The banner is locked (placement + level become read-only) once a level_id has been persisted
-    const locked = Boolean(initialGlobalBanner.level_id);
-
     const hasChanges = useMemo(() => {
         if (enabled !== initialEnabled) {
+            return true;
+        }
+        if (
+            globalBanner.enabled !== initialGlobalBanner.enabled ||
+            globalBanner.placement !== initialGlobalBanner.placement ||
+            globalBanner.level_id !== initialGlobalBanner.level_id
+        ) {
             return true;
         }
         if (!enabled) {
@@ -108,18 +145,10 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (levels.length !== initialLevels.length) {
             return true;
         }
-        const levelsChanged = levels.some((level, i) => {
+        return levels.some((level, i) => {
             const initial = initialLevels[i];
             return level.name !== initial.name || level.color !== initial.color || level.id !== initial.id || level.rank !== initial.rank;
         });
-        if (levelsChanged) {
-            return true;
-        }
-        return (
-            globalBanner.enabled !== initialGlobalBanner.enabled ||
-            globalBanner.placement !== initialGlobalBanner.placement ||
-            globalBanner.level_id !== initialGlobalBanner.level_id
-        );
     }, [enabled, initialEnabled, levels, initialLevels, globalBanner, initialGlobalBanner]);
 
     useEffect(() => {
@@ -139,8 +168,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                     setInitialLevels(result.levels);
                     setPresetId(result.presetId);
                     setInitialPresetId(result.presetId);
-                    setGlobalBanner(result.globalBanner);
-                    setInitialGlobalBanner(result.globalBanner);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -163,7 +190,6 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (preset) {
             setPresetId(newPresetId);
             setLevels(preset.levels.map((l) => ({...l})));
-            setGlobalBanner((prev) => ({...prev, level_id: ''}));
         }
     }, []);
 
@@ -225,7 +251,6 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     const deleteLevel = useCallback((id: string) => {
         setLevels((prev) => prev.filter((level) => level.id !== id).map((level, i) => ({...level, rank: i + 1})));
-        setGlobalBanner((prev) => prev.level_id === id ? {...prev, level_id: ''} : prev);
         switchToCustom();
     }, [switchToCustom]);
 
@@ -247,66 +272,81 @@ export default function ClassificationMarkings({disabled}: Props) {
         switchToCustom();
     }, [switchToCustom]);
 
-    const handleGlobalBannerChange = useCallback((updates: Partial<GlobalBanner>) => {
+    const handleGlobalBannerChange = useCallback((updates: Partial<GlobalBannerConfig>) => {
         setGlobalBanner((prev) => ({...prev, ...updates}));
     }, []);
 
     const validate = useCallback((): string | null => {
-        if (!enabled) {
-            return null;
+        if (enabled) {
+            if (levels.length === 0) {
+                return formatMessage({id: 'admin.classification_markings.error.no_levels', defaultMessage: 'At least one classification level is required when classification markings are enabled.'});
+            }
+            const emptyName = levels.find((l) => l.name.trim() === '');
+            if (emptyName) {
+                return formatMessage({id: 'admin.classification_markings.error.empty_name', defaultMessage: 'All classification levels must have a name.'});
+            }
+            const names = levels.map((l) => l.name.trim().toLowerCase());
+            const duplicateName = names.find((name, i) => names.indexOf(name) !== i);
+            if (duplicateName) {
+                return formatMessage({id: 'admin.classification_markings.error.duplicate_name', defaultMessage: 'Classification level names must be unique. Duplicate: {name}'}, {name: duplicateName.toUpperCase()});
+            }
         }
-        if (levels.length === 0) {
-            return formatMessage({id: 'admin.classification_markings.error.no_levels', defaultMessage: 'At least one classification level is required when classification markings are enabled.'});
-        }
-        const emptyName = levels.find((l) => l.name.trim() === '');
-        if (emptyName) {
-            return formatMessage({id: 'admin.classification_markings.error.empty_name', defaultMessage: 'All classification levels must have a name.'});
-        }
-        const names = levels.map((l) => l.name.trim().toLowerCase());
-        const duplicateName = names.find((name, i) => names.indexOf(name) !== i);
-        if (duplicateName) {
-            return formatMessage({id: 'admin.classification_markings.error.duplicate_name', defaultMessage: 'Classification level names must be unique. Duplicate: {name}'}, {name: duplicateName.toUpperCase()});
-        }
-        if (globalBanner.enabled && !globalBanner.level_id) {
-            return formatMessage(msg.errorGlobalBannerNoLevel);
+        if (globalBanner.enabled) {
+            if (!globalBanner.level_id) {
+                return formatMessage(msg.errorGlobalBannerNoLevel);
+            }
+            if (!enabled || !levels.some((l) => l.id === globalBanner.level_id)) {
+                return formatMessage(msg.errorGlobalBannerLevelMissing);
+            }
         }
         return null;
     }, [enabled, levels, globalBanner, formatMessage]);
 
-    const handleSaveCreate = useCallback(async () => {
-        const created = await saveCreateField(levels, globalBanner);
-        const result = processClassificationField(created);
-        setExistingField(created);
-        setLevels(result.levels);
-        setInitialLevels(result.levels);
-        setInitialEnabled(true);
-        setInitialPresetId(presetId);
-        setGlobalBanner(result.globalBanner);
-        setInitialGlobalBanner(result.globalBanner);
-    }, [levels, globalBanner, presetId]);
+    const persistLevels = useCallback(async (): Promise<void> => {
+        if (enabled && !initialEnabled) {
+            const created = await saveCreateField(levels);
+            const result = processClassificationField(created);
+            setExistingField(created);
+            setLevels(result.levels);
+            setInitialLevels(result.levels);
+            setInitialEnabled(true);
+            setInitialPresetId(presetId);
+        } else if (!enabled && initialEnabled && existingField) {
+            await saveDeleteField(existingField.id);
+            setExistingField(null);
+            setInitialEnabled(false);
+            setInitialLevels([]);
+            setLevels([]);
+            setPresetId(PRESET_CUSTOM);
+            setInitialPresetId(PRESET_CUSTOM);
+        } else if (enabled && initialEnabled && existingField) {
+            const patched = await savePatchField(existingField.id, levels);
+            const result = processClassificationField(patched);
+            setExistingField(patched);
+            setLevels(result.levels);
+            setInitialLevels(result.levels);
+            setInitialPresetId(presetId);
+        }
+    }, [enabled, initialEnabled, existingField, levels, presetId]);
 
-    const handleSaveDelete = useCallback(async () => {
-        await saveDeleteField(existingField!.id);
-        setExistingField(null);
-        setInitialEnabled(false);
-        setInitialLevels([]);
-        setLevels([]);
-        setPresetId(PRESET_CUSTOM);
-        setInitialPresetId(PRESET_CUSTOM);
-        setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
-        setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
-    }, [existingField]);
+    const persistGlobalBanner = useCallback(async (): Promise<void> => {
+        if (
+            globalBanner.enabled === initialGlobalBanner.enabled &&
+            globalBanner.placement === initialGlobalBanner.placement &&
+            globalBanner.level_id === initialGlobalBanner.level_id
+        ) {
+            return;
+        }
 
-    const handleSavePatch = useCallback(async () => {
-        const patched = await savePatchField(existingField!.id, levels, globalBanner);
-        const result = processClassificationField(patched);
-        setExistingField(patched);
-        setLevels(result.levels);
-        setInitialLevels(result.levels);
-        setInitialPresetId(presetId);
-        setGlobalBanner(result.globalBanner);
-        setInitialGlobalBanner(result.globalBanner);
-    }, [existingField, levels, globalBanner, presetId]);
+        const patch = buildGlobalBannerPatch(globalBanner);
+        const {data, error} = await dispatch(patchConfig(patch)) as {data?: AdminConfig; error?: Error};
+        if (error) {
+            throw error;
+        }
+        const next = data ? readGlobalBannerFromConfig(data) : {...globalBanner};
+        setGlobalBanner(next);
+        setInitialGlobalBanner(next);
+    }, [dispatch, globalBanner, initialGlobalBanner]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
@@ -318,22 +358,16 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
 
         setSaving(true);
-
         try {
-            if (enabled && !initialEnabled) {
-                await handleSaveCreate();
-            } else if (!enabled && initialEnabled && existingField) {
-                await handleSaveDelete();
-            } else if (enabled && initialEnabled && existingField) {
-                await handleSavePatch();
-            }
+            await persistLevels();
+            await persistGlobalBanner();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'An error occurred while saving';
             setSaveError(message);
         } finally {
             setSaving(false);
         }
-    }, [enabled, initialEnabled, existingField, validate, handleSaveCreate, handleSaveDelete, handleSavePatch]);
+    }, [validate, persistLevels, persistGlobalBanner]);
 
     const handleCancel = useCallback(() => {
         setEnabled(initialEnabled);
@@ -428,7 +462,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                                     options={presetDropdownOptions}
                                     value={presetDropdownValue}
                                     onChange={handlePresetDropdownChange}
-                                    isDisabled={disabled || locked}
+                                    isDisabled={disabled}
                                     isClearable={false}
                                     menuPortalTarget={document.body}
                                     styles={classificationPresetDropdownStyles}
@@ -457,8 +491,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 onReorder={handleReorder}
                                 disabled={disabled}
                                 reorderDisabled={presetId !== PRESET_CUSTOM}
-                                lockedLevelId={locked ? initialGlobalBanner.level_id : ''}
-                                lockedLevelTooltip={formatMessage(msg.deleteLevelLockedTooltip)}
                             />
                             {!disabled && (
                                 <AddLevelButtonRow>
@@ -479,7 +511,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                     <GlobalClassificationIndicators
                         levels={levels}
                         globalBanner={globalBanner}
-                        locked={locked}
                         disabled={disabled}
                         onChange={handleGlobalBannerChange}
                     />

@@ -170,6 +170,12 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["WranglerMoveThreadFromDirectMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromDirectMessageChannelEnable)
 	props["WranglerMoveThreadFromGroupMessageChannelEnable"] = strconv.FormatBool(*c.WranglerSettings.MoveThreadFromGroupMessageChannelEnable)
 
+	if c.FeatureFlags.ClassificationMarkings {
+		props["ClassificationMarkingsGlobalBannerEnabled"] = strconv.FormatBool(*c.ClassificationMarkingsSettings.GlobalBanner.Enabled)
+		props["ClassificationMarkingsGlobalBannerPlacement"] = *c.ClassificationMarkingsSettings.GlobalBanner.Placement
+		props["ClassificationMarkingsGlobalBannerLevelID"] = *c.ClassificationMarkingsSettings.GlobalBanner.LevelID
+	}
+
 	if license != nil {
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 

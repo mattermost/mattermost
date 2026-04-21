@@ -31,11 +31,9 @@ type ClassificationLevelsTableProps = {
     onReorder: (prev: number, next: number) => void;
     disabled?: boolean;
     reorderDisabled?: boolean;
-    lockedLevelId?: string;
-    lockedLevelTooltip?: string;
 };
 
-export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled, reorderDisabled, lockedLevelId, lockedLevelTooltip}: ClassificationLevelsTableProps) {
+export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled, reorderDisabled}: ClassificationLevelsTableProps) {
     const {formatMessage} = useIntl();
 
     const rows = useMemo(() => {
@@ -115,28 +113,23 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                 id: 'actions',
                 size: 40,
                 header: () => null,
-                cell: ({row}) => {
-                    const isLockedLevel = lockedLevelId && row.original.id === lockedLevelId;
-                    return (
-                        <ActionsCell>
-                            <DeleteButton
-                                aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
-                                onClick={() => !isLockedLevel && deleteLevel(row.original.id)}
-                                disabled={Boolean(isLockedLevel)}
-                                title={isLockedLevel ? lockedLevelTooltip : undefined}
-                            >
-                                <TrashCanOutlineIcon
-                                    size={18}
-                                    color={isLockedLevel ? 'rgba(var(--center-channel-color-rgb), 0.32)' : '#D24B4E'}
-                                />
-                            </DeleteButton>
-                        </ActionsCell>
-                    );
-                },
+                cell: ({row}) => (
+                    <ActionsCell>
+                        <DeleteButton
+                            aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
+                            onClick={() => deleteLevel(row.original.id)}
+                        >
+                            <TrashCanOutlineIcon
+                                size={18}
+                                color={'#D24B4E'}
+                            />
+                        </DeleteButton>
+                    </ActionsCell>
+                ),
                 enableSorting: false,
             })]),
         ];
-    }, [col, updateLevel, deleteLevel, disabled, formatMessage, lockedLevelId, lockedLevelTooltip]);
+    }, [col, updateLevel, deleteLevel, disabled, formatMessage]);
 
     const table = useReactTable<ClassificationLevel>({
         data: rows,

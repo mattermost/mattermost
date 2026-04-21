@@ -8,7 +8,6 @@ import BooleanSetting from 'components/admin_console/boolean_setting';
 import Setting from 'components/admin_console/setting';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
-import SectionNotice from 'components/section_notice';
 
 import {
     ColorSwatch,
@@ -17,7 +16,7 @@ import {
     LevelOptionLabel,
     PresetDropdownWrapper,
 } from '../classification_markings_styled';
-import type {GlobalBanner} from '../utils';
+import type {GlobalBannerConfig} from '../utils';
 import {classificationPresetDropdownStyles} from '../utils/preset_dropdown_styles';
 import type {ClassificationLevel} from '../utils/presets';
 
@@ -33,20 +32,19 @@ const msg = defineMessages({
     placementTopAndBottom: {id: 'admin.classification_markings.global_banner.placement.top_and_bottom', defaultMessage: 'Top and bottom'},
     levelTitle: {id: 'admin.classification_markings.global_banner.level.title', defaultMessage: 'Global classification level'},
     levelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Choose from a variety of pre-defined banner options. To manually set the banner text and color, select "Custom banner".'},
-    lockedNotice: {id: 'admin.classification_markings.global_banner.locked_notice', defaultMessage: 'Global classification placement and level are locked once configured. To change them, disable classification markings, save, and re-enable.'},
+    levelMissingError: {id: 'admin.classification_markings.global_banner.level.missing_error', defaultMessage: 'The previously selected level no longer exists. Select a level from the current classification levels.'},
 });
 
 type LevelDropdownOption = ValueType & {color: string};
 
 type GlobalClassificationIndicatorsProps = {
     levels: ClassificationLevel[];
-    globalBanner: GlobalBanner;
-    locked: boolean;
+    globalBanner: GlobalBannerConfig;
     disabled?: boolean;
-    onChange: (updates: Partial<GlobalBanner>) => void;
+    onChange: (updates: Partial<GlobalBannerConfig>) => void;
 };
 
-export default function GlobalClassificationIndicators({levels, globalBanner, locked, disabled, onChange}: GlobalClassificationIndicatorsProps) {
+export default function GlobalClassificationIndicators({levels, globalBanner, disabled, onChange}: GlobalClassificationIndicatorsProps) {
     const {formatMessage} = useIntl();
 
     const levelOptions = useMemo((): LevelDropdownOption[] => {
@@ -56,6 +54,16 @@ export default function GlobalClassificationIndicators({levels, globalBanner, lo
     const selectedLevelOption = useMemo(() => {
         return levelOptions.find((o) => o.value === globalBanner.level_id);
     }, [levelOptions, globalBanner.level_id]);
+
+    // Inline validation: when the banner is enabled, a level id is configured, but that level is
+    // no longer present in the current levels list, surface a visible error so the admin is forced
+    // to pick a valid replacement.
+    const levelMissing = Boolean(
+        globalBanner.enabled &&
+        globalBanner.level_id &&
+        !selectedLevelOption,
+    );
+    const levelError = levelMissing ? formatMessage(msg.levelMissingError) : undefined;
 
     const formatLevelOptionLabel = useCallback((option: ValueType) => {
         const levelOption = option as LevelDropdownOption;
@@ -79,8 +87,6 @@ export default function GlobalClassificationIndicators({levels, globalBanner, lo
         onChange({placement: value ? 'top' : 'top_and_bottom'});
     }, [onChange]);
 
-    const controlsDisabled = disabled || locked;
-
     return (
         <AdminSection>
             <SectionHeader>
@@ -93,10 +99,6 @@ export default function GlobalClassificationIndicators({levels, globalBanner, lo
                 </hgroup>
             </SectionHeader>
             <GlobalBannerSectionContent>
-                <SectionNotice
-                    type='warning'
-                    title={<FormattedMessage {...msg.lockedNotice}/>}
-                />
                 <form
                     className='form-horizontal'
                     onSubmit={(e) => e.preventDefault()}
@@ -132,7 +134,7 @@ export default function GlobalClassificationIndicators({levels, globalBanner, lo
                                     label={<FormattedMessage {...msg.placementTitle}/>}
                                     value={globalBanner.placement === 'top'}
                                     onChange={handlePlacementChange}
-                                    disabled={controlsDisabled}
+                                    disabled={disabled}
                                     setByEnv={false}
                                     helpText={''}
                                     trueText={<FormattedMessage {...msg.placementTop}/>}
@@ -154,11 +156,12 @@ export default function GlobalClassificationIndicators({levels, globalBanner, lo
                                             options={levelOptions}
                                             value={selectedLevelOption}
                                             onChange={handleLevelChange}
-                                            isDisabled={controlsDisabled}
+                                            isDisabled={disabled}
                                             isClearable={false}
                                             menuPortalTarget={document.body}
                                             styles={classificationPresetDropdownStyles}
                                             formatOptionLabel={formatLevelOptionLabel}
+                                            error={levelError}
                                         />
                                     </PresetDropdownWrapper>
                                 </Setting>

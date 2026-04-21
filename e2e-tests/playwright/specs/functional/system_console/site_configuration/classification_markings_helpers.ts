@@ -43,26 +43,51 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
 }
 
 export type SetupGlobalBannerOptions = {
-    /** Level id to store in global_banner.level_id (locks placement + level after load) */
+    /** Level id to store in ClassificationMarkingsSettings.GlobalBanner.LevelID */
     levelId: string;
     enabled?: boolean;
     placement?: 'top' | 'top_and_bottom';
 };
 
 /**
- * Creates (or patches) the classification property field so it includes a persisted
- * global_banner configuration, pre-locking placement and level for lock-behavior tests.
+ * Patches the server config so ClassificationMarkingsSettings.GlobalBanner matches the provided
+ * values. This replaces the previous PSA-nested `attrs.global_banner` storage approach.
  */
-export async function setupClassificationFieldWithGlobalBanner(
+export async function setGlobalBannerConfig(adminClient: Client4, bannerOpts: SetupGlobalBannerOptions) {
+    const config = await adminClient.getConfig();
+    await adminClient.updateConfig({
+        ...config,
+        ClassificationMarkingsSettings: {
+            ...((config as unknown as {ClassificationMarkingsSettings?: Record<string, unknown>}).ClassificationMarkingsSettings ?? {}),
+            GlobalBanner: {
+                Enabled: bannerOpts.enabled ?? true,
+                Placement: bannerOpts.placement ?? 'top',
+                LevelID: bannerOpts.levelId,
+            },
+        },
+    } as Awaited<ReturnType<Client4['getConfig']>>);
+}
+
+/**
+ * Resets the GlobalBanner section to default (disabled / top / empty level) so subsequent tests
+ * start from a clean state.
+ */
+export async function resetGlobalBannerConfig(adminClient: Client4) {
+    await setGlobalBannerConfig(adminClient, {levelId: '', enabled: false, placement: 'top'});
+}
+
+/**
+ * Creates the classification property field with the provided levels. The global banner
+ * configuration now lives in server config, not in the property field's attrs.
+ */
+export async function setupClassificationField(
     adminClient: Client4,
     levels: Array<{id?: string; name: string; color: string; rank: number}>,
-    bannerOpts: SetupGlobalBannerOptions,
 ) {
     // Ensure a clean slate first
     await deleteClassificationMarkingsFieldIfExists(adminClient);
 
-    // Create the field
-    const created = await adminClient.createPropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, {
+    return adminClient.createPropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, {
         name: CLASSIFICATION_FIELD_NAME,
         type: 'select',
         target_type: TARGET_TYPE,
@@ -70,16 +95,23 @@ export async function setupClassificationFieldWithGlobalBanner(
         attrs: {
             options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
             managed: 'admin',
-            global_banner: {
-                enabled: bannerOpts.enabled ?? true,
-                placement: bannerOpts.placement ?? 'top',
-                level_id: bannerOpts.levelId,
-            },
         },
         permission_field: 'sysadmin',
         permission_values: 'sysadmin',
         permission_options: 'sysadmin',
     } as Parameters<Client4['createPropertyField']>[2]);
+}
 
+/**
+ * Convenience helper: create the classification field and seed the global banner config
+ * so tests start with a fully-configured banner pointing at an existing level.
+ */
+export async function setupClassificationFieldWithGlobalBanner(
+    adminClient: Client4,
+    levels: Array<{id?: string; name: string; color: string; rank: number}>,
+    bannerOpts: SetupGlobalBannerOptions,
+) {
+    const created = await setupClassificationField(adminClient, levels);
+    await setGlobalBannerConfig(adminClient, bannerOpts);
     return created;
 }

@@ -3,18 +3,21 @@
 
 import React from 'react';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
+import * as adminActions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import type {GlobalState} from 'types/store';
 
 import ClassificationMarkings from './classification_markings';
 import {
     detectPreset,
     optionsToLevels,
     levelsToOptions,
-    parseGlobalBanner,
     processClassificationField,
     fetchClassificationField,
 } from './utils';
@@ -23,7 +26,6 @@ import {PRESET_CUSTOM, presets} from './utils/presets';
 
 jest.mock('mattermost-redux/client');
 
-// Helper to build a minimal PropertyField for testing
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
@@ -40,6 +42,24 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
         created_by: 'user1',
         updated_by: 'user1',
         ...overrides,
+    };
+}
+
+function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: string; LevelID?: string}): DeepPartial<GlobalState> {
+    return {
+        entities: {
+            admin: {
+                config: {
+                    ClassificationMarkingsSettings: {
+                        GlobalBanner: {
+                            Enabled: banner?.Enabled ?? false,
+                            Placement: banner?.Placement ?? 'top',
+                            LevelID: banner?.LevelID ?? '',
+                        },
+                    },
+                } as DeepPartial<AdminConfig>,
+            },
+        },
     };
 }
 
@@ -90,7 +110,6 @@ describe('optionsToLevels', () => {
 
         const levels = optionsToLevels(options);
 
-        // Should be sorted by rank ascending
         expect(levels).toHaveLength(2);
         expect(levels[0]).toEqual({id: 'b', name: 'Beta', color: '#00FF00', rank: 1});
         expect(levels[1]).toEqual({id: 'a', name: 'Alpha', color: '#FF0000', rank: 2});
@@ -149,54 +168,6 @@ describe('levelsToOptions', () => {
     });
 });
 
-describe('parseGlobalBanner', () => {
-    test('should return default banner when attrs has no global_banner', () => {
-        const result = parseGlobalBanner({options: []});
-        expect(result).toEqual({enabled: false, placement: 'top', level_id: ''});
-    });
-
-    test('should return default banner when attrs is undefined', () => {
-        const result = parseGlobalBanner(undefined);
-        expect(result).toEqual({enabled: false, placement: 'top', level_id: ''});
-    });
-
-    test('should return default banner when global_banner is not an object', () => {
-        const result = parseGlobalBanner({global_banner: 'invalid'});
-        expect(result).toEqual({enabled: false, placement: 'top', level_id: ''});
-    });
-
-    test('should parse a fully specified global_banner', () => {
-        const result = parseGlobalBanner({
-            global_banner: {
-                enabled: true,
-                placement: 'top_and_bottom',
-                level_id: 'abc123',
-            },
-        });
-        expect(result).toEqual({enabled: true, placement: 'top_and_bottom', level_id: 'abc123'});
-    });
-
-    test('should default placement to top for unknown values', () => {
-        const result = parseGlobalBanner({
-            global_banner: {enabled: true, placement: 'unknown_value', level_id: 'x'},
-        });
-        expect(result.placement).toBe('top');
-    });
-
-    test('should coerce enabled to boolean', () => {
-        const result = parseGlobalBanner({global_banner: {enabled: 1, placement: 'top', level_id: 'x'}});
-        expect(result.enabled).toBe(true);
-
-        const result2 = parseGlobalBanner({global_banner: {enabled: 0, placement: 'top', level_id: 'x'}});
-        expect(result2.enabled).toBe(false);
-    });
-
-    test('should default level_id to empty string when missing or not a string', () => {
-        const result = parseGlobalBanner({global_banner: {enabled: false, placement: 'top', level_id: 123}});
-        expect(result.level_id).toBe('');
-    });
-});
-
 describe('processClassificationField', () => {
     test('should extract levels and detect preset from a field', () => {
         const usPreset = presets.find((p) => p.id === 'us')!;
@@ -236,23 +207,6 @@ describe('processClassificationField', () => {
         const result = processClassificationField(field);
         expect(result.presetId).toBe(PRESET_CUSTOM);
         expect(result.levels).toEqual([]);
-    });
-
-    test('should parse global_banner from attrs', () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [],
-                global_banner: {enabled: true, placement: 'top_and_bottom', level_id: 'lvl1'},
-            },
-        });
-        const result = processClassificationField(field);
-        expect(result.globalBanner).toEqual({enabled: true, placement: 'top_and_bottom', level_id: 'lvl1'});
-    });
-
-    test('should return default globalBanner when global_banner is absent', () => {
-        const field = makePropertyField({attrs: {options: []}});
-        const result = processClassificationField(field);
-        expect(result.globalBanner).toEqual({enabled: false, placement: 'top', level_id: ''});
     });
 });
 
@@ -300,7 +254,6 @@ describe('fetchClassificationField', () => {
         expect(result).toEqual(expected);
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(2);
 
-        // Verify cursor params were passed for second call
         const secondCallArgs = (Client4.getPropertyFields as jest.Mock).mock.calls[1];
         expect(secondCallArgs[4]).toEqual({cursorId: 'p2', cursorCreateAt: 200});
     });
@@ -313,7 +266,6 @@ describe('fetchClassificationField', () => {
     });
 
     test('should stop after 500 items to avoid infinite loop', async () => {
-        // Create pages of 100 items each, none matching
         const makePage = (startId: number) =>
             Array.from({length: 100}, (_, i) =>
                 makePropertyField({id: `id_${startId + i}`, name: `other_${startId + i}`, delete_at: 0, create_at: startId + i}),
@@ -327,7 +279,6 @@ describe('fetchClassificationField', () => {
         const result = await fetchClassificationField();
         expect(result).toBeUndefined();
 
-        // Should have fetched 5 pages (500 items) then stopped
         expect(Client4.getPropertyFields).toHaveBeenCalledTimes(5);
     });
 });
@@ -338,10 +289,9 @@ describe('ClassificationMarkings component', () => {
     });
 
     test('should show loading screen initially', () => {
-        // Never resolve the fetch to keep loading state
         jest.spyOn(Client4, 'getPropertyFields').mockReturnValue(new Promise(() => {}));
 
-        const {container} = renderWithContext(<ClassificationMarkings/>);
+        const {container} = renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         expect(screen.getByText('Classification Markings')).toBeInTheDocument();
         expect(container.querySelector('.loading-screen')).toBeInTheDocument();
@@ -352,7 +302,7 @@ describe('ClassificationMarkings component', () => {
         (error as unknown as Record<string, number>).status_code = 500;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         await screen.findByText(/Failed to load classification markings/);
         expect(screen.getByText(/Network error/)).toBeInTheDocument();
@@ -361,7 +311,7 @@ describe('ClassificationMarkings component', () => {
     test('should show informational notice when loaded', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         await screen.findByText('True');
 
@@ -374,16 +324,13 @@ describe('ClassificationMarkings component', () => {
     test('should render disabled state when no existing field', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
-        // Wait for loading to finish
         await screen.findByText('True');
 
-        // Classification should default to disabled (False radio checked)
         const falseRadio = screen.getByRole('radio', {name: /False/i}) as HTMLInputElement;
         expect(falseRadio.checked).toBe(true);
 
-        // Preset and levels sections should not be visible when disabled
         expect(screen.queryByText('Classification preset')).not.toBeInTheDocument();
     });
 
@@ -401,34 +348,29 @@ describe('ClassificationMarkings component', () => {
         });
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
-        // Wait for loading to finish and levels to render
         await screen.findByText('Classification preset');
 
-        // Use the classificationEnabled radio specifically (there are now multiple True radios)
         const classificationTrueRadio = screen.getByTestId('classificationEnabledtrue') as HTMLInputElement;
         expect(classificationTrueRadio.checked).toBe(true);
 
-        // Should show classification levels
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
     });
 
     test('should show preset and levels sections when enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         await screen.findByText('True');
 
-        // Enable classification markings
         const user = userEvent.setup();
         const trueRadio = screen.getByRole('radio', {name: /True/i});
         await act(async () => {
             await user.click(trueRadio);
         });
 
-        // Preset and levels sections should appear
         expect(screen.getByText('Classification preset')).toBeInTheDocument();
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
     });
@@ -436,43 +378,37 @@ describe('ClassificationMarkings component', () => {
     test('should detect hasChanges when toggling enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         await screen.findByText('True');
 
-        // Initially no save button should be active
         const user = userEvent.setup();
 
-        // Enable classification
         const trueRadio = screen.getByRole('radio', {name: /True/i});
         await act(async () => {
             await user.click(trueRadio);
         });
 
-        // Save button should now appear since there are changes
         expect(screen.getByText('Save')).toBeInTheDocument();
     });
 
     test('should validate empty levels when saving while enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
         await screen.findByText('True');
 
         const user = userEvent.setup();
 
-        // Enable classification
         await act(async () => {
             await user.click(screen.getByRole('radio', {name: /True/i}));
         });
 
-        // Try to save with no levels
         await act(async () => {
             await user.click(screen.getByText('Save'));
         });
 
-        // Should show validation error
         await screen.findByText(/At least one classification level is required/);
     });
 
@@ -481,9 +417,8 @@ describe('ClassificationMarkings component', () => {
         (error as unknown as Record<string, number>).status_code = 404;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
 
-        // Should load successfully (not show error) since 404 means no field
         await screen.findByText('True');
         expect(screen.queryByText(/Failed to load/)).not.toBeInTheDocument();
     });
@@ -498,7 +433,7 @@ describe('ClassificationMarkings component', () => {
         });
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
@@ -509,7 +444,6 @@ describe('ClassificationMarkings component', () => {
             await user.type(colorInput, '#1a2b3c');
         });
 
-        // Input should show exactly what was typed, not auto-expanded from 3-char hex
         expect(colorInput).toHaveValue('#1a2b3c');
     });
 
@@ -530,22 +464,19 @@ describe('ClassificationMarkings component', () => {
             },
         }));
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
         const colorInput = screen.getByTestId('color-inputColorValue');
 
-        // Type a new color then tab away to blur
         await user.clear(colorInput);
         await user.type(colorInput, '#1a2b3c');
         await user.tab();
 
-        // Save should be available (changes detected after blur)
         const saveButton = await screen.findByText('Save');
         await user.click(saveButton);
 
-        // The patch call should include the typed color
         expect(Client4.patchPropertyField).toHaveBeenCalledWith(
             'custom_profile_attributes',
             'user',
@@ -563,11 +494,10 @@ describe('ClassificationMarkings component', () => {
     test('should pass disabled prop to disable controls', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings disabled={true}/>);
+        renderWithContext(<ClassificationMarkings disabled={true}/>, makeInitialStateWithBanner());
 
         await screen.findByText('True');
 
-        // Radio buttons should be disabled
         const trueRadio = screen.getByRole('radio', {name: /True/i}) as HTMLInputElement;
         expect(trueRadio.disabled).toBe(true);
     });
@@ -581,7 +511,7 @@ describe('GlobalClassificationIndicators section', () => {
     test('should not show Global Classification Indicators when classification is disabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
         await screen.findByText('True');
 
         expect(screen.queryByText('Global Classification Indicators')).not.toBeInTheDocument();
@@ -593,23 +523,42 @@ describe('GlobalClassificationIndicators section', () => {
         });
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
         await screen.findByText('Global Classification Indicators');
 
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });
 
-    test('should show placement and level controls when global banner is enabled', async () => {
+    test('should read initial banner state from Redux admin config', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top_and_bottom', LevelID: 'lvl1'}),
+        );
+        await screen.findByText('Banner visibility');
+
+        // The "top_and_bottom" radio (False side of the placement boolean) should be selected
+        expect(screen.getByTestId('globalBannerPlacementtrue')).not.toBeChecked();
+        expect(screen.getByTestId('globalBannerPlacementfalse')).toBeChecked();
+
+        expect(screen.getByText('UNCLASSIFIED')).toBeInTheDocument();
+    });
+
+    test('should show placement and level controls when global banner is enabled', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+        );
         await screen.findByText('Banner visibility');
 
         expect(screen.getByText('Top only')).toBeInTheDocument();
@@ -623,18 +572,16 @@ describe('GlobalClassificationIndicators section', () => {
         });
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
         await screen.findByText('Global Classification Indicators');
 
         const user = userEvent.setup();
 
-        // Enable the global banner (click the True radio for "Global Classification Banner")
-        const [, globalBannerTrueRadio] = screen.getAllByRole('radio', {name: /True/i});
+        // Enable the global banner (use the testId to target the banner toggle specifically)
         await act(async () => {
-            await user.click(globalBannerTrueRadio);
+            await user.click(screen.getByTestId('globalBannerEnabledtrue'));
         });
 
-        // Try to save — should fail because no level_id is selected
         await act(async () => {
             await user.click(screen.getByText('Save'));
         });
@@ -642,7 +589,66 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText(/A global classification level must be selected/);
     });
 
-    test('should include global_banner in patch payload when saving', async () => {
+    test('should validate that the referenced level still exists when enabled via Redux config', async () => {
+        // Level "gone_id" doesn't exist in the field's options.
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'gone_id'}),
+        );
+        await screen.findByText('Global Classification Indicators');
+
+        const user = userEvent.setup();
+
+        // Flip placement to create a real change so Save becomes active.
+        await act(async () => {
+            await user.click(screen.getByTestId('globalBannerPlacementfalse'));
+        });
+
+        await act(async () => {
+            await user.click(screen.getByText('Save'));
+        });
+
+        await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
+    });
+
+    test('should surface validation when deleting the level used by the banner', async () => {
+        const field = makePropertyField({
+            attrs: {
+                options: [
+                    {id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {id: 'lvl2', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
+                ],
+            },
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+        );
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+
+        // Delete lvl1 (first row's delete button).
+        const deleteButtons = screen.getAllByRole('button', {name: /Delete level/i});
+        await act(async () => {
+            await user.click(deleteButtons[0]);
+        });
+
+        await act(async () => {
+            await user.click(screen.getByText('Save'));
+        });
+
+        await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
+    });
+
+    test('should save levels and patchConfig when the banner changes', async () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
@@ -650,163 +656,89 @@ describe('GlobalClassificationIndicators section', () => {
         const mockPatch = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(
             makePropertyField({
                 attrs: {
-                    options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
+                    options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}],
                 },
             }),
         );
+        const mockPatchConfigAction = jest.spyOn(adminActions, 'patchConfig').
+            mockImplementation((patch) => ({
+                type: 'MOCK_PATCH_CONFIG',
+                payload: patch,
+            } as unknown as ReturnType<typeof adminActions.patchConfig>));
 
-        renderWithContext(<ClassificationMarkings/>);
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+        );
         await screen.findByText('Classification levels');
 
-        // Trigger a change by editing the level name then tabbing away (triggers blur/update)
+        const user = userEvent.setup();
+
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'MODIFIED');
+        await user.tab();
+
+        await user.click(screen.getByTestId('globalBannerPlacementfalse'));
+
+        const saveButton = await screen.findByText('Save');
+        await user.click(saveButton);
+
+        await waitFor(() => {
+            expect(mockPatchConfigAction).toHaveBeenCalled();
+        });
+
+        // PSA patch must NOT include any global_banner entry in attrs.
+        expect(mockPatch).toHaveBeenCalledWith(
+            'custom_profile_attributes',
+            'user',
+            'field1',
+            expect.objectContaining({
+                attrs: expect.objectContaining({options: expect.any(Array)}),
+            }),
+        );
+        const patchCall = mockPatch.mock.calls[0][3] as {attrs?: Record<string, unknown>};
+        expect(patchCall.attrs).not.toHaveProperty('global_banner');
+
+        expect(mockPatchConfigAction).toHaveBeenCalledWith(expect.objectContaining({
+            ClassificationMarkingsSettings: expect.objectContaining({
+                GlobalBanner: expect.objectContaining({
+                    Enabled: true,
+                    Placement: 'top_and_bottom',
+                    LevelID: 'lvl1',
+                }),
+            }),
+        }));
+    });
+
+    test('should not dispatch patchConfig when the banner state is unchanged', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(
+            makePropertyField({
+                attrs: {options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}]},
+            }),
+        );
+        const mockPatchConfigAction = jest.spyOn(adminActions, 'patchConfig');
+
+        renderWithContext(<ClassificationMarkings/>, makeInitialStateWithBanner());
+        await screen.findByText('Classification levels');
+
         const user = userEvent.setup();
         const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
         await user.clear(nameInput);
         await user.type(nameInput, 'MODIFIED');
         await user.tab();
 
-        // Wait for save button to appear after state change
         const saveButton = await screen.findByText('Save');
         await user.click(saveButton);
 
-        // Wait for patchPropertyField to be called
-        await screen.findByText('Classification levels');
-
-        expect(mockPatch).toHaveBeenCalledWith(
-            'custom_profile_attributes',
-            'user',
-            'field1',
-            expect.objectContaining({
-                attrs: expect.objectContaining({
-                    options: expect.any(Array),
-                }),
-            }),
-        );
-    });
-});
-
-describe('Global Classification Indicators lock behavior', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('should show locked notice when level_id is persisted', async () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Global Classification Indicators');
-
-        expect(screen.getByText(/Global classification placement and level are locked/)).toBeInTheDocument();
-    });
-
-    test('should not show locked notice when no level_id is persisted', async () => {
-        const field = makePropertyField({
-            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Global Classification Indicators');
-
-        expect(screen.queryByText(/Global classification placement and level are locked/)).not.toBeInTheDocument();
-    });
-
-    test('should disable preset dropdown when locked', async () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Classification preset');
-
-        // The react-select control should have aria-disabled when locked
-        const presetContainer = screen.getByTestId('classificationPreset');
-        const control = presetContainer.querySelector('.DropDown__control');
-        expect(control).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    test('should disable delete button for the locked level', async () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Classification levels');
-
-        const deleteButton = screen.getByRole('button', {name: /Delete level/i}) as HTMLButtonElement;
-        expect(deleteButton.disabled).toBe(true);
-    });
-
-    test('should keep global banner enable toggle editable even when locked', async () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Global Classification Banner');
-
-        // The global banner True/False radios should NOT be disabled (enable toggle stays editable)
-        const [, globalBannerTrueRadio] = screen.getAllByRole('radio', {name: /True/i}) as HTMLInputElement[];
-        expect(globalBannerTrueRadio.disabled).toBe(false);
-    });
-
-    test('should reset lock when classification markings are disabled and re-enabled', async () => {
-        const fieldWithLock = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_id: 'lvl1'},
-            },
+        await waitFor(() => {
+            expect(Client4.patchPropertyField).toHaveBeenCalled();
         });
 
-        // First load: field with a locked global banner
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([fieldWithLock]);
-
-        // Delete call succeeds
-        jest.spyOn(Client4, 'deletePropertyField').mockResolvedValueOnce({status: 'OK'});
-
-        renderWithContext(<ClassificationMarkings/>);
-        await screen.findByText('Global Classification Indicators');
-
-        // Confirm it is locked
-        expect(screen.getByText(/Global classification placement and level are locked/)).toBeInTheDocument();
-
-        const user = userEvent.setup();
-
-        // Disable classification markings (set to False) — use testId to avoid ambiguity
-        const classificationFalseRadio = screen.getByTestId('classificationEnabledfalse');
-        await user.click(classificationFalseRadio);
-
-        // Wait for save button and save
-        const saveButton = await screen.findByText('Save');
-        await user.click(saveButton);
-
-        // After delete, the Global Classification Indicators section disappears (classification disabled)
-        await screen.findByTestId('classificationEnabledtrue');
-
-        // Re-enable classification markings
-        const classificationTrueRadio = screen.getByTestId('classificationEnabledtrue');
-        await user.click(classificationTrueRadio);
-
-        // Global Classification Indicators section reappears without the lock notice
-        await screen.findByText('Global Classification Indicators');
-        expect(screen.queryByText(/Global classification placement and level are locked/)).not.toBeInTheDocument();
+        expect(mockPatchConfigAction).not.toHaveBeenCalled();
     });
 });
