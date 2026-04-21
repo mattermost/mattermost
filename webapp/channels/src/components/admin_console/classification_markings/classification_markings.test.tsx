@@ -9,15 +9,16 @@ import {Client4} from 'mattermost-redux/client';
 
 import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import ClassificationMarkings, {
+import ClassificationMarkings from './classification_markings';
+import {
     detectPreset,
     optionsToLevels,
     levelsToOptions,
     processClassificationField,
     fetchClassificationField,
-} from './classification_markings';
-import type {ClassificationLevel} from './presets';
-import {PRESET_CUSTOM, presets} from './presets';
+} from './utils';
+import type {ClassificationLevel} from './utils/presets';
+import {PRESET_CUSTOM, presets} from './utils/presets';
 
 jest.mock('mattermost-redux/client');
 
