@@ -94,6 +94,7 @@ describe('link (mmaction://)', () => {
         expect(result).toContain('inline-action-button-placeholder');
         expect(result).not.toContain('<img');
         expect(result).not.toContain('&lt;img');
+
         // The tag is fully removed, leaving an empty label in this case.
         expect(result).toContain('"></span>');
     });
