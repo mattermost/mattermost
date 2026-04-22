@@ -92,6 +92,27 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: otel-collector
+  kafka:
+    container_name: mattermost-kafka
+    ports:
+      - "9092:9092"
+    extends:
+        file: build/docker-compose.common.yml
+        service: kafka
+  kafka-connect:
+    container_name: mattermost-kafka-connect
+    ports:
+      - "8083:8083"
+    extends:
+        file: build/docker-compose.common.yml
+        service: kafka-connect
+  audit-postgres:
+    container_name: mattermost-audit-postgres
+    ports:
+      - "5433:5432"
+    extends:
+        file: build/docker-compose.common.yml
+        service: audit-postgres
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

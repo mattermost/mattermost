@@ -37,6 +37,9 @@ func main() {
 		"grafana":        3000,
 		"loki":           3100,
 		"otel-collector": 13133,
+		"kafka":          9092,
+		"kafka-connect":  8083,
+		"audit-postgres": 5433,
 	}
 	command := []string{}
 	for _, arg := range os.Args[1:] {

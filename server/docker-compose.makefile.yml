@@ -106,6 +106,35 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: otel-collector
+  kafka:
+    restart: 'no'
+    container_name: mattermost-kafka
+    ports:
+      - "9092:9092"
+    extends:
+        file: build/docker-compose.common.yml
+        service: kafka
+  kafka-connect:
+    restart: 'no'
+    container_name: mattermost-kafka-connect
+    ports:
+      - "8083:8083"
+    extends:
+        file: build/docker-compose.common.yml
+        service: kafka-connect
+    depends_on:
+      - kafka
+  audit-postgres:
+    restart: 'no'
+    container_name: mattermost-audit-postgres
+    ports:
+      - "5433:5433"
+    volumes:
+     - "postgres-14-audit-data:/var/lib/postgresql-audit/data"
+    extends:
+        file: build/docker-compose.common.yml
+        service: audit-postgres
+
 
 networks:
   mm-test:
@@ -118,3 +147,4 @@ networks:
 
 volumes:
   postgres-14-data:
+  postgres-14-audit-data:

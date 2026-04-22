@@ -52,6 +52,19 @@ services:
     extends:
         file: docker-compose.common.yml
         service: otel-collector
+  kafka:
+    extends:
+        file: docker-compose.common.yml
+        service: kafka
+  kafka-connect:
+    extends:
+        file: docker-compose.common.yml
+        service: kafka-connect
+  audit-postgres:
+    extends:
+        file: docker-compose.common.yml
+        service: audit-postgres
+    tmpfs: /var/lib/postgresql/data
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

@@ -155,3 +155,76 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     networks:
       - mm-test
+  kafka:
+    image: "apache/kafka:4.0.2"
+    logging: *default-logging
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT_HOST://localhost:9092,PLAINTEXT://kafka:19092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:29093'
+      KAFKA_LISTENERS: 'CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: 1
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+  kafka-connect:
+    image: "confluentinc/cp-kafka-connect:8.1.2"
+    logging: *default-logging
+    restart: always
+    networks:
+      - mm-test
+    depends_on:
+      - kafka
+    environment:
+        CONNECT_BOOTSTRAP_SERVERS: "kafka:19092"
+        CONNECT_REST_ADVERTISED_HOST_NAME: "localhost"
+        CONNECT_GROUP_ID: "audit-connect"
+        CONNECT_CONFIG_STORAGE_TOPIC: "_connect-configs"
+        CONNECT_OFFSET_STORAGE_TOPIC: "_connect-offsets"
+        CONNECT_STATUS_STORAGE_TOPIC: "_connect-status"
+        CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+        CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+        CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+        CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.storage.StringConverter"
+        CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+        CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "true"
+        CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+    command:
+      - bash
+      - -c
+      - |
+        confluent-hub install confluentinc/kafka-connect-jdbc:10.9.3 --no-prompt
+        /etc/confluent/docker/run
+  audit-postgres:
+    image: "postgres:14"
+    logging: *default-logging
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mostest}
+      POSTGRES_DB: mattermost_audit_logs
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf' -p 5433
+    ports:
+      - "5433:5433"
+    volumes:
+      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf:Z"
+      - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql:Z"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-h", "localhost" ]
+      interval: 5s
+      timeout: 10s
+      retries: 3
