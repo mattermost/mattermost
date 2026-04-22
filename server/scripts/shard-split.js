@@ -170,7 +170,9 @@ if (heavyPkgs.size > 0) {
         console.log(`  ${pkg.split("/").pop()}: ${newCount} new test(s) not in cache`);
       }
     } catch (e) {
-      console.log(`  ${pkg.split("/").pop()}: go test -list failed: ${e.message}`);
+      console.error(`::error::${pkg.split("/").pop()}: go test -list failed — new tests in this package would be silently skipped. ${e.message}`);
+      // Fail loudly in CI; locally (e.g. unit tests without a Go toolchain), log and continue.
+      if (process.env.CI) process.exit(1);
     }
   }
   console.log("::endgroup::");
