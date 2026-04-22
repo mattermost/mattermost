@@ -70,14 +70,36 @@ func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
 	maps.Copy(lc, cfg)
 }
 
-func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
+// builtinTargetTypes are the target types handled natively by logr/v2.
+var builtinTargetTypes = map[string]bool{
+	"console": true,
+	"file":    true,
+	"tcp":     true,
+	"syslog":  true,
+	"none":    true,
+}
+
+func (lc LoggerConfiguration) IsValid(validLevels []Level, factories *Factories) error {
 	logger, err := logr.New()
 	if err != nil {
 		return errors.Wrap(err, "failed to create logger")
 	}
 	defer logger.Shutdown()
 
-	err = logrcfg.ConfigureTargets(logger, lc, nil)
+	// When no factories are provided, filter out custom target types (e.g. "kafka")
+	// that require a factory to instantiate. They will be validated at runtime when
+	// the actual factory is available.
+	cfgToValidate := lc
+	if factories == nil {
+		cfgToValidate = make(LoggerConfiguration)
+		for name, cfg := range lc {
+			if builtinTargetTypes[strings.ToLower(cfg.Type)] {
+				cfgToValidate[name] = cfg
+			}
+		}
+	}
+
+	err = logrcfg.ConfigureTargets(logger, cfgToValidate, factories)
 	if err != nil {
 		return errors.Wrap(err, "logger configuration is invalid")
 	}

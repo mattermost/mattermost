@@ -47,8 +47,9 @@ func (a *Audit) LogRecord(level mlog.Level, rec model.AuditRecord) {
 }
 
 // Configure sets zero or more target to output audit logs to.
-func (a *Audit) Configure(cfg mlog.LoggerConfiguration) error {
-	return a.logger.ConfigureTargets(cfg, nil)
+// An optional set of factories can be provided to create custom target types (e.g. "kafka").
+func (a *Audit) Configure(cfg mlog.LoggerConfiguration, factories *mlog.Factories) error {
+	return a.logger.ConfigureTargets(cfg, factories)
 }
 
 // Flush attempts to write all queued audit records to all targets.

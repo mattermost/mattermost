@@ -159,7 +159,11 @@ func (s *Server) configureAudit(adt *audit.Audit, bAllowAdvancedLogging bool) er
 		cfg.Append(cfgAdditional)
 	}
 
-	return adt.Configure(cfg)
+	factories := &mlog.Factories{
+		TargetFactory: audit.KafkaTargetFactory,
+	}
+
+	return adt.Configure(cfg, factories)
 }
 
 func (s *Server) onAuditTargetQueueFull(qname string, maxQSize int) bool {
