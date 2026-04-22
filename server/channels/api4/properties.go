@@ -37,7 +37,7 @@ func getV2Group(c *Context, callerName string) *model.PropertyGroup {
 		return nil
 	}
 	if !group.IsPSAv2() {
-		c.Err = model.NewAppError(callerName, "api.property.v1_group_not_found.app_error", nil, "", http.StatusNotFound)
+		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
 	return group

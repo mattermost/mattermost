@@ -3099,7 +3099,7 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
-    "id": "api.property.v1_group_not_found.app_error",
+    "id": "api.property.v2_group_not_found.app_error",
     "translation": "The specified property group was not found."
   },
   {
