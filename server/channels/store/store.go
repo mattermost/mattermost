@@ -1132,13 +1132,14 @@ type PropertyGroupStore interface {
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(groupID, id string) (*model.PropertyField, error)
-	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
-	GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error)
+	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
+	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
+	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
+	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
 	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }

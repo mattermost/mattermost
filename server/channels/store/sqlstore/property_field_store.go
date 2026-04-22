@@ -4,7 +4,10 @@
 package sqlstore
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
+	"strings"
 
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
@@ -23,7 +26,7 @@ func newPropertyFieldStore(sqlStore *SqlStore) store.PropertyFieldStore {
 	s := SqlPropertyFieldStore{SqlStore: sqlStore}
 
 	s.tableSelectQuery = s.getQueryBuilder().
-		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
+		Select("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "COALESCE(CreatedBy, '') as CreatedBy", "COALESCE(UpdatedBy, '') as UpdatedBy").
 		From("PropertyFields")
 
 	return &s
@@ -45,8 +48,8 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 
 	builder := s.getQueryBuilder().
 		Insert("PropertyFields").
-		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
-		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
+		Columns("ID", "GroupID", "Name", "Type", "Attrs", "TargetID", "TargetType", "ObjectType", "Protected", "PermissionField", "PermissionValues", "PermissionOptions", "LinkedFieldID", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy").
+		Values(field.ID, field.GroupID, field.Name, field.Type, field.Attrs, field.TargetID, field.TargetType, field.ObjectType, field.Protected, field.PermissionField, field.PermissionValues, field.PermissionOptions, field.LinkedFieldID, field.CreateAt, field.UpdateAt, field.DeleteAt, field.CreatedBy, field.UpdatedBy)
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_create_insert")
@@ -55,7 +58,7 @@ func (s *SqlPropertyFieldStore) Create(field *model.PropertyField) (*model.Prope
 	return field, nil
 }
 
-func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) Get(ctx context.Context, groupID, id string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": id})
 
 	if groupID != "" {
@@ -63,14 +66,17 @@ func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, e
 	}
 
 	var field model.PropertyField
-	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PropertyField", id)
+		}
 		return nil, errors.Wrap(err, "property_field_get_select")
 	}
 
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error) {
 	builder := s.tableSelectQuery.
 		Where(sq.Eq{"GroupID": groupID}).
 		Where(sq.Eq{"TargetID": targetID}).
@@ -78,14 +84,14 @@ func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (
 		Where(sq.Eq{"DeleteAt": 0})
 
 	var field model.PropertyField
-	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+	if err := s.DBXFromContext(ctx).GetBuilder(&field, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_by_name_select")
 	}
 
 	return &field, nil
 }
 
-func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *SqlPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -93,7 +99,7 @@ func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.
 	}
 
 	fields := []*model.PropertyField{}
-	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
+	if err := s.DBXFromContext(ctx).SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_get_many_query")
 	}
 
@@ -183,6 +189,10 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
 	}
 
+	if opts.LinkedFieldID != "" {
+		builder = builder.Where(sq.Eq{"LinkedFieldID": opts.LinkedFieldID})
+	}
+
 	if opts.SinceUpdateAt > 0 {
 		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
 	}
@@ -195,7 +205,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) (_ []*model.PropertyField, err error) {
+func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	if len(fields) == 0 {
 		return nil, nil
 	}
@@ -216,6 +226,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 	permissionFieldCase := sq.Case("id")
 	permissionValuesCase := sq.Case("id")
 	permissionOptionsCase := sq.Case("id")
+	linkedFieldIDCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
 	updatedByCase := sq.Case("id")
 	ids := make([]string, len(fields))
@@ -240,6 +251,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		permissionFieldCase = permissionFieldCase.When(whenID, sq.Expr("?::permission_level", field.PermissionField))
 		permissionValuesCase = permissionValuesCase.When(whenID, sq.Expr("?::permission_level", field.PermissionValues))
 		permissionOptionsCase = permissionOptionsCase.When(whenID, sq.Expr("?::permission_level", field.PermissionOptions))
+		linkedFieldIDCase = linkedFieldIDCase.When(whenID, sq.Expr("?", field.LinkedFieldID))
 		deleteAtCase = deleteAtCase.When(whenID, sq.Expr("?::bigint", field.DeleteAt))
 		updatedByCase = updatedByCase.When(whenID, sq.Expr("?::text", field.UpdatedBy))
 	}
@@ -255,6 +267,7 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		Set("PermissionField", permissionFieldCase).
 		Set("PermissionValues", permissionValuesCase).
 		Set("PermissionOptions", permissionOptionsCase).
+		Set("LinkedFieldID", linkedFieldIDCase).
 		Set("UpdateAt", updateTime).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdatedBy", updatedByCase).
@@ -262,6 +275,23 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 
 	if groupID != "" {
 		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
+	// Optimistic concurrency: if expectedUpdateAts is provided, only update
+	// rows whose UpdateAt still matches the value read before validation.
+	// This closes the TOCTOU window between validation and the UPDATE.
+	if len(expectedUpdateAts) > 0 {
+		updateAtCase := sq.Case("id")
+		for _, id := range ids {
+			if expected, ok := expectedUpdateAts[id]; ok {
+				updateAtCase = updateAtCase.When(sq.Expr("?", id), sq.Expr("?::bigint", expected))
+			}
+		}
+		caseSql, caseArgs, caseErr := updateAtCase.ToSql()
+		if caseErr != nil {
+			return nil, errors.Wrap(caseErr, "property_field_update_build_update_at_check")
+		}
+		builder = builder.Where("UpdateAt = "+caseSql, caseArgs...)
 	}
 
 	result, err := transaction.ExecBuilder(builder)
@@ -274,14 +304,67 @@ func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyF
 		return nil, errors.Wrap(err, "property_field_update_rowsaffected")
 	}
 	if count != int64(len(fields)) {
+		if len(expectedUpdateAts) > 0 {
+			return nil, store.NewErrConflict("PropertyField", nil, "concurrent modification detected; retry the update")
+		}
 		return nil, errors.Errorf("failed to update, some property fields were not found, got %d of %d", count, len(fields))
+	}
+
+	// Propagate type and options from updated source fields to all their
+	// linked dependents. This self-joins PropertyFields: "source" is the
+	// row we just updated, "linked" is any row whose LinkedFieldID points
+	// to it. Only rows where type or options actually differ are touched,
+	// so this is a no-op when none of the updated fields have dependents.
+	//
+	// We build the query manually because squirrel doesn't support
+	// PostgreSQL's UPDATE ... FROM syntax, and use ExecRaw because the
+	// placeholders are already in $N format (Exec would try to rebind them).
+	//
+	// For ids = ["aaa", "bbb"] the args and SQL expand to:
+	//   propagateArgs = [updateTime, "aaa", "bbb"]  →  $1, $2, $3
+	//   SQL: ... WHERE source.ID IN ($2, $3) ... UpdateAt = $1
+	inPlaceholders := make([]string, len(ids))
+	propagateArgs := make([]any, 0, len(ids)+1)
+	propagateArgs = append(propagateArgs, updateTime)
+	for i, id := range ids {
+		inPlaceholders[i] = fmt.Sprintf("$%d", i+2)
+		propagateArgs = append(propagateArgs, id)
+	}
+
+	propagateSQL := fmt.Sprintf(`
+UPDATE PropertyFields AS linked
+   SET Type = source.Type,
+       Attrs = jsonb_set(COALESCE(linked.Attrs, '{}'::jsonb), '{options}',
+                         COALESCE(source.Attrs->'options', '[]'::jsonb)),
+       UpdateAt = $1
+  FROM PropertyFields AS source
+ WHERE source.ID IN (%s)
+   AND linked.LinkedFieldID = source.ID
+   AND linked.DeleteAt = 0
+   AND (linked.Type != source.Type
+        OR linked.Attrs->'options' IS DISTINCT FROM source.Attrs->'options')
+`, strings.Join(inPlaceholders, ", "))
+
+	if _, execErr := transaction.ExecRaw(propagateSQL, propagateArgs...); execErr != nil {
+		return nil, errors.Wrap(execErr, "property_field_update_propagate")
+	}
+
+	// Retrieve propagated linked fields to include in the return value
+	selectBuilder := s.tableSelectQuery.
+		Where(sq.Eq{"LinkedFieldID": ids}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"UpdateAt": updateTime})
+
+	var propagatedFields []*model.PropertyField
+	if selectErr := transaction.SelectBuilder(&propagatedFields, selectBuilder); selectErr != nil {
+		return nil, errors.Wrap(selectErr, "property_field_update_select_propagated")
 	}
 
 	if err := transaction.Commit(); err != nil {
 		return nil, errors.Wrap(err, "property_field_update_commit_transaction")
 	}
 
-	return fields, nil
+	return append(fields, propagatedFields...), nil
 }
 
 func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
@@ -332,10 +415,15 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 }
 
 // CheckPropertyNameConflict checks if a property field would conflict with
-// existing properties in the hierarchy. It should be called before creating
-// or updating a property field to enforce hierarchical uniqueness.
+// existing properties at the same level or in the hierarchy. It should be called
+// before creating or updating a property field to enforce uniqueness.
 //
-// The hierarchy works as follows:
+// Same-level uniqueness: two properties at the same TargetType (and same TargetID
+// for team/channel) with the same Name, ObjectType, and GroupID conflict. This
+// prevents duplicate names within the same scope (e.g., two templates named
+// "Classification" at system level in the same group).
+//
+// The hierarchy additionally works as follows:
 //   - System-level properties (TargetType="system") conflict with any team or channel
 //     property with the same name in the same ObjectType and GroupID
 //   - Team-level properties (TargetType="team") conflict with system properties and
@@ -374,8 +462,16 @@ func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyF
 }
 
 // checkSystemLevelConflict checks if a system-level property would conflict with
-// any team or channel property with the same name in the same ObjectType and GroupID.
+// another system-level property with the same name, or any team or channel property
+// with the same name, in the same ObjectType and GroupID.
 func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (system) subquery — catches duplicate names at the same scope
+	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
+	systemSQL, systemArgs, err := systemSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_system_system_sql")
+	}
+
 	// Build team subquery
 	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID)
 	teamSQL, teamArgs, err := teamSubquery.ToSql()
@@ -391,8 +487,9 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", teamSQL, channelSQL)
-	args := append(teamArgs, channelArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", systemSQL, teamSQL, channelSQL)
+	args := append(systemArgs, teamArgs...)
+	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
@@ -403,8 +500,17 @@ func (s *SqlPropertyFieldStore) checkSystemLevelConflict(field *model.PropertyFi
 }
 
 // checkTeamLevelConflict checks if a team-level property would conflict with
-// system properties or channel properties within that team.
+// another team-level property with the same name and target, system properties,
+// or channel properties within that team.
 func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (team) subquery — same name within the same team target
+	teamSubquery := s.buildConflictSubquery("team", field.ObjectType, field.GroupID, field.Name, excludeID).
+		Where(sq.Eq{"TargetID": field.TargetID})
+	teamSQL, teamArgs, err := teamSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_team_team_sql")
+	}
+
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
@@ -435,8 +541,9 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, channelSQL)
-	args := append(systemArgs, channelArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", teamSQL, systemSQL, channelSQL)
+	args := append(teamArgs, systemArgs...)
+	args = append(args, channelArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
@@ -447,10 +554,19 @@ func (s *SqlPropertyFieldStore) checkTeamLevelConflict(field *model.PropertyFiel
 }
 
 // checkChannelLevelConflict checks if a channel-level property would conflict with
-// system properties or the team property of the channel's team.
+// another channel-level property with the same name and target, system properties,
+// or the team property of the channel's team.
 // Uses a subquery to get TeamId from Channels table - handles DM channels naturally
 // (DM channels have empty TeamId, so TargetID will be empty and won't match any team-level property).
 func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
+	// Build same-level (channel) subquery — same name within the same channel target
+	channelSubquery := s.buildConflictSubquery("channel", field.ObjectType, field.GroupID, field.Name, excludeID).
+		Where(sq.Eq{"TargetID": field.TargetID})
+	channelSQL, channelArgs, err := channelSubquery.ToSql()
+	if err != nil {
+		return "", errors.Wrap(err, "property_field_check_conflict_channel_channel_sql")
+	}
+
 	// Build system subquery
 	systemSubquery := s.buildConflictSubquery("system", field.ObjectType, field.GroupID, field.Name, excludeID)
 	systemSQL, systemArgs, err := systemSubquery.ToSql()
@@ -469,8 +585,9 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	}
 
 	// Combine with COALESCE, use Rebind to convert ? placeholders to $1, $2, etc.
-	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), '')", systemSQL, teamSQL)
-	args := append(systemArgs, teamArgs...)
+	query := fmt.Sprintf("SELECT COALESCE((%s), (%s), (%s), '')", channelSQL, systemSQL, teamSQL)
+	args := append(channelArgs, systemArgs...)
+	args = append(args, teamArgs...)
 
 	var conflictLevel model.PropertyFieldTargetLevel
 	if err := s.GetMaster().DB.Get(&conflictLevel, s.GetMaster().DB.Rebind(query), args...); err != nil {
@@ -478,4 +595,18 @@ func (s *SqlPropertyFieldStore) checkChannelLevelConflict(field *model.PropertyF
 	}
 
 	return conflictLevel, nil
+}
+
+func (s *SqlPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"LinkedFieldID": fieldID}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	if err := s.GetMaster().GetBuilder(&count, builder); err != nil {
+		return 0, errors.Wrap(err, "property_field_count_linked_fields")
+	}
+	return count, nil
 }
