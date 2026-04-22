@@ -170,7 +170,7 @@ if (heavyPkgs.size > 0) {
         console.log(`  ${pkg.split("/").pop()}: ${newCount} new test(s) not in cache`);
       }
     } catch (e) {
-      console.log(`  ${pkg.split("/").pop()}: go test -list failed, skipping discovery`);
+      console.log(`  ${pkg.split("/").pop()}: go test -list failed: ${e.message}`);
     }
   }
   console.log("::endgroup::");
