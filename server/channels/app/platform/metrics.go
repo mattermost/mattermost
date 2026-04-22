@@ -268,25 +268,27 @@ func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
 		h.ServeHTTP(rec, plainReq)
 		buf.Write(rec.Body.Bytes())
 
-		if ps.pluginEnv != nil && ps.pluginEnv.GetPluginsEnvironment() != nil {
-			env := ps.pluginEnv.GetPluginsEnvironment()
-			env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
-				pluginRec := httptest.NewRecorder()
-				pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
-				if err != nil {
+		if ps.pluginEnv != nil {
+			if env := ps.pluginEnv.GetPluginsEnvironment(); env != nil {
+				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+					pluginRec := httptest.NewRecorder()
+					pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
+					if err != nil {
+						return true
+					}
+
+					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+						if labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id); labeledMetrics != "" {
+							buf.WriteString("\n")
+							buf.WriteString(labeledMetrics)
+						}
+					}
+
 					return true
-				}
-
-				hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
-
-				if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
-					buf.WriteString("\n")
-					labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id)
-					buf.WriteString(labeledMetrics)
-				}
-
-				return true
-			}, plugin.ServeMetricsID)
+				}, plugin.ServeMetricsID)
+			}
 		}
 
 		// Copy content type from main metrics response
