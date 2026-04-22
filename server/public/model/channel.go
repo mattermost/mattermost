@@ -103,6 +103,7 @@ type Channel struct {
 	PolicyEnforced      bool               `json:"policy_enforced"`
 	PolicyIsActive      bool               `json:"policy_is_active"`
 	DefaultCategoryName string             `json:"default_category_name"`
+	ManagedCategoryName string             `json:"managed_category_name"`
 }
 
 func (o *Channel) Auditable() map[string]any {
@@ -146,12 +147,14 @@ type ChannelsWithCount struct {
 }
 
 type ChannelPatch struct {
-	DisplayName      *string            `json:"display_name"`
-	Name             *string            `json:"name"`
-	Header           *string            `json:"header"`
-	Purpose          *string            `json:"purpose"`
-	GroupConstrained *bool              `json:"group_constrained"`
-	BannerInfo       *ChannelBannerInfo `json:"banner_info"`
+	DisplayName         *string            `json:"display_name"`
+	Name                *string            `json:"name"`
+	Header              *string            `json:"header"`
+	Purpose             *string            `json:"purpose"`
+	GroupConstrained    *bool              `json:"group_constrained"`
+	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
+	AutoTranslation     *bool              `json:"autotranslation"`
+	ManagedCategoryName *string            `json:"managed_category_name"`
 }
 
 func (c *ChannelPatch) Auditable() map[string]any {
@@ -263,10 +266,6 @@ func (o *Channel) DeepCopy() *Channel {
 		cCopy.SchemeId = NewPointer(*o.SchemeId)
 	}
 	return &cCopy
-}
-
-func (o *Channel) Etag() string {
-	return Etag(o.Id, o.UpdateAt)
 }
 
 func (o *Channel) IsValid() *AppError {
@@ -402,6 +401,10 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		if patch.BannerInfo.BackgroundColor != nil {
 			o.BannerInfo.BackgroundColor = patch.BannerInfo.BackgroundColor
 		}
+	}
+
+	if patch.AutoTranslation != nil {
+		o.AutoTranslation = *patch.AutoTranslation
 	}
 }
 

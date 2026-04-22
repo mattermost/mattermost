@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {mount} from 'enzyme';
 import React from 'react';
 
+import {render} from 'tests/react_testing_utils';
 import EmojiMap from 'utils/emoji_map';
 
 import DialogIntroductionText from './dialog_introduction_text';
@@ -17,8 +17,8 @@ describe('components/DialogIntroductionText', () => {
             value: '**bold** *italic* [link](https://mattermost.com/) <br/> [link target blank](!https://mattermost.com/)',
             emojiMap,
         };
-        const wrapper = mount(<DialogIntroductionText {...descriptor}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<DialogIntroductionText {...descriptor}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should not fail on empty value', () => {
@@ -27,7 +27,7 @@ describe('components/DialogIntroductionText', () => {
             value: '',
             emojiMap,
         };
-        const wrapper = mount(<DialogIntroductionText {...descriptor}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<DialogIntroductionText {...descriptor}/>);
+        expect(container).toMatchSnapshot();
     });
 });

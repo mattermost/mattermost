@@ -434,12 +434,7 @@ func (jss SqlJobStore) Delete(id string) (string, error) {
 }
 
 func (jss SqlJobStore) Cleanup(expiryTime int64, batchSize int) error {
-	var query string
-	if jss.DriverName() == model.DatabaseDriverPostgres {
-		query = "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
-	} else {
-		query = "DELETE FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?"
-	}
+	query := "DELETE FROM Jobs WHERE Id IN (SELECT Id FROM Jobs WHERE CreateAt < ? AND (Status != ? AND Status != ?) ORDER BY CreateAt ASC LIMIT ?)"
 
 	var rowsAffected int64 = 1
 

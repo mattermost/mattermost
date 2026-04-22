@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ClientLicense} from '@mattermost/types/config';
+
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+
+import {isMinimumEnterpriseAdvancedLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -11,13 +16,20 @@ import type {GlobalState} from 'types/store';
 export const BURN_ON_READ_TOUR_TIP_PREFERENCE = 'burn_on_read_tour_tip';
 
 /**
- * Returns whether the Burn-on-Read feature is enabled system-wide.
+ * Returns whether the Burn-on-Read feature is enabled system-wide AND
+ * the license supports it (Enterprise Advanced or higher).
  * When enabled, users can send messages that auto-delete after being read by recipients.
  */
-export const isBurnOnReadEnabled = (state: GlobalState): boolean => {
-    const config = getConfig(state);
-    return config.EnableBurnOnRead === 'true';
-};
+export const isBurnOnReadEnabled: (state: GlobalState) => boolean = createSelector(
+    'isBurnOnReadEnabled',
+    getConfig,
+    getLicense,
+    (config, license: ClientLicense): boolean => {
+        const configEnabled = config.EnableBurnOnRead === 'true';
+        const licenseSupportsFeature = isMinimumEnterpriseAdvancedLicense(license);
+        return configEnabled && licenseSupportsFeature;
+    },
+);
 
 /**
  * Returns the configured duration (in minutes) that Burn-on-Read messages

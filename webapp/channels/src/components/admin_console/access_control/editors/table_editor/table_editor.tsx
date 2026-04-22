@@ -29,7 +29,8 @@ interface TableEditorProps {
     userAttributes: UserPropertyField[];
     enableUserManagedAttributes: boolean;
     onParseError: (error: string) => void;
-    channelId?: string; // Optional channelId for channel-specific context
+    channelId?: string;
+    teamId?: string;
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
@@ -41,7 +42,7 @@ interface TableEditorProps {
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
 // An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML, admin-managed, OR enableUserManagedAttributes is true).
+// and is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
@@ -50,7 +51,8 @@ export const findFirstAvailableAttributeFromList = (
         const hasSpaces = attr.name.includes(' ');
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
-        const allowed = isSynced || isAdminManaged || enableUserManagedAttributes;
+        const isProtected = attr.attrs?.protected;
+        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
         return !hasSpaces && allowed;
     });
 };
@@ -112,6 +114,7 @@ function TableEditor({
     enableUserManagedAttributes,
     onParseError,
     channelId,
+    teamId,
     actions,
     isSystemAdmin = false,
     validateExpressionAgainstRequester,
@@ -465,7 +468,7 @@ function TableEditor({
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
                             // Return the action for the modal to dispatch
-                            return searchUsersForExpression(value, term, after, limit, channelId);
+                            return searchUsersForExpression(value, term, after, limit, channelId, teamId);
                         },
                     }}
                 />

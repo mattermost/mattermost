@@ -4,6 +4,7 @@
 package hashers
 
 import (
+	"crypto/rand"
 	"strings"
 	"testing"
 
@@ -44,6 +45,10 @@ func TestBCryptHash(t *testing.T) {
 }
 
 func TestBCryptCompareHashAndPassword(t *testing.T) {
+	passwordTooLong := make([]byte, PasswordMaxLengthBytes+1)
+	_, err := rand.Read(passwordTooLong)
+	require.NoError(t, err)
+
 	testCases := []struct {
 		testName    string
 		storedPwd   string
@@ -67,6 +72,12 @@ func TestBCryptCompareHashAndPassword(t *testing.T) {
 			"one password",
 			"another password",
 			ErrMismatchedHashAndPassword,
+		},
+		{
+			"long password",
+			"stored password",
+			string(passwordTooLong),
+			ErrPasswordTooLong,
 		},
 	}
 

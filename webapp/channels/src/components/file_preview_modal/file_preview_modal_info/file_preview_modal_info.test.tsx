@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -45,23 +45,23 @@ describe('components/FilePreviewModalInfo', () => {
     test('should match snapshot', () => {
         mockState.entities.users.profiles = {user_id: mockedUser};
         mockState.entities.channels.channels = {channel_id: mockedChannel};
-        const wrapper = shallow<typeof FilePreviewModalInfo>(
+        const {container} = renderWithContext(
             <FilePreviewModalInfo
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot where post is missing and avoid crash', () => {
         mockState.entities.users.profiles = {user_id: mockedUser};
         mockState.entities.channels.channels = {channel_id: mockedChannel};
         baseProps.post = undefined;
-        const wrapper = shallow<typeof FilePreviewModalInfo>(
+        const {container} = renderWithContext(
             <FilePreviewModalInfo
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

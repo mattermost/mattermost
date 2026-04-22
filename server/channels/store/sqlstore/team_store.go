@@ -6,7 +6,6 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"slices"
 	"strings"
 
 	sq "github.com/mattermost/squirrel"
@@ -738,7 +737,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 	return query
 }
 
-func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) (_ []*model.TeamMember, err error) {
 	newTeamMembers := map[string]int{}
 	users := map[string]bool{}
 	for _, member := range members {
@@ -836,21 +835,28 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 		}
 	}
 
-	query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
-	for _, member := range members {
-		query = query.Values(teamMemberToSlice(member)...)
-	}
-
-	sql, args, err := query.ToSql()
+	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
-		return nil, errors.Wrap(err, "insert_members_to_sql")
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(teamMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().Insert("TeamMembers").Columns(teamMemberSliceColumns()...)
+		for _, member := range chunk {
+			query = query.Values(teamMemberToSlice(member)...)
+		}
+		if _, execErr := transaction.ExecBuilder(query); execErr != nil {
+			if IsUniqueConstraintError(execErr, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+				return nil, store.NewErrConflict("TeamMember", execErr, "")
+			}
+			return nil, errors.Wrap(execErr, "unable_to_save_team_member")
+		}
 	}
 
-	if _, err = s.GetMaster().Exec(sql, args...); err != nil {
-		if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
-			return nil, store.NewErrConflict("TeamMember", err, "")
-		}
-		return nil, errors.Wrap(err, "unable_to_save_team_member")
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	newMembers := []*model.TeamMember{}
@@ -1614,19 +1620,11 @@ func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) (bool,
 
 // UpdateMembersRole updates all the members of teamID in the adminIDs string array to be admins and sets all other
 // users as not being admin.
-// It returns the list of userIDs whose roles got updated.
-func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*model.TeamMember, err error) {
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return nil, err
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	// TODO: https://mattermost.atlassian.net/browse/MM-63368
-	// On MySQL it's not possible to update a table and select from it in the same query.
-	// A SELECT and a UPDATE query are needed.
-	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.
-	query, args, err := s.teamMembersQuery.
+// It returns the list of members whose roles got updated.
+func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) ([]*model.TeamMember, error) {
+	query := s.getQueryBuilder().
+		Update("TeamMembers").
+		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
 		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
 		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).
 		Where(
@@ -1642,40 +1640,12 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*
 					sq.NotEq{"UserId": adminIDs},
 				},
 			},
-		).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
+		).
+		Suffix("RETURNING " + strings.Join(teamMemberSliceColumns(), ", "))
 
 	var updatedMembers []*model.TeamMember
-	if err = transaction.Select(&updatedMembers, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to get list of updated users")
-	}
-
-	// Update SchemeAdmin field as the data from the SQL is not updated yet
-	for _, member := range updatedMembers {
-		if slices.Contains(adminIDs, member.UserId) {
-			member.SchemeAdmin = true
-		} else {
-			member.SchemeAdmin = false
-		}
-	}
-
-	query, args, err = s.getQueryBuilder().
-		Update("TeamMembers").
-		Set("SchemeAdmin", sq.Case().When(sq.Eq{"UserId": adminIDs}, "true").Else("false")).
-		Where(sq.Eq{"TeamId": teamID, "DeleteAt": 0}).
-		Where(sq.Or{sq.Eq{"SchemeGuest": false}, sq.Expr("SchemeGuest IS NULL")}).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "team_tosql")
-	}
-
-	if _, err = transaction.Exec(query, args...); err != nil {
+	if err := s.GetMaster().SelectBuilder(&updatedMembers, query); err != nil {
 		return nil, errors.Wrap(err, "failed to update TeamMembers")
-	}
-
-	if err = transaction.Commit(); err != nil {
-		return nil, errors.Wrap(err, "commit_transaction")
 	}
 
 	return updatedMembers, nil

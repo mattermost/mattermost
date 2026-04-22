@@ -115,15 +115,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	require.NoError(tb, err)
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	// Disable strict password requirements for test
-	a.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PasswordSettings.MinimumLength = 5
-		*cfg.PasswordSettings.Lowercase = false
-		*cfg.PasswordSettings.Uppercase = false
-		*cfg.PasswordSettings.Symbol = false
-		*cfg.PasswordSettings.Number = false
-	})
-
 	web := New(s)
 	URL = fmt.Sprintf("http://localhost:%v", s.ListenAddr.Port)
 	apiClient = model.NewAPIv4Client(URL)
@@ -172,10 +163,10 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 	tb.Helper()
 
 	var appErr *model.AppError
-	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemAdminRoleId})
+	th.SystemAdminUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword(), EmailVerified: true, Roles: model.SystemAdminRoleId})
 	require.Nil(tb, appErr)
 
-	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SystemUserRoleId})
+	th.BasicUser, appErr = th.App.CreateUser(th.Context, &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: model.NewTestPassword(), EmailVerified: true, Roles: model.SystemUserRoleId})
 	require.Nil(tb, appErr)
 
 	th.BasicTeam, appErr = th.App.CreateTeam(th.Context, &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: th.BasicUser.Email, Type: model.TeamOpen})
@@ -472,6 +463,30 @@ func TestCheckClientCompatability(t *testing.T) {
 		t.Run(browser.Name, func(t *testing.T) {
 			result := CheckClientCompatibility(browser.UserAgent)
 			require.Equalf(t, result, browser.Result, "user agent test failed for %s", browser.Name)
+		})
+	}
+}
+
+func TestCheckDesktopAppCompatibility(t *testing.T) {
+	tests := []struct {
+		name       string
+		userAgent  string
+		minVersion string
+		want       bool
+	}{
+		{"blank min version allows all", "Mattermost/5.0.0", "", true},
+		{"desktop app at min version", "Mattermost/5.0.0", "5.0.0", true},
+		{"desktop app above min version", "Mattermost/5.1.0", "5.0.0", true},
+		{"desktop app below min version", "Mattermost/4.9.0", "5.0.0", false},
+		{"browser user agent not checked", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0", "5.0.0", true},
+		{"desktop app version at start of UA", "Mattermost/5.3.1 Chrome/110.0.5481.177", "5.0.0", true},
+		{"desktop app version at end of UA", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0.6478.127 Electron/31.2.1 Safari/537.36 Mattermost/5.9.0", "5.0.0", true},
+		{"desktop app old version rejected", "Mattermost/3.7.1 Chrome/56.0.2924.87 Electron/1.6.11 Safari/537.36", "5.0.0", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := CheckDesktopAppCompatibility(tt.userAgent, &tt.minVersion)
+			require.Equalf(t, tt.want, got, "CheckDesktopAppCompatibility(%q, %q)", tt.userAgent, tt.minVersion)
 		})
 	}
 }

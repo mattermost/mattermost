@@ -3,7 +3,7 @@
 
 import * as monaco from 'monaco-editor';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlTestResult} from '@mattermost/types/access_control';
 
@@ -74,6 +74,7 @@ interface CELEditorProps {
     placeholder?: string;
     className?: string;
     channelId?: string;
+    teamId?: string;
     disabled?: boolean;
     userAttributes: Array<{
         attribute: string;
@@ -90,9 +91,11 @@ function CELEditor({
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
     channelId,
+    teamId,
     disabled = false,
     userAttributes,
 }: CELEditorProps): JSX.Element {
+    const intl = useIntl();
     const [editorState, setEditorState] = useState({
         expression: value,
         isValidating: false,
@@ -150,7 +153,7 @@ function CELEditor({
         setEditorState((prev) => ({...prev, isValidating: true, isWaitingForValidation: false}));
 
         try {
-            const errors = await Client4.checkAccessControlExpression(expression, channelId);
+            const errors = await Client4.checkAccessControlExpression(expression, channelId, teamId);
             const isValid = errors.length === 0;
             setEditorState((prev) => ({
                 ...prev,
@@ -376,7 +379,15 @@ function CELEditor({
                 <div className='help-text-container'>
                     <div>
                         <HelpText
-                            message={'Write rules like `user.<attribute> == <value>`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.'}
+                            message={intl.formatMessage({
+                                id: 'admin.access_control.cel.help_text',
+                                defaultMessage: 'Write rules like `user.attributes.{lessThan}attribute{greaterThan} == {lessSign}value{greaterSign}`. Use `&&` / `||` (and/or) for multiple conditions. Group conditions with `()`.',
+                            }, {
+                                lessThan: '<',
+                                greaterThan: '>',
+                                lessSign: '<',
+                                greaterSign: '>',
+                            })}
                             onLearnMoreClick={() => setShowHelpModal(true)}
                         />
                     </div>
@@ -393,7 +404,7 @@ function CELEditor({
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
-                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId);
+                            return searchUsersForExpression(editorState.expression, term, after, limit, channelId, teamId);
                         },
                     }}
                 />

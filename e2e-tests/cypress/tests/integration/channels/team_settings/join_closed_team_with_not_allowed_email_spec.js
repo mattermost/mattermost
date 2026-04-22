@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getRandomId, stubClipboard} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getRandomId, stubClipboard, newTestPassword} from '@/utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -79,7 +79,7 @@ describe('Team Settings', () => {
 
             const email = `user${randomId}@sample.gmail.com`;
             const username = `user${randomId}`;
-            const password = 'passwd';
+            const password = newTestPassword();
             const errorMessage = `The following email addresses do not belong to an accepted domain: ${emailDomain}. Please contact your System Administrator for details.`;
 
             // # Type email, username and password
@@ -87,8 +87,11 @@ describe('Team Settings', () => {
             cy.get('#input_name').type(username);
             cy.get('#input_password-input').type(password);
 
+            // # Check the terms and privacy checkbox
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
+
             // # Attempt to create an account by clicking on the 'Create Account' button
-            cy.findByText('Create Account').click();
+            cy.findByText('Create account').click();
 
             // * Assert that the expected error message from creating an account with an email not from the allowed email domain exists and is visible
             cy.findByText(errorMessage).should('be.visible');
@@ -127,7 +130,7 @@ describe('Team Settings', () => {
         });
 
         // # Create a new user
-        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: 'passwd'}}).then(({user}) => {
+        cy.apiCreateUser({user: {email: `user${randomId}@sample.gmail.com`, username: `user${randomId}`, password: newTestPassword()}}).then(({user}) => {
             // # Create a second team
             cy.apiCreateTeam('other-team', 'Other Team').then(({team: otherTeam}) => {
                 // # Add user to the other team

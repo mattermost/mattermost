@@ -7,12 +7,11 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @system_console @mfa
 
-import ldapUsers from '../../../../fixtures/ldap_users.json';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../support/env';
+import ldapUsers from '@/fixtures/ldap_users.json';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 const authenticator = require('authenticator');
 

@@ -61,6 +61,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/recap"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_materialized_views"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
@@ -146,8 +147,27 @@ type Server struct {
 	IPFiltering             einterfaces.IPFilteringInterface
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 	PushProxy               einterfaces.PushProxyInterface
+	AutoTranslation         einterfaces.AutoTranslationInterface
+
+	agentsBridgeOverride AgentsBridge
 
 	ch *Channels
+
+	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
+	cwsTokenOverride string
+
+	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
+	notifyAdminCoolOffDaysOverride string
+}
+
+// SetCWSTokenOverride sets the CWS token override for CWS login authentication.
+func (s *Server) SetCWSTokenOverride(v string) {
+	s.cwsTokenOverride = v
+}
+
+// SetNotifyAdminCoolOffDaysOverride sets the cool-off period override for admin notifications.
+func (s *Server) SetNotifyAdminCoolOffDaysOverride(v string) {
+	s.notifyAdminCoolOffDaysOverride = v
 }
 
 func (s *Server) Store() store.Store {
@@ -156,6 +176,10 @@ func (s *Server) Store() store.Store {
 	}
 
 	return nil
+}
+
+func (s *Server) PropertyService() *properties.PropertyService {
+	return s.propertyService
 }
 
 func (s *Server) SetStore(st store.Store) {
@@ -236,9 +260,31 @@ func NewServer(options ...Option) (*Server, error) {
 		PropertyGroupStore: s.Store().PropertyGroup(),
 		PropertyFieldStore: s.Store().PropertyField(),
 		PropertyValueStore: s.Store().PropertyValue(),
+		CallerIDExtractor: func(rctx request.CTX) string {
+			callerID, _ := CallerIDFromRequestContext(rctx)
+			return callerID
+		},
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create properties service")
+	}
+
+	propertyAccessService := properties.NewPropertyAccessService(s.propertyService, func(pluginID string) bool {
+		if s.ch == nil {
+			return false
+		}
+
+		_, err := s.ch.GetPluginStatus(pluginID)
+		return err == nil
+	})
+	s.propertyService.SetPropertyAccessService(propertyAccessService)
+
+	// Register builtin property groups after fully initializing the propertyService
+	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
+		{Name: model.CustomProfileAttributesPropertyGroupName},
+		{Name: model.ContentFlaggingGroupName},
+	}); err != nil {
+		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
 
 	// It is important to initialize the hub only after the global logger is set
@@ -321,17 +367,17 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))
 
-	if err2 := i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err2 != nil {
-		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
+	if err = i18n.InitTranslations(*s.platform.Config().LocalizationSettings.DefaultServerLocale, *s.platform.Config().LocalizationSettings.DefaultClientLocale); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	if !ok {
 		return nil, errors.New("Failed find server templates in \"templates\" directory")
 	}
-	htmlTemplates, err2 := templates.New(templatesDir)
-	if err2 != nil {
-		return nil, errors.Wrap(err2, "cannot initialize server templates")
+	htmlTemplates, err := templates.New(templatesDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot initialize server templates")
 	}
 	s.htmlTemplates = htmlTemplates
 
@@ -383,7 +429,10 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
-		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
+		// Don't spam the logs when in CI or local testing mode
+		if !(os.Getenv("IS_CI") == "true" || os.Getenv("IS_LOCAL_TESTING") == "true") {
+			mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
+		}
 	}
 
 	// Start email batching because it's not like the other jobs
@@ -656,6 +705,11 @@ func (s *Server) Shutdown() {
 			s.Log().Error("Error shutting down intercluster services", mlog.Err(err))
 		}
 	}
+	if s.AutoTranslation != nil {
+		if err = s.AutoTranslation.Shutdown(); err != nil {
+			s.Log().Error("Error shutting down auto-translation service", mlog.Err(err))
+		}
+	}
 	s.serviceMux.RUnlock()
 
 	s.StopHTTPServer()
@@ -828,6 +882,12 @@ func (s *Server) Start() error {
 	if s.MailServiceConfig().SendEmailNotifications {
 		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
 			mlog.Error("Mail server connection test failed", mlog.Err(err))
+		}
+	}
+
+	if s.AutoTranslation != nil {
+		if err := s.AutoTranslation.Start(); err != nil {
+			return errors.Wrap(err, "Unable to start auto-translation service")
 		}
 	}
 
@@ -1290,17 +1350,7 @@ func (s *Server) sendLicenseUpForRenewalEmail(users map[string]*model.User, lice
 	countNotOks := 0
 
 	for _, user := range users {
-		name := user.FirstName
-		if name == "" {
-			name = user.Username
-		}
-		T := i18n.GetUserTranslations(user.Locale)
-
-		ctaTitle := ""
-		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
-		ctaLink := "https://mattermost.com/contact-sales/"
-
-		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, name, user.Locale, *s.platform.Config().ServiceSettings.SiteURL, ctaTitle, ctaLink, ctaText, daysToExpiration); err != nil {
+		if err := s.EmailService.SendLicenseUpForRenewalEmail(user.Email, user.Locale, daysToExpiration); err != nil {
 			mlog.Error("Error sending license up for renewal email to", mlog.String("user_email", user.Email), mlog.Err(err))
 			countNotOks++
 		}
@@ -1390,16 +1440,10 @@ func (s *Server) doLicenseExpirationCheck() {
 			continue
 		}
 
-		T := i18n.GetUserTranslations(user.Locale)
-		ctaText := T("api.templates.license_up_for_renewal_contact_sales")
-		ctaLink := "https://mattermost.com/contact-sales/"
-
 		mlog.Debug("Sending license expired email.", mlog.String("user_email", user.Email))
-		s.Go(func() {
-			if err := s.SendRemoveExpiredLicenseEmail(user.Email, ctaText, ctaLink, user.Locale, *s.platform.Config().ServiceSettings.SiteURL); err != nil {
-				mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
-			}
-		})
+		if err := s.SendRemoveExpiredLicenseEmail(user.Email, user.Locale); err != nil {
+			mlog.Error("Error while sending the license expired email.", mlog.String("user_email", user.Email), mlog.Err(err))
+		}
 	}
 
 	// remove the license
@@ -1408,10 +1452,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 }
 
-// SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
-// to renew the user license
-func (s *Server) SendRemoveExpiredLicenseEmail(email, ctaText, ctaLink, locale, siteURL string) *model.AppError {
-	if err := s.EmailService.SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL); err != nil {
+func (s *Server) SendRemoveExpiredLicenseEmail(email, locale string) *model.AppError {
+	if err := s.EmailService.SendRemoveExpiredLicenseEmail(email, locale); err != nil {
 		return model.NewAppError("SendRemoveExpiredLicenseEmail", "api.license.remove_expired_license.failed.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -1470,6 +1512,12 @@ func (s *Server) initJobs() {
 	if pushProxyInterface != nil {
 		builder := pushProxyInterface(New(ServerConnector(s.Channels())))
 		s.Jobs.RegisterJobType(model.JobTypePushProxyAuth, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if s.AutoTranslation != nil {
+		s.Jobs.RegisterJobType(model.JobTypeAutoTranslationRecovery,
+			s.AutoTranslation.MakeWorker(),
+			s.AutoTranslation.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(
@@ -1625,6 +1673,12 @@ func (s *Server) initJobs() {
 		nil)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeRecap,
+		recap.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeDeleteExpiredPosts,
 		delete_expired_posts.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		delete_expired_posts.MakeScheduler(s.Jobs),
@@ -1773,7 +1827,10 @@ func runDNDStatusExpireJob(a *App) {
 		withMut(&a.ch.dndTaskMut, func() {
 			a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 		})
+	} else {
+		mlog.Debug("Skipping unset DND status job startup since this is not the leader node")
 	}
+
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if unset DNS status task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
@@ -1781,6 +1838,7 @@ func runDNDStatusExpireJob(a *App) {
 				a.ch.dndTask = model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses", a.UpdateDNDStatusOfUsers, model.DNDExpiryInterval)
 			})
 		} else {
+			mlog.Debug("This is no longer leader node. Cancelling the unset DND status task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.dndTaskMut, &a.ch.dndTask)
 		}
 	})
@@ -1793,7 +1851,10 @@ func runPostReminderJob(a *App) {
 			fn := func() { a.CheckPostReminders(rctx) }
 			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 		})
+	} else {
+		mlog.Debug("Skipping post reminder job startup since this is not the leader node")
 	}
+
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
@@ -1803,6 +1864,7 @@ func runPostReminderJob(a *App) {
 				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
+			mlog.Debug("This is no longer leader node. Cancelling the post reminder task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)
 		}
 	})
@@ -1811,6 +1873,8 @@ func runPostReminderJob(a *App) {
 func runScheduledPostJob(a *App) {
 	if a.IsLeader() {
 		doRunScheduledPostJob(a)
+	} else {
+		mlog.Debug("Skipping scheduled posts job startup since this is not the leader node")
 	}
 
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
@@ -1818,7 +1882,7 @@ func runScheduledPostJob(a *App) {
 		if a.IsLeader() {
 			doRunScheduledPostJob(a)
 		} else {
-			mlog.Info("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
+			mlog.Debug("This is no longer leader node. Cancelling the scheduled post task", mlog.Bool("isLeader", a.IsLeader()))
 			cancelTask(&a.ch.scheduledPostMut, &a.ch.scheduledPostTask)
 		}
 	})

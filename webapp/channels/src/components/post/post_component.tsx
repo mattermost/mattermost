@@ -37,19 +37,21 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import AlertIcon from 'components/widgets/icons/alert_icon';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import ClockSendIcon from 'components/widgets/icons/clock_send_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {getHistory} from 'utils/browser_history';
+import {getArchiveIconComponent} from 'utils/channel_utils';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -57,6 +59,7 @@ import type {ModalData} from 'types/actions';
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 
 import {withPostErrorBoundary} from './post_error_boundary';
+import PostHeaderTranslateIcon from './post_header_translate_icon';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -111,6 +114,7 @@ export type Props = {
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
+        highlightPostInChannelPopout: (postId: string) => void;
     };
     timestampProps?: Partial<TimestampProps>;
     shouldHighlight?: boolean;
@@ -131,10 +135,15 @@ export type Props = {
     isCardOpen?: boolean;
     canDelete?: boolean;
     pluginActions: PostActionComponent[];
+    isChannelAutotranslated: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
     burnOnReadDurationMinutes: number;
     burnOnReadSkipConfirmation?: boolean;
+    preventClickInteraction?: boolean;
+    permissionPoliciesEnabled: boolean;
 };
+
+const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
 
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
@@ -142,6 +151,7 @@ function PostComponent(props: Props) {
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
+    const isModal = props.location === Locations.MODAL;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
     const pendingIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -157,6 +167,8 @@ function PostComponent(props: Props) {
     const [showPendingIndicator, setShowPendingIndicator] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
+
+    const {locale} = useIntl();
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
@@ -351,6 +363,7 @@ function PostComponent(props: Props) {
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
+            'post--modal': isModal,
         });
     };
 
@@ -430,27 +443,44 @@ function PostComponent(props: Props) {
         }
 
         props.actions.setRhsExpanded(false);
+
+        if (isChannelPopoutWindow() && props.isPinnedPosts) {
+            props.actions.highlightPostInChannelPopout(post.id);
+            return;
+        }
+
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
-    }, [props.isMobileView, props.actions, props.teamName, post?.id]);
+    }, [props.isMobileView, props.actions, props.teamName, props.isPinnedPosts, post]);
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
+    const isSearchPopoutWindow = useMemo(() => isPopoutWindow() && isSearchResultItem, [isSearchResultItem]);
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+        if (isSearchPopoutWindow) {
+            const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+            getHistory().replace(`/_popout/thread/${props.teamName}/${post.root_id || post.id}?returnTo=${returnTo}`);
+            return;
+        }
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, props.teamName, selectPostFromRightHandSideSearch, isSearchPopoutWindow]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam?.id === teamId) {
+        if (isSearchPopoutWindow || props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId, isSearchPopoutWindow]);
+
+    const translation = PostUtils.getPostTranslation(post, locale);
+
+    // Only show translation for normal (no custom type) posts
+    const isTranslating = translation?.state === 'processing' && post.type === '';
 
     const handleRevealBurnOnRead = useCallback(async (postId: string) => {
         setBurnOnReadRevealing(true);
@@ -520,7 +550,13 @@ function PostComponent(props: Props) {
         handleBurnOnReadClick(false);
     }, [handleBurnOnReadClick]);
 
-    const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
+    const postClass = classNames(
+        'post__body',
+        {
+            'post--edited': PostUtils.isEdited(post),
+            'search-item-snippet': isSearchResultItem,
+        },
+    );
     const postBodyMainClass = classNames('post__body-main');
 
     const renderPendingStatus = useCallback((extraClass?: string) => (
@@ -669,6 +705,8 @@ function PostComponent(props: Props) {
                         mentionHighlight: props.isMentionSearch,
                     }}
                     isRHS={isRHS}
+                    isChannelAutotranslated={props.isChannelAutotranslated}
+                    userLanguage={locale}
                 />
             </PostBodyAdditionalContent>
         );
@@ -680,6 +718,7 @@ function PostComponent(props: Props) {
                 pluginPostTypes={props.pluginPostTypes}
                 isRHS={isRHS}
                 compactDisplay={props.compactDisplay}
+                isChannelAutotranslated={props.isChannelAutotranslated}
             />
         );
     }
@@ -789,6 +828,7 @@ function PostComponent(props: Props) {
 
     // Don't show file attachments for concealed burn-on-read posts (attachments only fetched after reveal)
     const showFileAttachments = post.file_ids && post.file_ids.length > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder;
+    const redactedFileCount = post.metadata?.redacted_file_count ?? 0;
 
     return (
         <>
@@ -798,10 +838,15 @@ function PostComponent(props: Props) {
                 data-testid={postAriaLabelDivTestId}
                 post={post}
                 className={getClassName()}
+                style={props.preventClickInteraction ? preventInteractionStyle : undefined}
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
+                autotranslated={props.isChannelAutotranslated}
             >
+                {props.isChannelAutotranslated && isTranslating && (
+                    <div className='post-message__shimmer'/>
+                )}
                 {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
                     <div
                         className='search-channel__name__container'
@@ -813,13 +858,20 @@ function PostComponent(props: Props) {
                         </span>
                         }
                         {props.channelIsArchived &&
-                        <span className='search-channel__archived'>
-                            <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
-                            <FormattedMessage
-                                id='search_item.channelArchived'
-                                defaultMessage='Archived'
-                            />
-                        </span>
+                        <WithTooltip
+                            id='channelArchivedTooltip'
+                            title={formatMessage({
+                                id: 'search_item.channelArchived',
+                                defaultMessage: 'Archived',
+                            })}
+                        >
+                            <span className='search-channel__archived'>
+                                {(() => {
+                                    const ArchiveIcon = getArchiveIconComponent(props.channelType);
+                                    return <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>;
+                                })()}
+                            </span>
+                        </WithTooltip>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
                         <span className='search-team__name'>
@@ -836,7 +888,9 @@ function PostComponent(props: Props) {
                     channelId={post.channel_id}
                 />
                 <div
-                    className={`post__content ${props.center ? 'center' : ''}`}
+                    className={classNames('post__content', {
+                        center: props.center,
+                    })}
                     data-testid='postContent'
                 >
                     <div className='post__img'>
@@ -874,6 +928,13 @@ function PostComponent(props: Props) {
                                         postAuthorId={post.user_id}
                                     />
                                 )}
+                                {!isModal && !props.isConsecutivePost && props.isChannelAutotranslated && (
+                                    <PostHeaderTranslateIcon
+                                        postId={post.id}
+                                        translationState={translation?.state}
+                                        postType={post.type}
+                                    />
+                                )}
                                 {Boolean(post.props && post.props.card) &&
                                     <WithTooltip
                                         title={
@@ -900,7 +961,7 @@ function PostComponent(props: Props) {
                                 {visibleMessage}
                                 {headerActions}
                             </div>
-                            {!props.isPostBeingEdited &&
+                            {!isModal && !props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
                                 teamId={teamId}
@@ -942,6 +1003,12 @@ function PostComponent(props: Props) {
                                         handleFileDropdownOpened={handleFileDropdownOpened}
                                     />
                                 }
+                                {props.permissionPoliciesEnabled && redactedFileCount > 0 && !props.isPostBeingEdited && !showConcealedPlaceholder && post.state !== Posts.POST_DELETED && (
+                                    <RedactedFilesPlaceholder
+                                        count={redactedFileCount}
+                                        compactDisplay={props.compactDisplay}
+                                    />
+                                )}
                                 <div className='post__body-reactions-acks'>
                                     {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                         <PostAcknowledgements

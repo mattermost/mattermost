@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {clickCategoryMenuItem} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)

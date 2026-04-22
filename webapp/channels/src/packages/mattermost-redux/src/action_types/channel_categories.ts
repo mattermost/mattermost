@@ -12,4 +12,9 @@ export default keyMirror({
     CATEGORY_EXPANDED: null,
 
     CATEGORY_DELETED: null,
+
+    RECEIVED_MANAGED_CATEGORY_MAPPINGS: null,
+
+    MANAGED_CATEGORY_MAPPING_SET: null,
+    MANAGED_CATEGORY_MAPPING_REMOVED: null,
 });

@@ -23,6 +23,7 @@ import type {NewPostMessageProps} from 'actions/new_post';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -34,6 +35,7 @@ export type PluginsState = {
         PostDropdownMenu: PostDropdownMenuAction[];
         MainMenu: MainMenuAction[];
         ChannelHeader: ChannelHeaderAction[];
+        ChannelHeaderIcon: ChannelHeaderIconComponent[];
         ChannelHeaderButton: ChannelHeaderButtonAction[];
         MobileChannelHeaderButton: MobileChannelHeaderButtonAction[];
         AppBar: AppBarAction[];
@@ -45,6 +47,7 @@ export type PluginsState = {
         PostDropdownMenuItem: PostDropdownMenuItemComponent[];
         PostAction: PostActionComponent[];
         PostEditorAction: PostEditorActionComponent[];
+        AIActionMenuItem: AIActionMenuItemComponent[];
         CodeBlockAction: CodeBlockActionComponent[];
         NewMessagesSeparatorAction: NewMessagesSeparatorActionComponent[];
         FilePreview: FilePreviewComponent[];
@@ -173,6 +176,13 @@ export type ChannelHeaderButtonAction = PluginComponent & {
     action: (channel: Channel, member?: ChannelMembership) => void;
 };
 
+export type ChannelHeaderIconComponent = PluginComponent & {
+    component: React.ComponentType<BasePluggableProps & {
+        channel: Channel;
+        channelMember: ChannelMembership;
+    }>;
+};
+
 export type FileUploadMethodAction = PluginComponent & {
     text: PluggableText;
     action: (checkPluginHooksAndUploadFiles: ((files: FileList | File[]) => void)) => void;
@@ -236,9 +246,12 @@ export type ProductSubComponentNames = 'mainComponent' | 'publicComponent' | 'he
 export type ProductComponent = PluginComponent & {
 
     /**
-     * A compass-icon glyph to display as the icon in the product switcher
+     * A compass-icon glyph name or React element to display as the icon in the product switcher.
+     * Accepts either:
+     * - IconGlyphTypes: A string name from the Compass Icons library (e.g., 'product-channels')
+     * - React.ReactNode: A custom React element to render as the icon
      */
-    switcherIcon: IconGlyphTypes;
+    switcherIcon: IconGlyphTypes | React.ReactNode;
 
     /**
      * A string or React element to display in the product switcher
@@ -422,6 +435,22 @@ export type LinkTooltipComponent = PluginComponent & {
 
 export type PostEditorActionComponent = PluginComponent & {
     component: React.ComponentType;
+};
+
+export type AIActionMenuItemProps = {
+    draft: PostDraft;
+    getSelectedText: () => {start: number; end: number};
+    updateText: (message: string) => void;
+    channelId: string;
+    isRHS: boolean;
+};
+
+export type AIActionMenuItemComponent = PluginComponent & {
+    component?: React.ComponentType<AIActionMenuItemProps>;
+    action?: (props: AIActionMenuItemProps) => void;
+    icon: React.ReactNode;
+    text: React.ReactNode;
+    sortOrder: number;
 };
 
 export type CodeBlockActionComponent = PluginComponent & {

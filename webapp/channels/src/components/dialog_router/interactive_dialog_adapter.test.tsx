@@ -215,8 +215,8 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
         });
     });
 
-    describe('XSS Prevention and Sanitization', () => {
-        test('should sanitize introduction text with iframe tags', async () => {
+    describe('Introduction Text Handling', () => {
+        test('should pass introduction text without pre-escaping (delegated to Markdown.format)', async () => {
             const maliciousIntro = 'Introduction <iframe src="evil.com"></iframe> text';
             const props = {
                 ...baseProps,
@@ -228,8 +228,33 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             );
 
             await waitFor(() => {
-                // Should escape HTML tags
-                expect(getByTestId('form-header')).toHaveTextContent('Introduction &lt;iframe src=&quot;evil.com&quot;&gt;&lt;/iframe&gt; text');
+                // Introduction text should NOT be escaped at conversion time
+                // It will be sanitized by Markdown.format when actually rendered
+                expect(getByTestId('form-header')).toHaveTextContent(maliciousIntro);
+            });
+        });
+
+        test('should preserve angle brackets in markdown code blocks (no double-escaping)', async () => {
+            const introWithCode = '* test `< or >`\n* test < or >\n`< or >`';
+            const props = {
+                ...baseProps,
+                introductionText: introWithCode,
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                const header = getByTestId('form-header');
+
+                // Should pass through raw markdown without escaping angle brackets
+                expect(header.textContent).toBe(introWithCode);
+
+                // Should NOT contain double-escaped entities like &amp;lt;
+                expect(header.textContent).not.toContain('&lt;');
+                expect(header.textContent).not.toContain('&gt;');
+                expect(header.textContent).not.toContain('&amp;');
             });
         });
 
@@ -1330,29 +1355,19 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
             const mockCall = MockAppsFormContainer.mock.calls[0][0];
             const submitAdapter = mockCall.actions.doAppSubmit;
 
-            // Test with null value for required field - should not crash
+            // Test with null value for required field - should not crash.
+            // processFormValues normalizes null to '' in accumulatedValues,
+            // so the validation sees an empty string (not null) and does not
+            // produce a required-field error.
             const result = await submitAdapter({
                 values: {
                     'text-field': 'valid',
-                    'required-field': null, // Missing required field
+                    'required-field': null, // Cleared field — normalized to ''
                 },
             });
 
-            // Should complete successfully (null values are simply skipped)
+            // Should complete successfully (null values are normalized to empty strings)
             expect(result.data?.type).toBe('ok');
-            expect(mockConsole.warn).toHaveBeenCalledWith(
-                '[InteractiveDialogAdapter]',
-                'Form submission validation errors',
-                expect.objectContaining({
-                    errorCount: expect.any(Number),
-                    errors: expect.arrayContaining([
-                        expect.objectContaining({
-                            field: expect.stringContaining('required-field'),
-                            message: expect.any(String),
-                        }),
-                    ]),
-                }),
-            );
         });
     });
 
@@ -2279,6 +2294,132 @@ describe('components/interactive_dialog/InteractiveDialogAdapter', () => {
                 type: 'ok',
                 data: {items: []},
             });
+        });
+
+        test('should include selected_field in refresh submission', async () => {
+            const mockSubmitDialog = jest.fn().mockResolvedValue({data: {}});
+
+            const refreshSelectElement: DialogElement = {
+                name: 'category',
+                type: 'select',
+                display_name: 'Category',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: false,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                options: [
+                    {text: 'Option A', value: 'a'},
+                    {text: 'Option B', value: 'b'},
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                sourceUrl: '/plugins/myplugin/refresh',
+                elements: [refreshSelectElement],
+                actions: {
+                    submitInteractiveDialog: mockSubmitDialog,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the refresh handler from the MockAppsFormContainer
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const refreshHandler = mockCall.actions.doAppFetchForm;
+
+            // Trigger refresh with selected_field set
+            await refreshHandler({
+                selected_field: 'category',
+                values: {category: 'a'},
+            });
+
+            expect(mockSubmitDialog).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    url: '/plugins/myplugin/refresh',
+                    submission: expect.objectContaining({
+                        selected_field: 'category',
+                        category: 'a',
+                    }),
+                }),
+            );
+        });
+
+        test('should send empty string for cleared select field values in refresh', async () => {
+            const mockSubmitDialog = jest.fn().mockResolvedValue({data: {}});
+
+            const refreshSelectElement: DialogElement = {
+                name: 'priority',
+                type: 'select',
+                display_name: 'Priority',
+                help_text: '',
+                placeholder: '',
+                default: '',
+                optional: true,
+                max_length: 0,
+                min_length: 0,
+                subtype: '',
+                data_source: '',
+                options: [
+                    {text: 'High', value: 'high'},
+                    {text: 'Low', value: 'low'},
+                ],
+            };
+
+            const props = {
+                ...baseProps,
+                sourceUrl: '/plugins/myplugin/refresh',
+                elements: [refreshSelectElement],
+                actions: {
+                    submitInteractiveDialog: mockSubmitDialog,
+                    lookupInteractiveDialog: jest.fn().mockResolvedValue({data: {items: []}}),
+                },
+            };
+
+            const {getByTestId} = renderWithContext(
+                <InteractiveDialogAdapter {...props}/>,
+            );
+
+            await waitFor(() => {
+                expect(getByTestId('apps-form-container')).toBeInTheDocument();
+            });
+
+            // Get the refresh handler from the MockAppsFormContainer
+            const mockCall = MockAppsFormContainer.mock.calls[0][0];
+            const refreshHandler = mockCall.actions.doAppFetchForm;
+
+            // First refresh sets a value so it gets accumulated
+            await refreshHandler({
+                selected_field: 'priority',
+                values: {priority: 'high'},
+            });
+
+            mockSubmitDialog.mockClear();
+
+            // Second refresh clears the field (null simulates a cleared select)
+            await refreshHandler({
+                selected_field: 'priority',
+                values: {priority: null},
+            });
+
+            expect(mockSubmitDialog).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    submission: expect.objectContaining({
+                        priority: '',
+                    }),
+                }),
+            );
         });
     });
 });

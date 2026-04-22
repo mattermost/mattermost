@@ -62,7 +62,7 @@ type RolesState = {
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
-class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
+export class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
     constructor(props: Props) {
@@ -405,7 +405,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
                                 <span>
                                     <FormattedMessage
                                         id='admin.permissions.systemScheme.introBanner'
-                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link>is applied in specific teams.'
+                                        defaultMessage='Configure the default permissions for Team Admins, Channel Admins and other members. This scheme is inherited by all teams unless a <link>Team Override Scheme</link> is applied in specific teams.'
                                         values={{
                                             link: (msg: React.ReactNode) => (
                                                 <ExternalLink

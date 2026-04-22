@@ -13,8 +13,8 @@
 
 import {ChannelType} from '@mattermost/types/channels';
 
-import {getRandomId} from '../../../utils';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Channel Settings', () => {
     let testTeam: Cypress.Team;

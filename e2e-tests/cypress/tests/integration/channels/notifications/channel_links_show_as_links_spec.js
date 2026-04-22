@@ -7,15 +7,14 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @notifications
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     FixedCloudConfig,
     getMentionEmailTemplate,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Notifications', () => {
     let config;

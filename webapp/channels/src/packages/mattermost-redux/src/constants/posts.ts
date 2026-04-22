@@ -12,6 +12,7 @@ export const PostTypes = {
     EPHEMERAL_ADD_TO_CHANNEL: 'system_ephemeral_add_to_channel' as PostType,
     HEADER_CHANGE: 'system_header_change' as PostType,
     PURPOSE_CHANGE: 'system_purpose_change' as PostType,
+    AUTO_TRANSLATION_CHANGE: 'system_autotranslation' as PostType,
 
     JOIN_LEAVE: 'system_join_leave' as PostType,
     JOIN_CHANNEL: 'system_join_channel' as PostType,

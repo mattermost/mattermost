@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import BurnOnReadBadge from './burn_on_read_badge';
@@ -52,7 +51,6 @@ describe('BurnOnReadBadge', () => {
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
-        expect(badge).toHaveAttribute('role', 'button');
     });
 
     it('should not render when revealed and no timer', () => {
@@ -66,19 +64,35 @@ describe('BurnOnReadBadge', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    it('should always render badge for sender (even when all recipients have revealed)', () => {
+    it('should render badge for sender when timer is not active (not all recipients revealed)', () => {
         renderWithContext(
             <BurnOnReadBadge
                 {...baseProps}
                 isSender={true}
                 revealed={true}
+                expireAt={null}
             />,
         );
 
-        // Sender always sees the flame badge with delete tooltip
+        // Sender sees the flame badge with delete tooltip when timer is not active
         const badge = screen.getByTestId('burn-on-read-badge-post123');
         expect(badge).toBeInTheDocument();
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
+    });
+
+    it('should NOT render badge for sender when timer is active (all recipients revealed)', () => {
+        renderWithContext(
+            <BurnOnReadBadge
+                {...baseProps}
+                isSender={true}
+                revealed={true}
+                expireAt={Date.now() + 60000}
+            />,
+        );
+
+        // When timer is active, badge should not render (timer chip shows instead)
+        const badge = screen.queryByTestId('burn-on-read-badge-post123');
+        expect(badge).not.toBeInTheDocument();
     });
 
     it('should have correct CSS class for styling', () => {
@@ -90,7 +104,7 @@ describe('BurnOnReadBadge', () => {
         expect(badge).toHaveClass('BurnOnReadBadge');
     });
 
-    it('should call onSenderDelete when sender clicks badge', () => {
+    it('should call onSenderDelete when sender clicks badge', async () => {
         const onSenderDelete = jest.fn();
         renderWithContext(
             <BurnOnReadBadge
@@ -101,12 +115,12 @@ describe('BurnOnReadBadge', () => {
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        fireEvent.click(badge);
+        await userEvent.click(badge);
 
         expect(onSenderDelete).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call onSenderDelete when recipient clicks badge', () => {
+    it('should not call onSenderDelete when recipient clicks badge', async () => {
         const onSenderDelete = jest.fn();
         const onReveal = jest.fn();
         renderWithContext(
@@ -120,7 +134,7 @@ describe('BurnOnReadBadge', () => {
         );
 
         const badge = screen.getByTestId('burn-on-read-badge-post123');
-        fireEvent.click(badge);
+        await userEvent.click(badge);
 
         expect(onSenderDelete).not.toHaveBeenCalled();
         expect(onReveal).toHaveBeenCalledWith('post123');

@@ -151,6 +151,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"enable UseAnonymousURLs prop",
+			&model.Config{
+				PrivacySettings: model.PrivacySettings{
+					UseAnonymousURLs: model.NewPointer(true),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"UseAnonymousURLs": "true",
+			},
+		},
+		{
 			"Custom groups professional license",
 			&model.Config{},
 			"",
@@ -343,7 +356,6 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(true),
-					EnableChannelScopeAccessControl:   model.NewPointer(true),
 					EnableUserManagedAttributes:       model.NewPointer(true),
 				},
 			},
@@ -351,7 +363,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "true",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "true",
 			},
 		},
@@ -360,7 +371,6 @@ func TestGetClientConfig(t *testing.T) {
 			&model.Config{
 				AccessControlSettings: model.AccessControlSettings{
 					EnableAttributeBasedAccessControl: model.NewPointer(false),
-					EnableChannelScopeAccessControl:   model.NewPointer(false),
 					EnableUserManagedAttributes:       model.NewPointer(false),
 				},
 			},
@@ -368,7 +378,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "false",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
@@ -379,7 +388,6 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"EnableAttributeBasedAccessControl": "false",
-				"EnableChannelScopeAccessControl":   "true",
 				"EnableUserManagedAttributes":       "false",
 			},
 		},
@@ -419,8 +427,24 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			nil,
 			map[string]string{
-				"EnableBurnOnRead":          "false",
+				"EnableBurnOnRead":          "true",
 				"BurnOnReadDurationSeconds": "600", // 10 minutes in seconds
+			},
+		},
+		{
+			"mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
 			},
 		},
 		{
@@ -663,6 +687,22 @@ func TestGetLimitedClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"FeatureFlagTestFeature": "myvalue",
+			},
+		},
+		{
+			"limited config mobile watermark uses experimental settings",
+			&model.Config{
+				ExperimentalSettings: model.ExperimentalSettings{
+					EnableWatermark: model.NewPointer(true),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterprise,
+			},
+			map[string]string{
+				"ExperimentalEnableWatermark": "true",
 			},
 		},
 	}

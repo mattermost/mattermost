@@ -21,6 +21,7 @@ export default class PostDotMenu {
     readonly copyTextMenuItem;
     readonly deleteMenuItem;
     readonly flagMessageMenuItem;
+    readonly showTranslationMenuItem;
 
     constructor(container: Locator) {
         this.container = container;
@@ -41,7 +42,8 @@ export default class PostDotMenu {
         this.editMenuItem = getMenuItem('Edit');
         this.copyTextMenuItem = getMenuItem('Copy Text');
         this.deleteMenuItem = getMenuItem('Delete');
-        this.flagMessageMenuItem = getMenuItem('Flag Message');
+        this.flagMessageMenuItem = getMenuItem('Quarantine for Review');
+        this.showTranslationMenuItem = getMenuItem('Show translation');
     }
 
     async toBeVisible() {

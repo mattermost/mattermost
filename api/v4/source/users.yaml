@@ -27,6 +27,9 @@
                 password:
                   description: The password used for email authentication.
                   type: string
+                magic_link_token:
+                  description: Magic link token for passwordless guest authentication. When provided, authenticates the user using the magic link token instead of password. Requires guest magic link feature to be enabled.
+                  type: string
         description: User authentication object
         required: true
       responses:
@@ -76,13 +79,15 @@
           $ref: "#/components/responses/Forbidden"
   /api/v4/users/login/sso/code-exchange:
     post:
+      deprecated: true
       tags:
         - users
       summary: Exchange SSO login code for session tokens
       description: >
         Exchange a short-lived login_code for session tokens using SAML code exchange (mobile SSO flow).
-        This endpoint is part of the mobile SSO code-exchange flow to prevent tokens 
-        from appearing in deep links.
+
+        **Deprecated:** This endpoint is deprecated and will be removed in a future release.
+        Mobile clients should use the direct SSO callback flow instead.
 
         ##### Permissions
 
@@ -127,6 +132,8 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          description: Endpoint is deprecated and disabled
   /oauth/intune:
     post:
       tags:

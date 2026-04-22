@@ -12,6 +12,72 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGetRemoteClustersWithSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:  model.NewId(),
+		Name:      "test-remote",
+		SiteURL:   "http://example.com",
+		CreatorId: th.SystemAdminUser.Id,
+		Token:     model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		rcs, resp, err := scmClient.GetRemoteClusters(context.Background(), 0, 999999, model.RemoteClusterQueryFilter{})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.NotEmpty(t, rcs)
+	})
+}
+
+func TestCreateRemoteClusterDeniedForSharedChannelManagerRole(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SiteURL = "http://localhost:8065" })
+
+	// Create a user with only the system_shared_channel_manager role
+	scmUser := th.CreateUser(t)
+	_, appErr := th.App.UpdateUserRoles(th.Context, scmUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	scmClient := th.CreateClient()
+	_, _, err := scmClient.Login(context.Background(), scmUser.Email, scmUser.Password)
+	require.NoError(t, err)
+
+	t.Run("system_shared_channel_manager should be denied create", func(t *testing.T) {
+		rcPayload := &model.RemoteClusterWithPassword{
+			RemoteCluster: &model.RemoteCluster{
+				Name:          "test-from-scm",
+				DefaultTeamId: th.BasicTeam.Id,
+			},
+			Password: model.NewTestPassword(),
+		}
+		_, resp, err := scmClient.CreateRemoteCluster(context.Background(), rcPayload)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+}
+
 func TestGetRemoteClusters(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -188,7 +254,7 @@ func TestCreateRemoteCluster(t *testing.T) {
 			DefaultTeamId: model.NewId(),
 			Token:         model.NewId(),
 		},
-		Password: "mysupersecret",
+		Password: model.NewTestPassword(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -296,7 +362,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 	rcAcceptInvite := &model.RemoteClusterAcceptInvite{
 		Name:          "remotecluster",
 		Invite:        "myinvitecode",
-		Password:      "mysupersecret",
+		Password:      model.NewTestPassword(),
 		DefaultTeamId: "",
 	}
 
@@ -319,8 +385,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 		SiteURL:  "http://localhost:8065",
 		Token:    "token",
 	}
-	password := "mysupersecret"
-	encrypted, err := invite.Encrypt(password)
+	encrypted, err := invite.Encrypt(rcAcceptInvite.Password)
 	require.NoError(t, err)
 	encoded := base64.URLEncoding.EncodeToString(encrypted)
 	rcAcceptInvite.Invite = encoded
@@ -390,7 +455,7 @@ func TestRemoteClusterAcceptinvite(t *testing.T) {
 
 func TestGenerateRemoteClusterInvite(t *testing.T) {
 	mainHelper.Parallel(t)
-	password := "mysupersecret"
+	password := model.NewTestPassword()
 
 	newRC := &model.RemoteCluster{
 		Name:    "remotecluster",
@@ -534,6 +599,46 @@ func TestGetRemoteCluster(t *testing.T) {
 	})
 }
 
+func TestGetRemoteClusterWithManagerRoles(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a remote cluster for testing
+	newRC := &model.RemoteCluster{
+		RemoteId:      model.NewId(),
+		Name:          "test-remote",
+		SiteURL:       "http://example.com",
+		CreatorId:     th.SystemAdminUser.Id,
+		DefaultTeamId: th.BasicTeam.Id,
+		Token:         model.NewId(),
+	}
+	_, appErr := th.App.AddRemoteCluster(newRC)
+	require.Nil(t, appErr)
+
+	// Create a user with only the system_shared_channel_manager role
+	sharedChannelUser := th.CreateUser(t)
+	_, appErr = th.App.UpdateUserRoles(th.Context, sharedChannelUser.Id, model.SystemUserRoleId+" "+model.SharedChannelManagerRoleId, false)
+	require.Nil(t, appErr)
+
+	sharedChannelClient := th.CreateClient()
+	_, _, err := sharedChannelClient.Login(context.Background(), sharedChannelUser.Email, sharedChannelUser.Password)
+	require.NoError(t, err)
+
+	t.Run("regular user should be denied", func(t *testing.T) {
+		_, resp, err := th.Client.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckForbiddenStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("system_shared_channel_manager user should have access", func(t *testing.T) {
+		fetchedRC, resp, err := sharedChannelClient.GetRemoteCluster(context.Background(), newRC.RemoteId)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		require.Equal(t, newRC.RemoteId, fetchedRC.RemoteId)
+		require.Empty(t, fetchedRC.Token)
+	})
+}
+
 func TestPatchRemoteCluster(t *testing.T) {
 	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
@@ -656,4 +761,111 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.NotEmpty(t, deletedRC)
 		require.NotZero(t, deletedRC.DeleteAt)
 	})
+}
+
+func TestDeleteRemoteClusterUnsharesOrphanSharedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "orphan-unshare-remote",
+		DisplayName: "orphan-unshare-remote",
+		SiteURL:     "http://orphan-unshare.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "orphan_unshare_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scr := &model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		CreatorId:         th.SystemAdminUser.Id,
+		RemoteId:          rc.RemoteId,
+		IsInviteConfirmed: true,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	chShared, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chShared.IsShared())
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.Error(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.False(t, chAfter.IsShared())
+}
+
+func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc1, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-a",
+		DisplayName: "keep-shared-a",
+		SiteURL:     "http://keep-shared-a.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	rc2, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-b",
+		DisplayName: "keep-shared-b",
+		SiteURL:     "http://keep-shared-b.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "keep_shared_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	for _, rc := range []*model.RemoteCluster{rc1, rc2} {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         channel.Id,
+			CreatorId:         th.SystemAdminUser.Id,
+			RemoteId:          rc.RemoteId,
+			IsInviteConfirmed: true,
+		}
+		_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+	}
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc1.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.NoError(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chAfter.IsShared())
 }

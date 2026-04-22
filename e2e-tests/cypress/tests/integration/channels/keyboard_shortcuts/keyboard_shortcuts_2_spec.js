@@ -7,11 +7,10 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
 
 describe('Keyboard Shortcuts', () => {
     let testTeam;

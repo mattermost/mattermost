@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import type {MouseEvent} from 'react';
 
@@ -9,7 +8,7 @@ import {General} from 'mattermost-redux/constants';
 
 import ActivityLogModal from 'components/activity_log_modal/activity_log_modal';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('components/activity_log_modal/components/activity_log', () => {
     return jest.fn().mockImplementation(({submitRevoke, currentSession}) => {
@@ -115,7 +114,7 @@ describe('components/ActivityLogModal', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('activity-log'));
+        await userEvent.click(screen.getByTestId('activity-log'));
 
         expect(revokeSession).toHaveBeenCalledTimes(1);
         expect(revokeSession).toHaveBeenCalledWith('user1', 'session1');
@@ -137,7 +136,7 @@ describe('components/ActivityLogModal', () => {
         );
 
         await waitFor(() => screen.getByText('Active Sessions'));
-        fireEvent.click(screen.getByLabelText('Close'));
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(onHide).toHaveBeenCalledTimes(1);
     });

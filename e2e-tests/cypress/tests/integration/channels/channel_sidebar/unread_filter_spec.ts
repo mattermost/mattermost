@@ -7,23 +7,22 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @channel_sidebar
 
 import {
     beMuted,
     beRead,
     beUnread,
-} from '../../../support/assertions';
-import {getAdminAccount} from '../../../support/env';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+} from '@/support/assertions';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Channel sidebar unread filter', () => {
     const randomId = getRandomId();
 
-    let testUser;
-    let teamId;
+    let testUser: Cypress.UserProfile;
+    let teamId: string;
 
     before(() => {
         // # Setting up for CRT
@@ -335,7 +334,7 @@ function disableUnreadFilterWithShortcut() {
     cy.get('.SidebarChannelGroupHeader:contains(UNREADS)').should('not.exist');
 }
 
-function createChannel(teamId, channelName, message?) {
+function createChannel(teamId: string, channelName: string, message?: string) {
     return cy.apiCreateChannel(teamId, channelName, channelName, 'O', '', '', false).then(({channel}) => {
         if (message) {
             cy.wait(TIMEOUTS.THREE_SEC);

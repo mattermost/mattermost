@@ -272,6 +272,7 @@ info:
       - reaction_removed
       - response
       - role_updated
+      - shared_channel_remote_updated
       - status_change
       - typing
       - update_team
@@ -283,6 +284,10 @@ info:
       - thread_updated
       - thread_follow_changed
       - thread_read_changed
+      - property_field_created
+      - property_field_updated
+      - property_field_deleted
+      - property_values_updated
 
     ### Websocket API
 
@@ -401,6 +406,8 @@ tags:
     description: Endpoints for creating and performing file uploads.
   - name: bookmarks
     description: Endpoints for creating, getting and interacting with channel bookmarks.
+  - name: views
+    description: Endpoints for creating, getting and interacting with channel views.
   - name: preferences
     description: Endpoints for saving and modifying user preferences.
   - name: status
@@ -462,8 +469,10 @@ tags:
     description: Endpoints related to metrics, including the Client Performance Monitoring feature.
   - name: audit_logs
     description: Endpoints for managing audit log certificates and configuration.
-  - name: ai
-    description: Endpoints for interacting with AI agents and services.
+  - name: recaps
+    description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
+  - name: agents
+    description: Endpoints for interacting with AI agents and LLM services.
 servers:
   - url: "{your-mattermost-url}"
     variables:

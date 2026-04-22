@@ -3,8 +3,8 @@
 
 import {ChainableT} from '../types';
 
-const dbClient = Cypress.env('dbClient');
-const dbConnection = Cypress.env('dbConnection');
+const dbClient = Cypress.expose('dbClient');
+const dbConnection = Cypress.expose('dbConnection');
 const dbConfig = {
     client: dbClient,
     connection: dbConnection,
@@ -38,10 +38,12 @@ interface GetActiveUserSessionsParam {
 }
 interface GetActiveUserSessionsResult {
     user: Cypress.UserProfile;
+    // DB session records have dynamic fields
     sessions: Array<Record<string, any>>;
 }
 function dbGetActiveUserSessions(params: GetActiveUserSessionsParam): ChainableT<GetActiveUserSessionsResult> {
-    return cy.task('dbGetActiveUserSessions', {dbConfig, params}).then(({user, sessions, errorMessage}) => {
+    // cy.task() returns untyped data
+    return cy.task('dbGetActiveUserSessions', {dbConfig, params}).then(({user, sessions, errorMessage}: any) => {
         expect(errorMessage).to.be.undefined;
 
         return cy.wrap({user, sessions});
@@ -56,7 +58,8 @@ interface GetUserResult {
     user: Cypress.UserProfile & {mfasecret: string};
 }
 function dbGetUser(params: GetUserParam): ChainableT<GetUserResult> {
-    return cy.task('dbGetUser', {dbConfig, params}).then(({user, errorMessage, error}) => {
+    // cy.task() returns untyped data
+    return cy.task('dbGetUser', {dbConfig, params}).then(({user, errorMessage, error}: any) => {
         verifyError(error, errorMessage);
 
         return cy.wrap({user});
@@ -68,10 +71,12 @@ interface GetUserSessionParam {
     sessionId: string;
 }
 interface GetUserSessionResult {
+    // DB session records have dynamic fields
     session: Record<string, any>;
 }
 function dbGetUserSession(params: GetUserSessionParam): ChainableT<GetUserSessionResult> {
-    return cy.task('dbGetUserSession', {dbConfig, params}).then(({session, errorMessage}) => {
+    // cy.task() returns untyped data
+    return cy.task('dbGetUserSession', {dbConfig, params}).then(({session, errorMessage}: any) => {
         expect(errorMessage).to.be.undefined;
 
         return cy.wrap({session});
@@ -82,13 +87,16 @@ Cypress.Commands.add('dbGetUserSession', dbGetUserSession);
 interface UpdateUserSessionParam {
     sessionId: string;
     userId: string;
+    // DB session fields are dynamic
     fieldsToUpdate: Record<string, any>;
 }
 interface UpdateUserSessionResult {
+    // DB session records have dynamic fields
     session: Record<string, any>;
 }
 function dbUpdateUserSession(params: UpdateUserSessionParam): ChainableT<UpdateUserSessionResult> {
-    return cy.task('dbUpdateUserSession', {dbConfig, params}).then(({session, errorMessage}) => {
+    // cy.task() returns untyped data
+    return cy.task('dbUpdateUserSession', {dbConfig, params}).then(({session, errorMessage}: any) => {
         expect(errorMessage).to.be.undefined;
 
         return cy.wrap({session});
@@ -97,14 +105,15 @@ function dbUpdateUserSession(params: UpdateUserSessionParam): ChainableT<UpdateU
 Cypress.Commands.add('dbUpdateUserSession', dbUpdateUserSession);
 
 function dbRefreshPostStats(): ChainableT<{success?: boolean; skipped?: boolean; message?: string}> {
-    return cy.task('dbRefreshPostStats', {dbConfig}).then(({success, skipped, message, errorMessage, error}) => {
+    // cy.task() returns untyped data
+    return cy.task('dbRefreshPostStats', {dbConfig}).then(({success, skipped, message, errorMessage, error}: any) => {
         verifyError(error, errorMessage);
-        return cy.wrap({success, skipped, message});
-    });
+        return cy.wrap({success, skipped, message} as {success?: boolean; skipped?: boolean; message?: string});
+    }) as ChainableT<{success?: boolean; skipped?: boolean; message?: string}>;
 }
 Cypress.Commands.add('dbRefreshPostStats', dbRefreshPostStats);
 
-function verifyError(error, errorMessage) {
+function verifyError(error: unknown, errorMessage: string) {
     if (errorMessage) {
         expect(errorMessage, `${errorMessage}\n\n${message}\n\n${JSON.stringify(error)}`).to.be.undefined;
     }

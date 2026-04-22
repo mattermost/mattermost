@@ -316,21 +316,21 @@ export const KEYBOARD_SHORTCUTS = {
     msgMarkdownCode: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.code',
-            defaultMessage: 'Code',
+            defaultMessage: 'Code:\tCtrl|Alt|C',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.code.mac',
-            defaultMessage: 'Code',
+            defaultMessage: 'Code:\t⌘|⌥|C',
         },
     }),
     msgMarkdownStrike: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.strike',
-            defaultMessage: 'Strikethrough:\tCtrl|Shift|X',
+            defaultMessage: 'Strikethrough:\tShift|Alt|X',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.strike.mac',
-            defaultMessage: 'Strikethrough:\t⌘|Shift|X',
+            defaultMessage: 'Strikethrough:\tShift|⌥|X',
         },
     }),
     msgMarkdownH3: defineMessages({
@@ -346,31 +346,31 @@ export const KEYBOARD_SHORTCUTS = {
     msgMarkdownQuote: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.quote',
-            defaultMessage: 'Quote',
+            defaultMessage: 'Quote:\tShift|Alt|9',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.quote.mac',
-            defaultMessage: 'Quote',
+            defaultMessage: 'Quote:\tShift|⌥|9',
         },
     }),
     msgMarkdownOl: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.ordered',
-            defaultMessage: 'Numbered List',
+            defaultMessage: 'Numbered List:\tShift|Alt|7',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.ordered.mac',
-            defaultMessage: 'Numbered List',
+            defaultMessage: 'Numbered List:\tShift|⌥|7',
         },
     }),
     msgMarkdownUl: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.unordered',
-            defaultMessage: 'Bulleted List',
+            defaultMessage: 'Bulleted List\tShift|Alt|8',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.unordered.mac',
-            defaultMessage: 'Bulleted List',
+            defaultMessage: 'Bulleted List:\tShift|⌥|8',
         },
     }),
     msgShowFormatting: defineMessages({
@@ -396,11 +396,11 @@ export const KEYBOARD_SHORTCUTS = {
     msgShowEmojiPicker: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.emoji',
-            defaultMessage: 'Emoji / Gif picker:\tCtrl|Shift|E',
+            defaultMessage: 'Emoji / Gif picker:\tCtrl|Alt|E',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.emoji.mac',
-            defaultMessage: 'Emoji / Gif picker:\t⌘|Shift|E',
+            defaultMessage: 'Emoji / Gif picker:\t⌘|⌥|E',
         },
     }),
     msgMarkdownPreview: defineMessages({
@@ -410,7 +410,7 @@ export const KEYBOARD_SHORTCUTS = {
         },
         mac: {
             id: 'shortcuts.msgs.markdown.preview.mac',
-            defaultMessage: 'Show/Hide Preview:\t⌘|Shift|P',
+            defaultMessage: 'Show/Hide Preview:\t⌘|⌥|P',
         },
     }),
     msgMarkdownItalic: defineMessages({

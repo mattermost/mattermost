@@ -85,7 +85,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users belong to only one common team', () => {
-        let testUser4;
+        let testUser4: Cypress.UserProfile;
         let gm2;
 
         cy.apiCreateUser({prefix: 'other'}).then(({user}) => {
@@ -120,7 +120,7 @@ describe('Group Message Conversion To Private Channel', () => {
     });
 
     it('When users have no common team', () => {
-        let testUser5;
+        let testUser5: Cypress.UserProfile;
         let gm3;
         let testTeam3;
 
@@ -157,6 +157,9 @@ describe('Group Message Conversion To Private Channel', () => {
 
             // Open the GM
             cy.visit(`/${testTeam1.name}/messages/${gm.name}`);
+
+            // Wait until the channel is loaded
+            cy.get('#channelHeaderDropdownButton').should('be.visible');
 
             // convert via API call
             const timestamp = Date.now();

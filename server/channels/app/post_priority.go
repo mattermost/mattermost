@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.AppError) {
@@ -16,6 +17,14 @@ func (a *App) GetPriorityForPost(postId string) (*model.PostPriority, *model.App
 
 	if err != nil && err != sql.ErrNoRows {
 		return nil, model.NewAppError("GetPriorityForPost", "app.post_prority.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return priority, nil
+}
+
+func (a *App) GetPriorityForPostWithContext(rctx request.CTX, postId string) (*model.PostPriority, *model.AppError) {
+	priority, err := a.Srv().Store().PostPriority().GetForPostWithContext(rctx, postId)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, model.NewAppError("GetPriorityForPostWithContext", "app.post_prority.get_for_post_with_context.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return priority, nil
 }

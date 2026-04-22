@@ -6,6 +6,7 @@ import React from 'react';
 import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Agent} from '@mattermost/types/agents';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -35,8 +36,8 @@ export type Props = {
     tabIndex?: number;
     value: string;
     onChange: (e: ChangeEvent<TextboxElement>) => void;
-    onKeyPress: (e: KeyboardEvent<any>) => void;
-    onComposition?: () => void;
+    onKeyPress: (e: KeyboardEvent<TextboxElement>) => void;
+    onCompositionUpdate?: () => void;
     onHeightChange?: (height: number, maxHeight: number) => void;
     onWidthChange?: (width: number) => void;
     createMessage: string;
@@ -44,7 +45,7 @@ export type Props = {
     onMouseUp?: (e: React.MouseEvent<TextboxElement>) => void;
     onKeyUp?: (e: React.KeyboardEvent<TextboxElement>) => void;
     onBlur?: (e: FocusEvent<TextboxElement>) => void;
-    onFocus?: (e: FocusEvent<TextboxElement>) => void;
+    onFocus?: () => void;
     supportsCommands?: boolean;
     handlePostError?: (message: JSX.Element | null) => void;
     onPaste?: (e: ClipboardEvent) => void;
@@ -64,18 +65,19 @@ export type Props = {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
         autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+        fetchAgents: () => Promise<ActionResult>;
     };
     useChannelMentions: boolean;
     inputComponent?: ElementType;
     openWhenEmpty?: boolean;
     priorityProfiles?: UserProfile[];
+    defaultAgent?: Agent;
     hasLabels?: boolean;
     hasError?: boolean;
-    isInEditMode?: boolean;
 };
 
-const VISIBLE = {visibility: 'visible'};
-const HIDDEN = {visibility: 'hidden'};
+const VISIBLE = {visibility: 'visible'} as const;
+const HIDDEN = {visibility: 'hidden'} as const;
 
 export default class Textbox extends React.PureComponent<Props> {
     private readonly suggestionProviders: Provider[];
@@ -111,6 +113,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 autocompleteGroups: this.props.autocompleteGroups,
                 searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                 priorityProfiles: this.props.priorityProfiles,
+                defaultAgent: this.props.defaultAgent,
             }),
             new ChannelMentionProvider(props.actions.autocompleteChannels, props.delayChannelAutocomplete),
             new EmoticonProvider(),
@@ -130,7 +133,13 @@ export default class Textbox extends React.PureComponent<Props> {
         this.preview = React.createRef();
     }
 
-    handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    componentDidMount() {
+        // Fetch agents once when the component mounts to populate Redux store
+        // This ensures defaultAgent is available for @ mention suggestions
+        this.props.actions.fetchAgents();
+    }
+
+    handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         this.props.onChange(e);
     };
 
@@ -140,7 +149,8 @@ export default class Textbox extends React.PureComponent<Props> {
             this.props.autocompleteGroups !== prevProps.autocompleteGroups ||
             this.props.useChannelMentions !== prevProps.useChannelMentions ||
             this.props.currentTeamId !== prevProps.currentTeamId ||
-            this.props.priorityProfiles !== prevProps.priorityProfiles) {
+            this.props.priorityProfiles !== prevProps.priorityProfiles ||
+            this.props.defaultAgent !== prevProps.defaultAgent) {
             // Update channel id for AtMentionProvider.
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof AtMentionProvider) {
@@ -152,6 +162,7 @@ export default class Textbox extends React.PureComponent<Props> {
                         autocompleteGroups: this.props.autocompleteGroups,
                         searchAssociatedGroupsForReference: (prefix: string) => this.props.actions.searchAssociatedGroupsForReference(prefix, this.props.currentTeamId, this.props.channelId),
                         priorityProfiles: this.props.priorityProfiles,
+                        defaultAgent: this.props.defaultAgent,
                     });
                 }
             }
@@ -226,6 +237,11 @@ export default class Textbox extends React.PureComponent<Props> {
         this.props.onKeyDown?.(e as KeyboardEvent<TextboxElement>);
     };
 
+    // adding in the HTMLDivElement to support event handling in preview state
+    handleKeyPress = (e: KeyboardEvent<TextboxElement | HTMLDivElement>) => {
+        this.props.onKeyPress(e as KeyboardEvent<TextboxElement>);
+    };
+
     handleMouseUp = (e: MouseEvent<TextboxElement>) => this.props.onMouseUp?.(e);
 
     handleKeyUp = (e: KeyboardEvent<TextboxElement>) => this.props.onKeyUp?.(e);
@@ -287,7 +303,7 @@ export default class Textbox extends React.PureComponent<Props> {
                     tabIndex={this.props.tabIndex}
                     ref={this.preview}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onBlur={this.handleBlur}
                 >
@@ -306,11 +322,11 @@ export default class Textbox extends React.PureComponent<Props> {
                     spellCheck='true'
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
-                    onKeyPress={this.props.onKeyPress}
+                    onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onMouseUp={this.handleMouseUp}
                     onKeyUp={this.handleKeyUp}
-                    onComposition={this.props.onComposition}
+                    onCompositionUpdate={this.props.onCompositionUpdate}
                     onBlur={this.handleBlur}
                     onFocus={this.props.onFocus}
                     onHeightChange={this.props.onHeightChange}

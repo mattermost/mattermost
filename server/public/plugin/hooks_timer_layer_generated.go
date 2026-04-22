@@ -133,6 +133,20 @@ func (hooks *hooksTimerLayer) ChannelHasBeenCreated(c *Context, channel *model.C
 	hooks.recordTime(startTime, "ChannelHasBeenCreated", true)
 }
 
+func (hooks *hooksTimerLayer) ChannelWillBeArchived(c *Context, channel *model.Channel) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ChannelWillBeArchived(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeArchived", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ChannelMemberWillBeAdded(c *Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ChannelMemberWillBeAdded(c, channelMember)
+	hooks.recordTime(startTime, "ChannelMemberWillBeAdded", true)
+	return _returnsA, _returnsB
+}
+
 func (hooks *hooksTimerLayer) UserHasJoinedChannel(c *Context, channelMember *model.ChannelMember, actor *model.User) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.UserHasJoinedChannel(c, channelMember, actor)
@@ -143,6 +157,13 @@ func (hooks *hooksTimerLayer) UserHasLeftChannel(c *Context, channelMember *mode
 	startTime := timePkg.Now()
 	hooks.hooksImpl.UserHasLeftChannel(c, channelMember, actor)
 	hooks.recordTime(startTime, "UserHasLeftChannel", true)
+}
+
+func (hooks *hooksTimerLayer) TeamMemberWillBeAdded(c *Context, teamMember *model.TeamMember) (*model.TeamMember, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.TeamMemberWillBeAdded(c, teamMember)
+	hooks.recordTime(startTime, "TeamMemberWillBeAdded", true)
+	return _returnsA, _returnsB
 }
 
 func (hooks *hooksTimerLayer) UserHasJoinedTeam(c *Context, teamMember *model.TeamMember, actor *model.User) {
@@ -162,6 +183,13 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	_returnsA, _returnsB := hooks.hooksImpl.FileWillBeUploaded(c, info, file, output)
 	hooks.recordTime(startTime, "FileWillBeUploaded", true)
 	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.FileWillBeDownloaded(c, fileInfo, userID, downloadType)
+	hooks.recordTime(startTime, "FileWillBeDownloaded", true)
+	return _returnsA
 }
 
 func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {

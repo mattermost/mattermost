@@ -4,6 +4,8 @@
 import {createMemoryHistory} from 'history';
 import React from 'react';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {RequestStatus} from 'mattermost-redux/constants';
 
 import * as loginActions from 'actions/views/login';
@@ -16,7 +18,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants, {WindowSizes} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {showNotification} from 'utils/notifications';
-import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -32,7 +33,7 @@ jest.mock('utils/desktop_api', () => ({
     setSessionExpired: jest.fn(),
 }));
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 
@@ -110,10 +111,6 @@ describe('components/login/Login', () => {
 
     beforeEach(() => {
         LocalStorageStore.setWasLoggedIn(false);
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
     });
 
     it('should match snapshot', () => {
@@ -318,10 +315,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'Gitlab Icon GitLab 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should focus username field when there is an error', async () => {
@@ -374,10 +369,8 @@ describe('components/login/Login', () => {
 
         const button = screen.getByRole('link', {name: 'OpenID Icon OpenID 2'});
 
-        expect(button.style).toMatchObject({
-            color: 'rgb(0, 255, 0)',
-            borderColor: '#00ff00',
-        });
+        expect(button.style.color).toBe('rgb(0, 255, 0)');
+        expect(button.style.borderColor).toBe('rgb(0, 255, 0)');
     });
 
     it('should redirect on login', async () => {
@@ -414,6 +407,25 @@ describe('components/login/Login', () => {
         );
 
         expect(history.push).toHaveBeenCalledWith(redirectPath);
+    });
+
+    it('should not show dont have an account when open server is disabled', () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableOpenServer: 'false',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+        );
+
+        expect(screen.queryByText('Don\'t have an account')).not.toBeInTheDocument();
     });
 
     describe('EnableGuestMagicLink', () => {

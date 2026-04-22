@@ -10,6 +10,8 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {isAnonymousURLEnabled} from 'selectors/config';
+
 import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 import Input from 'components/widgets/inputs/input/input';
 import URLInput from 'components/widgets/inputs/url_input/url_input';
@@ -56,6 +58,7 @@ function validateDisplayName(intl: IntlShape, displayNameParam: string) {
 const ChannelNameFormField = (props: Props): JSX.Element => {
     const intl = useIntl();
     const {formatMessage} = intl;
+    const useAnonymousURLs = useSelector(isAnonymousURLEnabled);
 
     // Track if the field has been interacted with
     const [hasInteracted, setHasInteracted] = useState(false);
@@ -184,6 +187,8 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.currentUrl]);
 
+    const showURLEditor = props.isEditingExistingChannel || !useAnonymousURLs;
+
     return (
         <>
             <Input
@@ -206,17 +211,20 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 onBlur={handleOnDisplayNameBlur}
                 disabled={props.readOnly}
             />
-            <URLInput
-                className='new-channel-modal__url'
-                base={getSiteURL()}
-                path={`${teamName}/channels`}
-                pathInfo={url}
-                limit={Constants.MAX_CHANNELNAME_LENGTH}
-                shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                error={urlError || props.urlError}
-                onChange={handleOnURLChange}
-                onBlur={handleOnURLBlur}
-            />
+            {
+                showURLEditor &&
+                <URLInput
+                    className='new-channel-modal__url'
+                    base={getSiteURL()}
+                    path={`${teamName}/channels`}
+                    pathInfo={url}
+                    limit={Constants.MAX_CHANNELNAME_LENGTH}
+                    shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
+                    error={urlError || props.urlError}
+                    onChange={handleOnURLChange}
+                    onBlur={handleOnURLBlur}
+                />
+            }
         </>
     );
 };

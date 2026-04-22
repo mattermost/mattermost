@@ -5,12 +5,12 @@ import React from 'react';
 
 import AuditTable from 'components/audit_table/audit_table';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/audit_table/AuditTable', () => {
     const actions = {
-        getMissingProfilesByIds: () => jest.fn(),
+        getMissingProfilesByIds: jest.fn(),
     };
 
     const baseProps = {
@@ -23,11 +23,11 @@ describe('components/audit_table/AuditTable', () => {
     };
 
     test('should match snapshot with no audits', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <AuditTable {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with audits', () => {
@@ -53,10 +53,10 @@ describe('components/audit_table/AuditTable', () => {
         ];
 
         const props = {...baseProps, audits};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <AuditTable {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });
