@@ -41,8 +41,8 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.ENDS_WITH]: OperatorLabel.ENDS_WITH,
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
     [CELOperator.IN]: OperatorLabel.IN,
-    has_any_of: OperatorLabel.HAS_ANY_OF,
-    has_all_of: OperatorLabel.HAS_ALL_OF,
+    hasAnyOf: OperatorLabel.HAS_ANY_OF,
+    hasAllOf: OperatorLabel.HAS_ALL_OF,
 };
 
 type OperatorType = 'comparison' | 'method' | 'list';

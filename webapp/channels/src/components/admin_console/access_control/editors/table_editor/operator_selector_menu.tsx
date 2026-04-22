@@ -7,7 +7,7 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {CheckAllIcon, CheckIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -157,7 +157,7 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
     },
     [OperatorLabel.HAS_ANY_OF]: {
         id: OperatorLabel.HAS_ANY_OF,
-        icon: ElementOfIcon,
+        icon: CheckIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.has_any_of',
             defaultMessage: 'has any of',
@@ -165,7 +165,7 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
     },
     [OperatorLabel.HAS_ALL_OF]: {
         id: OperatorLabel.HAS_ALL_OF,
-        icon: ElementOfIcon,
+        icon: CheckAllIcon,
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.has_all_of',
             defaultMessage: 'has all of',

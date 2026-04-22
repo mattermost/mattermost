@@ -166,12 +166,12 @@ describe('parseExpression', () => {
 });
 
 describe('parseExpression with multiselect attributes', () => {
-    test('handles "has_all_of" operator with multiselect attribute type', () => {
+    test('handles "hasAllOf" operator with multiselect attribute type', () => {
         const ast: AccessControlVisualAST = {
             conditions: [
                 {
                     attribute: 'user.attributes.skills',
-                    operator: 'has_all_of',
+                    operator: 'hasAllOf',
                     value: ['JavaScript', 'Python'],
                     value_type: 0,
                     attribute_type: 'multiselect',
@@ -189,12 +189,12 @@ describe('parseExpression with multiselect attributes', () => {
         ]);
     });
 
-    test('handles "has_any_of" operator with multiselect attribute type', () => {
+    test('handles "hasAnyOf" operator with multiselect attribute type', () => {
         const ast: AccessControlVisualAST = {
             conditions: [
                 {
                     attribute: 'user.attributes.programs',
-                    operator: 'has_any_of',
+                    operator: 'hasAnyOf',
                     value: ['Dragon', 'Phoenix'],
                     value_type: 0,
                     attribute_type: 'multiselect',
@@ -217,7 +217,7 @@ describe('parseExpression with multiselect attributes', () => {
             conditions: [
                 {
                     attribute: 'user.attributes.skills',
-                    operator: 'has_all_of',
+                    operator: 'hasAllOf',
                     value: ['JavaScript'],
                     value_type: 0,
                     attribute_type: 'multiselect',

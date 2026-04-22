@@ -102,7 +102,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
                 conditions: [
                     {
                         attribute: 'user.attributes.skills',
-                        operator: 'has_all_of',
+                        operator: 'hasAllOf',
                         value: ['JavaScript', 'Python'],
                         value_type: 0,
                         attribute_type: 'multiselect',
