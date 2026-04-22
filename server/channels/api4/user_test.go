@@ -1877,6 +1877,10 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		otherUser := th.CreateUser(t)
 		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
 
+		// Guest role doesn't have ViewMembers by default — grant it so the
+		// first autocomplete can actually see out-of-channel team members.
+		th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemGuestRoleId)
+
 		_, _, err = th.Client.Login(context.Background(), permissionsUser.Email, permissionsUser.Password)
 		require.NoError(t, err)
 
@@ -1891,6 +1895,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemGuestRoleId)
 
 		rusers, _, err = th.Client.AutocompleteUsersInChannel(context.Background(), teamId, channelId, "", model.UserSearchDefaultLimit, "")
 		require.NoError(t, err)
