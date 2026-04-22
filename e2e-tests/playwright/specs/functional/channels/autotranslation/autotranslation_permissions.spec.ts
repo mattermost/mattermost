@@ -94,7 +94,9 @@ test.describe('autotranslation configuration tests', () => {
             const originalPermissions = channelUserRole.permissions as string[];
 
             try {
-                const withoutPermission = originalPermissions.filter((p) => p !== MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION);
+                const withoutPermission = originalPermissions.filter(
+                    (p) => p !== MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
+                );
                 await adminClient.patchRole(channelUserRole.id, {permissions: withoutPermission});
 
                 const {channelsPage} = await pw.testBrowser.login(user);
