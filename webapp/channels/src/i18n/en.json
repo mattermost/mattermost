@@ -4958,6 +4958,7 @@
   "help.sending.types.replies.title": "Replies",
   "help.sending.types.title": "Message Types",
   "incoming_webhooks.header": "Incoming Webhooks",
+  "inline_action_button.executing": "Executing...",
   "inline_entity_link.tooltip.channel": "Go to channel",
   "inline_entity_link.tooltip.post": "Go to post",
   "inline_entity_link.tooltip.team": "Go to team",
