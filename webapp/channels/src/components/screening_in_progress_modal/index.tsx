@@ -20,7 +20,6 @@ export default function ScreeningInProgressModal() {
             show={true}
             className='ScreeningInProgressModal'
             handleCancel={close}
-            cancelButtonClassName='ScreeningInProgressModal__close'
             cancelButtonText={(
                 <FormattedMessage
                     id='self_hosted_signup.close'

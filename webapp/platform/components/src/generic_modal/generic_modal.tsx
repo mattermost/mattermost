@@ -242,7 +242,7 @@ export const GenericModal: React.FC<Props> = ({
         cancelButtonElement = (
             <button
                 type='button'
-                className={classNames('btn btn-tertiary', cancelButtonClassName)}
+                className={classNames('btn btn-tertiary')}
                 onClick={handleCancelCallback}
             >
                 {cancelButtonTextContent}
