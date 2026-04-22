@@ -615,7 +615,9 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error) {
 	type wrapper struct {
 		storeAccessControlPolicy
-		ChildIDs json.RawMessage
+		ChildIDs          json.RawMessage
+		ChildChannelCount int64
+		ChildTeamCount    int64
 	}
 
 	p := []wrapper{}
@@ -626,7 +628,15 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
      FROM AccessControlPolicies c
 	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-		columns = append(columns, childIDs)
+		childChannelCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'channel'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS ChildChannelCount`
+		childTeamCount := `COALESCE((SELECT COUNT(*)
+     FROM AccessControlPolicies c
+	 WHERE c.Type = 'team'
+     AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), 0) AS ChildTeamCount`
+		columns = append(columns, childIDs, childChannelCount, childTeamCount)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -754,12 +764,13 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 			if m.Props == nil {
 				m.Props = make(map[string]any)
 			}
-			// Unmarshal the JSON array into a slice of strings
 			var childIDs []string
 			if err = json.Unmarshal(p[i].ChildIDs, &childIDs); err != nil {
 				return nil, 0, errors.Wrapf(err, "failed to unmarshal child IDs for policy with id=%s", p[i].ID)
 			}
 			m.Props["child_ids"] = childIDs
+			m.Props["child_channel_count"] = p[i].ChildChannelCount
+			m.Props["child_team_count"] = p[i].ChildTeamCount
 		}
 		policies[i] = m
 	}

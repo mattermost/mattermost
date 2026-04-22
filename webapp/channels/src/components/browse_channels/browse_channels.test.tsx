@@ -339,8 +339,8 @@ describe('components/BrowseChannels', () => {
             await Promise.resolve();
         });
 
-        // searchAllChannels should be called once for 'test'
-        expect(searchAllChannels).toHaveBeenCalledTimes(1);
+        // searchAllChannels is called once on mount for discoverable channels + once for 'test'
+        expect(searchAllChannels).toHaveBeenCalledTimes(2);
 
         // Clear the search
         await user.clear(searchInput);
@@ -350,8 +350,8 @@ describe('components/BrowseChannels', () => {
             jest.runOnlyPendingTimers();
         });
 
-        // searchAllChannels should still be called only once (empty string doesn't trigger search)
-        expect(searchAllChannels).toHaveBeenCalledTimes(1);
+        // searchAllChannels should still be called only twice (empty string doesn't trigger additional search)
+        expect(searchAllChannels).toHaveBeenCalledTimes(2);
     });
 
     test('should handle a failed search', async () => {

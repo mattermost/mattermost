@@ -21,9 +21,12 @@ interface OperatorSelectorProps {
     disabled: boolean;
     onChange: (operator: string) => void;
     attributeType?: string;
+    isBooleanField?: boolean;
 }
 
-const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType}: OperatorSelectorProps) => {
+const BOOLEAN_OPERATORS = new Set([OperatorLabel.IS]);
+
+const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType, isBooleanField = false}: OperatorSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
@@ -50,10 +53,28 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
             if (attributeType !== 'multiselect' && isMultiselectOperator(desc.id)) {
                 return false;
             }
+            if (isBooleanField && !BOOLEAN_OPERATORS.has(desc.id)) {
+                return false;
+            }
             const label = formatMessage(desc.label);
             return label.toLowerCase().includes(filter.toLowerCase());
         });
-    }, [filter, formatMessage, attributeType]);
+    }, [filter, formatMessage, attributeType, isBooleanField]);
+
+    if (isBooleanField) {
+        return (
+            <div
+                className='btn btn-transparent field-selector-menu-button'
+                style={{cursor: 'default', opacity: 0.8}}
+            >
+                <CurrentOperatorIcon
+                    size={18}
+                    color='rgba(var(--center-channel-color-rgb), 0.64)'
+                />
+                <FormattedMessage {...currentOperatorDescriptor.label}/>
+            </div>
+        );
+    }
 
     return (
         <Menu.Container

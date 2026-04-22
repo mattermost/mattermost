@@ -4546,14 +4546,14 @@ func (a *App) evaluateChannelMembershipPolicy(rctx request.CTX, userId string, c
 		return false, nil
 	}
 
-	groupID, appErr := a.CpaGroupID()
-	if appErr != nil {
-		return false, appErr
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		return false, userErr
 	}
 
-	subject, err := a.Srv().Store().Attributes().GetSubject(rctx, userId, groupID)
-	if err != nil {
-		return false, model.NewAppError("evaluateChannelMembershipPolicy", "app.channel.request_join.policy_eval.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	subject, appErr := a.BuildAccessControlSubject(rctx, userId, user.Roles)
+	if appErr != nil {
+		return false, appErr
 	}
 
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{

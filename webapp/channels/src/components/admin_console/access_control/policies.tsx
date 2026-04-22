@@ -135,8 +135,10 @@ export default function PolicyList(props: Props): JSX.Element {
     };
 
     const getResources = (policy: AccessControlPolicy) => {
-        const childIds = policy.props?.child_ids as string[];
-        if (!childIds || childIds.length === 0) {
+        const channelCount = Number(policy.props?.child_channel_count) || 0;
+        const teamCount = Number(policy.props?.child_team_count) || 0;
+
+        if (channelCount === 0 && teamCount === 0) {
             return (
                 <FormattedMessage
                     id='admin.access_control.policies.resources.none'
@@ -145,15 +147,15 @@ export default function PolicyList(props: Props): JSX.Element {
             );
         }
 
-        return (
-            <FormattedMessage
-                id='admin.access_control.policies.resources.channels'
-                defaultMessage='{count, number} {count, plural, one {channel} other {channels}}'
-                values={{
-                    count: childIds.length,
-                }}
-            />
-        );
+        const parts: string[] = [];
+        if (channelCount > 0) {
+            parts.push(`${channelCount} ${channelCount === 1 ? 'channel' : 'channels'}`);
+        }
+        if (teamCount > 0) {
+            parts.push(`${teamCount} ${teamCount === 1 ? 'team' : 'teams'}`);
+        }
+
+        return <span>{parts.join(', ')}</span>;
     };
 
     const handleDelete = async (policyId: string) => {

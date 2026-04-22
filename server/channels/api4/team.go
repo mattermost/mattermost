@@ -338,6 +338,11 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddEventObjectType("team")
 	}
 
+	if team.Discoverable != nil && *team.Discoverable && oldTeam != nil && !oldTeam.PolicyEnforced {
+		c.Err = model.NewAppError("patchTeam", "api.team.patch_team.discoverable_requires_policy.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, &team)
 	if err != nil {
 		c.Err = err
@@ -897,6 +902,19 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// ABAC: for discoverable teams with policies, evaluate membership before allowing join
+	if team.Discoverable && team.PolicyEnforced && member.UserId == c.AppContext.Session().UserId {
+		allowed, evalErr := c.App.EvaluateTeamMembershipPolicy(c.AppContext, member.UserId, team)
+		if evalErr != nil {
+			c.Err = evalErr
+			return
+		}
+		if !allowed {
+			c.Err = model.NewAppError("addTeamMember", "api.team.add_team_member.policy_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
 	var tm *model.TeamMember
 	tm, err = c.App.AddTeamMember(c.AppContext, member.TeamId, member.UserId)
 	if err != nil {
@@ -1310,6 +1328,16 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	// Filter discoverable teams by ABAC policy for non-admin users
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		if c.Params.IncludeTotalCount && teamsWithCount != nil {
+			teamsWithCount.Teams = c.App.FilterDiscoverableTeamsByPolicy(c.AppContext, c.AppContext.Session().UserId, teamsWithCount.Teams)
+			teamsWithCount.TotalCount = int64(len(teamsWithCount.Teams))
+		} else {
+			teams = c.App.FilterDiscoverableTeamsByPolicy(c.AppContext, c.AppContext.Session().UserId, teams)
+		}
 	}
 
 	var (

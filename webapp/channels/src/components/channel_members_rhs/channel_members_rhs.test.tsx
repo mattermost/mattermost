@@ -224,7 +224,7 @@ describe('channel_members_rhs/channel_members_rhs', () => {
             />,
         );
 
-        expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
+        expect(screen.getByText('This channel has a membership policy based on user attributes')).toBeInTheDocument();
         expect(screen.getByText('tag1')).toBeInTheDocument();
         expect(screen.getByText('tag2')).toBeInTheDocument();
     });

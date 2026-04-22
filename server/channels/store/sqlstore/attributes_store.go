@@ -90,10 +90,14 @@ func (s *SqlAttributesStore) GetSubject(rctx request.CTX, ID, groupID string) (*
 
 func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error) {
 	query := s.getQueryBuilder().
-		Select(getUsersColumns()...).From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID").
+		Select(getUsersColumns()...).From("Users").
+		LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID").
+		LeftJoin("Bots b ON b.UserId = Users.Id").
 		OrderBy("Users.Id ASC")
 
-	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID")
+	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").
+		LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID").
+		LeftJoin("Bots b ON b.UserId = Users.Id")
 
 	if opts.Query != "" {
 		query = query.Where(sq.Expr(opts.Query, opts.Args...))
@@ -172,8 +176,16 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 }
 
 func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error) {
+	// Qualify column names to avoid ambiguity with Users/Bots joins
+	columns := make([]string, len(channelMemberSliceColumns()))
+	for i, col := range channelMemberSliceColumns() {
+		columns[i] = "ChannelMembers." + col
+	}
 	query := s.getQueryBuilder().
-		Select(channelMemberSliceColumns()...).From("ChannelMembers").LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		Select(columns...).From("ChannelMembers").
+		LeftJoin("AttributeView ON ChannelMembers.UserId = AttributeView.TargetID").
+		LeftJoin("Users ON ChannelMembers.UserId = Users.Id").
+		LeftJoin("Bots b ON b.UserId = ChannelMembers.UserId").
 		OrderBy("ChannelMembers.UserId ASC")
 
 	if opts.Query != "" {
@@ -211,17 +223,17 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 
 func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, prevArgs int) (int, sq.SelectBuilder) {
 	for _, term := range terms {
-		searchFields := []string{}
+		likeConditions := []string{}
 		termArgs := []any{}
 		for _, field := range fields {
 			prevArgs++
-			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
+			likeConditions = append(likeConditions, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*'", field, prevArgs))
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
 		prevArgs++
-		searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
+		likeConditions = append(likeConditions, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*'", "Users.Id", prevArgs))
 		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
-		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
+		query = query.Where(sq.Expr(fmt.Sprintf("(%s)", strings.Join(likeConditions, " OR ")), termArgs...))
 	}
 
 	return prevArgs, query

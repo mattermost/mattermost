@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AccessControlVisualAST} from '@mattermost/types/access_control';
@@ -21,12 +21,108 @@ import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABE
 
 import './table_editor.scss';
 
+// Core fields available globally in CEL (not from CPA attributes)
+export const CORE_FIELD_EMAIL = '__core_email';
+export const CORE_FIELD_IS_BOT = '__core_is_bot';
+export const CORE_FIELD_EMAIL_VERIFIED = '__core_email_verified';
+
+export const CORE_FIELDS: UserPropertyField[] = [
+    {
+        id: CORE_FIELD_EMAIL,
+        name: CORE_FIELD_EMAIL,
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        target_id: '',
+        target_type: '',
+        object_type: '',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        attrs: {managed: 'admin', sort_order: -3, visibility: 'always' as const, value_type: 'email' as const},
+    },
+    {
+        id: CORE_FIELD_IS_BOT,
+        name: CORE_FIELD_IS_BOT,
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        target_id: '',
+        target_type: '',
+        object_type: '',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        attrs: {managed: 'admin', sort_order: -2, visibility: 'always' as const, value_type: '' as const},
+    },
+    {
+        id: CORE_FIELD_EMAIL_VERIFIED,
+        name: CORE_FIELD_EMAIL_VERIFIED,
+        type: 'text',
+        group_id: 'custom_profile_attributes',
+        target_id: '',
+        target_type: '',
+        object_type: '',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        attrs: {managed: 'admin', sort_order: -1, visibility: 'always' as const, value_type: '' as const},
+    },
+];
+
+export function getCoreFieldDisplayName(name: string): string {
+    if (name === CORE_FIELD_EMAIL) {
+        return 'Email';
+    }
+    if (name === CORE_FIELD_IS_BOT) {
+        return 'Is Bot';
+    }
+    if (name === CORE_FIELD_EMAIL_VERIFIED) {
+        return 'Email Verified';
+    }
+    return name;
+}
+
+export function isCoreField(name: string): boolean {
+    return name === CORE_FIELD_EMAIL || name === CORE_FIELD_IS_BOT || name === CORE_FIELD_EMAIL_VERIFIED;
+}
+
+function coreFieldToCELPath(name: string): string {
+    if (name === CORE_FIELD_EMAIL) {
+        return 'user.attributes.email';
+    }
+    if (name === CORE_FIELD_IS_BOT) {
+        return 'user.attributes.is_bot';
+    }
+    if (name === CORE_FIELD_EMAIL_VERIFIED) {
+        return 'user.attributes.email_verified';
+    }
+    return `user.attributes.${name}`;
+}
+
+function celPathToCoreField(path: string): string | null {
+    if (path === 'user.attributes.email') {
+        return CORE_FIELD_EMAIL;
+    }
+    if (path === 'user.attributes.is_bot') {
+        return CORE_FIELD_IS_BOT;
+    }
+    if (path === 'user.attributes.email_verified') {
+        return CORE_FIELD_EMAIL_VERIFIED;
+    }
+    return null;
+}
+
 export function celStringLiteral(val: string): string {
     return '"' + val.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
 }
 
 export function rowToCEL(row: TableRow): string {
-    const attributeExpr = `user.attributes.${row.attribute}`;
+    const attributeExpr = isCoreField(row.attribute) ? coreFieldToCELPath(row.attribute) : `user.attributes.${row.attribute}`;
     const config = OPERATOR_CONFIG[row.operator];
 
     if (!config) {
@@ -57,6 +153,10 @@ export function rowToCEL(row: TableRow): string {
     const value = row.values.length > 0 ? row.values[0] : '';
 
     if (config.type === 'comparison') {
+        // Boolean core fields use unquoted true/false
+        if (row.attribute === CORE_FIELD_IS_BOT || row.attribute === CORE_FIELD_EMAIL_VERIFIED) {
+            return `${attributeExpr} ${config.celOp} ${value === 'true' ? 'true' : 'false'}`;
+        }
         return `${attributeExpr} ${config.celOp} ${celStringLiteral(value)}`;
     }
 
@@ -111,8 +211,11 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
     for (const node of visualAST.conditions) {
         let attr;
 
-        // Extracts the attribute name, removing the 'user.attributes.' prefix.
-        if (node.attribute.startsWith('user.attributes.')) {
+        // Check if this is a core field (even though it's under user.attributes.*)
+        const coreField = celPathToCoreField(node.attribute);
+        if (coreField) {
+            attr = coreField;
+        } else if (node.attribute.startsWith('user.attributes.')) {
             attr = node.attribute.slice(16); // Length of 'user.attributes.'
         } else {
             throw new Error(`Unknown attribute: ${node.attribute}`);
@@ -124,11 +227,11 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
             op = OperatorLabel.IS;
         }
 
-        let values;
+        let values: string[];
         if (Array.isArray(node.value)) {
-            values = node.value;
+            values = node.value.map((v: any) => String(v));
         } else {
-            values = [node.value];
+            values = [String(node.value)];
         }
 
         tableRows.push({
@@ -162,6 +265,9 @@ function TableEditor({
     validateExpressionAgainstRequester,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
+
+    // Merge core fields with CPA user attributes
+    const allAttributes = useMemo(() => [...CORE_FIELDS, ...userAttributes], [userAttributes]);
 
     const [rows, setRows] = useState<TableRow[]>([]);
     const [showTestResults, setShowTestResults] = useState(false);
@@ -241,7 +347,7 @@ function TableEditor({
 
     // Helper function to find the first available (non-disabled) attribute
     const findFirstAvailableAttribute = useCallback(() => {
-        return findFirstAvailableAttributeFromList(userAttributes, enableUserManagedAttributes);
+        return findFirstAvailableAttributeFromList(allAttributes, enableUserManagedAttributes);
     }, [userAttributes, enableUserManagedAttributes]);
 
     // Row Manipulation Handlers
@@ -401,7 +507,7 @@ function TableEditor({
                                 <td className='table-editor__cell'>
                                     <AttributeSelectorMenu
                                         currentAttribute={row.attribute}
-                                        availableAttributes={userAttributes}
+                                        availableAttributes={allAttributes}
                                         disabled={disabled}
                                         onChange={(attribute) => updateRowAttribute(index, attribute)}
                                         menuId={`attribute-selector-menu-${index}`}
@@ -416,7 +522,8 @@ function TableEditor({
                                         currentOperator={row.operator}
                                         disabled={disabled}
                                         onChange={(operator) => updateRowOperator(index, operator)}
-                                        attributeType={userAttributes.find((attr) => attr.name === row.attribute)?.type}
+                                        attributeType={allAttributes.find((attr) => attr.name === row.attribute)?.type}
+                                        isBooleanField={row.attribute === CORE_FIELD_IS_BOT || row.attribute === CORE_FIELD_EMAIL_VERIFIED}
                                     />
                                 </td>
                                 <td className='table-editor__cell'>
@@ -424,7 +531,16 @@ function TableEditor({
                                         row={row}
                                         disabled={disabled}
                                         updateValues={(values: string[]) => updateRowValues(index, values)}
-                                        options={row.attribute ? userAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [] : []}
+                                        options={(() => {
+                                            if (row.attribute === CORE_FIELD_IS_BOT || row.attribute === CORE_FIELD_EMAIL_VERIFIED) {
+                                                return [{id: 'true', name: 'true', color: ''}, {id: 'false', name: 'false', color: ''}];
+                                            }
+                                            if (!row.attribute) {
+                                                return [];
+                                            }
+                                            return allAttributes.find((attr) => attr.name === row.attribute)?.attrs?.options || [];
+                                        })()}
+                                        allowCreateValue={row.attribute === CORE_FIELD_EMAIL}
                                     />
                                 </td>
                                 <td className='table-editor__cell-actions'>

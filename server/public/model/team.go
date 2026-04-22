@@ -42,6 +42,9 @@ type Team struct {
 	GroupConstrained    *bool   `json:"group_constrained"`
 	PolicyID            *string `json:"policy_id"`
 	CloudLimitsArchived bool    `json:"cloud_limits_archived"`
+	Discoverable        bool    `json:"discoverable"`
+	PolicyEnforced      bool    `json:"policy_enforced"`
+	PolicyIsActive      bool    `json:"policy_is_active"`
 }
 
 func (o *Team) Auditable() map[string]any {
@@ -57,6 +60,7 @@ func (o *Team) Auditable() map[string]any {
 		"group_constrained":     o.GroupConstrained,
 		"policy_id":             o.PolicyID,
 		"cloud_limits_archived": o.CloudLimitsArchived,
+		"discoverable":          o.Discoverable,
 	}
 }
 
@@ -72,6 +76,7 @@ type TeamPatch struct {
 	AllowOpenInvite     *bool   `json:"allow_open_invite"`
 	GroupConstrained    *bool   `json:"group_constrained"`
 	CloudLimitsArchived *bool   `json:"cloud_limits_archived"`
+	Discoverable        *bool   `json:"discoverable"`
 }
 
 func (o *TeamPatch) Auditable() map[string]any {
@@ -279,6 +284,10 @@ func (o *Team) Patch(patch *TeamPatch) {
 
 	if patch.CloudLimitsArchived != nil {
 		o.CloudLimitsArchived = *patch.CloudLimitsArchived
+	}
+
+	if patch.Discoverable != nil {
+		o.Discoverable = *patch.Discoverable
 	}
 }
 

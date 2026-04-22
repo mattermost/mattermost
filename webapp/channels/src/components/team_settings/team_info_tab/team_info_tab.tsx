@@ -3,10 +3,11 @@
 
 import React, {useCallback, useState} from 'react';
 import type {ChangeEvent} from 'react';
-import {defineMessages} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
+import Toggle from 'components/toggle';
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -48,8 +49,10 @@ const translations = defineMessages({
 type Props = PropsFromRedux & OwnProps;
 
 const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError, setShowTabSwitchError, setAreThereUnsavedChanges, actions}: Props) => {
+    const {formatMessage} = useIntl();
     const [name, setName] = useState<Team['display_name']>(team.display_name);
     const [description, setDescription] = useState<Team['description']>(team.description);
+    const [discoverable, setDiscoverable] = useState(team.discoverable ?? false);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loading, setLoading] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
@@ -57,7 +60,8 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
 
     const handleNameDescriptionSubmit = useCallback(async (): Promise<boolean> => {
-        if (name.trim() === team.display_name && description === team.description) {
+        const discoverableChanged = discoverable !== (team.discoverable ?? false);
+        if (name.trim() === team.display_name && description === team.description && !discoverableChanged) {
             return true;
         }
 
@@ -69,12 +73,16 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
             return false;
         }
         setNameClientError(undefined);
-        const {error} = await actions.patchTeam({id: team.id, display_name: name, description});
+        const patch: Partial<Team> & {id: string} = {id: team.id, display_name: name, description};
+        if (discoverable !== (team.discoverable ?? false)) {
+            patch.discoverable = discoverable;
+        }
+        const {error} = await actions.patchTeam(patch);
         if (error) {
             return false;
         }
         return true;
-    }, [actions, description, name, team.description, team.display_name, team.id]);
+    }, [actions, description, discoverable, name, team.description, team.discoverable, team.display_name, team.id]);
 
     const handleTeamIconSubmit = useCallback(async (): Promise<boolean> => {
         if (!teamIconFile) {
@@ -182,6 +190,38 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
                     description={description}
                     handleDescriptionChanges={handleDescriptionChanges}
                 />
+                {team.policy_enforced && (
+                    <div
+                        className='team-discoverable-toggle'
+                        style={{display: 'flex', marginTop: 24, alignItems: 'center', justifyContent: 'space-between'}}
+                    >
+                        <div style={{display: 'flex', flexDirection: 'column', gap: 4, flex: 1, marginRight: 16}}>
+                            <label style={{fontWeight: 600, fontSize: 14, color: 'var(--center-channel-color)', margin: 0}}>
+                                {formatMessage({id: 'team_settings.discoverable.label', defaultMessage: 'Discoverable'})}
+                            </label>
+                            <span style={{fontSize: 12, color: 'rgba(var(--center-channel-color-rgb), 0.64)', lineHeight: '16px'}}>
+                                {formatMessage({
+                                    id: 'team_settings.discoverable.description',
+                                    defaultMessage: 'Allow users who match the membership policy to discover and join this team.',
+                                })}
+                            </span>
+                        </div>
+                        <Toggle
+                            id='teamDiscoverableToggle'
+                            ariaLabel={formatMessage({id: 'team_settings.discoverable.label', defaultMessage: 'Discoverable'})}
+                            size='btn-md'
+                            disabled={false}
+                            onToggle={() => {
+                                setDiscoverable(!discoverable);
+                                setAreThereUnsavedChanges(true);
+                                setSaveChangesPanelState('editing');
+                            }}
+                            toggled={discoverable}
+                            tabIndex={0}
+                            toggleClassName='btn-toggle-primary'
+                        />
+                    </div>
+                )}
             </div>
             <TeamPictureSection
                 team={team}

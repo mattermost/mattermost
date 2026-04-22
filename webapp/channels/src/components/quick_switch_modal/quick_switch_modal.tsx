@@ -13,6 +13,7 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
+import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
 import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
@@ -20,15 +21,12 @@ import SuggestionList from 'components/suggestion/suggestion_list';
 import {flattenItems, isItemLoaded, type SuggestionResults} from 'components/suggestion/suggestion_results';
 import SwitchChannelProvider from 'components/suggestion/switch_channel_provider';
 
-import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
-
 import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
-
-import type {ModalData} from 'types/actions';
 import * as Utils from 'utils/utils';
 
+import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';

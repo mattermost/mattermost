@@ -389,7 +389,7 @@ describe('ChannelSettingsModal', () => {
             expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
         });
 
-        it('should not show Access Control tab for public channel even with permission', async () => {
+        it('should show Member Policy tab for public channel with permission', async () => {
             mockManageChannelAccessRulesPermission = true;
 
             const testState = makeTestState();
@@ -401,9 +401,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible for public channels
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            // Public channels now show the Member Policy tab (not Access Control)
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+            expect(screen.queryByText('Member Policy')).toBeInTheDocument();
         });
 
         it('should not show Access Control tab for public channel without permission', async () => {

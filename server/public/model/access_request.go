@@ -14,6 +14,12 @@ type Subject struct {
 	// Role is the system role of the subject (e.g. "system_user", "system_guest", "system_admin").
 	// This is separate from custom profile attributes since it's a first-class system concept.
 	Role string `json:"role"`
+	// Email is the user's email address -- a core field available in CEL as user.email.
+	Email string `json:"email"`
+	// IsBot indicates whether the subject is a bot account -- available in CEL as user.is_bot.
+	IsBot bool `json:"is_bot"`
+	// EmailVerified indicates whether the user's email has been verified -- available in CEL as user.email_verified.
+	EmailVerified bool `json:"email_verified"`
 	// Attributes are the key-value pairs assicuated with the subject.
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.

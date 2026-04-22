@@ -4832,6 +4832,27 @@ export default class Client4 {
         );
     };
 
+    getTeamsForAccessControlPolicy = (policyId: string) => {
+        return this.doFetch<{teams: any[]; total_count: number}>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/resources/teams`,
+            {method: 'get'},
+        );
+    };
+
+    assignTeamsToAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/assign_teams`,
+            {method: 'post', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
+    unassignTeamsFromAccessControlPolicy = (policyId: string, teamIds: string[]) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/unassign_teams`,
+            {method: 'delete', body: JSON.stringify({team_ids: teamIds})},
+        );
+    };
+
     createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
         const job = {
             type: 'access_control_sync' as JobType,

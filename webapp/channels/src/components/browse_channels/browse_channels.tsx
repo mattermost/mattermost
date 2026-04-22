@@ -251,6 +251,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         if (done) {
             done();
         }
+
+        return undefined;
     };
 
     search = (term: string) => {

@@ -2160,3 +2160,117 @@ func (a *App) ClearTeamMembersCache(teamID string) error {
 	}
 	return nil
 }
+
+// FilterDiscoverableTeamsByPolicy filters out discoverable teams where the user
+// does not conform to the team's ABAC policy. Non-policy discoverable teams pass through.
+func (a *App) FilterDiscoverableTeamsByPolicy(rctx request.CTX, userID string, teams []*model.Team) []*model.Team {
+	if len(teams) == 0 {
+		return teams
+	}
+
+	memberTeams := make(map[string]bool)
+	if members, err := a.Srv().Store().Team().GetTeamsForUser(rctx, userID, "", true); err == nil {
+		for _, m := range members {
+			memberTeams[m.TeamId] = true
+		}
+	}
+
+	var filtered []*model.Team
+	for _, t := range teams {
+		if memberTeams[t.Id] || !t.Discoverable {
+			filtered = append(filtered, t)
+			continue
+		}
+		if t.PolicyEnforced {
+			allowed, err := a.EvaluateTeamMembershipPolicy(rctx, userID, t)
+			if err != nil || !allowed {
+				continue
+			}
+		}
+		filtered = append(filtered, t)
+	}
+	return filtered
+}
+
+// MigrateTeamAllowedDomainsToABAC creates team policies from existing AllowedDomains settings
+// when ABAC is enabled. This runs on startup or when ABAC is toggled on.
+func (a *App) MigrateTeamAllowedDomainsToABAC(rctx request.CTX) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return
+	}
+
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return
+	}
+
+	allTeams, err := a.Srv().Store().Team().GetAll()
+	if err != nil {
+		rctx.Logger().Error("Failed to get teams for ABAC migration", mlog.Err(err))
+		return
+	}
+
+	for _, team := range allTeams {
+		if team.AllowedDomains == "" {
+			continue
+		}
+
+		// Check if a team policy already exists
+		_, policyErr := acs.GetPolicy(rctx, team.Id)
+		if policyErr == nil {
+			continue
+		}
+
+		domains := strings.Split(team.AllowedDomains, ", ")
+		var celParts []string
+		for _, domain := range domains {
+			domain = strings.TrimSpace(domain)
+			if domain == "" {
+				continue
+			}
+			celParts = append(celParts, fmt.Sprintf("user.email.endsWith(\"@%s\")", domain))
+		}
+
+		if len(celParts) == 0 {
+			continue
+		}
+
+		expression := strings.Join(celParts, " || ")
+
+		policy := &model.AccessControlPolicy{
+			ID:      team.Id,
+			Name:    fmt.Sprintf("Auto-migrated: %s", team.DisplayName),
+			Type:    model.AccessControlPolicyTypeTeam,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Actions:    []string{model.AccessControlPolicyActionMembership},
+					Expression: expression,
+				},
+			},
+		}
+
+		if _, saveErr := acs.SavePolicy(rctx, policy); saveErr != nil {
+			rctx.Logger().Warn("Failed to migrate AllowedDomains to ABAC policy for team",
+				mlog.String("team_id", team.Id),
+				mlog.String("team_name", team.Name),
+				mlog.Err(saveErr),
+			)
+			continue
+		}
+
+		team.Discoverable = true
+		if _, updateErr := a.Srv().Store().Team().Update(team); updateErr != nil {
+			rctx.Logger().Warn("Failed to set team as discoverable after ABAC migration",
+				mlog.String("team_id", team.Id),
+				mlog.Err(updateErr),
+			)
+		}
+
+		rctx.Logger().Info("Migrated AllowedDomains to ABAC team policy",
+			mlog.String("team_id", team.Id),
+			mlog.String("team_name", team.Name),
+			mlog.String("expression", expression),
+		)
+	}
+}

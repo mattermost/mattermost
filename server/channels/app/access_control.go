@@ -200,6 +200,137 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 	return policies, nil
 }
 
+func (a *App) AssignAccessControlPolicyToTeams(rctx request.CTX, parentID string, teamIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_policy_to_teams.app_error", nil, "PAP not initialized", http.StatusNotImplemented)
+	}
+
+	policy, appErr := a.GetAccessControlPolicy(rctx, parentID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if policy.Type != model.AccessControlPolicyTypeParent {
+		return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_policy_to_teams.not_parent", nil, "Policy is not of type parent", http.StatusBadRequest)
+	}
+
+	policies := make([]*model.AccessControlPolicy, 0, len(teamIDs))
+	for _, teamID := range teamIDs {
+		team, err := a.GetTeam(teamID)
+		if err != nil {
+			return nil, err
+		}
+
+		if appErr := ValidateTeamEligibilityForAccessControl(team); appErr != nil {
+			return nil, appErr
+		}
+
+		child, err := acs.GetPolicy(rctx, team.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			return nil, model.NewAppError("AssignAccessControlPolicyToTeams", "app.pap.assign_policy_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		if child == nil {
+			child = &model.AccessControlPolicy{
+				ID:       team.Id,
+				Type:     model.AccessControlPolicyTypeTeam,
+				Active:   policy.Active,
+				CreateAt: model.GetMillis(),
+				Props:    map[string]any{},
+			}
+		}
+		child.Version = model.AccessControlPolicyVersionV0_3
+
+		appErr := child.Inherit(policy)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		child, appErr = acs.SavePolicy(rctx, child)
+		if appErr != nil {
+			return nil, appErr
+		}
+		policies = append(policies, child)
+	}
+
+	return policies, nil
+}
+
+func (a *App) UnassignPoliciesFromTeams(rctx request.CTX, policyID string, teamIDs []string) *model.AppError {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_policy_from_teams.app_error", nil, "PAP not initialized", http.StatusNotImplemented)
+	}
+
+	cps, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		Type:     model.AccessControlPolicyTypeTeam,
+		ParentID: policyID,
+		Limit:    1000,
+	})
+	if err != nil {
+		return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	childPolicies := make(map[string]bool)
+	for _, p := range cps {
+		childPolicies[p.ID] = true
+	}
+
+	for _, teamID := range teamIDs {
+		if _, ok := childPolicies[teamID]; !ok {
+			continue
+		}
+
+		child, getErr := acs.GetPolicy(rctx, teamID)
+		if getErr != nil {
+			return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_policy_from_teams.app_error", nil, getErr.Error(), http.StatusInternalServerError)
+		}
+
+		child.Imports = slices.DeleteFunc(child.Imports, func(importID string) bool {
+			return importID == policyID
+		})
+
+		if len(child.Imports) == 0 && len(child.Rules) == 0 {
+			if err := acs.DeletePolicy(rctx, teamID); err != nil {
+				return model.NewAppError("UnassignPoliciesFromTeams", "app.pap.unassign_policy_from_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+			continue
+		}
+		if _, saveErr := acs.SavePolicy(rctx, child); saveErr != nil {
+			return saveErr
+		}
+	}
+
+	return nil
+}
+
+func (a *App) GetTeamsForPolicy(rctx request.CTX, policyID string) ([]*model.Team, int64, *model.AppError) {
+	policies, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+		Type:     model.AccessControlPolicyTypeTeam,
+		ParentID: policyID,
+		Limit:    1000,
+	})
+	if err != nil {
+		return nil, 0, model.NewAppError("GetTeamsForPolicy", "app.pap.get_teams_for_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	teamIDs := make([]string, 0, len(policies))
+	for _, p := range policies {
+		teamIDs = append(teamIDs, p.ID)
+	}
+
+	if len(teamIDs) == 0 {
+		return []*model.Team{}, 0, nil
+	}
+
+	teams, storeErr := a.Srv().Store().Team().GetMany(teamIDs)
+	if storeErr != nil {
+		return nil, 0, model.NewAppError("GetTeamsForPolicy", "app.pap.get_teams_for_policy.app_error", nil, storeErr.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, int64(len(teams)), nil
+}
+
 func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, channelIDs []string) *model.AppError {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
@@ -364,6 +495,50 @@ func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.A
 	}
 
 	return nil
+}
+
+// ValidateTeamEligibilityForAccessControl checks that a team is eligible for
+// access control policy assignment: must not be group-constrained.
+func ValidateTeamEligibilityForAccessControl(team *model.Team) *model.AppError {
+	if team.IsGroupConstrained() {
+		return model.NewAppError("ValidateTeamEligibilityForAccessControl",
+			"app.pap.access_control.team_group_constrained",
+			nil, "Team is group constrained", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+// EvaluateTeamMembershipPolicy evaluates whether a user conforms to a team's ABAC policy.
+func (a *App) EvaluateTeamMembershipPolicy(rctx request.CTX, userId string, team *model.Team) (bool, *model.AppError) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return false, nil
+	}
+
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		return false, userErr
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userId, user.Roles)
+	if appErr != nil {
+		return false, appErr
+	}
+
+	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		Subject: *subject,
+		Resource: model.Resource{
+			Type: model.AccessControlPolicyTypeTeam,
+			ID:   team.Id,
+		},
+		Action: "membership",
+	})
+	if evalErr != nil {
+		return false, evalErr
+	}
+
+	return decision.Decision, nil
 }
 
 // ValidateChannelAccessControlPermission validates if a user has permission to manage access control for a specific channel
@@ -550,23 +725,31 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
-			return &model.Subject{
+			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
 				Role:       roles,
 				Attributes: map[string]any{},
-			}, nil
+			}
+		} else {
+			rctx.Logger().Warn("Failed to get subject for access control subject",
+				mlog.String("user_id", userID),
+				mlog.String("roles", roles),
+				mlog.Err(storeErr),
+			)
+			return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
-
-		rctx.Logger().Warn("Failed to get subject for access control subject",
-			mlog.String("user_id", userID),
-			mlog.String("roles", roles),
-			mlog.Err(storeErr),
-		)
-		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	subject.Role = roles
+
+	user, userErr := a.GetUser(userID)
+	if userErr == nil {
+		subject.Email = user.Email
+		subject.IsBot = user.IsBot
+		subject.EmailVerified = user.EmailVerified
+	}
+
 	return subject, nil
 }
 

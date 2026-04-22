@@ -13,6 +13,14 @@ jest.mock('utils/browser_history', () => ({
     getHistory: () => ({push: jest.fn(), listen: jest.fn(), location: {pathname: ''}}),
 }));
 
+jest.mock('hooks/useChannelAccessControlActions', () => ({
+    useChannelAccessControlActions: () => ({
+        getAccessControlFields: jest.fn().mockResolvedValue({data: []}),
+        getVisualAST: jest.fn().mockResolvedValue({data: {conditions: []}}),
+        createAccessControlSyncJob: jest.fn().mockResolvedValue({data: {}}),
+    }),
+}));
+
 describe('TeamAccessPoliciesTab', () => {
     const team = TestHelper.getTeamMock({id: 'team_id', display_name: 'Test Team'});
 
@@ -43,87 +51,41 @@ describe('TeamAccessPoliciesTab', () => {
         jest.clearAllMocks();
     });
 
-    test('should call searchTeamPolicies with team.id on mount', async () => {
-        const searchTeamPolicies = jest.fn().mockResolvedValue({data: {policies: [], total: 0}});
-        const props = {
-            ...defaultProps,
-            actions: {...defaultProps.actions, searchTeamPolicies},
-        };
-
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
-
-        await waitFor(() => {
-            expect(searchTeamPolicies).toHaveBeenCalledWith(
-                'team_id',
-                '',
-                'parent',
-                '',
-                11,
-            );
-        });
-    });
-
-    test('should show empty state when no policies exist', async () => {
+    test('should render sub-tabs and default to Team Policy view', () => {
         renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
-        await waitFor(() => {
-            expect(screen.getByText('No policies found')).toBeInTheDocument();
-        });
+        expect(screen.getByText('Team Policy')).toBeInTheDocument();
+        expect(screen.getByText('Channel Policies')).toBeInTheDocument();
+
+        // Team Policy tab is active by default
+        expect(screen.getByText('Team membership policy')).toBeInTheDocument();
+        expect(screen.getByText('Define which users should be members of this team based on their attributes.')).toBeInTheDocument();
     });
 
-    test('should render policy list with names and channel counts', async () => {
-        const policies = [
-            {id: 'p1', name: 'Engineering Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch1', 'ch2', 'ch3']}},
-            {id: 'p2', name: 'Sales Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}], props: {child_ids: ['ch4']}},
-        ];
-
+    test('should call fetchPolicy with team.id on mount', async () => {
+        const fetchPolicy = jest.fn().mockResolvedValue({data: {}});
         const props = {
             ...defaultProps,
-            actions: {
-                ...defaultProps.actions,
-                searchTeamPolicies: jest.fn().mockResolvedValue({data: {policies, total: 2}}),
-            },
+            actions: {...defaultProps.actions, fetchPolicy},
         };
 
         renderWithContext(<TeamAccessPoliciesTab {...props}/>);
 
         await waitFor(() => {
-            expect(screen.getByText('Engineering Policy')).toBeInTheDocument();
+            expect(fetchPolicy).toHaveBeenCalledWith('team_id', undefined, 'team_id');
         });
-
-        expect(screen.getByText('Sales Policy')).toBeInTheDocument();
-        expect(screen.getByText(/3 channels/)).toBeInTheDocument();
-        expect(screen.getByText(/1 channel/)).toBeInTheDocument();
     });
 
-    test('should render policy with no child_ids showing None', async () => {
-        const policies = [
-            {id: 'p1', name: 'Empty Policy', type: 'parent', rules: [{expression: 'true', actions: ['*']}]},
-        ];
-
-        const props = {
-            ...defaultProps,
-            actions: {
-                ...defaultProps.actions,
-                searchTeamPolicies: jest.fn().mockResolvedValue({data: {policies, total: 1}}),
-            },
-        };
-
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
-
-        await waitFor(() => {
-            expect(screen.getByText('Empty Policy')).toBeInTheDocument();
-        });
-
-        expect(screen.getByText('None')).toBeInTheDocument();
-    });
-
-    test('should have correct accessibility attributes', async () => {
+    test('should show auto-sync toggle disabled when no expression is set', () => {
         renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
-        await waitFor(() => {
-            expect(screen.getByText('No policies found')).toBeInTheDocument();
-        });
+        const toggle = screen.getByTestId('teamPolicyAutoSyncToggle-button');
+        expect(toggle).toBeInTheDocument();
+        expect(toggle).toBeDisabled();
+    });
+
+    test('should have correct accessibility attributes', () => {
+        renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
         const tabPanel = document.getElementById('accessPoliciesSettings');
         expect(tabPanel).toBeInTheDocument();
@@ -131,19 +93,9 @@ describe('TeamAccessPoliciesTab', () => {
         expect(tabPanel).toHaveAttribute('aria-labelledby', 'access_policiesButton');
     });
 
-    test('should show error state when API call throws', async () => {
-        const props = {
-            ...defaultProps,
-            actions: {
-                ...defaultProps.actions,
-                searchTeamPolicies: jest.fn().mockRejectedValue(new Error('network error')),
-            },
-        };
+    test('should show auto-add members label', () => {
+        renderWithContext(<TeamAccessPoliciesTab {...defaultProps}/>);
 
-        renderWithContext(<TeamAccessPoliciesTab {...props}/>);
-
-        await waitFor(() => {
-            expect(screen.getByText('Something went wrong. Try again')).toBeInTheDocument();
-        });
+        expect(screen.getByText('Auto-add members based on rules')).toBeInTheDocument();
     });
 });

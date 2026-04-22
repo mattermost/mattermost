@@ -13,6 +13,7 @@ import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -21,6 +22,7 @@ import TitleAndButtonCardHeader from 'components/card/title_and_button_card_head
 import ChannelSelectorModal from 'components/channel_selector_modal';
 import SaveButton from 'components/save_button';
 import SectionNotice from 'components/section_notice';
+import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import TextSetting from 'components/widgets/settings/text_setting';
 
@@ -28,6 +30,7 @@ import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActio
 import {getHistory} from 'utils/browser_history';
 
 import ChannelList from './channel_list';
+import TeamList from './team_list/team_list';
 
 import CELEditor from '../editors/cel_editor/editor';
 import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
@@ -94,6 +97,10 @@ function PolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
+    const [addTeamOpen, setAddTeamOpen] = useState(false);
+    const [assignedTeams, setAssignedTeams] = useState<Array<{id: string; display_name: string}>>([]);
+    const [teamsToAdd, setTeamsToAdd] = useState<Array<{id: string; display_name: string}>>([]);
+    const [teamsToRemove, setTeamsToRemove] = useState<Set<string>>(new Set());
     const {formatMessage} = useIntl();
 
     const abacActions = useChannelAccessControlActions();
@@ -144,8 +151,14 @@ function PolicyDetails({
                 setChannelsCount(result.data?.total_count || 0);
             });
 
+            const teamsPromise = Client4.getTeamsForAccessControlPolicy(policyId).then((result) => {
+                if (result?.teams) {
+                    setAssignedTeams(result.teams.map((t: any) => ({id: t.id, display_name: t.display_name})));
+                }
+            }).catch(() => setAssignedTeams([]));
+
             // Wait for all fetches for an existing policy
-            await Promise.all([fieldsPromise, policyPromise, channelsPromise]);
+            await Promise.all([fieldsPromise, policyPromise, channelsPromise, teamsPromise]);
         } else {
             // For new policies, just ensure general fields are fetched.
             // Policy name, expression, etc., are already initialized from props or defaults by useState.
@@ -226,6 +239,33 @@ function PolicyDetails({
                     setShowConfirmationModal(false);
                     success = false;
                     return;
+                }
+            }
+
+            // --- Step 2b: Assign/Unassign Teams ---
+            if (success) {
+                try {
+                    const teamIdsToRemove = Array.from(teamsToRemove);
+                    if (teamIdsToRemove.length > 0) {
+                        await Client4.unassignTeamsFromAccessControlPolicy(currentPolicyId, teamIdsToRemove);
+                    }
+                    const teamIdsToAdd = teamsToAdd.map((t) => t.id);
+                    if (teamIdsToAdd.length > 0) {
+                        await Client4.assignTeamsToAccessControlPolicy(currentPolicyId, teamIdsToAdd);
+                    }
+
+                    // Merge added teams into assigned and clear pending changes
+                    if (teamIdsToRemove.length > 0 || teamIdsToAdd.length > 0) {
+                        setAssignedTeams((prev) => [
+                            ...prev.filter((t) => !teamsToRemove.has(t.id)),
+                            ...teamsToAdd,
+                        ]);
+                        setTeamsToAdd([]);
+                        setTeamsToRemove(new Set());
+                    }
+                } catch (error: any) {
+                    setServerError(error?.message || 'Error assigning teams');
+                    success = false;
                 }
             }
 
@@ -352,6 +392,10 @@ function PolicyDetails({
             (channelsCount > channelChanges.removedCount) ||
             (Object.keys(channelChanges.added).length > 0)
         );
+    };
+
+    const hasResources = () => {
+        return hasChannels() || assignedTeams.filter((t) => !teamsToRemove.has(t.id)).length > 0 || teamsToAdd.length > 0;
     };
 
     return (
@@ -554,6 +598,51 @@ function PolicyDetails({
                             />
                         </Card.Body>
                     </Card>
+                    <Card
+                        expanded={true}
+                        className={'console add-teams'}
+                    >
+                        <Card.Header>
+                            <TitleAndButtonCardHeader
+                                title={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.team_selector.title'
+                                        defaultMessage='Assigned teams'
+                                    />
+                                }
+                                subtitle={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.team_selector.subtitle'
+                                        defaultMessage='Add teams that this membership policy will apply to.'
+                                    />
+                                }
+                                buttonText={
+                                    <FormattedMessage
+                                        id='admin.access_control.policy.edit_policy.team_selector.addTeams'
+                                        defaultMessage='Add teams'
+                                    />
+                                }
+                                onClick={() => setAddTeamOpen(true)}
+                            />
+                        </Card.Header>
+                        <Card.Body expanded={true}>
+                            <TeamList
+                                teams={[...assignedTeams.filter((t) => !teamsToRemove.has(t.id)), ...teamsToAdd]}
+                                onRemoveCallback={(team) => {
+                                    if (teamsToAdd.find((t) => t.id === team.id)) {
+                                        setTeamsToAdd((prev) => prev.filter((t) => t.id !== team.id));
+                                    } else {
+                                        setTeamsToRemove((prev) => new Set([...prev, team.id]));
+                                    }
+                                    setSaveNeeded(true);
+                                }}
+                                policyActiveStatusChanges={policyActiveStatusChanges}
+                                onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
+                                saving={saving}
+                            />
+                        </Card.Body>
+                    </Card>
+
                     {policyId && (
                         <Card
                             expanded={true}
@@ -612,6 +701,19 @@ function PolicyDetails({
                 />
             )}
 
+            {addTeamOpen && (
+                <TeamSelectorModal
+                    onModalDismissed={() => setAddTeamOpen(false)}
+                    onTeamsSelected={(teams) => {
+                        const newTeams = teams.map((t) => ({id: t.id, display_name: t.display_name}));
+                        setTeamsToAdd((prev) => [...prev, ...newTeams.filter((nt) => !prev.find((p) => p.id === nt.id))]);
+                        setSaveNeeded(true);
+                        setAddTeamOpen(false);
+                    }}
+                    alreadySelected={[...assignedTeams.map((t) => t.id), ...teamsToAdd.map((t) => t.id)]}
+                />
+            )}
+
             {showConfirmationModal && (
                 <PolicyConfirmationModal
                     active={autoSyncMembership}
@@ -657,7 +759,7 @@ function PolicyDetails({
                         if (!preSaveCheck()) {
                             return;
                         }
-                        if (hasChannels()) {
+                        if (hasResources()) {
                             setShowConfirmationModal(true);
                         } else {
                             handleSubmit();

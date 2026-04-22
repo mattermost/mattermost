@@ -1,8 +1,8 @@
 .ChannelJoinRequestsModal__body {
     display: flex;
+    min-height: 120px;
     flex-direction: column;
     gap: 4px;
-    min-height: 120px;
 }
 
 .ChannelJoinRequestsModal__empty {

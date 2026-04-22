@@ -603,7 +603,7 @@ describe('components/channel_invite_modal', () => {
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
 
-        const channelWithPolicy = {...channel, policy_enforced: true};
+        const channelWithPolicy = {...channel, type: 'P' as const, policy_enforced: true};
         const props = {
             ...baseProps,
             channel: channelWithPolicy,
@@ -696,6 +696,7 @@ describe('components/channel_invite_modal', () => {
     test('should hide the invite as guest link when channel has policy_enforced', () => {
         const channelWithPolicy = {
             ...channel,
+            type: 'P' as const,
             policy_enforced: true,
         };
 
@@ -821,7 +822,7 @@ describe('components/channel_invite_modal', () => {
 
         const props = {
             ...baseProps,
-            channel: {...channel, policy_enforced: true},
+            channel: {...channel, type: 'P' as const, policy_enforced: true},
         };
 
         renderWithContext(<ChannelInviteModal {...props}/>);
@@ -849,7 +850,7 @@ describe('components/channel_invite_modal', () => {
 
         const props = {
             ...baseProps,
-            channel: {...channel, policy_enforced: true},
+            channel: {...channel, type: 'P' as const, policy_enforced: true},
             profilesNotInCurrentChannel: [users[0]], // Clean ABAC data
             profilesFromRecentDMs: [users[1]], // Contaminated data
             includeUsers: {[users[1].id]: users[1]}, // Contaminated data

@@ -5,7 +5,7 @@ import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, CORE_FIELD_EMAIL} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
 describe('parseExpression', () => {
     test('handles "==" operator mapping to "is"', () => {
@@ -92,7 +92,7 @@ describe('parseExpression', () => {
 
         expect(parseExpression(ast)).toEqual([
             {
-                attribute: 'email',
+                attribute: CORE_FIELD_EMAIL,
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',
@@ -122,7 +122,7 @@ describe('parseExpression', () => {
 
         expect(parseExpression(ast)).toEqual([
             {
-                attribute: 'email',
+                attribute: CORE_FIELD_EMAIL,
                 operator: 'starts with',
                 values: ['admin'],
                 attribute_type: 'text',

@@ -441,6 +441,103 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           </div>
         </div>
         <div
+          class="Card console add-teams expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Assigned teams
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Add teams that this membership policy will apply to.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add teams
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="AccessControlPolicyChannelsList"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                >
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 10;"
+                  >
+                    Name
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 8;"
+                  >
+                    Auto-add members
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 3;"
+                  />
+                </div>
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_empty"
+                  >
+                    No items found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
           class="Card console delete-policy expanded"
         >
           <div
@@ -906,6 +1003,103 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
                         class="icon icon-information-outline ChannelList__autoAddInfoIcon"
                       />
                     </div>
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 3;"
+                  />
+                </div>
+                <div
+                  class="DataGrid_rows"
+                >
+                  <div
+                    class="DataGrid_empty"
+                  >
+                    No items found
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="Card console add-teams expanded"
+        >
+          <div
+            class="Card__header expanded"
+          >
+            <div>
+              <div
+                class="text-top"
+              >
+                Assigned teams
+              </div>
+              <div
+                class="text-bottom"
+              >
+                Add teams that this membership policy will apply to.
+              </div>
+            </div>
+            <button
+              class="btn btn-primary"
+            >
+              Add teams
+            </button>
+            <hr
+              class="Card__hr"
+            />
+          </div>
+          <div
+            class="Card__body expanded expanding"
+            style="height: 0px;"
+          >
+            <div
+              class="AccessControlPolicyChannelsList"
+            >
+              <div
+                class="DataGrid customTable"
+              >
+                <div
+                  class="DataGrid_search"
+                >
+                  <div
+                    class="DataGrid_searchBar"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="DataGrid_searchIcon"
+                    >
+                      <i
+                        class="fa fa-search"
+                        title="Search Icon"
+                      />
+                    </span>
+                    <input
+                      data-testid="searchInput"
+                      placeholder="Search"
+                      type="text"
+                      value=""
+                    />
+                    <i
+                      class="DataGrid_clearButton fa fa-times-circle hidden"
+                      data-testid="clear-search"
+                    />
+                  </div>
+                </div>
+                <div
+                  class="DataGrid_header"
+                >
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 10;"
+                  >
+                    Name
+                  </div>
+                  <div
+                    class="DataGrid_cell"
+                    style="flex-grow: 8;"
+                  >
+                    Auto-add members
                   </div>
                   <div
                     class="DataGrid_cell"

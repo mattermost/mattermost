@@ -15,6 +15,7 @@ import (
 const (
 	AccessControlPolicyTypeParent     = "parent"
 	AccessControlPolicyTypeChannel    = "channel"
+	AccessControlPolicyTypeTeam       = "team"
 	AccessControlPolicyTypePermission = "permission"
 
 	MaxPolicyNameLength = 128
@@ -178,7 +179,7 @@ func (p *AccessControlPolicy) validateScope() *AppError {
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -219,13 +220,17 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_1() *AppError {
 		if len(p.Imports) > 1 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
+	case AccessControlPolicyTypeTeam:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
 	}
 
 	return nil
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypeTeam}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -258,13 +263,17 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_2() *AppError {
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}
+	case AccessControlPolicyTypeTeam:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
 	}
 
 	return nil
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypeTeam, AccessControlPolicyTypePermission}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -294,6 +303,10 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
 	case AccessControlPolicyTypeChannel:
+		if len(p.Rules) == 0 && len(p.Imports) == 0 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
+		}
+	case AccessControlPolicyTypeTeam:
 		if len(p.Rules) == 0 && len(p.Imports) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules_imports.app_error", nil, "", 400)
 		}

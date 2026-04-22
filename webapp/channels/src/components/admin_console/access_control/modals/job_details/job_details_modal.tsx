@@ -68,6 +68,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     const [channelLookup, setChannelLookup] = useState<IDMappedObjects<Channel>>({});
     const [teamLookup, setTeamLookup] = useState<IDMappedObjects<Team>>({});
     const [syncResults, setSyncResults] = useState<SyncResults | null>(null);
+    const [teamSyncResults, setTeamSyncResults] = useState<Record<string, ChannelMembersSyncResults> | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [allChannelsForList, setAllChannelsForList] = useState<Channel[]>([]);
 
@@ -82,25 +83,27 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             const parsedResults = JSON.parse(job.data.sync_results);
             setSyncResults(parsedResults);
 
-            // Collect all channel IDs and user IDs for lookup
             const channelIds: string[] = [];
-
-            // Use a safer type cast for Object.entries
             Object.entries(parsedResults).forEach((entry) => {
-                const channelId = entry[0];
-
-                channelIds.push(channelId);
+                channelIds.push(entry[0]);
             });
 
-            // Fetch channel and user data if we have IDs
             if (channelIds.length > 0) {
-                // Fetch each channel individually
                 channelIds.forEach((id) => {
                     dispatch(ChannelActions.getChannel(id));
                 });
             }
         }
-    }, [job?.data?.sync_results, dispatch]);
+
+        if (job?.data?.team_sync_results) {
+            try {
+                const parsedTeamResults = JSON.parse(job.data.team_sync_results);
+                setTeamSyncResults(parsedTeamResults);
+            } catch {
+                setTeamSyncResults(null);
+            }
+        }
+    }, [job?.data?.sync_results, job?.data?.team_sync_results, dispatch]);
 
     // Build channel lookup from state and prepare allChannelsForList
     useEffect(() => {
@@ -241,6 +244,37 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     />
                 </div>
             )}
+            {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && teamSyncResults && Object.keys(teamSyncResults).length > 0 && (
+                <div style={{padding: '16px 24px', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.08)'}}>
+                    <h4 style={{margin: '0 0 12px', fontSize: 14, fontWeight: 600}}>
+                        <FormattedMessage
+                            id='admin.jobTable.syncResults.teamSection'
+                            defaultMessage='Team Sync Results'
+                        />
+                    </h4>
+                    {Object.entries(teamSyncResults).map(([teamId, results]) => {
+                        const team = getTeam(state, teamId);
+                        const teamName = team?.display_name || teamId;
+                        const added = (results as ChannelMembersSyncResults).MembersAdded?.length || 0;
+                        const removed = (results as ChannelMembersSyncResults).MembersRemoved?.length || 0;
+                        return (
+                            <div
+                                key={teamId}
+                                style={{display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.04)'}}
+                            >
+                                <span style={{fontWeight: 500}}>{teamName}</span>
+                                <span style={{color: 'rgba(var(--center-channel-color-rgb), 0.64)', fontSize: 13}}>
+                                    {added > 0 && `+${added} added`}
+                                    {added > 0 && removed > 0 && ', '}
+                                    {removed > 0 && `-${removed} removed`}
+                                    {added === 0 && removed === 0 && 'No changes'}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
             {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && syncResults && (
                 <SearchableSyncJobChannelList
                     channels={filteredChannels}

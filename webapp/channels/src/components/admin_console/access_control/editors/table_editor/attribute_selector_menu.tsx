@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 
 import {
     CheckIcon,
+    CheckCircleOutlineIcon,
     MenuVariantIcon,
     ChevronDownCircleOutlineIcon,
     EmailOutlineIcon,
@@ -23,12 +24,19 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import * as Menu from 'components/menu';
 import WithTooltip from 'components/with_tooltip';
 
+import {isCoreField, getCoreFieldDisplayName, CORE_FIELD_IS_BOT, CORE_FIELD_EMAIL_VERIFIED} from './table_editor';
+
 import './selector_menus.scss';
 
 // Define AttributeIcon outside the main component
 const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => {
     const {attribute, ...iconProps} = props;
     if (attribute) {
+        // Boolean core fields get a check-circle icon
+        if (attribute.name === CORE_FIELD_IS_BOT || attribute.name === CORE_FIELD_EMAIL_VERIFIED) {
+            return <CheckCircleOutlineIcon {...iconProps}/>;
+        }
+
         const valueType = attribute.attrs?.value_type;
         if (valueType === 'email') {
             return <EmailOutlineIcon {...iconProps}/>;
@@ -77,7 +85,8 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
 
     const options = useMemo(() => {
         return availableAttributes.filter((attr) => {
-            return attr.name.toLowerCase().includes(filter.toLowerCase());
+            const displayName = isCoreField(attr.name) ? getCoreFieldDisplayName(attr.name) : attr.name;
+            return displayName.toLowerCase().includes(filter.toLowerCase());
         });
     }, [availableAttributes, filter]);
 
@@ -111,7 +120,12 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'})}
+                        {(() => {
+                            if (!currentAttribute) {
+                                return formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'});
+                            }
+                            return isCoreField(currentAttribute) ? getCoreFieldDisplayName(currentAttribute) : currentAttribute;
+                        })()}
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',
@@ -134,11 +148,13 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
             />
             {options.map((option) => {
                 const {name} = option;
-                const hasSpaces = name.includes(' ');
+                const isCore = isCoreField(name);
+                const displayName = isCore ? getCoreFieldDisplayName(name) : name;
+                const hasSpaces = !isCore && name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
                 const isAdminManaged = option.attrs?.managed === 'admin';
                 const isProtected = option.attrs?.protected;
-                const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
+                const allowed = isCore || isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
 
                 const menuItem = (
                     <Menu.Item
@@ -148,7 +164,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         forceCloseOnSelect={true}
                         aria-checked={name === currentAttribute}
                         onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
-                        labels={<span>{name}</span>}
+                        labels={<span>{displayName}</span>}
                         disabled={hasSpaces || !allowed}
                         leadingElement={
                             <AttributeIcon

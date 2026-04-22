@@ -294,8 +294,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Member Policy'})).toBeInTheDocument();
+        expect(screen.getByText('Define user attributes to recommend this channel to matching users. This channel remains open — anyone can join, but matching users will see it as a recommended channel.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {

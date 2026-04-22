@@ -77,7 +77,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
         jest.restoreAllMocks();
     });
 
-    test('should default to "has any of" operator when adding a row with multiselect attribute', async () => {
+    test('should default to "is" operator when adding a row (first available attribute is a core text field)', async () => {
         mockMultiselectActions.getVisualAST.mockResolvedValue({data: {conditions: []}});
 
         renderWithContext(<TableEditor {...multiselectBaseProps}/>, {});
@@ -93,7 +93,8 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
             expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
         });
 
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
+        // First available attribute is a core text field (Email), so default operator is "is"
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is');
     });
 
     test('should show "has all of" operator for multiselect attribute parsed from expression', async () => {

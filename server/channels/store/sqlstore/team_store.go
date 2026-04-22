@@ -226,6 +226,9 @@ func teamSliceColumns() []string {
 		"Teams.SchemeId",
 		"Teams.GroupConstrained",
 		"Teams.CloudLimitsArchived",
+		"Teams.Discoverable",
+		"EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Teams.Id) AS PolicyEnforced",
+		"COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = Teams.Id AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive",
 	}
 }
 
@@ -309,7 +312,8 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, error) {
 			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, DisplayName=:DisplayName, Name=:Name,
 				Description=:Description, Email=:Email, Type=:Type, CompanyName=:CompanyName, AllowedDomains=:AllowedDomains,
 				InviteId=:InviteId, AllowOpenInvite=:AllowOpenInvite, LastTeamIconUpdate=:LastTeamIconUpdate,
-				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained, CloudLimitsArchived=:CloudLimitsArchived
+				SchemeId=:SchemeId, GroupConstrained=:GroupConstrained, CloudLimitsArchived=:CloudLimitsArchived,
+				Discoverable=:Discoverable
 			WHERE Id=:Id`, team)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update Team with id=%s", team.Id)
@@ -438,18 +442,22 @@ func (s SqlTeamStore) GetByNames(names []string) ([]*model.Team, error) {
 }
 
 func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) sq.SelectBuilder {
-	var selectStr string
+	var selectColumns []string
 	if countQuery {
-		selectStr = "count(*)"
+		selectColumns = []string{"count(*)"}
 	} else {
-		selectStr = "t.*"
+		selectColumns = []string{
+			"t.*",
+			"EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = t.Id) AS PolicyEnforced",
+			"COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = t.Id AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive",
+		}
 		if opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-			selectStr += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+			selectColumns = append(selectColumns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 		}
 	}
 
 	query := s.getQueryBuilder().
-		Select(selectStr).
+		Select(selectColumns...).
 		From("Teams as t")
 
 	// Don't order or limit if getting count
@@ -612,13 +620,17 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, error) {
 func (s SqlTeamStore) GetAllPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, error) {
 	teams := []*model.Team{}
 
-	selectString := "Teams.*"
+	selectColumns := []string{
+		"Teams.*",
+		"EXISTS (SELECT 1 FROM AccessControlPolicies acp WHERE acp.ID = Teams.Id) AS PolicyEnforced",
+		"COALESCE((SELECT acp.Active FROM AccessControlPolicies acp WHERE acp.ID = Teams.Id AND acp.Active = TRUE LIMIT 1), false) AS PolicyIsActive",
+	}
 	if opts != nil && opts.IncludePolicyID != nil && *opts.IncludePolicyID {
-		selectString += ", RetentionPoliciesTeams.PolicyId as PolicyID"
+		selectColumns = append(selectColumns, "RetentionPoliciesTeams.PolicyId as PolicyID")
 	}
 
 	builder := s.getQueryBuilder().
-		Select(selectString).
+		Select(selectColumns...).
 		From("Teams").
 		OrderBy("DisplayName").
 		Limit(uint64(limit)).

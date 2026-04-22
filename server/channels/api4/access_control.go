@@ -35,6 +35,9 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/resources/teams", api.APISessionRequired(getTeamsForAccessControlPolicy)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicy.Handle("/assign_teams", api.APISessionRequired(assignTeamsToPolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicy.Handle("/unassign_teams", api.APISessionRequired(unassignTeamsFromPolicy)).Methods(http.MethodDelete)
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -115,6 +118,19 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			// Now do the full validation (channel exists, is private, etc.)
 			if appErr := c.App.ValidateChannelAccessControlPolicyCreation(c.AppContext, c.AppContext.Session().UserId, &policy); appErr != nil {
 				c.Err = appErr
+				return
+			}
+		}
+	case model.AccessControlPolicyTypeTeam:
+		hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+		teamID := r.URL.Query().Get("team_id")
+		if !hasSystemPermission {
+			if teamID == "" || !model.IsValidId(teamID) {
+				c.SetPermissionError(model.PermissionManageSystem)
+				return
+			}
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+				c.SetPermissionError(model.PermissionManageTeamAccessRules)
 				return
 			}
 		}
@@ -1011,4 +1027,92 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func getTeamsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	teams, total, appErr := c.App.GetTeamsForPolicy(c.AppContext, c.Params.PolicyId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	resp := map[string]any{"teams": teams, "total_count": total}
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamsForAccessControlPolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func assignTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var body struct {
+		TeamIds []string `json:"team_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	if len(body.TeamIds) > 0 {
+		_, appErr := c.App.AssignAccessControlPolicyToTeams(c.AppContext, c.Params.PolicyId, body.TeamIds)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	ReturnStatusOK(w)
+}
+
+func unassignTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	var body struct {
+		TeamIds []string `json:"team_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	if len(body.TeamIds) > 0 {
+		appErr := c.App.UnassignPoliciesFromTeams(c.AppContext, c.Params.PolicyId, body.TeamIds)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	}
+
+	ReturnStatusOK(w)
 }

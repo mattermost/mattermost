@@ -40,6 +40,9 @@ export type Team = {
     group_constrained: boolean;
     policy_id?: string | null;
     last_team_icon_update?: number;
+    discoverable?: boolean;
+    policy_enforced?: boolean;
+    policy_is_active?: boolean;
 };
 
 export type TeamsState = {
