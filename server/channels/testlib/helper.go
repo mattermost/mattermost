@@ -60,6 +60,8 @@ func NewMainHelper() *MainHelper {
 }
 
 func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	flag.Parse()
+
 	h := &MainHelper{
 		Logger: mlog.CreateConsoleLogger(),
 	}
@@ -70,8 +72,6 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 }
 
 func (h *MainHelper) Main(m *testing.M) {
-	flag.Parse()
-
 	if f := flag.Lookup("test.list"); f != nil && f.Value.String() != "" {
 		os.Exit(m.Run())
 	}
