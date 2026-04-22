@@ -74,7 +74,6 @@ export default function ClassificationMarkings({disabled}: Props) {
     // Track if there are unsaved changes
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
-    const [initialPresetId, setInitialPresetId] = useState<string>(PRESET_CUSTOM);
 
     // Confirm modal for preset switch
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
@@ -111,7 +110,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                     setLevels(result.levels);
                     setInitialLevels(result.levels);
                     setPresetId(result.presetId);
-                    setInitialPresetId(result.presetId);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -241,8 +239,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         setLevels(result.levels);
         setInitialLevels(result.levels);
         setInitialEnabled(true);
-        setInitialPresetId(presetId);
-    }, [levels, presetId]);
+    }, [levels]);
 
     const handleSaveDelete = useCallback(async () => {
         await saveDeleteField(existingField!.id);
@@ -251,7 +248,6 @@ export default function ClassificationMarkings({disabled}: Props) {
         setInitialLevels([]);
         setLevels([]);
         setPresetId(PRESET_CUSTOM);
-        setInitialPresetId(PRESET_CUSTOM);
     }, [existingField]);
 
     const handleSavePatch = useCallback(async () => {
@@ -260,8 +256,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         setExistingField(patched);
         setLevels(result.levels);
         setInitialLevels(result.levels);
-        setInitialPresetId(presetId);
-    }, [existingField, levels, presetId]);
+    }, [existingField, levels]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
