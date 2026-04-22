@@ -19,13 +19,13 @@ export type GlobalBannerPlacement = 'top' | 'top_and_bottom';
 export type GlobalBannerConfig = {
     enabled: boolean;
     placement: GlobalBannerPlacement;
-    level_id: string;
+    level_name: string;
 };
 
 export const DEFAULT_GLOBAL_BANNER: GlobalBannerConfig = {
     enabled: false,
     placement: 'top',
-    level_id: '',
+    level_name: '',
 };
 
 export function detectPreset(levels: ClassificationLevel[]): string {

@@ -250,7 +250,7 @@ export type ClientConfig = {
     // Classification Markings Settings
     ClassificationMarkingsGlobalBannerEnabled: 'true' | 'false';
     ClassificationMarkingsGlobalBannerPlacement: string;
-    ClassificationMarkingsGlobalBannerLevelID: string;
+    ClassificationMarkingsGlobalBannerLevelName: string;
 };
 
 export type License = {
@@ -1065,7 +1065,7 @@ export type ContentFlaggingSettings = {
 export type ClassificationMarkingsGlobalBannerSettings = {
     Enabled: boolean;
     Placement: string;
-    LevelID: string;
+    LevelName: string;
 }
 
 export type ClassificationMarkingsSettings = {

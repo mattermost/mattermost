@@ -45,7 +45,7 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
     };
 }
 
-function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: string; LevelID?: string}): DeepPartial<GlobalState> {
+function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: string; LevelName?: string}): DeepPartial<GlobalState> {
     return {
         entities: {
             admin: {
@@ -54,7 +54,7 @@ function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: str
                         GlobalBanner: {
                             Enabled: banner?.Enabled ?? false,
                             Placement: banner?.Placement ?? 'top',
-                            LevelID: banner?.LevelID ?? '',
+                            LevelName: banner?.LevelName ?? '',
                         },
                     },
                 } as DeepPartial<AdminConfig>,
@@ -538,7 +538,7 @@ describe('GlobalClassificationIndicators section', () => {
 
         renderWithContext(
             <ClassificationMarkings/>,
-            makeInitialStateWithBanner({Enabled: true, Placement: 'top_and_bottom', LevelID: 'lvl1'}),
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top_and_bottom', LevelName: 'UNCLASSIFIED'}),
         );
         await screen.findByText('Banner visibility');
 
@@ -557,7 +557,7 @@ describe('GlobalClassificationIndicators section', () => {
 
         renderWithContext(
             <ClassificationMarkings/>,
-            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelName: 'UNCLASSIFIED'}),
         );
         await screen.findByText('Banner visibility');
 
@@ -590,7 +590,7 @@ describe('GlobalClassificationIndicators section', () => {
     });
 
     test('should validate that the referenced level still exists when enabled via Redux config', async () => {
-        // Level "gone_id" doesn't exist in the field's options.
+        // Level "GONE" doesn't exist in the field's options.
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
@@ -598,7 +598,7 @@ describe('GlobalClassificationIndicators section', () => {
 
         renderWithContext(
             <ClassificationMarkings/>,
-            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'gone_id'}),
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelName: 'GONE'}),
         );
         await screen.findByText('Global Classification Indicators');
 
@@ -616,6 +616,38 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
     });
 
+    test('should surface validation when renaming the level used by the banner', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+
+        renderWithContext(
+            <ClassificationMarkings/>,
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelName: 'UNCLASSIFIED'}),
+        );
+        await screen.findByText('Classification levels');
+
+        const user = userEvent.setup();
+
+        // Rename the only level: the banner's level_name no longer matches anything.
+        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
+        await user.clear(nameInput);
+        await user.type(nameInput, 'DECLASSIFIED');
+        await user.tab();
+
+        // Inline error should appear in the banner section immediately.
+        expect(
+            await screen.findByText(/The previously selected level no longer exists/),
+        ).toBeInTheDocument();
+
+        // And save should also be blocked with the same validation error.
+        await act(async () => {
+            await user.click(screen.getByText('Save'));
+        });
+        await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
+    });
+
     test('should surface validation when deleting the level used by the banner', async () => {
         const field = makePropertyField({
             attrs: {
@@ -629,7 +661,7 @@ describe('GlobalClassificationIndicators section', () => {
 
         renderWithContext(
             <ClassificationMarkings/>,
-            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelName: 'UNCLASSIFIED'}),
         );
         await screen.findByText('Classification levels');
 
@@ -656,7 +688,7 @@ describe('GlobalClassificationIndicators section', () => {
         const mockPatch = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(
             makePropertyField({
                 attrs: {
-                    options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}],
+                    options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#112233', rank: 1}],
                 },
             }),
         );
@@ -668,15 +700,16 @@ describe('GlobalClassificationIndicators section', () => {
 
         renderWithContext(
             <ClassificationMarkings/>,
-            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelID: 'lvl1'}),
+            makeInitialStateWithBanner({Enabled: true, Placement: 'top', LevelName: 'UNCLASSIFIED'}),
         );
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
 
-        const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
-        await user.clear(nameInput);
-        await user.type(nameInput, 'MODIFIED');
+        // Change the color to produce a PSA-side change without renaming (which would invalidate the banner).
+        const colorInput = screen.getByTestId('color-inputColorValue');
+        await user.clear(colorInput);
+        await user.type(colorInput, '#112233');
         await user.tab();
 
         await user.click(screen.getByTestId('globalBannerPlacementfalse'));
@@ -705,7 +738,7 @@ describe('GlobalClassificationIndicators section', () => {
                 GlobalBanner: expect.objectContaining({
                     Enabled: true,
                     Placement: 'top_and_bottom',
-                    LevelID: 'lvl1',
+                    LevelName: 'UNCLASSIFIED',
                 }),
             }),
         }));

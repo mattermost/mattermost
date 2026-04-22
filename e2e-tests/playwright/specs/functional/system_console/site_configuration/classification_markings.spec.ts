@@ -352,7 +352,7 @@ test.describe('System Console - Classification markings', () => {
                     {id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'nato-restricted', name: 'NATO RESTRICTED', color: '#FFD700', rank: 2},
                 ],
-                {levelId: 'nato-unclassified', enabled: true, placement: 'top'},
+                {levelName: 'NATO UNCLASSIFIED', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -405,7 +405,7 @@ test.describe('System Console - Classification markings', () => {
                     {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
                 ],
-                {levelId: 'lvl-unclassified', enabled: true, placement: 'top'},
+                {levelName: 'UNCLASSIFIED', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);

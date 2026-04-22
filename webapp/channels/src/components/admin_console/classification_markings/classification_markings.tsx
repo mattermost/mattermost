@@ -86,7 +86,7 @@ function readGlobalBannerFromConfig(config: Partial<AdminConfig> | undefined): G
     return {
         enabled: Boolean(banner.Enabled),
         placement: normalizePlacement(banner.Placement),
-        level_id: banner.LevelID ?? '',
+        level_name: banner.LevelName ?? '',
     };
 }
 
@@ -96,7 +96,7 @@ function buildGlobalBannerPatch(banner: GlobalBannerConfig): DeepPartial<AdminCo
             GlobalBanner: {
                 Enabled: banner.enabled,
                 Placement: banner.placement,
-                LevelID: banner.level_id,
+                LevelName: banner.level_name,
             },
         },
     };
@@ -135,7 +135,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
-            globalBanner.level_id !== initialGlobalBanner.level_id
+            globalBanner.level_name !== initialGlobalBanner.level_name
         ) {
             return true;
         }
@@ -292,10 +292,10 @@ export default function ClassificationMarkings({disabled}: Props) {
             }
         }
         if (globalBanner.enabled) {
-            if (!globalBanner.level_id) {
+            if (!globalBanner.level_name) {
                 return formatMessage(msg.errorGlobalBannerNoLevel);
             }
-            if (!enabled || !levels.some((l) => l.id === globalBanner.level_id)) {
+            if (!enabled || !levels.some((l) => l.name.trim() === globalBanner.level_name)) {
                 return formatMessage(msg.errorGlobalBannerLevelMissing);
             }
         }
@@ -333,7 +333,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (
             globalBanner.enabled === initialGlobalBanner.enabled &&
             globalBanner.placement === initialGlobalBanner.placement &&
-            globalBanner.level_id === initialGlobalBanner.level_id
+            globalBanner.level_name === initialGlobalBanner.level_name
         ) {
             return;
         }

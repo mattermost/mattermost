@@ -3937,7 +3937,7 @@ const (
 type ClassificationMarkingsGlobalBannerSettings struct {
 	Enabled   *bool
 	Placement *string
-	LevelID   *string
+	LevelName *string
 }
 
 func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
@@ -3949,8 +3949,8 @@ func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
 		s.Placement = NewPointer(ClassificationMarkingsGlobalBannerPlacementDefault)
 	}
 
-	if s.LevelID == nil {
-		s.LevelID = NewPointer("")
+	if s.LevelName == nil {
+		s.LevelName = NewPointer("")
 	}
 }
 

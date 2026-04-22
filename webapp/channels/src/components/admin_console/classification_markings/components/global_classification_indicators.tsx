@@ -48,19 +48,23 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     const {formatMessage} = useIntl();
 
     const levelOptions = useMemo((): LevelDropdownOption[] => {
-        return levels.map((l) => ({value: l.id, label: l.name, color: l.color}));
+        // The dropdown is keyed off the level name since that is what is persisted for the banner.
+        // Names that are still empty during editing are filtered out so we don't emit duplicate keys.
+        return levels.
+            filter((l) => l.name.trim() !== '').
+            map((l) => ({value: l.name.trim(), label: l.name.trim(), color: l.color}));
     }, [levels]);
 
     const selectedLevelOption = useMemo(() => {
-        return levelOptions.find((o) => o.value === globalBanner.level_id);
-    }, [levelOptions, globalBanner.level_id]);
+        return levelOptions.find((o) => o.value === globalBanner.level_name);
+    }, [levelOptions, globalBanner.level_name]);
 
-    // Inline validation: when the banner is enabled, a level id is configured, but that level is
-    // no longer present in the current levels list, surface a visible error so the admin is forced
-    // to pick a valid replacement.
+    // Inline validation: when the banner is enabled, a level name is configured, but that level is
+    // no longer present in the current levels list (e.g. deleted or renamed), surface a visible
+    // error so the admin is forced to pick a valid replacement.
     const levelMissing = Boolean(
         globalBanner.enabled &&
-        globalBanner.level_id &&
+        globalBanner.level_name &&
         !selectedLevelOption,
     );
     const levelError = levelMissing ? formatMessage(msg.levelMissingError) : undefined;
@@ -76,7 +80,7 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     }, []);
 
     const handleLevelChange = useCallback((selected: ValueType | null) => {
-        onChange({level_id: selected?.value ?? ''});
+        onChange({level_name: selected?.value ?? ''});
     }, [onChange]);
 
     const handleEnableChange = useCallback((_id: string, value: boolean) => {

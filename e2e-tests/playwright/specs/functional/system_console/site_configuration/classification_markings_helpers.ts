@@ -43,8 +43,8 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
 }
 
 export type SetupGlobalBannerOptions = {
-    /** Level id to store in ClassificationMarkingsSettings.GlobalBanner.LevelID */
-    levelId: string;
+    /** Level name to store in ClassificationMarkingsSettings.GlobalBanner.LevelName */
+    levelName: string;
     enabled?: boolean;
     placement?: 'top' | 'top_and_bottom';
 };
@@ -62,7 +62,7 @@ export async function setGlobalBannerConfig(adminClient: Client4, bannerOpts: Se
             GlobalBanner: {
                 Enabled: bannerOpts.enabled ?? true,
                 Placement: bannerOpts.placement ?? 'top',
-                LevelID: bannerOpts.levelId,
+                LevelName: bannerOpts.levelName,
             },
         },
     } as Awaited<ReturnType<Client4['getConfig']>>);
@@ -73,7 +73,7 @@ export async function setGlobalBannerConfig(adminClient: Client4, bannerOpts: Se
  * start from a clean state.
  */
 export async function resetGlobalBannerConfig(adminClient: Client4) {
-    await setGlobalBannerConfig(adminClient, {levelId: '', enabled: false, placement: 'top'});
+    await setGlobalBannerConfig(adminClient, {levelName: '', enabled: false, placement: 'top'});
 }
 
 /**
