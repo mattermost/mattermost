@@ -8,11 +8,11 @@ import {Client4} from 'mattermost-redux/client';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
-const GROUP_NAME = 'custom_profile_attributes';
-const OBJECT_TYPE = 'user';
-const TARGET_TYPE = 'system';
-const TARGET_ID = '';
-const FIELD_NAME = 'classification';
+export const GROUP_NAME = 'custom_profile_attributes';
+export const OBJECT_TYPE = 'user';
+export const TARGET_TYPE = 'system';
+export const TARGET_ID = '';
+export const FIELD_NAME = 'classification';
 
 export function detectPreset(levels: ClassificationLevel[]): string {
     for (const preset of presets) {

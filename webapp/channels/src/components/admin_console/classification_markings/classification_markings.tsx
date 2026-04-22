@@ -77,7 +77,6 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     // Confirm modal for preset switch
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
-    const [hasAcknowledgedPresetWarning, setHasAcknowledgedPresetWarning] = useState(false);
 
     const hasChanges = useMemo(() => {
         if (enabled !== initialEnabled) {
@@ -163,16 +162,15 @@ export default function ClassificationMarkings({disabled}: Props) {
             setPresetId(PRESET_CUSTOM);
             return;
         }
-        if (existingField && !hasAcknowledgedPresetWarning) {
+        if (levels.length > 0) {
             setConfirmPresetSwitch(newPresetId);
             return;
         }
         applyPreset(newPresetId);
-    }, [existingField, hasAcknowledgedPresetWarning, applyPreset]);
+    }, [levels.length, applyPreset]);
 
     const handleConfirmPresetSwitch = useCallback(() => {
         if (confirmPresetSwitch) {
-            setHasAcknowledgedPresetWarning(true);
             applyPreset(confirmPresetSwitch);
         }
         setConfirmPresetSwitch(null);

@@ -16,6 +16,10 @@ import {
     levelsToOptions,
     processClassificationField,
     fetchClassificationField,
+    GROUP_NAME,
+    OBJECT_TYPE,
+    TARGET_TYPE,
+    FIELD_NAME,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -26,13 +30,13 @@ jest.mock('mattermost-redux/client');
 function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
         id: 'field1',
-        group_id: 'custom_profile_attributes',
-        name: 'classification',
+        group_id: GROUP_NAME,
+        name: FIELD_NAME,
         type: 'select',
         attrs: {options: []},
         target_id: '',
-        target_type: 'system',
-        object_type: 'user',
+        target_type: TARGET_TYPE,
+        object_type: OBJECT_TYPE,
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,
@@ -196,7 +200,7 @@ describe('fetchClassificationField', () => {
     });
 
     test('should return the matching field from first page', async () => {
-        const expected = makePropertyField({name: 'classification', delete_at: 0});
+        const expected = makePropertyField({delete_at: 0});
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([
             makePropertyField({id: 'other', name: 'other_field', delete_at: 0}),
             expected,
@@ -208,9 +212,9 @@ describe('fetchClassificationField', () => {
     });
 
     test('should skip soft-deleted fields', async () => {
-        const active = makePropertyField({id: 'active', name: 'classification', delete_at: 0});
+        const active = makePropertyField({id: 'active', delete_at: 0});
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([
-            makePropertyField({id: 'deleted', name: 'classification', delete_at: 1234}),
+            makePropertyField({id: 'deleted', delete_at: 1234}),
             active,
         ]);
 
@@ -223,7 +227,7 @@ describe('fetchClassificationField', () => {
             makePropertyField({id: 'p1', name: 'other1', delete_at: 0, create_at: 100}),
             makePropertyField({id: 'p2', name: 'other2', delete_at: 0, create_at: 200}),
         ];
-        const expected = makePropertyField({id: 'found', name: 'classification', delete_at: 0});
+        const expected = makePropertyField({id: 'found', delete_at: 0});
         const page2 = [expected];
 
         jest.spyOn(Client4, 'getPropertyFields').
@@ -480,8 +484,8 @@ describe('ClassificationMarkings component', () => {
 
         // The patch call should include the typed color
         expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-            'custom_profile_attributes',
-            'user',
+            GROUP_NAME,
+            OBJECT_TYPE,
             'field1',
             expect.objectContaining({
                 attrs: expect.objectContaining({
