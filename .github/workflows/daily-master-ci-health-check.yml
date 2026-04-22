@@ -1,4 +1,4 @@
-name: Daily CI Health Check
+name: Daily Master CI Health Check
 
 on:
   schedule:
@@ -57,16 +57,28 @@ jobs:
                 }
 
                 const failureDetected = recent.every(r => r.conclusion !== 'success');
+                const formatAuthorLabel = (hc) => {
+                  if (!hc) return null;
+                  const author = hc.author?.name;
+                  const committer = hc.committer?.name;
+                  if (author) return author;
+                  if (committer) return committer;
+                  return null;
+                };
                 report.push({
                   workflow: wf.name,
                   required_runs: n,
                   failure_detected: failureDetected,
-                  runs: recent.map(r => ({
-                    conclusion: r.conclusion,
-                    url: r.html_url,
-                    sha: r.head_sha.substring(0, 7),
-                    created_at: r.created_at,
-                  })),
+                  runs: recent.map(r => {
+                    const author = formatAuthorLabel(r.head_commit);
+                    return {
+                      conclusion: r.conclusion,
+                      url: r.html_url,
+                      sha: r.head_sha.substring(0, 7),
+                      created_at: r.created_at,
+                      ...(author ? { author } : {}),
+                    };
+                  }),
                 });
 
                 if (failureDetected) {
@@ -100,7 +112,11 @@ jobs:
             WF_NAME=$(echo "$row" | jq -r '.workflow')
             RUN_DETAILS=$(echo "$row" | jq -r '
               .runs | to_entries | map(
-                "              - Run \(.key + 1) (`\(.value.sha)`): \(.value.conclusion) — [View Run](\(.value.url))"
+                (if (.value.author | type == "string") and (.value.author | length > 0) and (.value.author != "unknown")
+                 then " — \(.value.author)"
+                 else ""
+                 end) as $auth
+                | "              - Run \(.key + 1) (`\(.value.sha)`): \(.value.conclusion)\($auth) — [View Run](\(.value.url))"
               ) | join("\n")
             ')
             FAILED_DETAILS="${FAILED_DETAILS}
@@ -120,7 +136,7 @@ jobs:
           MATTERMOST_USERNAME: CI Health Bot
           MATTERMOST_ICON_URL: https://avatars.githubusercontent.com/in/276366?s=120&u=b2ac433ba55fc41babb3c6079477f5ead172c543&v=4
           TEXT: |
-            :red_circle: **Daily CI Health Check — Failures on `master`**
+            :red_circle: **Daily Master CI Health Check — Failures on `master`**
 
             The following workflows failed their check (2 consecutive failed runs, or the latest run for Server CI Weekly):
             ${{ steps.build-report.outputs.FAILED_DETAILS }}
