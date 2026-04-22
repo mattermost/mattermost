@@ -23,6 +23,11 @@ import (
 const minFirstPartSize = 5 * 1024 * 1024 // 5MB
 
 func (a *App) genFileInfoFromReader(name string, file io.ReadSeeker, size int64) (*model.FileInfo, error) {
+	name = model.SanitizeFilename(name)
+	if name == "" {
+		return nil, errors.New("invalid filename")
+	}
+
 	ext := strings.ToLower(filepath.Ext(name))
 
 	info := &model.FileInfo{

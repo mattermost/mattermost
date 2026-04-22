@@ -11497,6 +11497,10 @@
     "translation": "Invalid value for id."
   },
   {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Invalid value for name."
+  },
+  {
     "id": "model.file_info.is_valid.path.app_error",
     "translation": "Invalid value for path."
   },
