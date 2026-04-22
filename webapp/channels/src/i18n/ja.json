@@ -4576,7 +4576,7 @@
   "help.commands.example.away": "あなたのステータスを離席中に設定する",
   "help.commands.example.code": "テキストをコードブロックとして表示する",
   "help.commands.example.collapse": "画像プレビューの自動折りたたみをオンにする",
-  "help.commands.example.dnd": "取り込み中 はデスクトップ通知やモバイルプッシュ通知を無効にします。",
+  "help.commands.example.dnd": "取り込み中 はデスクトップ通知やモバイルプッシュ通知を無効にします",
   "help.commands.example.echo": "あなたのアカウントからのエコーバックテキストです",
   "help.commands.example.header": "コマンド",
   "help.commands.intro": "テキスト入力欄からMattermostの操作を実行するスラッシュコマンドと呼ばれるコマンドを実行することができます。スラッシュコマンドを実行するには、<code>/</code>の後にコマンドと引数を入力してください。",
