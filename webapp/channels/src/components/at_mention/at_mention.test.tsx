@@ -5,7 +5,7 @@ import React from 'react';
 
 import {General} from 'mattermost-redux/constants';
 
-import {render} from 'tests/react_testing_utils';
+import {render, renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AtMention from './at_mention';
@@ -174,7 +174,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group that is allowed reference', () => {
-        const {container} = render(
+        const {container} = renderWithContext(
             <AtMention
                 {...baseProps}
                 mentionName='developers'
@@ -214,7 +214,7 @@ describe('components/AtMention', () => {
     });
 
     test('should match snapshot when mentioning a group followed by punctuation', () => {
-        const {container} = render(
+        const {container} = renderWithContext(
             <AtMention
                 {...baseProps}
                 mentionName='developers.'
