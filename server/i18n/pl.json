@@ -12530,5 +12530,69 @@
   {
     "id": "api.command_mobile_logs.update_error.app_error",
     "translation": "Nie udało się zaktualizować ustawień Załącznika logów aplikacji mobilnej. Spróbuj ponownie."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Format: /mobilny-logi [wł.|wył.|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Nie można znaleźć użytkownika \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "Ty"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "Nie masz wymaganego dostępu, aby pobrać ten plik."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "Nie masz wymaganego dostępu do przesyłania plików na ten kanał."
+  },
+  {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Zarządzane kategorie kanałów nie są dostępne."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId jest wymagany."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "Wymagane są dane pliku."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo jest wymagane."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Nazwa jest wymagana."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Nie udało się pobrać podmiotu kontroli dostępu."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Nie udało się pobrać grupy atrybutów kontroli dostępu."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "Operacja ustawiania członków kanału została anulowana."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Nie możesz usunąć wszystkich członków z kanału prywatnego."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Nie można uzyskać aktualnych członków Kanału."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Nie można uzyskać członków Kanału w celu uzgodnienia ról."
   }
 ]
