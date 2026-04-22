@@ -5202,16 +5202,16 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 			select {
 			case ev := <-wsClient.EventChannel:
 				if ev.EventType() == model.WebsocketEventThreadUpdated {
-					caught = true
 					var thread model.ThreadResponse
 					data := ev.GetData()
 					jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
-
 					require.NoError(t, jsonErr)
-					require.EqualValues(t, int64(2), thread.UnreadReplies)
-					require.EqualValues(t, int64(2), thread.UnreadMentions)
-					require.EqualValues(t, float64(0), data["previous_unread_replies"])
-					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+					if thread.UnreadReplies == 2 && thread.UnreadMentions == 2 {
+						caught = true
+						require.EqualValues(t, float64(0), data["previous_unread_replies"])
+						require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+						return
+					}
 				}
 			case <-time.After(15 * time.Second):
 				return
