@@ -5327,6 +5327,10 @@
     "translation": "Unable to update the bot."
   },
   {
+    "id": "app.bot.update.internal_error",
+    "translation": "Unable to update the bot."
+  },
+  {
     "id": "app.burn_post.not_burn_on_read.app_error",
     "translation": "This post is not a burn-on-read post and cannot be burned."
   },
@@ -6407,8 +6411,16 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Failed to look up existing bot"
+  },
+  {
     "id": "app.import.import_bot.owner_could_not_found.error",
     "translation": "Unable to find owner of the bot"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "User for bot not found"
   },
   {
     "id": "app.import.import_channel.deleting.app_error",

@@ -149,7 +149,7 @@ class ReportingCategory extends SidebarCategory {
     constructor(container: Locator) {
         super(container);
         this.workspaceOptimization = this.section('Workspace Optimization');
-        this.siteStatistics = this.section('Site Statistics');
+        this.siteStatistics = this.section('System Statistics');
         this.teamStatistics = this.section('Team Statistics');
         this.serverLogs = this.section('Server Logs');
     }
