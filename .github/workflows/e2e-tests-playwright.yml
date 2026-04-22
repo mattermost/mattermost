@@ -58,6 +58,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   generate-build-variables:
