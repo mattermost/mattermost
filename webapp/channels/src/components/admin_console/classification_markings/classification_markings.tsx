@@ -46,6 +46,7 @@ const msg = defineMessages({
     levelsDescription: {id: 'admin.classification_markings.levels.description', defaultMessage: 'Text and colors for different classification levels that will be used in the system'},
     informationalNoticeTitle: {id: 'admin.classification_markings.notice.title', defaultMessage: 'Classification markings are informational only'},
     informationalNoticeBody: {id: 'admin.classification_markings.notice.body', defaultMessage: 'Markings are not tied to access control decisions at this time and are for display purposes only.'},
+    errorDeleteHasDependents: {id: 'admin.classification_markings.error.delete_has_dependents', defaultMessage: 'Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.'},
 });
 
 export const searchableStrings = Object.values(msg);
@@ -282,8 +283,13 @@ export default function ClassificationMarkings({disabled}: Props) {
                 await handleSavePatch();
             }
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'An error occurred while saving';
-            setSaveError(message);
+            const clientErr = err as ClientError;
+            if (clientErr.status_code === 409) {
+                setSaveError(formatMessage(msg.errorDeleteHasDependents));
+            } else {
+                const message = err instanceof Error ? err.message : 'An error occurred while saving';
+                setSaveError(message);
+            }
         } finally {
             setSaving(false);
         }

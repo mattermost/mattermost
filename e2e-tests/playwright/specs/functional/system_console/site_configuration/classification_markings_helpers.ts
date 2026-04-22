@@ -3,8 +3,10 @@
 
 import type {Client4} from '@mattermost/client';
 
+// Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
+// (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'custom_profile_attributes';
-const PROPERTY_OBJECT = 'user';
+const PROPERTY_OBJECT = 'template'; // template field is the schema source of truth (Linked Properties)
 const TARGET_TYPE = 'system';
 const CLASSIFICATION_FIELD_NAME = 'classification';
 

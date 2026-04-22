@@ -9,8 +9,17 @@ import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
 export const GROUP_NAME = 'custom_profile_attributes';
-export const OBJECT_TYPE = 'user';
+
+// OBJECT_TYPE is 'template' so the classification field acts as the canonical schema
+// (a Linked Properties template). Per-channel fields will link to it and inherit its options.
+// NOTE: If a system already has a 'classification' field with object_type='user' (legacy),
+// the server team must run a migration. Since this feature is behind a feature flag and not
+// yet shipped, existing test instances can have their data wiped manually.
+export const OBJECT_TYPE = 'template';
 export const TARGET_TYPE = 'system';
+
+// TARGET_ID is intentionally empty for system-scoped fields — the target is the whole system,
+// not a specific entity. The Client4 helper skips the target_id query param when it's empty.
 export const TARGET_ID = '';
 export const FIELD_NAME = 'classification';
 
