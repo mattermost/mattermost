@@ -8,7 +8,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {NotificationLevels} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
-import UserSettingsNotifications, {areDesktopAndMobileSettingsDifferent} from './user_settings_notifications';
+import UserSettingsNotifications, {areDesktopAndMobileSettingsDifferent, shouldSilenceForDndSchedule} from './user_settings_notifications';
 
 jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_section_notice', () => () => <div/>);
 jest.mock('components/user_settings/notifications/desktop_and_mobile_notification_setting/notification_permission_title_tag', () => () => <div/>);
@@ -22,6 +22,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         collapseModal: jest.fn(),
         updateMe: jest.fn(() => Promise.resolve({})),
         patchUser: jest.fn(() => Promise.resolve({})),
+        setStatus: jest.fn(() => Promise.resolve({})),
         isCollapsedThreadsEnabled: true,
         sendPushNotifications: false,
         enableAutoResponder: false,
@@ -89,5 +90,67 @@ describe('areDesktopAndMobileSettingsDifferent', () => {
         expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(true);
         expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, true)).toBe(true);
         expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, true)).toBe(true);
+    });
+});
+
+describe('shouldSilenceForDndSchedule', () => {
+    test('notifies when schedule is deactivated', () => {
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: false,
+            allowNotificationsOnWeekends: false,
+            fromTime: '09:00',
+            toTime: '17:00',
+            now: new Date('2026-04-20T20:00:00'),
+        });
+
+        expect(shouldSilence).toBe(false);
+    });
+
+    test('silences when schedule is activated and current time is outside schedule window', () => {
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: true,
+            allowNotificationsOnWeekends: false,
+            fromTime: '09:00',
+            toTime: '17:00',
+            now: new Date('2026-04-20T20:00:00'),
+        });
+
+        expect(shouldSilence).toBe(true);
+    });
+
+    test('notifies when schedule is activated and current time is inside schedule window', () => {
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: true,
+            allowNotificationsOnWeekends: false,
+            fromTime: '09:00',
+            toTime: '17:00',
+            now: new Date('2026-04-20T10:00:00'),
+        });
+
+        expect(shouldSilence).toBe(false);
+    });
+
+    test('notifies on weekends when weekend notifications are allowed', () => {
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: true,
+            allowNotificationsOnWeekends: true,
+            fromTime: '09:00',
+            toTime: '17:00',
+            now: new Date('2026-04-19T20:00:00'),
+        });
+
+        expect(shouldSilence).toBe(false);
+    });
+
+    test('silences on weekends when weekend notifications are not allowed and time is outside schedule window', () => {
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: true,
+            allowNotificationsOnWeekends: false,
+            fromTime: '09:00',
+            toTime: '17:00',
+            now: new Date('2026-04-19T20:00:00'),
+        });
+
+        expect(shouldSilence).toBe(true);
     });
 });

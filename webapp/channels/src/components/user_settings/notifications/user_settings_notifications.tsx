@@ -43,6 +43,62 @@ const DND_SCHEDULE_FROM_TIME_KEY = 'dnd_schedule_from_time';
 const DND_SCHEDULE_TO_TIME_KEY = 'dnd_schedule_to_time';
 const DND_SCHEDULE_ALLOW_WEEKENDS_KEY = 'dnd_schedule_allow_weekends';
 
+export function parseMinutesFromTimeValue(value: string): number {
+    const [hoursString = '0', minutesString = '0'] = value.split(':');
+    const hours = Number.parseInt(hoursString, 10);
+    const minutes = Number.parseInt(minutesString, 10);
+
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+        return 0;
+    }
+
+    return (hours * 60) + minutes;
+}
+
+export function isTimeInsideScheduleWindow(now: Date, fromMinutes: number, toMinutes: number): boolean {
+    const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+    if (fromMinutes === toMinutes) {
+        return true;
+    }
+
+    if (fromMinutes < toMinutes) {
+        return currentMinutes >= fromMinutes && currentMinutes < toMinutes;
+    }
+
+    return currentMinutes >= fromMinutes || currentMinutes < toMinutes;
+}
+
+export function shouldSilenceForDndSchedule({
+    isScheduleEnabled,
+    allowNotificationsOnWeekends,
+    fromTime,
+    toTime,
+    now,
+}: {
+    isScheduleEnabled: boolean;
+    allowNotificationsOnWeekends: boolean;
+    fromTime: string;
+    toTime: string;
+    now: Date;
+}): boolean {
+    if (!isScheduleEnabled) {
+        return false;
+    }
+
+    const dayOfWeek = now.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    if (allowNotificationsOnWeekends && isWeekend) {
+        return false;
+    }
+
+    const fromMinutes = parseMinutesFromTimeValue(fromTime);
+    const toMinutes = parseMinutesFromTimeValue(toTime);
+    const isInsideWindow = isTimeInsideScheduleWindow(now, fromMinutes, toMinutes);
+
+    return !isInsideWindow;
+}
+
 type MultiInputValue = {
     label: string;
     value: string;
@@ -540,32 +596,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({dndAllowNotificationsOnWeekends: checked});
     };
 
-    getMinutesFromTimeValue = (value: string): number => {
-        const [hoursString = '0', minutesString = '0'] = value.split(':');
-        const hours = Number.parseInt(hoursString, 10);
-        const minutes = Number.parseInt(minutesString, 10);
-
-        if (Number.isNaN(hours) || Number.isNaN(minutes)) {
-            return 0;
-        }
-
-        return (hours * 60) + minutes;
-    };
-
-    isNowInDndScheduleWindow = (now: Date, fromMinutes: number, toMinutes: number): boolean => {
-        const currentMinutes = (now.getHours() * 60) + now.getMinutes();
-
-        if (fromMinutes === toMinutes) {
-            return true;
-        }
-
-        if (fromMinutes < toMinutes) {
-            return currentMinutes >= fromMinutes && currentMinutes < toMinutes;
-        }
-
-        return currentMinutes >= fromMinutes || currentMinutes < toMinutes;
-    };
-
     getNextDndEndDate = (now: Date, toMinutes: number): Date => {
         const endDate = new Date(now);
         endDate.setSeconds(0, 0);
@@ -580,21 +610,21 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     applyTimedDndFromSchedule = async () => {
         const now = new Date();
-        const dayOfWeek = now.getDay();
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const shouldSilence = shouldSilenceForDndSchedule({
+            isScheduleEnabled: this.state.dndScheduleEnabled,
+            allowNotificationsOnWeekends: this.state.dndAllowNotificationsOnWeekends,
+            fromTime: this.state.dndScheduleFromTime,
+            toTime: this.state.dndScheduleToTime,
+            now,
+        });
 
-        if (this.state.dndAllowNotificationsOnWeekends && isWeekend) {
+        if (!shouldSilence) {
             return;
         }
 
-        const fromMinutes = this.getMinutesFromTimeValue(this.state.dndScheduleFromTime);
-        const toMinutes = this.getMinutesFromTimeValue(this.state.dndScheduleToTime);
+        const fromMinutes = parseMinutesFromTimeValue(this.state.dndScheduleFromTime);
 
-        if (!this.isNowInDndScheduleWindow(now, fromMinutes, toMinutes)) {
-            return;
-        }
-
-        const endDate = this.getNextDndEndDate(now, toMinutes);
+        const endDate = this.getNextDndEndDate(now, fromMinutes);
 
         const result = await this.props.setStatus({
             user_id: this.props.user.id,
