@@ -120,10 +120,10 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
      * properties like aria-label, etc. get added to the DOM
      */
     const {mode, onClick, ...otherProps} = props;
-    const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         // Keep the editor focused so formatting clicks do not disturb the textarea selection or scroll position.
         e.preventDefault();
-    };
+    }, []);
 
     /* get the correct Icon from the IconMap */
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
