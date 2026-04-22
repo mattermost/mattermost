@@ -4868,7 +4868,7 @@
   "multiselect.creating": "Ekleniyor...",
   "multiselect.go": "Git",
   "multiselect.list.notFound": "<b>{searchQuery}</b> ile eşleşen bir sonuç bulunamadı",
-  "multiselect.list.resultsAvailable": "Aramanız için {count, plural, one {sonuç bulundu} other {sonuç bulundu}}.",
+  "multiselect.list.resultsAvailable": "Aramanız için {count, plural, one {# sonuç bulundu} other {# sonuç bulundu}}.",
   "multiselect.loading": "Yükleniyor...",
   "multiselect.maxGroupMembers": "Bir gruba aynı anda 256 taneden fazla üye eklenemez.",
   "multiselect.maxPeople": "Gezinmek için ↑↓, seçmek için ↵ tuşlarını kullanın. 7 taneden fazla kişi ekleyemezsiniz. Daha fazla kişi eklemek için lütfen <a>bir kanal oluşturun</a>. ",
