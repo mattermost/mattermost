@@ -5,6 +5,7 @@ package properties
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -999,7 +1000,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Name = "Updated Field2"
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.NoError(t, err)
 		assert.Len(t, updated, 2)
 	})
@@ -1026,7 +1027,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Unprotected"
 		created2.Name = "Updated Protected"
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
@@ -1057,7 +1058,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Attrs[model.PropertyAttrsProtected] = true
 
-		updated, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "cannot set protected=true")
@@ -1233,5 +1234,207 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
+	})
+}
+
+func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setPluginCheckerForTests(func(pluginID string) bool {
+		return pluginID == "plugin-1" || pluginID == "plugin-2"
+	})
+
+	rctxPlugin1 := RequestContextWithCallerID(th.Context, "plugin-1")
+	rctxPlugin2 := RequestContextWithCallerID(th.Context, "plugin-2")
+	rctxUser := RequestContextWithCallerID(th.Context, "user-1")
+
+	sysadminLevel := model.PermissionLevelSysadmin
+
+	// Helper: create a protected template in the CPA group owned by plugin-1
+	createProtectedTemplate := func(t *testing.T, name string, accessMode string) *model.PropertyField {
+		t.Helper()
+		attrs := model.StringInterface{
+			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode: accessMode,
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": model.NewId(), "name": "Option A"},
+				map[string]any{"id": model.NewId(), "name": "Option B"},
+			},
+		}
+		field := &model.PropertyField{
+			GroupID:           th.CPAGroupID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			Type:              model.PropertyFieldTypeSelect,
+			Name:              name,
+			Attrs:             attrs,
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
+		require.NoError(t, err)
+		return created
+	}
+
+	// Helper: create an unprotected template in the CPA group
+	createUnprotectedTemplate := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       name,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+		}
+		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
+		require.NoError(t, err)
+		return created
+	}
+
+	t.Run("source plugin can create linked field from protected template", func(t *testing.T) {
+		source := createProtectedTemplate(t, "ProtectedSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		// Verify security attrs inherited
+		assert.True(t, model.IsPropertyFieldProtected(linked))
+		assert.Equal(t, "plugin-1", linked.Attrs[model.PropertyAttrsSourcePluginID])
+		assert.Equal(t, model.PropertyAccessModeSourceOnly, linked.Attrs[model.PropertyAttrsAccessMode])
+	})
+
+	t.Run("different plugin cannot create linked field from protected template", func(t *testing.T) {
+		source := createProtectedTemplate(t, "ProtectedSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		_, err := th.service.CreatePropertyField(rctxPlugin2, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		assert.Contains(t, appErr.DetailedError, "only the source plugin")
+	})
+
+	t.Run("non-plugin caller cannot create linked field from protected template", func(t *testing.T) {
+		source := createProtectedTemplate(t, "ProtectedSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		_, err := th.service.CreatePropertyField(rctxUser, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "only the source plugin")
+	})
+
+	t.Run("linked field inherits Protected and attrs from source", func(t *testing.T) {
+		source := createProtectedTemplate(t, "InheritSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		assert.Equal(t, source.Protected, linked.Protected)
+		assert.Equal(t, source.Attrs[model.PropertyAttrsProtected], linked.Attrs[model.PropertyAttrsProtected])
+		assert.Equal(t, source.Attrs[model.PropertyAttrsSourcePluginID], linked.Attrs[model.PropertyAttrsSourcePluginID])
+		assert.Equal(t, source.Attrs[model.PropertyAttrsAccessMode], linked.Attrs[model.PropertyAttrsAccessMode])
+	})
+
+	t.Run("linked field inherits permission levels from source", func(t *testing.T) {
+		source := createProtectedTemplate(t, "PermSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		require.NotNil(t, linked.PermissionField)
+		require.NotNil(t, linked.PermissionValues)
+		require.NotNil(t, linked.PermissionOptions)
+		assert.Equal(t, *source.PermissionField, *linked.PermissionField)
+		assert.Equal(t, *source.PermissionValues, *linked.PermissionValues)
+		assert.Equal(t, *source.PermissionOptions, *linked.PermissionOptions)
+	})
+
+	t.Run("linked field inherits source access_mode even if caller supplies different value", func(t *testing.T) {
+		source := createProtectedTemplate(t, "MismatchSource-"+model.NewId(), model.PropertyAccessModeSourceOnly)
+
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+			GroupID:    th.CPAGroupID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "Linked-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
+			},
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		// Caller supplied shared_only but source's source_only is inherited
+		assert.Equal(t, model.PropertyAccessModeSourceOnly, linked.Attrs[model.PropertyAttrsAccessMode])
+	})
+
+	t.Run("linked field from unprotected template does not inherit protection", func(t *testing.T) {
+		source := createUnprotectedTemplate(t, "UnprotectedSource-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(rctxPlugin1, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+
+		assert.False(t, model.IsPropertyFieldProtected(linked))
+	})
+
+	t.Run("non-plugin caller can create linked field from unprotected template", func(t *testing.T) {
+		source := createUnprotectedTemplate(t, "UnprotectedSource-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(rctxUser, &model.PropertyField{
+			GroupID:       th.CPAGroupID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		assert.False(t, model.IsPropertyFieldProtected(linked))
 	})
 }

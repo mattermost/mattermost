@@ -33,6 +33,7 @@ func Setup(tb testing.TB) *TestHelper {
 }
 
 func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
+	logger := mlog.CreateConsoleTestLogger(tb)
 	service, err := New(ServiceConfig{
 		PropertyGroupStore: s.PropertyGroup(),
 		PropertyFieldStore: s.PropertyField(),
@@ -58,7 +59,7 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	return &TestHelper{
 		service: service,
 		dbStore: s,
-		Context: request.EmptyContext(mlog.CreateConsoleTestLogger(tb)),
+		Context: request.EmptyContext(logger),
 	}
 }
 
