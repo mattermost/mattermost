@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -74,7 +75,8 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
@@ -95,6 +97,21 @@ function PolicyDetails({
     const {formatMessage} = useIntl();
 
     const abacActions = useChannelAccessControlActions();
+
+    // Memoize the custom no options message to avoid recreating it on every render
+    const customNoPrivateChannelsMessage = useMemo(() => (
+        <div
+            key='no-private-channels'
+            className='no-channel-message'
+        >
+            <p className='primary-message'>
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.no_private_channels'
+                    defaultMessage='There are no private channels available to add to this policy.'
+                />
+            </p>
+        </div>
+    ), []);
 
     // Check if there are any usable attributes for ABAC
     const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
@@ -136,7 +153,8 @@ function PolicyDetails({
             // For existing policies, fetch policy details and channels
             const policyPromise = actions.fetchPolicy(policyId).then((result) => {
                 setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
             });
 
@@ -182,19 +200,23 @@ function PolicyDetails({
             await actions.createPolicy({
                 id: currentPolicyId || '',
                 name: policyName,
-                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
+                rules: buildRulesWithMembership(existingRules, expression),
                 type: 'parent',
-                version: 'v0.2',
             }).then((result) => {
                 if (result.error) {
-                    setServerError(result.error.message);
+                    if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else {
+                        setServerError(result.error.message);
+                    }
                     setShowConfirmationModal(false);
                     success = false;
                     return;
                 }
                 currentPolicyId = result.data?.id;
                 setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
             });
 
@@ -261,7 +283,7 @@ function PolicyDetails({
             setSaveNeeded(false);
             setShowConfirmationModal(false);
             actions.setNavigationBlocked(false);
-            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/membership_policies');
         } finally {
             setSaving(false);
         }
@@ -300,7 +322,7 @@ function PolicyDetails({
         }
 
         if (success) {
-            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/membership_policies');
         }
     };
 
@@ -355,7 +377,7 @@ function PolicyDetails({
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/system_attributes/attribute_based_access_control'
+                        to='/admin_console/system_attributes/membership_policies'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
@@ -482,7 +504,8 @@ function PolicyDetails({
                                             }
                                             const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
                                             const isAdminManaged = attr.attrs?.managed === 'admin';
-                                            return isSynced || isAdminManaged;
+                                            const isProtected = attr.attrs?.protected;
+                                            return isSynced || isAdminManaged || isProtected;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,
@@ -602,6 +625,8 @@ function PolicyDetails({
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
                     excludeTypes={['O', 'D', 'G']}
+                    customNoOptionsMessage={customNoPrivateChannelsMessage}
+                    excludeGroupConstrained={true}
                 />
             )}
 
@@ -665,7 +690,7 @@ function PolicyDetails({
                 />
                 <BlockableLink
                     className='btn btn-quaternary'
-                    to='/admin_console/system_attributes/attribute_based_access_control'
+                    to='/admin_console/system_attributes/membership_policies'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'

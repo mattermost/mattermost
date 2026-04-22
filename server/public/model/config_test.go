@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"os"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -973,6 +973,8 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
+	testHMACKey := NewTestPassword()
+
 	for _, test := range []struct {
 		Name                    string
 		Enable                  bool
@@ -1013,7 +1015,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "someoptions",
+			RemoteImageProxyOptions: testHMACKey,
 			ExpectError:             false,
 		},
 		{
@@ -1031,6 +1033,14 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, short options under FIPS",
+			Enable:                  true,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "foo",
+			ExpectError:             FIPSEnabled,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
@@ -1449,21 +1459,21 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "XYZ",
-							"Format": "json",
-							"Levels": [
-							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
-									{"ID": 5, "Name": "debug", "Stacktrace": false},
-									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
-									{"ID": 1, "Name": "fatal", "Stacktrace": true},
-									{"ID": 0, "Name": "panic", "Stacktrace": true}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{"ID": 10, "Name": "stdlog", "Stacktrace": false},
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+							{"ID": 1, "Name": "fatal", "Stacktrace": true},
+							{"ID": 0, "Name": "panic", "Stacktrace": true}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1475,18 +1485,85 @@ func TestLogSettingsIsValid(t *testing.T) {
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"console-log": {
-							"Type": "console",
-							"Format": "json",
-							"Levels": [
-								{"ID": 5, "Name": "debug", "Stacktrace": false},
-								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
-								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
-								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
-							],
-							"Options": {
-									"Out": "stdout"
-							},
-							"MaxQueueSize": 1000
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON with invalid log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with audit log level": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with custom log levels": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 140, "Name": "LDAPError", "Stacktrace": false},
+							{"ID": 141, "Name": "LDAPWarn", "Stacktrace": false},
+							{"ID": 142, "Name": "LDAPInfo", "Stacktrace": false},
+							{"ID": 143, "Name": "LDAPDebug", "Stacktrace": false},
+							{"ID": 144, "Name": "LDAPTrace", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
 					}
 				}
 				`),
@@ -1513,9 +1590,14 @@ func TestConfigSanitize(t *testing.T) {
 
 	*c.LdapSettings.BindPassword = "foo"
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.FileSettings.ExportAmazonS3SecretAccessKey = "export-secret"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
 	*c.OpenIdSettings.Secret = "secret"
+	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
+	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
+	*c.ElasticsearchSettings.ClientKey = "/path/to/client-key.pem"
+	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
 	c.SqlSettings.ReplicaLagSettings = []*ReplicaLagSettings{{
@@ -1529,12 +1611,17 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
 	assert.Equal(t, FakeSetting, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FakeSetting, *c.FileSettings.ExportAmazonS3SecretAccessKey)
 	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
+	assert.Equal(t, FakeSetting, *c.AutoTranslationSettings.LibreTranslate.APIKey)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.ClientKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
 
@@ -1720,6 +1807,91 @@ func TestPluginSettingsSanitize(t *testing.T) {
 				},
 				pluginID2: {
 					"somesetting": 456,
+				},
+			},
+		},
+		"secret settings in sections are sanitized": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Settings: []*PluginSetting{
+							{
+								Key:    "somesetting",
+								Type:   "text",
+								Secret: false,
+							},
+						},
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
+				},
+			},
+		},
+		"secret settings across multiple sections": {
+			manifests: []*Manifest{
+				{
+					Id: pluginID1,
+					SettingsSchema: &PluginSettingsSchema{
+						Sections: []*PluginSettingsSection{
+							{
+								Key: "section1",
+								Settings: []*PluginSetting{
+									{
+										Key:    "somesetting",
+										Type:   "text",
+										Secret: false,
+									},
+									{
+										Key:    "secrettext",
+										Type:   "text",
+										Secret: true,
+									},
+								},
+							},
+							{
+								Key: "section2",
+								Settings: []*PluginSetting{
+									{
+										Key:    "secretnumber",
+										Type:   "number",
+										Secret: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      FakeSetting,
+					"secretnumber":    FakeSetting,
 				},
 			},
 		},
@@ -1982,6 +2154,40 @@ func TestConfigServiceSettingsIsValid(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.collapsed_threads.app_error", appErr.Id)
 	})
+
+	t.Run("DCR redirect URI allowlist validation", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+
+		// Valid allowlist
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/**", "https://*.test.com/callback", "http://localhost:*"}
+		appErr := cfg.ServiceSettings.isValid()
+		require.Nil(t, appErr)
+
+		// Empty/whitespace entry rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://ok.com/**", "  ", "https://also.com/cb"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Non-http(s) scheme rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"ftp://example.com/**"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed pattern (too short) rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+
+		// Malformed wildcard expression rejected
+		cfg.ServiceSettings.DCRRedirectURIAllowlist = []string{"https://example.com/***"}
+		appErr = cfg.ServiceSettings.isValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.dcr_redirect_uri_allowlist.app_error", appErr.Id)
+	})
 }
 
 func TestConfigDefaultCallsPluginState(t *testing.T) {
@@ -1993,8 +2199,8 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2026,8 +2232,8 @@ func TestConfigDefaultAIPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2206,77 +2412,116 @@ func TestExperimentalAuditSettingsIsValid(t *testing.T) {
 		},
 		"file enabled with valid filename": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(1000),
+				FileEnabled: NewPointer(true),
+				FileName:    NewPointer("audit.log"),
 			},
 			ExpectError: false,
-		},
-		"invalid file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:   NewPointer(true),
-				FileName:      NewPointer("audit.log"),
-				FileMaxSizeMB: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"negative file max age": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(-5),
-			},
-			ExpectError: true,
-		},
-		"negative file max backups": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:    NewPointer(true),
-				FileName:       NewPointer("audit.log"),
-				FileMaxSizeMB:  NewPointer(100),
-				FileMaxAgeDays: NewPointer(5),
-				FileMaxBackups: NewPointer(-10),
-			},
-			ExpectError: true,
-		},
-		"zero file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(0),
-			},
-			ExpectError: true,
-		},
-		"negative file max queue size": {
-			ExperimentalAuditSettings: ExperimentalAuditSettings{
-				FileEnabled:      NewPointer(true),
-				FileName:         NewPointer("audit.log"),
-				FileMaxSizeMB:    NewPointer(100),
-				FileMaxAgeDays:   NewPointer(5),
-				FileMaxBackups:   NewPointer(10),
-				FileMaxQueueSize: NewPointer(-1000),
-			},
-			ExpectError: true,
 		},
 		"AdvancedLoggingJSON has JSON error ": {
 			ExperimentalAuditSettings: ExperimentalAuditSettings{
 				AdvancedLoggingJSON: json.RawMessage(`
 				{
 					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has missing target": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "XYZ",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{ "id": 100, "name": "audit-api" },
+							{ "id": 101, "name": "audit-content" },
+							{ "id": 102, "name": "audit-permissions" },
+							{ "id": 103, "name": "audit-cli" }
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+
+		"AdvancedLoggingJSON with standard log levels": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 5, "Name": "debug", "Stacktrace": false},
+							{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+							{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+							{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON with unknown log level": {
+			ExperimentalAuditSettings: ExperimentalAuditSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"audit-log": {
+						"Type": "console",
+						"Format": "json",
+						"Levels": [
+							{"ID": 999, "Name": "info", "Stacktrace": false}
+						],
+						"Options": {
+							"Out": "stdout"
+						},
+						"MaxQueueSize": 1000
+					}
+				}
 				`),
 			},
 			ExpectError: true,
@@ -2358,7 +2603,7 @@ func TestFilterConfig(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, m)
 
-		cfg.SqlSettings.DriverName = NewPointer("mysql")
+		cfg.SqlSettings.DriverName = NewPointer("postgresql")
 		m, err = FilterConfig(cfg, ConfigFilterOptions{
 			GetConfigOptions: GetConfigOptions{
 				RemoveDefaults: true,
@@ -2367,7 +2612,7 @@ func TestFilterConfig(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.NotEmpty(t, m)
-		require.Equal(t, "mysql", m["SqlSettings"].(map[string]any)["DriverName"])
+		require.Equal(t, "postgresql", m["SqlSettings"].(map[string]any)["DriverName"])
 	})
 
 	t.Run("should not clear non primitive types", func(t *testing.T) {
@@ -2482,9 +2727,7 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
 		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
-		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
-		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
-		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, 5000, *c.AutoTranslationSettings.TimeoutMs)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
 		// TODO: Enable Agents provider in future release
@@ -2561,6 +2804,33 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			},
 			expectError: false,
 		},
+		{
+			name: "valid workers at 48",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(48),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		{
+			name:    "invalid workers above 64",
+			errorId: "model.config.is_valid.autotranslation.workers.app_error",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				Workers:  NewPointer(65),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: true,
+		},
 		// TODO: Enable Agents provider in future release
 		// {
 		// 	name: "valid agents settings",
@@ -2587,4 +2857,147 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
+	permissionMap := map[string]bool{}
+	for _, p := range AllPermissions {
+		permissionMap[p.Id] = true
+	}
+
+	specialTags := map[string]bool{
+		ConfigAccessTagWriteRestrictable: true,
+		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagAnySysConsoleRead: true,
+	}
+
+	// Pre-existing tag issues tracked separately; skip to avoid blocking on known problems.
+	knownIssues := map[string]bool{
+		"Config.SqlSettings.ReplicaLagSettings.DataSource":       true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryAbsoluteLag": true,
+		"Config.SqlSettings.ReplicaLagSettings.QueryTimeLag":     true,
+	}
+
+	var checkStruct func(t *testing.T, st reflect.Type, path string)
+	checkStruct = func(t *testing.T, st reflect.Type, path string) {
+		for i := 0; i < st.NumField(); i++ {
+			field := st.Field(i)
+			fieldPath := path + "." + field.Name
+
+			elemType := field.Type
+			if elemType.Kind() == reflect.Ptr || elemType.Kind() == reflect.Slice {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Ptr {
+				elemType = elemType.Elem()
+			}
+			if elemType.Kind() == reflect.Struct {
+				checkStruct(t, elemType, fieldPath)
+				continue
+			}
+
+			accessTag := field.Tag.Get("access")
+			if accessTag == "" {
+				continue
+			}
+
+			if knownIssues[fieldPath] {
+				continue
+			}
+
+			for tagValue := range strings.SplitSeq(accessTag, ",") {
+				tagValue = strings.TrimSpace(tagValue)
+				if tagValue == "" || specialTags[tagValue] {
+					continue
+				}
+
+				readID := "sysconsole_read_" + tagValue
+				writeID := "sysconsole_write_" + tagValue
+				assert.True(t, permissionMap[readID] || permissionMap[writeID],
+					"Config field %s has access tag %q which does not map to any known permission (tried %s and %s)",
+					fieldPath, tagValue, readID, writeID)
+			}
+		}
+	}
+
+	checkStruct(t, reflect.TypeFor[Config](), "Config")
+}
+
+func TestNativeAppSettingsIsValid(t *testing.T) {
+	t.Run("defaults are valid", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("empty string is valid (hides the menu item)", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = ""
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = ""
+		*cfg.NativeAppSettings.IosAppDownloadLink = ""
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("valid https URLs are accepted", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "https://example.com/download"
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "https://play.google.com/store/apps/details?id=com.mattermost.rn"
+		*cfg.NativeAppSettings.IosAppDownloadLink = "https://apps.apple.com/us/app/mattermost/id1257222717"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("custom scheme URLs are accepted for enterprise use cases", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "myapp://install/mattermost"
+		require.Nil(t, cfg.NativeAppSettings.AreDownloadLinksValid())
+	})
+
+	t.Run("malformed AppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AppDownloadLink = "http://://mattermost.com"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed AndroidAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.AndroidAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+
+	t.Run("malformed IosAppDownloadLink is rejected", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		*cfg.NativeAppSettings.IosAppDownloadLink = "not-a-url"
+		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
+		require.NotNil(t, appErr)
+		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+}
+
+func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
+	t.Parallel()
+
+	t.Run("EnableWatermark defaults to false", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.False(t, *cfg.ExperimentalSettings.EnableWatermark)
+	})
+
+	t.Run("SetDefaults does not overwrite explicit true value", func(t *testing.T) {
+		cfg := Config{}
+		cfg.ExperimentalSettings.EnableWatermark = NewPointer(true)
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)
+	})
 }

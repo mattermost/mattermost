@@ -67,6 +67,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
+import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -77,9 +78,10 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
+import UnifiedLabelsWrapper from './unified_labels_wrapper';
+import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
-import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -179,7 +181,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
-    const aiRewriteEnabled = useGetAgentsBridgeEnabled();
+    const {available: aiRewriteEnabled} = useGetAgentsBridgeEnabled();
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -217,7 +219,6 @@ const AdvancedTextEditor = ({
     const messageStatusRef = useRef<HTMLDivElement | null>(null);
 
     const [draft, setDraft] = useState(draftFromStore);
-    const [caretPosition, setCaretPosition] = useState(draft.message.length);
     const [serverError, setServerError] = useState<(ServerError & { submittedMessage?: string }) | null>(null);
     const [postError, setPostError] = useState<React.ReactNode>(null);
     const [showPreview, setShowPreview] = useState(false);
@@ -293,7 +294,9 @@ const AdvancedTextEditor = ({
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
-            Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            if (textbox) {
+                Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
+            }
         });
     }, [showPreview, handleDraftChange, draft]);
 
@@ -308,11 +311,10 @@ const AdvancedTextEditor = ({
         }]));
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
-    useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
-        additionalControl: aiRewriteAdditionalControl,
+        rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
@@ -338,19 +340,18 @@ const AdvancedTextEditor = ({
     } = useEditorEmojiPicker(
         textboxId,
         isDisabled,
-        draft,
-        caretPosition,
-        setCaretPosition,
-        handleDraftChange,
         showPreview,
-        focusTextbox,
     );
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
+    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    const {
+        labels: burnOnReadLabels,
+        additionalControl: burnOnReadAdditionalControl,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -396,6 +397,22 @@ const AdvancedTextEditor = ({
         });
     }, [handleDraftChange, channelId, rootId]);
 
+    // Unified handler to remove all labels (priority + burn on read)
+    const handleRemoveAllLabels = useCallback(() => {
+        // Remove priority from metadata and burn-on-read type
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
+        const {priority: _priority, ...restMetadata} = draft.metadata || {};
+
+        const updatedDraft = {
+            ...draft,
+            type: undefined, // Remove burn-on-read type
+            metadata: restMetadata, // Remove priority from metadata
+        };
+
+        handleDraftChange(updatedDraft, {instant: true});
+        focusTextbox();
+    }, [draft, handleDraftChange, focusTextbox]);
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -420,7 +437,6 @@ const AdvancedTextEditor = ({
         draft,
         channelId,
         rootId,
-        caretPosition,
         isValidPersistentNotifications,
         location,
         textboxRef,
@@ -478,14 +494,14 @@ const AdvancedTextEditor = ({
      * down the current message value that came from the parents state was not optimal,
      * although still working as expected
      */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
+    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox()?.value ?? '', [textboxRef]);
 
     const getCurrentSelection = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
 
         return {
-            start: input.selectionStart,
-            end: input.selectionEnd,
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
         };
     }, [textboxRef]);
 
@@ -510,31 +526,16 @@ const AdvancedTextEditor = ({
         }
     }, [hasDraftMessage]);
 
-    const handleMouseUpKeyUp = useCallback((e: React.MouseEvent | React.KeyboardEvent) => {
-        setCaretPosition((e.target as TextboxElement).selectionStart || 0);
-    }, []);
-
-    const prefillMessage = useCallback((message: string, shouldFocus?: boolean) => {
+    const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
             ...draft,
             message,
         });
-        setCaretPosition(message.length);
 
-        if (shouldFocus) {
-            const inputBox = textboxRef.current?.getInputBox();
-            inputBox?.click();
-            focusTextbox(true);
-        }
+        const inputBox = textboxRef.current?.getInputBox();
+        inputBox?.click();
+        focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
-
-    // Update the caret position in the input box when changed by a side effect
-    useEffect(() => {
-        const textbox: HTMLInputElement | HTMLTextAreaElement | undefined = textboxRef.current?.getInputBox();
-        if (textbox && textbox === document.activeElement && textbox.selectionStart !== caretPosition) {
-            Utils.setCaretPosition(textbox, caretPosition);
-        }
-    }, [caretPosition]);
 
     // Handle width change when there is no message.
     useEffect(() => {
@@ -686,9 +687,38 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
-        aiRewriteEnabled && aiRewriteAdditionalControl,
+        !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+
+    const getSelectedText = useCallback(() => {
+        const input = textboxRef.current?.getInputBox();
+        return {
+            start: input?.selectionStart ?? 0,
+            end: input?.selectionEnd ?? 0,
+        };
+    }, [textboxRef]);
+
+    const updateText = useCallback((message: string) => {
+        handleDraftChange({
+            ...draft,
+            message,
+        });
+    }, [handleDraftChange, draft]);
+
+    const aiActionsMenu = useMemo(() => {
+        return (
+            <AIActionsMenu
+                draft={draft}
+                getSelectedText={getSelectedText}
+                updateText={updateText}
+                channelId={channelId}
+                isRHS={location === Locations.RHS_COMMENT}
+                rewriteMenuProps={rewriteMenuProps}
+                aiRewriteEnabled={aiRewriteEnabled}
+            />
+        );
+    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -701,6 +731,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    aiActionsMenu={aiActionsMenu}
                 />
             )}
             slot2={null}
@@ -784,16 +815,23 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!isInEditMode && priorityLabels}
+                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                            <div className='AdvancedTextEditor__labels'>
+                                <UnifiedLabelsWrapper
+                                    priorityLabels={priorityLabels}
+                                    burnOnReadLabels={burnOnReadLabels}
+                                    onRemoveAll={handleRemoveAllLabels}
+                                    canRemove={!showPreview}
+                                />
+                            </div>
+                        )}
                         <Textbox
-                            hasLabels={isInEditMode ? false : Boolean(priorityLabels)}
+                            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
                             onChange={handleChange}
                             onKeyPress={postMsgKeyPress}
                             onKeyDown={handleKeyDown}
-                            onMouseUp={handleMouseUpKeyUp}
-                            onKeyUp={handleMouseUpKeyUp}
-                            onComposition={emitTypingEvent}
+                            onCompositionUpdate={emitTypingEvent}
                             onHeightChange={handleHeightChange}
                             handlePostError={handlePostError}
                             value={messageValue}
@@ -811,7 +849,6 @@ const AdvancedTextEditor = ({
                             useChannelMentions={useChannelMentions}
                             rootId={rootId}
                             onWidthChange={handleWidthChange}
-                            isInEditMode={isInEditMode}
                         />
                         {attachmentPreview}
                         {!isDisabled && (showFormattingBar || showPreview) && (

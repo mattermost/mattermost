@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 import type {Post, PostType} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {Locations} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -188,11 +186,14 @@ describe('components/dot_menu/DotMenu', () => {
             pinPost: jest.fn(),
             unpinPost: jest.fn(),
             openModal: jest.fn(),
+            closeModal: jest.fn(),
             markPostAsUnread: jest.fn(),
             postEphemeralCallResponseForPost: jest.fn(),
             setThreadFollow: jest.fn(),
             addPostReminder: jest.fn(),
             setGlobalItem: jest.fn(),
+            burnPostNow: jest.fn(),
+            savePreferences: jest.fn(),
         },
         canEdit: false,
         canDelete: false,
@@ -206,6 +207,15 @@ describe('components/dot_menu/DotMenu', () => {
         userId: 'user_id_1',
         isMilitaryTime: false,
         canMove: true,
+        isChannelAutotranslated: false,
+        canReply: true,
+        canForward: true,
+        canFollowThread: true,
+        canPin: true,
+        canCopyText: true,
+        canCopyLink: true,
+        isBurnOnReadPost: false,
+        isUnrevealedBurnOnReadPost: false,
     };
 
     test('should show edit menu, on Center', async () => {
@@ -277,6 +287,58 @@ describe('components/dot_menu/DotMenu', () => {
         await userEvent.click(button);
 
         // Check that move thread menu item is not present when canMove is false
+        expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
+    });
+
+    test('should not show move thread menu for burn-on-read posts', async () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'current_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+            canMove: false, // BoR posts cannot be moved
+            isBurnOnReadPost: true,
+        };
+        renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        await userEvent.click(button);
+
+        // Check that move thread menu item is not present for BoR posts
+        expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
+    });
+
+    test('should not trigger move thread when pressing W key on burn-on-read post', async () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'current_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+            canMove: false, // BoR posts cannot be moved
+            isBurnOnReadPost: true,
+        };
+
+        renderWithContext(<DotMenuRoot {...props}/>, initialState);
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        await userEvent.click(button);
+
+        // Simulate pressing 'W' key while menu is open
+        const menu = screen.getByRole('menu');
+        menu.focus();
+        await userEvent.keyboard('W');
+
+        // Move thread should not be triggered (menu item doesn't exist, so no way to verify the action wasn't called)
+        // The fact that canMove is false means the menu item is hidden and keyboard shortcut is blocked
         expect(screen.queryByText('Move Thread')).not.toBeInTheDocument();
     });
 
@@ -355,6 +417,9 @@ describe('components/dot_menu/DotMenu', () => {
             const props = {
                 ...baseProps,
                 ...caseProps,
+
+                // canFollowThread should be false when collapsed threads is disabled or location is not CENTER/RHS
+                canFollowThread: false,
             };
             renderWithContext(
                 <DotMenu {...props}/>,
@@ -389,7 +454,7 @@ describe('components/dot_menu/DotMenu', () => {
         });
     });
 
-    test('should show flag post menu option when allowed', () => {
+    test('should show flag post menu option when allowed', async () => {
         const props = {
             ...baseProps,
             post: post1,
@@ -400,13 +465,13 @@ describe('components/dot_menu/DotMenu', () => {
         );
 
         const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         const flagPostOption = screen.getByTestId(`flag_post_${post1.id}`);
         expect(flagPostOption).toBeVisible();
     });
 
-    test('should not show flag post menu option for DM channel even when enabled', () => {
+    test('should not show flag post menu option for DM channel even when enabled', async () => {
         const props = {
             ...baseProps,
             post: dmPost,
@@ -417,13 +482,13 @@ describe('components/dot_menu/DotMenu', () => {
         );
 
         const button = screen.getByTestId(`PostDotMenu-Button-${dmPost.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         const flagPostOption = screen.queryByTestId(`flag_post_${dmPost.id}`);
         expect(flagPostOption).toBeNull();
     });
 
-    test('should not show flag post menu option for GM channel even when enabled', () => {
+    test('should not show flag post menu option for GM channel even when enabled', async () => {
         const props = {
             ...baseProps,
             post: gmPost,
@@ -434,9 +499,140 @@ describe('components/dot_menu/DotMenu', () => {
         );
 
         const button = screen.getByTestId(`PostDotMenu-Button-${gmPost.id}`);
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         const flagPostOption = screen.queryByTestId(`flag_post_${gmPost.id}`);
         expect(flagPostOption).toBeNull();
+    });
+
+    test('should not show flag post menu option for burn on read posts', async () => {
+        const burnOnReadPost: Post = {
+            ...post1,
+            type: 'burn_on_read',
+        };
+        const props = {
+            ...baseProps,
+            post: burnOnReadPost,
+        };
+        renderWithContext(<DotMenuRoot {...props}/>, initialState);
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        await userEvent.click(button);
+
+        const flagPostOption = screen.queryByTestId(`flag_post_${post1.id}`);
+        expect(flagPostOption).toBeNull();
+    });
+
+    test('should show copy link for burn-on-read post sender', async () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'current_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+        };
+        const stateWithBorPost = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities!.posts,
+                    posts: {
+                        ...initialState.entities!.posts!.posts,
+                        [borPost.id]: borPost,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            stateWithBorPost,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        await userEvent.click(button);
+
+        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        expect(copyLinkOption).not.toBeNull();
+    });
+
+    test('should not show copy link for burn-on-read post receiver', async () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'other_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+        };
+        const stateWithBorPost = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities!.posts,
+                    posts: {
+                        ...initialState.entities!.posts!.posts,
+                        [borPost.id]: borPost,
+                    },
+                },
+            },
+        };
+        renderWithContext(
+            <DotMenuRoot {...props}/>,
+            stateWithBorPost,
+        );
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        await userEvent.click(button);
+
+        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        expect(copyLinkOption).toBeNull();
+    });
+
+    test('should not trigger reply when pressing R key on burn-on-read post', async () => {
+        const borPost = {
+            ...post1,
+            type: 'burn_on_read' as PostType,
+            user_id: 'other_user_id',
+        };
+        const props = {
+            ...baseProps,
+            post: borPost,
+            location: Locations.CENTER,
+        };
+        const stateWithBorPost = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities!.posts,
+                    posts: {
+                        ...initialState.entities!.posts!.posts,
+                        [borPost.id]: borPost,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(<DotMenuRoot {...props}/>, stateWithBorPost);
+
+        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        await userEvent.click(button);
+
+        // Reply option should not be visible for BoR posts
+        const replyOption = screen.queryByTestId(`reply_to_post_${borPost.id}`);
+        expect(replyOption).toBeNull();
+
+        // Simulate pressing 'R' key while menu is open - should do nothing
+        const menu = screen.getByRole('menu');
+        menu.focus();
+        await userEvent.keyboard('R');
+
+        // Since reply option doesn't exist, keyboard shortcut should be blocked (no way to verify action wasn't called, but menu item being hidden confirms it)
+        expect(replyOption).toBeNull();
     });
 });

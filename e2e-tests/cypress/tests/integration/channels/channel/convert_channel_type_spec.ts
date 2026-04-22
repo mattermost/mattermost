@@ -5,7 +5,7 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Channel} from '@mattermost/types/channels';
 
-import {getAdminAccount} from '../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -51,7 +51,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
         });
     };
 
-    const promoteToChannelAdmin = (userId, channelId, admin) => {
+    const promoteToChannelAdmin = (userId: string, channelId: string, admin: Pick<UserProfile, 'username' | 'password'>) => {
         cy.externalRequest({
             user: admin,
             method: 'put',
@@ -162,6 +162,9 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
         // Verify settings were saved
         verifySettingsSaved();
+
+        // Verify the modal completely closed to avoid flakiness
+        cy.get('#confirmModal').should('not.exist');
     };
 
     // Function kept for potential future use but not used in current tests

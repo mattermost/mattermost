@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -89,12 +88,6 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 	*config.TeamSettings.MaxUsersPerTeam = 50
 	*config.RateLimitSettings.Enable = false
 	*config.TeamSettings.EnableOpenServer = true
-	// Disable strict password requirements for test
-	*config.PasswordSettings.MinimumLength = 5
-	*config.PasswordSettings.Lowercase = false
-	*config.PasswordSettings.Uppercase = false
-	*config.PasswordSettings.Symbol = false
-	*config.PasswordSettings.Number = false
 	_, _, err = configStore.Set(config)
 	require.NoError(tb, err)
 
@@ -111,21 +104,15 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 
 	templatesDir, ok := templates.GetTemplateDirectory()
 	require.True(tb, ok)
-	htmlTemplateWatcher, errorsChan, err := templates.NewWithWatcher(templatesDir)
+	htmlTemplates, err := templates.New(templatesDir)
 	require.NoError(tb, err)
-
-	go func() {
-		for err2 := range errorsChan {
-			mlog.Error("Server templates error", mlog.Err(err2))
-		}
-	}()
 
 	service := &Service{
 		store:              s,
 		userService:        us,
 		license:            licenseFn,
 		config:             configStore.Get,
-		templatesContainer: htmlTemplateWatcher,
+		templatesContainer: htmlTemplates,
 	}
 
 	err = service.setUpRateLimiters()
@@ -254,7 +241,7 @@ func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 		Email:         "success+" + id + "@simulator.amazonses.com",
 		Username:      "un_" + id,
 		Nickname:      "nn_" + id,
-		Password:      "Password1",
+		Password:      model.NewTestPassword(),
 		EmailVerified: true,
 	}
 

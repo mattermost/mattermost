@@ -5,8 +5,9 @@
     width: 100%;
     min-height: variables.$channel-banner-height;
     max-height: variables.$channel-banner-height;
+    align-items: center;
     justify-content: center;
-    padding-block: 6px;
+    padding-block: 2px;
     padding-inline: 24px;
     white-space: nowrap;
 
@@ -24,10 +25,22 @@
             text-decoration: underline;
         }
 
+        .emoticon {
+            width: 16px;
+            min-width: 16px;
+            height: 16px;
+            min-height: 16px;
+        }
+
+        .emoticon--unicode {
+            font-size: 16px;
+            line-height: 20px;
+        }
+
         .markdown__heading {
             overflow: hidden;
             margin: 2px;
-            font-size: 18px;
+            font-size: 16px;
             text-overflow: ellipsis;
         }
 

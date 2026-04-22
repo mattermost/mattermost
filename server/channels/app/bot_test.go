@@ -718,7 +718,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin1 := model.User{
 		Email:    "sys1@example.com",
 		Nickname: "nn_sysadmin1",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin1",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -730,7 +730,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin2",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -744,7 +744,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user1@example.com",
 		Username: "user1_disabled",
 		Nickname: "user1",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -753,7 +753,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user2@example.com",
 		Username: "user2_disabled",
 		Nickname: "user2",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -902,7 +902,7 @@ func TestConvertUserToBot(t *testing.T) {
 		oauthUser := &model.User{
 			Email:         "oauth_user@example.com",
 			Username:      "oauth_user",
-			Password:      "password",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 
@@ -977,5 +977,173 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
+	})
+}
+
+func TestIsBotExemptFromDMRestrictions(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("bot owned by current user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+
+	t.Run("bot owned by different user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("invalid bot ID", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, model.NewId())
+		require.NotNil(t, appErr)
+		assert.False(t, owned)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", appErr.Id)
+	})
+
+	t.Run("bot owned by plugin when no plugins environment", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "test-plugin-id"
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.False(t, owned)
+	})
+
+	t.Run("bot owned by plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginID := "com.mattermost.testplugin"
+		pluginCode := `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+		pluginManifest := `{"id": "com.mattermost.testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     pluginID,
+		})
+		require.Nil(t, err)
+		defer func() {
+			err = th.App.PermanentDeleteBot(th.Context, bot.UserId)
+			require.Nil(t, err)
+		}()
+
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+
+		rctx := th.Context.WithSession(session)
+		owned, appErr := th.App.IsBotExemptFromDMRestrictions(rctx, bot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, owned)
+	})
+
+	t.Run("system bot is always exempt regardless of session", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		systemBot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Exempt even with an empty context (background job with no session)
+		exempt, appErr := th.App.IsBotExemptFromDMRestrictions(th.Context, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
+
+		// Exempt even when the session belongs to an unrelated non-admin user
+		session, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  th.BasicUser.GetRawRoles(),
+		})
+		require.Nil(t, err)
+		rctx := th.Context.WithSession(session)
+
+		exempt, appErr = th.App.IsBotExemptFromDMRestrictions(rctx, systemBot.UserId)
+		require.Nil(t, appErr)
+		assert.True(t, exempt)
 	})
 }

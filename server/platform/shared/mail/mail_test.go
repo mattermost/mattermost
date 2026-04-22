@@ -147,6 +147,63 @@ func TestSendMailUsingConfig(t *testing.T) {
 	}
 }
 
+func TestSendMailPlainText(t *testing.T) {
+	cfg := getConfig()
+	var emailTo = "test@example.com"
+	var emailSubject = "Testing this email"
+	var emailCC = "test@example.com"
+
+	tests := []struct {
+		name             string
+		emailBodyHTML    string
+		expectedBodyText string
+	}{
+		{
+			name:             "Heading",
+			emailBodyHTML:    "<h1>This is a test from autobot</h1><h2>This is a subheading</h2>",
+			expectedBodyText: "***************************\nThis is a test from autobot\n***************************\n\n--------------------\nThis is a subheading\n--------------------",
+		},
+		{
+			name:             "List",
+			emailBodyHTML:    "<ul><li>Item 1</li><li>Item 2</li></ul>",
+			expectedBodyText: "* Item 1\n* Item 2",
+		},
+		{
+			name:             "Inline formatting",
+			emailBodyHTML:    "<p><strong>Strong</strong> and <a href='https://example.com'>link</a>",
+			expectedBodyText: "*Strong* and link ( https://example.com )",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			DeleteMailBox(emailTo)
+
+			err := SendMailUsingConfig(emailTo, emailSubject, test.emailBodyHTML, cfg, true, "", "", "", emailCC, "")
+			require.NoError(t, err, "Should connect to the SMTP Server")
+
+			var resultsMailbox JSONMessageHeaderInbucket
+			err = RetryInbucket(5, func() error {
+				var err2 error
+				resultsMailbox, err2 = GetMailBox(emailTo)
+				return err2
+			})
+
+			if err != nil {
+				t.Log("No email was received, maybe due load on the server. Failing this test")
+				t.Error(err)
+			} else {
+				require.NotEmpty(t, resultsMailbox, "Mailbox should contain at least one message")
+				require.Contains(t, resultsMailbox[0].To[0], emailTo, "Wrong To: recipient")
+				resultsEmail, err := GetMessageFromMailbox(emailTo, resultsMailbox[0].ID)
+				require.NoError(t, err, "Could not get message from mailbox")
+				require.Contains(t, test.emailBodyHTML, resultsEmail.Body.HTML, "Wrong received message %s", resultsEmail.Body.Text)
+				require.Contains(t, resultsEmail.Body.Text, test.expectedBodyText, "Wrong message plain text conversion %s", resultsEmail.Body.Text)
+			}
+		})
+	}
+}
+
 func TestSendMailWithEmbeddedFilesUsingConfig(t *testing.T) {
 	cfg := getConfig()
 

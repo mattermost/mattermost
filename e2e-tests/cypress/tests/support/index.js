@@ -121,7 +121,7 @@ before(() => {
             });
         }
 
-        switch (Cypress.env('serverEdition')) {
+        switch (Cypress.expose('serverEdition')) {
         case 'Cloud':
             cy.apiRequireLicenseForFeature('Cloud');
             break;
@@ -132,14 +132,14 @@ before(() => {
             break;
         }
 
-        if (Cypress.env('serverClusterEnabled')) {
+        if (Cypress.expose('serverClusterEnabled')) {
             cy.log('Checking cluster information...');
 
             // * Ensure cluster is set up properly when enabled
             cy.shouldHaveClusterEnabled();
             cy.apiGetClusterStatus().then(({clusterInfo}) => {
-                const sameCount = clusterInfo?.length === Cypress.env('serverClusterHostCount');
-                expect(sameCount, sameCount ? '' : `Should match number of hosts in a cluster as expected. Got "${clusterInfo?.length}" but expected "${Cypress.env('serverClusterHostCount')}"`).to.equal(true);
+                const sameCount = clusterInfo?.length === Cypress.expose('serverClusterHostCount');
+                expect(sameCount, sameCount ? '' : `Should match number of hosts in a cluster as expected. Got "${clusterInfo?.length}" but expected "${Cypress.expose('serverClusterHostCount')}"`).to.equal(true);
 
                 clusterInfo.forEach((info) => cy.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`));
             });
@@ -188,7 +188,7 @@ function printServerDetails() {
 }
 
 function sysadminSetup(user) {
-    if (Cypress.env('firstTest')) {
+    if (Cypress.expose('firstTest')) {
         // Sends dummy call to update the config to server
         // Without this, first call to `cy.apiUpdateConfig()` consistently getting time out error in CI against remote server.
         cy.externalRequest({user, method: 'put', path: 'config', data: getDefaultConfig(), failOnStatusCode: false});
@@ -231,7 +231,7 @@ function sysadminSetup(user) {
 
         if (!defaultTeam) {
             cy.apiCreateTeam(DEFAULT_TEAM.name, DEFAULT_TEAM.display_name, 'O', false);
-        } else if (defaultTeam && Cypress.env('resetBeforeTest')) {
+        } else if (defaultTeam && Cypress.expose('resetBeforeTest')) {
             teams.forEach((team) => {
                 if (team.name !== DEFAULT_TEAM.name) {
                     cy.apiDeleteTeam(team.id);

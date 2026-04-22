@@ -9,7 +9,6 @@
 
 // Group: @channels @enterprise @system_console @channel_moderation
 
-import {getRandomId} from '../../../../../utils';
 
 import {checkboxesTitleToIdMap} from './constants';
 import {
@@ -24,16 +23,18 @@ import {
     promoteToChannelOrTeamAdmin,
     saveConfigForChannel,
     saveConfigForScheme,
-    viewManageChannelMembersModal,
+    viewManageChannelMembersRHS,
     visitChannel,
     visitChannelConfigPage,
 } from './helpers';
 
+import {getRandomId} from '@/utils';
+
 describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
-    let regularUser;
-    let guestUser;
-    let testTeam;
-    let testChannel;
+    let regularUser: Cypress.UserProfile;
+    let guestUser: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
 
     before(() => {
         // * Check if server has license
@@ -79,7 +80,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         visitChannel(regularUser, testChannel, testTeam);
 
         // # View members modal
-        viewManageChannelMembersModal('View');
+        viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
         cy.get('#showInviteModal').should('not.exist');
@@ -101,7 +102,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
             visitChannel(regularUser, channel, testTeam);
 
             // # View members modal
-            viewManageChannelMembersModal('View');
+            viewManageChannelMembersRHS();
 
             // * Add Members button does not exist
             cy.get('#showInviteModal').should('not.exist');
@@ -127,7 +128,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
             visitChannel(regularUser, channel, testTeam);
 
             // # View members modal
-            viewManageChannelMembersModal('View');
+            viewManageChannelMembersRHS();
 
             // * Add Members button does not exist
             cy.get('#showInviteModal').should('not.exist');
@@ -162,7 +163,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         visitChannel(regularUser, testChannel, testTeam);
 
         // # View members modal
-        viewManageChannelMembersModal('View');
+        viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
         cy.get('#showInviteModal').should('not.exist');
@@ -285,7 +286,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         });
 
         // # View members modal
-        viewManageChannelMembersModal('Manage');
+        viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
         cy.get('#showInviteModal').should('exist');
@@ -309,7 +310,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         });
 
         // # View members modal
-        viewManageChannelMembersModal('Manage');
+        viewManageChannelMembersRHS();
 
         // * Add Members button does not exist
         cy.get('#showInviteModal').should('exist');

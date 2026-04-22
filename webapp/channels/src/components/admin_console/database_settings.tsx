@@ -36,6 +36,7 @@ interface State extends BaseState {
     trace: boolean;
     disableDatabaseSearch: boolean;
     queryTimeout: number;
+    analyticsQueryTimeout: number;
     connMaxLifetimeMilliseconds: number;
     connMaxIdleTimeMilliseconds: number;
     minimumHashtagLength: number;
@@ -44,7 +45,7 @@ interface State extends BaseState {
 }
 
 const messages = defineMessages({
-    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    title: {id: 'admin.database.title', defaultMessage: 'Database'},
     recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
     featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
     reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
@@ -62,12 +63,14 @@ const messages = defineMessages({
     maxOpenDescription: {id: 'admin.sql.maxOpenDescription', defaultMessage: 'Maximum number of open connections held open to the database.'},
     queryTimeoutTitle: {id: 'admin.sql.queryTimeoutTitle', defaultMessage: 'Query Timeout:'},
     queryTimeoutDescription: {id: 'admin.sql.queryTimeoutDescription', defaultMessage: 'The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'},
+    analyticsQueryTimeoutTitle: {id: 'admin.sql.analyticsQueryTimeoutTitle', defaultMessage: 'Analytics Query Timeout:'},
+    analyticsQueryTimeoutDescription: {id: 'admin.sql.analyticsQueryTimeoutDescription', defaultMessage: 'The number of seconds to wait for a response from the database after opening a connection and sending certain analytics queries. This setting only applies to long queries which are run in the background to populate some information in the Team and Site Statistics pages.'},
     connMaxLifetimeTitle: {id: 'admin.sql.connMaxLifetimeTitle', defaultMessage: 'Maximum Connection Lifetime:'},
     connMaxLifetimeDescription: {id: 'admin.sql.connMaxLifetimeDescription', defaultMessage: 'Maximum lifetime for a connection to the database in milliseconds.'},
     connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
     connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
     minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
-    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2.'},
     traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
@@ -91,6 +94,8 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.maxOpenDescription,
     messages.queryTimeoutTitle,
     messages.queryTimeoutDescription,
+    messages.analyticsQueryTimeoutTitle,
+    messages.analyticsQueryTimeoutDescription,
     messages.connMaxLifetimeTitle,
     messages.connMaxLifetimeDescription,
     messages.connMaxIdleTimeTitle,
@@ -117,6 +122,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
         config.SqlSettings.Trace = this.state.trace;
         config.SqlSettings.DisableDatabaseSearch = this.state.disableDatabaseSearch;
         config.SqlSettings.QueryTimeout = this.parseIntNonZero(this.state.queryTimeout);
+        config.SqlSettings.AnalyticsQueryTimeout = this.parseIntNonZero(this.state.analyticsQueryTimeout);
         config.SqlSettings.ConnMaxLifetimeMilliseconds = this.parseIntNonNegative(this.state.connMaxLifetimeMilliseconds);
         config.SqlSettings.ConnMaxIdleTimeMilliseconds = this.parseIntNonNegative(this.state.connMaxIdleTimeMilliseconds);
         config.ServiceSettings.MinimumHashtagLength = this.parseIntNonZero(this.state.minimumHashtagLength, 3, 2);
@@ -144,6 +150,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
             trace: config.SqlSettings.Trace,
             disableDatabaseSearch: config.SqlSettings.DisableDatabaseSearch,
             queryTimeout: config.SqlSettings.QueryTimeout,
+            analyticsQueryTimeout: config.SqlSettings.AnalyticsQueryTimeout,
             connMaxLifetimeMilliseconds: config.SqlSettings.ConnMaxLifetimeMilliseconds,
             connMaxIdleTimeMilliseconds: config.SqlSettings.ConnMaxIdleTimeMilliseconds,
             minimumHashtagLength: config.ServiceSettings.MinimumHashtagLength,
@@ -187,6 +194,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     showSuccessMessage={false}
                     errorMessage={defineMessage({
                         id: 'admin.recycle.reloadFail',
+                        // eslint-disable-next-line formatjs/enforce-placeholders -- error provided by RequestButton
                         defaultMessage: 'Recycling unsuccessful: {error}',
                     })}
                     includeDetailedError={true}
@@ -284,6 +292,21 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     type='text'
                 />
                 <TextSetting
+                    id='analyticsQueryTimeout'
+                    label={
+                        <FormattedMessage {...messages.analyticsQueryTimeoutTitle}/>
+                    }
+                    placeholder={defineMessage({id: 'admin.sql.analyticsQueryTimeoutExample', defaultMessage: 'E.g.: "300"'})}
+                    helpText={
+                        <FormattedMessage {...messages.analyticsQueryTimeoutDescription}/>
+                    }
+                    value={this.state.analyticsQueryTimeout}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('SqlSettings.AnalyticsQueryTimeout')}
+                    disabled={this.props.isDisabled}
+                    type='text'
+                />
+                <TextSetting
                     id='connMaxLifetimeMilliseconds'
                     label={
                         <FormattedMessage {...messages.connMaxLifetimeTitle}/>
@@ -320,19 +343,7 @@ export default class DatabaseSettings extends OLDAdminSettings<Props, State> {
                     }
                     placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
-                        <FormattedMessage
-                            {...messages.minimumHashtagLengthDescription}
-                            values={{
-                                link: (msg) => (
-                                    <ExternalLink
-                                        location='database_settings'
-                                        href='https://dev.mysql.com/doc/refman/8.0/en/fulltext-fine-tuning.html'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
+                        <FormattedMessage {...messages.minimumHashtagLengthDescription}/>
                     }
                     value={this.state.minimumHashtagLength}
                     onChange={this.handleChange}

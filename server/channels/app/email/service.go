@@ -7,14 +7,16 @@ import (
 	"io"
 	"net/url"
 	"path"
+	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/throttled/throttled"
-	"github.com/throttled/throttled/store/memstore"
+	"github.com/throttled/throttled/v2"
+	"github.com/throttled/throttled/v2/store/memstore"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
@@ -22,14 +24,17 @@ import (
 
 const (
 	emailRateLimitingMemstoreSize = 65536
+	emailRateLimitingPerMinute    = 60
 	emailRateLimitingPerHour      = 20
 	emailRateLimitingMaxBurst     = 20
 
-	TokenTypePasswordRecovery = "password_recovery"
-	TokenTypeVerifyEmail      = "verify_email"
-	TokenTypeTeamInvitation   = "team_invitation"
-	TokenTypeGuestInvitation  = "guest_invitation"
-	TokenTypeCWSAccess        = "cws_access_token"
+	TokenTypePasswordRecovery         = "password_recovery"
+	TokenTypeVerifyEmail              = "verify_email"
+	TokenTypeTeamInvitation           = "team_invitation"
+	TokenTypeGuestInvitation          = "guest_invitation"
+	TokenTypeCWSAccess                = "cws_access_token"
+	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
+	TokenTypeGuestMagicLink           = "guest_magic_link"
 )
 
 func condenseSiteURL(siteURL string) string {
@@ -48,10 +53,10 @@ type Service struct {
 	userService *users.UserService
 	store       store.Store
 
-	templatesContainer      *templates.Container
-	perHourEmailRateLimiter *throttled.GCRARateLimiter
-	perDayEmailRateLimiter  *throttled.GCRARateLimiter
-	EmailBatching           *EmailBatchingJob
+	templatesContainer        *templates.Container
+	perMinuteEmailRateLimiter *throttled.GCRARateLimiterCtx
+	perHourEmailRateLimiter   *throttled.GCRARateLimiterCtx
+	EmailBatching             *EmailBatchingJob
 }
 
 type ServiceConfig struct {
@@ -96,9 +101,14 @@ func (c *ServiceConfig) validate() error {
 }
 
 func (es *Service) setUpRateLimiters() error {
-	store, err := memstore.New(emailRateLimitingMemstoreSize)
+	store, err := memstore.NewCtx(emailRateLimitingMemstoreSize)
 	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
+	}
+
+	perMinuteQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerMin(emailRateLimitingPerMinute),
+		MaxBurst: emailRateLimitingMaxBurst,
 	}
 
 	perHourQuota := throttled.RateQuota{
@@ -106,28 +116,22 @@ func (es *Service) setUpRateLimiters() error {
 		MaxBurst: emailRateLimitingMaxBurst,
 	}
 
-	perDayQuota := throttled.RateQuota{
-		MaxRate:  throttled.PerDay(1),
-		MaxBurst: 0,
-	}
-
-	perHourRateLimiter, err := throttled.NewGCRARateLimiter(store, perHourQuota)
-	if err != nil || perHourRateLimiter == nil {
+	perMinuteRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perMinuteQuota)
+	if err != nil {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	perDayRateLimiter, err := throttled.NewGCRARateLimiter(store, perDayQuota)
-	if err != nil || perDayRateLimiter == nil {
-		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
+	perHourRateLimiter, err := throttled.NewGCRARateLimiterCtx(store, perHourQuota)
+	if err != nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
+	es.perMinuteEmailRateLimiter = perMinuteRateLimiter
 	es.perHourEmailRateLimiter = perHourRateLimiter
-	es.perDayEmailRateLimiter = perDayRateLimiter
 	return nil
 }
 
 type ServiceInterface interface {
-	GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter
 	NewEmailTemplateData(locale string) templates.Data
 	SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) error
 	SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) error
@@ -139,14 +143,15 @@ type ServiceInterface interface {
 	SendUserAccessTokenAddedEmail(email, locale, siteURL string) error
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
-	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
-	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
-	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
+	SendInviteEmails(rctx request.CTX, team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
+	SendGuestInviteEmails(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isGuestMagicLink bool) error
+	SendMagicLinkEmailSelfService(rctx request.CTX, invite string, siteURL string) error
+	SendInviteEmailsToTeamAndChannels(rctx request.CTX, team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
 	SendMailWithEmbeddedFiles(to, subject, htmlBody string, embeddedFiles map[string]io.Reader, messageID string, inReplyTo string, references string, category string) error
-	SendLicenseUpForRenewalEmail(email, name, locale, siteURL, ctaTitle, ctaLink, ctaText string, daysToExpiration int) error
-	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
+	SendLicenseUpForRenewalEmail(email, locale string, daysToExpiration int) error
+	SendRemoveExpiredLicenseEmail(email, locale string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string
 	GenerateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, error)
@@ -158,18 +163,39 @@ type ServiceInterface interface {
 	Stop()
 }
 
+// getLicenseSkuName returns the license tier descriptor (e.g. "Professional",
+// "Entry", "E20"), stripping the "Mattermost " prefix if the license server
+// included it. Falls back to "Mattermost" when the SKU name is absent so
+// that body text like "Your {{.SkuName}} license..." still reads naturally.
+func (es *Service) getLicenseSkuName() string {
+	if license := es.license(); license != nil && license.SkuName != "" {
+		return strings.TrimPrefix(license.SkuName, "Mattermost ")
+	}
+	return "Mattermost"
+}
+
+// getPrefixedLicenseSkuName returns the full product name including "Mattermost"
+// (e.g. "Mattermost Professional"), suitable for email subjects. Falls back
+// to "Mattermost" when no license exists or the SKU name is empty.
+func (es *Service) getPrefixedLicenseSkuName() string {
+	skuName := es.getLicenseSkuName()
+	if skuName == "Mattermost" {
+		return "Mattermost"
+	}
+	return "Mattermost " + skuName
+}
+
+func (es *Service) getConfigSiteName() string {
+	if siteName := *es.config().TeamSettings.SiteName; siteName != "" {
+		return siteName
+	}
+	return "Mattermost"
+}
+
 func (es *Service) Store() store.Store {
 	return es.store
 }
 
 func (es *Service) SetStore(st store.Store) {
 	es.store = st
-}
-
-func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
-	return es.perDayEmailRateLimiter
-}
-
-func (es *Service) GetPerHourEmailRateLimiter() *throttled.GCRARateLimiter {
-	return es.perHourEmailRateLimiter
 }

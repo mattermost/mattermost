@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"context"
-	"sort"
 	"testing"
 	"time"
 
@@ -419,8 +418,24 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 	})
 	t.Run("Get unread reply counts for thread", func(t *testing.T) {
-		t.Skip("MM-41797")
+		// Create posts with explicit timestamp spacing to avoid timestamp
+		// collisions that make MarkAsRead boundaries ambiguous (MM-41797).
+		// makeSomePosts doesn't set CreateAt, so posts can share the same
+		// millisecond, causing MarkAsRead(rootPost.CreateAt) to also mark
+		// the replies as read.
 		newPosts := makeSomePosts(false)
+
+		// Ensure replies have later timestamps than the root post.
+		// The root post is newPosts[0], replies are newPosts[1] and newPosts[2].
+		baseTime := newPosts[0].CreateAt
+		for i := 1; i < len(newPosts); i++ {
+			if newPosts[i].RootId != "" && newPosts[i].CreateAt <= baseTime {
+				newPosts[i].CreateAt = baseTime + int64(i)*1000
+				_, sErr := ss.Post().Overwrite(rctx, newPosts[i])
+				require.NoError(t, sErr, "failed to update post timestamp")
+			}
+		}
+
 		opts := store.ThreadMembershipOpts{
 			Following:             true,
 			IncrementMentions:     false,
@@ -797,12 +812,6 @@ func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	assert.Equal(t, int64(1), teamsUnread[team2.Id].ThreadUrgentMentionCount)
 }
 
-type byPostId []*model.Post
-
-func (a byPostId) Len() int           { return len(a) }
-func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
-
 func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
@@ -1163,7 +1172,6 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find actual %s in post names", thread.PostId)
 			actualPostNames = append(actualPostNames, postName)
 		}
-		sort.Strings(actualPostNames)
 
 		expectedPostNames := make([]string, 0, len(expectedPosts))
 		for _, post := range expectedPosts {
@@ -1171,20 +1179,9 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 			require.True(t, ok, "failed to find expected %s in post names", post.Id)
 			expectedPostNames = append(expectedPostNames, postName)
 		}
-		sort.Strings(expectedPostNames)
 
-		assert.Equal(t, expectedPostNames, actualPostNames)
-
-		// Check posts themselves
-		sort.Sort(byPostId(expectedPosts))
-		sort.Sort(byPostId(actualPosts))
-		if assert.Len(t, actualPosts, len(expectedPosts)) {
-			for i := range actualPosts {
-				assert.Equal(t, expectedPosts[i], actualPosts[i], "mismatch comparing expected post %s with actual post %s", postNames[expectedPosts[i].Id], postNames[actualPosts[i].Id])
-			}
-		} else {
-			assert.Equal(t, expectedPosts, actualPosts)
-		}
+		assert.ElementsMatch(t, expectedPostNames, actualPostNames)
+		assert.ElementsMatch(t, expectedPosts, actualPosts)
 
 		// Check common fields between threads and posts.
 		for _, thread := range threads {

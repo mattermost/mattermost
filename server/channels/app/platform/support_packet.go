@@ -95,17 +95,42 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Server */
 	d.Server.OS = runtime.GOOS
 	d.Server.Architecture = runtime.GOARCH
+	// Note: These values represent the host machine's resources, not any
+	// container limits (e.g., Docker or Kubernetes) that may be in effect.
+	d.Server.CPUCores = runtime.NumCPU()
+	totalMemoryBytes, err := getTotalMemory()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
+	}
+	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
 	}
+	d.Server.ProcessID = os.Getpid()
+	d.Server.StartedAt = ps.startTime.UTC()
+	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
+		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
+	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
-	installationType := os.Getenv(envVarInstallType)
+	d.Server.GoVersion = runtime.Version()
+	installationType := ps.installTypeOverride
+	if installationType == "" {
+		installationType = os.Getenv(envVarInstallType)
+	}
 	if installationType == "" {
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()
@@ -185,14 +210,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
-		d.ElasticSearch.ServerVersion = se.GetFullVersion()
-		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 		if *ps.Config().ElasticsearchSettings.EnableIndexing {
 			appErr := se.TestConfig(rctx, ps.Config())
 			if appErr != nil {
 				d.ElasticSearch.Error = appErr.Error()
 			}
 		}
+		d.ElasticSearch.ServerVersion = se.GetFullVersion()
+		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 	}
 
 	b, err := yaml.Marshal(&d)

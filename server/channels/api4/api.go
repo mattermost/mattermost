@@ -52,6 +52,9 @@ type Routes struct {
 	ChannelCategories        *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams/{team_id:[A-Za-z0-9]+}/channels/categories'
 	ChannelBookmarks         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks'
 	ChannelBookmark          *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/bookmarks/{bookmark_id:[A-Za-z0-9]+}'
+	ChannelViews             *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views'
+	ChannelView              *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views/{view_id:[A-Za-z0-9]+}'
+	ChannelViewPosts         *mux.Router // 'api/v4/channels/{channel_id:[A-Za-z0-9]+}/views/{view_id:[A-Za-z0-9]+}/posts'
 
 	Posts           *mux.Router // 'api/v4/posts'
 	Post            *mux.Router // 'api/v4/posts/{post_id:[A-Za-z0-9]+}'
@@ -100,6 +103,8 @@ type Routes struct {
 	System *mux.Router // 'api/v4/system'
 
 	Jobs *mux.Router // 'api/v4/jobs'
+
+	Recaps *mux.Router // 'api/v4/recaps'
 
 	Preferences *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/preferences'
 
@@ -165,6 +170,11 @@ type Routes struct {
 
 	Agents      *mux.Router // 'api/v4/agents'
 	LLMServices *mux.Router // 'api/v4/llmservices'
+
+	Properties     *mux.Router // 'api/v4/properties'
+	PropertyFields *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField  *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
@@ -214,6 +224,9 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.ChannelCategories = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/categories").Subrouter()
 	api.BaseRoutes.ChannelBookmarks = api.BaseRoutes.Channel.PathPrefix("/bookmarks").Subrouter()
 	api.BaseRoutes.ChannelBookmark = api.BaseRoutes.ChannelBookmarks.PathPrefix("/{bookmark_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelViews = api.BaseRoutes.Channel.PathPrefix("/views").Subrouter()
+	api.BaseRoutes.ChannelView = api.BaseRoutes.ChannelViews.PathPrefix("/{view_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelViewPosts = api.BaseRoutes.ChannelView.PathPrefix("/posts").Subrouter()
 
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
@@ -256,6 +269,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Public = api.BaseRoutes.APIRoot.PathPrefix("/public").Subrouter()
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
+	api.BaseRoutes.Recaps = api.BaseRoutes.APIRoot.PathPrefix("/recaps").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
@@ -317,6 +331,11 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
 	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
+	api.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()
+	api.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()
+	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -325,6 +344,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitFile()
 	api.InitUpload()
 	api.InitSystem()
+	api.InitAIBridgeTestHelper()
 	api.InitLicense()
 	api.InitConfig()
 	api.InitWebhook()
@@ -337,6 +357,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDataRetention()
 	api.InitBrand()
 	api.InitJob()
+	api.InitRecap()
 	api.InitCommand()
 	api.InitStatus()
 	api.InitWebSocket()
@@ -361,6 +382,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitDrafts()
 	api.InitIPFiltering()
 	api.InitChannelBookmarks()
+	api.InitView()
 	api.InitReports()
 	api.InitLimits()
 	api.InitOutgoingOAuthConnection()
@@ -371,6 +393,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
 	api.InitAgents()
+	api.InitProperties()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {

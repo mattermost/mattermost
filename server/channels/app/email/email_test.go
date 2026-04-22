@@ -35,6 +35,80 @@ func TestCondenseSiteURL(t *testing.T) {
 	require.Equal(t, "chat.mattermost.com:8080/subpath", condenseSiteURL("http://chat.mattermost.com:8080/subpath/"))
 }
 
+func TestGetLicenseSkuName(t *testing.T) {
+	tests := []struct {
+		name             string
+		license          *model.License
+		expectedSku      string
+		expectedPrefixed string
+	}{
+		{
+			name:             "nil license",
+			license:          nil,
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "empty sku name",
+			license:          &model.License{SkuName: ""},
+			expectedSku:      "Mattermost",
+			expectedPrefixed: "Mattermost",
+		},
+		{
+			name:             "Professional",
+			license:          &model.License{SkuName: "Professional"},
+			expectedSku:      "Professional",
+			expectedPrefixed: "Mattermost Professional",
+		},
+		{
+			name:             "Enterprise",
+			license:          &model.License{SkuName: "Enterprise"},
+			expectedSku:      "Enterprise",
+			expectedPrefixed: "Mattermost Enterprise",
+		},
+		{
+			name:             "Enterprise Advanced",
+			license:          &model.License{SkuName: "Enterprise Advanced"},
+			expectedSku:      "Enterprise Advanced",
+			expectedPrefixed: "Mattermost Enterprise Advanced",
+		},
+		{
+			name:             "Entry",
+			license:          &model.License{SkuName: "Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "Mattermost Entry (prefixed by license server)",
+			license:          &model.License{SkuName: "Mattermost Entry"},
+			expectedSku:      "Entry",
+			expectedPrefixed: "Mattermost Entry",
+		},
+		{
+			name:             "E10",
+			license:          &model.License{SkuName: "E10"},
+			expectedSku:      "E10",
+			expectedPrefixed: "Mattermost E10",
+		},
+		{
+			name:             "E20",
+			license:          &model.License{SkuName: "E20"},
+			expectedSku:      "E20",
+			expectedPrefixed: "Mattermost E20",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			es := &Service{
+				license: func() *model.License { return tt.license },
+			}
+			require.Equal(t, tt.expectedSku, es.getLicenseSkuName())
+			require.Equal(t, tt.expectedPrefixed, es.getPrefixedLicenseSkuName())
+		})
+	}
+}
+
 func TestSendInviteEmails(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -77,7 +151,7 @@ func TestSendInviteEmails(t *testing.T) {
 		err := mail.DeleteMailBox(emailTo)
 		require.NoError(t, err, "Failed to delete mailbox")
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 
 		verifyMailbox(t)
@@ -95,10 +169,10 @@ func TestSendInviteEmails(t *testing.T) {
 			*cfg.EmailSettings.SMTPServerTimeout = originalTimeout
 		})
 
-		err := th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
+		err := th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, true, false, false)
 		require.Error(t, err)
 
-		err = th.service.SendInviteEmails(th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
+		err = th.service.SendInviteEmails(th.Context, th.BasicTeam, "test-user", th.BasicUser.Id, []string{emailTo}, "http://testserver", nil, false, false, false)
 		require.NoError(t, err)
 	})
 
@@ -107,6 +181,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err, "Failed to delete mailbox")
 
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -115,6 +190,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			"hello world",
+			false,
 			false,
 			false,
 			false,
@@ -137,6 +213,7 @@ func TestSendInviteEmails(t *testing.T) {
 		})
 
 		err := th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -148,10 +225,12 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
 		)
 		require.NoError(t, err)
 
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -161,6 +240,7 @@ func TestSendInviteEmails(t *testing.T) {
 			"http://testserver",
 			"hello world",
 			true,
+			false,
 			false,
 			false,
 		)
@@ -173,6 +253,7 @@ func TestSendInviteEmails(t *testing.T) {
 
 		message := `<a href="http://testserver">sanitized message</a>`
 		err = th.service.SendGuestInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			[]*model.Channel{th.BasicChannel},
 			"test-user",
@@ -181,6 +262,7 @@ func TestSendInviteEmails(t *testing.T) {
 			[]string{emailTo},
 			"http://testserver",
 			message,
+			false,
 			false,
 			false,
 			false,
@@ -198,6 +280,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err, "Failed to delete mailbox")
 
 		err = th.service.SendInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -219,6 +302,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err, "Failed to delete mailbox")
 
 		err = th.service.SendInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,
@@ -240,6 +324,7 @@ func TestSendInviteEmails(t *testing.T) {
 		require.NoError(t, err, "Failed to delete mailbox")
 
 		err = th.service.SendInviteEmails(
+			th.Context,
 			th.BasicTeam,
 			"test-user",
 			th.BasicUser.Id,

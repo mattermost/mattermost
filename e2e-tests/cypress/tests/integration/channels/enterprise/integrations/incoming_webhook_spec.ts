@@ -10,13 +10,15 @@
 // Stage: @prod
 // Group: @channels @enterprise @elasticsearch @incoming_webhook @not_cloud
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {enableElasticSearch} from '../elasticsearch_autocomplete/helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
+
 describe('Incoming webhook', () => {
-    let testTeam;
-    let testChannel;
-    let incomingWebhook;
+    let testTeam: Cypress.Team;
+    let testChannel: Cypress.Channel;
+    let incomingWebhook: {data: unknown; url: string}; // apiCreateWebhook returns untyped body
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -65,8 +67,19 @@ describe('Incoming webhook', () => {
 
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
+        // # Post webhook and wait for attachment to render
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
+        // # Verify the post appears in the channel with attachment
+        cy.getLastPost().within(() => {
+            cy.get('.attachment__body').should('be.visible').should('contain', 'Findme.');
+        });
+
+        // # Explicitly wait to give Elasticsearch time to index before searching
+        // Using a longer wait time since Elasticsearch indexing can be slow in test environments
+        cy.wait(TIMEOUTS.THREE_SEC);
+
+        // # Search for text in the attachment
         cy.uiGetSearchContainer().click();
         cy.uiGetSearchBox().
             wait(TIMEOUTS.HALF_SEC).

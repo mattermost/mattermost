@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
@@ -13,15 +12,12 @@ import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/a
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
-import Tag from 'components/widgets/tag/tag';
-
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import * as Utils from 'utils/utils';
 
 import ThreadItem from './thread_item';
-
-import ThreadMenu from '../thread_menu';
 
 jest.mock('mattermost-redux/actions/threads');
 
@@ -74,15 +70,11 @@ jest.mock('./attachments', () => {
     };
 });
 
-jest.mock('components/tours/crt_tour/crt_list_tutorial_tip', () => {
-    return function MockCRTListTutorialTip() {
-        return <div className='tutorial-tip'>{'tutorial'}</div>;
-    };
-});
-
+let capturedThreadMenuProps: any = {};
 jest.mock('../thread_menu', () => {
-    return function MockThreadMenu({children}: {children: React.ReactNode}) {
-        return <div className='thread-menu'>{children}</div>;
+    return function MockThreadMenu(props: any) {
+        capturedThreadMenuProps = props;
+        return <div className='thread-menu'>{props.children}</div>;
     };
 });
 
@@ -204,25 +196,28 @@ describe('components/threading/global_threads/thread_item', () => {
             threadId: mockThread.id,
             isPostPriorityEnabled: false,
         };
+
+        capturedThreadMenuProps = {};
+        mockDispatch.mockClear();
+        mockRouting.select.mockClear();
+        mockRouting.goToInChannel.mockClear();
     });
 
     test('should report total number of replies', () => {
         mockThread.reply_count = 9;
-        const wrapper = shallow(<ThreadItem {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('id', 'threading.numReplies');
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('values.totalReplies', 9);
+        const {baseElement} = renderWithContext(<ThreadItem {...props}/>);
+        expect(baseElement).toMatchSnapshot();
+        expect(screen.getByText('9 replies')).toBeInTheDocument();
     });
 
     test('should report unread messages', () => {
         mockThread.reply_count = 11;
         mockThread.unread_replies = 2;
 
-        const wrapper = shallow(<ThreadItem {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.exists('.dot-unreads')).toBe(true);
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('id', 'threading.numNewReplies');
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('values.newReplies', 2);
+        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
+        expect(baseElement).toMatchSnapshot();
+        expect(container.querySelector('.dot-unreads')).toBeInTheDocument();
+        expect(screen.getByText('2 new replies')).toBeInTheDocument();
     });
 
     test('should report unread mentions', () => {
@@ -230,43 +225,37 @@ describe('components/threading/global_threads/thread_item', () => {
         mockThread.unread_replies = 5;
         mockThread.unread_mentions = 2;
 
-        const wrapper = shallow(<ThreadItem {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('.dot-mentions').text()).toBe('2');
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('id', 'threading.numNewReplies');
-        expect(wrapper.find('.activity MemoizedFormattedMessage').props()).toHaveProperty('values.newReplies', 5);
+        const {baseElement, container} = renderWithContext(<ThreadItem {...props}/>);
+        expect(baseElement).toMatchSnapshot();
+        expect(container.querySelector('.dot-mentions')?.textContent).toBe('2');
+        expect(screen.getByText('5 new replies')).toBeInTheDocument();
     });
 
     test('should show channel name', () => {
-        const wrapper = shallow(<ThreadItem {...props}/>);
-        expect(wrapper.find(Tag).props().text).toContain('Team name');
+        renderWithContext(<ThreadItem {...props}/>);
+        expect(screen.getByText('Team name')).toBeInTheDocument();
     });
 
     test('should pass required props to ThreadMenu', () => {
-        const wrapper = shallow(<ThreadItem {...props}/>);
+        renderWithContext(<ThreadItem {...props}/>);
 
-        // verify ThreadMenu received transient/required props
-        new Map<string, any>([
-            ['hasUnreads', Boolean(mockThread.unread_replies)],
-            ['threadId', mockThread.id],
-            ['isFollowing', mockThread.is_following],
-            ['unreadTimestamp', 1611786714912],
-        ]).forEach((val, prop) => {
-            expect(wrapper.find(ThreadMenu).props()).toHaveProperty(prop, val);
-        });
+        expect(capturedThreadMenuProps).toHaveProperty('hasUnreads', Boolean(mockThread.unread_replies));
+        expect(capturedThreadMenuProps).toHaveProperty('threadId', mockThread.id);
+        expect(capturedThreadMenuProps).toHaveProperty('isFollowing', mockThread.is_following);
+        expect(capturedThreadMenuProps).toHaveProperty('unreadTimestamp', 1611786714912);
     });
 
-    test('should call Utils.handleFormattedTextClick on click', () => {
-        const wrapper = shallow(<ThreadItem {...props}/>);
+    test('should call Utils.handleFormattedTextClick on click', async () => {
+        const {container} = renderWithContext(<ThreadItem {...props}/>);
         const spy = jest.spyOn(Utils, 'handleFormattedTextClick').mockImplementationOnce(jest.fn());
-        wrapper.find('.preview').simulate('click', {});
+        await userEvent.click(container.querySelector('.preview')!);
 
-        expect(spy).toHaveBeenCalledWith({}, '/tname');
+        expect(spy).toHaveBeenCalledWith(expect.anything(), '/tname');
     });
 
     test('should allow marking as unread on alt + click', () => {
-        const wrapper = shallow(<ThreadItem {...props}/>);
-        wrapper.find('div.ThreadItem').simulate('click', {altKey: true});
+        const {container} = renderWithContext(<ThreadItem {...props}/>);
+        fireEvent.click(container.querySelector('div.ThreadItem')!, {altKey: true});
         expect(updateThreadRead).not.toHaveBeenCalled();
         expect(markLastPostInThreadAsUnread).toHaveBeenCalledWith('user_id', 'tid', '1y8hpek81byspd4enyk9mp1ncw');
         expect(manuallyMarkThreadAsUnread).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw', 1611786714912);
@@ -274,22 +263,22 @@ describe('components/threading/global_threads/thread_item', () => {
     });
 
     test('should set article tabIndex to -1 when thread is selected', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ThreadItem
                 {...props}
                 isSelected={true}
             />,
         );
-        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(-1);
+        expect(container.querySelector('div.ThreadItem')?.getAttribute('tabindex')).toBe('-1');
     });
 
     test('should set article tabIndex to 0 when thread is not selected', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ThreadItem
                 {...props}
                 isSelected={false}
             />,
         );
-        expect(wrapper.find('div.ThreadItem').prop('tabIndex')).toBe(0);
+        expect(container.querySelector('div.ThreadItem')?.getAttribute('tabindex')).toBe('0');
     });
 });

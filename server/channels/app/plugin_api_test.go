@@ -219,7 +219,7 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -253,7 +253,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -274,7 +274,7 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -315,7 +315,7 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -367,7 +367,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -378,7 +378,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -389,7 +389,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -400,7 +400,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -467,7 +467,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -478,7 +478,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -489,7 +489,7 @@ func TestPluginAPIGetUsersByIds(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -535,7 +535,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user1" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -546,7 +546,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user2, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user2" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -557,7 +557,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user3, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user3" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -568,7 +568,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 
 	user4, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
+		Password: model.NewTestPassword(),
 		Username: "user4" + model.NewId(),
 	})
 	require.Nil(t, err)
@@ -662,7 +662,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	user1, err := th.App.CreateUser(th.Context, &model.User{
 		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
 		Username: "user_" + model.NewId(),
-		Password: "password",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err)
 	defer func() {
@@ -880,6 +880,38 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 	assert.Equal(t, expectedConfiguration, savedConfiguration)
 }
 
+func TestPluginAPISavePluginConfigPreservesOtherPlugins(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	otherPluginConfig := map[string]any{
+		"setting1": "value1",
+		"setting2": "value2",
+	}
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["otherplugin"] = otherPluginConfig
+	})
+
+	manifest := &model.Manifest{
+		Id: "pluginid",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "MyStringSetting", Type: "text"},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	pluginConfig := map[string]any{"mystringsetting": "str"}
+	appErr := api.SavePluginConfig(pluginConfig)
+	require.Nil(t, appErr)
+
+	cfg := th.App.Config()
+	assert.Contains(t, cfg.PluginSettings.Plugins, "otherplugin")
+	assert.Equal(t, otherPluginConfig, cfg.PluginSettings.Plugins["otherplugin"])
+}
+
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -948,6 +980,101 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	}`)
 
 	require.NoError(t, err)
+}
+
+func TestPluginAPILoadPluginConfigurationDefaultsFromSections(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"mysectionstringsetting": "override"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testsectiondefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testsectiondefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "MySectionStringSetting", Type: "text", Default: "notthis"},
+						{Key: "MySectionIntSetting", Type: "text", Default: float64(42)},
+						{Key: "MySectionBoolSetting", Type: "bool", Default: true},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		MySectionStringSetting string
+		MySectionIntSetting    int
+		MySectionBoolSetting   bool
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	assert.Equal(t, "override", dest.MySectionStringSetting) // saved config overrides default
+	assert.Equal(t, 42, dest.MySectionIntSetting)            // default applied from section
+	assert.True(t, dest.MySectionBoolSetting)                // default applied from section
+}
+
+func TestPluginAPILoadPluginConfigurationDefaultsMixed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"toplevelsetting": "saved_value"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testmixeddefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testmixeddefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "TopLevelSetting", Type: "text", Default: "top_default"},
+				{Key: "TopLevelBool", Type: "bool", Default: true},
+			},
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "SectionSetting", Type: "text", Default: "section_default"},
+						{Key: "SectionInt", Type: "text", Default: float64(99)},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		TopLevelSetting string
+		TopLevelBool    bool
+		SectionSetting  string
+		SectionInt      int
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	// Top-level: saved config overrides default
+	assert.Equal(t, "saved_value", dest.TopLevelSetting)
+	// Top-level: default applied
+	assert.True(t, dest.TopLevelBool)
+	// Section: default applied
+	assert.Equal(t, "section_default", dest.SectionSetting)
+	// Section: default applied
+	assert.Equal(t, 99, dest.SectionInt)
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
@@ -1765,6 +1892,116 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
+func TestInterpluginPluginHTTPWithBodyAfterWriteHeader(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	setupMultiPluginAPITest(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"bytes"
+			"net/http"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/api/v2/test" {
+				if r.URL.Query().Get("abc") != "xyz" {
+					return
+				}
+
+				if r.Header.Get("Mattermost-Plugin-ID") != "testpluginbodyafter" {
+					return
+				}
+
+				w.WriteHeader(598)
+				buf := bytes.Buffer{}
+				buf.ReadFrom(r.Body)
+				resp := "we got:" + buf.String()
+				w.Write([]byte(resp))
+			}
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+			"bytes"
+			"net/http"
+			"io"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			buf := bytes.Buffer{}
+			buf.WriteString("This is the request body")
+			req, err := http.NewRequest("POST", "/testpluginbodyafterserver/api/v2/test?abc=xyz", &buf)
+			if err != nil {
+				return nil, err.Error()
+			}
+			req.Header.Add("Mattermost-User-Id", "userid")
+			resp := p.API.PluginHTTP(req)
+			if resp == nil {
+				return nil, "Nil resp"
+			}
+			if resp.Body == nil {
+				return nil, "Nil body"
+			}
+			respbody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return nil, err.Error()
+			}
+			if resp.StatusCode != 598 {
+				return nil, "wrong status " + string(respbody)
+			}
+
+			if string(respbody) !=  "we got:This is the request body" {
+				return nil, "wrong response: " + string(respbody)
+			}
+
+			return nil, "ok"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		},
+		[]string{
+			`{"id": "testpluginbodyafterserver", "server": {"executable": "backend.exe"}}`,
+			`{"id": "testpluginbodyafter", "server": {"executable": "backend.exe"}}`,
+		},
+		[]string{
+			"testpluginbodyafterserver",
+			"testpluginbodyafter",
+		},
+		true,
+		th.App,
+		th.Context,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbodyafter")
+	require.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, "ok", ret)
+}
+
 func TestInterpluginPluginHTTPStreaming(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -2100,7 +2337,7 @@ func TestAPIMetrics(t *testing.T) {
 			Email:       model.NewId() + "success+test@example.com",
 			Nickname:    "Darth Vader1",
 			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Password:    model.NewTestPassword(),
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
@@ -2509,6 +2746,23 @@ func TestPluginAPIUpdateCommand(t *testing.T) {
 	require.NoError(t, appErr)
 	require.Equal(t, "anothernewtriggeragain", newCmd4.Trigger)
 	require.Equal(t, team1.Id, newCmd4.TeamId)
+
+	// Updating a command's trigger to one that already exists should fail.
+	cmd2 := &model.Command{
+		TeamId:  team1.Id,
+		Trigger: "uniquetrigger",
+		Method:  "G",
+		URL:     "http://test.com/uniquetrigger",
+	}
+	cmd2, appErr = api.CreateCommand(cmd2)
+	require.NoError(t, appErr)
+
+	cmd2.Trigger = "anotherNewTriggerAgain"
+	_, appErr = api.UpdateCommand(cmd2.Id, cmd2)
+	require.Error(t, appErr)
+	var appError *model.AppError
+	require.ErrorAs(t, appErr, &appError)
+	require.Equal(t, "api.command.duplicate_trigger.app_error", appError.Id)
 }
 
 func TestPluginAPIIsEnterpriseReady(t *testing.T) {
@@ -3254,7 +3508,7 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err = api.CreatePropertyField(nil)
 		require.Error(t, err) // Should fail when given nil input
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "invalid input: property field parameter is required")
+		assert.Contains(t, err.Error(), "property field is required")
 	})
 }
 
@@ -3358,5 +3612,233 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		count, err = api.CountPropertyFields("non-existent-group", true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(0), count)
+	})
+}
+
+func TestPluginAPICreateTeamAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override team name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Anonymous URL Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.NotEqual(t, originalName, createdTeam.Name, "team name should be overridden by server")
+		assert.True(t, model.IsValidId(createdTeam.Name), "team name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Team", createdTeam.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should preserve team name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-team-name"
+		team := &model.Team{
+			DisplayName: "Normal Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+
+	t.Run("should not override team name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-team-name"
+		team := &model.Team{
+			DisplayName: "Enterprise Team",
+			Name:        originalName,
+			Type:        model.TeamOpen,
+		}
+
+		createdTeam, appErr := api.CreateTeam(team)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdTeam)
+
+		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
+	})
+}
+
+func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+
+	categoryName := "Operations"
+	channel := &model.Channel{
+		DisplayName:         "Plugin channel with managed category",
+		Name:                "plugin-managed-cat-" + model.NewId(),
+		Type:                model.ChannelTypeOpen,
+		TeamId:              th.BasicTeam.Id,
+		ManagedCategoryName: categoryName,
+	}
+
+	createdChannel, appErr := api.CreateChannel(channel)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdChannel)
+	defer func() {
+		_ = th.App.ClearChannelManagedCategory(th.Context, createdChannel.Id)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser, createdChannel)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+	mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+	require.Nil(t, err)
+	assert.Equal(t, categoryName, mappings[createdChannel.Id])
+}
+
+func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	t.Run("should override open channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous URL Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "open channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+		assert.Equal(t, "Anonymous URL Channel", createdChannel.DisplayName, "display name should remain unchanged")
+	})
+
+	t.Run("should override private channel name when UseAnonymousURLs is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "private-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Anonymous Private Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypePrivate,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.NotEqual(t, originalName, createdChannel.Name, "private channel name should be overridden")
+		assert.True(t, model.IsValidId(createdChannel.Name), "channel name should be a valid server-generated ID")
+	})
+
+	t.Run("should preserve channel name when UseAnonymousURLs is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "preserved-channel"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
+	})
+
+	t.Run("should not override channel name without Enterprise Advanced license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = true })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.UseAnonymousURLs = false })
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		defer func() {
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
+		}()
+
+		originalName := "original-channel-name"
+		channel := &model.Channel{
+			DisplayName: "Normal Channel",
+			Name:        originalName,
+			Type:        model.ChannelTypeOpen,
+			TeamId:      th.BasicTeam.Id,
+		}
+
+		createdChannel, appErr := api.CreateChannel(channel)
+		require.Nil(t, appErr)
+		require.NotNil(t, createdChannel)
+
+		assert.Equal(t, originalName, createdChannel.Name, "channel name should not be overridden")
 	})
 }

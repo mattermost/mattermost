@@ -5,7 +5,6 @@ package storetest
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 	"time"
 
@@ -41,6 +40,7 @@ func TestFileInfoStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	t.Run("FileInfoGetByIds", func(t *testing.T) { testGetByIds(t, rctx, ss) })
 	t.Run("FileInfoDeleteForPostByIds", func(t *testing.T) { testDeleteForPostByIds(t, rctx, ss) })
 	t.Run("FileInfoRestoreForPostByIds", func(t *testing.T) { testRestoreUndeleteForPostByIds(t, rctx, ss) })
+	t.Run("FileInfoSearch", func(t *testing.T) { testFileInfoSearch(t, rctx, ss) })
 }
 
 func testFileInfoSaveGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -421,12 +421,6 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 }
 
-type byFileInfoID []*model.FileInfo
-
-func (a byFileInfoID) Len() int           { return len(a) }
-func (a byFileInfoID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byFileInfoID) Less(i, j int) bool { return a[i].Id < a[j].Id }
-
 func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("should attach files", func(t *testing.T) {
 		userID := model.NewId()
@@ -461,9 +455,7 @@ func testFileInfoAttachToPost(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		expected := []*model.FileInfo{info1, info2}
-		sort.Sort(byFileInfoID(expected))
-		sort.Sort(byFileInfoID(data))
-		assert.EqualValues(t, expected, data)
+		assert.ElementsMatch(t, expected, data)
 	})
 
 	t.Run("should not attach files to multiple posts", func(t *testing.T) {
@@ -879,18 +871,20 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Skip("MM-53905")
-
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
 	assert.Error(t, err)
 
-	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
+	// Delete all existing file infos so parallel tests don't interfere with
+	// the cumulative size calculation (MM-53905).
+	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis()+3600000, 100000)
 	require.NoError(t, err)
 
+	// Use far-future timestamps so these are always "most recent" even if
+	// parallel tests create file infos concurrently.
 	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + diff
+	now := utils.MillisFromTime(time.Now()) + 3600000 // 1 hour in the future
 
 	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 		PostId:    model.NewId(),
@@ -1537,5 +1531,212 @@ func testRestoreUndeleteForPostByIds(t *testing.T, rctx request.CTX, ss store.St
 		for _, fileInfo := range fileInfos {
 			require.Equal(t, int64(0), fileInfo.DeleteAt)
 		}
+	})
+}
+
+func testFileInfoSearch(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should exclude FileInfo records with PostIds in TemporaryPosts", func(t *testing.T) {
+		// Create team, channel, and user
+		teamID := model.NewId()
+		userID := model.NewId()
+
+		channel := &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Test Channel",
+			Name:        "test-channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, -1)
+		require.NoError(t, err)
+
+		// Create channel member
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		// Create posts
+		post1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   "post 1",
+		}
+		post1, err = ss.Post().Save(rctx, post1)
+		require.NoError(t, err)
+
+		post2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   "post 2",
+		}
+		post2, err = ss.Post().Save(rctx, post2)
+		require.NoError(t, err)
+
+		post3 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   "post 3",
+		}
+		post3, err = ss.Post().Save(rctx, post3)
+		require.NoError(t, err)
+
+		// Create FileInfo records attached to posts
+		fileInfo1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    post1.Id,
+			ChannelId: channel.Id,
+			CreatorId: userID,
+			Path:      "file1.txt",
+			Name:      "file1.txt",
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo1.Id)
+
+		fileInfo2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    post2.Id,
+			ChannelId: channel.Id,
+			CreatorId: userID,
+			Path:      "file2.txt",
+			Name:      "file2.txt",
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo2.Id)
+
+		fileInfo3, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    post3.Id,
+			ChannelId: channel.Id,
+			CreatorId: userID,
+			Path:      "file3.txt",
+			Name:      "file3.txt",
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo3.Id)
+
+		// Create TemporaryPost for post2 (fileInfo2 should be excluded)
+		tmpPost := &model.TemporaryPost{
+			ID:       post2.Id,
+			Type:     model.PostTypeBurnOnRead,
+			ExpireAt: model.GetMillis() + 3600000, // 1 hour from now
+			Message:  "temporary message",
+			FileIDs:  []string{fileInfo2.Id},
+		}
+		_, err = ss.TemporaryPost().Save(rctx, tmpPost)
+		require.NoError(t, err)
+		defer ss.TemporaryPost().Delete(rctx, tmpPost.ID)
+
+		// Search for files - should exclude fileInfo2 since its PostId is in TemporaryPosts
+		// Use empty terms to search all files in the channel (works for both PostgreSQL and MySQL)
+		paramsList := []*model.SearchParams{
+			{
+				Terms:               "",
+				InChannels:          []string{channel.Id},
+				SearchWithoutUserId: false,
+			},
+		}
+
+		results, err := ss.FileInfo().Search(rctx, paramsList, userID, teamID, 0, 100)
+		require.NoError(t, err)
+		require.NotNil(t, results)
+
+		// Verify fileInfo2 is excluded (PostId in TemporaryPosts)
+		// fileInfo1 and fileInfo3 should be included
+		foundFileIds := make(map[string]bool)
+		for _, fileInfo := range results.FileInfos {
+			foundFileIds[fileInfo.Id] = true
+		}
+
+		assert.True(t, foundFileIds[fileInfo1.Id], "fileInfo1 should be included in search results")
+		assert.False(t, foundFileIds[fileInfo2.Id], "fileInfo2 should be excluded from search results (PostId in TemporaryPosts)")
+		assert.True(t, foundFileIds[fileInfo3.Id], "fileInfo3 should be included in search results")
+	})
+
+	t.Run("should include FileInfo records when TemporaryPost is deleted", func(t *testing.T) {
+		// Create team, channel, and user
+		teamID := model.NewId()
+		userID := model.NewId()
+
+		channel := &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Test Channel 2",
+			Name:        "test-channel-" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
+		channel, err := ss.Channel().Save(rctx, channel, -1)
+		require.NoError(t, err)
+
+		// Create channel member
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      userID,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		// Create post
+		post := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   "post",
+		}
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+
+		// Create FileInfo attached to post
+		fileInfo, err := ss.FileInfo().Save(rctx, &model.FileInfo{
+			PostId:    post.Id,
+			ChannelId: channel.Id,
+			CreatorId: userID,
+			Path:      "file.txt",
+			Name:      "file.txt",
+		})
+		require.NoError(t, err)
+		defer ss.FileInfo().PermanentDelete(rctx, fileInfo.Id)
+
+		// Create TemporaryPost for the post
+		tmpPost := &model.TemporaryPost{
+			ID:       post.Id,
+			Type:     model.PostTypeBurnOnRead,
+			ExpireAt: model.GetMillis() + 3600000,
+			Message:  "temporary message",
+			FileIDs:  []string{fileInfo.Id},
+		}
+		_, err = ss.TemporaryPost().Save(rctx, tmpPost)
+		require.NoError(t, err)
+
+		// Search - fileInfo should be excluded
+		// Use empty terms to search all files in the channel (works for both PostgreSQL and MySQL)
+		paramsList := []*model.SearchParams{
+			{
+				Terms:               "",
+				InChannels:          []string{channel.Id},
+				SearchWithoutUserId: false,
+			},
+		}
+
+		results, err := ss.FileInfo().Search(rctx, paramsList, userID, teamID, 0, 100)
+		require.NoError(t, err)
+		require.NotNil(t, results)
+
+		foundFileIds := make(map[string]bool)
+		for _, fi := range results.FileInfos {
+			foundFileIds[fi.Id] = true
+		}
+		assert.False(t, foundFileIds[fileInfo.Id], "fileInfo should be excluded when TemporaryPost exists")
+
+		// Delete TemporaryPost
+		err = ss.TemporaryPost().Delete(rctx, tmpPost.ID)
+		require.NoError(t, err)
+
+		// Search again - fileInfo should now be included
+		results, err = ss.FileInfo().Search(rctx, paramsList, userID, teamID, 0, 100)
+		require.NoError(t, err)
+		require.NotNil(t, results)
+
+		foundFileIds = make(map[string]bool)
+		for _, fi := range results.FileInfos {
+			foundFileIds[fi.Id] = true
+		}
+		assert.True(t, foundFileIds[fileInfo.Id], "fileInfo should be included after TemporaryPost is deleted")
 	})
 }

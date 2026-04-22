@@ -42,6 +42,7 @@ export default function useShowAdminLimitReached() {
         const modalProps: any = {
             title: defineMessage({
                 id: 'workspace_limits.modals.limits_reached.title',
+                // eslint-disable-next-line formatjs/enforce-placeholders -- limitName provided via values property
                 defaultMessage: '{limitName} limit reached',
                 values: {
                     limitName: intl.formatMessage({

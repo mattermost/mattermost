@@ -6,6 +6,7 @@ package slackimport
 import (
 	"archive/zip"
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -759,4 +760,115 @@ func TestSlackImportEnhancedSecurityBackwardsCompatibility(t *testing.T) {
 
 	// Verify VerifyEmail was NOT called
 	userStore.AssertNotCalled(t, "VerifyEmail")
+}
+
+type slackAddUsersTestSetup struct {
+	store     *mocks.Store
+	teamStore *mocks.TeamStore
+	userStore *mocks.UserStore
+	team      *model.Team
+	savedUser *model.User
+}
+
+func newSlackAddUsersTestSetup(t *testing.T) *slackAddUsersTestSetup {
+	t.Helper()
+
+	s := &slackAddUsersTestSetup{}
+	s.store = &mocks.Store{}
+	s.teamStore = &mocks.TeamStore{}
+	s.userStore = &mocks.UserStore{}
+	s.store.On("Team").Return(s.teamStore)
+	s.store.On("User").Return(s.userStore)
+
+	s.team = &model.Team{Id: "test-team-id", Name: "test-team"}
+	s.teamStore.On("Get", "test-team-id").Return(s.team, nil)
+	s.userStore.On("GetByEmail", mock.AnythingOfType("string")).Return(nil, fmt.Errorf("not found"))
+
+	s.savedUser = &model.User{Id: "test-user-id", Username: "testuser", Email: "testuser@example.com"}
+	s.userStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.User")).Return(s.savedUser, nil)
+
+	return s
+}
+
+func (s *slackAddUsersTestSetup) newImporter(actions Actions) *SlackImporter {
+	config := &model.Config{}
+	config.SetDefaults()
+	return New(s.store, actions, config)
+}
+
+func (s *slackAddUsersTestSetup) defaultActions() Actions {
+	return Actions{
+		JoinUserToTeam: func(team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+			return &model.TeamMember{}, nil
+		},
+		SendPasswordReset: func(email string) (bool, *model.AppError) {
+			return true, nil
+		},
+	}
+}
+
+func defaultSlackUsers() []slackUser {
+	return []slackUser{
+		{Id: "U001", Username: "testuser", Profile: slackProfile{FirstName: "Test", LastName: "User", Email: "testuser@example.com"}},
+	}
+}
+
+func TestSlackAddUsersLogContainsProperUserCreationMessage(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	logOutput := importerLog.String()
+	assert.Contains(t, logOutput, "api.slackimport.slack_add_users.email", "import log should contain the user creation message")
+	assert.NotContains(t, logOutput, "api.slackimport.slack_add_users.email_pwd", "import log must not use the old user creation message")
+}
+
+func TestSlackAddUsersLogsSendResetEmailFailure(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		return false, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	assert.Contains(t, importerLog.String(), "api.slackimport.slack_add_users.send_reset_email_failed")
+}
+
+func TestSlackAddUsersGeneratesUserWithEmptyPassword(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	importer := s.newImporter(s.defaultActions())
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	s.userStore.AssertCalled(t, "Save", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(u *model.User) bool {
+		return u.Password == ""
+	}))
+}
+
+func TestSlackAddUsersTriggersPasswordResetFlow(t *testing.T) {
+	rctx := request.TestContext(t)
+	s := newSlackAddUsersTestSetup(t)
+
+	passwordResetCalled := false
+	actions := s.defaultActions()
+	actions.SendPasswordReset = func(email string) (bool, *model.AppError) {
+		passwordResetCalled = true
+		return true, nil
+	}
+
+	importer := s.newImporter(actions)
+	importerLog := new(bytes.Buffer)
+	importer.slackAddUsers(rctx, "test-team-id", defaultSlackUsers(), importerLog)
+
+	assert.True(t, passwordResetCalled, "SendPasswordReset should be called for each imported user")
 }

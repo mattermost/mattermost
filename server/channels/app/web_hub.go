@@ -36,6 +36,14 @@ func (a *App) invalidateCacheForChannelPosts(channelID string) {
 	a.Srv().Platform().InvalidateCacheForChannelPosts(channelID)
 }
 
+func (a *App) invalidateCacheForReadReceipts(postID string) {
+	a.Srv().Platform().InvalidateCacheForReadReceipts(postID)
+}
+
+func (a *App) invalidateCacheForTemporaryPost(id string) {
+	a.Srv().Platform().InvalidateCacheForTemporaryPost(id)
+}
+
 func (a *App) InvalidateCacheForUser(userID string) {
 	a.Srv().Platform().InvalidateCacheForUser(userID)
 }

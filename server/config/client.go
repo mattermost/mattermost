@@ -4,10 +4,12 @@
 package config
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/fips"
 )
 
 // GenerateClientConfig renders the given configuration for a client.
@@ -70,6 +72,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 	props["ShowEmailAddress"] = strconv.FormatBool(*c.PrivacySettings.ShowEmailAddress)
 	props["ShowFullName"] = strconv.FormatBool(*c.PrivacySettings.ShowFullName)
+	props["UseAnonymousURLs"] = strconv.FormatBool(*c.PrivacySettings.UseAnonymousURLs)
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(*c.FileSettings.EnablePublicLink)
@@ -148,13 +151,15 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["PersistentNotificationMaxCount"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxCount), 10)
 	props["PersistentNotificationIntervalMinutes"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationIntervalMinutes), 10)
 	props["PersistentNotificationMaxRecipients"] = strconv.FormatInt(int64(*c.ServiceSettings.PersistentNotificationMaxRecipients), 10)
+	props["EnableBurnOnRead"] = strconv.FormatBool(*c.ServiceSettings.EnableBurnOnRead)
+	props["BurnOnReadDurationSeconds"] = strconv.Itoa(*c.ServiceSettings.BurnOnReadDurationSeconds)
+	props["BurnOnReadMaximumTimeToLiveSeconds"] = strconv.Itoa(*c.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds)
 	props["AllowSyncedDrafts"] = strconv.FormatBool(*c.ServiceSettings.AllowSyncedDrafts)
 	props["DelayChannelAutocomplete"] = strconv.FormatBool(*c.ExperimentalSettings.DelayChannelAutocomplete)
 	props["YoutubeReferrerPolicy"] = strconv.FormatBool(*c.ExperimentalSettings.YoutubeReferrerPolicy)
 	props["UniqueEmojiReactionLimitPerPost"] = strconv.FormatInt(int64(*c.ServiceSettings.UniqueEmojiReactionLimitPerPost), 10)
 
 	props["EnableAttributeBasedAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableAttributeBasedAccessControl)
-	props["EnableChannelScopeAccessControl"] = strconv.FormatBool(*c.AccessControlSettings.EnableChannelScopeAccessControl)
 	props["EnableUserManagedAttributes"] = strconv.FormatBool(*c.AccessControlSettings.EnableUserManagedAttributes)
 
 	props["WranglerPermittedWranglerRoles"] = strings.Join(c.WranglerSettings.PermittedWranglerRoles, ",")
@@ -236,6 +241,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
+			props["EnableManagedChannelCategories"] = strconv.FormatBool(*c.TeamSettings.EnableManagedChannelCategories)
 		}
 
 		if model.MinimumEnterpriseAdvancedLicense(license) {
@@ -244,6 +251,12 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
 			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslation && *c.AutoTranslationSettings.Enable)
+			if c.FeatureFlags.AutoTranslation {
+				props["AutoTranslationLanguages"] = strings.Join(*c.AutoTranslationSettings.TargetLanguages, ",")
+			} else {
+				props["AutoTranslationLanguages"] = ""
+			}
+			props["RestrictDMAndGMAutotranslation"] = strconv.FormatBool(*c.AutoTranslationSettings.RestrictDMAndGM)
 		}
 	}
 
@@ -261,6 +274,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildHashEnterprise"] = model.BuildHashEnterprise
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 	props["ServiceEnvironment"] = model.GetServiceEnvironment()
+	props["IsFipsEnabled"] = strconv.FormatBool(fips.IsEnabled)
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
 	props["EnableDesktopLandingPage"] = strconv.FormatBool(*c.ServiceSettings.EnableDesktopLandingPage)
@@ -359,6 +373,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableGuestAccounts"] = strconv.FormatBool(*c.GuestAccountsSettings.Enable)
 	props["HideGuestTags"] = strconv.FormatBool(*c.GuestAccountsSettings.HideTags)
 	props["GuestAccountsEnforceMultifactorAuthentication"] = strconv.FormatBool(*c.GuestAccountsSettings.EnforceMultifactorAuthentication)
+	props["EnableGuestMagicLink"] = strconv.FormatBool(*c.GuestAccountsSettings.EnableGuestMagicLink)
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -413,6 +428,24 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+			props["ExperimentalEnableWatermark"] = strconv.FormatBool(*c.ExperimentalSettings.EnableWatermark)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			// Check IntuneSettings configuration
+			intuneEnabled := (c.IntuneSettings.Enable != nil && *c.IntuneSettings.Enable && c.IntuneSettings.IsValid() == nil)
+
+			props["IntuneMAMEnabled"] = strconv.FormatBool(intuneEnabled)
+
+			if intuneEnabled {
+				// Use IntuneSettings for scope
+				props["IntuneScope"] = fmt.Sprintf("api://%s/login.mattermost", *c.IntuneSettings.ClientId)
+
+				// Expose AuthService if set
+				if c.IntuneSettings.AuthService != nil && *c.IntuneSettings.AuthService != "" {
+					props["IntuneAuthService"] = *c.IntuneSettings.AuthService
+				}
+			}
 		}
 	}
 

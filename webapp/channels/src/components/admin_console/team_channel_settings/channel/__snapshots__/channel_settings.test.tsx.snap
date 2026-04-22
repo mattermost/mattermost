@@ -1,50 +1,44 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/channel/ChannelSettings should match snapshot 1`] = `
-<div
-  className="wrapper--fixed"
->
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="{siteName} Channels"
-      id="admin.channel_settings.groupsPageTitle"
-      values={
-        Object {
-          "siteName": "site",
-        }
-      }
-    />
-  </AdminHeader>
+<div>
   <div
-    className="admin-console__wrapper"
+    class="wrapper--fixed"
   >
     <div
-      className="admin-console__content"
+      class="admin-console__header"
     >
-      <AdminPanel
-        id="channels"
-        subtitle={
-          Object {
-            "defaultMessage": "Manage channel settings.",
-            "id": "admin.channel_settings.description",
-          }
-        }
-        subtitleValues={
-          Object {
-            "endCount": 1,
-            "startCount": 0,
-            "total": 0,
-          }
-        }
-        title={
-          Object {
-            "defaultMessage": "Channels",
-            "id": "admin.channel_settings.title",
-          }
-        }
+      site Channels
+    </div>
+    <div
+      class="admin-console__wrapper"
+    >
+      <div
+        class="admin-console__content"
       >
-        <Connect(ChannelList) />
-      </AdminPanel>
+        <div
+          class="AdminPanel clearfix "
+          id="channels"
+        >
+          <div
+            class="header"
+          >
+            <div>
+              <h3>
+                Channels
+              </h3>
+              <div
+                class="mt-2"
+              >
+                Manage channel settings.
+              </div>
+            </div>
+          </div>
+          <div>
+            ChannelsList
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

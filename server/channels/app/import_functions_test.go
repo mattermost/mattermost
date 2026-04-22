@@ -946,7 +946,7 @@ func TestImportImportUser(t *testing.T) {
 		assert.Equal(t, userCount, userCountCurrent, "Unexpected number of users")
 
 		// Check Password and AuthData together.
-		data.Password = model.NewPointer("PasswordTest")
+		data.Password = model.NewPointer(model.NewTestPassword())
 		appErr = th.App.importUser(th.Context, &data, false)
 		require.NotNil(t, appErr, "Should have failed to import invalid user.")
 
@@ -1737,6 +1737,28 @@ func TestImportImportUser(t *testing.T) {
 		assert.False(t, channelMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
 		assert.Equal(t, "", channelMember.ExplicitRoles)
+	})
+
+	t.Run("import guest user without any team or channel memberships", func(t *testing.T) {
+		username := model.NewUsername()
+		guestData := &imports.UserImportData{
+			Username: &username,
+			Email:    model.NewPointer(model.NewId() + "@example.com"),
+			Roles:    model.NewPointer("system_guest"),
+		}
+
+		appErr := th.App.importUser(th.Context, guestData, false)
+		require.Nil(t, appErr, "Failed to import guest user without memberships")
+
+		user, appErr := th.App.GetUserByUsername(*guestData.Username)
+		require.Nil(t, appErr, "Failed to get user from database.")
+
+		assert.True(t, user.IsGuest(), "User should be a guest")
+		assert.Equal(t, "system_guest", user.Roles)
+
+		teams, appErr := th.App.GetTeamsForUser(user.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, teams, "Guest user should have no team memberships")
 	})
 }
 

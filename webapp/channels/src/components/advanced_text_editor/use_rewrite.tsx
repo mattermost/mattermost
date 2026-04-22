@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -15,7 +16,6 @@ import type TextboxClass from 'components/textbox/textbox';
 import type {PostDraft} from 'types/store/draft';
 
 import {RewriteAction} from './rewrite_action';
-import RewriteMenu from './rewrite_menu';
 
 const useRewrite = (
     draft: PostDraft,
@@ -55,7 +55,7 @@ const useRewrite = (
             setLastAction(action);
         }
 
-        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt);
+        const promise = Client4.getAIRewrittenMessage(selectedAgentId, draft.message, action, prompt, draft.rootId);
         currentPromiseRef.current = promise;
 
         try {
@@ -83,12 +83,13 @@ const useRewrite = (
                 currentPromiseRef.current = undefined;
             }
         }
-    }, [draft, handleDraftChange, isProcessing, setServerError, selectedAgentId]);
+    }, [draft, handleDraftChange, isProcessing, selectedAgentId, setServerError]);
 
     const resetState = useCallback(() => {
         setOriginalMessage('');
         setLastAction(RewriteAction.CUSTOM);
         setPrompt('');
+        setLastPrompt('');
     }, []);
 
     const undoMessage = useCallback(() => {
@@ -98,7 +99,7 @@ const useRewrite = (
         }, {instant: true});
         focusTextbox();
         resetState();
-    }, [draft, handleDraftChange, originalMessage, focusTextbox, resetState]);
+    }, [draft, focusTextbox, handleDraftChange, originalMessage, resetState]);
 
     const regenerateMessage = useCallback(() => {
         setPrompt(lastPrompt);
@@ -109,7 +110,7 @@ const useRewrite = (
         if (lastAction) {
             handleRewrite(lastAction, lastAction === RewriteAction.CUSTOM ? lastPrompt : undefined);
         }
-    }, [draft, handleRewrite, originalMessage, lastAction, lastPrompt, handleDraftChange]);
+    }, [draft, handleDraftChange, handleRewrite, lastAction, lastPrompt, originalMessage]);
 
     const cancelProcessing = useCallback(() => {
         setIsProcessing(false);
@@ -123,6 +124,9 @@ const useRewrite = (
             return;
         }
         if (e.key === 'Enter') {
+            if (e.nativeEvent.isComposing) {
+                return;
+            }
             e.stopPropagation();
             handleRewrite(RewriteAction.CUSTOM, prompt);
         }
@@ -147,12 +151,6 @@ const useRewrite = (
             customPromptRef.current?.focus();
         }
     }, [isMenuOpen, draft.message]);
-
-    useEffect(() => {
-        if (!isProcessing && draft.message.trim() && lastAction) {
-            resetState();
-        }
-    }, [draft.message]);
 
     // This adds an overlay to the textbox to
     // indicate that the AI is rewriting the message.
@@ -187,46 +185,46 @@ const useRewrite = (
         resetState();
     }, [draft.message, isProcessing, resetState]);
 
+    const rewriteMenuProps = useMemo(() => ({
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draftMessage: draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents: agents || [],
+        originalMessage,
+        lastAction,
+        onMenuAction: handleMenuAction,
+        onCustomPromptKeyDown: handleCustomPromptKeyDown,
+        onCancelProcessing: cancelProcessing,
+        onUndoMessage: undoMessage,
+        onRegenerateMessage: regenerateMessage,
+        customPromptRef,
+    }), [
+        isProcessing,
+        isMenuOpen,
+        setIsMenuOpen,
+        draft.message,
+        prompt,
+        setPrompt,
+        selectedAgentId,
+        setSelectedAgentId,
+        agents,
+        originalMessage,
+        lastAction,
+        handleMenuAction,
+        handleCustomPromptKeyDown,
+        cancelProcessing,
+        undoMessage,
+        regenerateMessage,
+        customPromptRef,
+    ]);
+
     return {
-        additionalControl: useMemo(() => (
-            <RewriteMenu
-                isProcessing={isProcessing}
-                isMenuOpen={isMenuOpen}
-                setIsMenuOpen={setIsMenuOpen}
-                draftMessage={draft.message}
-                prompt={prompt}
-                setPrompt={setPrompt}
-                selectedAgentId={selectedAgentId}
-                setSelectedAgentId={setSelectedAgentId}
-                agents={agents || []}
-                originalMessage={originalMessage}
-                lastAction={lastAction}
-                onMenuAction={handleMenuAction}
-                onCustomPromptKeyDown={handleCustomPromptKeyDown}
-                onCancelProcessing={cancelProcessing}
-                onUndoMessage={undoMessage}
-                onRegenerateMessage={regenerateMessage}
-                customPromptRef={customPromptRef}
-            />
-        ), [
-            isProcessing,
-            isMenuOpen,
-            setIsMenuOpen,
-            draft.message,
-            prompt,
-            setPrompt,
-            selectedAgentId,
-            setSelectedAgentId,
-            agents,
-            originalMessage,
-            lastAction,
-            handleMenuAction,
-            handleCustomPromptKeyDown,
-            cancelProcessing,
-            undoMessage,
-            regenerateMessage,
-            customPromptRef,
-        ]),
+        rewriteMenuProps,
         isProcessing,
     };
 };
