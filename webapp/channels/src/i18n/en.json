@@ -659,6 +659,7 @@
   "admin.classification_markings.enable.false": "False",
   "admin.classification_markings.enable.title": "Enable classification markings",
   "admin.classification_markings.enable.true": "True",
+  "admin.classification_markings.error.delete_has_dependents": "Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.",
   "admin.classification_markings.error.duplicate_name": "Classification level names must be unique. Duplicate: {name}",
   "admin.classification_markings.error.empty_name": "All classification levels must have a name.",
   "admin.classification_markings.error.no_levels": "At least one classification level is required when classification markings are enabled.",

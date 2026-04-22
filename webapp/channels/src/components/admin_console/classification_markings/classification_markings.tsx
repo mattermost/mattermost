@@ -66,6 +66,7 @@ const msg = defineMessages({
     globalBannerLevelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Choose from a variety of pre-defined banner options. To manually set the banner text and color, select "Custom banner".'},
     errorGlobalBannerNoLevel: {id: 'admin.classification_markings.error.global_banner_no_level', defaultMessage: 'A global classification level must be selected when the global banner is enabled.'},
     errorGlobalBannerLevelMissing: {id: 'admin.classification_markings.error.global_banner_level_missing', defaultMessage: 'The global classification banner is configured with a level that no longer exists. Select a level that exists in the current classification levels.'},
+    errorDeleteHasDependents: {id: 'admin.classification_markings.error.delete_has_dependents', defaultMessage: 'Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.'},
 });
 
 export const searchableStrings = Object.values(msg);
@@ -126,7 +127,6 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
 
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
-    const [hasAcknowledgedPresetWarning, setHasAcknowledgedPresetWarning] = useState(false);
 
     const hasChanges = useMemo(() => {
         if (enabled !== initialEnabled) {
@@ -219,16 +219,15 @@ export default function ClassificationMarkings({disabled}: Props) {
             setPresetId(PRESET_CUSTOM);
             return;
         }
-        if (existingField && !hasAcknowledgedPresetWarning) {
+        if (levels.length > 0) {
             setConfirmPresetSwitch(newPresetId);
             return;
         }
         applyPreset(newPresetId);
-    }, [existingField, hasAcknowledgedPresetWarning, applyPreset]);
+    }, [levels.length, applyPreset]);
 
     const handleConfirmPresetSwitch = useCallback(() => {
         if (confirmPresetSwitch) {
-            setHasAcknowledgedPresetWarning(true);
             applyPreset(confirmPresetSwitch);
         }
         setConfirmPresetSwitch(null);
@@ -362,8 +361,13 @@ export default function ClassificationMarkings({disabled}: Props) {
             await persistLevels();
             await persistGlobalBanner();
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'An error occurred while saving';
-            setSaveError(message);
+            const clientErr = err as ClientError;
+            if (clientErr.status_code === 409) {
+                setSaveError(formatMessage(msg.errorDeleteHasDependents));
+            } else {
+                const message = err instanceof Error ? err.message : 'An error occurred while saving';
+                setSaveError(message);
+            }
         } finally {
             setSaving(false);
         }

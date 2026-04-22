@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
 
+	"github.com/opensearch-project/opensearch-go/v4/opensearchapi"
 	"github.com/opensearch-project/opensearch-go/v4/opensearchutil"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -64,10 +65,38 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				Action:     indexOp,
 				DocumentID: docID,
 				Body:       body,
+				OnFailure: func(_ context.Context, item opensearchutil.BulkIndexerItem, resp opensearchapi.BulkRespItem, err error) {
+					var errType, errReason string
+					if resp.Error != nil {
+						errType = resp.Error.Type
+						errReason = resp.Error.Reason
+					}
+					logger.Error("Bulk indexer: failed to index document",
+						mlog.String("index", item.Index),
+						mlog.String("doc_id", item.DocumentID),
+						mlog.String("action", item.Action),
+						mlog.String("error_type", errType),
+						mlog.String("error_reason", errReason),
+						mlog.Err(err),
+					)
+				},
 			})
 		},
-		// Closing the bulk processor
-		func() error {
-			return esi.bulkProcessor.Close(context.Background())
+		// Closing the bulk processor and returning the number of failed items.
+		func() (int64, error) {
+			err := esi.bulkProcessor.Close(context.Background())
+			stats := esi.bulkProcessor.Stats()
+			fields := []mlog.Field{
+				mlog.Uint("num_indexed", stats.NumIndexed),
+				mlog.Uint("num_failed", stats.NumFailed),
+				mlog.Uint("num_added", stats.NumAdded),
+				mlog.Uint("num_flushed", stats.NumFlushed),
+			}
+			if err != nil {
+				logger.Warn("Bulk indexer closed with error", append(fields, mlog.Err(err))...)
+			} else {
+				logger.Info("Bulk indexer closed", fields...)
+			}
+			return int64(stats.NumFailed), err
 		})
 }

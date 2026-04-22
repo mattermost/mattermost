@@ -28,6 +28,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    Conflict:
+      description: Request conflicts with current state of the resource
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
     TooLarge:
       description: Content too large
       content:
@@ -483,7 +489,7 @@ components:
         object_type:
           type: string
           description: The type of object this property applies to
-          enum: [post, channel, user]
+          enum: [post, channel, user, template]
         attrs:
           type: object
           description: Additional attributes
@@ -508,6 +514,13 @@ components:
           type: string
           description: Permission level for managing options on select/multiselect fields
           enum: [none, sysadmin, member]
+        linked_field_id:
+          type: string
+          nullable: true
+          description: >
+            The ID of the template field this field is linked to. When set, the field
+            inherits its type and options from the source template. Can only be set at
+            creation time. Null when the field is not linked.
         create_at:
           type: integer
           format: int64
@@ -532,6 +545,11 @@ components:
           type: string
         attrs:
           type: object
+        linked_field_id:
+          type: string
+          description: >
+            Set to empty string to unlink a linked field. Cannot be set to a new
+            value on an existing field; linking is only allowed at creation time.
     PropertyValue:
       type: object
       properties:
