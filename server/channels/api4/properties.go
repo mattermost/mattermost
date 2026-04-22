@@ -60,6 +60,13 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Template creation is always sysadmin-only, regardless of target_type.
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate &&
+		!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	// Check scope access for creation based on target_type
 	switch field.TargetType {
 	case "channel":
