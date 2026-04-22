@@ -272,7 +272,7 @@ func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
 			env := ps.pluginEnv.GetPluginsEnvironment()
 			env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
 				pluginRec := httptest.NewRecorder()
-				pluginReq, err := http.NewRequest("GET", "/metrics", nil)
+				pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
 				if err != nil {
 					return true
 				}
