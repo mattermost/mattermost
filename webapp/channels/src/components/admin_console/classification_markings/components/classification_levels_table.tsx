@@ -8,6 +8,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 
+import WithTooltip from 'components/with_tooltip';
+
 import LevelColorCell from './level_color_cell';
 import LevelNameCell from './level_name_cell';
 
@@ -30,10 +32,9 @@ type ClassificationLevelsTableProps = {
     deleteLevel: (id: string) => void;
     onReorder: (prev: number, next: number) => void;
     disabled?: boolean;
-    reorderDisabled?: boolean;
 };
 
-export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled, reorderDisabled}: ClassificationLevelsTableProps) {
+export default function ClassificationLevelsTable({levels, updateLevel, deleteLevel, onReorder, disabled}: ClassificationLevelsTableProps) {
     const {formatMessage} = useIntl();
 
     const rows = useMemo(() => {
@@ -115,15 +116,17 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                 header: () => null,
                 cell: ({row}) => (
                     <ActionsCell>
-                        <DeleteButton
-                            aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
-                            onClick={() => deleteLevel(row.original.id)}
-                        >
-                            <TrashCanOutlineIcon
-                                size={18}
-                                color='var(--error-text)'
-                            />
-                        </DeleteButton>
+                        <WithTooltip title={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}>
+                            <DeleteButton
+                                aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
+                                onClick={() => deleteLevel(row.original.id)}
+                            >
+                                <TrashCanOutlineIcon
+                                    size={18}
+                                    color='var(--error-text)'
+                                />
+                            </DeleteButton>
+                        </WithTooltip>
                     </ActionsCell>
                 ),
                 enableSorting: false,
@@ -141,7 +144,7 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
         meta: {
             tableId: 'classificationLevels',
             disablePaginationControls: true,
-            ...(!disabled && !reorderDisabled && {onReorder}),
+            onReorder,
         },
         manualPagination: true,
     });

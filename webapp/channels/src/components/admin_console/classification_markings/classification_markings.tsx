@@ -295,12 +295,6 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
     }, [enabled, initialEnabled, existingField, validate, handleSaveCreate, handleSaveDelete, handleSavePatch]);
 
-    const handleCancel = useCallback(() => {
-        setEnabled(initialEnabled);
-        setLevels(initialLevels);
-        setPresetId(initialPresetId);
-    }, [initialEnabled, initialLevels, initialPresetId]);
-
     if (loading) {
         return (
             <div className='wrapper--fixed'>
@@ -415,7 +409,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 deleteLevel={deleteLevel}
                                 onReorder={handleReorder}
                                 disabled={disabled}
-                                reorderDisabled={presetId !== PRESET_CUSTOM}
                             />
                             {!disabled && (
                                 <AddLevelButtonRow>
@@ -437,7 +430,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                onCancel={handleCancel}
                 serverError={saveError}
                 isDisabled={saving || disabled}
                 savingMessage={formatMessage({id: 'admin.classification_markings.saving', defaultMessage: 'Saving...'})}
