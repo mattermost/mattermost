@@ -64,9 +64,19 @@ type State = {
 
 const typedInputDelimiter = /[,;]+/;
 const pasteDelimiter = /[\n\r,;]+/;
+const spaceSeparatedPasteDelimiter = /\s+/;
 
 const shouldHandlePasteAsBulkList = (value: string): boolean => {
-    return (/[,;\n\r]/).test(value);
+    if ((/[,;\n\r]/).test(value)) {
+        return true;
+    }
+
+    const entries = value.split(spaceSeparatedPasteDelimiter).map((entry) => entry.trim()).filter(Boolean);
+    return entries.length > 1 && entries.every((entry) => isEmail(entry));
+};
+
+const isLikelyBulkPasteInput = (nextValue: string, prevValue: string): boolean => {
+    return nextValue.length - prevValue.length > 1 && shouldHandlePasteAsBulkList(nextValue);
 };
 
 const messages = defineMessages({
@@ -223,10 +233,10 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
 
     Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
-            const clipboardText = e.clipboardData?.getData('Text') || e.clipboardData?.getData('text/plain') || '';
+            const clipboardText = e.clipboardData?.getData('Text') || e.clipboardData?.getData('text/plain') || e.clipboardData?.getData('text') || '';
             if (clipboardText.trim() && shouldHandlePasteAsBulkList(clipboardText)) {
                 e.preventDefault();
-                this.appendDelimitedValues(clipboardText).catch(() => undefined);
+                this.appendDelimitedValues(clipboardText, undefined, spaceSeparatedPasteDelimiter).catch(() => undefined);
             }
 
             if (this.props.onPaste) {
@@ -342,10 +352,20 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                     prevValue: action.prevInputValue,
                 }));
             }
-        } else if (action.action === 'input-change' && action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(typedInputDelimiter)) {
-            const newValuesCount = await this.appendDelimitedValues(action.prevInputValue, typedInputDelimiter);
-            if (newValuesCount === 0) {
+        } else if (action.action === 'input-change') {
+            if (isLikelyBulkPasteInput(inputValue, action.prevInputValue || '')) {
+                const newValuesCount = await this.appendDelimitedValues(inputValue, undefined, spaceSeparatedPasteDelimiter);
+                if (newValuesCount === 0) {
+                    return;
+                }
                 return;
+            }
+
+            if (action.prevInputValue !== '' && action.prevInputValue?.[action.prevInputValue.length - 1].match(typedInputDelimiter)) {
+                const newValuesCount = await this.appendDelimitedValues(action.prevInputValue, typedInputDelimiter);
+                if (newValuesCount === 0) {
+                    return;
+                }
             }
         }
         if (action.action !== 'input-blur' && action.action !== 'menu-close') {
@@ -389,7 +409,11 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         this.selectRef.current?.onInputChange(this.props.inputValue, {action: 'set-value', prevInputValue: this.props.inputValue});
     };
 
-    appendDelimitedValues = async (values: string, delimiter: RegExp = pasteDelimiter): Promise<number> => {
+    appendDelimitedValues = async (
+        values: string,
+        delimiter: RegExp = pasteDelimiter,
+        inputCleanupDelimiter: RegExp = delimiter,
+    ): Promise<number> => {
         const existingValues = this.formatValuesForCreatable();
         const entries = [...new Set(values.split(delimiter).map((e) => e.trim()))];
 
@@ -469,7 +493,26 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
         });
 
         this.onChange([...existingValues, ...newValues]);
-        this.props.onInputChange('');
+
+        const unresolvedEntries = entries.filter((entry) => {
+            if (!entry) {
+                return false;
+            }
+
+            const cleanedEntry = entry.replace(inputCleanupDelimiter, ' ').trim();
+            if (!cleanedEntry) {
+                return false;
+            }
+
+            return !newValues.some((value) => {
+                if (this.isEmailInvite(value)) {
+                    return value.value === cleanedEntry;
+                }
+                return value.username === cleanedEntry || value.email === cleanedEntry;
+            });
+        });
+
+        this.props.onInputChange(unresolvedEntries.join(' '));
 
         return newValues.length;
     };

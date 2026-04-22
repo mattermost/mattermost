@@ -220,7 +220,29 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             });
         });
 
-        it('should keep space-delimited pasted text as draft input instead of bulk-committing it', async () => {
+        it('should bulk-commit space-delimited valid email pastes', async () => {
+            jest.spyOn(Client4, 'getUserByEmail').mockRejectedValue(new Error('not found'));
+
+            const ref = React.createRef<UsersEmailsInput>();
+            renderWithContext(
+                <UsersEmailsInput
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+
+            const count = await ref.current!.appendDelimitedValues(
+                'Maria@mattermost.com nick@mattermost.com',
+                /\s+/,
+                /\s+/,
+            );
+
+            expect(count).toBe(2);
+            expect(baseProps.onChange).toHaveBeenCalledWith(['Maria@mattermost.com', 'nick@mattermost.com']);
+            expect(baseProps.onInputChange).toHaveBeenCalledWith('');
+        });
+
+        it('should keep mixed space-delimited paste as draft text', async () => {
             jest.spyOn(Client4, 'getUserByEmail').mockRejectedValue(new Error('not found'));
 
             const user = userEvent.setup();
@@ -228,14 +250,14 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             const input = screen.getByRole('combobox');
             await user.click(input);
-            await user.paste('user1@example.com user2@example.com');
+            await user.paste('Maria@mattermost.com nick bad@mattermost.com');
 
             await waitFor(() => {
-                expect(onInputChange).toHaveBeenCalledWith('user1@example.com user2@example.com');
+                expect(onInputChange).toHaveBeenCalledWith('Maria@mattermost.com nick bad@mattermost.com');
             });
 
             expect(onChange).not.toHaveBeenCalled();
-            expect(input).toHaveValue('user1@example.com user2@example.com');
+            expect(input).toHaveValue('Maria@mattermost.com nick bad@mattermost.com');
         });
     });
 });
