@@ -2085,6 +2085,7 @@ func TestHookServeMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			*cfg.PluginSettings.Enable = true
 			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
@@ -2164,6 +2165,7 @@ func TestHookServeMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			*cfg.PluginSettings.Enable = true
 			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
