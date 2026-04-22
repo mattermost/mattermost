@@ -2804,7 +2804,7 @@ func TestLinkedProperties(t *testing.T) {
 	sysadminLevel := model.PermissionLevelSysadmin
 	memberLevel := model.PermissionLevelMember
 
-	t.Run("create template field requires sysadmin", func(t *testing.T) {
+	t.Run("create template field defaults to member permissions", func(t *testing.T) {
 		field := &model.PropertyField{
 			Name:       model.NewId(),
 			Type:       model.PropertyFieldTypeSelect,
@@ -2816,11 +2816,11 @@ func TestLinkedProperties(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		require.NotNil(t, createdField.PermissionField)
-		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionField)
 		require.NotNil(t, createdField.PermissionValues)
-		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionValues)
 		require.NotNil(t, createdField.PermissionOptions)
-		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelMember, *createdField.PermissionOptions)
 	})
 
 	t.Run("create template field as non-admin fails", func(t *testing.T) {

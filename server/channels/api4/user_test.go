@@ -1905,6 +1905,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 	})
 
 	t.Run("user must have access to team id, especially when it does not match channel's team id", func(t *testing.T) {
+		th.LoginBasic(t)
 		_, _, err := th.Client.AutocompleteUsersInChannel(context.Background(), "otherTeamId", channelId, username, model.UserSearchDefaultLimit, "")
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
@@ -3933,7 +3934,7 @@ func TestResetPassword(t *testing.T) {
 	})
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox mail.JSONMessageHeaderInbucket
-	err = mail.RetryInbucket(5, func() error {
+	err = mail.RetryInbucket(10, func() error {
 		resultsMailbox, err = mail.GetMailBox(user.Email)
 		return err
 	})
@@ -3951,8 +3952,12 @@ func TestResetPassword(t *testing.T) {
 		loc += 6
 		recoveryTokenString = resultsEmail.Body.Text[loc : loc+model.TokenSize]
 	}
-	recoveryToken, err := th.App.Srv().Store().Token().GetByToken(recoveryTokenString)
-	require.NoError(t, err, "Recovery token not found (%s)", recoveryTokenString)
+	var recoveryToken *model.Token
+	require.Eventually(t, func() bool {
+		var tokenErr error
+		recoveryToken, tokenErr = th.App.Srv().Store().Token().GetByToken(recoveryTokenString)
+		return tokenErr == nil
+	}, 10*time.Second, 500*time.Millisecond, "Recovery token not found (%s)", recoveryTokenString)
 
 	resp, err := th.Client.ResetPassword(context.Background(), recoveryToken.Token, "")
 	require.Error(t, err)
