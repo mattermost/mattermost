@@ -620,7 +620,6 @@ describe('PostComponent', () => {
         });
     });
 
-
     describe('post status indicators', () => {
         test('greys out post while pending', () => {
             const pendingPost = TestHelper.getPostMock({
