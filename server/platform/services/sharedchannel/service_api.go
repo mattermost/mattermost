@@ -103,10 +103,10 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if err := scs.server.GetStore().SharedChannelInvitation().DeleteByChannelId(channelID); err != nil {
+	if invitationDeleteErr := scs.server.GetStore().SharedChannelInvitation().DeleteByChannelId(channelID); invitationDeleteErr != nil {
 		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "Failed to delete shared channel invitations after unshare",
 			mlog.String("channel_id", channelID),
-			mlog.Err(err),
+			mlog.Err(invitationDeleteErr),
 		)
 	}
 

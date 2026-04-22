@@ -729,8 +729,8 @@ func TestDeleteSharedChannelInvitation(t *testing.T) {
 		ErrMsg:    "nope",
 		CreatorId: th.BasicUser.Id,
 	}
-	failedInv, err := th.App.Srv().Store().SharedChannelInvitation().Save(failedInv)
-	require.NoError(t, err)
+	failedInv, saveErr := th.App.Srv().Store().SharedChannelInvitation().Save(failedInv)
+	require.NoError(t, saveErr)
 
 	t.Run("regular user is forbidden", func(t *testing.T) {
 		resp, err := th.Client.DeleteSharedChannelInvitation(context.Background(), rc.RemoteId, failedInv.Id)
@@ -769,7 +769,7 @@ func TestDeleteSharedChannelInvitation(t *testing.T) {
 		Status:    model.SharedChannelInvitationStatusPending,
 		CreatorId: th.BasicUser.Id,
 	}
-	pendingInv, err = th.App.Srv().Store().SharedChannelInvitation().Save(pendingInv)
+	pendingInv, err := th.App.Srv().Store().SharedChannelInvitation().Save(pendingInv)
 	require.NoError(t, err)
 
 	sc := &model.SharedChannel{

@@ -1,3 +1,4 @@
+-- morph:nontransactional
 CREATE TABLE IF NOT EXISTS sharedchannelinvitations (
     id character varying(26) NOT NULL,
     channelid character varying(26) NOT NULL,

@@ -134,10 +134,10 @@ type Routes struct {
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
 
-	RemoteCluster        *mux.Router // 'api/v4/remotecluster'
-	SharedChannels       *mux.Router // 'api/v4/sharedchannels'
-	ChannelForRemote     *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
-	SharedChannelRemotes *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/sharedchannelremotes'
+	RemoteCluster            *mux.Router // 'api/v4/remotecluster'
+	SharedChannels           *mux.Router // 'api/v4/sharedchannels'
+	ChannelForRemote         *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/channels/{channel_id:[A-Za-z0-9]+}'
+	SharedChannelRemotes     *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/sharedchannelremotes'
 	SharedChannelInvitations *mux.Router // 'api/v4/remotecluster/{remote_id:[A-Za-z0-9]+}/shared_channel_invitations'
 
 	Permissions *mux.Router // 'api/v4/permissions'
