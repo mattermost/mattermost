@@ -245,7 +245,7 @@ function ChannelSettingsInfoTab({
             return false;
         }
 
-        if (!displayName.trim()) {
+        if (!isDMorGroupChannel && !displayName.trim()) {
             setFormError(formatMessage({
                 id: 'channel_settings.error_display_name_required',
                 defaultMessage: 'Channel name is required',

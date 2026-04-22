@@ -32,9 +32,19 @@ export const canAccessChannelSettings = createSelector(
         const isDM = channel.type === Constants.DM_CHANNEL;
         const isGM = channel.type === Constants.GM_CHANNEL;
 
-        // For DM and GM: allow Channel Settings when "Restrict auto-translation on DM and GM" is not enabled
+        // For DM and GM: allow Channel Settings only when auto-translation is enabled,
+        // DM/GM restriction is disabled, and the user can manage auto-translation.
         if (isDM || isGM) {
-            return isAutoTranslationEnabled && !isDMAndGMAutotranslationRestricted;
+            const hasDMOrGMTranslationPermission = haveIChannelPermission(
+                state,
+                channel.team_id,
+                channelId,
+                Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
+            );
+
+            return isAutoTranslationEnabled &&
+                !isDMAndGMAutotranslationRestricted &&
+                hasDMOrGMTranslationPermission;
         }
 
         const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;

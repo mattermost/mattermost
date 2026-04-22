@@ -5,6 +5,8 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -16,6 +18,15 @@ import ChannelHeaderDirectMenu from './channel_header_direct_menu';
 
 const DM_CHANNEL_ID = 'dm_channel_id';
 const CURRENT_USER_ID = 'user_id';
+const mockHaveIChannelPermission = jest.fn();
+
+jest.mock('mattermost-redux/selectors/entities/roles', () => {
+    const original = jest.requireActual('mattermost-redux/selectors/entities/roles');
+    return {
+        ...original,
+        haveIChannelPermission: (...args: unknown[]) => mockHaveIChannelPermission(...args),
+    };
+});
 
 function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
     const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
@@ -63,6 +74,13 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
         isChannelAutotranslated: false,
     };
 
+    beforeEach(() => {
+        mockHaveIChannelPermission.mockImplementation(
+            (_state: GlobalState, _teamId: string, _channelId: string, permission: string) =>
+                permission === Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
+        );
+    });
+
     it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', () => {
         renderWithContext(
             <WithTestMenuContext>
@@ -81,6 +99,20 @@ describe('components/ChannelHeaderMenu/ChannelHeaderDirectMenu', () => {
                 <ChannelHeaderDirectMenu {...defaultProps}/>
             </WithTestMenuContext>,
             getStateWithRestrictedDMAndGM(),
+        );
+
+        expect(screen.getByText('Edit Header')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
+    });
+
+    it('shows Edit Header when user lacks DM auto-translation permission', () => {
+        mockHaveIChannelPermission.mockReturnValue(false);
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <ChannelHeaderDirectMenu {...defaultProps}/>
+            </WithTestMenuContext>,
+            getBaseState(),
         );
 
         expect(screen.getByText('Edit Header')).toBeInTheDocument();
