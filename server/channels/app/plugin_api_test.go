@@ -982,6 +982,101 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestPluginAPILoadPluginConfigurationDefaultsFromSections(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"mysectionstringsetting": "override"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testsectiondefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testsectiondefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "MySectionStringSetting", Type: "text", Default: "notthis"},
+						{Key: "MySectionIntSetting", Type: "text", Default: float64(42)},
+						{Key: "MySectionBoolSetting", Type: "bool", Default: true},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		MySectionStringSetting string
+		MySectionIntSetting    int
+		MySectionBoolSetting   bool
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	assert.Equal(t, "override", dest.MySectionStringSetting) // saved config overrides default
+	assert.Equal(t, 42, dest.MySectionIntSetting)            // default applied from section
+	assert.True(t, dest.MySectionBoolSetting)                // default applied from section
+}
+
+func TestPluginAPILoadPluginConfigurationDefaultsMixed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var pluginJson map[string]any
+	err := json.Unmarshal([]byte(`{"toplevelsetting": "saved_value"}`), &pluginJson)
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.Plugins["testmixeddefaults"] = pluginJson
+	})
+
+	manifest := &model.Manifest{
+		Id: "testmixeddefaults",
+		SettingsSchema: &model.PluginSettingsSchema{
+			Settings: []*model.PluginSetting{
+				{Key: "TopLevelSetting", Type: "text", Default: "top_default"},
+				{Key: "TopLevelBool", Type: "bool", Default: true},
+			},
+			Sections: []*model.PluginSettingsSection{
+				{
+					Key: "section1",
+					Settings: []*model.PluginSetting{
+						{Key: "SectionSetting", Type: "text", Default: "section_default"},
+						{Key: "SectionInt", Type: "text", Default: float64(99)},
+					},
+				},
+			},
+		},
+	}
+
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	var dest struct {
+		TopLevelSetting string
+		TopLevelBool    bool
+		SectionSetting  string
+		SectionInt      int
+	}
+	err = api.LoadPluginConfiguration(&dest)
+	require.NoError(t, err)
+
+	// Top-level: saved config overrides default
+	assert.Equal(t, "saved_value", dest.TopLevelSetting)
+	// Top-level: default applied
+	assert.True(t, dest.TopLevelBool)
+	// Section: default applied
+	assert.Equal(t, "section_default", dest.SectionSetting)
+	// Section: default applied
+	assert.Equal(t, 99, dest.SectionInt)
+}
+
 func TestPluginAPIGetPlugins(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
@@ -3598,6 +3693,45 @@ func TestPluginAPICreateTeamAnonymousURLs(t *testing.T) {
 
 		assert.Equal(t, originalName, createdTeam.Name, "team name should not be overridden")
 	})
+}
+
+func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPI()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	defer func() {
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+
+	categoryName := "Operations"
+	channel := &model.Channel{
+		DisplayName:         "Plugin channel with managed category",
+		Name:                "plugin-managed-cat-" + model.NewId(),
+		Type:                model.ChannelTypeOpen,
+		TeamId:              th.BasicTeam.Id,
+		ManagedCategoryName: categoryName,
+	}
+
+	createdChannel, appErr := api.CreateChannel(channel)
+	require.Nil(t, appErr)
+	require.NotNil(t, createdChannel)
+	defer func() {
+		_ = th.App.ClearChannelManagedCategory(th.Context, createdChannel.Id)
+	}()
+
+	th.AddUserToChannel(t, th.BasicUser, createdChannel)
+
+	session := &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}}
+	rctx := th.Context.WithSession(session)
+	mappings, err := th.App.GetVisibleManagedCategoryMappings(rctx, th.BasicTeam.Id)
+	require.Nil(t, err)
+	assert.Equal(t, categoryName, mappings[createdChannel.Id])
 }
 
 func TestPluginAPICreateChannelAnonymousURLs(t *testing.T) {

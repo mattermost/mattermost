@@ -15,7 +15,7 @@ import {Team} from '@mattermost/types/teams';
 import {
     beMuted,
     beUnmuted,
-} from '../../../support/assertions';
+} from '@/support/assertions';
 
 describe('Channel Settings', () => {
     let testTeam: Team;

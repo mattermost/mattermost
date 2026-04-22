@@ -65,7 +65,7 @@ describe('Deactivated user', () => {
 
             // # Generate a personal access token via API
             cy.apiAccessToken(testUser.id, tokenName).then((token) => {
-                personalAccessToken = token.token;
+                personalAccessToken = token.token!;
 
                 // # Replace the auth cookie with the PAT
                 cy.setCookie('MMAUTHTOKEN', personalAccessToken);

@@ -23,6 +23,9 @@ on:
         type: string
         required: false
 
+permissions:
+  contents: read
+
 jobs:
   resolve-pr:
     runs-on: ubuntu-24.04
@@ -206,6 +209,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
@@ -231,6 +235,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
+      contents: read
       statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
@@ -254,6 +259,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      contents: read
       statuses: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
@@ -279,6 +285,7 @@ jobs:
       - check-changes
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
+      contents: read
       statuses: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:

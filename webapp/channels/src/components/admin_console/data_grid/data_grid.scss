@@ -12,6 +12,7 @@
         display: flex;
         height: 48px;
         flex-direction: row;
+        justify-content: space-between;
         padding: 0.5em 0;
         border-bottom: solid 1px rgba(0, 0, 0, 0.1);
         background: variables.$white;
