@@ -106,7 +106,7 @@ type FeatureFlags struct {
 	CJKSearch bool
 
 	// Collect plugin metrics and serve them on the /metrics endpoint
-	PluginMetricsCollection bool
+	AggregatePluginMetrics bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -156,7 +156,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.CJKSearch = false
 
-	f.PluginMetricsCollection = true
+	f.AggregatePluginMetrics = false
 }
 
 // ToMap returns the feature flags as a map[string]string

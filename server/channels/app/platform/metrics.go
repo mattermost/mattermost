@@ -249,7 +249,7 @@ func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
 		return
 	}
 
-	if route == "/metrics" && ps.Config().FeatureFlags.PluginMetricsCollection {
+	if route == "/metrics" && ps.Config().FeatureFlags.AggregatePluginMetrics {
 		h = ps.wrapMetricsHandler(h)
 	}
 

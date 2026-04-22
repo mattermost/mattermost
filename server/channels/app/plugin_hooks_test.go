@@ -2085,6 +2085,7 @@ func TestHookServeMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
 		// Create a plugin that implements ServeMetrics
@@ -2163,6 +2164,7 @@ func TestHookServeMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
 		// Create two plugins that implement ServeMetrics
@@ -2265,6 +2267,7 @@ func TestHookServeMetrics(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
 		// Create a plugin that does NOT implement ServeMetrics
@@ -2325,14 +2328,14 @@ func TestHookServeMetrics(t *testing.T) {
 		assert.NotContains(t, bodyStr, "plugin_id=\""+pluginIDs[0]+"\"", "Response should not contain plugin metrics from non-implementing plugin")
 	})
 
-	t.Run("should not collect plugin metrics when PluginMetricsCollection is disabled", func(t *testing.T) {
+	t.Run("should not collect plugin metrics when AggregatePluginMetrics is disabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
-			cfg.FeatureFlags.PluginMetricsCollection = false
+			cfg.FeatureFlags.AggregatePluginMetrics = false
 		})
 
 		pluginCode := `
