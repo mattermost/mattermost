@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"golang.org/x/text/unicode/norm"
 )
@@ -151,6 +152,9 @@ func (fi *FileInfo) IsValid() *AppError {
 // SanitizeFilename for the mutating form.
 func IsValidFilename(name string) bool {
 	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	if utf8.RuneCountInString(name) > MaxFilenameLength {
 		return false
 	}
 	return !strings.ContainsAny(name, `/\`+"\x00")

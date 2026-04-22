@@ -8777,6 +8777,10 @@
     "translation": "Failed to save upload."
   },
   {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Invalid filename."
+  },
+  {
     "id": "app.upload.get.app_error",
     "translation": "Failed to get upload."
   },

@@ -98,6 +98,10 @@ func TestIsValidFilename(t *testing.T) {
 		{`..\..\a`, false},
 		{"a/b", false},
 		{"a\x00b", false},
+		// MaxFilenameLength matches the VARCHAR(256) column; longer inputs
+		// that bypass SanitizeFilename's truncation must still fail here.
+		{strings.Repeat("a", MaxFilenameLength+1), false},
+		{strings.Repeat("a", MaxFilenameLength), true},
 	}
 	for _, tc := range cases {
 		assert.Equalf(t, tc.valid, IsValidFilename(tc.name), "input %q", tc.name)
