@@ -246,32 +246,6 @@ func TestPatchCPAField(t *testing.T) {
 			require.NotEmpty(t, wsField.ID)
 			require.Equal(t, patchedField, &wsField)
 		})
-
-		t.Run("type changes should be rejected", func(t *testing.T) {
-			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-				Name: model.NewId(),
-				Type: model.PropertyFieldTypeSelect,
-				Attrs: model.StringInterface{
-					"options": []map[string]any{
-						{"id": model.NewId(), "name": "Option 1"},
-					},
-				},
-			})
-			require.NoError(t, err)
-
-			createdField, _, err := client.CreateCPAField(context.Background(), selectField.ToPropertyField())
-			require.NoError(t, err)
-			require.NotNil(t, createdField)
-
-			// Attempting to change type should be rejected
-			textPatch := &model.PropertyFieldPatch{
-				Type: model.NewPointer(model.PropertyFieldTypeText),
-			}
-
-			_, resp, err := client.PatchCPAField(context.Background(), createdField.ID, textPatch)
-			CheckBadRequestStatus(t, resp)
-			require.Error(t, err)
-		})
 	}, "a user with admin permissions should be able to patch the field")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {

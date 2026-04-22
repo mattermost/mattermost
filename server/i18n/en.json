@@ -3247,10 +3247,6 @@
     "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
   },
   {
-    "id": "api.property_value.target_user.forbidden.app_error",
-    "translation": "You do not have permission to access property values for another user."
-  },
-  {
     "id": "api.property_value.template_no_values.app_error",
     "translation": "Template fields cannot have values."
   },

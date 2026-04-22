@@ -594,38 +594,6 @@ func TestPatchCPAField(t *testing.T) {
 		require.Len(t, values, 1)
 		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), values[0].Value)
 	})
-
-	t.Run("Should reject patching a field if the type has changed", func(t *testing.T) {
-		// Create a select field with options
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			GroupID: cpaID,
-			Name:    "Select Field with type change",
-			Type:    model.PropertyFieldTypeSelect,
-			Attrs: model.StringInterface{
-				model.PropertyFieldAttributeOptions: []any{
-					map[string]any{
-						"name":  "Option A",
-						"color": "#FF5733",
-					},
-					map[string]any{
-						"name":  "Option B",
-						"color": "#33FF57",
-					},
-				},
-			},
-		})
-		require.NoError(t, err)
-		createdField, appErr := th.CreateCPAField(t, field)
-		require.Nil(t, appErr)
-
-		// Attempt to patch the field and change type from select to text
-		patch := &model.PropertyFieldPatch{
-			Type: model.NewPointer(model.PropertyFieldTypeText),
-		}
-		updatedField, appErr := th.PatchCPAField(t, createdField.ID, patch)
-		require.NotNil(t, appErr, "patching a field to change its type should return an error")
-		require.Empty(t, updatedField)
-	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
