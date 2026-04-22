@@ -152,7 +152,7 @@ if (heavyPkgs.size > 0) {
     try {
       const out = execSync(`go test -list '.*' ${pkg} 2>/dev/null`, {
         encoding: "utf8",
-        timeout: 60000,
+        timeout: 300000,
       });
       const currentTests = out
         .split("\n")
