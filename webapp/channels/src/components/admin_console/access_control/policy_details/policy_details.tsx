@@ -30,7 +30,7 @@ import {getHistory} from 'utils/browser_history';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes} from '../editors/shared';
+import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -120,40 +120,7 @@ function PolicyDetails({
         loadPage();
     }, [policyId]);
 
-    // Check if expression is simple enough for table mode
-    const isSimpleExpression = (expr: string): boolean => {
-        if (!expr) {
-            return true;
-        }
-
-        const isSimpleCondition = (s: string): boolean => {
-            const trimmed = s.trim();
-            return Boolean(
-                trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-                trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
-                trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-                trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-                trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
-            );
-        };
-
-        const isMultiselectOrGroup = (s: string): boolean => {
-            const trimmed = s.trim();
-            if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
-                return false;
-            }
-            const inner = trimmed.slice(1, -1);
-            return inner.split('||').every((part) => {
-                const p = part.trim();
-                return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
-            });
-        };
-
-        return expr.split('&&').every((condition) => {
-            return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
-        });
-    };
+    // isSimpleExpression imported from ../editors/shared
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.

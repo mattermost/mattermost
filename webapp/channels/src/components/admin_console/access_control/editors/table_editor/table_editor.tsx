@@ -21,8 +21,46 @@ import {AddAttributeButton, TestButton, HelpText, OPERATOR_CONFIG, OPERATOR_LABE
 
 import './table_editor.scss';
 
-function celStringLiteral(val: string): string {
+export function celStringLiteral(val: string): string {
     return '"' + val.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+export function rowToCEL(row: TableRow): string {
+    const attributeExpr = `user.attributes.${row.attribute}`;
+    const config = OPERATOR_CONFIG[row.operator];
+
+    if (!config) {
+        if (row.attribute_type === 'multiselect') {
+            return row.values.map((val: string) => `${celStringLiteral(val)} in ${attributeExpr}`).join(' && ');
+        }
+        const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
+        return `${attributeExpr} in [${valuesStr}]`;
+    }
+
+    if (config.type === 'list') {
+        if (row.operator === OperatorLabel.HAS_ANY_OF) {
+            const parts = row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`);
+            const orExpr = parts.join(' || ');
+            return parts.length > 1 ? `(${orExpr})` : orExpr;
+        }
+        if (row.operator === OperatorLabel.HAS_ALL_OF) {
+            return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
+        }
+
+        if (row.attribute_type === 'multiselect') {
+            return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
+        }
+        const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
+        return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
+    }
+
+    const value = row.values.length > 0 ? row.values[0] : '';
+
+    if (config.type === 'comparison') {
+        return `${attributeExpr} ${config.celOp} ${celStringLiteral(value)}`;
+    }
+
+    return `${attributeExpr}.${config.celOp}(${celStringLiteral(value)})`;
 }
 
 interface TableEditorProps {
@@ -193,58 +231,13 @@ function TableEditor({
     const updateExpression = useCallback((newRows: TableRow[]) => {
         const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && row.values.length > 0);
 
-        const expr = rowsThatCanFormExpressions.map((row) => {
-            const attributeExpr = `user.attributes.${row.attribute}`;
-            const config = OPERATOR_CONFIG[row.operator];
-
-            // Find the attribute object to check its type
-            const attributeObj = userAttributes.find((attr) => attr.name === row.attribute);
-
-            if (!config) {
-                // Fallback for unknown operators, defaulting to 'in' logic
-                if (attributeObj?.type === 'multiselect') {
-                    return row.values.map((val: string) => `${celStringLiteral(val)} in ${attributeExpr}`).join(' && ');
-                }
-                const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
-                return `${attributeExpr} in [${valuesStr}]`;
-            }
-
-            if (config.type === 'list') {
-                if (row.operator === OperatorLabel.HAS_ANY_OF) {
-                    const parts = row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`);
-                    const orExpr = parts.join(' || ');
-                    return parts.length > 1 ? `(${orExpr})` : orExpr;
-                }
-                if (row.operator === OperatorLabel.HAS_ALL_OF) {
-                    return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
-                }
-
-                // Standard 'in' for select/text attributes: attr in [values]
-                if (attributeObj?.type === 'multiselect') {
-                    return row.values.map((val: string) => `${celStringLiteral(val)} ${config.celOp} ${attributeExpr}`).join(' && ');
-                }
-                const valuesStr = row.values.map((val: string) => celStringLiteral(val)).join(', ');
-                return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
-            }
-
-            // For 'comparison' and 'method' types, they operate on a single value.
-            const value = row.values.length > 0 ? row.values[0] : '';
-
-            if (config.type === 'comparison') {
-                return `${attributeExpr} ${config.celOp} ${celStringLiteral(value)}`;
-            }
-
-            // config.type must be 'method'
-            return `${attributeExpr}.${config.celOp}(${celStringLiteral(value)})`;
-        }).join(' && ');
+        const expr = rowsThatCanFormExpressions.map((row) => rowToCEL(row)).join(' && ');
 
         onChange(expr);
         if (onValidate) {
-            // Basic validation: if we can build an expression, or if the expression is empty
-            // (e.g. no rows, or rows without attributes yet), it's valid from table perspective.
             onValidate(expr === '' || rowsThatCanFormExpressions.length > 0);
         }
-    }, [onChange, onValidate, userAttributes]);
+    }, [onChange, onValidate]);
 
     // Helper function to find the first available (non-disabled) attribute
     const findFirstAvailableAttribute = useCallback(() => {

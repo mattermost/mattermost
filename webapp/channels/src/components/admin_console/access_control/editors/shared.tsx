@@ -67,6 +67,39 @@ export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
 }
 
+export function isSimpleCondition(s: string): boolean {
+    const trimmed = s.trim();
+    return Boolean(
+        trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
+    );
+}
+
+export function isMultiselectOrGroup(s: string): boolean {
+    const trimmed = s.trim();
+    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+        return false;
+    }
+    const inner = trimmed.slice(1, -1);
+    return inner.split('||').every((part) => {
+        const p = part.trim();
+        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
+    });
+}
+
+export function isSimpleExpression(expr: string): boolean {
+    if (!expr) {
+        return true;
+    }
+    return expr.split('&&').every((condition) => {
+        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    });
+}
+
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:
 // 1. It doesn't contain spaces (CEL incompatible)
