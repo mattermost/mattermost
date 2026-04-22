@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -103,15 +104,17 @@ const ViewUserGroupModalHeader = ({
     const addPeopleButton = useCallback(() => {
         if (permissionToJoinGroup) {
             return (
-                <button
-                    className='mr-2 btn btn-secondary btn-sm'
+                <Button
+                    emphasis='secondary'
+                    size='sm'
+                    className='mr-2'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
                         id='user_groups_modal.addPeople'
                         defaultMessage='Add people'
                     />
-                </button>
+                </Button>
             );
         }
         return (<></>);
@@ -120,15 +123,16 @@ const ViewUserGroupModalHeader = ({
     const restoreGroupButton = useCallback(() => {
         if (permissionToRestoreGroup) {
             return (
-                <button
-                    className='user-groups-create btn btn-sm btn-secondary'
+                <Button
+                    emphasis='secondary'
+                    size='sm'
                     onClick={restoreGroup}
                 >
                     <FormattedMessage
                         id='user_groups_modal.button.restoreGroup'
                         defaultMessage='Restore Group'
                     />
-                </button>
+                </Button>
             );
         }
         return (<></>);

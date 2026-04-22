@@ -5,6 +5,7 @@ import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 
@@ -545,16 +546,16 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                             defaultMessage='Cancel'
                         />
                     </BlockableLink>
-                    <a
+                    <Button
                         data-testid='resetPermissionsToDefault'
                         onClick={() => this.setState({showResetDefaultModal: true})}
-                        className='btn btn-quaternary'
+                        emphasis='quaternary'
                     >
                         <FormattedMessage
                             id='admin.permissions.systemScheme.resetDefaultsButton'
                             defaultMessage='Reset to Defaults'
                         />
-                    </a>
+                    </Button>
                     <div className='error-message'>
                         <FormError error={this.state.serverError}/>
                     </div>

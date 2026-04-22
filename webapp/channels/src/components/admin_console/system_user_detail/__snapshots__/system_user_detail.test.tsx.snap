@@ -1158,7 +1158,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               Deactivate
             </button>
             <button
-              class="manageUserSettingsBtn btn btn-tertiary"
+              class="btn btn-tertiary manageUserSettingsBtn"
               id="manageUserSettingsBtn"
             >
               Manage User Settings

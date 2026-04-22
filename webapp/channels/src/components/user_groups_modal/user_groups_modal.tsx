@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
@@ -213,15 +214,16 @@ const UserGroupsModal = (props: Props) => {
             }
             headerButton={
                 props.canCreateCustomGroups &&
-                <button
-                    className='user-groups-create btn btn-secondary btn-sm'
+                <Button
+                    emphasis='secondary'
+                    size='sm'
                     onClick={goToCreateModal}
                 >
                     <FormattedMessage
                         id='user_groups_modal.createNew'
                         defaultMessage='Create Group'
                     />
-                </button>
+                </Button>
             }
             bodyPadding={false}
             enforceFocus={!isMenuOpen}
