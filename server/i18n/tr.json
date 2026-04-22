@@ -5276,7 +5276,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise lisansı kullanımdan kaldırıldı."
+    "translation": "{{.SkuName}} lisansınızın süresi doldu"
   },
   {
     "id": "api.team.add_members.error",
@@ -7971,7 +7971,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, aboneliğiniz {{.Days}} gün içinde sona erecek. Mattermost tarafından sunulan esnek ve güvenli takım çalışmasını deneyimlediğinizi umuyoruz. Takımınızın bu özellikleri kullanmayı sürdürebilmesi için aboneliğinizi yenileyin."
+    "translation": "<a href=\"{{.SiteURL}}\">{{.SiteName}}</a> için {{.SkuName}} lisansınızın süresi {{.Days}} sonra dolacak. Mattermost tarafından sunulan güvenli, görev kritik iş birliğinin tadını çıkardığınızı umarız."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
@@ -10013,7 +10013,7 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Özel profil öznitelikleri özellik grubu kaydedilemedi"
+    "translation": "Özel profil öznitelikleri özellik grubu kaydedilemedi."
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
