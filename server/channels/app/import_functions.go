@@ -857,6 +857,10 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	var nErr error
 	bot, nErr = a.Srv().Store().Bot().GetByUsername(*data.Username)
 	if nErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(nErr, &nfErr) {
+			return model.NewAppError("importBot", "app.import.import_bot.lookup_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
 		bot = &model.Bot{}
 		hasBotChanged = true
 	}
@@ -894,18 +898,45 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 	if bot.UserId == "" {
 		var appErr *model.AppError
 		if savedBot, appErr = a.CreateBot(rctx, bot); appErr != nil {
-			var appErr *model.AppError
+			// CreateBot failed — check if it's because the user already exists.
+			// CreateBot wraps store.ErrInvalidInput inside a *model.AppError when
+			// the username is taken, so we unwrap via errors.As to detect this case.
+			// This can happen when a user with this username was created (e.g. by a
+			// previous partial import) but has no bot record yet.
 			var invErr *store.ErrInvalidInput
-			switch {
-			case errors.As(appErr, &invErr):
-				switch invErr.Field {
-				case "username":
-					return model.NewAppError("importUser", "app.user.save.username_exists.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
-				default:
-					return model.NewAppError("importUser", "app.user.save.existing.app_error", nil, "", http.StatusBadRequest).Wrap(appErr)
-				}
-			default:
+			if !errors.As(appErr, &invErr) || invErr.Field != "username" {
 				return appErr
+			}
+
+			rctx.Logger().Info("CreateBot failed with username conflict during import, recovering by linking existing user",
+				mlog.String("bot_username", *data.Username))
+
+			// The user already exists; look it up and create only the bot record.
+			existingUser, userErr := a.Srv().Store().User().GetByUsername(*data.Username)
+			if userErr != nil {
+				return model.NewAppError("importBot", "app.import.import_bot.user_not_found.error", nil, "", http.StatusInternalServerError).Wrap(userErr)
+			}
+			bot.UserId = existingUser.Id
+
+			rctx.Logger().Info("Found existing user for bot import recovery",
+				mlog.String("bot_username", *data.Username),
+				mlog.String("user_id", existingUser.Id))
+
+			var saveErr error
+			savedBot, saveErr = a.Srv().Store().Bot().Save(bot)
+			if saveErr != nil {
+				// Bot().Save failed — this can happen if the bot record was
+				// concurrently created between the GetByUsername check at the
+				// top of this function and now (race condition). Fall back to
+				// updating the existing record.
+				rctx.Logger().Warn("Bot record save failed during import recovery, attempting update",
+					mlog.String("user_id", bot.UserId),
+					mlog.Err(saveErr))
+				var updateErr error
+				savedBot, updateErr = a.Srv().Store().Bot().Update(bot)
+				if updateErr != nil {
+					return model.NewAppError("importBot", "app.bot.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
+				}
 			}
 		}
 	} else if hasBotChanged {
@@ -917,6 +948,23 @@ func (a *App) importBot(rctx request.CTX, data *imports.BotImportData, dryRun bo
 
 	if savedBot == nil {
 		savedBot = bot
+	}
+
+	// DisplayName is stored as Users.FirstName, not in the Bots table,
+	// so Bot().Update() alone doesn't persist it. Update the user record
+	// if the DisplayName has diverged.
+	if data.DisplayName != nil && savedBot.UserId != "" {
+		botUser, userErr := a.Srv().Store().User().Get(rctx.Context(), savedBot.UserId)
+		if userErr != nil {
+			rctx.Logger().Warn("Failed to fetch bot user for DisplayName update",
+				mlog.String("user_id", savedBot.UserId),
+				mlog.Err(userErr))
+		} else if botUser.FirstName != *data.DisplayName {
+			botUser.FirstName = *data.DisplayName
+			if _, appErr := a.UpdateUser(rctx, botUser, false); appErr != nil {
+				return appErr
+			}
+		}
 	}
 
 	if data.Avatar.ProfileImage != nil {

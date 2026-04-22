@@ -5144,6 +5144,284 @@ func TestImportImportDirectPost(t *testing.T) {
 	})
 }
 
+func TestImportImportBot(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("import invalid bot in dry-run", func(t *testing.T) {
+		data := imports.BotImportData{
+			// Missing required Username
+		}
+		appErr := th.App.importBot(th.Context, &data, true)
+		require.NotNil(t, appErr, "Should have failed to import invalid bot.")
+	})
+
+	t.Run("import valid bot in dry-run", func(t *testing.T) {
+		data := imports.BotImportData{
+			Username:    model.NewPointer(model.NewUsername()),
+			DisplayName: model.NewPointer("Test Bot"),
+			Description: model.NewPointer("A test bot"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, true)
+		require.Nil(t, appErr, "Should have succeeded to import valid bot in dry-run.")
+
+		// Verify bot was not created in DB.
+		_, err := th.App.Srv().Store().Bot().GetByUsername(*data.Username)
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, err, &nfErr, "Bot should not be found after dry run.")
+	})
+
+	t.Run("import valid bot in apply mode", func(t *testing.T) {
+		username := model.NewUsername()
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Test Bot"),
+			Description: model.NewPointer("A test bot"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Should have succeeded to import valid bot.")
+
+		// Verify bot was created.
+		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err, "Bot should exist after import.")
+		assert.Equal(t, username, bot.Username)
+		assert.Equal(t, "Test Bot", bot.DisplayName)
+		assert.Equal(t, "A test bot", bot.Description)
+		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+	})
+
+	t.Run("re-import existing bot updates it", func(t *testing.T) {
+		username := model.NewUsername()
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Original Name"),
+			Description: model.NewPointer("Original description"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "First import should succeed.")
+
+		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, "Original description", bot.Description)
+
+		// Import again with updated description.
+		data.Description = model.NewPointer("Updated description")
+		appErr = th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Re-import should succeed.")
+
+		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, "Updated description", bot.Description)
+	})
+
+	t.Run("import bot when user already exists but bot record does not", func(t *testing.T) {
+		// Create a regular user first.
+		username := model.NewUsername()
+		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: username,
+			Email:    username + "@example.com",
+			Roles:    model.SystemUserRoleId,
+		})
+		require.NoError(t, err, "Failed to create user.")
+
+		// Now import a bot with the same username. The user exists but has no
+		// bot record, so Bot().GetByUsername returns not-found and CreateBot
+		// will fail with username-exists. The fix should recover gracefully.
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Bot from existing user"),
+			Description: model.NewPointer("Recovered bot"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Import should recover when user exists without bot record.")
+
+		// Verify the bot record now exists and is linked to the pre-existing user.
+		bot, botErr := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, botErr, "Bot record should have been created.")
+		assert.Equal(t, user.Id, bot.UserId)
+		assert.Equal(t, "Recovered bot", bot.Description)
+	})
+
+	t.Run("re-import bot when both user and bot record already exist", func(t *testing.T) {
+		// Both the user and the bot record already exist (e.g. from a previous
+		// complete import). GetByUsername finds the bot, so bot.UserId is set
+		// and the code takes the "else if hasBotChanged" update branch — NOT
+		// the new recovery path.
+		username := model.NewUsername()
+		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: username,
+			Email:    username + "@example.com",
+			Roles:    model.SystemUserRoleId,
+		})
+		require.NoError(t, err, "Failed to create user.")
+
+		_, err = th.App.Srv().Store().Bot().Save(&model.Bot{
+			UserId:      user.Id,
+			Username:    username,
+			Description: "Old description",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.NoError(t, err, "Failed to create bot record.")
+
+		data := imports.BotImportData{
+			Username:    &username,
+			Description: model.NewPointer("New description"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Re-import of fully existing bot should succeed.")
+
+		bot, botErr := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, botErr)
+		assert.Equal(t, user.Id, bot.UserId)
+		assert.Equal(t, "New description", bot.Description)
+	})
+
+	t.Run("import bot does not panic when CreateBot fails due to existing user", func(t *testing.T) {
+		// Regression test for a nil pointer dereference caused by variable
+		// shadowing. The original code re-declared `var appErr *model.AppError`
+		// inside the CreateBot error handler, shadowing the outer appErr (which
+		// held the real error) with a typed nil pointer. When errors.As received
+		// this typed nil (*model.AppError)(nil), it was a non-nil interface, so
+		// it did NOT early-return false — instead it called AppError.Unwrap() on
+		// the nil receiver, panicking with:
+		//   panic: runtime error: invalid memory address or nil pointer dereference
+		username := model.NewUsername()
+		user, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: username,
+			Email:    username + "@example.com",
+			Roles:    model.SystemUserRoleId,
+		})
+		require.NoError(t, err, "Failed to create user.")
+		require.NotEmpty(t, user.Id)
+
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Regression Bot"),
+			Description: model.NewPointer("Should not crash"),
+			Owner:       &th.BasicUser.Username,
+		}
+
+		// Must not panic — this is the primary regression guard.
+		var appErr *model.AppError
+		require.NotPanics(t, func() {
+			appErr = th.App.importBot(th.Context, &data, false)
+		}, "importBot must not panic when CreateBot fails due to existing user")
+
+		// Beyond not panicking, the fix should also recover successfully.
+		require.Nil(t, appErr, "importBot should recover when user exists without bot record.")
+
+		bot, botErr := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, botErr, "Bot record should have been created during recovery.")
+		assert.Equal(t, user.Id, bot.UserId, "Bot should be linked to the pre-existing user.")
+		assert.Equal(t, "Regression Bot", bot.DisplayName)
+		assert.Equal(t, "Should not crash", bot.Description)
+	})
+
+	t.Run("re-import with identical data is idempotent", func(t *testing.T) {
+		username := model.NewUsername()
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Idempotent Bot"),
+			Description: model.NewPointer("Same description"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "First import should succeed.")
+
+		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		originalUpdateAt := bot.UpdateAt
+
+		// Re-import with exactly the same data. hasBotChanged should remain
+		// false, so no database write occurs and the bot is unchanged.
+		// Sleep briefly so that any real update would produce a different
+		// UpdateAt timestamp (millisecond resolution).
+		time.Sleep(2 * time.Millisecond)
+		appErr = th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Idempotent re-import should succeed.")
+
+		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, "Idempotent Bot", bot.DisplayName)
+		assert.Equal(t, "Same description", bot.Description)
+		assert.Equal(t, originalUpdateAt, bot.UpdateAt, "UpdateAt should not change when import data is identical.")
+	})
+
+	t.Run("re-import with only DisplayName changed updates bot", func(t *testing.T) {
+		username := model.NewUsername()
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Original DisplayName"),
+			Description: model.NewPointer("Unchanged description"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "First import should succeed.")
+
+		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, "Original DisplayName", bot.DisplayName)
+
+		// Re-import changing only the DisplayName.
+		data.DisplayName = model.NewPointer("Updated DisplayName")
+		appErr = th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Re-import with changed DisplayName should succeed.")
+
+		bot, err = th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, "Updated DisplayName", bot.DisplayName)
+		assert.Equal(t, "Unchanged description", bot.Description, "Description should remain unchanged.")
+	})
+
+	t.Run("import bot returns error when CreateBot fails for non-username reason", func(t *testing.T) {
+		// Trigger a non-username CreateBot failure by pre-creating a user whose
+		// email collides with the email CreateBot would generate (username@localhost).
+		// This causes User().Save() inside CreateBot to fail with
+		// ErrInvalidInput{Field: "email"}, which importBot must return directly
+		// instead of entering the username-conflict recovery path.
+		botUsername := model.NewUsername()
+		collidingEmail := model.NormalizeEmail(botUsername + "@localhost")
+		_, err := th.App.Srv().Store().User().Save(th.Context, &model.User{
+			Username: model.NewUsername(), // different username — no username conflict
+			Email:    collidingEmail,      // same email CreateBot would use
+			Roles:    model.SystemUserRoleId,
+		})
+		require.NoError(t, err, "Failed to create user with colliding email.")
+
+		data := imports.BotImportData{
+			Username:    &botUsername,
+			DisplayName: model.NewPointer("Email Conflict Bot"),
+			Description: model.NewPointer("Should fail"),
+			Owner:       &th.BasicUser.Username,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.NotNil(t, appErr, "Import should fail when CreateBot hits a non-username error.")
+		assert.Contains(t, appErr.Id, "email_exists", "Error should indicate email conflict, not username conflict.")
+	})
+
+	t.Run("import bot with owner that does not exist uses owner as plugin id", func(t *testing.T) {
+		username := model.NewUsername()
+		pluginOwner := "com.example.plugin"
+		data := imports.BotImportData{
+			Username:    &username,
+			DisplayName: model.NewPointer("Plugin Bot"),
+			Description: model.NewPointer("Bot owned by plugin"),
+			Owner:       &pluginOwner,
+		}
+		appErr := th.App.importBot(th.Context, &data, false)
+		require.Nil(t, appErr, "Import should succeed with non-existent owner (treated as plugin).")
+
+		bot, err := th.App.Srv().Store().Bot().GetByUsername(username)
+		require.NoError(t, err)
+		assert.Equal(t, pluginOwner, bot.OwnerId, "Owner should be the raw plugin identifier.")
+	})
+}
+
 func TestImportImportEmoji(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
