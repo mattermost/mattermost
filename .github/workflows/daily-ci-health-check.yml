@@ -19,17 +19,19 @@ jobs:
           installationId: "${{ vars.UNIFIED_CI_INSTALLATION_ID }}"
           privateKey: ${{ secrets.UNIFIED_CI_PRIVATE_KEY }}
 
-      - name: check/verify-last-two-ci-runs
+      - name: check/verify-ci-runs
         id: check
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # 8.0.0
         with:
           github-token: ${{ steps.installationToken.outputs.token }}
           script: |
             const workflows = [
-              { owner: 'mattermost', repo: 'mattermost', id: 'server-ci.yml', name: 'Server CI' },
-              { owner: 'mattermost', repo: 'mattermost', id: 'webapp-ci.yml', name: 'Web App CI' },
-              { owner: 'mattermost', repo: 'mattermost', id: 'e2e-tests-on-merge.yml', name: 'E2E Tests (master/release)' },
-              { owner: 'mattermost', repo: 'enterprise', id: 'ci.yml', name: 'Enterprise CI' },
+              { owner: 'mattermost', repo: 'mattermost', id: 'server-ci.yml', name: 'Server CI', consecutiveFailuresToAlert: 2 },
+              { owner: 'mattermost', repo: 'mattermost', id: 'server-ci-nightly-race.yml', name: 'Server CI Nightly Race', consecutiveFailuresToAlert: 2 },
+              { owner: 'mattermost', repo: 'mattermost', id: 'server-ci-weekly.yml', name: 'Server CI Weekly', consecutiveFailuresToAlert: 1 },
+              { owner: 'mattermost', repo: 'mattermost', id: 'webapp-ci.yml', name: 'Web App CI', consecutiveFailuresToAlert: 2 },
+              { owner: 'mattermost', repo: 'mattermost', id: 'e2e-tests-on-merge.yml', name: 'E2E Tests (master/release)', consecutiveFailuresToAlert: 2 },
+              { owner: 'mattermost', repo: 'enterprise', id: 'ci.yml', name: 'Enterprise CI', consecutiveFailuresToAlert: 2 },
             ];
             const branch = 'master';
             let hasFailures = false;
@@ -37,27 +39,29 @@ jobs:
 
             for (const wf of workflows) {
               try {
-                const runs = await github.rest.actions.listWorkflowRuns({
+                const n = wf.consecutiveFailuresToAlert ?? 2;
+                const runsResponse = await github.rest.actions.listWorkflowRuns({
                   owner: wf.owner,
                   repo: wf.repo,
                   workflow_id: wf.id,
                   branch,
-                  per_page: 2,
+                  per_page: n,
                   status: 'completed',
                 });
 
-                const lastTwo = runs.data.workflow_runs.slice(0, 2);
-                if (lastTwo.length < 2) {
-                  core.warning(`${wf.name}: fewer than 2 completed runs found on ${branch}`);
-                  report.push({ workflow: wf.name, status: 'insufficient_data', runs: [] });
+                const recent = runsResponse.data.workflow_runs.slice(0, n);
+                if (recent.length < n) {
+                  core.warning(`${wf.name}: fewer than ${n} completed run(s) found on ${branch}`);
+                  report.push({ workflow: wf.name, status: 'insufficient_data', required_runs: n, runs: [] });
                   continue;
                 }
 
-                const bothFailed = lastTwo.every(r => r.conclusion !== 'success');
+                const failureDetected = recent.every(r => r.conclusion !== 'success');
                 report.push({
                   workflow: wf.name,
-                  both_failed: bothFailed,
-                  runs: lastTwo.map(r => ({
+                  required_runs: n,
+                  failure_detected: failureDetected,
+                  runs: recent.map(r => ({
                     conclusion: r.conclusion,
                     url: r.html_url,
                     sha: r.head_sha.substring(0, 7),
@@ -65,11 +69,11 @@ jobs:
                   })),
                 });
 
-                if (bothFailed) {
+                if (failureDetected) {
                   hasFailures = true;
-                  core.warning(`${wf.name}: last 2 runs on ${branch} both failed`);
+                  core.warning(`${wf.name}: last ${n} run(s) on ${branch} ${n === 1 ? 'failed' : 'all failed'}`);
                 } else {
-                  core.info(`${wf.name}: at least one of last 2 runs succeeded`);
+                  core.info(`${wf.name}: at least one of last ${n} run(s) succeeded`);
                 }
               } catch (error) {
                 core.warning(`Failed to fetch runs for ${wf.name}: ${error.message}`);
@@ -92,19 +96,16 @@ jobs:
         run: |
           FAILED_DETAILS=""
 
-          for row in $(echo "$REPORT_JSON" | jq -c '.[] | select(.both_failed == true)'); do
+          for row in $(echo "$REPORT_JSON" | jq -c '.[] | select(.failure_detected == true)'); do
             WF_NAME=$(echo "$row" | jq -r '.workflow')
-            RUN1_URL=$(echo "$row" | jq -r '.runs[0].url')
-            RUN1_CONCLUSION=$(echo "$row" | jq -r '.runs[0].conclusion')
-            RUN1_SHA=$(echo "$row" | jq -r '.runs[0].sha')
-            RUN2_URL=$(echo "$row" | jq -r '.runs[1].url')
-            RUN2_CONCLUSION=$(echo "$row" | jq -r '.runs[1].conclusion')
-            RUN2_SHA=$(echo "$row" | jq -r '.runs[1].sha')
-
+            RUN_DETAILS=$(echo "$row" | jq -r '
+              .runs | to_entries | map(
+                "              - Run \(.key + 1) (`\(.value.sha)`): \(.value.conclusion) — [View Run](\(.value.url))"
+              ) | join("\n")
+            ')
             FAILED_DETAILS="${FAILED_DETAILS}
             - **${WF_NAME}**
-              - Run 1 (\`${RUN1_SHA}\`): ${RUN1_CONCLUSION} — [View Run](${RUN1_URL})
-              - Run 2 (\`${RUN2_SHA}\`): ${RUN2_CONCLUSION} — [View Run](${RUN2_URL})"
+            ${RUN_DETAILS}"
           done
 
           echo "FAILED_DETAILS<<EOF" >> "$GITHUB_OUTPUT"
@@ -119,9 +120,9 @@ jobs:
           MATTERMOST_USERNAME: CI Health Bot
           MATTERMOST_ICON_URL: https://avatars.githubusercontent.com/in/276366?s=120&u=b2ac433ba55fc41babb3c6079477f5ead172c543&v=4
           TEXT: |
-            :red_circle: **Daily CI Health Check — Consecutive Failures on `master`**
+            :red_circle: **Daily CI Health Check — Failures on `master`**
 
-            The last 2 CI runs have failed for the following workflows:
+            The following workflows failed their check (2 consecutive failed runs, or the latest run for Server CI Weekly):
             ${{ steps.build-report.outputs.FAILED_DETAILS }}
 
             :link: [View all workflow runs](https://github.com/mattermost/mattermost/actions)
