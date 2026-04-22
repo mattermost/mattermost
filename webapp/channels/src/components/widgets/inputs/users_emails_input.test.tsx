@@ -4,6 +4,8 @@
 import React from 'react';
 import type {InputActionMeta} from 'react-select';
 
+import type {UserProfile} from '@mattermost/types/users';
+
 import {Client4} from 'mattermost-redux/client';
 
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
@@ -23,6 +25,48 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
         value: [],
         emailInvitationsEnabled: true,
     };
+
+    function renderControlledInput({
+        usersLoader = jest.fn().mockImplementation((_search: string, callback: (users: UserProfile[]) => void) => {
+            callback([]);
+            return Promise.resolve([]);
+        }),
+        onChange = jest.fn(),
+        onInputChange = jest.fn(),
+    }: {
+        usersLoader?: (search: string, callback: (users: UserProfile[]) => void) => Promise<UserProfile[]>;
+        onChange?: jest.Mock;
+        onInputChange?: jest.Mock;
+    } = {}) {
+        const Wrapper = () => {
+            const [inputValue, setInputValue] = React.useState('');
+            const [value, setValue] = React.useState<Array<UserProfile | string>>([]);
+
+            return (
+                <UsersEmailsInput
+                    {...baseProps}
+                    usersLoader={usersLoader}
+                    onChange={(nextValue) => {
+                        onChange(nextValue);
+                        setValue(nextValue);
+                    }}
+                    onInputChange={(nextInputValue) => {
+                        onInputChange(nextInputValue);
+                        setInputValue(nextInputValue);
+                    }}
+                    inputValue={inputValue}
+                    value={value}
+                />
+            );
+        };
+
+        return {
+            ...renderWithContext(<Wrapper/>),
+            usersLoader,
+            onChange,
+            onInputChange,
+        };
+    }
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -109,23 +153,6 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             jest.restoreAllMocks();
         });
 
-        it('should split pasted values on spaces', async () => {
-            const ref = React.createRef<UsersEmailsInput>();
-            renderWithContext(
-                <UsersEmailsInput
-                    {...baseProps}
-                    ref={ref}
-                />,
-            );
-
-            const count = await ref.current!.appendDelimitedValues('user1@example.com user2@example.com');
-
-            expect(count).toBe(2);
-            expect(baseProps.onChange).toHaveBeenCalled();
-            const changeArgs = baseProps.onChange.mock.calls[0][0];
-            expect(changeArgs).toHaveLength(2);
-        });
-
         it('should split pasted values on newlines', async () => {
             const ref = React.createRef<UsersEmailsInput>();
             renderWithContext(
@@ -156,23 +183,59 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             expect(baseProps.onChange).toHaveBeenCalled();
         });
 
-        it('should paste plain text from the clipboard (text/plain) into the field (MM-66082)', async () => {
+        it('should bulk-commit obvious list pastes', async () => {
             jest.spyOn(Client4, 'getUserByEmail').mockRejectedValue(new Error('not found'));
 
             const user = userEvent.setup();
-            renderWithContext(
-                <UsersEmailsInput
-                    {...baseProps}
-                />,
-            );
+            const {onChange} = renderControlledInput();
 
             const input = screen.getByRole('combobox');
             await user.click(input);
-            await user.paste('pasted-user@example.com');
+            await user.paste('user1@example.com,user2@example.com');
 
             await waitFor(() => {
-                expect(baseProps.onChange).toHaveBeenCalledWith(['pasted-user@example.com']);
+                expect(onChange).toHaveBeenCalledWith(['user1@example.com', 'user2@example.com']);
             });
+
+            expect(input).toHaveValue('');
+        });
+
+        it('should keep arbitrary pasted text as draft input and show the no-match message', async () => {
+            const user = userEvent.setup();
+            const {onChange, onInputChange, usersLoader} = renderControlledInput();
+
+            const input = screen.getByRole('combobox');
+            await user.click(input);
+            await user.paste('fgdfg');
+
+            await waitFor(() => {
+                expect(onInputChange).toHaveBeenCalledWith('fgdfg');
+            });
+
+            expect(onChange).not.toHaveBeenCalled();
+            expect(input).toHaveValue('fgdfg');
+            expect(usersLoader).toHaveBeenCalledWith('fgdfg', expect.any(Function));
+            await waitFor(() => {
+                expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching fgdfg. Enter their email to invite them.');
+            });
+        });
+
+        it('should keep space-delimited pasted text as draft input instead of bulk-committing it', async () => {
+            jest.spyOn(Client4, 'getUserByEmail').mockRejectedValue(new Error('not found'));
+
+            const user = userEvent.setup();
+            const {onChange, onInputChange} = renderControlledInput();
+
+            const input = screen.getByRole('combobox');
+            await user.click(input);
+            await user.paste('user1@example.com user2@example.com');
+
+            await waitFor(() => {
+                expect(onInputChange).toHaveBeenCalledWith('user1@example.com user2@example.com');
+            });
+
+            expect(onChange).not.toHaveBeenCalled();
+            expect(input).toHaveValue('user1@example.com user2@example.com');
         });
     });
 });
