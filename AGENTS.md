@@ -8,7 +8,7 @@
 
 **After the enterprise pull request is merged:** update the pin to the enterprise repository HEAD by running:
 
-```
+```bash
 cd server && make bump-enterprise
 ```
 
