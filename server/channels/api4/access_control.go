@@ -871,6 +871,7 @@ func searchChannelsForAccessControlPolicy(c *Context, w http.ResponseWriter, r *
 		Deleted:                     props.Deleted,
 		IncludeDeleted:              props.IncludeDeleted,
 		Private:                     true,
+		Public:                      true,
 		ExcludeGroupConstrained:     true,
 		TeamIds:                     teamIds,
 		ParentAccessControlPolicyId: policyID,

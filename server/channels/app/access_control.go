@@ -343,12 +343,12 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 }
 
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
-// access control policy assignment: must be private, not group-constrained, not shared.
+// access control policy assignment: must be private or public, not group-constrained, not shared.
 func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.AppError {
-	if channel.Type != model.ChannelTypePrivate {
+	if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
-			"app.pap.access_control.channel_not_private",
-			nil, "Channel is not of type private", http.StatusBadRequest)
+			"app.pap.access_control.channel_type_not_supported",
+			nil, "Channel type is not supported for access control", http.StatusBadRequest)
 	}
 
 	if channel.IsGroupConstrained() {

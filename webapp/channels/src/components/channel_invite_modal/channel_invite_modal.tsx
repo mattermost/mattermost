@@ -176,15 +176,18 @@ const ChannelInviteModalComponent = (props: Props) => {
     const getOptions = useCallback(() => {
         const excludedAndNotInTeamUserIds = excludedUsers;
 
-        // Only include DM users if ABAC is not enabled
+        // ABAC filtering only applies to private channels -- public channels with policies don't restrict invites
+        const isAbacFiltered = props.channel.policy_enforced && props.channel.type === 'P';
+
+        // Only include DM users if ABAC filtering is not active
         let dmUsers: UserProfileValue[] = [];
-        if (!props.channel.policy_enforced) {
+        if (!isAbacFiltered) {
             const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs || [], term);
             dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
         }
 
         let users: UserProfileValue[];
-        if (props.channel.policy_enforced) {
+        if (isAbacFiltered) {
             // ABAC mode: Use local state with fresh API data, completely bypass Redux
             const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers || [], term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
@@ -201,8 +204,8 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         const groupsAndUsers = [
 
-            // Only include groups if ABAC policy is NOT enforced
-            ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
+            // Only include groups if ABAC filtering is not active
+            ...(isAbacFiltered ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
@@ -368,7 +371,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 ];
 
                 // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
-                if (props.isGroupsEnabled && !props.channel.policy_enforced) {
+                if (props.isGroupsEnabled && !(props.channel.policy_enforced && props.channel.type === 'P')) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -465,8 +468,8 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
-        if (props.channel.policy_enforced) {
-            // For ABAC channels, use custom function to avoid Redux store pollution
+        if (props.channel.policy_enforced && props.channel.type === 'P') {
+            // For ABAC private channels, use custom function to avoid Redux store pollution
             fetchAbacUsers().then(() => {
                 setUsersLoadingState(false);
             });
@@ -656,16 +659,30 @@ const ChannelInviteModalComponent = (props: Props) => {
                             mode='info'
                             variant='app'
                             title={(
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.title'
-                                    defaultMessage='Channel access is restricted by user attributes'
-                                />
+                                channel.type === 'O' ? (
+                                    <FormattedMessage
+                                        id='channel_invite.policy_membership.title'
+                                        defaultMessage='This channel has a membership policy'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='channel_invite.policy_enforced.title'
+                                        defaultMessage='Channel access is restricted by user attributes'
+                                    />
+                                )
                             )}
                             message={(
-                                <FormattedMessage
-                                    id='channel_invite.policy_enforced.description'
-                                    defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
-                                />
+                                channel.type === 'O' ? (
+                                    <FormattedMessage
+                                        id='channel_invite.policy_membership.description'
+                                        defaultMessage='Matching users are recommended for this channel. You can still invite anyone.'
+                                    />
+                                ) : (
+                                    <FormattedMessage
+                                        id='channel_invite.policy_enforced.description'
+                                        defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
+                                    />
+                                )
                             )}
                         >
                             {structuredAttributes.length > 0 && (
@@ -691,7 +708,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                         teamId={channel.team_id}
                         users={usersNotInTeam}
                     />
-                    {(props.emailInvitationsEnabled && props.canInviteGuests && !channel.policy_enforced) && inviteGuestLink}
+                    {(props.emailInvitationsEnabled && props.canInviteGuests && !(channel.policy_enforced && channel.type === 'P')) && inviteGuestLink}
                 </div>
             </div>
         </GenericModal>

@@ -943,8 +943,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok {
-			// Get cursor_id from query parameters for cursor-based pagination
+		channel, chanErr := c.App.GetChannel(c.AppContext, notInChannelId)
+		if chanErr != nil {
+			c.Err = chanErr
+			return
+		}
+
+		// Only use ABAC filtering for private channels -- public channels with policies don't restrict who can be invited
+		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok && channel.Type == model.ChannelTypePrivate {
 			cursorId := r.URL.Query().Get("cursor_id")
 			profiles, appErr = c.App.GetUsersNotInAbacChannel(c.AppContext, inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {

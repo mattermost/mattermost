@@ -681,13 +681,20 @@ function ChannelSettingsAccessRulesTab({
 
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
-                    {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
+                    {channel.type === 'O' ?
+                        formatMessage({id: 'channel_settings.member_policy.title', defaultMessage: 'Member Policy'}) :
+                        formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {formatMessage({
-                        id: 'channel_settings.access_rules.subtitle',
-                        defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
-                    })}
+                    {channel.type === 'O' ?
+                        formatMessage({
+                            id: 'channel_settings.member_policy.subtitle',
+                            defaultMessage: 'Define user attributes to recommend this channel to matching users. This channel remains open — anyone can join, but matching users will see it as a recommended channel.',
+                        }) :
+                        formatMessage({
+                            id: 'channel_settings.access_rules.subtitle',
+                            defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
+                        })}
                 </p>
             </div>
 
@@ -745,15 +752,32 @@ function ChannelSettingsAccessRulesTab({
                         })()}
                     >
                         <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState && systemPolicies.length === 0) ? 'disabled' : ''}`}>
-                            {formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync',
-                                defaultMessage: 'Auto-add members based on access rules',
-                            })}
+                            {channel.type === 'O' ?
+                                formatMessage({
+                                    id: 'channel_settings.member_policy.auto_sync',
+                                    defaultMessage: 'Auto-add matching users to this channel',
+                                }) :
+                                formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync',
+                                    defaultMessage: 'Auto-add members based on access rules',
+                                })}
                         </span>
                     </label>
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
+                        if (channel.type === 'O') {
+                            if (autoSyncMembers) {
+                                return formatMessage({
+                                    id: 'channel_settings.member_policy.auto_sync_enabled_description',
+                                    defaultMessage: 'Users who match the configured attributes will be automatically added to this channel. This channel remains open — anyone can still join or leave freely.',
+                                });
+                            }
+                            return formatMessage({
+                                id: 'channel_settings.member_policy.auto_sync_disabled_description',
+                                defaultMessage: 'Matching users will see this channel recommended, but will not be auto-added. Anyone can still join freely.',
+                            });
+                        }
                         if (autoSyncMembers) {
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',

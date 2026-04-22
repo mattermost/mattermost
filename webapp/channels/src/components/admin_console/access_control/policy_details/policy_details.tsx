@@ -101,13 +101,13 @@ function PolicyDetails({
     // Memoize the custom no options message to avoid recreating it on every render
     const customNoPrivateChannelsMessage = useMemo(() => (
         <div
-            key='no-private-channels'
+            key='no-channels'
             className='no-channel-message'
         >
             <p className='primary-message'>
                 <FormattedMessage
-                    id='admin.access_control.policy.edit_policy.no_private_channels'
-                    defaultMessage='There are no private channels available to add to this policy.'
+                    id='admin.access_control.policy.edit_policy.no_channels'
+                    defaultMessage='There are no channels available to add to this policy.'
                 />
             </p>
         </div>
@@ -606,7 +606,7 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeTypes={['O', 'D', 'G']}
+                    excludeTypes={['D', 'G']}
                     customNoOptionsMessage={customNoPrivateChannelsMessage}
                     excludeGroupConstrained={true}
                 />

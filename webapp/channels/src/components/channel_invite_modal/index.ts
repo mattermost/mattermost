@@ -45,9 +45,10 @@ function makeMapStateToProps(initialState: GlobalState, initialProps: OwnProps) 
     }
 
     return (state: GlobalState, props: OwnProps) => {
-        // Check if this is an ABAC channel to bypass contaminated Redux state
+        // Check if this is an ABAC private channel to bypass contaminated Redux state
+        // Public channels with policies should NOT filter users -- anyone can join
         const channel = props.channelId ? getChannel(state, props.channelId) : null;
-        const isAbacChannel = Boolean(channel?.policy_enforced);
+        const isAbacChannel = Boolean(channel?.policy_enforced) && channel?.type === 'P';
 
         let profilesNotInCurrentChannel: UserProfile[];
         let profilesInCurrentChannel: UserProfile[];
