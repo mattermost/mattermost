@@ -12490,5 +12490,45 @@
   {
     "id": "api.channel.set_members.policy_enforced.app_error",
     "translation": "Nie można ustawić członków na kanale wymuszonym przez politykę."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Nie można ustawić członków w tym typie kanału."
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Nie można zmienić ustawień logów mobilnych dla tego użytkownika."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Zarządzaj załącznikiem logów aplikacji mobilnej dla siebie lub innego użytkownika."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Załączanie logów aplikacji mobilnej jest teraz wyłączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Załączanie logów aplikacji mobilnej jest teraz włączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[wł.|wył.|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Załączanie dziennika aplikacji mobilnej jest obecnie wyłączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Załączanie logów aplikacji mobilnej jest obecnie włączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Nie udało się zaktualizować ustawień Załącznika logów aplikacji mobilnej. Spróbuj ponownie."
   }
 ]
