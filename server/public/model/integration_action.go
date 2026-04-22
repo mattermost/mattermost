@@ -17,6 +17,7 @@ import (
 	"math/big"
 	"net/http"
 	"reflect"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -55,16 +56,31 @@ var commonDateTimeFormats = []string{
 	ISODateTimeNoSecondsFormat,    // ISO datetime without seconds
 }
 
-var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
+var PostActionRetainPropKeys = []string{
+	PostPropsFromWebhook,
+	PostPropsFromBot,
+	PostPropsFromPlugin,
+	PostPropsOverrideUsername,
+	PostPropsOverrideIconURL,
+}
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option,omitempty"`
-	Cookie         string `json:"cookie,omitempty"`
+	SelectedOption string            `json:"selected_option,omitempty"`
+	Cookie         string            `json:"cookie,omitempty"`
+	InlineContext  map[string]string `json:"inline_context,omitempty"`
 }
 
 const (
 	PostActionDataSourceUsers    = "users"
 	PostActionDataSourceChannels = "channels"
+
+	PostPropsInlineActions    = "inline_actions"
+	PostActionInlineParamsKey = "inline_params"
+	MaxInlineActionsPerPost   = 50
+
+	MaxInlineContextEntries     = 50
+	MaxInlineContextKeyLength   = 128
+	MaxInlineContextValueLength = 2048
 )
 
 type PostAction struct {
@@ -832,6 +848,9 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
+	if o.GetProp(PostPropsInlineActions) != nil {
+		o.DelProp(PostPropsInlineActions)
+	}
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -841,6 +860,110 @@ func (o *Post) GetAction(id string) *PostAction {
 				return action
 			}
 		}
+	}
+	if integration := o.GetInlineAction(id); integration != nil {
+		return &PostAction{
+			Id:          id,
+			Type:        PostActionTypeButton,
+			Integration: integration,
+		}
+	}
+	return nil
+}
+
+func (o *Post) GetInlineAction(id string) *PostActionIntegration {
+	actions, err := normalizeInlineActions(o.GetProp(PostPropsInlineActions))
+	if err != nil {
+		return nil
+	}
+	integration, ok := actions[id]
+	if !ok || integration == nil || integration.URL == "" {
+		return nil
+	}
+	return integration
+}
+
+var inlineActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
+
+func ValidateInlineActions(o *Post) error {
+	actions, err := normalizeInlineActions(o.GetProp(PostPropsInlineActions))
+	if err != nil {
+		return err
+	}
+	if actions == nil {
+		return nil
+	}
+	if len(actions) > MaxInlineActionsPerPost {
+		return fmt.Errorf("inline_actions exceeds maximum of %d entries", MaxInlineActionsPerPost)
+	}
+	for key, integration := range actions {
+		if !inlineActionIDRegex.MatchString(key) {
+			return fmt.Errorf("inline_actions key %q must be alphanumeric", key)
+		}
+		if integration == nil {
+			return fmt.Errorf("inline_actions entry %q must have integration settings", key)
+		}
+		if err := validateIntegrationURL(integration.URL); err != nil {
+			return fmt.Errorf("inline_actions entry %q: %w", key, err)
+		}
+	}
+	return nil
+}
+
+// normalizeInlineActions accepts either a typed map (in-memory path) or a
+// JSON-deserialized map[string]any (post-round-trip path) and returns a
+// single canonical map[string]*PostActionIntegration. A nil return with nil
+// error means the prop was absent.
+func normalizeInlineActions(raw any) (map[string]*PostActionIntegration, error) {
+	if raw == nil {
+		return nil, nil
+	}
+	if typed, ok := raw.(map[string]*PostActionIntegration); ok {
+		return typed, nil
+	}
+	rawMap, ok := raw.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("inline_actions must be a map")
+	}
+	out := make(map[string]*PostActionIntegration, len(rawMap))
+	for key, entry := range rawMap {
+		b, err := json.Marshal(entry)
+		if err != nil {
+			return nil, fmt.Errorf("inline_actions entry %q is not valid JSON", key)
+		}
+		var integration PostActionIntegration
+		if err := json.Unmarshal(b, &integration); err != nil {
+			return nil, fmt.Errorf("inline_actions entry %q is not a valid PostActionIntegration", key)
+		}
+		out[key] = &integration
+	}
+	return out, nil
+}
+
+// ValidateInlineContext bounds the size of user-supplied context sent with an
+// inline action click so a crafted post cannot trigger unbounded memory use
+// in the plugin-request path.
+func ValidateInlineContext(ctx map[string]string) error {
+	if len(ctx) > MaxInlineContextEntries {
+		return fmt.Errorf("inline_context exceeds maximum of %d entries", MaxInlineContextEntries)
+	}
+	for key, value := range ctx {
+		if len(key) > MaxInlineContextKeyLength {
+			return fmt.Errorf("inline_context key exceeds %d chars", MaxInlineContextKeyLength)
+		}
+		if len(value) > MaxInlineContextValueLength {
+			return fmt.Errorf("inline_context value for %q exceeds %d chars", key, MaxInlineContextValueLength)
+		}
+	}
+	return nil
+}
+
+func validateIntegrationURL(url string) error {
+	if url == "" {
+		return fmt.Errorf("must have a non-empty URL")
+	}
+	if !(strings.HasPrefix(url, "/plugins/") || strings.HasPrefix(url, "plugins/") || IsValidHTTPURL(url)) {
+		return fmt.Errorf("must have a valid integration URL")
 	}
 	return nil
 }

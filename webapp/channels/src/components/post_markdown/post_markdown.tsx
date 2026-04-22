@@ -61,13 +61,14 @@ export default class PostMarkdown extends React.PureComponent<Props> {
     };
 
     getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean) => {
+        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean, allowInlineActions?: boolean) => {
             return {
                 ...options,
                 disableGroupHighlight,
                 mentionHighlight,
                 editedAt,
                 renderEmoticonsAsEmoji,
+                allowInlineActions,
             };
         });
 
@@ -126,12 +127,23 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
         }
 
+        const isBot = this.props.post?.props?.from_bot === 'true';
+        const isWebhook = this.props.post?.props?.from_webhook === 'true';
+        const isPlugin = this.props.post?.props?.from_plugin === 'true';
+
+        // Ephemeral posts aren't persisted, so the server can't resolve an
+        // inline action click (no DB lookup, no per-action cookie transport).
+        // Render the link as plain text rather than a non-functional button.
+        const isEphemeral = this.props.post?.type === Posts.POST_TYPES.EPHEMERAL;
+        const allowInlineActions = (isBot || isWebhook || isPlugin) && !isEphemeral;
+
         const options = this.getOptions(
             this.props.options,
             this.props.post?.props?.disable_group_highlight === true,
             mentionHighlight,
             this.props.post?.edit_at,
             this.props?.renderEmoticonsAsEmoji,
+            allowInlineActions,
         );
 
         let highlightKeys;

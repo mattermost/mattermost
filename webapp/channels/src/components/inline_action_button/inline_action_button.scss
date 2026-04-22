@@ -1,0 +1,25 @@
+.InlineActionButton {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+    }
+
+    &--executing {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+}

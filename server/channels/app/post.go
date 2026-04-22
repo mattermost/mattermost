@@ -255,6 +255,17 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
+	// Strip inline_actions from non-integration posts.
+	// Only trust user.IsBot (verified from DB) and session.IsIntegration() for origin.
+	// Do NOT trust from_webhook/from_plugin props here — they can be forged by
+	// regular users when hardened mode is off. Webhook and plugin posts set
+	// inline_actions server-side before reaching CreatePost, so they are unaffected.
+	if post.GetProp(model.PostPropsInlineActions) != nil {
+		if !user.IsBot && !rctx.Session().IsIntegration() {
+			post.DelProp(model.PostPropsInlineActions)
+		}
+	}
+
 	var ephemeralPost *model.Post
 	if post.Type == "" {
 		if hasPermission, _ := a.HasPermissionToChannel(rctx, user.Id, channel.Id, model.PermissionUseChannelMentions); !hasPermission {
@@ -704,6 +715,13 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 		post.SetProps(make(model.StringInterface))
 	}
 
+	// inline_actions cannot be resolved on click for ephemeral posts (no DB
+	// row, no per-action cookie transport). Drop the prop here so the client
+	// doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsInlineActions) != nil {
+		post.DelProp(model.PostPropsInlineActions)
+	}
+
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
@@ -736,6 +754,13 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 	post.UpdateAt = model.GetMillis()
 	if post.GetProps() == nil {
 		post.SetProps(make(model.StringInterface))
+	}
+
+	// inline_actions cannot be resolved on click for ephemeral posts (no DB
+	// row, no per-action cookie transport). Drop the prop here so the client
+	// doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsInlineActions) != nil {
+		post.DelProp(model.PostPropsInlineActions)
 	}
 
 	post.GenerateActionIds()
@@ -855,6 +880,17 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
+
+		// inline_actions can be modified only by integration sessions or by trusted
+		// paths that have pre-validated the new value (AllowInlineActionsUpdate).
+		// All other callers keep whatever inline_actions the original post had.
+		if !rctx.Session().IsIntegration() && !updatePostOptions.AllowInlineActionsUpdate {
+			if oldVal, ok := oldPost.GetProps()[model.PostPropsInlineActions]; ok {
+				newPost.AddProp(model.PostPropsInlineActions, oldVal)
+			} else {
+				newPost.DelProp(model.PostPropsInlineActions)
+			}
+		}
 
 		var fileIds []string
 		fileIds, appErr = a.processPostFileChanges(rctx, receivedUpdatedPost, oldPost, updatePostOptions)

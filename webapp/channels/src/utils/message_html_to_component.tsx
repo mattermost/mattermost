@@ -9,6 +9,7 @@ import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineActionButton from 'components/inline_action_button';
 import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
@@ -38,6 +39,7 @@ export type Options = Partial<{
     atPlanMentions: boolean;
     channelId: string;
     channelIsShared: boolean;
+    allowInlineActions: boolean;
 
     /**
      * Whether or not the AtMention component should attempt to fetch at-mentioned users if none can be found for
@@ -135,6 +137,25 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             );
         },
     });
+
+    if (options.allowInlineActions) {
+        processingInstructions.push({
+            replaceChildren: true,
+            shouldProcessNode: (node: any) =>
+                node.type === 'tag' && node.name === 'span' &&
+                node.attribs?.['data-inline-action-id'],
+            processNode: (node: any, children: any, index?: number) => (
+                <InlineActionButton
+                    key={`inline-action-${index}`}
+                    actionId={node.attribs['data-inline-action-id']}
+                    params={node.attribs['data-inline-action-params'] || ''}
+                    postId={node.attribs['data-inline-action-post-id'] || ''}
+                >
+                    {children}
+                </InlineActionButton>
+            ),
+        });
+    }
 
     if (options.hasPluginTooltips) {
         processingInstructions.push({

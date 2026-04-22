@@ -606,6 +606,7 @@ func ContainsIntegrationsReservedProps(props StringInterface) []string {
 			PostPropsWebhookDisplayName,
 			PostPropsOverrideIconURL,
 			PostPropsOverrideIconEmoji,
+			PostPropsInlineActions,
 		}
 
 		for _, key := range reservedProps {
@@ -827,6 +828,12 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsAIGeneratedByUsername] != nil {
 		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
+	if props[PostPropsInlineActions] != nil {
+		if err := ValidateInlineActions(o); err != nil {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("invalid inline_actions: %w", err))
 		}
 	}
 
@@ -1184,6 +1191,13 @@ func (o *Post) CleanPost() *Post {
 type UpdatePostOptions struct {
 	SafeUpdate    bool
 	IsRestorePost bool
+
+	// AllowInlineActionsUpdate grants the caller permission to add, remove, or
+	// modify the inline_actions prop. Without it, non-integration sessions
+	// cannot change inline_actions and the prop is reset to its prior value.
+	// Set only from trusted paths (e.g. the post-action integration response
+	// handler which has already validated the incoming value).
+	AllowInlineActionsUpdate bool
 }
 
 func DefaultUpdatePostOptions() *UpdatePostOptions {

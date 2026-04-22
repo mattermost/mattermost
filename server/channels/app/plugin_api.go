@@ -874,7 +874,7 @@ func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*
 }
 
 func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
-	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false})
+	post, _, appErr := api.app.UpdatePost(api.ctx, post, &model.UpdatePostOptions{SafeUpdate: false, AllowInlineActionsUpdate: true})
 	if post != nil {
 		post = post.ForPlugin()
 	}

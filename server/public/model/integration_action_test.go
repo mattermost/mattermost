@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"io"
 	"math/big"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1533,5 +1534,428 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		}
 		err = element.IsValid()
 		assert.NoError(t, err)
+	})
+}
+
+func TestValidateInlineContext(t *testing.T) {
+	t.Run("nil map is valid", func(t *testing.T) {
+		assert.NoError(t, ValidateInlineContext(nil))
+	})
+
+	t.Run("empty map is valid", func(t *testing.T) {
+		assert.NoError(t, ValidateInlineContext(map[string]string{}))
+	})
+
+	t.Run("within bounds is valid", func(t *testing.T) {
+		ctx := map[string]string{
+			"alpha": "one",
+			"beta":  "two",
+		}
+		assert.NoError(t, ValidateInlineContext(ctx))
+	})
+
+	t.Run("exceeds MaxInlineContextEntries", func(t *testing.T) {
+		ctx := make(map[string]string, MaxInlineContextEntries+1)
+		for i := range MaxInlineContextEntries + 1 {
+			ctx[strconv.Itoa(i)] = "v"
+		}
+		err := ValidateInlineContext(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("key length exactly MaxInlineContextKeyLength is allowed", func(t *testing.T) {
+		ctx := map[string]string{
+			strings.Repeat("k", MaxInlineContextKeyLength): "value",
+		}
+		assert.NoError(t, ValidateInlineContext(ctx))
+	})
+
+	t.Run("key length MaxInlineContextKeyLength+1 is rejected", func(t *testing.T) {
+		ctx := map[string]string{
+			strings.Repeat("k", MaxInlineContextKeyLength+1): "value",
+		}
+		err := ValidateInlineContext(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "key exceeds")
+	})
+
+	t.Run("value length exactly MaxInlineContextValueLength is allowed", func(t *testing.T) {
+		ctx := map[string]string{
+			"key": strings.Repeat("v", MaxInlineContextValueLength),
+		}
+		assert.NoError(t, ValidateInlineContext(ctx))
+	})
+
+	t.Run("value length MaxInlineContextValueLength+1 is rejected", func(t *testing.T) {
+		ctx := map[string]string{
+			"key": strings.Repeat("v", MaxInlineContextValueLength+1),
+		}
+		err := ValidateInlineContext(ctx)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "value for")
+	})
+
+	t.Run("multiple violations triggers an error", func(t *testing.T) {
+		// Too many entries AND every value is over-length. First detected
+		// violation wins; only assert that an error is returned.
+		ctx := make(map[string]string, MaxInlineContextEntries+1)
+		for i := range MaxInlineContextEntries + 1 {
+			ctx[strconv.Itoa(i)] = strings.Repeat("v", MaxInlineContextValueLength+1)
+		}
+		err := ValidateInlineContext(ctx)
+		require.Error(t, err)
+	})
+}
+
+func TestNormalizeInlineActions(t *testing.T) {
+	t.Run("nil input returns nil, nil", func(t *testing.T) {
+		got, err := normalizeInlineActions(nil)
+		assert.NoError(t, err)
+		assert.Nil(t, got)
+	})
+
+	t.Run("typed map is passed through unchanged", func(t *testing.T) {
+		typed := map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook", Context: map[string]any{"k": "v"}},
+		}
+		got, err := normalizeInlineActions(typed)
+		require.NoError(t, err)
+		// Typed path is a direct return, so the same map instance comes back.
+		require.NotNil(t, got)
+		assert.Same(t, typed["btn1"], got["btn1"])
+	})
+
+	t.Run("map[string]any with valid entries is converted to typed map", func(t *testing.T) {
+		raw := map[string]any{
+			"btn1": map[string]any{
+				"url":     "http://example.com/hook",
+				"context": map[string]any{"k": "v"},
+			},
+		}
+		got, err := normalizeInlineActions(raw)
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		require.Contains(t, got, "btn1")
+		assert.Equal(t, "http://example.com/hook", got["btn1"].URL)
+		assert.Equal(t, "v", got["btn1"].Context["k"])
+	})
+
+	t.Run("map[string]any with malformed string entry returns error", func(t *testing.T) {
+		raw := map[string]any{
+			"btn1": "not-an-integration",
+		}
+		got, err := normalizeInlineActions(raw)
+		require.Error(t, err)
+		assert.Nil(t, got)
+		assert.Contains(t, err.Error(), "btn1")
+	})
+
+	t.Run("non-map type returns error", func(t *testing.T) {
+		got, err := normalizeInlineActions("a string")
+		require.Error(t, err)
+		assert.Nil(t, got)
+		assert.Contains(t, err.Error(), "must be a map")
+	})
+
+	t.Run("empty map[string]any returns empty typed map", func(t *testing.T) {
+		got, err := normalizeInlineActions(map[string]any{})
+		require.NoError(t, err)
+		require.NotNil(t, got)
+		assert.Len(t, got, 0)
+	})
+}
+
+func TestGetInlineAction(t *testing.T) {
+	t.Run("prop absent returns nil", func(t *testing.T) {
+		p := &Post{}
+		assert.Nil(t, p.GetInlineAction("btn1"))
+	})
+
+	t.Run("prop present but id not found returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook"},
+		})
+		assert.Nil(t, p.GetInlineAction("missing"))
+	})
+
+	t.Run("integration with empty URL returns nil", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: ""},
+		})
+		assert.Nil(t, p.GetInlineAction("btn1"))
+	})
+
+	t.Run("typed-map form with valid integration returns pointer", func(t *testing.T) {
+		integ := &PostActionIntegration{URL: "http://example.com/hook"}
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": integ,
+		})
+		got := p.GetInlineAction("btn1")
+		require.NotNil(t, got)
+		assert.Same(t, integ, got)
+	})
+
+	t.Run("JSON-map form with valid integration returns pointer", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]any{
+			"btn1": map[string]any{
+				"url":     "http://example.com/hook",
+				"context": map[string]any{"k": "v"},
+			},
+		})
+		got := p.GetInlineAction("btn1")
+		require.NotNil(t, got)
+		assert.Equal(t, "http://example.com/hook", got.URL)
+		assert.Equal(t, "v", got.Context["k"])
+	})
+
+	t.Run("wrong-shape prop returns nil (normalize error swallowed)", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, "not-a-map")
+		assert.Nil(t, p.GetInlineAction("btn1"))
+	})
+}
+
+func TestValidateInlineActions(t *testing.T) {
+	t.Run("absent prop returns no error", func(t *testing.T) {
+		p := &Post{}
+		assert.NoError(t, ValidateInlineActions(p))
+	})
+
+	t.Run("valid entries return no error", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook"},
+			"btn2": {URL: "/plugins/myplugin/action"},
+			"btn3": {URL: "plugins/myplugin/action"},
+		})
+		assert.NoError(t, ValidateInlineActions(p))
+	})
+
+	t.Run("exceeding MaxInlineActionsPerPost returns error", func(t *testing.T) {
+		actions := make(map[string]*PostActionIntegration, MaxInlineActionsPerPost+1)
+		for i := range MaxInlineActionsPerPost + 1 {
+			actions["btn"+strconv.Itoa(i)] = &PostActionIntegration{URL: "http://example.com/hook"}
+		}
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, actions)
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "exceeds maximum")
+	})
+
+	t.Run("action id with hyphen is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"foo-bar": {URL: "http://example.com/hook"},
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be alphanumeric")
+	})
+
+	t.Run("action id with underscore is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"foo_bar": {URL: "http://example.com/hook"},
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be alphanumeric")
+	})
+
+	t.Run("action id with space is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"FOO bar": {URL: "http://example.com/hook"},
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be alphanumeric")
+	})
+
+	t.Run("empty URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: ""},
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "non-empty URL")
+	})
+
+	t.Run("path traversal in /plugins/ URL is currently allowed (not filtered by validateIntegrationURL)", func(t *testing.T) {
+		// Documents existing behavior: validateIntegrationURL only checks the
+		// /plugins/ prefix and does not reject "..". If this behavior changes,
+		// update this test alongside the implementation.
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "/plugins/../../../etc/passwd"},
+		})
+		assert.NoError(t, ValidateInlineActions(p))
+	})
+
+	t.Run("nil integration entry is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": nil,
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "integration settings")
+	})
+
+	t.Run("javascript URL is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "javascript://alert(1)"},
+		})
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "valid integration URL")
+	})
+
+	t.Run("http URL is accepted", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://legit.com"},
+		})
+		assert.NoError(t, ValidateInlineActions(p))
+	})
+
+	t.Run("/plugins/ URL is accepted", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "/plugins/foo"},
+		})
+		assert.NoError(t, ValidateInlineActions(p))
+	})
+
+	t.Run("wrong-shape raw prop is rejected", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, "not-a-map")
+		err := ValidateInlineActions(p)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must be a map")
+	})
+}
+
+func TestStripActionIntegrations_InlineActions(t *testing.T) {
+	t.Run("strips inline_actions prop", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook"},
+		})
+		p.StripActionIntegrations()
+		assert.Nil(t, p.GetProp(PostPropsInlineActions))
+	})
+
+	t.Run("post without inline_actions prop does not panic", func(t *testing.T) {
+		p := &Post{}
+		assert.NotPanics(t, func() {
+			p.StripActionIntegrations()
+		})
+		assert.Nil(t, p.GetProp(PostPropsInlineActions))
+	})
+
+	t.Run("post with both attachments and inline_actions cleans both", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{
+				Actions: []*PostAction{
+					{
+						Id:          "a1",
+						Name:        "Button",
+						Type:        PostActionTypeButton,
+						Integration: &PostActionIntegration{URL: "http://example.com/hook"},
+					},
+				},
+			},
+		})
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook"},
+		})
+
+		p.StripActionIntegrations()
+
+		// Inline actions prop should be removed entirely.
+		assert.Nil(t, p.GetProp(PostPropsInlineActions))
+
+		// Attachment actions should remain but with nil Integration.
+		attachments := p.Attachments()
+		require.Len(t, attachments, 1)
+		require.Len(t, attachments[0].Actions, 1)
+		assert.Nil(t, attachments[0].Actions[0].Integration)
+	})
+}
+
+func TestGetAction_InlineFallback(t *testing.T) {
+	t.Run("returns attachment action when present", func(t *testing.T) {
+		attachmentAction := &PostAction{
+			Id:          "a1",
+			Name:        "Attach Button",
+			Type:        PostActionTypeButton,
+			Integration: &PostActionIntegration{URL: "http://example.com/attach"},
+		}
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{attachmentAction}},
+		})
+
+		got := p.GetAction("a1")
+		require.NotNil(t, got)
+		assert.Same(t, attachmentAction, got)
+	})
+
+	t.Run("synthesizes PostAction from inline_actions when no attachment match", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/hook", Context: map[string]any{"k": "v"}},
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		assert.Equal(t, "btn1", got.Id)
+		assert.Equal(t, PostActionTypeButton, got.Type)
+		require.NotNil(t, got.Integration)
+		assert.Equal(t, "http://example.com/hook", got.Integration.URL)
+		assert.Equal(t, "v", got.Integration.Context["k"])
+	})
+
+	t.Run("attachment wins when id matches both attachment and inline action", func(t *testing.T) {
+		attachmentAction := &PostAction{
+			Id:          "btn1",
+			Name:        "Attach Button",
+			Type:        PostActionTypeButton,
+			Integration: &PostActionIntegration{URL: "http://example.com/attach"},
+		}
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{attachmentAction}},
+		})
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"btn1": {URL: "http://example.com/inline"},
+		})
+
+		got := p.GetAction("btn1")
+		require.NotNil(t, got)
+		assert.Same(t, attachmentAction, got)
+		assert.Equal(t, "http://example.com/attach", got.Integration.URL)
+	})
+
+	t.Run("returns nil when id matches neither", func(t *testing.T) {
+		p := &Post{}
+		p.AddProp(PostPropsAttachments, []*MessageAttachment{
+			{Actions: []*PostAction{{Id: "other", Name: "X", Type: PostActionTypeButton, Integration: &PostActionIntegration{URL: "http://example.com"}}}},
+		})
+		p.AddProp(PostPropsInlineActions, map[string]*PostActionIntegration{
+			"something": {URL: "http://example.com/hook"},
+		})
+
+		assert.Nil(t, p.GetAction("missing"))
 	})
 }

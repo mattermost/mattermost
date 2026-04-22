@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"path"
@@ -39,7 +40,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, inlineContext map[string]string) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -121,10 +122,17 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
-		upstreamRequest.Context = cookie.Integration.Context
+		// Clone the Context map — later code may add inline_params or
+		// selected_option to it, and we must not mutate the shared source.
+		//
+		// inlineContext is intentionally not merged on the cookie path:
+		// cookies are only baked for attachment action buttons, not for
+		// inline actions, so this branch is never reached by a click that
+		// carries inline_context.
+		upstreamRequest.Context = maps.Clone(cookie.Integration.Context)
 		datasource = cookie.DataSource
 
-		retain = cookie.RetainProps
+		retain = maps.Clone(cookie.RetainProps)
 		remove = cookie.RemoveProps
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
@@ -145,7 +153,18 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
-		upstreamRequest.Context = action.Integration.Context
+		// Clone the Context map — the action pointer returned from
+		// post.GetAction aliases post.props state (attachment action or
+		// inline-action integration). Mutating it directly would leak
+		// per-click values (inline_params, selected_option) into the
+		// post's cached integration for subsequent clickers.
+		upstreamRequest.Context = maps.Clone(action.Integration.Context)
+		if len(inlineContext) > 0 {
+			if upstreamRequest.Context == nil {
+				upstreamRequest.Context = map[string]any{}
+			}
+			upstreamRequest.Context[model.PostActionInlineParamsKey] = inlineContext
+		}
 		datasource = action.DataSource
 
 		// Save the original values that may need to be preserved (including selected
@@ -158,7 +177,10 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 				remove = append(remove, key)
 			}
 		}
-		originalProps = post.GetProps()
+		// Clone — originalProps may be passed to response.Update.SetProps,
+		// which would otherwise have response.Update alias the original
+		// post's props map.
+		originalProps = maps.Clone(post.GetProps())
 		originalIsPinned = post.IsPinned
 		originalHasReactions = post.HasReactions
 
@@ -281,7 +303,27 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
+		// Validate inline_actions on update responses: only allow if original post
+		// had them. Drop with a warning (so integration authors can diagnose)
+		// rather than erroring out, since the rest of the update is still valid.
+		if response.Update.GetProp(model.PostPropsInlineActions) != nil {
+			if originalProps[model.PostPropsInlineActions] == nil {
+				rctx.Logger().Warn("Dropping inline_actions from plugin update response: original post had none",
+					mlog.String("post_id", postID),
+					mlog.String("url", upstreamURL),
+				)
+				response.Update.DelProp(model.PostPropsInlineActions)
+			} else if err := model.ValidateInlineActions(response.Update); err != nil {
+				rctx.Logger().Warn("Dropping invalid inline_actions from plugin update response",
+					mlog.String("post_id", postID),
+					mlog.String("url", upstreamURL),
+					mlog.Err(err),
+				)
+				response.Update.DelProp(model.PostPropsInlineActions)
+			}
+		}
+
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowInlineActionsUpdate: true}); appErr != nil {
 			return "", appErr
 		}
 	}

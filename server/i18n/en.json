@@ -2929,6 +2929,10 @@
     "translation": "Action integration error."
   },
   {
+    "id": "api.post.do_action.inline_context.invalid",
+    "translation": "Invalid inline context."
+  },
+  {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Unable to get the pending post."
   },

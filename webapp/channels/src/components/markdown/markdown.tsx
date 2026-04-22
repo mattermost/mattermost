@@ -152,6 +152,7 @@ function Markdown({
         editedAt,
         atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
+        allowInlineActions: options?.allowInlineActions,
     });
 }
 

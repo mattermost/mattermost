@@ -224,6 +224,14 @@ export interface TextFormattingOptionsBase {
     unsafeLinks: boolean;
 
     /**
+     * Whether or not to render mmaction:// links as inline action buttons.
+     * Only enabled for bot, webhook, and plugin posts.
+     *
+     * Defaults to `false`.
+     */
+    allowInlineActions: boolean;
+
+    /**
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji: boolean;
@@ -255,6 +263,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     editedAt: 0,
     postId: '',
     unsafeLinks: false,
+    allowInlineActions: false,
     renderEmoticonsAsEmoji: true,
 };
 

@@ -11,6 +11,8 @@ import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} f
 
 import {parseImageDimensions} from './helpers';
 
+const MAX_INLINE_ACTION_PARAMS_LENGTH = 2048;
+
 export default class Renderer extends marked.Renderer {
     private formattingOptions: TextFormatting.TextFormattingOptions;
     private emojiMap: EmojiMap;
@@ -141,6 +143,50 @@ export default class Renderer extends marked.Renderer {
                 return text;
             }
             return text + ' : ' + href;
+        }
+
+        const scheme = getScheme(href);
+        if (scheme === 'mmaction') {
+            if (!this.formattingOptions.allowInlineActions) {
+                return text;
+            }
+            const postId = this.formattingOptions.postId || '';
+            if (!postId) {
+                return text;
+            }
+            try {
+                const mmUrl = new URL(href);
+                const actionId = mmUrl.hostname;
+                if (!actionId) {
+                    return text;
+                }
+                const params = mmUrl.search ? mmUrl.search.substring(1) : '';
+                if (params.length > MAX_INLINE_ACTION_PARAMS_LENGTH) {
+                    return text;
+                }
+
+                // text is the already-rendered link body from marked, so it
+                // may contain HTML tags (emphasis, emoji spans, mention spans)
+                // and HTML entities (&amp;, &lt;, ...). Strip tags and decode
+                // entities to get the plain-text label, then re-escape for
+                // safe insertion into the span body. This preserves labels
+                // like "Items & Parts" while neutralizing any script injection
+                // attempt in the rendered markup.
+                //
+                // data-inline-action-params holds the raw URL query string;
+                // html-to-react HTML-decodes attribute values before handing
+                // them to processNode, so URLSearchParams receives the
+                // original percent-encoded form.
+                const plainLabel = TextFormatting.convertEntityToCharacter(text.replace(/<[^>]*>/g, ''));
+                return '<span' +
+                    ` data-inline-action-id="${TextFormatting.escapeHtml(actionId)}"` +
+                    ` data-inline-action-params="${TextFormatting.escapeHtml(params)}"` +
+                    ` data-inline-action-post-id="${TextFormatting.escapeHtml(postId)}"` +
+                    ' class="inline-action-button-placeholder"' +
+                    `>${TextFormatting.escapeHtml(plainLabel)}</span>`;
+            } catch {
+                return text;
+            }
         }
 
         if (!href.startsWith('/')) {

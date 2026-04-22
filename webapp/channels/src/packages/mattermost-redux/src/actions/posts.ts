@@ -1260,6 +1260,38 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
     };
 }
 
+export function doPostActionWithInlineContext(postId: string, actionId: string, inlineContext: Record<string, string>): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.doPostActionWithInlineContext(postId, actionId, inlineContext);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (data && data.trigger_id) {
+            dispatch({
+                type: IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID,
+                data: data.trigger_id,
+            });
+            const state = getState();
+            const post = PostSelectors.getPost(state, postId);
+            if (post) {
+                dispatch({
+                    type: IntegrationTypes.RECEIVED_DIALOG_ARGUMENTS,
+                    data: {
+                        channel_id: post.channel_id,
+                    },
+                });
+            }
+        }
+
+        return {data};
+    };
+}
+
 export function addMessageIntoHistory(message: string) {
     return {
         type: PostTypes.ADD_MESSAGE_INTO_HISTORY,

@@ -2639,6 +2639,13 @@ export default class Client4 {
         );
     };
 
+    doPostActionWithInlineContext = (postId: string, actionId: string, inlineContext: Record<string, string>) => {
+        return this.doFetch<PostActionResponse>(
+            `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
+            {method: 'post', body: JSON.stringify({inline_context: inlineContext})},
+        );
+    };
+
     // Files Routes
 
     getFileUrl(fileId: string, timestamp: number) {
