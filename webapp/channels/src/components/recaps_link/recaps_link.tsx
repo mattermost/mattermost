@@ -3,11 +3,11 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage} from 'react-intl';
 import {shallowEqual, useSelector} from 'react-redux';
 import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
-import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, CreationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getUnreadFinishedRecapsBadge} from 'mattermost-redux/selectors/entities/recaps';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
@@ -15,8 +15,14 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
+import WithTooltip from 'components/with_tooltip';
 
 import './recaps_link.scss';
+
+const failedTooltip = defineMessage({
+    id: 'recaps.sidebarLink.failedTooltip',
+    defaultMessage: 'One or more recaps failed',
+});
 
 const RecapsLink = () => {
     const {url} = useRouteMatch();
@@ -32,12 +38,15 @@ const RecapsLink = () => {
         return null;
     }
 
+    const hasUnread = unreadCount > 0;
+
     return (
         <ul className='SidebarRecaps NavGroupContent nav nav-pills__container'>
             <li
                 id={'sidebar-recaps-button'}
                 className={classNames('SidebarChannel', {
                     active: inRecaps,
+                    unread: hasUnread,
                 })}
                 tabIndex={-1}
             >
@@ -45,7 +54,9 @@ const RecapsLink = () => {
                     to={`${url}/recaps`}
                     id='sidebarItem_recaps'
                     draggable='false'
-                    className='SidebarLink sidebar-item'
+                    className={classNames('SidebarLink sidebar-item', {
+                        'unread-title': hasUnread,
+                    })}
                     tabIndex={0}
                 >
                     <span className='icon'>
@@ -59,12 +70,18 @@ const RecapsLink = () => {
                             />
                         </span>
                     </div>
-                    {unreadCount > 0 && (
-                        <ChannelMentionBadge
-                            unreadMentions={unreadCount}
-                            className={classNames({'RecapsBadge--failed': hasFailed})}
-                        />
-                    )}
+                    {hasUnread && (hasFailed ? (
+                        <WithTooltip title={failedTooltip}>
+                            <span
+                                className='RecapsFailedIcon'
+                                aria-label='Recap failed'
+                            >
+                                <AlertOutlineIcon size={18}/>
+                            </span>
+                        </WithTooltip>
+                    ) : (
+                        <ChannelMentionBadge unreadMentions={unreadCount}/>
+                    ))}
                 </Link>
             </li>
         </ul>

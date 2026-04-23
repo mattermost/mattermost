@@ -60,20 +60,25 @@ describe('components/recaps_link/RecapsLink', () => {
         const {container} = renderLink();
         expect(screen.getByText('Recaps')).toBeInTheDocument();
         expect(container.querySelector('.badge')).not.toBeInTheDocument();
+        expect(container.querySelector('.RecapsFailedIcon')).not.toBeInTheDocument();
+        expect(container.querySelector('.SidebarChannel')).not.toHaveClass('unread');
     });
 
-    test('renders the count when there are unread recaps', () => {
+    test('renders the count badge and marks the link unread when there are unread recaps', () => {
         mockGetBadge.mockReturnValue({count: 3, hasFailed: false});
-        renderLink();
-        const count = screen.getByText('3');
-        expect(count).toBeInTheDocument();
-        expect(count.closest('.badge')).not.toHaveClass('RecapsBadge--failed');
+        const {container} = renderLink();
+        expect(screen.getByText('3')).toBeInTheDocument();
+        expect(container.querySelector('.SidebarChannel')).toHaveClass('unread');
+        expect(container.querySelector('.SidebarLink')).toHaveClass('unread-title');
+        expect(container.querySelector('.RecapsFailedIcon')).not.toBeInTheDocument();
     });
 
-    test('adds the failed modifier class when a failed unread recap is present', () => {
+    test('renders an alert icon instead of the count when a failed unread recap is present', () => {
         mockGetBadge.mockReturnValue({count: 2, hasFailed: true});
-        renderLink();
-        const count = screen.getByText('2');
-        expect(count.closest('.badge')).toHaveClass('RecapsBadge--failed');
+        const {container} = renderLink();
+        expect(container.querySelector('.RecapsFailedIcon')).toBeInTheDocument();
+        expect(container.querySelector('.badge')).not.toBeInTheDocument();
+        expect(screen.queryByText('2')).not.toBeInTheDocument();
+        expect(container.querySelector('.SidebarChannel')).toHaveClass('unread');
     });
 });

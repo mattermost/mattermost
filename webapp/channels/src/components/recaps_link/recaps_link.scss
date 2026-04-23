@@ -66,21 +66,32 @@
         }
     }
 
-    .active .SidebarLink {
+    .active .SidebarLink,
+    .SidebarLink.unread-title {
         color: var(--sidebar-text);
 
         .icon {
             color: var(--sidebar-text);
+            opacity: 1;
         }
 
         .SidebarChannelLinkLabel {
             font-weight: 400;
         }
     }
+
+    .RecapsFailedIcon {
+        display: flex;
+        align-items: center;
+        color: var(--away-indicator);
+    }
 }
 
-.channel-view #SidebarContainer .SidebarRecaps .badge.RecapsBadge--failed {
-    background-color: var(--error-text, var(--dnd-indicator));
-    color: var(--sidebar-text);
+#SidebarContainer .SidebarRecaps .SidebarLink:hover {
+    .badge,
+    .RecapsFailedIcon {
+        position: initial;
+        visibility: visible;
+    }
 }
 
