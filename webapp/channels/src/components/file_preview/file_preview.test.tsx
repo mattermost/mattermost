@@ -165,6 +165,54 @@ describe('FilePreview', () => {
         expect(container.querySelector('.file-preview__remove.compact')).toBeInTheDocument();
     });
 
+    test('should render disabled remove button with tooltip when onRemove is absent and disabledRemoveTooltip is provided', () => {
+        const props = {
+            ...baseProps,
+            onRemove: undefined,
+            uploadsInProgress: [],
+            disabledRemoveTooltip: 'You do not have permission to edit file attachments',
+        };
+
+        const {container} = renderWithContext(
+            <FilePreview {...props}/>,
+        );
+
+        expect(container.querySelector('.file-preview__remove--disabled')).toBeInTheDocument();
+        expect(container.querySelector('a.file-preview__remove')).not.toBeInTheDocument();
+    });
+
+    test('should render normal remove button when onRemove is defined', () => {
+        const props = {
+            ...baseProps,
+            onRemove: jest.fn(),
+            uploadsInProgress: [],
+            disabledRemoveTooltip: 'tooltip text',
+        };
+
+        const {container} = renderWithContext(
+            <FilePreview {...props}/>,
+        );
+
+        expect(container.querySelector('a.file-preview__remove')).toBeInTheDocument();
+        expect(container.querySelector('.file-preview__remove--disabled')).not.toBeInTheDocument();
+    });
+
+    test('should not render any remove button when onRemove is absent and no disabledRemoveTooltip', () => {
+        const props = {
+            ...baseProps,
+            onRemove: undefined,
+            uploadsInProgress: [],
+            disabledRemoveTooltip: undefined,
+        };
+
+        const {container} = renderWithContext(
+            <FilePreview {...props}/>,
+        );
+
+        expect(container.querySelector('a.file-preview__remove')).not.toBeInTheDocument();
+        expect(container.querySelector('.file-preview__remove--disabled')).not.toBeInTheDocument();
+    });
+
     test('should not add compact classes when compactMode is false', () => {
         const props = {
             ...baseProps,
