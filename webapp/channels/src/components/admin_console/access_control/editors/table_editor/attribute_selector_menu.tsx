@@ -23,6 +23,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import * as Menu from 'components/menu';
 import WithTooltip from 'components/with_tooltip';
 
+import {getUserPropertyFieldLabel} from 'utils/properties';
+
 import './selector_menus.scss';
 
 // Define AttributeIcon outside the main component
@@ -76,8 +78,12 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
     }, []); // setFilter is stable
 
     const options = useMemo(() => {
+        const q = filter.toLowerCase();
         return availableAttributes.filter((attr) => {
-            return attr.name.toLowerCase().includes(filter.toLowerCase());
+            return (
+                attr.name.toLowerCase().includes(q) ||
+                getUserPropertyFieldLabel(attr).toLowerCase().includes(q)
+            );
         });
     }, [availableAttributes, filter]);
 
@@ -111,7 +117,9 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'})}
+                        {selectedAttributeObject ?
+                            getUserPropertyFieldLabel(selectedAttributeObject) :
+                            (currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'}))}
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',
@@ -134,6 +142,10 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
             />
             {options.map((option) => {
                 const {name} = option;
+
+                // hasSpaces checks the CEL identifier (name), not the display label.
+                // New fields cannot have spaces in name (Phase 1 server validation),
+                // so this branch only fires for grandfathered legacy fields.
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
                 const isAdminManaged = option.attrs?.managed === 'admin';
@@ -148,7 +160,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         forceCloseOnSelect={true}
                         aria-checked={name === currentAttribute}
                         onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
-                        labels={<span>{name}</span>}
+                        labels={<span>{getUserPropertyFieldLabel(option)}</span>}
                         disabled={hasSpaces || !allowed}
                         leadingElement={
                             <AttributeIcon

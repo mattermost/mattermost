@@ -42,6 +42,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import WithTooltip from 'components/with_tooltip';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {getUserPropertyFieldLabel} from 'utils/properties';
 import {validHttpUrl} from 'utils/url';
 import {toTitleCase} from 'utils/utils';
 
@@ -656,7 +657,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 <FormattedMessage
                     id='admin.userManagement.userDetail.cpaField'
                     defaultMessage='{fieldName}'
-                    values={{fieldName: field.name}}
+                    values={{fieldName: getUserPropertyFieldLabel(field)}}
                 />
                 {fieldContent}
                 {syncIndicator}

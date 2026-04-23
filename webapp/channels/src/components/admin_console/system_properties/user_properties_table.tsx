@@ -110,6 +110,10 @@ export function UserPropertiesTable({
             col.accessor('name', {
                 size: 180,
                 header: () => {
+                    // TODO(cpa-display-name Phase 4 task 4.1): rename this header from
+                    // 'Attribute' to 'Identifier'; add helper text explaining the CEL constraint;
+                    // add a new 'Display name' column (col.accessor('attrs.display_name', ...))
+                    // wired to attrs.display_name via EditCell; wire validateCPAFieldName.
                     return (
                         <ColHeaderLeft>
                             <FormattedMessage

@@ -539,6 +539,11 @@ function PermissionPolicyDetails({
                                             onValidate={() => {}}
                                             disabled={noUsableAttributes}
                                             userAttributes={filteredAttributes.map((attr) => ({
+
+                                                // TODO(cpa-display-name Phase 3 follow-up): CELEditor's
+                                                // userAttributes type only has {attribute, values}. To show
+                                                // display_name in the CEL autocomplete, add a 'label' field
+                                                // to CELEditor's data shape and pass getUserPropertyFieldLabel(attr).
                                                 attribute: attr.name,
                                                 values: [],
                                             }))}

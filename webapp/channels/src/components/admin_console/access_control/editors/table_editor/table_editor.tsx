@@ -83,8 +83,10 @@ interface TableEditorProps {
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
-// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
+// An attribute is considered available if it doesn't have spaces in its NAME (the CEL identifier —
+// not the display_name). New CPA fields cannot have spaces in name (Phase 1 server validation),
+// so hasSpaces only fires for grandfathered legacy fields.
+// An attribute is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
@@ -229,6 +231,48 @@ function TableEditor({
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.
     const updateExpression = useCallback((newRows: TableRow[]) => {
+        const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute); // Only include rows that have an attribute selected
+
+        const expr = rowsThatCanFormExpressions.map((row) => {
+            // row.attribute is the CEL identifier (field.name), never the display_name.
+            const attributeExpr = `user.attributes.${row.attribute}`;
+            const config = OPERATOR_CONFIG[row.operator];
+
+            // Find the attribute object to check its type
+            const attributeObj = userAttributes.find((attr) => attr.name === row.attribute);
+
+            if (!config) {
+                // Fallback for unknown operators, defaulting to 'in' logic
+                // This handles cases where row.operator might be an unexpected string.
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] in ${attributeExpr}`;
+                }
+                return `${attributeExpr} in [${valuesStr}]`;
+            }
+
+            if (config.type === 'list') { // Handles 'in'
+                const valuesStr = row.values.map((val: string) => `"${val}"`).join(', ');
+
+                // For multiselect, reverse the order since multiselect attributes can contain multiple values
+                if (attributeObj?.type === 'multiselect') {
+                    return `[${valuesStr}] ${config.celOp} ${attributeExpr}`;
+                }
+                return `${attributeExpr} ${config.celOp} [${valuesStr}]`;
+            }
+
+            // For 'comparison' and 'method' types, they operate on a single value.
+            const value = row.values.length > 0 ? row.values[0] : '';
+
+            if (config.type === 'comparison') {
+                return `${attributeExpr} ${config.celOp} "${value}"`;
+            }
+
+            // config.type must be 'method'
+            return `${attributeExpr}.${config.celOp}("${value}")`;
+        }).join(' && ');
         const rowsThatCanFormExpressions = newRows.filter((row) => row.attribute && row.values.length > 0);
 
         const expr = rowsThatCanFormExpressions.map((row) => rowToCEL(row)).join(' && ');
