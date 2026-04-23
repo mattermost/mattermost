@@ -139,7 +139,7 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.path.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
-	if !IsValidFilename(fi.Name) {
+	if fi.Name != "" && !IsValidFilename(fi.Name) {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.name.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 

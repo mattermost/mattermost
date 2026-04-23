@@ -20,7 +20,6 @@ func TestFileInfoIsValid(t *testing.T) {
 		UpdateAt:  1234,
 		PostId:    "",
 		Path:      "fake/path.png",
-		Name:      "path.png",
 	}
 
 	t.Run("Valid File Info", func(t *testing.T) {
@@ -63,12 +62,16 @@ func TestFileInfoIsValid(t *testing.T) {
 		info.CreatorId = creatorId
 	})
 
-	t.Run("Name must be a plain filename", func(t *testing.T) {
+	t.Run("Empty Name is valid", func(t *testing.T) {
+		info.Name = ""
+		assert.Nil(t, info.IsValid())
+	})
+
+	t.Run("Non-empty Name must be a plain filename", func(t *testing.T) {
 		originalName := info.Name
 		defer func() { info.Name = originalName }()
 
 		badNames := []string{
-			"",
 			".",
 			"..",
 			"../a.png",
