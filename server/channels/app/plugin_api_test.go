@@ -3525,13 +3525,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3544,18 +3545,18 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count active fields
-		count, err := api.CountPropertyFields(groupID, false)
+		count, err := api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count should now be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3565,13 +3566,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3584,23 +3586,23 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count all fields
-		count, err := api.CountPropertyFields(groupID, true)
+		count, err := api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count all should still be 5
-		count, err = api.CountPropertyFields(groupID, true)
+		count, err = api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Count active should be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})

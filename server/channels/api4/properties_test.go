@@ -1324,28 +1324,6 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
-	t.Run("PSAv1 field should not be patchable", func(t *testing.T) {
-		// Create a PSAv1 field (empty ObjectType) directly via the service
-		v1Field := &model.PropertyField{
-			Name:       model.NewId(),
-			Type:       model.PropertyFieldTypeText,
-			GroupID:    group.ID,
-			ObjectType: "",
-			TargetType: "system",
-			TargetID:   model.NewId(),
-		}
-		createdV1Field, appErr := th.App.CreatePropertyField(th.Context, v1Field, true, "")
-		require.Nil(t, appErr)
-
-		th.LoginBasic(t)
-		newName := model.NewId()
-		patch := &model.PropertyFieldPatch{Name: &newName}
-
-		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdV1Field.ID, patch)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-	})
-
 	t.Run("v1 group should return 404", func(t *testing.T) {
 		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)

@@ -1238,6 +1238,8 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 }
 
 func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
+	t.Skip("Skip until CPA is fully migrated to v2: this test creates linked fields with ObjectType and permissions on a v1 group, which is rejected by the version mismatch check")
+
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"

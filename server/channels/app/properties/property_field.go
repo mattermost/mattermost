@@ -24,12 +24,15 @@ func (ps *PropertyService) enforceFieldGroupVersionMatch(caller string, groupID 
 		return fmt.Errorf("%s: failed to look up group for version check: %w", caller, err)
 	}
 
-	if field.IsPSAv1() != group.IsPSAv1() {
-		return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
-			"field and group version mismatch", http.StatusBadRequest)
+	if group.IsPSAv1() && field.IsPSAv1() {
+		return nil
+	}
+	if group.IsPSAv2() && field.IsPSAv2() {
+		return nil
 	}
 
-	return nil
+	return model.NewAppError(caller, "app.property_field.version_mismatch.app_error", nil,
+		"field and group version mismatch", http.StatusBadRequest)
 }
 
 // Private implementation methods (database access)
@@ -40,8 +43,10 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		return nil, err
 	}
 
-	// Legacy properties (PSAv1) skip conflict check
-	if field.IsPSAv1() {
+	// FIXME: Legacy properties (PSAv1) skip conflict check, but
+	// template fields still need it because they can have linked
+	// dependents.
+	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
 		return ps.fieldStore.Create(field)
 	}
 
@@ -259,8 +264,10 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
-		// Legacy properties (PSAv1) skip conflict check
-		if field.IsPSAv1() {
+		// FIXME: Legacy properties (PSAv1) skip conflict check, but
+		// template fields still need it because they can have linked
+		// dependents.
+		if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
 			continue
 		}
 
