@@ -49,6 +49,7 @@ export type SetupGlobalBannerOptions = {
     levelName: string;
     enabled?: boolean;
     placement?: 'top' | 'top_and_bottom';
+    color?: string;
 };
 
 /**
@@ -65,6 +66,7 @@ export async function setGlobalBannerConfig(adminClient: Client4, bannerOpts: Se
                 Enabled: bannerOpts.enabled ?? true,
                 Placement: bannerOpts.placement ?? 'top',
                 LevelName: bannerOpts.levelName,
+                Color: bannerOpts.color ?? '',
             },
         },
     } as Awaited<ReturnType<Client4['getConfig']>>);
