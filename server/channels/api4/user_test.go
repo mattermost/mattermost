@@ -5296,30 +5296,18 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
-		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "expires token")
-		require.NoError(t, err)
+		// Persist a PAT with ExpiresAt in the past directly through the store
+		// so no session is ever minted for it. This keeps the test isolated
+		// from the platform session cache and safe to run in parallel.
+		saved, sErr := th.App.Srv().Store().UserAccessToken().Save(&model.UserAccessToken{
+			Token:       model.NewId(),
+			UserId:      th.BasicUser.Id,
+			Description: "expired token",
+			ExpiresAt:   model.GetMillis() - 1000,
+		})
+		require.NoError(t, sErr)
 
-		assertToken(t, th, rtoken, th.BasicUser.Id)
-
-		// Backdate ExpiresAt and revoke any live session so the next auth
-		// attempt goes through createSessionForUserAccessToken.
-		sqlStore := mainHelper.GetSQLStore()
-		_, dbErr := sqlStore.GetMaster().Exec(
-			"UPDATE UserAccessTokens SET ExpiresAt = ? WHERE Id = ?",
-			model.GetMillis()-1000, rtoken.Id,
-		)
-		require.NoError(t, dbErr)
-
-		// Revoke any cached session so validation happens against the PAT.
-		sessions, sErr := th.App.GetSessions(th.Context, th.BasicUser.Id)
-		require.Nil(t, sErr)
-		for _, s := range sessions {
-			if s.Props[model.SessionPropType] == model.SessionTypeUserAccessToken {
-				require.Nil(t, th.App.RevokeSession(th.Context, s))
-			}
-		}
-
-		assertInvalidToken(t, th, rtoken)
+		assertInvalidToken(t, th, saved)
 	})
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
