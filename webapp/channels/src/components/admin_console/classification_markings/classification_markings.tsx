@@ -63,7 +63,7 @@ const msg = defineMessages({
     globalBannerPlacementTop: {id: 'admin.classification_markings.global_banner.placement.top', defaultMessage: 'Top only'},
     globalBannerPlacementTopAndBottom: {id: 'admin.classification_markings.global_banner.placement.top_and_bottom', defaultMessage: 'Top and bottom'},
     globalBannerLevelTitle: {id: 'admin.classification_markings.global_banner.level.title', defaultMessage: 'Global classification level'},
-    globalBannerLevelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Choose from a variety of pre-defined banner options. To manually set the banner text and color, select "Custom banner".'},
+    globalBannerLevelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Select a classification level to display on the global banner. The banner text and color are determined by the chosen level.'},
     errorGlobalBannerNoLevel: {id: 'admin.classification_markings.error.global_banner_no_level', defaultMessage: 'A global classification level must be selected when the global banner is enabled.'},
     errorGlobalBannerLevelMissing: {id: 'admin.classification_markings.error.global_banner_level_missing', defaultMessage: 'The global classification banner is configured with a level that no longer exists. Select a level that exists in the current classification levels.'},
     errorDeleteHasDependents: {id: 'admin.classification_markings.error.delete_has_dependents', defaultMessage: 'Cannot disable classification markings while channel classifications exist. Remove all channel classification markings first.'},
