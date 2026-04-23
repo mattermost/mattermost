@@ -198,3 +198,93 @@ func TestDeleteCPAValues(t *testing.T) {
 		require.Len(t, listValues(otherUserID), 3)
 	})
 }
+
+// TestCPAValueSyncLock exercises AccessControlHook.checkSyncLock end-to-end
+// at the app layer: a write for a field with ldap= or saml= set only
+// succeeds when the caller ID matches the field's sync source. Covering this
+// at the app layer also asserts that the startup wiring in server.go
+// (protected_attributes group registration, AccessControlHook install, and
+// CallerIDExtractor reading from request.CTX) is intact — something the
+// properties-package tests cannot verify because they install the hook
+// themselves.
+func TestCPAValueSyncLock(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	cpaID := cpaGroup.ID
+
+	adminRctx := th.emptyContextWithCallerID(th.SystemAdminUser.Id)
+
+	createField := func(name string, attrs model.CPAAttrs) *model.PropertyField {
+		t.Helper()
+		cpa := &model.CPAField{
+			PropertyField: model.PropertyField{
+				GroupID:    cpaID,
+				Name:       name,
+				Type:       model.PropertyFieldTypeText,
+				ObjectType: model.PropertyFieldObjectTypeUser,
+				TargetType: string(model.PropertyFieldTargetLevelSystem),
+			},
+			Attrs: attrs,
+		}
+		require.Nil(t, cpa.SanitizeAndValidate())
+		created, appErr := th.App.CreatePropertyField(adminRctx, cpa.ToPropertyField(), false, "")
+		require.Nil(t, appErr)
+		return created
+	}
+
+	ldapField := createField("ldap_attr_"+model.NewId(), model.CPAAttrs{LDAP: "mail"})
+	samlField := createField("saml_attr_"+model.NewId(), model.CPAAttrs{SAML: "email"})
+	plainField := createField("plain_attr_"+model.NewId(), model.CPAAttrs{})
+
+	userID := model.NewId()
+	upsertAs := func(callerID string, field *model.PropertyField) *model.AppError {
+		t.Helper()
+		rctx := th.emptyContextWithCallerID(callerID)
+		_, appErr := th.App.UpsertPropertyValues(rctx, []*model.PropertyValue{{
+			GroupID:    cpaID,
+			TargetType: model.PropertyValueTargetTypeUser,
+			TargetID:   userID,
+			FieldID:    field.ID,
+			Value:      json.RawMessage(`"value"`),
+		}}, model.PropertyFieldObjectTypeUser, userID, "")
+		return appErr
+	}
+
+	requireSyncLock := func(appErr *model.AppError) {
+		t.Helper()
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.property.sync_lock.app_error", appErr.Id)
+	}
+
+	t.Run("anonymous caller is blocked on an LDAP-synced field", func(t *testing.T) {
+		requireSyncLock(upsertAs(anonymousCallerId, ldapField))
+	})
+
+	t.Run("anonymous caller is blocked on a SAML-synced field", func(t *testing.T) {
+		requireSyncLock(upsertAs(anonymousCallerId, samlField))
+	})
+
+	t.Run("anonymous caller is allowed on a non-synced field", func(t *testing.T) {
+		require.Nil(t, upsertAs(anonymousCallerId, plainField))
+	})
+
+	t.Run("LDAP sync caller is allowed on an LDAP-synced field", func(t *testing.T) {
+		require.Nil(t, upsertAs(model.CallerIDLDAPSync, ldapField))
+	})
+
+	t.Run("LDAP sync caller is blocked on a SAML-synced field", func(t *testing.T) {
+		requireSyncLock(upsertAs(model.CallerIDLDAPSync, samlField))
+	})
+
+	t.Run("SAML sync caller is allowed on a SAML-synced field", func(t *testing.T) {
+		require.Nil(t, upsertAs(model.CallerIDSAMLSync, samlField))
+	})
+
+	t.Run("SAML sync caller is blocked on an LDAP-synced field", func(t *testing.T) {
+		requireSyncLock(upsertAs(model.CallerIDSAMLSync, ldapField))
+	})
+}
