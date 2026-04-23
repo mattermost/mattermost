@@ -1560,20 +1560,11 @@ type API interface {
 
 	// RegisterPropertyGroup registers a new property group.
 	//
-	// Note: the group name "custom_profile_attributes" is reserved and cannot be
-	// registered. It was renamed to "protected_attributes". Plugins should use
-	// [model.ProtectedAttributesPropertyGroupName] instead.
-	//
 	// @tag PropertyGroup
 	// Minimum server version: 10.10
 	RegisterPropertyGroup(name string) (*model.PropertyGroup, error)
 
 	// GetPropertyGroup gets a property group by name.
-	//
-	// Note: the group name "custom_profile_attributes" is deprecated and is
-	// silently mapped to "protected_attributes" for backward compatibility.
-	// Plugins should use [model.ProtectedAttributesPropertyGroupName] instead.
-	// The deprecated mapping will be removed in a future server release.
 	//
 	// @tag PropertyGroup
 	// Minimum server version: 10.10

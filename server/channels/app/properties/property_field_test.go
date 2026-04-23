@@ -591,7 +591,7 @@ func TestUpdatePropertyField(t *testing.T) {
 			},
 		})
 
-		// Update non-name fields (Attrs only — Type changes are disallowed)
+		// Update non-name fields (Attrs only)
 		field.Attrs = map[string]any{
 			"key": "updated",
 		}

@@ -439,10 +439,6 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 	return true
 }
 
-// --- Shared property operation functions ---
-// These are called by both the generic property API handlers and the CPA
-// translation-shim handlers to keep authorization in a single place.
-
 // sessionCallerID returns the caller ID to attach to a request-derived rctx
 // for property-service hook identification. Local-mode (unrestricted)
 // sessions have an empty Session.UserId but full admin privileges, so they

@@ -154,10 +154,6 @@ func (ps *PropertyService) getPropertyFieldFromMaster(groupID, id string) (*mode
 	return ps.fieldStore.Get(store.WithMaster(context.Background()), groupID, id)
 }
 
-// getPropertyFields wraps store.ErrResultsMismatch with ErrFieldNotFound so
-// hook callers surface a 404 via mapPropertyServiceError instead of a generic
-// 500. The original store error stays in the chain, which keeps
-// App.GetPropertyFields' own ErrResultsMismatch->400 branch working.
 func (ps *PropertyService) getPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
 	fields, err := ps.fieldStore.GetMany(context.Background(), groupID, ids)
 	if err != nil {
@@ -455,11 +451,6 @@ func (ps *PropertyService) GetPropertyFieldByName(rctx request.CTX, groupID, tar
 
 	return ps.runPostGetPropertyField(rctx, field)
 }
-
-// Count methods run PreCountPropertyFields so group-level gating (e.g.
-// license) applies. Access control hooks are no-ops for counts since a
-// scalar total exposes no per-row data. Internal callers that need to
-// bypass hooks (e.g. FieldLimitHook) use the private count* methods.
 
 func (ps *PropertyService) CountActivePropertyFieldsForGroup(rctx request.CTX, groupID string) (int64, error) {
 	if err := ps.runPreCountPropertyFields(rctx, groupID); err != nil {

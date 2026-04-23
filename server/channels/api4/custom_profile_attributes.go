@@ -41,7 +41,7 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	pfs, appErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeUser,
-		PerPage:    250,
+		PerPage:    250, // The global limit is 200, so this will get everything
 	})
 	if appErr != nil {
 		c.Err = appErr
@@ -79,10 +79,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Translate to PropertyField and route through the generic property API.
 	// Every server-controlled field on the decoded payload is explicitly
-	// overwritten below so the no-mass-assignment invariant is local to this
-	// handler: scope is fixed for CPA, identity/audit fields are store-owned,
-	// and Protected plus all Permission* are enforced by the property hooks
-	// registered for the protected_attributes group.
+	// overwritten below so they can't be set by the caller. This is just
+	// a precaution - lower layers are responsible for setting these.
 	field := pf.ToPropertyField()
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
@@ -115,14 +113,14 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CPA-specific websocket event (backward compat)
+	// Send CPA-specific websocket event for backwards compatibility
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldCreated, "", "", "", nil, "")
 	message.Add("field", cpaField)
 	c.App.Publish(message)
 
-	auditRec.Success()
-	auditRec.AddEventResultState(cpaField)
 	auditRec.AddEventObjectType("property_field")
+	auditRec.AddEventResultState(cpaField)
+	auditRec.Success()
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(cpaField); err != nil {
@@ -145,7 +143,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if patch.Name != nil {
 		*patch.Name = strings.TrimSpace(*patch.Name)
 	}
-	// CPA does not use targets
+	// Target fields are server-controlled; prevent the caller from patching them.
 	patch.TargetID = nil
 	patch.TargetType = nil
 
@@ -328,7 +326,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	values, appErr := c.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
 		TargetIDs:  []string{c.Params.UserId},
 		TargetType: model.PropertyValueTargetTypeUser,
-		PerPage:    250,
+		PerPage:    250, // The global limit is 200, so this will get everything
 	})
 	if appErr != nil {
 		c.Err = appErr

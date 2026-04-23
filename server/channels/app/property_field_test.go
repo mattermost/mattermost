@@ -14,8 +14,7 @@ import (
 )
 
 // registerTestPropertyGroup creates a fresh, unmanaged property group for
-// tests that exercise generic PropertyField CRUD without CPA semantics
-// (license gating, attribute validation, or access control).
+// tests that exercise generic PropertyField CRUD
 func registerTestPropertyGroup(tb testing.TB, th *TestHelper) string {
 	tb.Helper()
 	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test-"+model.NewId())

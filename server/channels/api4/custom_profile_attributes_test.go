@@ -1243,11 +1243,8 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	})
 }
 
-// TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin can write
-// their own non-admin-managed CPA value through the generic property API
-// (/api/v4/properties/protected_attributes/...). The request travels through
-// hasTargetAccess (self-target short-circuit) and the per-field permission
-// check (PermissionValues="member" → scope-based access).
+// TestCPANonAdminWriteOwnValueViaGenericAPI confirms a non-admin user can set
+// their own value on a regular CPA field via the generic property API.
 func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -1307,12 +1304,9 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	require.Equal(t, value, readValue)
 }
 
-// TestCPANonAdminBlockedFromAdminManagedViaGenericAPI confirms the generic
-// property API denies a non-admin caller writing to an admin-managed field,
-// producing the same error ID as the CPA-path test at line ~745. The 403
-// fires at the per-field permission check in executePatchPropertyValues
-// before the hook chain runs, since AttributeValidationHook.enforceGroupPermissions
-// pinned PermissionValues=sysadmin at field-create time.
+// TestCPANonAdminBlockedFromAdminManagedViaGenericAPI confirms a non-admin user
+// is blocked from writing their own value on an admin-only CPA field via the
+// generic property API.
 func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
