@@ -46,6 +46,7 @@ const (
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
+	PropertyFieldObjectTypeSystem   = "system"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.
@@ -64,6 +65,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeChannel,
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
+	PropertyFieldObjectTypeSystem,
 }
 
 type PropertyField struct {
@@ -213,6 +215,11 @@ func (pf *PropertyField) IsValid() error {
 			if !IsValidId(pf.TargetID) {
 				return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "must be a valid ID for team or channel target type"}, "id="+pf.ID, http.StatusBadRequest)
 			}
+		}
+
+		// System-object fields attach to the system itself; they cannot be scoped below the system level.
+		if pf.ObjectType == PropertyFieldObjectTypeSystem && pf.TargetType != string(PropertyFieldTargetLevelSystem) {
+			return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "must be system for system object type"}, "id="+pf.ID, http.StatusBadRequest)
 		}
 	} else {
 		// PSAv1 properties cannot have permissions or be protected

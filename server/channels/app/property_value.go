@@ -24,6 +24,8 @@ func (a *App) resolveValueBroadcastParams(rctx request.CTX, objectType, targetID
 		return "", targetID, nil
 	case model.PropertyFieldObjectTypeUser:
 		return "", "", nil // system-wide
+	case model.PropertyFieldObjectTypeSystem:
+		return "", "", nil // system-wide
 	default:
 		return "", "", model.NewAppError(
 			"resolveValueBroadcastParams",

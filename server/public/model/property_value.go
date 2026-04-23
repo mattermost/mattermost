@@ -18,6 +18,13 @@ const (
 	PropertyValueTargetTypePost    = "post"
 	PropertyValueTargetTypeUser    = "user"
 	PropertyValueTargetTypeChannel = "channel"
+	PropertyValueTargetTypeSystem  = "system"
+
+	// PropertyValueSystemTargetID is the canonical TargetID sentinel for
+	// values whose TargetType is "system". System-object values attach to
+	// the Mattermost instance itself rather than to a user/channel/post,
+	// so there is no 26-char entity ID available; this sentinel stands in.
+	PropertyValueSystemTargetID = "system"
 )
 
 type PropertyValue struct {
@@ -32,6 +39,15 @@ type PropertyValue struct {
 	DeleteAt   int64           `json:"delete_at"`
 	CreatedBy  string          `json:"created_by"`
 	UpdatedBy  string          `json:"updated_by"`
+}
+
+// isValidPropertyValueTargetID accepts the canonical system sentinel when
+// the value targets the system, and a 26-char entity ID otherwise.
+func isValidPropertyValueTargetID(targetType, targetID string) bool {
+	if targetType == PropertyValueTargetTypeSystem {
+		return targetID == PropertyValueSystemTargetID
+	}
+	return IsValidId(targetID)
 }
 
 func (pv *PropertyValue) PreSave() {
@@ -50,7 +66,7 @@ func (pv *PropertyValue) IsValid() error {
 		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "id", "Reason": "invalid id"}, "", http.StatusBadRequest)
 	}
 
-	if !IsValidId(pv.TargetID) {
+	if !isValidPropertyValueTargetID(pv.TargetType, pv.TargetID) {
 		return NewAppError("PropertyValue.IsValid", "model.property_value.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "invalid id"}, "id="+pv.ID, http.StatusBadRequest)
 	}
 

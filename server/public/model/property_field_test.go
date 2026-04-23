@@ -314,6 +314,51 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.Error(t, pf.IsValid())
 	})
 
+	t.Run("PSAv2 system ObjectType with system TargetType is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			TargetID:   "",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 system ObjectType with team TargetType is invalid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelTeam),
+			TargetID:   NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 system ObjectType with channel TargetType is invalid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelChannel),
+			TargetID:   NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
 	t.Run("PSAv2 team TargetType with invalid TargetID is invalid", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),

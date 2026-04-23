@@ -3170,3 +3170,148 @@ func TestLinkedProperties(t *testing.T) {
 		}
 	})
 }
+
+func TestSystemObjectType(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_system_object_type")
+	require.Nil(t, err)
+
+	t.Run("non-admin cannot create a system field", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		_, resp, createErr := th.Client.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.Error(t, createErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("sysadmin creates a system field with canonical target and sysadmin-default permissions", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+			// Intentionally submit mismatched target fields to confirm the server canonicalizes them.
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   model.NewId(),
+		}
+		created, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, model.PropertyFieldObjectTypeSystem, created.ObjectType)
+		require.Equal(t, string(model.PropertyFieldTargetLevelSystem), created.TargetType)
+		require.Empty(t, created.TargetID)
+		require.NotNil(t, created.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+	})
+
+	t.Run("any authenticated user can list system fields", func(t *testing.T) {
+		// No target_type query required when object_type=system.
+		fields, resp, getErr := th.Client.GetPropertyFields(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyFieldSearch{})
+		require.NoError(t, getErr)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, fields)
+	})
+
+	t.Run("legacy values route rejects system object type", func(t *testing.T) {
+		// Force a URL that matches {object_type}/values/{target_id}. "system" is a valid
+		// character set for {target_id}, so the route is reachable even though the handler
+		// must reject it.
+		_, resp, getErr := th.Client.GetPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID, model.PropertyValueSearch{})
+		require.Error(t, getErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system field round-trips a value via the dedicated route", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, createErr := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, field)
+		require.NoError(t, createErr)
+		CheckCreatedStatus(t, resp)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"hello-system"`)},
+		}
+
+		// Non-admin cannot write a system value.
+		_, resp, patchErr := th.Client.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.Error(t, patchErr)
+		CheckForbiddenStatus(t, resp)
+
+		// Sysadmin writes succeed and store the sentinel TargetID.
+		upserted, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+		require.Len(t, upserted, 1)
+		require.Equal(t, model.PropertyValueSystemTargetID, upserted[0].TargetID)
+		require.Equal(t, model.PropertyValueTargetTypeSystem, upserted[0].TargetType)
+
+		// Any authed user can read.
+		values, resp, getErr := th.Client.GetSystemPropertyValues(context.Background(), group.Name, model.PropertyValueSearch{})
+		require.NoError(t, getErr)
+		CheckOKStatus(t, resp)
+		found := false
+		for _, v := range values {
+			if v.FieldID == created.ID {
+				require.Equal(t, model.PropertyValueSystemTargetID, v.TargetID)
+				require.Equal(t, json.RawMessage(`"hello-system"`), v.Value)
+				found = true
+			}
+		}
+		require.True(t, found, "expected to find the system value we just wrote")
+	})
+
+	t.Run("system value patch broadcasts system-wide", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       field.Name,
+			Type:       field.Type,
+			ObjectType: model.PropertyFieldObjectTypeSystem,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			PermissionField: model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}, false, "")
+		require.Nil(t, appErr)
+
+		th.LoginBasic(t)
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"broadcast-me"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.NoError(t, patchErr)
+		CheckOKStatus(t, resp)
+
+		require.Eventually(t, func() bool {
+			select {
+			case event := <-webSocketClient.EventChannel:
+				if event.EventType() == model.WebsocketEventPropertyValuesUpdated &&
+					event.GetData()["object_type"] == model.PropertyFieldObjectTypeSystem {
+					require.Equal(t, model.PropertyValueSystemTargetID, event.GetData()["target_id"])
+					// System target: broadcast should be system-wide (empty team/channel)
+					require.Empty(t, event.GetBroadcast().TeamId)
+					require.Empty(t, event.GetBroadcast().ChannelId)
+					return true
+				}
+			default:
+				return false
+			}
+			return false
+		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
