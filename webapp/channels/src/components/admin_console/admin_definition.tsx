@@ -353,7 +353,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_analytics: {
                 url: 'reporting/system_analytics',
-                title: defineMessage({id: 'admin.sidebar.siteStatistics', defaultMessage: 'Site Statistics'}),
+                title: defineMessage({id: 'admin.sidebar.systemStatistics', defaultMessage: 'System Statistics'}),
                 searchableStrings: systemAnalyticsSearchableStrings,
                 schema: {
                     id: 'SystemAnalytics',

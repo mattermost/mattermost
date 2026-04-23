@@ -4,7 +4,10 @@
 package elasticsearch
 
 import (
+	"context"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,6 +58,98 @@ func TestElasticSearchIndexerJobIsEnabled(t *testing.T) {
 
 		assert.Equal(t, result, false)
 	})
+}
+
+// TestElasticsearchIndexerBulkWriteFailures verifies that a reindex job is marked
+// as failed when Elasticsearch rejects bulk writes with per-item errors (e.g. a
+// write block on the index), rather than silently reporting success.
+//
+// Requires a running Elasticsearch instance (skipped otherwise).
+func TestElasticsearchIndexerBulkWriteFailures(t *testing.T) {
+	th := api4.SetupEnterprise(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableAutocomplete = true
+		*cfg.SqlSettings.DisableDatabaseSearch = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
+	ctx := context.Background()
+
+	// Skip if Elasticsearch is not reachable.
+	_, err := client.Info().Do(ctx)
+	if err != nil {
+		t.Skipf("Elasticsearch not available at %s: %v", *th.App.Config().ElasticsearchSettings.ConnectionURL, err)
+	}
+
+	impl := ElasticsearchIndexerInterfaceImpl{Server: th.App.Srv()}
+	worker := impl.MakeWorker()
+	require.NotNil(t, worker)
+	th.Server.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, worker, nil)
+
+	go worker.Run()
+	defer worker.Stop()
+
+	// Phase 1: clean reindex so the indices exist.
+	job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeElasticsearchPostIndexing, map[string]string{})
+	require.Nil(t, appErr)
+	worker.JobChannel() <- *job
+	job = waitForElasticsearchJob(t, th, job.Id, 60*time.Second)
+	require.Equal(t, model.JobStatusSuccess, job.Status, "initial reindex should succeed")
+
+	// Collect the indices that were created (skip internal dot-prefixed ones).
+	indexMap, err := client.Indices.Get("*").Do(ctx)
+	require.NoError(t, err)
+	var indexNames []string
+	for name := range indexMap {
+		if !strings.HasPrefix(name, ".") {
+			indexNames = append(indexNames, name)
+		}
+	}
+	require.NotEmpty(t, indexNames, "initial reindex should have created at least one index")
+
+	// Apply a write block to all Mattermost indices and remove it on cleanup.
+	setWriteBlock := func(blocked bool) {
+		body := `{"index.blocks.write":true}`
+		if !blocked {
+			body = `{"index.blocks.write":false}`
+		}
+		_, putErr := client.Indices.PutSettings().
+			Indices(strings.Join(indexNames, ",")).
+			Raw(strings.NewReader(body)).
+			Do(ctx)
+		require.NoError(t, putErr, "failed to set write block=%v", blocked)
+	}
+	setWriteBlock(true)
+	defer setWriteBlock(false)
+
+	// Phase 2: reindex against write-blocked indices — job must be marked as error.
+	job, appErr = th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeElasticsearchPostIndexing, map[string]string{})
+	require.Nil(t, appErr)
+	worker.JobChannel() <- *job
+	job = waitForElasticsearchJob(t, th, job.Id, 60*time.Second)
+	assert.Equal(t, model.JobStatusError, job.Status, "reindex against write-blocked indices should fail")
+}
+
+// waitForElasticsearchJob polls the job store until the job reaches a terminal
+// status or the timeout expires.
+func waitForElasticsearchJob(t *testing.T, th *api4.TestHelper, jobID string, timeout time.Duration) *model.Job {
+	t.Helper()
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		job, err := th.App.Srv().Store().Job().Get(th.Context, jobID)
+		require.NoError(t, err)
+		switch job.Status {
+		case model.JobStatusSuccess, model.JobStatusError, model.JobStatusCanceled:
+			return job
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	t.Fatalf("job %s did not reach a terminal status within %s", jobID, timeout)
+	return nil
 }
 
 func TestElasticSearchIndexerPending(t *testing.T) {

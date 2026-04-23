@@ -5,6 +5,8 @@
 package mocks
 
 import (
+	context "context"
+
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -98,6 +100,34 @@ func (_m *PropertyFieldStore) CountForTarget(groupID string, targetType string, 
 	return r0, r1
 }
 
+// CountLinkedFields provides a mock function with given fields: fieldID
+func (_m *PropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+	ret := _m.Called(fieldID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CountLinkedFields")
+	}
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (int64, error)); ok {
+		return rf(fieldID)
+	}
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
+		r0 = rf(fieldID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: field
 func (_m *PropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	ret := _m.Called(field)
@@ -146,9 +176,9 @@ func (_m *PropertyFieldStore) Delete(groupID string, id string) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: groupID, id
-func (_m *PropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
-	ret := _m.Called(groupID, id)
+// Get provides a mock function with given fields: ctx, groupID, id
+func (_m *PropertyFieldStore) Get(ctx context.Context, groupID string, id string) (*model.PropertyField, error) {
+	ret := _m.Called(ctx, groupID, id)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -156,19 +186,19 @@ func (_m *PropertyFieldStore) Get(groupID string, id string) (*model.PropertyFie
 
 	var r0 *model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.PropertyField, error)); ok {
-		return rf(groupID, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.PropertyField, error)); ok {
+		return rf(ctx, groupID, id)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.PropertyField); ok {
-		r0 = rf(groupID, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.PropertyField); ok {
+		r0 = rf(ctx, groupID, id)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(groupID, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, groupID, id)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -176,9 +206,9 @@ func (_m *PropertyFieldStore) Get(groupID string, id string) (*model.PropertyFie
 	return r0, r1
 }
 
-// GetFieldByName provides a mock function with given fields: groupID, targetID, name
-func (_m *PropertyFieldStore) GetFieldByName(groupID string, targetID string, name string) (*model.PropertyField, error) {
-	ret := _m.Called(groupID, targetID, name)
+// GetFieldByName provides a mock function with given fields: ctx, groupID, targetID, name
+func (_m *PropertyFieldStore) GetFieldByName(ctx context.Context, groupID string, targetID string, name string) (*model.PropertyField, error) {
+	ret := _m.Called(ctx, groupID, targetID, name)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetFieldByName")
@@ -186,19 +216,19 @@ func (_m *PropertyFieldStore) GetFieldByName(groupID string, targetID string, na
 
 	var r0 *model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (*model.PropertyField, error)); ok {
-		return rf(groupID, targetID, name)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*model.PropertyField, error)); ok {
+		return rf(ctx, groupID, targetID, name)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.PropertyField); ok {
-		r0 = rf(groupID, targetID, name)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *model.PropertyField); ok {
+		r0 = rf(ctx, groupID, targetID, name)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(groupID, targetID, name)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, groupID, targetID, name)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -206,9 +236,9 @@ func (_m *PropertyFieldStore) GetFieldByName(groupID string, targetID string, na
 	return r0, r1
 }
 
-// GetMany provides a mock function with given fields: groupID, ids
-func (_m *PropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
-	ret := _m.Called(groupID, ids)
+// GetMany provides a mock function with given fields: ctx, groupID, ids
+func (_m *PropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
+	ret := _m.Called(ctx, groupID, ids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMany")
@@ -216,19 +246,19 @@ func (_m *PropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.Pr
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []string) ([]*model.PropertyField, error)); ok {
-		return rf(groupID, ids)
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) ([]*model.PropertyField, error)); ok {
+		return rf(ctx, groupID, ids)
 	}
-	if rf, ok := ret.Get(0).(func(string, []string) []*model.PropertyField); ok {
-		r0 = rf(groupID, ids)
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) []*model.PropertyField); ok {
+		r0 = rf(ctx, groupID, ids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []string) error); ok {
-		r1 = rf(groupID, ids)
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
+		r1 = rf(ctx, groupID, ids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -266,9 +296,9 @@ func (_m *PropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSearc
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: groupID, fields
-func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	ret := _m.Called(groupID, fields)
+// Update provides a mock function with given fields: groupID, fields, expectedUpdateAts
+func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
+	ret := _m.Called(groupID, fields, expectedUpdateAts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Update")
@@ -276,19 +306,19 @@ func (_m *PropertyFieldStore) Update(groupID string, fields []*model.PropertyFie
 
 	var r0 []*model.PropertyField
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField) ([]*model.PropertyField, error)); ok {
-		return rf(groupID, fields)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, map[string]int64) ([]*model.PropertyField, error)); ok {
+		return rf(groupID, fields, expectedUpdateAts)
 	}
-	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField) []*model.PropertyField); ok {
-		r0 = rf(groupID, fields)
+	if rf, ok := ret.Get(0).(func(string, []*model.PropertyField, map[string]int64) []*model.PropertyField); ok {
+		r0 = rf(groupID, fields, expectedUpdateAts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.PropertyField)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField) error); ok {
-		r1 = rf(groupID, fields)
+	if rf, ok := ret.Get(1).(func(string, []*model.PropertyField, map[string]int64) error); ok {
+		r1 = rf(groupID, fields, expectedUpdateAts)
 	} else {
 		r1 = ret.Error(1)
 	}
