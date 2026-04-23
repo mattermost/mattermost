@@ -515,6 +515,16 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Upload file',
         },
     }),
+    edit_file_attachment: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.edit_file_attachment.name',
+            defaultMessage: 'Edit Attachments',
+        },
+        description: {
+            id: 'admin.permissions.permission.edit_file_attachment.description',
+            defaultMessage: 'Allow users to add or remove file attachments when editing posts.',
+        },
+    }),
     use_channel_mentions: defineMessages({
         name: {
             id: 'admin.permissions.permission.use_channel_mentions.name',

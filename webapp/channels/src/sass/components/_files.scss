@@ -82,6 +82,15 @@
             background: rgba(var(--button-bg-rgb), 0.08);
             color: functions.v(button-bg);
         }
+
+        &--disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+
+            &:hover {
+                background: none;
+            }
+        }
     }
 }
 

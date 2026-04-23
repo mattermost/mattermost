@@ -176,6 +176,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         ],
                     },
                     Permissions.USE_CHANNEL_MENTIONS,
+                    Permissions.EDIT_FILE_ATTACHMENT,
                 ],
             },
             {

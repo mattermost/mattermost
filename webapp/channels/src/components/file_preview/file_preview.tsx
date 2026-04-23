@@ -10,6 +10,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {FileTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -30,6 +31,7 @@ type Props = {
     uploadsInProgress?: string[];
     uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
     compactMode?: boolean;
+    disabledRemoveTooltip?: string;
 };
 
 export default class FilePreview extends React.PureComponent<Props> {
@@ -96,29 +98,50 @@ export default class FilePreview extends React.PureComponent<Props> {
                     key={info.id}
                     className={className}
                 >
-                    <div className='post-image__thumbnail'>
-                        {previewImage}
-                    </div>
+                    <div className='post-image__thumbnail'>{previewImage}</div>
                     <div className='post-image__details'>
                         <div className='post-image__detail_wrapper'>
-                            <div className={classNames('post-image__detail', {compact: this.props.compactMode})}>
+                            <div
+                                className={classNames('post-image__detail', {
+                                    compact: this.props.compactMode,
+                                })}
+                            >
                                 <FilenameOverlay
                                     fileInfo={info}
                                     compactDisplay={this.props.compactMode}
                                     canDownload={false}
                                 />
-                                {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
-                                <span className='post-image__size'>{Utils.fileSizeToString(info.size)}</span>
+                                {info.extension && (
+                                    <span className='post-image__type'>
+                                        {info.extension.toUpperCase()}
+                                    </span>
+                                )}
+                                <span className='post-image__size'>
+                                    {Utils.fileSizeToString(info.size)}
+                                </span>
                             </div>
                         </div>
                         <div>
-                            {Boolean(this.props.onRemove) && (
+                            {this.props.onRemove && (
                                 <a
                                     className={classNames('file-preview__remove', {compact: this.props.compactMode})}
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
                                     <i className='icon icon-close'/>
                                 </a>
+                            )}
+
+                            {!this.props.onRemove && this.props.disabledRemoveTooltip && (
+                                <WithTooltip
+                                    title={this.props.disabledRemoveTooltip}
+                                    isVertical={true}
+                                >
+                                    <span
+                                        className={classNames('file-preview__remove file-preview__remove--disabled', {compact: this.props.compactMode})}
+                                    >
+                                        <i className='icon icon-close'/>
+                                    </span>
+                                </WithTooltip>
                             )}
                         </div>
                     </div>

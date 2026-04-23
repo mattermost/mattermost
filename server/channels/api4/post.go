@@ -1104,6 +1104,12 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check edit_file_attachment permission if file IDs are being changed (files added or removed)
+	checkEditFileAttachmentPermission(c, post.FileIds, originalPost)
+	if c.Err != nil {
+		return
+	}
+
 	if originalPost.Type == model.PostTypeCard && c.App.Config().FeatureFlags.IntegratedBoards {
 		// Cards: collaborative model — skip ownership check
 		// PermissionEditPost already checked above
@@ -1178,6 +1184,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if post.FileIds != nil {
 		checkUploadFilePermissionForNewFiles(c, *post.FileIds, originalPost)
+		if c.Err != nil {
+			return
+		}
+
+		checkEditFileAttachmentPermission(c, *post.FileIds, originalPost)
 		if c.Err != nil {
 			return
 		}

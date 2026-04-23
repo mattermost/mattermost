@@ -50,6 +50,7 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
                 ],
             },
             Permissions.USE_CHANNEL_MENTIONS,
+            Permissions.EDIT_FILE_ATTACHMENT,
         ];
         if (isMinimumProfessionalLicense(license)) {
             defaultPermissions.push(Permissions.USE_GROUP_MENTIONS);

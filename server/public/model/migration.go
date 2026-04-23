@@ -64,4 +64,5 @@ const (
 	MigrationKeyRestoreManageOAuthPermission           = "restore_manage_oauth_permission"
 	MigrationKeyAccessControlPolicyV0_3                = "access_control_policy_v0_3_migration"
 	MigrationKeyAddManageAgentPermissions              = "add_manage_agent_permissions"
+	MigrationKeyAddEditFileAttachmentPermission        = "add_edit_file_attachment_permission"
 )

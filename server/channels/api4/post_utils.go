@@ -84,3 +84,33 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 		}
 	}
 }
+
+// checkEditFileAttachmentPermission checks edit_file_attachment permission
+// when file IDs are being changed (files added or removed) during post edit.
+func checkEditFileAttachmentPermission(c *Context, newFileIds []string, originalPost *model.Post) {
+	if sameFileIDs(newFileIds, originalPost.FileIds) {
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
+		c.SetPermissionError(model.PermissionEditFileAttachment)
+	}
+}
+
+// sameFileIDs returns true if both slices contain the same set of file IDs,
+// regardless of order.
+func sameFileIDs(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	set := make(map[string]int, len(a))
+	for _, id := range a {
+		set[id]++
+	}
+	for _, id := range b {
+		set[id]--
+		if set[id] < 0 {
+			return false
+		}
+	}
+	return true
+}
