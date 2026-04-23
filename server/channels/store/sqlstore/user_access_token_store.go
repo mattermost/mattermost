@@ -266,15 +266,20 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 // number of UserAccessTokens rows actually deleted. Callers that need audit
 // records for each deletion should pair this with GetExpiredBefore so that the
 // set of deleted tokens exactly matches the set that was audited.
-func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, err error) {
 	if len(tokenIDs) == 0 {
 		return 0, nil
 	}
 
-	transaction, err := s.GetMaster().Beginx()
-	if err != nil {
-		return 0, errors.Wrap(err, "begin_transaction")
+	transaction, beginErr := s.GetMaster().Beginx()
+	if beginErr != nil {
+		err = errors.Wrap(beginErr, "begin_transaction")
+		return
 	}
+	// Named returns let finalizeTransactionX append a rollback error to `err`
+	// via merror.Append on the way out. All error paths below assign the
+	// named `err` and use a bare `return` so the deferred call sees and can
+	// augment the final error returned to the caller.
 	defer finalizeTransactionX(transaction, &err)
 
 	args := idsToArgs(tokenIDs)
@@ -282,27 +287,32 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
 
 	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id IN (" + ph + ")"
 	if _, sErr := transaction.Exec(sessionsQuery, args...); sErr != nil {
-		return 0, errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
+		err = errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
+		return
 	}
 
-	res, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id IN ("+ph+")", args...)
-	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete UserAccessTokens")
+	res, execErr := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id IN ("+ph+")", args...)
+	if execErr != nil {
+		err = errors.Wrap(execErr, "failed to delete UserAccessTokens")
+		return
 	}
 
-	deleted, rErr := res.RowsAffected()
+	rowCount, rErr := res.RowsAffected()
 	if rErr != nil {
 		// Surface the failure rather than silently returning 0 — callers rely
 		// on the count for telemetry/auditing and a swallowed driver error
 		// would be misleading.
-		return 0, errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
+		err = errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
+		return
 	}
 
 	if cErr := transaction.Commit(); cErr != nil {
-		return 0, errors.Wrap(cErr, "commit_transaction")
+		err = errors.Wrap(cErr, "commit_transaction")
+		return
 	}
 
-	return deleted, nil
+	deleted = rowCount
+	return
 }
 
 // placeholders returns "?, ?, ..." with n placeholders. The SQL store's

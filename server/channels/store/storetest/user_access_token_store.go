@@ -283,8 +283,11 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
+		// Delete all three fixtures (expired included) so the test stays
+		// isolated even on early exit before DeleteByIds runs.
 		_ = ss.UserAccessToken().Delete(nonExpiring.Id)
 		_ = ss.UserAccessToken().Delete(future.Id)
+		_ = ss.UserAccessToken().Delete(expired.Id)
 	})
 
 	// The stored value should be persisted and returned
