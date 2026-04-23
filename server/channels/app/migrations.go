@@ -738,7 +738,12 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
-			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+			// Another server may have won the race and created this field
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Tolerate that but propagate any other error.
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+			}
 		}
 	}
 
