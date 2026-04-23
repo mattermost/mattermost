@@ -40,6 +40,7 @@ func (api *API) InitUserLocal() {
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APILocal(localGetUserByUsername)).Methods(http.MethodGet)
 	api.BaseRoutes.UserByEmail.Handle("", api.APILocal(localGetUserByEmail)).Methods(http.MethodGet)
+	api.BaseRoutes.UserByAuthData.Handle("", api.APILocal(localGetUserByAuth)).Methods(http.MethodGet)
 
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.APILocal(revokeUserAccessToken)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/tokens", api.APILocal(getUserAccessTokensForUser)).Methods(http.MethodGet)
@@ -424,6 +425,39 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, etag)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func localGetUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Params.AuthService == "" {
+		c.SetInvalidURLParam("auth_service")
+		return
+	}
+	if c.Params.AuthData == "" {
+		c.SetInvalidURLParam("auth_data")
+		return
+	}
+	if len(c.Params.AuthData) > model.UserAuthDataMaxLength {
+		c.SetInvalidParam("auth_data")
+		return
+	}
+	authData := c.Params.AuthData
+	user, err := c.App.GetUserByAuth(&authData, c.Params.AuthService)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
+
+	if c.HandleEtag(etag, "Get User", w, r) {
+		return
+	}
+
+	c.App.SanitizeProfile(user, c.IsSystemAdmin())
+	w.Header().Set(model.HeaderEtagServer, etag)
+	if jerr := json.NewEncoder(w).Encode(user); jerr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jerr))
 	}
 }
 

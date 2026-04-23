@@ -1487,6 +1487,57 @@ func TestGetUserByEmail(t *testing.T) {
 	})
 }
 
+func TestGetUserByAuthData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, team)
+	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
+	require.NoError(t, err)
+
+	authID := "extid-" + model.NewId()
+	userAuth := &model.UserAuth{
+		AuthData:    model.NewPointer(authID),
+		AuthService: model.UserAuthServiceSaml,
+	}
+	_, _, err = th.SystemAdminClient.UpdateUserAuth(context.Background(), user.Id, userAuth)
+	require.NoError(t, err)
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
+			ruser, _, err := client.GetUserByAuthData(context.Background(), authID, model.UserAuthServiceSaml, "")
+			require.NoError(t, err)
+			require.Equal(t, user.Id, ruser.Id)
+			require.NotNil(t, ruser.AuthData)
+			require.Equal(t, authID, *ruser.AuthData)
+			require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+		})
+
+		t.Run("not found returns error response", func(t *testing.T) {
+			_, resp, err := client.GetUserByAuthData(context.Background(), "nope-"+model.NewId(), model.UserAuthServiceSaml, "")
+			require.Error(t, err)
+			CheckInternalErrorStatus(t, resp)
+		})
+	})
+
+	t.Run("rejects non-system admin", func(t *testing.T) {
+		_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
+		require.NoError(t, err)
+		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, model.UserAuthServiceSaml, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("rejects auth data over max length", func(t *testing.T) {
+		longData := strings.Repeat("x", model.UserAuthDataMaxLength+1)
+		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), longData, model.UserAuthServiceSaml, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 // This test can flake if two calls to model.NewId can return the same value.
 // Not much can be done about it.
 func TestSearchUsers(t *testing.T) {

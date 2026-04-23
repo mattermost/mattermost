@@ -121,6 +121,7 @@ var whiteList = map[string]bool{
 	"getUserAccessToken":                   true,
 	"getUserAccessTokens":                  true,
 	"getUserAccessTokensForUser":           true,
+	"getUserByAuth":                        true,
 	"getUserByEmail":                       true,
 	"getUserByUsername":                    true,
 	"getUsers":                             true,
