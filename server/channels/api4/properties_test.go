@@ -2696,7 +2696,10 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout", Version: model.PropertyGroupVersionV2})
+	// PSAv1 fields must live in a v1 group; the marker v2 field uses a separate v2 group.
+	psav1Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v1", Version: model.PropertyGroupVersionV1})
+	require.Nil(t, err)
+	v2Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v2", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	// Create a PSAv1-style field: no ObjectType, meaning it predates
@@ -2704,7 +2707,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 	psav1Field := &model.PropertyField{
 		Name:       model.NewId(),
 		Type:       model.PropertyFieldTypeText,
-		GroupID:    group.ID,
+		GroupID:    psav1Group.ID,
 		TargetType: "system",
 	}
 	createdField, appErr := th.App.CreatePropertyField(th.Context, psav1Field, false, "")
@@ -2723,7 +2726,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 			{
 				TargetID:   th.BasicPost.Id,
 				TargetType: "post",
-				GroupID:    group.ID,
+				GroupID:    psav1Group.ID,
 				FieldID:    createdField.ID,
 				Value:      json.RawMessage(`"psav1-value"`),
 				CreatedBy:  th.BasicUser.Id,
@@ -2741,7 +2744,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		markerField := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
-			GroupID:           group.ID,
+			GroupID:           v2Group.ID,
 			ObjectType:        "post",
 			TargetType:        "channel",
 			TargetID:          th.BasicChannel.Id,

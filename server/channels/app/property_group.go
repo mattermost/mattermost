@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // RegisterPropertyGroup registers a new property group.
@@ -24,6 +25,9 @@ func (a *App) RegisterPropertyGroup(rctx request.CTX, group *model.PropertyGroup
 func (a *App) GetPropertyGroup(rctx request.CTX, name string) (*model.PropertyGroup, *model.AppError) {
 	group, err := a.Srv().propertyService.GetPropertyGroup(name)
 	if err != nil {
+		if store.IsErrNotFound(err) {
+			return nil, model.NewAppError("GetPropertyGroup", "app.property_group.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
 		return nil, model.NewAppError("GetPropertyGroup", "app.property_group.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return group, nil

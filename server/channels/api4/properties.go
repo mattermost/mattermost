@@ -296,8 +296,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This API only supports PSAv2 fields (those with an ObjectType)
-	if existingField.IsPSAv1() {
+	// FIXME: IsPSAv1 currently includes template fields (ObjectType="template"), but
+	// templates are valid PSAv2 objects and must be patchable. Once the FIXME in
+	// model.PropertyField.IsPSAv1 is resolved, this extra condition can be removed.
+	if existingField.IsPSAv1() && existingField.ObjectType == "" {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
