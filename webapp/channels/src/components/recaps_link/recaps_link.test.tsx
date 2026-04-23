@@ -57,9 +57,9 @@ describe('components/recaps_link/RecapsLink', () => {
     });
 
     test('does not render a badge when there are no unread recaps', () => {
-        renderLink();
+        const {container} = renderLink();
         expect(screen.getByText('Recaps')).toBeInTheDocument();
-        expect(screen.queryByText('1')).not.toBeInTheDocument();
+        expect(container.querySelector('.badge')).not.toBeInTheDocument();
     });
 
     test('renders the count when there are unread recaps', () => {

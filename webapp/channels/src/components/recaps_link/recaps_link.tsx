@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {shallowEqual, useSelector} from 'react-redux';
 import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
 import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
@@ -23,7 +23,7 @@ const RecapsLink = () => {
     const {pathname} = useLocation();
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
-    const {count: unreadCount, hasFailed} = useSelector(getUnreadFinishedRecapsBadge);
+    const {count: unreadCount, hasFailed} = useSelector(getUnreadFinishedRecapsBadge, shallowEqual);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
 
     const inRecaps = matchPath(pathname, {path: '/:team/recaps/:recapId?'}) != null;
