@@ -12,20 +12,22 @@ import type {GlobalState} from 'types/store';
 import GlobalClassificationBanner from './global_classification_banner';
 
 function makeState(overrides: Record<string, string> = {}): DeepPartial<GlobalState> {
-    return {
+    const state: DeepPartial<GlobalState> = {
         entities: {
             general: {
                 config: {
-                    FeatureFlagClassificationMarkings: 'true',
                     ClassificationMarkingsGlobalBannerEnabled: 'true',
                     ClassificationMarkingsGlobalBannerPlacement: 'top',
                     ClassificationMarkingsGlobalBannerLevelName: 'SECRET',
                     ClassificationMarkingsGlobalBannerColor: '#C8102E',
-                    ...overrides,
                 },
             },
         },
     };
+    const config = state.entities!.general!.config!;
+    (config as Record<string, string>).FeatureFlagClassificationMarkings = 'true';
+    Object.assign(config, overrides);
+    return state;
 }
 
 describe('GlobalClassificationBanner', () => {

@@ -867,4 +867,12 @@ const defaultServerConfig: AdminConfig = {
             LLMServiceID: '',
         },
     },
+    ClassificationMarkingsSettings: {
+        GlobalBanner: {
+            Enabled: false,
+            Placement: 'top',
+            LevelName: '',
+            Color: '',
+        },
+    },
 };
