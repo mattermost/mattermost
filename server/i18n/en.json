@@ -8049,6 +8049,10 @@
     "translation": "Failed to save upload."
   },
   {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Invalid filename."
+  },
+  {
     "id": "app.upload.get.app_error",
     "translation": "Failed to get upload."
   },
@@ -10539,6 +10543,10 @@
   {
     "id": "model.file_info.is_valid.id.app_error",
     "translation": "Invalid value for id."
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Invalid value for name."
   },
   {
     "id": "model.file_info.is_valid.path.app_error",
