@@ -874,7 +874,7 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 	}
 
 	if len(fieldsToUpdate) > 0 {
-		if _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
+		if _, _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
 			return fmt.Errorf("failed to update CPA fields during display_name backfill: %w", updateErr)
 		}
 	}
