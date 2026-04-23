@@ -40,7 +40,7 @@ export default function GlobalClassificationBanner({position}: Props) {
             return undefined;
         }
 
-        const refKey = 'banner-bottom-ref-count';
+        const refKey = 'bannerBottomRefCount';
         const count = parseInt(root.dataset[refKey] || '0', 10) + 1;
         root.dataset[refKey] = String(count);
         root.classList.add(BOTTOM_BANNER_CLASS);
