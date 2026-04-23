@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {defineMessage, FormattedMessage} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {shallowEqual, useSelector} from 'react-redux';
 import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
@@ -25,6 +25,7 @@ const failedTooltip = defineMessage({
 });
 
 const RecapsLink = () => {
+    const {formatMessage} = useIntl();
     const {url} = useRouteMatch();
     const {pathname} = useLocation();
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -74,7 +75,7 @@ const RecapsLink = () => {
                         <WithTooltip title={failedTooltip}>
                             <span
                                 className='RecapsFailedIcon'
-                                aria-label='Recap failed'
+                                aria-label={formatMessage(failedTooltip)}
                             >
                                 <AlertOutlineIcon size={18}/>
                             </span>
