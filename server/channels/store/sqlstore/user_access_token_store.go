@@ -233,12 +233,21 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 }
 
 // GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
-// or equal to the provided cutoff (Unix milliseconds). The returned tokens do
-// NOT include the secret Token value, only metadata useful for audit logging.
+// or equal to the provided cutoff (Unix milliseconds), up to the given limit.
+// The secret Token column is intentionally NOT selected — callers use the
+// returned rows for metadata (audit logging, deletion) only.
 func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
 
-	query := s.userAccessTokensSelectQuery.
+	query := s.getQueryBuilder().
+		Select(
+			"UserAccessTokens.Id",
+			"UserAccessTokens.UserId",
+			"UserAccessTokens.Description",
+			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
+		).
+		From("UserAccessTokens").
 		Where(sq.Gt{"UserAccessTokens.ExpiresAt": 0}).
 		Where(sq.LtOrEq{"UserAccessTokens.ExpiresAt": cutoff}).
 		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
@@ -249,36 +258,44 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")
 	}
 
-	for _, token := range tokens {
-		token.Token = ""
-	}
-
 	return tokens, nil
 }
 
-// DeleteExpired deletes tokens whose non-zero ExpiresAt is less than or equal to
-// the provided cutoff (Unix milliseconds), along with any sessions created from
-// those tokens. It returns the number of tokens deleted.
-func (s SqlUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
+// DeleteByIds deletes the tokens identified by tokenIDs along with any sessions
+// minted from those tokens, all within a single transaction. It returns the
+// number of UserAccessTokens rows actually deleted. Callers that need audit
+// records for each deletion should pair this with GetExpiredBefore so that the
+// set of deleted tokens exactly matches the set that was audited.
+func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+	if len(tokenIDs) == 0 {
+		return 0, nil
+	}
+
 	transaction, err := s.GetMaster().Beginx()
 	if err != nil {
 		return 0, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.ExpiresAt > 0 AND o.ExpiresAt <= ?"
-	if _, sErr := transaction.Exec(sessionsQuery, cutoff); sErr != nil {
-		return 0, errors.Wrap(sErr, "failed to delete Sessions for expired UserAccessTokens")
+	args := idsToArgs(tokenIDs)
+	ph := placeholders(len(tokenIDs))
+
+	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id IN (" + ph + ")"
+	if _, sErr := transaction.Exec(sessionsQuery, args...); sErr != nil {
+		return 0, errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
 	}
 
-	res, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE ExpiresAt > 0 AND ExpiresAt <= ?", cutoff)
+	res, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id IN ("+ph+")", args...)
 	if err != nil {
-		return 0, errors.Wrap(err, "failed to delete expired UserAccessTokens")
+		return 0, errors.Wrap(err, "failed to delete UserAccessTokens")
 	}
 
 	deleted, rErr := res.RowsAffected()
 	if rErr != nil {
-		deleted = 0
+		// Surface the failure rather than silently returning 0 — callers rely
+		// on the count for telemetry/auditing and a swallowed driver error
+		// would be misleading.
+		return 0, errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
 	}
 
 	if cErr := transaction.Commit(); cErr != nil {
@@ -286,6 +303,31 @@ func (s SqlUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
 	}
 
 	return deleted, nil
+}
+
+// placeholders returns "?, ?, ..." with n placeholders. The SQL store's
+// driver rewrites `?` to the dialect-specific placeholder via the query
+// wrapper, matching the style used elsewhere in this file.
+func placeholders(n int) string {
+	if n <= 0 {
+		return ""
+	}
+	buf := make([]byte, 0, 2*n)
+	for i := range n {
+		if i > 0 {
+			buf = append(buf, ',', ' ')
+		}
+		buf = append(buf, '?')
+	}
+	return string(buf)
+}
+
+func idsToArgs(ids []string) []any {
+	args := make([]any, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+	return args
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {

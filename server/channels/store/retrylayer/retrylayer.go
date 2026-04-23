@@ -17235,11 +17235,11 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenID string) error {
 
 }
 
-func (s *RetryLayerUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
+func (s *RetryLayerUserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserAccessTokenStore.DeleteExpired(cutoff)
+		result, err := s.UserAccessTokenStore.DeleteByIds(tokenIDs)
 		if err == nil {
 			return result, nil
 		}

@@ -297,13 +297,13 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, int64(0), storedNonExpiring.ExpiresAt)
 
 	// GetExpiredBefore should only return the expired token and must not leak
-	// the secret token value.
+	// the secret token value (the Token column is intentionally not selected).
 	expiredRows, err := ss.UserAccessToken().GetExpiredBefore(now, 100)
 	require.NoError(t, err)
 	found := false
 	for _, row := range expiredRows {
 		if row.Id == expired.Id {
-			require.Empty(t, row.Token, "expired token secret should be stripped")
+			require.Empty(t, row.Token, "expired token secret should not be returned")
 			require.Equal(t, expired.ExpiresAt, row.ExpiresAt)
 			found = true
 		}
@@ -312,11 +312,11 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	require.True(t, found, "expired token should be present in GetExpiredBefore results")
 
-	// DeleteExpired removes the expired token and its session but leaves the
-	// other two tokens alone.
-	deleted, err := ss.UserAccessToken().DeleteExpired(now)
+	// DeleteByIds on the expired token removes it and its session but leaves
+	// the other two tokens alone.
+	deleted, err := ss.UserAccessToken().DeleteByIds([]string{expired.Id})
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, deleted, int64(1))
+	require.Equal(t, int64(1), deleted)
 
 	_, err = ss.UserAccessToken().Get(expired.Id)
 	require.Error(t, err, "expired token should be deleted")
@@ -332,8 +332,13 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, future.Id, stillThere.Id)
 
-	// A second call with no expired tokens should succeed and return zero.
-	deleted, err = ss.UserAccessToken().DeleteExpired(now)
+	// DeleteByIds with an empty slice is a no-op, and with a non-matching id
+	// returns 0 without error.
+	deleted, err = ss.UserAccessToken().DeleteByIds(nil)
+	require.NoError(t, err)
+	require.Equal(t, int64(0), deleted)
+
+	deleted, err = ss.UserAccessToken().DeleteByIds([]string{model.NewId()})
 	require.NoError(t, err)
 	require.Equal(t, int64(0), deleted)
 }

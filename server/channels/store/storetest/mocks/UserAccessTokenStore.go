@@ -50,27 +50,27 @@ func (_m *UserAccessTokenStore) DeleteAllForUser(userID string) error {
 	return r0
 }
 
-// DeleteExpired provides a mock function with given fields: cutoff
-func (_m *UserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
-	ret := _m.Called(cutoff)
+// DeleteByIds provides a mock function with given fields: tokenIDs
+func (_m *UserAccessTokenStore) DeleteByIds(tokenIDs []string) (int64, error) {
+	ret := _m.Called(tokenIDs)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteExpired")
+		panic("no return value specified for DeleteByIds")
 	}
 
 	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int64) (int64, error)); ok {
-		return rf(cutoff)
+	if rf, ok := ret.Get(0).(func([]string) (int64, error)); ok {
+		return rf(tokenIDs)
 	}
-	if rf, ok := ret.Get(0).(func(int64) int64); ok {
-		r0 = rf(cutoff)
+	if rf, ok := ret.Get(0).(func([]string) int64); ok {
+		r0 = rf(tokenIDs)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
 
-	if rf, ok := ret.Get(1).(func(int64) error); ok {
-		r1 = rf(cutoff)
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(tokenIDs)
 	} else {
 		r1 = ret.Error(1)
 	}

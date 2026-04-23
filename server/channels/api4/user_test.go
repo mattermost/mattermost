@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -5299,15 +5300,42 @@ func TestCreateUserAccessToken(t *testing.T) {
 		// Persist a PAT with ExpiresAt in the past directly through the store
 		// so no session is ever minted for it. This keeps the test isolated
 		// from the platform session cache and safe to run in parallel.
+		// IsActive is set explicitly so we're unambiguously exercising the
+		// "active but expired" branch of createSessionForUserAccessToken.
 		saved, sErr := th.App.Srv().Store().UserAccessToken().Save(&model.UserAccessToken{
 			Token:       model.NewId(),
 			UserId:      th.BasicUser.Id,
 			Description: "expired token",
+			IsActive:    true,
 			ExpiresAt:   model.GetMillis() - 1000,
 		})
 		require.NoError(t, sErr)
 
-		assertInvalidToken(t, th, saved)
+		// HTTP level: the client sees a generic 401. The outer web handler
+		// intentionally wipes DetailedError before returning, so the specific
+		// error id only shows up in server logs / app-layer errors.
+		oldSessionToken := th.Client.AuthToken
+		defer func() { th.Client.AuthToken = oldSessionToken }()
+		th.Client.AuthToken = saved.Token
+		_, resp, err := th.Client.GetMe(context.Background(), "")
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+
+		// App level: walk the AppError chain and assert the specific error id
+		// for the expiry branch, so a future regression that causes a
+		// different 401 (inactive token, missing user, wrong config) doesn't
+		// silently pass this test.
+		_, sessErr := th.App.GetSession(saved.Token)
+		require.NotNil(t, sessErr)
+		require.Equal(t, http.StatusUnauthorized, sessErr.StatusCode)
+		foundExpiredID := false
+		for e := error(sessErr); e != nil; e = errors.Unwrap(e) {
+			if appErr, ok := e.(*model.AppError); ok && appErr.Id == "app.user_access_token.expired" {
+				foundExpiredID = true
+				break
+			}
+		}
+		require.True(t, foundExpiredID, "expected an AppError with Id app.user_access_token.expired in the error chain, got: %v", sessErr)
 	})
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {

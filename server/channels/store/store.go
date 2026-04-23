@@ -826,7 +826,7 @@ type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, error)
 	DeleteAllForUser(userID string) error
 	Delete(tokenID string) error
-	DeleteExpired(cutoff int64) (int64, error)
+	DeleteByIds(tokenIDs []string) (int64, error)
 	Get(tokenID string) (*model.UserAccessToken, error)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, error)
 	GetByToken(tokenString string) (*model.UserAccessToken, error)

@@ -403,6 +403,16 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.platform.SetupFeatureFlags()
 
+	// Initialize the audit logger before registering jobs so that workers
+	// constructed via initJobs() (e.g. cleanup_expired_access_tokens) always
+	// receive a non-nil audit logger. License-dependent audit configuration
+	// happens later, but that only affects target routing, not the logger
+	// instance itself.
+	if s.Audit == nil {
+		s.Audit = &audit.Audit{}
+		s.Audit.Init(audit.DefMaxQueueSize)
+	}
+
 	s.initJobs()
 
 	if ipFilteringInterface != nil {
@@ -451,9 +461,9 @@ func NewServer(options ...Option) (*Server, error) {
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
-		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
-			mlog.Error("Error configuring audit", mlog.Err(err))
-		}
+	}
+	if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
+		mlog.Error("Error configuring audit", mlog.Err(err))
 	}
 
 	s.platform.RemoveUnlicensedLogTargets(license)
