@@ -66,6 +66,11 @@
         }
     }
 
+    .badge.RecapsBadge--failed {
+        background-color: var(--error-text, var(--dnd-indicator));
+        color: var(--sidebar-text);
+    }
+
     .active .SidebarLink {
         color: var(--sidebar-text);
 

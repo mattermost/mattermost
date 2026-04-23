@@ -1,0 +1,79 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React from 'react';
+import {MemoryRouter, Route} from 'react-router-dom';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import RecapsLink from './recaps_link';
+
+const mockUseFeatureFlag = jest.fn(() => 'true');
+jest.mock('components/common/hooks/useGetFeatureFlagValue', () => ({
+    __esModule: true,
+    default: (...args: unknown[]) => mockUseFeatureFlag(...args as []),
+}));
+
+const mockGetBadge = jest.fn(() => ({count: 0, hasFailed: false}));
+jest.mock('mattermost-redux/selectors/entities/recaps', () => ({
+    getUnreadFinishedRecapsBadge: () => mockGetBadge(),
+}));
+
+const defaultState = {
+    entities: {
+        teams: {
+            currentTeamId: 'team1',
+            teams: {team1: {id: 'team1', name: 'team1'}},
+        },
+        users: {
+            currentUserId: 'user1',
+            profiles: {user1: {id: 'user1'}},
+        },
+    },
+};
+
+function renderLink() {
+    return renderWithContext(
+        <MemoryRouter initialEntries={['/team1']}>
+            <Route path='/:team'>
+                <RecapsLink/>
+            </Route>
+        </MemoryRouter>,
+        defaultState,
+    );
+}
+
+describe('components/recaps_link/RecapsLink', () => {
+    beforeEach(() => {
+        mockUseFeatureFlag.mockReturnValue('true');
+        mockGetBadge.mockReturnValue({count: 0, hasFailed: false});
+    });
+
+    test('renders nothing when the feature flag is disabled', () => {
+        mockUseFeatureFlag.mockReturnValue('false');
+        mockGetBadge.mockReturnValue({count: 5, hasFailed: true});
+        const {container} = renderLink();
+        expect(container).toBeEmptyDOMElement();
+    });
+
+    test('does not render a badge when there are no unread recaps', () => {
+        renderLink();
+        expect(screen.getByText('Recaps')).toBeInTheDocument();
+        expect(screen.queryByText('1')).not.toBeInTheDocument();
+    });
+
+    test('renders the count when there are unread recaps', () => {
+        mockGetBadge.mockReturnValue({count: 3, hasFailed: false});
+        renderLink();
+        const count = screen.getByText('3');
+        expect(count).toBeInTheDocument();
+        expect(count.closest('.badge')).not.toHaveClass('RecapsBadge--failed');
+    });
+
+    test('adds the failed modifier class when a failed unread recap is present', () => {
+        mockGetBadge.mockReturnValue({count: 2, hasFailed: true});
+        renderLink();
+        const count = screen.getByText('2');
+        expect(count.closest('.badge')).toHaveClass('RecapsBadge--failed');
+    });
+});

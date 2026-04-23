@@ -65,3 +65,24 @@ export const getReadRecaps = createSelector(
     },
 );
 
+export const getUnreadFinishedRecapsBadge = createSelector(
+    'getUnreadFinishedRecapsBadge',
+    getAllRecaps,
+    (recaps) => {
+        let count = 0;
+        let hasFailed = false;
+        for (const recap of recaps) {
+            if (recap.read_at !== 0) {
+                continue;
+            }
+            if (recap.status === RecapStatus.COMPLETED) {
+                count++;
+            } else if (recap.status === RecapStatus.FAILED) {
+                count++;
+                hasFailed = true;
+            }
+        }
+        return {count, hasFailed};
+    },
+);
+

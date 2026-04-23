@@ -9,10 +9,12 @@ import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
 import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {getUnreadFinishedRecapsBadge} from 'mattermost-redux/selectors/entities/recaps';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
 
 import './recaps_link.scss';
 
@@ -21,6 +23,7 @@ const RecapsLink = () => {
     const {pathname} = useLocation();
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
+    const {count: unreadCount, hasFailed} = useSelector(getUnreadFinishedRecapsBadge);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
 
     const inRecaps = matchPath(pathname, {path: '/:team/recaps/:recapId?'}) != null;
@@ -56,6 +59,12 @@ const RecapsLink = () => {
                             />
                         </span>
                     </div>
+                    {unreadCount > 0 && (
+                        <ChannelMentionBadge
+                            unreadMentions={unreadCount}
+                            className={classNames({'RecapsBadge--failed': hasFailed})}
+                        />
+                    )}
                 </Link>
             </li>
         </ul>
