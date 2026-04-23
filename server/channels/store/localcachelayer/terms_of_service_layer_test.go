@@ -11,13 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestTermsOfServiceStore(t *testing.T) {
-	StoreTest(t, storetest.TestTermsOfServiceStore)
-}
 
 func TestTermsOfServiceStoreTermsOfServiceCache(t *testing.T) {
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}

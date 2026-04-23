@@ -125,7 +125,7 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
+func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, testSqlStore)) {
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()

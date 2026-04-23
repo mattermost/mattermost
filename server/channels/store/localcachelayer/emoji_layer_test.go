@@ -12,13 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestEmojiStore(t *testing.T) {
-	StoreTest(t, storetest.TestEmojiStore)
-}
 
 func TestEmojiStoreCache(t *testing.T) {
 	rctx := request.TestContext(t)

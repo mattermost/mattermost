@@ -18,7 +18,6 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	sq "github.com/mattermost/squirrel"
 )
 
@@ -30,7 +29,7 @@ func NewStoreTestWrapper(orig *SqlStore) *StoreTestWrapper {
 	return &StoreTestWrapper{orig}
 }
 
-func (w *StoreTestWrapper) GetMaster() storetest.SqlXExecutor {
+func (w *StoreTestWrapper) GetMaster() SqlXExecutor {
 	return w.orig.GetMaster()
 }
 

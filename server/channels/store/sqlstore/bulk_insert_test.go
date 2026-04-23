@@ -11,7 +11,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
 
 func TestBulkInsertChunking(t *testing.T) {
@@ -35,8 +34,8 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "ChunkTest",
-			Name:        storetest.NewTestID(),
-			Email:       storetest.MakeEmail(),
+			Name:        newTestID(),
+			Email:       makeEmail(),
 			Type:        model.TeamOpen,
 		}
 		team, err := ss.Team().Save(team)
@@ -55,7 +54,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		members := make([]*model.ChannelMember, n)
 		defaultNotifyProps := model.GetDefaultChannelNotifyProps()
 		for i := range members {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			members[i] = &model.ChannelMember{
 				ChannelId:   channel.Id,
@@ -83,8 +82,8 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		team := &model.Team{
 			DisplayName: "AtomicTest",
-			Name:        storetest.NewTestID(),
-			Email:       storetest.MakeEmail(),
+			Name:        newTestID(),
+			Email:       makeEmail(),
 			Type:        model.TeamOpen,
 		}
 		team, err := ss.Team().Save(team)
@@ -101,7 +100,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		users := make([]*model.User, 3)
 		for i := range users {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			users[i] = u
 		}
@@ -130,7 +129,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		const n = 5
 		members := make([]*model.TeamMember, n)
 		for i := range members {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			members[i] = &model.TeamMember{TeamId: teamID, UserId: u.Id}
 		}
@@ -152,7 +151,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		teamID := model.NewId()
 		users := make([]*model.User, 3)
 		for i := range users {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			users[i] = u
 		}
@@ -211,7 +210,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		channel, err := ss.Channel().Save(rctx, channel, -1)
 		require.NoError(t, err)
 
-		u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+		u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 		require.NoError(t, err)
 
 		const n = 5
@@ -250,7 +249,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		channel, err := ss.Channel().Save(rctx, channel, -1)
 		require.NoError(t, err)
 
-		u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+		u, err := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 		require.NoError(t, err)
 
 		remoteId := model.NewPointer(model.NewId())
@@ -278,7 +277,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		users := make([]*model.User, 2)
 		for i := range users {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			users[i] = u
 		}
@@ -305,7 +304,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		statuses := make(map[string]*model.Status, n)
 		userIDs := make([]string, 0, n)
 		for range n {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			statuses[u.Id] = &model.Status{
 				UserId: u.Id,
@@ -333,7 +332,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		const n = 5
 		userIDs := make([]string, n)
 		for i := range userIDs {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			userIDs[i] = u.Id
 		}
@@ -375,7 +374,7 @@ func testBulkInsertChunking(t *testing.T, rctx request.CTX, ss store.Store) {
 		const n = 5
 		userIDs := make([]string, n)
 		for i := range userIDs {
-			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: storetest.MakeEmail()})
+			u, uErr := ss.User().Save(rctx, &model.User{Username: model.NewUsername(), Email: makeEmail()})
 			require.NoError(t, uErr)
 			userIDs[i] = u.Id
 		}

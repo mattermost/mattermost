@@ -55,25 +55,6 @@ func StoreTest(t *testing.T, f func(*testing.T, request.CTX, store.Store)) {
 	}
 }
 
-func StoreTestWithSqlStore(t *testing.T, f func(*testing.T, request.CTX, store.Store, storetest.SqlStore)) {
-	defer func() {
-		if err := recover(); err != nil {
-			tearDownStores()
-			panic(err)
-		}
-	}()
-	for _, st := range storeTypes {
-		rctx := request.TestContext(t)
-
-		t.Run(st.Name, func(t *testing.T) {
-			if testing.Short() {
-				t.SkipNow()
-			}
-			f(t, rctx, st.Store, sqlstore.NewStoreTestWrapper(st.SqlStore))
-		})
-	}
-}
-
 func initStores(logger mlog.LoggerIFace) {
 	if testing.Short() {
 		return

@@ -11,13 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestFileInfoStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestFileInfoStore)
-}
 
 func TestFileInfoStoreCache(t *testing.T) {
 	fakeFileInfo := model.FileInfo{PostId: "123"}

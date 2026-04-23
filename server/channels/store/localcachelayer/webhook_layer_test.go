@@ -11,13 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestWebhookStore(t *testing.T) {
-	StoreTest(t, storetest.TestWebhookStore)
-}
 
 func TestWebhookStoreCache(t *testing.T) {
 	fakeWebhook := model.IncomingWebhook{Id: "123"}

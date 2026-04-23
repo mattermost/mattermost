@@ -10,13 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestTeamStore(t *testing.T) {
-	StoreTest(t, storetest.TestTeamStore)
-}
 
 func TestTeamStoreCache(t *testing.T) {
 	fakeUserId := "123"

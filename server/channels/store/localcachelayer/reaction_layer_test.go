@@ -11,13 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestReactionStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestReactionStore)
-}
 
 func TestReactionStoreCache(t *testing.T) {
 	fakeReaction := model.Reaction{PostId: "123"}

@@ -10,13 +10,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
-
-func TestContentFlaggingStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestContentFlaggingStore)
-}
 
 func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)

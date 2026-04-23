@@ -13,14 +13,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	cmocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
-
-func TestChannelStore(t *testing.T) {
-	StoreTestWithSqlStore(t, storetest.TestReactionStore)
-}
 
 func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 	countResult := int64(10)
