@@ -66,18 +66,21 @@
         }
     }
 
-    .active .SidebarLink,
-    .SidebarLink.unread-title {
+    .active .SidebarLink {
         color: var(--sidebar-text);
 
         .icon {
             color: var(--sidebar-text);
-            opacity: 1;
         }
 
         .SidebarChannelLinkLabel {
             font-weight: 400;
         }
+    }
+
+    .SidebarLink.unread-title .icon {
+        color: var(--sidebar-text);
+        opacity: 1;
     }
 
     .RecapsFailedIcon {
