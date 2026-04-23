@@ -9,8 +9,6 @@ import {
     SystemConsolePage,
 } from '@mattermost/playwright-lib';
 
-const MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION = 'manage_public_channel_auto_translation';
-
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
     {
@@ -67,12 +65,12 @@ test(
 
 test.describe('autotranslation configuration tests', () => {
     test(
-        'DM menu shows Edit Header without permission and Channel Settings with permission',
+        'DM menu shows Edit Header for regular user and Channel Settings for admin',
         {
             tag: ['@autotranslation', '@permissions'],
         },
         async ({pw}) => {
-            const {adminClient, user, team} = await pw.initSetup();
+            const {adminClient, adminUser, user, team} = await pw.initSetup();
 
             const license = await adminClient.getClientLicenseOld();
             test.skip(
@@ -85,39 +83,29 @@ test.describe('autotranslation configuration tests', () => {
                 targetLanguages: ['en', 'es'],
             });
 
-            const otherUserData = await pw.random.user('dm-peer');
-            const otherUser = await adminClient.createUser(otherUserData, '', '');
-            await adminClient.addToTeam(team.id, otherUser.id);
-            await adminClient.createDirectChannel([user.id, otherUser.id]);
+            const regularUserPeerData = await pw.random.user('dm-peer-user');
+            const regularUserPeer = await adminClient.createUser(regularUserPeerData, '', '');
+            await adminClient.addToTeam(team.id, regularUserPeer.id);
+            await adminClient.createDirectChannel([user.id, regularUserPeer.id]);
 
-            const channelUserRole = (await adminClient.getRolesByNames(['channel_user']))[0];
-            const originalPermissions = channelUserRole.permissions as string[];
+            const {channelsPage: regularUserPage} = await pw.testBrowser.login(user);
+            await regularUserPage.goto(team.name, `@${regularUserPeer.username}`);
+            await regularUserPage.toBeVisible();
+            await regularUserPage.centerView.header.openChannelMenu();
+            await expect(regularUserPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
+            await expect(regularUserPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
 
-            try {
-                const withoutPermission = originalPermissions.filter(
-                    (p) => p !== MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
-                );
-                await adminClient.patchRole(channelUserRole.id, {permissions: withoutPermission});
+            const adminPeerData = await pw.random.user('dm-peer-admin');
+            const adminPeer = await adminClient.createUser(adminPeerData, '', '');
+            await adminClient.addToTeam(team.id, adminPeer.id);
+            await adminClient.createDirectChannel([adminUser.id, adminPeer.id]);
 
-                const {channelsPage} = await pw.testBrowser.login(user);
-                await channelsPage.goto(team.name, `@${otherUser.username}`);
-                await channelsPage.toBeVisible();
-
-                await channelsPage.centerView.header.openChannelMenu();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
-
-                const withPermission = [...new Set([...withoutPermission, MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION])];
-                await adminClient.patchRole(channelUserRole.id, {permissions: withPermission});
-
-                await channelsPage.page.reload();
-                await channelsPage.toBeVisible();
-                await channelsPage.centerView.header.openChannelMenu();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
-            } finally {
-                await adminClient.patchRole(channelUserRole.id, {permissions: originalPermissions});
-            }
+            const {channelsPage: adminPage} = await pw.testBrowser.login(adminUser);
+            await adminPage.goto(team.name, `@${adminPeer.username}`);
+            await adminPage.toBeVisible();
+            await adminPage.centerView.header.openChannelMenu();
+            await expect(adminPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
+            await expect(adminPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
         },
     );
 
@@ -127,7 +115,7 @@ test.describe('autotranslation configuration tests', () => {
             tag: ['@autotranslation', '@permissions'],
         },
         async ({pw}) => {
-            const {adminClient, user, team} = await pw.initSetup();
+            const {adminClient, adminUser, team} = await pw.initSetup();
 
             const license = await adminClient.getClientLicenseOld();
             test.skip(
@@ -143,32 +131,22 @@ test.describe('autotranslation configuration tests', () => {
             const otherUserData = await pw.random.user('dm-peer');
             const otherUser = await adminClient.createUser(otherUserData, '', '');
             await adminClient.addToTeam(team.id, otherUser.id);
-            const dmChannel = await adminClient.createDirectChannel([user.id, otherUser.id]);
+            const dmChannel = await adminClient.createDirectChannel([adminUser.id, otherUser.id]);
 
-            const channelUserRole = (await adminClient.getRolesByNames(['channel_user']))[0];
-            const originalPermissions = channelUserRole.permissions as string[];
-            const withPermission = [...new Set([...originalPermissions, MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION])];
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, `@${otherUser.username}`);
+            await channelsPage.toBeVisible();
 
-            try {
-                await adminClient.patchRole(channelUserRole.id, {permissions: withPermission});
+            const channelSettingsModal = await channelsPage.openChannelSettings();
+            await channelSettingsModal.toBeVisible();
 
-                const {channelsPage} = await pw.testBrowser.login(user);
-                await channelsPage.goto(team.name, `@${otherUser.username}`);
-                await channelsPage.toBeVisible();
+            const newHeader = `DM header ${pw.random.id()}`;
+            await channelsPage.page.getByTestId('channel_settings_header_textbox').fill(newHeader);
+            await channelsPage.page.getByRole('button', {name: 'Save'}).click();
+            await channelSettingsModal.close();
 
-                const channelSettingsModal = await channelsPage.openChannelSettings();
-                await channelSettingsModal.toBeVisible();
-
-                const newHeader = `DM header ${pw.random.id()}`;
-                await channelsPage.page.getByTestId('channel_settings_header_textbox').fill(newHeader);
-                await channelsPage.page.getByRole('button', {name: 'Save'}).click();
-                await channelSettingsModal.close();
-
-                const updatedChannel = await adminClient.getChannel(dmChannel.id);
-                expect(updatedChannel.header).toBe(newHeader);
-            } finally {
-                await adminClient.patchRole(channelUserRole.id, {permissions: originalPermissions});
-            }
+            const updatedChannel = await adminClient.getChannel(dmChannel.id);
+            expect(updatedChannel.header).toBe(newHeader);
         },
     );
 
