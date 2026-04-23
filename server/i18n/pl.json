@@ -4573,11 +4573,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 144+"
+    "translation": "Wersja 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 144+"
+    "translation": "Wersja 146+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -12594,5 +12594,85 @@
   {
     "id": "app.channel.set_members.get_members.app_error",
     "translation": "Nie można uzyskać członków Kanału w celu uzgodnienia ról."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Nie udało się wyczyścić zarządzanej kategorii z Kanału."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Kanały wiadomości bezpośrednich i grupowych nie mogą być przypisane do kategorii zarządzanej."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Nazwa kategorii zarządzanej nie może być pusta."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Nie udało się pobrać mapowań kategorii zarządzanych."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Nie znaleziono zarządzanej kategorii dla kanału."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Nie udało się ustawić zarządzanej kategorii na Kanale."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Nie udało się ocenić polityki uprawnień."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "Nie znaleziono jednego lub więcej kanałów."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Kanał {{.ChannelId}} nie należy do tego Zespołu."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "Wymagany jest co najmniej jeden kanał."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Nie można zweryfikować własności polityki dla tego zespołu."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Nie udało się uzgodnić zakresu zespołu dotyczącego polityki."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "Nie możesz stworzyć polityki, która wykluczałaby Ciebie samego."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Nie udało się zweryfikować reguł polityki."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Polityki uprawnień nie mogą dziedziczyć po innych politykach."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Działanie(a) jest nieprawidłowe."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Polityki uprawnień muszą być stosowane do dokładnie jednej roli."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Nieprawidłowa wartość zakresu dla tej polityki kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Identyfikator zakresu musi być prawidłowym identyfikatorem podczas ustawiania zakresu."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Identyfikator zakresu nie może być ustawiony bez zakresu."
   }
 ]
