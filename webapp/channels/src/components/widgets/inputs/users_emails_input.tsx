@@ -66,17 +66,38 @@ const typedInputDelimiter = /[,;]+/;
 const pasteDelimiter = /[\n\r,;]+/;
 const spaceSeparatedPasteDelimiter = /\s+/;
 
-const shouldHandlePasteAsBulkList = (value: string): boolean => {
-    if ((/[,;\n\r]/).test(value)) {
-        return true;
+type PasteHandling =
+    | {mode: 'draft'}
+    | {mode: 'bulk'; delimiter: RegExp};
+
+const getPasteHandling = (value: string): PasteHandling => {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return {mode: 'draft'};
     }
 
-    const entries = value.split(spaceSeparatedPasteDelimiter).map((entry) => entry.trim()).filter(Boolean);
-    return entries.length > 1 && entries.every((entry) => isEmail(entry));
+    if (isEmail(trimmedValue)) {
+        return {mode: 'bulk', delimiter: pasteDelimiter};
+    }
+
+    if ((/[,;\n\r]/).test(trimmedValue)) {
+        return {mode: 'bulk', delimiter: pasteDelimiter};
+    }
+
+    const entries = trimmedValue.split(spaceSeparatedPasteDelimiter).map((entry) => entry.trim()).filter(Boolean);
+    if (entries.length > 1 && entries.every((entry) => isEmail(entry))) {
+        return {mode: 'bulk', delimiter: spaceSeparatedPasteDelimiter};
+    }
+
+    return {mode: 'draft'};
 };
 
-const isLikelyBulkPasteInput = (nextValue: string, prevValue: string): boolean => {
-    return nextValue.length - prevValue.length > 1 && shouldHandlePasteAsBulkList(nextValue);
+const isLikelyBulkPasteInput = (nextValue: string, previousValue: string): PasteHandling => {
+    if (nextValue.length - previousValue.length <= 1) {
+        return {mode: 'draft'};
+    }
+
+    return getPasteHandling(nextValue);
 };
 
 const messages = defineMessages({
@@ -234,9 +255,10 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
     Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
             const clipboardText = e.clipboardData?.getData('Text') || e.clipboardData?.getData('text/plain') || e.clipboardData?.getData('text') || '';
-            if (clipboardText.trim() && shouldHandlePasteAsBulkList(clipboardText)) {
+            const pasteHandling = getPasteHandling(clipboardText);
+            if (pasteHandling.mode === 'bulk') {
                 e.preventDefault();
-                this.appendDelimitedValues(clipboardText, undefined, spaceSeparatedPasteDelimiter).catch(() => undefined);
+                this.appendDelimitedValues(clipboardText, pasteHandling.delimiter).catch(() => undefined);
             }
 
             if (this.props.onPaste) {

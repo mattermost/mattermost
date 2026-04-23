@@ -4,10 +4,11 @@
 import React from 'react';
 
 import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -126,6 +127,45 @@ describe('InviteView', () => {
         props = defaultProps;
     });
 
+    function renderControlledInviteView(overrideProps: Partial<Props> = {}) {
+        const onChangeUsersEmails = jest.fn();
+        const onUsersInputChange = jest.fn();
+        const usersLoader = jest.fn().mockImplementation((_search: string, callback: (users: UserProfile[]) => void) => {
+            callback([]);
+            return Promise.resolve([]);
+        });
+
+        const Wrapper = () => {
+            const [usersEmails, setUsersEmails] = React.useState<Array<UserProfile | string>>([]);
+            const [usersEmailsSearch, setUsersEmailsSearch] = React.useState('');
+
+            return (
+                <InviteView
+                    {...defaultProps}
+                    {...overrideProps}
+                    usersLoader={usersLoader}
+                    usersEmails={usersEmails}
+                    usersEmailsSearch={usersEmailsSearch}
+                    onChangeUsersEmails={(nextUsersEmails) => {
+                        onChangeUsersEmails(nextUsersEmails);
+                        setUsersEmails(nextUsersEmails);
+                    }}
+                    onUsersInputChange={(nextUsersEmailsSearch) => {
+                        onUsersInputChange(nextUsersEmailsSearch);
+                        setUsersEmailsSearch(nextUsersEmailsSearch);
+                    }}
+                />
+            );
+        };
+
+        return {
+            ...renderWithContext(<Wrapper/>, state),
+            onChangeUsersEmails,
+            onUsersInputChange,
+            usersLoader,
+        };
+    }
+
     it('shows InviteAs component when user can choose to invite guests or users', async () => {
         renderWithContext(
             <InviteView {...props}/>,
@@ -224,5 +264,58 @@ describe('InviteView', () => {
         await userEvent.click(checkbox);
 
         expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps pasted invalid text as draft and leaves invite disabled', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails, onUsersInputChange, usersLoader} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.paste('fgdfg');
+
+        await waitFor(() => {
+            expect(onUsersInputChange).toHaveBeenCalledWith('fgdfg');
+        });
+
+        expect(onChangeUsersEmails).not.toHaveBeenCalledWith([expect.anything()]);
+        expect(usersLoader).toHaveBeenCalledWith('fgdfg', expect.any(Function));
+        expect(input).toHaveValue('fgdfg');
+        expect(screen.getByTestId('inviteButton')).toBeDisabled();
+        await waitFor(() => {
+            expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching fgdfg. Enter their email to invite them.');
+        });
+    });
+
+    it('creates a chip for a pasted single valid email and enables invite', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.paste('maria@mattermost.com');
+
+        await waitFor(() => {
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['maria@mattermost.com']);
+        });
+
+        expect(input).toHaveValue('');
+        expect(screen.getByTestId('inviteButton')).toBeEnabled();
+    });
+
+    it('creates chips for pasted space-separated valid emails and enables invite', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.paste('maria@mattermost.com nick@mattermost.com');
+
+        await waitFor(() => {
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['maria@mattermost.com', 'nick@mattermost.com']);
+        });
+
+        expect(input).toHaveValue('');
+        expect(screen.getByTestId('inviteButton')).toBeEnabled();
     });
 });
