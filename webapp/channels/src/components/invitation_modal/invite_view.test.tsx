@@ -327,4 +327,18 @@ describe('InviteView', () => {
         expect(input).toHaveValue('');
         expect(screen.getByTestId('inviteButton')).toBeEnabled();
     });
+
+    it('does not create a chip prematurely while typing a valid email', async () => {
+        const user = userEvent.setup();
+        const {onChangeUsersEmails, onUsersInputChange} = renderControlledInviteView();
+
+        const input = screen.getByRole('combobox', {name: 'Invite People'});
+        await user.click(input);
+        await user.type(input, 'one@example.com');
+
+        expect(onChangeUsersEmails).not.toHaveBeenCalledWith(['one@example.com']);
+        expect(onUsersInputChange).toHaveBeenCalledWith('one@example.com');
+        expect(input).toHaveValue('one@example.com');
+        expect(screen.getByTestId('inviteButton')).toBeDisabled();
+    });
 });

@@ -129,6 +129,26 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             expect(baseProps.onChange).toHaveBeenCalled();
         });
+
+        it('should not create a chip while typing a valid email without delimiters', async () => {
+            const ref = React.createRef<UsersEmailsInput>();
+            renderWithContext(
+                <UsersEmailsInput
+                    {...baseProps}
+                    ref={ref}
+                />,
+            );
+
+            const action: InputActionMeta = {
+                action: 'input-change',
+                prevInputValue: 'person.one@example.co',
+            };
+
+            await ref.current!.handleInputChange('person.one@example.com', action);
+
+            expect(baseProps.onChange).not.toHaveBeenCalled();
+            expect(baseProps.onInputChange).toHaveBeenCalledWith('person.one@example.com');
+        });
     });
 
     describe('edge cases', () => {
@@ -314,6 +334,19 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             expect(onChange).not.toHaveBeenCalledWith(expect.arrayContaining(['first@example.com', 'second@example.com']));
             expect(input).toHaveValue('first@example.com word second@example.com');
+        });
+
+        it('should preserve space-separated draft text on blur when it is not a valid single email', async () => {
+            const user = userEvent.setup();
+            const {onInputChange} = renderControlledInput();
+
+            const input = screen.getByRole('combobox');
+            await user.click(input);
+            await user.type(input, 'first@example.com second@example.com');
+            fireEvent.blur(input);
+
+            expect(input).toHaveValue('first@example.com second@example.com');
+            expect(onInputChange).toHaveBeenLastCalledWith('first@example.com second@example.com');
         });
     });
 });

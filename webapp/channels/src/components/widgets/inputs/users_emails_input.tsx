@@ -118,7 +118,7 @@ const messages = defineMessages({
 export class UsersEmailsInput extends React.PureComponent<Props, State> {
     static defaultProps = {
         noMatchMessage: messages.noMatchDefault,
-        validAddress: messages.validAddressDefault,
+        validAddressMessage: messages.validAddressDefault,
         loadingMessage: messages.loadingDefault,
         showError: false,
     };
@@ -375,8 +375,9 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
                 }));
             }
         } else if (action.action === 'input-change') {
-            if (isLikelyBulkPasteInput(inputValue, action.prevInputValue || '')) {
-                const newValuesCount = await this.appendDelimitedValues(inputValue, undefined, spaceSeparatedPasteDelimiter);
+            const likelyBulkPaste = isLikelyBulkPasteInput(inputValue, action.prevInputValue || '');
+            if (likelyBulkPaste.mode === 'bulk') {
+                const newValuesCount = await this.appendDelimitedValues(inputValue, likelyBulkPaste.delimiter);
                 if (newValuesCount === 0) {
                     return;
                 }
