@@ -5196,22 +5196,24 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 		return getErr == nil && ut.UnreadMentions >= 2
 	}, 10*time.Second, 200*time.Millisecond, "expected at least 2 unread mentions in thread")
 
+	// Thread updates arrive as incremental deltas (0→1→2), not a single
+	// 0→2 jump, so we only assert on the final state. The previous_unread_*
+	// values depend on how the replies are batched and aren't meaningful
+	// to pin down here.
 	var caught bool
 	func() {
 		for {
 			select {
 			case ev := <-wsClient.EventChannel:
 				if ev.EventType() == model.WebsocketEventThreadUpdated {
-					caught = true
 					var thread model.ThreadResponse
 					data := ev.GetData()
 					jsonErr := json.Unmarshal([]byte(data["thread"].(string)), &thread)
-
 					require.NoError(t, jsonErr)
-					require.EqualValues(t, int64(2), thread.UnreadReplies)
-					require.EqualValues(t, int64(2), thread.UnreadMentions)
-					require.EqualValues(t, float64(0), data["previous_unread_replies"])
-					require.EqualValues(t, float64(0), data["previous_unread_mentions"])
+					if thread.UnreadReplies == 2 && thread.UnreadMentions == 2 {
+						caught = true
+						return
+					}
 				}
 			case <-time.After(15 * time.Second):
 				return

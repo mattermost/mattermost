@@ -38,11 +38,12 @@ const { execSync } = require("node:child_process");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
-const HEAVY_MS = 300000; // 5 min: packages above this get test-level splitting
-// Only api4 (~38 min) and app (~15 min) exceed this threshold.
-// Packages like sqlstore (~3 min) stay whole to preserve test isolation —
-// their integrity tests scan the entire database and break if split across
-// shards where other tests leave data behind.
+// Threshold for test-level splitting (aggregated pass time from timing cache).
+// Keep this above sqlstore: its total time can exceed 5 minutes while remaining
+// far below api4/app, and treating sqlstore as "heavy" breaks CI — discovery
+// runs `go test -list` on the GitHub host where TestMain cannot reach postgres
+// on the docker compose network (only api4 and app should need -list splitting).
+const HEAVY_MS = 400000; // 400s (~6.7 min): packages above this get test-level splitting
 
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
   console.error("ERROR: SHARD_INDEX and SHARD_TOTAL must be set");
@@ -152,7 +153,7 @@ if (heavyPkgs.size > 0) {
     try {
       const out = execSync(`go test -list '.*' ${pkg} 2>/dev/null`, {
         encoding: "utf8",
-        timeout: 60000,
+        timeout: 300000,
       });
       const currentTests = out
         .split("\n")
@@ -170,7 +171,9 @@ if (heavyPkgs.size > 0) {
         console.log(`  ${pkg.split("/").pop()}: ${newCount} new test(s) not in cache`);
       }
     } catch (e) {
-      console.log(`  ${pkg.split("/").pop()}: go test -list failed, skipping discovery`);
+      console.error(`::error::${pkg.split("/").pop()}: go test -list failed — new tests in this package would be silently skipped. ${e.message}`);
+      // Fail loudly in CI; locally (e.g. unit tests without a Go toolchain), log and continue.
+      if (process.env.CI) process.exit(1);
     }
   }
   console.log("::endgroup::");

@@ -30,7 +30,7 @@ import {getHistory} from 'utils/browser_history';
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
-import {hasUsableAttributes} from '../editors/shared';
+import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
@@ -120,25 +120,7 @@ function PolicyDetails({
         loadPage();
     }, [policyId]);
 
-    // Check if expression is simple enough for table mode
-    const isSimpleExpression = (expr: string): boolean => {
-        if (!expr) {
-            return true;
-        }
-
-        // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
-        // or user.attributes.X.startsWith/endsWith/contains("Y")
-        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
-        return expr.split('&&').every((condition) => {
-            const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
-        });
-    };
+    // isSimpleExpression imported from ../editors/shared
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.

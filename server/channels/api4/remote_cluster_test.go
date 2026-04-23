@@ -762,3 +762,110 @@ func TestDeleteRemoteCluster(t *testing.T) {
 		require.NotZero(t, deletedRC.DeleteAt)
 	})
 }
+
+func TestDeleteRemoteClusterUnsharesOrphanSharedChannels(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "orphan-unshare-remote",
+		DisplayName: "orphan-unshare-remote",
+		SiteURL:     "http://orphan-unshare.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "orphan_unshare_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	scr := &model.SharedChannelRemote{
+		ChannelId:         channel.Id,
+		CreatorId:         th.SystemAdminUser.Id,
+		RemoteId:          rc.RemoteId,
+		IsInviteConfirmed: true,
+	}
+	_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+	require.NoError(t, err)
+
+	chShared, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chShared.IsShared())
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.Error(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.False(t, chAfter.IsShared())
+}
+
+func TestDeleteRemoteClusterKeepsSharedChannelWhenOtherRemoteRemains(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	rc1, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-a",
+		DisplayName: "keep-shared-a",
+		SiteURL:     "http://keep-shared-a.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	rc2, appErr := th.App.AddRemoteCluster(&model.RemoteCluster{
+		Name:        "keep-shared-b",
+		DisplayName: "keep-shared-b",
+		SiteURL:     "http://keep-shared-b.example.com",
+		Token:       model.NewId(),
+		CreatorId:   th.SystemAdminUser.Id,
+	})
+	require.Nil(t, appErr)
+
+	channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+	sc := &model.SharedChannel{
+		ChannelId: channel.Id,
+		TeamId:    channel.TeamId,
+		Home:      true,
+		ShareName: "keep_shared_chan",
+		CreatorId: th.SystemAdminUser.Id,
+		RemoteId:  model.NewId(),
+	}
+	_, err := th.App.ShareChannel(th.Context, sc)
+	require.NoError(t, err)
+
+	for _, rc := range []*model.RemoteCluster{rc1, rc2} {
+		scr := &model.SharedChannelRemote{
+			ChannelId:         channel.Id,
+			CreatorId:         th.SystemAdminUser.Id,
+			RemoteId:          rc.RemoteId,
+			IsInviteConfirmed: true,
+		}
+		_, err = th.App.Srv().Store().SharedChannel().SaveRemote(scr)
+		require.NoError(t, err)
+	}
+
+	deleted, appErr := th.App.DeleteRemoteCluster(rc1.RemoteId)
+	require.Nil(t, appErr)
+	require.True(t, deleted)
+
+	_, err = th.App.Srv().Store().SharedChannel().Get(channel.Id)
+	require.NoError(t, err)
+
+	chAfter, appErr := th.App.GetChannel(th.Context, channel.Id)
+	require.Nil(t, appErr)
+	require.True(t, chAfter.IsShared())
+}

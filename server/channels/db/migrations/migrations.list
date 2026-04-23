@@ -331,3 +331,7 @@ channels/db/migrations/postgres/000166_create_views.down.sql
 channels/db/migrations/postgres/000166_create_views.up.sql
 channels/db/migrations/postgres/000167_create_views_channel_id_delete_at_index.down.sql
 channels/db/migrations/postgres/000167_create_views_channel_id_delete_at_index.up.sql
+channels/db/migrations/postgres/000168_add_linked_field_id_to_property_fields.down.sql
+channels/db/migrations/postgres/000168_add_linked_field_id_to_property_fields.up.sql
+channels/db/migrations/postgres/000169_create_linked_field_id_index.down.sql
+channels/db/migrations/postgres/000169_create_linked_field_id_index.up.sql
