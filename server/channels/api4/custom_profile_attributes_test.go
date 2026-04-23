@@ -111,6 +111,66 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, "admin", createdManagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
 		require.Equal(t, "when_set", createdManagedField.Attrs["visibility"])
 	}, "admin should be able to create a managed field")
+
+	t.Run("server zeroes DeleteAt even if input has a non-zero value", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:     model.NewId(),
+			Type:     model.PropertyFieldTypeText,
+			DeleteAt: time.Now().UnixMilli(),
+		}
+		require.NotZero(t, field.DeleteAt)
+
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.Zero(t, created.DeleteAt)
+	})
+}
+
+func TestCPAFieldLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.CustomProfileAttributes = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+	// Create 20 fields — the maximum allowed by FieldLimitHook.
+	createdIDs := make([]string, 0, 20)
+	for i := 1; i <= 20; i++ {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		createdIDs = append(createdIDs, created.ID)
+	}
+
+	t.Run("creating a 21st field is rejected", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		_, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
+		CheckUnprocessableEntityStatus(t, resp)
+		require.Error(t, err)
+	})
+
+	t.Run("deleted fields do not count toward the limit", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteCPAField(context.Background(), createdIDs[0])
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		replacement := &model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeText,
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), replacement)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+		require.NotZero(t, created.ID)
+	})
 }
 
 func TestListCPAFields(t *testing.T) {
@@ -289,6 +349,108 @@ func TestPatchCPAField(t *testing.T) {
 		// Verify managed attribute is removed or empty
 		require.Empty(t, patchedUnmanagedField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
 	}, "admin should be able to toggle managed attribute on existing field")
+
+	t.Run("patching select options preserves existing option IDs and assigns new IDs to added options", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: "Select Field " + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#111111"},
+					map[string]any{"name": "Option 2", "color": "#222222"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.Len(t, createdCPA.Attrs.Options, 2)
+		id1 := createdCPA.Attrs.Options[0].ID
+		id2 := createdCPA.Attrs.Options[1].ID
+		require.NotEmpty(t, id1)
+		require.NotEmpty(t, id2)
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": id1, "name": "Updated Option 1", "color": "#333333"},
+					map[string]any{"name": "New Option 1.5", "color": "#353535"},
+					map[string]any{"id": id2, "name": "Updated Option 2", "color": "#444444"},
+				},
+			}),
+		}
+		patched, resp, err := th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		patchedCPA, err := model.NewCPAFieldFromPropertyField(patched)
+		require.NoError(t, err)
+		require.Len(t, patchedCPA.Attrs.Options, 3)
+
+		require.Equal(t, id1, patchedCPA.Attrs.Options[0].ID)
+		require.Equal(t, "Updated Option 1", patchedCPA.Attrs.Options[0].Name)
+		require.Equal(t, "#333333", patchedCPA.Attrs.Options[0].Color)
+		require.NotEmpty(t, patchedCPA.Attrs.Options[1].ID)
+		require.Equal(t, "New Option 1.5", patchedCPA.Attrs.Options[1].Name)
+		require.Equal(t, id2, patchedCPA.Attrs.Options[2].ID)
+		require.Equal(t, "Updated Option 2", patchedCPA.Attrs.Options[2].Name)
+	})
+
+	t.Run("patching a field without changing its type preserves existing values", func(t *testing.T) {
+		selectField := &model.PropertyField{
+			Name: "Select with Values " + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#FF5733"},
+					map[string]any{"name": "Option 2", "color": "#33FF57"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.NotEmpty(t, createdCPA.Attrs.Options)
+		optionID := createdCPA.Attrs.Options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Admin writes a value on behalf of BasicUser.
+		values := map[string]json.RawMessage{
+			created.ID: json.RawMessage(fmt.Sprintf(`"%s"`, optionID)),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, values)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Rename field + add an option, keeping Type unchanged.
+		patch := &model.PropertyFieldPatch{
+			Name: model.NewPointer("Renamed " + model.NewId()),
+			Attrs: model.NewPointer(model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optionID, "name": "Renamed Option 1", "color": "#FF5733"},
+					map[string]any{"name": "Option 2", "color": "#33FF57"},
+					map[string]any{"name": "Option 3", "color": "#5733FF"},
+				},
+			}),
+		}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, patch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// BasicUser's value for this field should still be present.
+		retrieved, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		rawValue, ok := retrieved[created.ID]
+		require.True(t, ok, "value should still exist after a non-type-changing patch")
+		require.Equal(t, json.RawMessage(fmt.Sprintf(`"%s"`, optionID)), rawValue)
+	})
 }
 
 func TestDeleteCPAField(t *testing.T) {
@@ -827,6 +989,57 @@ func TestPatchCPAValues(t *testing.T) {
 			require.NoError(t, json.Unmarshal(patchedValues[createdRegularField.ID], &regularValue))
 			require.Equal(t, "Admin Managed Batch", managedValue)
 			require.Equal(t, "Admin Regular Batch", regularValue)
+		})
+	})
+
+	t.Run("patch fails if any field in the map does not exist", func(t *testing.T) {
+		// App.GetPropertyFields rejects an unknown id with a 400 before the
+		// handler's per-field 404 check runs (see App.GetPropertyFields's
+		// ErrResultsMismatch branch in app/property_field.go).
+		values := map[string]json.RawMessage{
+			model.NewId(): json.RawMessage(`"any value"`),
+		}
+		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+		CheckBadRequestStatus(t, resp)
+		require.Error(t, err)
+		CheckErrorID(t, err, "app.property_field.get_many.fields_not_found.app_error")
+	})
+
+	t.Run("rejects values that fail hook validation", func(t *testing.T) {
+		optionsID := []string{model.NewId(), model.NewId(), model.NewId()}
+		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			Name: model.NewId(),
+			Type: model.PropertyFieldTypeMultiselect,
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": optionsID[0], "name": "option1"},
+					{"id": optionsID[1], "name": "option2"},
+					{"id": optionsID[2], "name": "option3"},
+				},
+			},
+		})
+		require.NoError(t, err)
+
+		createdArrayField, appErr := th.CreateCPAField(t, arrayField)
+		require.Nil(t, appErr)
+
+		t.Run("invalid option ID", func(t *testing.T) {
+			unknownOption := model.NewId()
+			values := map[string]json.RawMessage{
+				createdArrayField.ID: json.RawMessage(fmt.Sprintf(`["%s", "%s"]`, optionsID[0], unknownOption)),
+			}
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckBadRequestStatus(t, resp)
+			require.Error(t, err)
+		})
+
+		t.Run("wrong value type (string instead of array)", func(t *testing.T) {
+			values := map[string]json.RawMessage{
+				createdArrayField.ID: json.RawMessage(`"not an array"`),
+			}
+			_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
+			CheckBadRequestStatus(t, resp)
+			require.Error(t, err)
 		})
 	})
 }
