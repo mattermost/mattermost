@@ -670,7 +670,7 @@
   "admin.classification_markings.global_banner.enable.false": "False",
   "admin.classification_markings.global_banner.enable.title": "Global Classification Banner",
   "admin.classification_markings.global_banner.enable.true": "True",
-  "admin.classification_markings.global_banner.level.description": "Choose from a variety of pre-defined banner options. To manually set the banner text and color, select \"Custom banner\".",
+  "admin.classification_markings.global_banner.level.description": "Select a classification level to display on the global banner. The banner text and color are determined by the chosen level.",
   "admin.classification_markings.global_banner.level.missing_error": "The previously selected level no longer exists. Select a level from the current classification levels.",
   "admin.classification_markings.global_banner.level.title": "Global classification level",
   "admin.classification_markings.global_banner.placement.title": "Banner visibility",

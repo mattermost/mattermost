@@ -61,7 +61,8 @@ export async function setGlobalBannerConfig(adminClient: Client4, bannerOpts: Se
     await adminClient.updateConfig({
         ...config,
         ClassificationMarkingsSettings: {
-            ...((config as unknown as {ClassificationMarkingsSettings?: Record<string, unknown>}).ClassificationMarkingsSettings ?? {}),
+            ...((config as unknown as {ClassificationMarkingsSettings?: Record<string, unknown>})
+                .ClassificationMarkingsSettings ?? {}),
             GlobalBanner: {
                 Enabled: bannerOpts.enabled ?? true,
                 Placement: bannerOpts.placement ?? 'top',

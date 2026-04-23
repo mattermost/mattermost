@@ -470,9 +470,7 @@ test.describe('System Console - Classification markings', () => {
             await page.getByRole('button', {name: 'Save', exact: true}).click();
 
             // * Validation error is shown
-            await expect(
-                page.getByText(/A global classification level must be selected/i),
-            ).toBeVisible();
+            await expect(page.getByText(/A global classification level must be selected/i)).toBeVisible();
         },
     );
 });

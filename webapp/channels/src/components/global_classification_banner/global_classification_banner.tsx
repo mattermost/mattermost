@@ -31,7 +31,7 @@ export default function GlobalClassificationBanner({position}: Props) {
     const textColor = useMemo(() => (color ? getContrastingSimpleColor(color) : ''), [color]);
 
     useEffect(() => {
-        if (position !== 'bottom') {
+        if (position !== 'bottom' || !shouldRender) {
             return undefined;
         }
 
@@ -40,14 +40,18 @@ export default function GlobalClassificationBanner({position}: Props) {
             return undefined;
         }
 
-        if (shouldRender) {
-            root.classList.add(BOTTOM_BANNER_CLASS);
-        } else {
-            root.classList.remove(BOTTOM_BANNER_CLASS);
-        }
+        const refKey = `banner-bottom-ref-count`;
+        const count = parseInt(root.dataset[refKey] || '0', 10) + 1;
+        root.dataset[refKey] = String(count);
+        root.classList.add(BOTTOM_BANNER_CLASS);
 
         return () => {
-            root.classList.remove(BOTTOM_BANNER_CLASS);
+            const next = parseInt(root.dataset[refKey] || '1', 10) - 1;
+            root.dataset[refKey] = String(next);
+            if (next <= 0) {
+                delete root.dataset[refKey];
+                root.classList.remove(BOTTOM_BANNER_CLASS);
+            }
         };
     }, [position, shouldRender]);
 

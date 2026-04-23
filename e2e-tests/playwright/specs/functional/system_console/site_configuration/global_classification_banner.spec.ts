@@ -39,10 +39,7 @@ test.describe('Global Classification Banner', () => {
         await pw.skipIfNoLicense();
         const {adminClient} = await getAdminClient();
         const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            licenseTier(license.SkuShortName) < 20,
-            'Classification markings requires Enterprise-tier license.',
-        );
+        test.skip(licenseTier(license.SkuShortName) < 20, 'Classification markings requires Enterprise-tier license.');
     });
 
     /**
@@ -135,9 +132,7 @@ test.describe('Global Classification Banner', () => {
             await page.getByRole('button', {name: 'Save', exact: true}).click();
 
             // Validation error is shown
-            await expect(
-                page.getByText(/A global classification level must be selected/i),
-            ).toBeVisible();
+            await expect(page.getByText(/A global classification level must be selected/i)).toBeVisible();
         },
     );
 
@@ -192,9 +187,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
-                [
-                    {name: 'TOP SECRET', color: '#FCE83A', rank: 1},
-                ],
+                [{name: 'TOP SECRET', color: '#FCE83A', rank: 1}],
                 {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom', color: '#FCE83A'},
             );
 
@@ -298,11 +291,12 @@ test.describe('Global Classification Banner', () => {
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            await setupClassificationFieldWithGlobalBanner(
-                adminClient,
-                [{name: 'SECRET', color: '#C8102E', rank: 1}],
-                {levelName: 'SECRET', enabled: true, placement: 'top', color: '#C8102E'},
-            );
+            await setupClassificationFieldWithGlobalBanner(adminClient, [{name: 'SECRET', color: '#C8102E', rank: 1}], {
+                levelName: 'SECRET',
+                enabled: true,
+                placement: 'top',
+                color: '#C8102E',
+            });
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
@@ -362,6 +356,9 @@ test.describe('Global Classification Banner', () => {
             // Banners should be gone
             await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
             await expect(page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+
+            await resetGlobalBannerConfig(adminClient);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
 

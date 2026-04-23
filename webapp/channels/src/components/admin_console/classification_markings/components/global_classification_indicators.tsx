@@ -30,7 +30,7 @@ const msg = defineMessages({
     placementTop: {id: 'admin.classification_markings.global_banner.placement.top', defaultMessage: 'Top only'},
     placementTopAndBottom: {id: 'admin.classification_markings.global_banner.placement.top_and_bottom', defaultMessage: 'Top and bottom'},
     levelTitle: {id: 'admin.classification_markings.global_banner.level.title', defaultMessage: 'Global classification level'},
-    levelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Choose from a variety of pre-defined banner options. To manually set the banner text and color, select "Custom banner".'},
+    levelDescription: {id: 'admin.classification_markings.global_banner.level.description', defaultMessage: 'Select a classification level to display on the global banner. The banner text and color are determined by the chosen level.'},
     levelMissingError: {id: 'admin.classification_markings.global_banner.level.missing_error', defaultMessage: 'The previously selected level no longer exists. Select a level from the current classification levels.'},
 });
 

@@ -13,35 +13,6 @@ export const GlobalBannerSectionContent = styled(SectionContent).attrs({
     }
 `;
 
-export const GlobalBannerLevelDropdownWrapper = styled.div`
-    max-width: 500px;
-
-    > .DropdownInput.Input_container {
-        margin-top: 0;
-    }
-
-    fieldset.Input_fieldset.globalBannerLevelDropdownFieldset {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-
-        &:hover,
-        &:focus-within {
-            border: none;
-            box-shadow: none;
-        }
-    }
-
-    .Input_wrapper {
-        padding: 0;
-        margin: 0;
-    }
-
-    .DropdownInput__indicatorsContainer {
-        margin-right: 0;
-    }
-`;
-
 export const GlobalBannerSectionSetting = styled.div`
     min-height: 36px;
     margin-top: 24px;
