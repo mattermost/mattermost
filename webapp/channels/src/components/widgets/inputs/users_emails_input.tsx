@@ -254,7 +254,7 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
 
     Input = (props: InputProps<EmailInvite | UserProfile, true>) => {
         const handlePaste = (e: ClipboardEvent) => {
-            const clipboardText = e.clipboardData?.getData('Text') || e.clipboardData?.getData('text/plain') || e.clipboardData?.getData('text') || '';
+            const clipboardText = e.clipboardData?.getData('Text') || '';
             const pasteHandling = getPasteHandling(clipboardText);
             if (pasteHandling.mode === 'bulk') {
                 e.preventDefault();

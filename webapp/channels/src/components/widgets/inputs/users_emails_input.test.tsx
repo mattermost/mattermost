@@ -211,8 +211,8 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             fireEvent.paste(input, {
                 clipboardData: {
                     getData: (type: string) => {
-                        if (type === 'Text' || type === 'text/plain' || type === 'text') {
-                            return 'maria@mattermost.com';
+                        if (type === 'Text') {
+                            return 'person@example.com';
                         }
                         return '';
                     },
@@ -220,7 +220,7 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             });
 
             await waitFor(() => {
-                expect(onChange).toHaveBeenCalledWith(['maria@mattermost.com']);
+                expect(onChange).toHaveBeenCalledWith(['person@example.com']);
             });
 
             expect(input).toHaveValue('');
@@ -232,17 +232,17 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             const input = screen.getByRole('combobox');
             await user.click(input);
-            await user.paste('fgdfg');
+            await user.paste('nonsense');
 
             await waitFor(() => {
-                expect(onInputChange).toHaveBeenCalledWith('fgdfg');
+                expect(onInputChange).toHaveBeenCalledWith('nonsense');
             });
 
-            expect(onChange).not.toHaveBeenCalledWith(expect.arrayContaining(['fgdfg']));
-            expect(input).toHaveValue('fgdfg');
-            expect(usersLoader).toHaveBeenCalledWith('fgdfg', expect.any(Function));
+            expect(onChange).not.toHaveBeenCalledWith(expect.arrayContaining(['nonsense']));
+            expect(input).toHaveValue('nonsense');
+            expect(usersLoader).toHaveBeenCalledWith('nonsense', expect.any(Function));
             await waitFor(() => {
-                expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching fgdfg. Enter their email to invite them.');
+                expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching nonsense. Enter their email to invite them.');
             });
         });
 
@@ -257,8 +257,8 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             fireEvent.paste(input, {
                 clipboardData: {
                     getData: (type: string) => {
-                        if (type === 'Text' || type === 'text/plain' || type === 'text') {
-                            return 'Maria@mattermost.com nick@mattermost.com';
+                        if (type === 'Text') {
+                            return 'first@example.com second@example.com';
                         }
                         return '';
                     },
@@ -266,9 +266,11 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             });
 
             await waitFor(() => {
-                expect(onChange).toHaveBeenCalledWith(['Maria@mattermost.com', 'nick@mattermost.com']);
+                expect(onChange).toHaveBeenCalledWith(['first@example.com', 'second@example.com']);
             });
 
+            const changeArgs = onChange.mock.calls[0][0];
+            expect(changeArgs).toHaveLength(2);
             expect(input).toHaveValue('');
         });
 
@@ -284,13 +286,15 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
             );
 
             const count = await ref.current!.appendDelimitedValues(
-                'Maria@mattermost.com nick@mattermost.com',
+                'first@example.com second@example.com',
                 /\s+/,
                 /\s+/,
             );
 
             expect(count).toBe(2);
-            expect(baseProps.onChange).toHaveBeenCalledWith(['Maria@mattermost.com', 'nick@mattermost.com']);
+            expect(baseProps.onChange).toHaveBeenCalledWith(['first@example.com', 'second@example.com']);
+            const changeArgs = baseProps.onChange.mock.calls[0][0];
+            expect(changeArgs).toHaveLength(2);
             expect(baseProps.onInputChange).toHaveBeenCalledWith('');
         });
 
@@ -302,14 +306,14 @@ describe('components/widgets/inputs/UsersEmailsInput', () => {
 
             const input = screen.getByRole('combobox');
             await user.click(input);
-            await user.paste('Maria@mattermost.com nick bad@mattermost.com');
+            await user.paste('first@example.com word second@example.com');
 
             await waitFor(() => {
-                expect(onInputChange).toHaveBeenCalledWith('Maria@mattermost.com nick bad@mattermost.com');
+                expect(onInputChange).toHaveBeenCalledWith('first@example.com word second@example.com');
             });
 
-            expect(onChange).not.toHaveBeenCalledWith(expect.arrayContaining(['Maria@mattermost.com', 'bad@mattermost.com']));
-            expect(input).toHaveValue('Maria@mattermost.com nick bad@mattermost.com');
+            expect(onChange).not.toHaveBeenCalledWith(expect.arrayContaining(['first@example.com', 'second@example.com']));
+            expect(input).toHaveValue('first@example.com word second@example.com');
         });
     });
 });

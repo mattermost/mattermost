@@ -8,7 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
@@ -272,18 +272,18 @@ describe('InviteView', () => {
 
         const input = screen.getByRole('combobox', {name: 'Invite People'});
         await user.click(input);
-        await user.paste('fgdfg');
+        await user.paste('unknownperson');
 
         await waitFor(() => {
-            expect(onUsersInputChange).toHaveBeenCalledWith('fgdfg');
+            expect(onUsersInputChange).toHaveBeenCalledWith('unknownperson');
         });
 
         expect(onChangeUsersEmails).not.toHaveBeenCalledWith([expect.anything()]);
-        expect(usersLoader).toHaveBeenCalledWith('fgdfg', expect.any(Function));
-        expect(input).toHaveValue('fgdfg');
+        expect(usersLoader).toHaveBeenCalledWith('unknownperson', expect.any(Function));
+        expect(input).toHaveValue('unknownperson');
         expect(screen.getByTestId('inviteButton')).toBeDisabled();
         await waitFor(() => {
-            expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching fgdfg. Enter their email to invite them.');
+            expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching unknownperson. Enter their email to invite them.');
         });
     });
 
@@ -293,10 +293,10 @@ describe('InviteView', () => {
 
         const input = screen.getByRole('combobox', {name: 'Invite People'});
         await user.click(input);
-        await user.paste('maria@mattermost.com');
+        await user.paste('person.one@example.com');
 
         await waitFor(() => {
-            expect(onChangeUsersEmails).toHaveBeenCalledWith(['maria@mattermost.com']);
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['person.one@example.com']);
         });
 
         expect(input).toHaveValue('');
@@ -309,10 +309,19 @@ describe('InviteView', () => {
 
         const input = screen.getByRole('combobox', {name: 'Invite People'});
         await user.click(input);
-        await user.paste('maria@mattermost.com nick@mattermost.com');
+        fireEvent.paste(input, {
+            clipboardData: {
+                getData: (type: string) => {
+                    if (type === 'Text') {
+                        return 'person.one@example.com person.two@example.com';
+                    }
+                    return '';
+                },
+            },
+        });
 
         await waitFor(() => {
-            expect(onChangeUsersEmails).toHaveBeenCalledWith(['maria@mattermost.com', 'nick@mattermost.com']);
+            expect(onChangeUsersEmails).toHaveBeenCalledWith(['person.one@example.com', 'person.two@example.com']);
         });
 
         expect(input).toHaveValue('');
