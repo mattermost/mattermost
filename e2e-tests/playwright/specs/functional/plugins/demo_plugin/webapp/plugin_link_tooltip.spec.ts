@@ -108,7 +108,8 @@ test('renders clickable links inside plugin link tooltip that respond to clicks'
     const popup = await popupPromise;
 
     // * Verify a new tab opens with the expected URL
-    expect(popup.url()).toContain('example.com');
+    await popup.waitForURL(/example\.com/);
+    await expect(popup).toHaveURL(/example\.com/);
     await popup.close();
 });
 
