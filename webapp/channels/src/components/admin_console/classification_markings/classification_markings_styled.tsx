@@ -140,6 +140,10 @@ export const TableWrapper = styled.div`
             border-top: none;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
             tr {
+                th:first-child {
+                    padding-inline-start: 36px;
+                }
+
                 th.pinned {
                     background: rgba(var(--center-channel-color-rgb), 0.04);
                     padding-block-end: 8px;
@@ -164,6 +168,14 @@ export const TableWrapper = styled.div`
                     padding-block-start: 0;
                     vertical-align: middle;
 
+                    &:first-child {
+                        padding-inline-start: 36px;
+
+                        .form-control {
+                            padding-inline-start: 0;
+                        }
+                    }
+
                     &:last-child {
                         padding-inline-end: 12px;
                     }
@@ -176,6 +188,10 @@ export const TableWrapper = styled.div`
                     }
                 }
             }
+        }
+
+        .dragHandle {
+            left: 12px;
         }
 
         tfoot {

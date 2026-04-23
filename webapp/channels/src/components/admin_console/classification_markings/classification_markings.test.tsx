@@ -728,7 +728,7 @@ describe('GlobalClassificationIndicators section', () => {
         // PSA patch must NOT include any global_banner entry in attrs.
         expect(mockPatch).toHaveBeenCalledWith(
             'custom_profile_attributes',
-            'user',
+            OBJECT_TYPE,
             'field1',
             expect.objectContaining({
                 attrs: expect.objectContaining({options: expect.any(Array)}),

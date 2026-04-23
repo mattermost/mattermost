@@ -55,12 +55,12 @@ export const presets: ClassificationPreset[] = [
         id: 'australia',
         label: 'Australia (PSPF)',
         levels: [
-            {id: 'f9ep3h5pai883gpibzmh69414a', name: 'UNOFFICIAL', color: '#6B7280', rank: 1},
-            {id: 'kzjso9tq1bgyxrzgwcfedco6xw', name: 'OFFICIAL', color: '#6B7280', rank: 2},
-            {id: 'nk3gy1fryfd67bc4go81gyhejh', name: 'OFFICIAL:Sensitive', color: '#6B7280', rank: 3},
-            {id: '3niq6ez9b7r13remwkqarkq5qc', name: 'CONFIDENTIAL', color: '#0000FF', rank: 4},
-            {id: 'pwign3di7f84pfsi9zoa8cw5ko', name: 'SECRET', color: '#FFA500', rank: 5},
-            {id: 'wridu7pp9fdqzmy3dcqk6nzesr', name: 'TOP SECRET', color: '#FF0000', rank: 6},
+            {id: 'f9ep3h5pai883gpibzmh69414a', name: 'UNOFFICIAL', color: '#FFFFFF', rank: 1},
+            {id: 'kzjso9tq1bgyxrzgwcfedco6xw', name: 'OFFICIAL', color: '#D5D7D8', rank: 2},
+            {id: 'nk3gy1fryfd67bc4go81gyhejh', name: 'OFFICIAL:Sensitive', color: '#FFEA00', rank: 3},
+            {id: '3niq6ez9b7r13remwkqarkq5qc', name: 'PROTECTED', color: '#4676B6', rank: 4},
+            {id: 'pwign3di7f84pfsi9zoa8cw5ko', name: 'SECRET', color: '#E2AFAE', rank: 5},
+            {id: 'wridu7pp9fdqzmy3dcqk6nzesr', name: 'TOP SECRET', color: '#E1211D', rank: 6},
         ],
     },
     {

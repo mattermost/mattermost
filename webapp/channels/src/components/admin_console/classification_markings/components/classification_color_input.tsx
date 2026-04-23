@@ -118,7 +118,10 @@ function ClassificationColorInput({id, value, onChange, swatchAriaLabel, isDisab
                         type='button'
                         id={`${id}-squareColorIcon`}
                         className='ClassificationColorInput__swatch'
-                        style={{backgroundColor: localValue}}
+                        style={{
+                            backgroundColor: localValue,
+                            borderColor: tinycolor(localValue).darken(5).toHexString(),
+                        }}
                         aria-label={swatchAriaLabel}
                         aria-expanded={isOpened}
                         aria-haspopup='dialog'

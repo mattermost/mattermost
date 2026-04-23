@@ -123,7 +123,6 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
-    const [initialPresetId, setInitialPresetId] = useState<string>(PRESET_CUSTOM);
     const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
 
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
@@ -167,7 +166,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                     setLevels(result.levels);
                     setInitialLevels(result.levels);
                     setPresetId(result.presetId);
-                    setInitialPresetId(result.presetId);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -309,7 +307,6 @@ export default function ClassificationMarkings({disabled}: Props) {
             setLevels(result.levels);
             setInitialLevels(result.levels);
             setInitialEnabled(true);
-            setInitialPresetId(presetId);
         } else if (!enabled && initialEnabled && existingField) {
             await saveDeleteField(existingField.id);
             setExistingField(null);
@@ -317,16 +314,14 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialLevels([]);
             setLevels([]);
             setPresetId(PRESET_CUSTOM);
-            setInitialPresetId(PRESET_CUSTOM);
         } else if (enabled && initialEnabled && existingField) {
             const patched = await savePatchField(existingField.id, levels);
             const result = processClassificationField(patched);
             setExistingField(patched);
             setLevels(result.levels);
             setInitialLevels(result.levels);
-            setInitialPresetId(presetId);
         }
-    }, [enabled, initialEnabled, existingField, levels, presetId]);
+    }, [enabled, initialEnabled, existingField, levels]);
 
     const persistGlobalBanner = useCallback(async (): Promise<void> => {
         if (
@@ -372,13 +367,6 @@ export default function ClassificationMarkings({disabled}: Props) {
             setSaving(false);
         }
     }, [validate, persistLevels, persistGlobalBanner]);
-
-    const handleCancel = useCallback(() => {
-        setEnabled(initialEnabled);
-        setLevels(initialLevels);
-        setPresetId(initialPresetId);
-        setGlobalBanner(initialGlobalBanner);
-    }, [initialEnabled, initialLevels, initialPresetId, initialGlobalBanner]);
 
     if (loading) {
         return (
@@ -494,7 +482,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 deleteLevel={deleteLevel}
                                 onReorder={handleReorder}
                                 disabled={disabled}
-                                reorderDisabled={presetId !== PRESET_CUSTOM}
                             />
                             {!disabled && (
                                 <AddLevelButtonRow>
@@ -525,7 +512,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
-                onCancel={handleCancel}
                 serverError={saveError}
                 isDisabled={saving || disabled}
                 savingMessage={formatMessage({id: 'admin.classification_markings.saving', defaultMessage: 'Saving...'})}

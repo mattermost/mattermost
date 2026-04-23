@@ -12,9 +12,6 @@ export const GROUP_NAME = 'custom_profile_attributes';
 
 // OBJECT_TYPE is 'template' so the classification field acts as the canonical schema
 // (a Linked Properties template). Per-channel fields will link to it and inherit its options.
-// NOTE: If a system already has a 'classification' field with object_type='user' (legacy),
-// the server team must run a migration. Since this feature is behind a feature flag and not
-// yet shipped, existing test instances can have their data wiped manually.
 export const OBJECT_TYPE = 'template';
 export const TARGET_TYPE = 'system';
 
