@@ -152,7 +152,7 @@ if (heavyPkgs.size > 0) {
     try {
       const out = execSync(`go test -list '.*' ${pkg} 2>/dev/null`, {
         encoding: "utf8",
-        timeout: 60000,
+        timeout: 300000,
       });
       const currentTests = out
         .split("\n")
@@ -170,7 +170,9 @@ if (heavyPkgs.size > 0) {
         console.log(`  ${pkg.split("/").pop()}: ${newCount} new test(s) not in cache`);
       }
     } catch (e) {
-      console.log(`  ${pkg.split("/").pop()}: go test -list failed, skipping discovery`);
+      console.error(`::error::${pkg.split("/").pop()}: go test -list failed — new tests in this package would be silently skipped. ${e.message}`);
+      // Fail loudly in CI; locally (e.g. unit tests without a Go toolchain), log and continue.
+      if (process.env.CI) process.exit(1);
     }
   }
   console.log("::endgroup::");

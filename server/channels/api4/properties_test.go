@@ -2792,3 +2792,381 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
+func TestLinkedProperties(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, "test_linked_properties")
+	require.Nil(t, err)
+
+	sysadminLevel := model.PermissionLevelSysadmin
+	memberLevel := model.PermissionLevelMember
+
+	t.Run("create template field requires sysadmin", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "template", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
+	})
+
+	t.Run("create template field as non-admin fails", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "template", field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create linked field with valid source", func(t *testing.T) {
+		// Create a template field as the source
+		sourceField := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option A"},
+					{"id": model.NewId(), "name": "Option B"},
+				},
+			},
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		field := &model.PropertyField{
+			Name:          model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			TargetType:    "system",
+			LinkedFieldID: &sourceID,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, createdSource.Type, createdField.Type)
+		require.NotNil(t, createdField.Attrs)
+		require.NotNil(t, createdField.Attrs["options"])
+	})
+
+	t.Run("patch linked field rejects type change", func(t *testing.T) {
+		// Create source + linked field via App
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		newType := model.PropertyFieldTypeText
+		patch := &model.PropertyFieldPatch{Type: &newType}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch linked field rejects options change", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "New Option"},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch linked field allows name change", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+
+		updatedField, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, updatedField.Name)
+	})
+
+	t.Run("patch unlink clears LinkedFieldID", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		emptyID := ""
+		patch := &model.PropertyFieldPatch{LinkedFieldID: &emptyID}
+
+		updatedField, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Nil(t, updatedField.LinkedFieldID)
+	})
+
+	t.Run("patch existing field rejects setting LinkedFieldID", func(t *testing.T) {
+		// Create a regular (non-linked) field
+		regularField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdRegular, appErr := th.App.CreatePropertyField(th.Context, regularField, false, "")
+		require.Nil(t, appErr)
+
+		someID := model.NewId()
+		patch := &model.PropertyFieldPatch{LinkedFieldID: &someID}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdRegular.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("delete source with dependents returns 409", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		_, appErr = th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "template", createdSource.ID)
+		require.Error(t, err)
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+	})
+
+	t.Run("get values for template returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "template", model.NewId(), model.PropertyValueSearch{PerPage: 10})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch values for template returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"val"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "template", model.NewId(), items)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch source field options propagates to linked fields", func(t *testing.T) {
+		// Create a template (source) with one option
+		optA := map[string]any{"id": model.NewId(), "name": "PropTestA"}
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA},
+			},
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		// Create two linked fields and keep their IDs
+		sourceID := createdSource.ID
+		var linkedIDs []string
+		for range 2 {
+			linked := &model.PropertyField{
+				Name:              "PropLinked-" + model.NewId(),
+				Type:              model.PropertyFieldTypeSelect,
+				GroupID:           group.ID,
+				ObjectType:        "user",
+				TargetType:        "system",
+				LinkedFieldID:     &sourceID,
+				PermissionField:   &memberLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			}
+			createdLinked, lErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+			require.Nil(t, lErr)
+			linkedIDs = append(linkedIDs, createdLinked.ID)
+		}
+
+		// Patch the source field's options via the API — add a second option
+		optB := map[string]any{"id": model.NewId(), "name": "PropTestB"}
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA, optB},
+			},
+		}
+		updatedSource, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "template", createdSource.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Source should have 2 options now
+		sourceOpts := updatedSource.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, sourceOpts, 2)
+
+		// Fetch each linked field and verify propagation
+		for _, linkedID := range linkedIDs {
+			lf, lfErr := th.App.GetPropertyField(th.Context, group.ID, linkedID)
+			require.Nil(t, lfErr)
+			opts := lf.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.Len(t, opts, 2, "linked field %s should have 2 options after propagation", linkedID)
+		}
+	})
+}
