@@ -116,6 +116,7 @@ body.app__body #root {
 
     --columns: min-content minmax(385px, 1fr) min-content;
     grid-template:
+        "classification-banner classification-banner classification-banner" min-content
         "announcement announcement announcement" min-content
         "admin-announcement admin-announcement admin-announcement" min-content
         "header header header" min-content
@@ -132,6 +133,7 @@ body.app__body #root {
         padding-bottom: 0;
         padding-right: 0;
         grid-template:
+            "classification-banner classification-banner" min-content
             "announcement announcement" min-content
             "admin-announcement admin-announcement" min-content
             "header header" min-content
@@ -143,6 +145,10 @@ body.app__body #root {
     &.container-fluid {
         background: none;
         display: block;
+    }
+
+    .global-classification-banner:not(.global-classification-banner--bottom) {
+        grid-area: classification-banner;
     }
 
     .announcement-bar {
@@ -238,6 +244,7 @@ body.app__body #root {
             padding-right: 0;
             z-index: 17;
             grid-template:
+                "classification-banner" min-content
                 "announcement" min-content
                 "admin-announcement" min-content
                 "header" min-content
