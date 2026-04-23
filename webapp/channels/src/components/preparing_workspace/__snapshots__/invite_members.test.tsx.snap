@@ -146,7 +146,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
               class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-t3ipsp-control"
             >
               <div
-                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-hlgwow"
+                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-7rvhdx"
               >
                 <div
                   class="users-emails-input__placeholder css-10imb99-placeholder"
@@ -155,7 +155,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
                   Enter email addresses
                 </div>
                 <div
-                  class="users-emails-input__input-container css-11wvis5"
+                  class="users-emails-input__input-container css-18awvv8"
                   data-value=""
                 >
                   <input
