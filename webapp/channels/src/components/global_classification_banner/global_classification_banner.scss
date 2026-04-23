@@ -1,4 +1,4 @@
-$banner-height: 20px;
+$banner-height: 24px;
 
 .global-classification-banner {
     z-index: 1000;
@@ -20,7 +20,7 @@ $banner-height: 20px;
 .global-classification-banner__text {
     overflow: hidden;
     color: inherit;
-    font-size: 11px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: 0.02em;
     text-overflow: ellipsis;
