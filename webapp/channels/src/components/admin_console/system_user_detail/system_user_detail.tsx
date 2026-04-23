@@ -653,6 +653,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             <label
                 key={field.id}
                 className='cpa-field'
+                data-testid={`user-detail-custom-attribute-label-${field.id}`}
             >
                 <FormattedMessage
                     id='admin.userManagement.userDetail.cpaField'
