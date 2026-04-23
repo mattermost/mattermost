@@ -267,8 +267,8 @@ func (s SqlUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
 	defer finalizeTransactionX(transaction, &err)
 
 	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.ExpiresAt > 0 AND o.ExpiresAt <= ?"
-	if _, err := transaction.Exec(sessionsQuery, cutoff); err != nil {
-		return 0, errors.Wrap(err, "failed to delete Sessions for expired UserAccessTokens")
+	if _, sErr := transaction.Exec(sessionsQuery, cutoff); sErr != nil {
+		return 0, errors.Wrap(sErr, "failed to delete Sessions for expired UserAccessTokens")
 	}
 
 	res, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE ExpiresAt > 0 AND ExpiresAt <= ?", cutoff)
@@ -281,8 +281,8 @@ func (s SqlUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
 		deleted = 0
 	}
 
-	if err := transaction.Commit(); err != nil {
-		return 0, errors.Wrap(err, "commit_transaction")
+	if cErr := transaction.Commit(); cErr != nil {
+		return 0, errors.Wrap(cErr, "commit_transaction")
 	}
 
 	return deleted, nil
