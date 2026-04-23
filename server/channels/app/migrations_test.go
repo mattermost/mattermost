@@ -60,7 +60,7 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 // clearCPABackfillMarker removes the System-key marker for the CPA display_name backfill
 // so the migration body actually executes when called from a test. Setup(t) runs
 // doAppMigrations which now includes the backfill; without clearing, the System key is
-// already at v1 and doSetupCPADisplayNameBackfill short-circuits at the idempotency check
+// already present and doSetupCPADisplayNameBackfill short-circuits at the idempotency check
 // — the test would then pass for the wrong reason.
 func clearCPABackfillMarker(t *testing.T, th *TestHelper) {
 	t.Helper()
@@ -79,7 +79,7 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
 	require.NoError(t, sysErr)
 	require.NotNil(t, data)
-	require.Equal(t, cpaDisplayNameBackfillVersion, data.Value)
+	require.Equal(t, "true", data.Value)
 }
 
 func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
@@ -126,7 +126,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
 	require.NoError(t, sysErr)
 	require.NotNil(t, data)
-	require.Equal(t, cpaDisplayNameBackfillVersion, data.Value)
+	require.Equal(t, "true", data.Value)
 }
 
 func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
@@ -147,7 +147,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
 	require.NoError(t, sysErr)
-	require.Equal(t, cpaDisplayNameBackfillVersion, data1.Value)
+	require.Equal(t, "true", data1.Value)
 
 	updatedAfterFirst, appErr := th.App.GetCPAField(th.Context, seeded.ID)
 	require.Nil(t, appErr)
@@ -166,7 +166,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 	data2, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
 	require.NoError(t, sysErr)
-	require.Equal(t, cpaDisplayNameBackfillVersion, data2.Value)
+	require.Equal(t, "true", data2.Value)
 
 	updatedAfterSecond, appErr := th.App.GetCPAField(th.Context, seeded.ID)
 	require.Nil(t, appErr)

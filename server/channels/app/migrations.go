@@ -33,7 +33,6 @@ const (
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
 	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
-	cpaDisplayNameBackfillVersion                  = "v1"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -802,18 +801,14 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
-// doSetupCPADisplayNameBackfill backfills attrs.display_name = name on every
-// CPA field where display_name is empty.
-// Idempotent: returns immediately when the System-key marker is at the current version.
 func (s *Server) doSetupCPADisplayNameBackfill() error {
-	// If the migration is already marked as completed at the current version, skip it.
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
 	if err != nil && !errors.As(err, &nfErr) {
 		return fmt.Errorf("could not query CPA display_name backfill migration: %w", err)
 	}
 
-	if data != nil && data.Value == cpaDisplayNameBackfillVersion {
+	if data != nil {
 		return nil
 	}
 
@@ -850,9 +845,9 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 			}
 
 			// Backfill if display_name is absent OR empty-string.
-			// This covers fields created before Phase 1 (no key in JSONB),
-			// fields created after Phase 1 with no explicit display_name (stored as ""),
-			// and fields patched with display_name="" between Phase 1 and Phase 2 deploys.
+			// This covers fields created before introducing display_name,
+			// fields created after supporting display_name with no explicit display_name (stored as ""),
+			// and fields patched with display_name="" .
 			if cpaField.Attrs.DisplayName != "" {
 				skipped++
 				continue
@@ -873,20 +868,6 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 		}
 	}
 
-	// Concurrency contract: the SearchPropertyFields → UpdatePropertyFields flow above is a
-	// read-modify-write that is NOT row-version-safe. SqlPropertyFieldStore.Update issues a
-	// wholesale CASE-by-id UPDATE of Name + Attrs (no UpdateAt optimistic-lock predicate, no
-	// SELECT FOR UPDATE), so during a rolling deploy a still-iterating peer holding a stale
-	// snapshot can silently revert a concurrent admin CPA-field rename issued via
-	// App.PatchCPAField on an already-serving peer (window: SearchPropertyFields snapshot →
-	// end-of-function UpdatePropertyFields, ms-scale across ≤20 fields). This is a pre-existing
-	// systemic shape across Mattermost's CPA mutate path (App.PatchCPAField has the same
-	// read-modify-write); Phase 2 introduces a new caller, not a new SQL hazard. Accepted as a
-	// limitation: blast radius is bounded (admin can re-rename; ABAC policies are ID-keyed and
-	// unaffected; no data loss). PR #36173's AttributeValidationHook does NOT mitigate this —
-	// it fires at write time, not at this migration's write time, and is orthogonal to the
-	// row-version-skew issue.
-	// TODO: see spec Out of Scope (Migration write-skew row-versioning) for the canonical record.
 	if len(fieldsToUpdate) > 0 {
 		if _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
 			return fmt.Errorf("failed to update CPA fields during display_name backfill: %w", updateErr)
@@ -900,7 +881,7 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 
 	if err := s.Store().System().SaveOrUpdate(&model.System{
 		Name:  cpaDisplayNameBackfillKey,
-		Value: cpaDisplayNameBackfillVersion,
+		Value: "true",
 	}); err != nil {
 		return fmt.Errorf("failed to mark CPA display_name backfill as complete: %w", err)
 	}
