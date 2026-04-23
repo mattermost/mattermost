@@ -282,7 +282,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	t.Run("policy_id filter returns only matching jobs", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -299,7 +299,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	t.Run("policy_id filter excludes other policies", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+otherPolicyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+otherPolicyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -328,7 +328,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 
 		resp, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeDataRetention+"?page=0&per_page=60&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeDataRetention+"?page=0&per_page=60&policy_id="+policyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -347,7 +347,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	t.Run("policy_id filter requires system admin permission", func(t *testing.T) {
 		resp, err := th.Client.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
 			"",
 		)
 		require.Error(t, err)
@@ -358,7 +358,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	t.Run("without policy_id returns all access_control_sync jobs", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60",
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60",
 			"",
 		)
 		require.NoError(t, err)
@@ -380,7 +380,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 		unknownPolicyID := model.NewId()
 		resp, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+unknownPolicyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+unknownPolicyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -397,7 +397,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 		// so page=0,per_page=1 → jobs[1]; page=1,per_page=1 → jobs[0]; page=2 → empty.
 		resp0, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=1&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=1&policy_id="+policyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -410,7 +410,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 
 		resp1, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=1&per_page=1&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=1&per_page=1&policy_id="+policyID,
 			"",
 		)
 		require.NoError(t, err)
@@ -423,7 +423,7 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 
 		resp2, err := th.SystemAdminClient.DoAPIGet(
 			context.Background(),
-			"/api/v4/jobs/type/"+model.JobTypeAccessControlSync+"?page=2&per_page=1&policy_id="+policyID,
+			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=2&per_page=1&policy_id="+policyID,
 			"",
 		)
 		require.NoError(t, err)
