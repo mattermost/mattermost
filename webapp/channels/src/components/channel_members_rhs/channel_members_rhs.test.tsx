@@ -225,7 +225,9 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         );
 
         expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" for readability.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 });

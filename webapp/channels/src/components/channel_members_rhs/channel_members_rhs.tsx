@@ -248,13 +248,16 @@ export default function ChannelMembersRHS({
                         {structuredAttributes.length > 0 && (
                             <TagGroup>
                                 {structuredAttributes.flatMap((attribute) =>
-                                    attribute.values.map((value) => (
-                                        <AlertTag
-                                            key={`${attribute.name}-${value}`}
-                                            tooltipTitle={formatAttributeName(attribute.name)}
-                                            text={value}
-                                        />
-                                    )),
+                                    attribute.values.map((value) => {
+                                        const attributeLabel = formatAttributeName(attribute.name);
+                                        return (
+                                            <AlertTag
+                                                key={`${attribute.name}-${value}`}
+                                                tooltipTitle={attributeLabel}
+                                                text={`${attributeLabel}: ${value}`}
+                                            />
+                                        );
+                                    }),
                                 )}
                             </TagGroup>
                         )}

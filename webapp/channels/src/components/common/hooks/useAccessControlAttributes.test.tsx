@@ -7,7 +7,7 @@ import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 import {thunk} from 'redux-thunk';
 
-import {useAccessControlAttributes, EntityType} from './useAccessControlAttributes';
+import {invalidateAccessControlAttributesCache, useAccessControlAttributes, EntityType} from './useAccessControlAttributes';
 
 // Mock the getChannelAccessControlAttributes action
 jest.mock('mattermost-redux/actions/channels', () => {
@@ -201,5 +201,32 @@ describe('useAccessControlAttributes', () => {
 
         // The action should have been called again
         expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
+    });
+
+    test('invalidateAccessControlAttributesCache forces a refresh on next read', async () => {
+        // Prime the cache with a first fetch.
+        const {result: result1} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+        expect(result1.current.structuredAttributes).toEqual([
+            {name: 'department', values: ['engineering', 'marketing']},
+            {name: 'location', values: ['remote']},
+        ]);
+
+        const getChannelAccessControlAttributes = require('mattermost-redux/actions/channels').getChannelAccessControlAttributes;
+        getChannelAccessControlAttributes.mockClear();
+
+        // After invalidating the cache the next mount should hit the action again.
+        invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-1');
+
+        const {result: result2} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+
+        expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
+        expect(result2.current.structuredAttributes).toEqual(result1.current.structuredAttributes);
     });
 });
