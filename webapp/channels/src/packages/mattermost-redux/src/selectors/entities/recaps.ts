@@ -65,14 +65,17 @@ export const getReadRecaps = createSelector(
     },
 );
 
+const getRecapsSlice = (state: GlobalState) => state.entities.recaps;
+
 export const getUnreadFinishedRecapsBadge = createSelector(
     'getUnreadFinishedRecapsBadge',
-    getAllRecaps,
-    (recaps) => {
+    getRecapsSlice,
+    ({byId, allIds}) => {
         let count = 0;
         let hasFailed = false;
-        for (const recap of recaps) {
-            if (recap.read_at !== 0) {
+        for (const id of allIds) {
+            const recap = byId[id];
+            if (!recap || recap.read_at !== 0) {
                 continue;
             }
             if (recap.status === RecapStatus.COMPLETED) {
