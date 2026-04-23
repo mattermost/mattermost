@@ -80,7 +80,11 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     }, []);
 
     const handleLevelChange = useCallback((selected: ValueType | null) => {
-        onChange({level_name: selected?.value ?? ''});
+        const levelOption = selected as LevelDropdownOption | null;
+        onChange({
+            level_name: levelOption?.value ?? '',
+            color: levelOption?.color ?? '',
+        });
     }, [onChange]);
 
     const handleEnableChange = useCallback((_id: string, value: boolean) => {

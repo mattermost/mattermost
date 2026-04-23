@@ -88,6 +88,7 @@ function readGlobalBannerFromConfig(config: Partial<AdminConfig> | undefined): G
         enabled: Boolean(banner.Enabled),
         placement: normalizePlacement(banner.Placement),
         level_name: banner.LevelName ?? '',
+        color: banner.Color ?? '',
     };
 }
 
@@ -98,6 +99,7 @@ function buildGlobalBannerPatch(banner: GlobalBannerConfig): DeepPartial<AdminCo
                 Enabled: banner.enabled,
                 Placement: banner.placement,
                 LevelName: banner.level_name,
+                Color: banner.color,
             },
         },
     };
@@ -131,10 +133,12 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (enabled !== initialEnabled) {
             return true;
         }
+        const resolvedColor = levels.find((l) => l.name.trim() === globalBanner.level_name)?.color ?? '';
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
-            globalBanner.level_name !== initialGlobalBanner.level_name
+            globalBanner.level_name !== initialGlobalBanner.level_name ||
+            resolvedColor !== initialGlobalBanner.color
         ) {
             return true;
         }
@@ -287,13 +291,13 @@ export default function ClassificationMarkings({disabled}: Props) {
             if (duplicateName) {
                 return formatMessage({id: 'admin.classification_markings.error.duplicate_name', defaultMessage: 'Classification level names must be unique. Duplicate: {name}'}, {name: duplicateName.toUpperCase()});
             }
-        }
-        if (globalBanner.enabled) {
-            if (!globalBanner.level_name) {
-                return formatMessage(msg.errorGlobalBannerNoLevel);
-            }
-            if (!enabled || !levels.some((l) => l.name.trim() === globalBanner.level_name)) {
-                return formatMessage(msg.errorGlobalBannerLevelMissing);
+            if (globalBanner.enabled) {
+                if (!globalBanner.level_name) {
+                    return formatMessage(msg.errorGlobalBannerNoLevel);
+                }
+                if (!levels.some((l) => l.name.trim() === globalBanner.level_name)) {
+                    return formatMessage(msg.errorGlobalBannerLevelMissing);
+                }
             }
         }
         return null;
@@ -324,23 +328,39 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, [enabled, initialEnabled, existingField, levels]);
 
     const persistGlobalBanner = useCallback(async (): Promise<void> => {
+        // When classification markings are disabled, reset the banner to defaults
+        // so stale references to deleted levels don't linger in the config.
+        const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
+
+        // Always resolve the color from the current levels so it stays in sync
+        // even when the admin edits a level's color in the table without re-picking
+        // the dropdown, or when upgrading from a config that predates the Color field.
+        const resolvedColor = levels.find((l) => l.name.trim() === effectiveBanner.level_name)?.color ?? '';
+        const resolvedBanner: GlobalBannerConfig = {...effectiveBanner, color: resolvedColor};
+
         if (
-            globalBanner.enabled === initialGlobalBanner.enabled &&
-            globalBanner.placement === initialGlobalBanner.placement &&
-            globalBanner.level_name === initialGlobalBanner.level_name
+            resolvedBanner.enabled === initialGlobalBanner.enabled &&
+            resolvedBanner.placement === initialGlobalBanner.placement &&
+            resolvedBanner.level_name === initialGlobalBanner.level_name &&
+            resolvedBanner.color === initialGlobalBanner.color
         ) {
+            // Even when nothing needs to be persisted, sync local state so that
+            // hasChanges compares against the resolved values (e.g. after the
+            // top-level toggle was turned off and back on).
+            setGlobalBanner(resolvedBanner);
+            setInitialGlobalBanner(resolvedBanner);
             return;
         }
 
-        const patch = buildGlobalBannerPatch(globalBanner);
+        const patch = buildGlobalBannerPatch(resolvedBanner);
         const {data, error} = await dispatch(patchConfig(patch)) as {data?: AdminConfig; error?: Error};
         if (error) {
             throw error;
         }
-        const next = data ? readGlobalBannerFromConfig(data) : {...globalBanner};
+        const next = data ? readGlobalBannerFromConfig(data) : {...resolvedBanner};
         setGlobalBanner(next);
         setInitialGlobalBanner(next);
-    }, [dispatch, globalBanner, initialGlobalBanner]);
+    }, [dispatch, enabled, globalBanner, initialGlobalBanner, levels]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
@@ -355,6 +375,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         try {
             await persistLevels();
             await persistGlobalBanner();
+            dispatch(setNavigationBlocked(false));
         } catch (err: unknown) {
             const clientErr = err as ClientError;
             if (clientErr.status_code === 409) {
@@ -366,7 +387,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         } finally {
             setSaving(false);
         }
-    }, [validate, persistLevels, persistGlobalBanner]);
+    }, [validate, persistLevels, persistGlobalBanner, dispatch]);
 
     if (loading) {
         return (

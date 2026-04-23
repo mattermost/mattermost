@@ -15,8 +15,8 @@ const LEVELS = [
     {id: 'lvl-3', name: 'TOP SECRET', color: '#FF8C00', rank: 3},
 ];
 
-const DEFAULT_BANNER: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: ''};
-const ENABLED_BANNER: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'};
+const DEFAULT_BANNER: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: '', color: ''};
+const ENABLED_BANNER: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED', color: '#007A33'};
 
 function makeProps(overrides: Record<string, unknown> = {}) {
     return {
@@ -88,7 +88,7 @@ describe('GlobalClassificationIndicators', () => {
 
     test('calls onChange with placement top when Top only is clicked', () => {
         const onChange = jest.fn();
-        const banner: GlobalBannerConfig = {...ENABLED_BANNER, placement: 'top_and_bottom'};
+        const banner: GlobalBannerConfig = {...ENABLED_BANNER, placement: 'top_and_bottom', color: '#007A33'};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner, onChange})}/>);
 
         fireEvent.click(screen.getByRole('radio', {name: /Top only/i}));
@@ -113,7 +113,7 @@ describe('GlobalClassificationIndicators', () => {
     });
 
     test('shows inline error when banner is enabled and the selected level no longer exists', () => {
-        const banner: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'RENAMED OR DELETED'};
+        const banner: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'RENAMED OR DELETED', color: '#000000'};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
 
         expect(
@@ -147,7 +147,7 @@ describe('GlobalClassificationIndicators', () => {
     });
 
     test('does not show the missing-level error when the banner is disabled', () => {
-        const banner: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: 'missing-name'};
+        const banner: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: 'missing-name', color: ''};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
 
         expect(

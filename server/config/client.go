@@ -174,6 +174,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		props["ClassificationMarkingsGlobalBannerEnabled"] = strconv.FormatBool(*c.ClassificationMarkingsSettings.GlobalBanner.Enabled)
 		props["ClassificationMarkingsGlobalBannerPlacement"] = *c.ClassificationMarkingsSettings.GlobalBanner.Placement
 		props["ClassificationMarkingsGlobalBannerLevelName"] = *c.ClassificationMarkingsSettings.GlobalBanner.LevelName
+		props["ClassificationMarkingsGlobalBannerColor"] = *c.ClassificationMarkingsSettings.GlobalBanner.Color
 	}
 
 	if license != nil {

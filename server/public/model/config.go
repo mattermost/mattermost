@@ -3938,6 +3938,7 @@ type ClassificationMarkingsGlobalBannerSettings struct {
 	Enabled   *bool
 	Placement *string
 	LevelName *string
+	Color     *string
 }
 
 func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
@@ -3951,6 +3952,10 @@ func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
 
 	if s.LevelName == nil {
 		s.LevelName = NewPointer("")
+	}
+
+	if s.Color == nil {
+		s.Color = NewPointer("")
 	}
 }
 

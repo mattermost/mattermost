@@ -49,7 +49,7 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
     };
 }
 
-function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: string; LevelName?: string}): DeepPartial<GlobalState> {
+function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: string; LevelName?: string; Color?: string}): DeepPartial<GlobalState> {
     return {
         entities: {
             admin: {
@@ -59,6 +59,7 @@ function makeInitialStateWithBanner(banner?: {Enabled?: boolean; Placement?: str
                             Enabled: banner?.Enabled ?? false,
                             Placement: banner?.Placement ?? 'top',
                             LevelName: banner?.LevelName ?? '',
+                            Color: banner?.Color ?? '',
                         },
                     },
                 } as DeepPartial<AdminConfig>,
@@ -743,6 +744,7 @@ describe('GlobalClassificationIndicators section', () => {
                     Enabled: true,
                     Placement: 'top_and_bottom',
                     LevelName: 'UNCLASSIFIED',
+                    Color: '#112233',
                 }),
             }),
         }));

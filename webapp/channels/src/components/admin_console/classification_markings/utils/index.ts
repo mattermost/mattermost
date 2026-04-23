@@ -26,12 +26,14 @@ export type GlobalBannerConfig = {
     enabled: boolean;
     placement: GlobalBannerPlacement;
     level_name: string;
+    color: string;
 };
 
 export const DEFAULT_GLOBAL_BANNER: GlobalBannerConfig = {
     enabled: false,
     placement: 'top',
     level_name: '',
+    color: '',
 };
 
 export function detectPreset(levels: ClassificationLevel[]): string {
