@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
@@ -1154,7 +1155,9 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1291,7 +1294,9 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -1513,7 +1518,9 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1650,7 +1657,9 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
@@ -1801,7 +1810,9 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	// Create a user that is not a member of any channel for the non-member test case
 	nonMember := th.CreateUser(t)
@@ -2022,7 +2033,9 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	groupID := th.CpaGroupID(t)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, groupErr)
+	groupID := cpaGroup.ID
 
 	testCases := []struct {
 		name     string
