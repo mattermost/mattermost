@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -28,6 +29,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(getFlaggedPost))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(contentFlaggingRequired(removeFlaggedPost))).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(contentFlaggingRequired(keepFlaggedPost))).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/report", api.APISessionRequired(contentFlaggingRequired(downloadFlaggedPostReport))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(contentFlaggingRequired(searchReviewers))).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(contentFlaggingRequired(assignFlaggedPostReviewer))).Methods(http.MethodPost)
 
@@ -409,6 +411,67 @@ func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	writeOKResponse(w)
+}
+
+func downloadFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	postId := c.Params.PostId
+	userId := c.AppContext.Session().UserId
+
+	// Get the post to determine the team for reviewer check
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	requireTeamContentReviewer(c, userId, channel.TeamId)
+	if c.Err != nil {
+		return
+	}
+
+	requireFlaggedPost(c, postId)
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventGenerateDataSpillageReport, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
+	// Set response headers for ZIP download
+	filename := fmt.Sprintf("data_spillage_report_%s.zip", postId)
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment;filename="%s"`, filename))
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+
+	if appErr := c.App.GenerateDataSpillageReport(c.AppContext, postId, userId, w); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	// Send notification to all reviewers asynchronously
+	c.App.Srv().Go(func() {
+		c.App.SendReportGeneratedNotification(c.AppContext, postId, userId)
+	})
 }
 
 func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagContentActionRequest, string, *model.Post) {

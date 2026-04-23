@@ -44,6 +44,7 @@ const (
 	contentFlaggingPropertyNameActorComment        = "actor_comment"
 	contentFlaggingPropertyNameActionTime          = "action_time"
 	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
+	contentFlaggingPropertyNameReviewerActions     = "reviewer_actions"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
@@ -718,6 +719,11 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		contentFlaggingPropertyManageByContentFlagging: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyManageByContentFlagging,
+			Type:    model.PropertyFieldTypeText,
+		},
+		contentFlaggingPropertyNameReviewerActions: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyNameReviewerActions,
 			Type:    model.PropertyFieldTypeText,
 		},
 	}

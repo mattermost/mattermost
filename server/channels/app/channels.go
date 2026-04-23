@@ -64,6 +64,8 @@ type Channels struct {
 	managedCategoryGroupID string
 	managedCategoryFieldID string
 
+	reportGenerationLocks sync.Map // map[postID string]*sync.Mutex
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
@@ -238,6 +240,11 @@ func NewChannels(s *Server) (*Channels, error) {
 
 func (ch *Channels) SetAgentsBridge(bridge AgentsBridge) {
 	ch.agentsBridge = bridge
+}
+
+func (ch *Channels) getReportGenerationLock(postID string) *sync.Mutex {
+	val, _ := ch.reportGenerationLocks.LoadOrStore(postID, &sync.Mutex{})
+	return val.(*sync.Mutex)
 }
 
 func (ch *Channels) Start() error {

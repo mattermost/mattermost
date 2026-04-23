@@ -164,6 +164,13 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return model.NewAppError("FlagPost", "app.data_spillage.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
+	a.appendContentFlaggingAction(rctx, post.Id, model.DataSpillageReviewerAction{
+		Action:       model.ContentFlaggingActionPostFlagged,
+		ActorUserID:  reportingUserId,
+		ActorUsername: reportingUser.Username,
+		Timestamp:    model.GetMillis(),
+	})
+
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
 		appErr = a.setContentFlaggingPropertiesForThreadReplies(rctx, post, groupId, mappedFields[contentFlaggingPropertyManageByContentFlagging].ID)
 		if appErr != nil {
@@ -558,6 +565,54 @@ func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.Prop
 	return propertyValues, nil
 }
 
+func (a *App) appendContentFlaggingAction(rctx request.CTX, flaggedPostID string, action model.DataSpillageReviewerAction) {
+	groupId, err := a.ContentFlaggingGroupId()
+	if err != nil {
+		rctx.Logger().Error("Failed to get content flagging group ID for action tracking", mlog.Err(err), mlog.String("flagged_post_id", flaggedPostID))
+		return
+	}
+
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to get content flagging mapped fields for action tracking", mlog.Err(appErr), mlog.String("flagged_post_id", flaggedPostID))
+		return
+	}
+
+	actionsField, ok := mappedFields[contentFlaggingPropertyNameReviewerActions]
+	if !ok {
+		rctx.Logger().Error("Reviewer actions property field not found", mlog.String("flagged_post_id", flaggedPostID))
+		return
+	}
+
+	// Get existing actions
+	var existingActions []model.DataSpillageReviewerAction
+	existingValue, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPostID, contentFlaggingPropertyNameReviewerActions)
+	if appErr == nil && existingValue != nil {
+		_ = json.Unmarshal(existingValue.Value, &existingActions)
+	}
+
+	existingActions = append(existingActions, action)
+
+	actionsJSON, jsonErr := json.Marshal(existingActions)
+	if jsonErr != nil {
+		rctx.Logger().Error("Failed to marshal reviewer actions", mlog.Err(jsonErr), mlog.String("flagged_post_id", flaggedPostID))
+		return
+	}
+
+	propertyValue := &model.PropertyValue{
+		TargetID:   flaggedPostID,
+		TargetType: model.PropertyValueTargetTypePost,
+		GroupID:    groupId,
+		FieldID:    actionsField.ID,
+		Value:      json.RawMessage(actionsJSON),
+	}
+
+	_, appErr = a.UpsertPropertyValue(rctx, propertyValue)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to upsert reviewer actions property value", mlog.Err(appErr), mlog.String("flagged_post_id", flaggedPostID))
+	}
+}
+
 func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
 	// when a flagged post is removed, the following things need to be done
 	// 1. Hard delete corresponding file infos
@@ -645,6 +700,19 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	if appErr != nil {
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.data_spillage.permanently_delete.update_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
+
+	reviewer, reviewerErr := a.GetUser(reviewerId)
+	reviewerUsername := ""
+	if reviewerErr == nil {
+		reviewerUsername = reviewer.Username
+	}
+	a.appendContentFlaggingAction(rctx, flaggedPost.Id, model.DataSpillageReviewerAction{
+		Action:       model.ContentFlaggingActionPostRemoved,
+		ActorUserID:  reviewerId,
+		ActorUsername: reviewerUsername,
+		Comment:      actionRequest.Comment,
+		Timestamp:    model.GetMillis(),
+	})
 
 	a.Srv().Go(func() {
 		channel, appErr := a.GetChannel(rctx, flaggedPost.ChannelId)
@@ -957,6 +1025,19 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return model.NewAppError("KeepFlaggedPost", "app.data_spillage.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
+	keepReviewer, keepReviewerErr := a.GetUser(reviewerId)
+	keepReviewerUsername := ""
+	if keepReviewerErr == nil {
+		keepReviewerUsername = keepReviewer.Username
+	}
+	a.appendContentFlaggingAction(rctx, flaggedPost.Id, model.DataSpillageReviewerAction{
+		Action:       model.ContentFlaggingActionPostRetained,
+		ActorUserID:  reviewerId,
+		ActorUsername: keepReviewerUsername,
+		Comment:      actionRequest.Comment,
+		Timestamp:    model.GetMillis(),
+	})
+
 	// Also need to remove the content flagging managed field value from root post and its replies (if any)
 
 	a.Srv().Go(func() {
@@ -1176,6 +1257,25 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.data_spillage.assign_reviewer.update_status_property_value.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
+
+	assignerUser, assignerErr := a.GetUser(assigneeId)
+	assignerUsername := ""
+	if assignerErr == nil {
+		assignerUsername = assignerUser.Username
+	}
+	assignedReviewer, assignedReviewerErr := a.GetUser(reviewerId)
+	assignedReviewerUsername := ""
+	if assignedReviewerErr == nil {
+		assignedReviewerUsername = assignedReviewer.Username
+	}
+	a.appendContentFlaggingAction(rctx, flaggedPostId, model.DataSpillageReviewerAction{
+		Action:                   model.ContentFlaggingActionReviewerAssigned,
+		ActorUserID:              assigneeId,
+		ActorUsername:             assignerUsername,
+		AssignedReviewerID:       reviewerId,
+		AssignedReviewerUsername: assignedReviewerUsername,
+		Timestamp:                model.GetMillis(),
+	})
 
 	a.Srv().Go(func() {
 		_, postErr := a.postAssignReviewerMessage(rctx, groupId, flaggedPostId, reviewerId, assigneeId)
