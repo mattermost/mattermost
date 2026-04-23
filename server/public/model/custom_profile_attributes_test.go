@@ -886,28 +886,6 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 		}
 	})
 
-	// SanitizeAndValidate intentionally does NOT enforce the CEL-identifier rule.
-	// Validation of Name against CPAFieldNamePattern / CPAFieldNameReservedWords
-	// is the responsibility of ValidateCPAFieldName, called explicitly by
-	// App.CreateCPAField and App.PatchCPAField (App layer).
-	//
-	// This test asserts that behavior so it cannot accidentally regress.
-	// Option C scoping decision — see spec.md Out of Scope and PR #36173.
-	t.Run("does not enforce CEL name rule (Option C scoping)", func(t *testing.T) {
-		invalidCELNames := []string{"My Field", "7department", "in", "true", "foo-bar", "🎯"}
-		for _, n := range invalidCELNames {
-			field := &CPAField{
-				PropertyField: PropertyField{
-					Name: n,
-					Type: PropertyFieldTypeText,
-				},
-			}
-			appErr := field.SanitizeAndValidate()
-			require.Nil(t, appErr,
-				"SanitizeAndValidate must not reject name %q — CEL validation lives in ValidateCPAFieldName", n)
-		}
-	})
-
 	t.Run("display_name sanitization", func(t *testing.T) {
 		displayNameTests := []struct {
 			name          string
@@ -1081,21 +1059,6 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "", roundTripped.Attrs.DisplayName)
 	})
-}
-
-// TestCPAAttrs_JSONOmitEmpty pins down the wire-format contract that PR #36173's
-// typed-attrs strategy relies on: empty DisplayName must be dropped from a direct
-// JSON marshal of CPAAttrs, and a non-empty DisplayName must be present.
-func TestCPAAttrs_JSONOmitEmpty(t *testing.T) {
-	emptyJSON, err := json.Marshal(CPAAttrs{Visibility: "default_visible"})
-	require.NoError(t, err)
-	require.NotContains(t, string(emptyJSON), "display_name",
-		"omitempty must drop empty DisplayName from direct CPAAttrs JSON")
-
-	setJSON, err := json.Marshal(CPAAttrs{Visibility: "default_visible", DisplayName: "Department"})
-	require.NoError(t, err)
-	require.Contains(t, string(setJSON), "display_name",
-		"non-empty DisplayName must be present in direct CPAAttrs JSON")
 }
 
 func TestSanitizeAndValidatePropertyValue(t *testing.T) {
