@@ -64,6 +64,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write
 
 jobs:
   generate-build-variables:
@@ -149,6 +150,7 @@ jobs:
     if: inputs.should_run == 'false'
     runs-on: ubuntu-24.04
     permissions:
+      contents: read
       statuses: write
     steps:
       - name: ci/post-skip-status
@@ -168,6 +170,9 @@ jobs:
     needs:
       - generate-build-variables
     if: inputs.should_run != 'false'
+    permissions:
+      contents: read
+      statuses: write
     uses: ./.github/workflows/e2e-tests-cypress-template.yml
     with:
       test_type: full
