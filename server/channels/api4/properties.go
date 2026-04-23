@@ -629,6 +629,18 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	// Template fields are definition-only and cannot hold values. The
+	// legacy handler rejects `object_type=template` at the URL level, but
+	// callers can still reference a template field via its ID in the body
+	// of any other PATCH (including the dedicated system route), so catch
+	// that here before we attempt an upsert.
+	for _, f := range fields {
+		if f.ObjectType == model.PropertyFieldObjectTypeTemplate {
+			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+			return
+		}
+	}
+
 	// Build field map for permission checks
 	fieldMap := make(map[string]*model.PropertyField, len(fields))
 	for _, f := range fields {

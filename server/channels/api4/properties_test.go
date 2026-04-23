@@ -3220,12 +3220,49 @@ func TestSystemObjectType(t *testing.T) {
 		require.NotEmpty(t, fields)
 	})
 
-	t.Run("legacy values route rejects system object type", func(t *testing.T) {
+	t.Run("legacy values GET route rejects system object type", func(t *testing.T) {
 		// Force a URL that matches {object_type}/values/{target_id}. "system" is a valid
 		// character set for {target_id}, so the route is reachable even though the handler
 		// must reject it.
 		_, resp, getErr := th.Client.GetPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID, model.PropertyValueSearch{})
 		require.Error(t, getErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("legacy values PATCH route rejects system object type", func(t *testing.T) {
+		// Mirrors the GET rejection: the legacy URL pattern matches system/system, so the
+		// route is reachable and the handler must reject it pointing callers to the
+		// dedicated system route.
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"ignored"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchPropertyValues(context.Background(), group.Name, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID, items)
+		require.Error(t, patchErr)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("system PATCH rejects template field IDs", func(t *testing.T) {
+		// Create the template field directly via the app layer so the test stays
+		// focused on the value-patch handler. Template fields are definition-only
+		// and must never accept values, regardless of entry point.
+		templateField := &model.PropertyField{
+			GroupID:           group.ID,
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, templateField, false, "")
+		require.Nil(t, appErr)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: created.ID, Value: json.RawMessage(`"ignored"`)},
+		}
+		_, resp, patchErr := th.SystemAdminClient.PatchSystemPropertyValues(context.Background(), group.Name, items)
+		require.Error(t, patchErr)
 		CheckBadRequestStatus(t, resp)
 	})
 
@@ -3276,13 +3313,13 @@ func TestSystemObjectType(t *testing.T) {
 			Type: model.PropertyFieldTypeText,
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
-			GroupID:    group.ID,
-			Name:       field.Name,
-			Type:       field.Type,
-			ObjectType: model.PropertyFieldObjectTypeSystem,
-			TargetType: string(model.PropertyFieldTargetLevelSystem),
-			PermissionField: model.NewPointer(model.PermissionLevelSysadmin),
-			PermissionValues: model.NewPointer(model.PermissionLevelSysadmin),
+			GroupID:           group.ID,
+			Name:              field.Name,
+			Type:              field.Type,
+			ObjectType:        model.PropertyFieldObjectTypeSystem,
+			TargetType:        string(model.PropertyFieldTargetLevelSystem),
+			PermissionField:   model.NewPointer(model.PermissionLevelSysadmin),
+			PermissionValues:  model.NewPointer(model.PermissionLevelSysadmin),
 			PermissionOptions: model.NewPointer(model.PermissionLevelSysadmin),
 		}, false, "")
 		require.Nil(t, appErr)
