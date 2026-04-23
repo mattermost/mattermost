@@ -8,6 +8,7 @@ export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {duration, getRandomId, wait, newTestPassword} from './util';
+export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
 // Admin client helper — used by test.afterAll hooks in config-mutating specs
 // to restore server settings (afterAll has no access to the `pw` fixture, so
