@@ -96,23 +96,6 @@ var CPAFieldNameReservedWords = map[string]struct{}{
 	"return": {}, "var": {}, "void": {}, "while": {},
 }
 
-// ValidateCPAFieldName enforces the CEL-safe-identifier rule for CPA field names.
-// Returns nil when the name is valid; returns a non-nil *AppError otherwise.
-//
-// Rules enforced:
-//   - Must match CPAFieldNamePattern (^[A-Za-z_][A-Za-z0-9_]*$).
-//   - Must not be a CEL reserved word (see CPAFieldNameReservedWords).
-//
-// Length cap (255 runes) is enforced separately by the existing PropertyField
-// validation layer and is NOT repeated here.
-//
-// Callers: App.CreateCPAField (always), App.PatchCPAField (only when Name changes —
-// lenient-grandfather logic lives in App.PatchCPAField, not here).
-//
-// Plugin-API bypass: App.CreatePropertyField / App.UpdatePropertyField with
-// GroupID == CPA do NOT call this function. That bypass is intentional and
-// time-bounded — PR #36173 closes it via AttributeValidationHook.
-// Do NOT "fix" the bypass by adding a call here ahead of #36173 landing.
 func ValidateCPAFieldName(name string) *AppError {
 	if !CPAFieldNamePattern.MatchString(name) {
 		return NewAppError(
@@ -191,32 +174,10 @@ type CPAField struct {
 // Name must satisfy [CPAFieldNamePattern] (^[A-Za-z_][A-Za-z0-9_]*$) and must not
 // appear in [CPAFieldNameReservedWords].
 //
-// Enforcement points (master branch):
-//   - [App.CreateCPAField]: always validates — new fields must have a valid Name.
-//   - [App.PatchCPAField]: lenient grandfather — validates only when Name changes.
-//     Pre-existing fields with invalid names remain editable on all other attrs
-//     without being forced to rename.
-//
-// These rules are enforced by [ValidateCPAFieldName], called explicitly at the App layer.
-//
-// Non-enforcement (intentional, time-bounded):
-//   - [App.CreatePropertyField] / [App.UpdatePropertyField] with GroupID == CPA.
-//   - Plugin API (CreatePropertyField, UpdatePropertyField, UpdatePropertyFields).
-//   - PropertyService and PropertyAccessService direct callers.
-//
-// PR #36173 closes these gaps via AttributeValidationHook.PreCreatePropertyField /
-// PreUpdatePropertyField registered on the protected_attributes group — a
-// property-service-level chokepoint. Do NOT preempt that by adding CPA-specific
-// validation inside the generic property-service layer on master; it would conflict
-// with PR #36173's diff.
-//
 // # DisplayName
 //
 // DisplayName carries the user-facing label (e.g. "Department Head") separately
-// from Name (the CEL identifier, e.g. "department_head"). The webapp renders
-// DisplayName when present; it falls back to Name for legacy fields. The backfill
-// migration (doSetupCPADisplayNameBackfill, Phase 2) copies Name → DisplayName for
-// every existing field that lacks a DisplayName on first boot.
+// from Name (the CEL identifier, e.g. "department_head").
 type CPAAttrs struct {
 	Visibility     string                                                `json:"visibility"`
 	SortOrder      float64                                               `json:"sort_order"`
