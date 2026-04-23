@@ -4,10 +4,12 @@
 package platform
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/http/pprof"
 	"path"
 	"runtime"
@@ -19,6 +21,9 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
+	prommodel "github.com/prometheus/common/model"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -240,9 +245,105 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 }
 
 func (ps *PlatformService) HandleMetrics(route string, h http.Handler) {
-	if ps.metrics != nil {
-		ps.metrics.router.Handle(route, h)
+	if ps.metrics == nil {
+		return
 	}
+
+	if route == "/metrics" && ps.Config().FeatureFlags.AggregatePluginMetrics {
+		h = ps.wrapMetricsHandler(h)
+	}
+
+	ps.metrics.router.Handle(route, h)
+}
+
+func (ps *PlatformService) wrapMetricsHandler(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var buf bytes.Buffer
+
+		// Strip Accept-Encoding to force plaintext response (no gzip)
+		plainReq := r.Clone(r.Context())
+		plainReq.Header.Del("Accept-Encoding")
+
+		rec := httptest.NewRecorder()
+		h.ServeHTTP(rec, plainReq)
+		buf.Write(rec.Body.Bytes())
+
+		if ps.pluginEnv != nil {
+			if env := ps.pluginEnv.GetPluginsEnvironment(); env != nil {
+				env.RunMultiPluginHook(func(hooks plugin.Hooks, manifest *model.Manifest) bool {
+					pluginRec := httptest.NewRecorder()
+					pluginReq, err := http.NewRequestWithContext(r.Context(), "GET", "/metrics", nil)
+					if err != nil {
+						return true
+					}
+
+					hooks.ServeMetrics(&plugin.Context{}, pluginRec, pluginReq)
+
+					if pluginRec.Code == http.StatusOK && pluginRec.Body.Len() > 0 {
+						if labeledMetrics := addPluginLabelToMetrics(pluginRec.Body.String(), manifest.Id); labeledMetrics != "" {
+							buf.WriteString("\n")
+							buf.WriteString(labeledMetrics)
+						}
+					}
+
+					return true
+				}, plugin.ServeMetricsID)
+			}
+		}
+
+		// Copy content type from main metrics response
+		if contentType := rec.Header().Get("Content-Type"); contentType != "" {
+			w.Header().Set("Content-Type", contentType)
+		}
+		w.WriteHeader(rec.Code)
+		if _, writeErr := w.Write(buf.Bytes()); writeErr != nil {
+			mlog.Error("Failed to write to HandleMetrics's response writer", mlog.Err(writeErr))
+		}
+	})
+}
+
+// addPluginLabelToMetrics adds a plugin_id label to all metrics in the Prometheus text format.
+// It parses using expfmt, mutates the label sets in-place, then re-encodes.
+// Returns an empty string and logs a warning if any parsing or encoding error occurs.
+func addPluginLabelToMetrics(metricsText, pluginID string) string {
+	parser := expfmt.NewTextParser(prommodel.LegacyValidation)
+	families, err := parser.TextToMetricFamilies(strings.NewReader(metricsText))
+	if err != nil {
+		mlog.Warn("Failed to parse plugin metrics", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		return ""
+	}
+
+	pluginIDLabel := &dto.LabelPair{
+		Name:  model.NewPointer("plugin_id"),
+		Value: model.NewPointer(pluginID),
+	}
+
+	var result strings.Builder
+	enc := expfmt.NewEncoder(&result, expfmt.FmtText)
+	for name, family := range families {
+		for _, metric := range family.Metric {
+			replaced := false
+			for _, l := range metric.Label {
+				if l.GetName() == "plugin_id" {
+					l.Value = model.NewPointer(pluginID)
+					replaced = true
+					break
+				}
+			}
+			if !replaced {
+				metric.Label = append(metric.Label, pluginIDLabel)
+			}
+		}
+		if encErr := enc.Encode(family); encErr != nil {
+			mlog.Warn("Failed to encode plugin metrics", mlog.String("plugin_id", pluginID), mlog.String("family", name), mlog.Err(encErr))
+			return ""
+		}
+	}
+	if closer, ok := enc.(expfmt.Closer); ok {
+		closer.Close()
+	}
+
+	return result.String()
 }
 
 func (ps *PlatformService) RestartMetrics() error {

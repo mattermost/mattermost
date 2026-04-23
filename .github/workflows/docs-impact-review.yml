@@ -1,7 +1,10 @@
 name: Documentation Impact Review
+ 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
  
 concurrency:
   group: ${{ format('docs-impact-{0}', github.event.pull_request.number) }}
@@ -15,7 +18,7 @@ permissions:
  
 jobs:
   docs-impact-review:
-    if: github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false && !startsWith(github.event.pull_request.user.login, 'unified-ci-app')
     runs-on: ubuntu-24.04
     env:
       HAS_ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
