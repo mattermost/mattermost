@@ -9,6 +9,123 @@ import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import TableEditor from './table_editor';
 
+describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
+    const mockMultiselectAttributes: UserPropertyField[] = [
+        {
+            id: 'attr1',
+            name: 'skills',
+            type: 'multiselect',
+            group_id: 'custom_profile_attributes',
+            create_at: 1736541716295,
+            update_at: 1736541716295,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+                options: [
+                    {id: 'js', name: 'JavaScript'},
+                    {id: 'py', name: 'Python'},
+                ],
+            },
+        },
+        {
+            id: 'attr2',
+            name: 'department',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 1736541716295,
+            update_at: 1736541716295,
+            delete_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 1,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        },
+    ];
+
+    const mockMultiselectActions = {
+        getVisualAST: jest.fn(),
+    };
+
+    const multiselectBaseProps = {
+        value: '',
+        onChange: jest.fn(),
+        userAttributes: mockMultiselectAttributes,
+        enableUserManagedAttributes: true,
+        onParseError: jest.fn(),
+        actions: mockMultiselectActions,
+    };
+
+    beforeEach(() => {
+        mockMultiselectActions.getVisualAST.mockClear();
+        multiselectBaseProps.onChange.mockClear();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('should default to "has any of" operator when adding a row with multiselect attribute', async () => {
+        mockMultiselectActions.getVisualAST.mockResolvedValue({data: {conditions: []}});
+
+        renderWithContext(<TableEditor {...multiselectBaseProps}/>, {});
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /add attribute/i})).toBeInTheDocument();
+        });
+
+        const addButton = screen.getByRole('button', {name: /add attribute/i});
+        addButton.click();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+        });
+
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
+    });
+
+    test('should show "has all of" operator for multiselect attribute parsed from expression', async () => {
+        mockMultiselectActions.getVisualAST.mockResolvedValue({
+            data: {
+                conditions: [
+                    {
+                        attribute: 'user.attributes.skills',
+                        operator: 'hasAllOf',
+                        value: ['JavaScript', 'Python'],
+                        value_type: 0,
+                        attribute_type: 'multiselect',
+                    },
+                ],
+            },
+        });
+
+        const props = {
+            ...multiselectBaseProps,
+            value: '"JavaScript" in user.attributes.skills && "Python" in user.attributes.skills',
+        };
+
+        renderWithContext(<TableEditor {...props}/>, {});
+
+        await waitFor(() => {
+            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+        });
+
+        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has all of');
+    });
+});
+
 describe('TableEditor - User Self-Exclusion', () => {
     const mockUserAttributes: UserPropertyField[] = [
         {
