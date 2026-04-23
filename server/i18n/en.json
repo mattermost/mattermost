@@ -5859,20 +5859,8 @@
     "translation": "group name is not unique"
   },
   {
-    "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Unable to patch User Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Unable to convert the property field to a User Attribute field"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "User Attribute field not found"
-  },
-  {
-    "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Unable to upsert User Attribute fields"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
