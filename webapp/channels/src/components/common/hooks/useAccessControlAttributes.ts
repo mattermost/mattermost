@@ -15,21 +15,73 @@ export enum EntityType {
     // more entity types will be added here in the future
 }
 
-// Module-level cache for access control attributes
-// The cache stores processed data with a timestamp to implement a TTL (time-to-live)
+// ProcessedAttributes is the shape that components consume: a structured
+// dictionary of attribute -> values (used for the policy banners) plus a flat
+// tag array (kept for backwards compatibility with consumers that only need
+// the values without their owning attribute).
+type ProcessedAttributes = {
+    attributeTags: string[];
+    structuredAttributes: AccessControlAttribute[];
+};
+
+// Module-level cache for access control attributes. The cache stores already
+// processed data with a timestamp to implement a short TTL.
 const attributesCache: Record<string, {
-    processedData: {
-        attributeTags: string[];
-        structuredAttributes: AccessControlAttribute[];
-    };
+    processedData: ProcessedAttributes;
     timestamp: number;
 }> = {};
 
-// Cache TTL in milliseconds (5 minutes)
+// Cache TTL in milliseconds (5 minutes).
 const CACHE_TTL = 5 * 60 * 1000;
 
 // Array of supported entity types for validation
 const SUPPORTED_ENTITY_TYPES = Object.values(EntityType);
+
+const EMPTY_PROCESSED: ProcessedAttributes = {
+    attributeTags: [],
+    structuredAttributes: [],
+};
+
+// processAttributeData converts the server response (a dictionary keyed by
+// attribute name with arrays of literal values) into the structured form
+// consumed by the UI. The dictionary preserves both the attribute name and
+// the values associated with it so each tag can be displayed alongside its
+// originating attribute.
+function processAttributeData(data: Record<string, string[]> | undefined | null): ProcessedAttributes {
+    if (!data) {
+        return EMPTY_PROCESSED;
+    }
+
+    const attributeTags: string[] = [];
+    const structuredAttributes: AccessControlAttribute[] = [];
+
+    // Format: { "attributeName": ["value1", "value2"], "anotherAttribute": ["value3"] }
+    for (const [name, values] of Object.entries(data)) {
+        if (!Array.isArray(values)) {
+            continue;
+        }
+
+        structuredAttributes.push({name, values: [...values]});
+
+        for (const value of values) {
+            if (value !== undefined && value !== null) {
+                attributeTags.push(value);
+            }
+        }
+    }
+
+    return {attributeTags, structuredAttributes};
+}
+
+/**
+ * Invalidates the cached attributes for a single entity. Components that
+ * mutate the underlying access policy should call this to ensure the next
+ * read fetches fresh data instead of serving up to CACHE_TTL milliseconds of
+ * stale state.
+ */
+export function invalidateAccessControlAttributesCache(entityType: EntityType, entityId: string): void {
+    delete attributesCache[`${entityType}:${entityId}`];
+}
 
 /**
  * A hook for fetching access control attributes for an entity
@@ -50,35 +102,9 @@ export const useAccessControlAttributes = (
     const [error, setError] = useState<Error | null>(null);
     const dispatch = useDispatch();
 
-    // Helper function to process attribute data and extract tags
-    const processAttributeData = useCallback((data: Record<string, string[]> | undefined) => {
-        if (!data) {
-            setAttributeTags([]);
-            setStructuredAttributes([]);
-            return;
-        }
-
-        const tags: string[] = [];
-        const attributes: AccessControlAttribute[] = [];
-
-        // Extract values from all properties in the response
-        // Format: { "attributeName": ["value1", "value2"], "anotherAttribute": ["value3"] }
-        Object.entries(data).forEach(([name, values]) => {
-            // Add to structured format
-            if (Array.isArray(values)) {
-                attributes.push({name, values: [...values]});
-
-                // Add to flat tags (existing behavior)
-                values.forEach((value) => {
-                    if (value !== undefined && value !== null) {
-                        tags.push(value);
-                    }
-                });
-            }
-        });
-
-        setAttributeTags(tags);
-        setStructuredAttributes(attributes);
+    const applyProcessed = useCallback((processed: ProcessedAttributes) => {
+        setAttributeTags(processed.attributeTags);
+        setStructuredAttributes(processed.structuredAttributes);
     }, []);
 
     const fetchAttributes = useCallback(async (forceRefresh = false) => {
@@ -86,32 +112,25 @@ export const useAccessControlAttributes = (
             return;
         }
 
-        // Set loading state at the beginning
         setLoading(true);
         setError(null);
 
         try {
-            // Validate entity type first
             if (!SUPPORTED_ENTITY_TYPES.includes(entityType)) {
                 throw new Error(`Unsupported entity type: ${entityType}`);
             }
 
-            // Check cache first (unless forceRefresh is true)
             const cacheKey = `${entityType}:${entityId}`;
             const cachedEntry = attributesCache[cacheKey];
             const now = Date.now();
 
-            // Use cache if it exists and is not too old and forceRefresh is false
-            // But still set loading to false to trigger a state update for tests
+            // Serve from cache when fresh and the caller didn't force a refresh.
             if (!forceRefresh && cachedEntry && (now - cachedEntry.timestamp < CACHE_TTL)) {
-                // Use the cached processed data directly instead of reprocessing
-                setAttributeTags(cachedEntry.processedData.attributeTags);
-                setStructuredAttributes(cachedEntry.processedData.structuredAttributes);
+                applyProcessed(cachedEntry.processedData);
                 setLoading(false);
                 return;
             }
 
-            // Handle different entity types
             let result;
             switch (entityType) {
             case EntityType.Channel:
@@ -122,56 +141,21 @@ export const useAccessControlAttributes = (
                 throw new Error(`Unsupported entity type: ${entityType}`);
             }
 
-            // Check for error in the result
             if (result.error) {
                 throw result.error;
             }
-            const data = result.data;
 
-            // Process the data and store it in cache
-            if (data) {
-                const processedTags: string[] = [];
-                const processedAttributes: AccessControlAttribute[] = [];
-
-                // Process the data once
-                Object.entries(data).forEach(([name, values]) => {
-                    if (Array.isArray(values)) {
-                        processedAttributes.push({name, values: [...values]});
-                        values.forEach((value) => {
-                            if (value !== undefined && value !== null) {
-                                processedTags.push(value);
-                            }
-                        });
-                    }
-                });
-
-                // Store only the processed data
-                attributesCache[cacheKey] = {
-                    processedData: {
-                        attributeTags: processedTags,
-                        structuredAttributes: processedAttributes,
-                    },
-                    timestamp: now,
-                };
-
-                // Set state
-                setAttributeTags(processedTags);
-                setStructuredAttributes(processedAttributes);
-            } else {
-                // Handle the case where data is undefined or null
-                setAttributeTags([]);
-                setStructuredAttributes([]);
-            }
+            const processed = processAttributeData(result.data);
+            attributesCache[cacheKey] = {processedData: processed, timestamp: now};
+            applyProcessed(processed);
         } catch (err) {
             setError(err as Error);
-            setAttributeTags([]);
-            setStructuredAttributes([]);
+            applyProcessed(EMPTY_PROCESSED);
         } finally {
             setLoading(false);
         }
-    }, [entityType, entityId, hasAccessControl, processAttributeData]);
+    }, [entityType, entityId, hasAccessControl, dispatch, applyProcessed]);
 
-    // Fetch attributes when the component mounts or when dependencies change
     useEffect(() => {
         fetchAttributes();
     }, [fetchAttributes]);

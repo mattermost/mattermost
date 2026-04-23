@@ -225,7 +225,9 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         );
 
         expect(screen.getByText('This channel has a membership policy based on user attributes')).toBeInTheDocument();
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" for readability.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 });
