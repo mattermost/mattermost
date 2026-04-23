@@ -131,11 +131,6 @@ jobs:
 
   run-tests:
     runs-on: ubuntu-24.04
-    # Raised from 30 → 60 because PW_WORKERS=1 in server.generate.sh
-    # doubles wall-clock time per shard vs the previous PW_WORKERS=2.
-    # Switching to 1 worker eliminates the PW_WORKERS=2 race class where
-    # concurrent tests on the same shard wipe each other's config patches
-    # via initSetup().
     timeout-minutes: 60
     continue-on-error: true
     needs:

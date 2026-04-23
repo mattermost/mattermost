@@ -5,19 +5,6 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
-// NOTE: the previous `globalConfigSpecs` list + `chrome-serial` project
-// was removed. Isolating config-mutating specs in a second project made
-// Playwright re-run the entire dependency project on every shard (94%
-// duplication), and even inside chrome-serial it only serialized w.r.t.
-// the main suite — concurrent chrome-serial tests at PW_WORKERS=2 still
-// raced on the shared global config.
-//
-// Going forward, specs that previously belonged to `chrome-serial` must
-// isolate their own setup: create unique teams / channels / users per
-// test, patch only the narrowest config scope they need, and clean up
-// their mutations via `test.afterAll`. Tests must not assume their
-// settings survive past their own `afterAll`.
-
 const chromeUse = {
     browserName: 'chromium' as const,
     permissions: ['notifications', 'clipboard-read', 'clipboard-write'] as string[],
@@ -75,12 +62,6 @@ export default defineConfig({
             dependencies: ['setup'],
         },
         {
-            // Main project — runs the entire functional suite (other than
-            // @visual) under PW_WORKERS concurrency. Tests that mutate
-            // global server config MUST isolate their own setup and clean
-            // up any config patches in `test.afterAll`; the old
-            // `chrome-serial` escape hatch was removed because it made
-            // Playwright re-run the full chrome suite on every shard.
             name: 'chrome',
             use: chromeUse,
             dependencies: ['setup'],

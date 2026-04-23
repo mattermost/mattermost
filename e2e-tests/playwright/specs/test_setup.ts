@@ -19,13 +19,12 @@ setup('ensure ABAC is configured', async ({pw}) => {
     const {adminClient} = await pw.initSetup();
 
     try {
-        const config = await adminClient.getConfig();
-        (config as any).AccessControlSettings = {
-            ...((config as any).AccessControlSettings || {}),
-            EnableAttributeBasedAccessControl: true,
-            EnableUserManagedAttributes: true,
-        };
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
     } catch {
         // Server is not licensed for ABAC — individual tests will skip via pw.skipIfNoLicense()
     }

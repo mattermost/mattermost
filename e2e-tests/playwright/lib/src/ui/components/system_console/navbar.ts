@@ -12,7 +12,7 @@ export default class SystemConsoleNavbar {
 
     constructor(container: Locator) {
         this.container = container;
-        this.backLink = container.getByRole('link', {name: /Back/});
+        this.backLink = container.locator('.backstage-navbar__back');
     }
 
     async toBeVisible() {
