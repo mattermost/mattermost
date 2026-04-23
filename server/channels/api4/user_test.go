@@ -3927,8 +3927,6 @@ func TestResetPassword(t *testing.T) {
 	err = mail.DeleteMailBox(user.Email)
 	require.NoError(t, err)
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
-		_, err = client.SendPasswordResetEmail(context.Background(), user.Email)
-		require.NoError(t, err)
 		var resp *model.Response
 		resp, err = client.SendPasswordResetEmail(context.Background(), "")
 		require.Error(t, err)
@@ -3937,6 +3935,17 @@ func TestResetPassword(t *testing.T) {
 		_, err = client.SendPasswordResetEmail(context.Background(), "notreal@example.com")
 		require.NoError(t, err)
 	})
+
+	// Now generate the token we'll actually verify, after the loop above.
+	// Earlier iterations of this test called SendPasswordResetEmail for
+	// user.Email inside TestForAllClients — each subsequent call invalidates
+	// the previous token, so the oldest email in the mailbox would no longer
+	// correspond to a live DB token, and the lookup would time out.
+	err = mail.DeleteMailBox(user.Email)
+	require.NoError(t, err)
+	_, err = th.Client.SendPasswordResetEmail(context.Background(), user.Email)
+	require.NoError(t, err)
+
 	// Check if the email was send to the right email address and the recovery key match
 	var resultsMailbox mail.JSONMessageHeaderInbucket
 	err = mail.RetryInbucket(10, func() error {
@@ -3980,16 +3989,16 @@ func TestResetPassword(t *testing.T) {
 	for range model.TokenSize {
 		code.WriteString("a")
 	}
-	resp, err = th.Client.ResetPassword(context.Background(), code.String(), "newpwd")
+	resp, err = th.Client.ResetPassword(context.Background(), code.String(), "newpasswd")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	_, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpwd")
+	_, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpasswd")
 	require.NoError(t, err)
-	_, _, err = th.Client.Login(context.Background(), user.Email, "newpwd")
+	_, _, err = th.Client.Login(context.Background(), user.Email, "newpasswd")
 	require.NoError(t, err)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
-	resp, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpwd")
+	resp, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpasswd")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()

@@ -5196,6 +5196,10 @@ func TestAddChannelMemberFromThread(t *testing.T) {
 		return getErr == nil && ut.UnreadMentions >= 2
 	}, 10*time.Second, 200*time.Millisecond, "expected at least 2 unread mentions in thread")
 
+	// Thread updates arrive as incremental deltas (0→1→2), not a single
+	// 0→2 jump, so we only assert on the final state. The previous_unread_*
+	// values depend on how the replies are batched and aren't meaningful
+	// to pin down here.
 	var caught bool
 	func() {
 		for {

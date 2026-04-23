@@ -60,6 +60,13 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Template creation is always sysadmin-only, regardless of target_type.
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate &&
+		!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	// Check scope access for creation based on target_type
 	switch field.TargetType {
 	case "channel":
@@ -96,23 +103,27 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Set permissions based on admin status.
 	// Permissions are not accepted from the request body; they're set by the server.
+	// Templates default to sysadmin since they define the schema linked fields inherit.
 	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	memberLevel := model.PermissionLevelMember
+	defaultLevel := model.PermissionLevelMember
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		defaultLevel = model.PermissionLevelSysadmin
+	}
 	if !isAdmin {
-		// Non-admin: force all permissions to member level
-		field.PermissionField = &memberLevel
-		field.PermissionValues = &memberLevel
-		field.PermissionOptions = &memberLevel
+		// Non-admin: force all permissions to the default level
+		field.PermissionField = &defaultLevel
+		field.PermissionValues = &defaultLevel
+		field.PermissionOptions = &defaultLevel
 	} else {
-		// Admin with nil fields: set defaults to member level
+		// Admin with nil fields: set defaults
 		if field.PermissionField == nil {
-			field.PermissionField = &memberLevel
+			field.PermissionField = &defaultLevel
 		}
 		if field.PermissionValues == nil {
-			field.PermissionValues = &memberLevel
+			field.PermissionValues = &defaultLevel
 		}
 		if field.PermissionOptions == nil {
-			field.PermissionOptions = &memberLevel
+			field.PermissionOptions = &defaultLevel
 		}
 	}
 
