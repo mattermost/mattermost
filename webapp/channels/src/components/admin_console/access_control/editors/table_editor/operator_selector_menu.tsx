@@ -7,22 +7,23 @@ import React, {useMemo, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
-import {CheckIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
+import {CheckAllIcon, CheckIcon, ElementOfIcon, EqualIcon, FunctionIcon, NotEqualVariantIcon} from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import * as Menu from 'components/menu';
 
-import {OperatorLabel} from '../shared';
+import {OperatorLabel, isMultiselectOperator} from '../shared';
 import './selector_menus.scss';
 
 interface OperatorSelectorProps {
     currentOperator: string;
     disabled: boolean;
     onChange: (operator: string) => void;
+    attributeType?: string;
 }
 
-const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSelectorProps) => {
+const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType}: OperatorSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
@@ -43,10 +44,16 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange}: OperatorSel
 
     const filteredOperators = useMemo(() => {
         return Object.values(OPERATOR_DESCRIPTORS).filter((desc) => {
+            if (attributeType === 'multiselect' && !isMultiselectOperator(desc.id)) {
+                return false;
+            }
+            if (attributeType !== 'multiselect' && isMultiselectOperator(desc.id)) {
+                return false;
+            }
             const label = formatMessage(desc.label);
             return label.toLowerCase().includes(filter.toLowerCase());
         });
-    }, [filter, formatMessage]);
+    }, [filter, formatMessage, attributeType]);
 
     return (
         <Menu.Container
@@ -146,6 +153,22 @@ const OPERATOR_DESCRIPTORS: IDMappedObjects<OperatorDescriptor> = {
         label: defineMessage({
             id: 'admin.access_control.table_editor.operator.in',
             defaultMessage: 'in',
+        }),
+    },
+    [OperatorLabel.HAS_ANY_OF]: {
+        id: OperatorLabel.HAS_ANY_OF,
+        icon: CheckIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.has_any_of',
+            defaultMessage: 'has any of',
+        }),
+    },
+    [OperatorLabel.HAS_ALL_OF]: {
+        id: OperatorLabel.HAS_ALL_OF,
+        icon: CheckAllIcon,
+        label: defineMessage({
+            id: 'admin.access_control.table_editor.operator.has_all_of',
+            defaultMessage: 'has all of',
         }),
     },
     [OperatorLabel.STARTS_WITH]: {
