@@ -42,4 +42,15 @@ func TestAuditService(t *testing.T) {
 		client := pluginapi.NewClient(api, &plugintest.Driver{})
 		client.Audit.Record(nil)
 	})
+
+	t.Run("nil record with level", func(t *testing.T) {
+		level := mlog.LvlAuditCLI
+
+		api := &plugintest.API{}
+		api.On("LogAuditRecWithLevel", (*model.AuditRecord)(nil), level).Return()
+		defer api.AssertExpectations(t)
+
+		client := pluginapi.NewClient(api, &plugintest.Driver{})
+		client.Audit.RecordWithLevel(nil, level)
+	})
 }
