@@ -1,23 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
-// Disable ContentFlaggingSettings at end of file so leftover state cannot leak
-// into other suites. Individual tests enable content flagging via patchConfig
-// as needed.
-test.afterAll(async () => {
-    try {
-        const {adminClient} = await getAdminClient({skipLog: true});
-        await adminClient.patchConfig({
-            ContentFlaggingSettings: {
-                EnableContentFlagging: false,
-            },
-        });
-    } catch {
-        // Best-effort cleanup.
-    }
-});
+// NOTE: No global afterAll disabling content flagging here. A global afterAll
+// that writes shared server config races with reviewer-* tests running in a
+// parallel worker on the same shard. Each test that needs content flagging
+// disabled sets it explicitly at the start (see the "feature is disabled" test
+// below). Tests that need it enabled do the same via patchConfig/setupContentFlagging.
 
 // Constants for repeated strings
 const FLAG_REASON_CLASSIFICATION_MISMATCH: string = 'Classification Mismatch';

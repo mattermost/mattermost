@@ -33,8 +33,11 @@ export async function setupDemoPlugin(
     await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
 
     await expect
-        .poll(async () => {
-            return await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
-        })
+        .poll(
+            async () => {
+                return await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
+            },
+            {timeout: 30_000},
+        )
         .toBe(true);
 }

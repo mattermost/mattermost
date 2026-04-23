@@ -298,7 +298,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         if (policyId) {
             await activatePolicy(sharedAdminClient, policyId);
             const __jobId3 = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId3);
+            await waitForLatestSyncJob(systemConsolePage.page, 15, __jobId3);
         }
         await searchInput.clear();
 

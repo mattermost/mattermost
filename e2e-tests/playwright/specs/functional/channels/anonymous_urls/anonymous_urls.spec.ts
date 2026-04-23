@@ -69,6 +69,9 @@ async function createAnonymousUrlChannel(
     teamId: string,
     displayName: string,
 ) {
+    // Re-apply config immediately before channel creation to guard against
+    // concurrent initSetup calls (from other workers) resetting UseAnonymousURLs.
+    await setAnonymousUrls(adminClient, true);
     await createChannelFromUI(channelsPage, displayName);
     await channelsPage.centerView.header.toHaveTitle(displayName);
 

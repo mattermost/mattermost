@@ -8,6 +8,7 @@ import {
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';
 import {
+    ensureUserAttributes,
     createUserForABAC,
     testAccessRule,
     createPrivateChannelForABAC,
@@ -46,6 +47,7 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
+    await ensureUserAttributes(adminClient);
     const policyName = `IsNot Policy ${await pw.random.id()}`;
     await createAdvancedPolicy(systemConsolePage.page, {
         name: policyName,
@@ -106,6 +108,7 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
+    await ensureUserAttributes(adminClient);
     const policyName = `In Policy ${await pw.random.id()}`;
     await createAdvancedPolicy(systemConsolePage.page, {
         name: policyName,
@@ -166,6 +169,7 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
+    await ensureUserAttributes(adminClient);
     const policyName = `StartsWith Policy ${await pw.random.id()}`;
     await createAdvancedPolicy(systemConsolePage.page, {
         name: policyName,
