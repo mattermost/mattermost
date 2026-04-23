@@ -9,6 +9,7 @@ import Setting from 'components/admin_console/setting';
 import DropdownInput from 'components/dropdown_input';
 import type {ValueType} from 'components/dropdown_input';
 
+import {AdminSection, SectionHeader, SectionHeading} from '../../system_properties/controls';
 import {
     ColorSwatch,
     GlobalBannerSectionContent,
@@ -19,8 +20,6 @@ import {
 import type {GlobalBannerConfig} from '../utils';
 import {classificationPresetDropdownStyles} from '../utils/preset_dropdown_styles';
 import type {ClassificationLevel} from '../utils/presets';
-
-import {AdminSection, SectionHeader, SectionHeading} from '../../system_properties/controls';
 
 const msg = defineMessages({
     sectionTitle: {id: 'admin.classification_markings.global_banner.section_title', defaultMessage: 'Global Classification Indicators'},

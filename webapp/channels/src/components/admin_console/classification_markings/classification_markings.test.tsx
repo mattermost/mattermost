@@ -11,6 +11,7 @@ import * as adminActions from 'mattermost-redux/actions/admin';
 import {Client4} from 'mattermost-redux/client';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+
 import type {GlobalState} from 'types/store';
 
 import ClassificationMarkings from './classification_markings';

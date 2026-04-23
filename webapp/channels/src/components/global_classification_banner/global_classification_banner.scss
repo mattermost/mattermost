@@ -1,14 +1,14 @@
 $banner-height: 20px;
 
 .global-classification-banner {
+    z-index: 1000;
     display: flex;
-    align-items: center;
-    justify-content: center;
     width: 100%;
     height: $banner-height;
-    padding: 2px 8px;
-    z-index: 1000;
     flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 8px;
     grid-column: 1 / -1;
 
     &--bottom {
@@ -19,14 +19,14 @@ $banner-height: 20px;
 }
 
 .global-classification-banner__text {
+    overflow: hidden;
+    color: inherit;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: inherit;
-    white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 #root.global-classification-banner-bottom-visible {

@@ -7,9 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {DeepPartial} from '@mattermost/types/utilities';
 import type {AdminConfig} from '@mattermost/types/config';
 import type {PropertyField} from '@mattermost/types/properties';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {patchConfig} from 'mattermost-redux/actions/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
