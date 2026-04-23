@@ -3,6 +3,12 @@
 
 package model
 
+import (
+	"encoding/json"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
+
 type ClusterEvent string
 
 const (
@@ -79,4 +85,50 @@ type ClusterMessage struct {
 	WaitForAllToSend bool              `json:"-"`
 	Data             []byte            `json:"data,omitempty"`
 	Props            map[string]string `json:"props,omitempty"`
+}
+
+// LogFields returns structured log fields describing the message.
+// For ClusterEventPublish, it partially unmarshals Data to extract WebSocket
+// event context. This is intentionally called only on error paths.
+func (m *ClusterMessage) LogFields() []mlog.Field {
+	fields := []mlog.Field{
+		mlog.String("event", string(m.Event)),
+		mlog.String("send_type", m.SendType),
+		mlog.Int("data_len", len(m.Data)),
+	}
+
+	switch m.Event {
+	case ClusterEventPublish:
+		var header struct {
+			Event     string `json:"event"`
+			Broadcast struct {
+				ChannelId string          `json:"channel_id"`
+				TeamId    string          `json:"team_id"`
+				OmitUsers map[string]bool `json:"omit_users"`
+			} `json:"broadcast"`
+		}
+		if err := json.Unmarshal(m.Data, &header); err == nil {
+			if header.Event != "" {
+				fields = append(fields, mlog.String("ws_event", header.Event))
+			}
+			if header.Broadcast.ChannelId != "" {
+				fields = append(fields, mlog.String("channel_id", header.Broadcast.ChannelId))
+			}
+			if header.Broadcast.TeamId != "" {
+				fields = append(fields, mlog.String("team_id", header.Broadcast.TeamId))
+			}
+			if n := len(header.Broadcast.OmitUsers); n > 0 {
+				fields = append(fields, mlog.Int("omit_users_len", n))
+			}
+		}
+	case ClusterEventPluginEvent:
+		if pluginID := m.Props["PluginID"]; pluginID != "" {
+			fields = append(fields, mlog.String("plugin_id", pluginID))
+		}
+		if eventID := m.Props["EventID"]; eventID != "" {
+			fields = append(fields, mlog.String("event_id", eventID))
+		}
+	}
+
+	return fields
 }
