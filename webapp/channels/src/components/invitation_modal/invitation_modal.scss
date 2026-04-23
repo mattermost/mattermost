@@ -14,6 +14,12 @@
         transform: translate(-50%, -50%) !important;
 
     }
+
+    .modal-content {
+        max-width: 100%;
+        overflow: hidden;
+    }
+
     &__header {
         padding-left: 0 !important;
     }
