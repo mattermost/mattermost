@@ -147,9 +147,9 @@ func (fi *FileInfo) IsValid() *AppError {
 }
 
 // IsValidFilename reports whether name is acceptable as FileInfo.Name.
-// It rejects empty strings, bare "." and "..", and any name containing
-// path separators or null bytes. The input is not mutated; see
-// SanitizeFilename for the mutating form.
+// It rejects empty strings, bare "." and "..", names exceeding
+// MaxFilenameLength, path separators, and ASCII control characters.
+// The input is not mutated; see SanitizeFilename for the mutating form.
 func IsValidFilename(name string) bool {
 	if name == "" || name == "." || name == ".." {
 		return false
@@ -157,7 +157,12 @@ func IsValidFilename(name string) bool {
 	if utf8.RuneCountInString(name) > MaxFilenameLength {
 		return false
 	}
-	return !strings.ContainsAny(name, `/\`+"\x00")
+	if strings.ContainsAny(name, `/\`) {
+		return false
+	}
+	return !strings.ContainsFunc(name, func(r rune) bool {
+		return r < 0x20 || r == 0x7f
+	})
 }
 
 // SanitizeFilename returns a canonical form of name suitable for

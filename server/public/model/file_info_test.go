@@ -77,6 +77,7 @@ func TestFileInfoIsValid(t *testing.T) {
 			"../a.png",
 			`..\..\a.png`,
 			"foo/bar.png",
+			`foo\bar.png`,
 			"foo\x00.png",
 		}
 		for _, bad := range badNames {
@@ -100,7 +101,10 @@ func TestIsValidFilename(t *testing.T) {
 		{"../a.png", false},
 		{`..\..\a`, false},
 		{"a/b", false},
+		{`foo\bar.png`, false},
 		{"a\x00b", false},
+		{"foo\tbar.png", false},
+		{"foo\rbar.png", false},
 		// MaxFilenameLength matches the VARCHAR(256) column; longer inputs
 		// that bypass SanitizeFilename's truncation must still fail here.
 		{strings.Repeat("a", MaxFilenameLength+1), false},
