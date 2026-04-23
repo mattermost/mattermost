@@ -5,6 +5,11 @@
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",
       "computedHash": "1d536cae2d53a425f094d7b4f5f3b15747a62292dd3ff3bdaa42d00c9c297c51"
+    },
+    "longshot": {
+      "source": "mattermost/mattermost-ai-marketplace#9:plugins/longshot/skills/longshot",
+      "sourceType": "github-pr",
+      "computedHash": "b77fcea062cd8a55197ac467c3849807ef0a1eeea48f17953544aa4ed25c7c6f"
     }
   }
 }
