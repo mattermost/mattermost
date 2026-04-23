@@ -434,6 +434,15 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
+	if token.IsExpired() {
+		auditRec := a.MakeAuditRecord(rctx, model.AuditEventRejectExpiredUserAccessToken, model.AuditStatusFail)
+		auditRec.AddMeta("token_id", token.Id)
+		auditRec.AddMeta("user_id", token.UserId)
+		auditRec.AddMeta("expires_at", token.ExpiresAt)
+		a.LogAuditRec(rctx, auditRec, nil)
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.expired", nil, "expired_token", http.StatusUnauthorized)
+	}
+
 	user, nErr := a.Srv().Store().User().Get(rctx.Context(), token.UserId)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
@@ -475,6 +484,12 @@ func (a *App) createSessionForUserAccessToken(rctx request.CTX, tokenString stri
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 	a.ch.srv.platform.SetSessionExpireInHours(session, model.SessionUserAccessTokenExpiryHours)
+
+	// If the underlying PAT has a non-zero expiry, clamp the session expiry to
+	// the token's ExpiresAt so that cached sessions honor PAT expiry as well.
+	if token.ExpiresAt > 0 && (session.ExpiresAt == 0 || token.ExpiresAt < session.ExpiresAt) {
+		session.ExpiresAt = token.ExpiresAt
+	}
 
 	session, nErr = a.Srv().Store().Session().Save(rctx, session)
 	if nErr != nil {

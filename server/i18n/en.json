@@ -9057,6 +9057,10 @@
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
+    "id": "app.user_access_token.expired",
+    "translation": "The personal access token has expired."
+  },
+  {
     "id": "app.user_access_token.get_all.app_error",
     "translation": "Unable to get all personal access tokens."
   },
@@ -12391,6 +12395,10 @@
   {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters."
+  },
+  {
+    "id": "model.user_access_token.is_valid.expires_at.app_error",
+    "translation": "Invalid expires_at, must be zero or a positive Unix timestamp in milliseconds."
   },
   {
     "id": "model.user_access_token.is_valid.id.app_error",

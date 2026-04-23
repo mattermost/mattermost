@@ -466,6 +466,8 @@ const (
 	AuditEventRevokeAllSessionsAllUsers    = "revokeAllSessionsAllUsers"    // revoke all active sessions for all users
 	AuditEventRevokeAllSessionsForUser     = "revokeAllSessionsForUser"     // revoke all active sessions for specific user
 	AuditEventRevokeSession                = "revokeSession"                // revoke specific user session
+	AuditEventExpireUserAccessToken        = "expireUserAccessToken"        // background job deleted a personal access token whose ExpiresAt passed
+	AuditEventRejectExpiredUserAccessToken = "rejectExpiredUserAccessToken" // rejected an API request because the personal access token has expired
 	AuditEventRevokeUserAccessToken        = "revokeUserAccessToken"        // revoke user personal access token
 	AuditEventSendPasswordReset            = "sendPasswordReset"            // send password reset email to user
 	AuditEventSendVerificationEmail        = "sendVerificationEmail"        // send email verification link to user

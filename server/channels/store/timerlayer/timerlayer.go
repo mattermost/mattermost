@@ -13651,6 +13651,38 @@ func (s *TimerLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 	return err
 }
 
+func (s *TimerLayerUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.DeleteExpired(cutoff)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.DeleteExpired", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	start := time.Now()
+
+	result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserAccessTokenStore.GetExpiredBefore", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserAccessTokenStore) Get(tokenID string) (*model.UserAccessToken, error) {
 	start := time.Now()
 

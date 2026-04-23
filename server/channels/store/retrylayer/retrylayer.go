@@ -17235,6 +17235,48 @@ func (s *RetryLayerUserAccessTokenStore) Delete(tokenID string) error {
 
 }
 
+func (s *RetryLayerUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.DeleteExpired(cutoff)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserAccessTokenStore.GetExpiredBefore(cutoff, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserAccessTokenStore) DeleteAllForUser(userID string) error {
 
 	tries := 0

@@ -32,6 +32,7 @@ func newSqlUserAccessTokenStore(sqlStore *SqlStore) store.UserAccessTokenStore {
 			"UserAccessTokens.UserId",
 			"UserAccessTokens.Description",
 			"UserAccessTokens.IsActive",
+			"UserAccessTokens.ExpiresAt",
 		).
 		From("UserAccessTokens")
 
@@ -46,8 +47,8 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("UserAccessTokens").
-		Columns("Id", "Token", "UserId", "Description", "IsActive").
-		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive).
+		Columns("Id", "Token", "UserId", "Description", "IsActive", "ExpiresAt").
+		Values(token.Id, token.Token, token.UserId, token.Description, token.IsActive, token.ExpiresAt).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "UserAccessToken_tosql")
@@ -229,6 +230,62 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 		return errors.Wrap(err, "commit_transaction")
 	}
 	return nil
+}
+
+// GetExpiredBefore returns active tokens whose non-zero ExpiresAt is less than
+// or equal to the provided cutoff (Unix milliseconds). The returned tokens do
+// NOT include the secret Token value, only metadata useful for audit logging.
+func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
+	tokens := []*model.UserAccessToken{}
+
+	query := s.userAccessTokensSelectQuery.
+		Where(sq.Gt{"UserAccessTokens.ExpiresAt": 0}).
+		Where(sq.LtOrEq{"UserAccessTokens.ExpiresAt": cutoff}).
+		Where(sq.Eq{"UserAccessTokens.IsActive": true}).
+		OrderBy("UserAccessTokens.ExpiresAt ASC").
+		Limit(uint64(limit))
+
+	if err := s.GetReplica().SelectBuilder(&tokens, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find expired UserAccessTokens")
+	}
+
+	for _, token := range tokens {
+		token.Token = ""
+	}
+
+	return tokens, nil
+}
+
+// DeleteExpired deletes tokens whose non-zero ExpiresAt is less than or equal to
+// the provided cutoff (Unix milliseconds), along with any sessions created from
+// those tokens. It returns the number of tokens deleted.
+func (s SqlUserAccessTokenStore) DeleteExpired(cutoff int64) (int64, error) {
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return 0, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.ExpiresAt > 0 AND o.ExpiresAt <= ?"
+	if _, err := transaction.Exec(sessionsQuery, cutoff); err != nil {
+		return 0, errors.Wrap(err, "failed to delete Sessions for expired UserAccessTokens")
+	}
+
+	res, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE ExpiresAt > 0 AND ExpiresAt <= ?", cutoff)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to delete expired UserAccessTokens")
+	}
+
+	deleted, rErr := res.RowsAffected()
+	if rErr != nil {
+		deleted = 0
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return 0, errors.Wrap(err, "commit_transaction")
+	}
+
+	return deleted, nil
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {

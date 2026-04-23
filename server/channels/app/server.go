@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_expired_access_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_dms_preferences_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_expired_posts"
@@ -1653,6 +1654,12 @@ func (s *Server) initJobs() {
 		model.JobTypeCleanupDesktopTokens,
 		cleanup_desktop_tokens.MakeWorker(s.Jobs),
 		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeCleanupExpiredAccessTokens,
+		cleanup_expired_access_tokens.MakeWorker(s.Jobs, s.Audit),
+		cleanup_expired_access_tokens.MakeScheduler(s.Jobs),
 	)
 
 	s.Jobs.RegisterJobType(

@@ -5288,6 +5288,40 @@ func TestCreateUserAccessToken(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("expired token is rejected at validation", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
+		require.Nil(t, appErr)
+
+		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), th.BasicUser.Id, "expires token")
+		require.NoError(t, err)
+
+		assertToken(t, th, rtoken, th.BasicUser.Id)
+
+		// Backdate ExpiresAt and revoke any live session so the next auth
+		// attempt goes through createSessionForUserAccessToken.
+		sqlStore := mainHelper.GetSQLStore()
+		_, dbErr := sqlStore.GetMaster().Exec(
+			"UPDATE UserAccessTokens SET ExpiresAt = ? WHERE Id = ?",
+			model.GetMillis()-1000, rtoken.Id,
+		)
+		require.NoError(t, dbErr)
+
+		// Revoke any cached session so validation happens against the PAT.
+		sessions, sErr := th.App.GetSessions(th.Context, th.BasicUser.Id)
+		require.Nil(t, sErr)
+		for _, s := range sessions {
+			if s.Props[model.SessionPropType] == model.SessionTypeUserAccessToken {
+				require.Nil(t, th.App.RevokeSession(th.Context, s))
+			}
+		}
+
+		assertInvalidToken(t, th, rtoken)
+	})
+
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic(t)
