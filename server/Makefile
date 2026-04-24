@@ -615,7 +615,7 @@ ifeq ($(MM_USE_PGVECTOR),true)
 endif
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
-	MM_FEATUREFLAGS_PERMISSIONPOLICIES=true MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL=true $(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 run-server-faketime: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server with FAKETIME.
 ifndef FAKETIME

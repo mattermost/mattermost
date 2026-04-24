@@ -14,6 +14,3 @@ test/.eslintcache
 # build
 dist
 *.tsbuildinfo
-# .test-durations.json is committed as a seed so the shard balancer
-# works on the first CI run on any branch. The CI cache/restore step
-# overwrites it with real measurements after each successful run.

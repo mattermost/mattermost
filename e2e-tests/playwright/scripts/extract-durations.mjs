@@ -25,20 +25,8 @@ if (!existsSync(resultsPath)) {
 
 const results = JSON.parse(readFileSync(resultsPath, 'utf-8'));
 
-// Walk the suite tree and collect per-file durations.
-// Playwright results.json has nested suites → specs → tests → results.
 const fileDurations = {};
 
-// Normalize spec paths so they match what `scripts/shard-balancer.mjs`
-// produces via `findSpecs()` — which returns paths relative to the
-// playwright dir (i.e. `specs/functional/...`). Playwright's
-// `spec.file` in results.json is relative to `testDir` (configured as
-// `specs`), so the raw key is `functional/...` without the `specs/`
-// prefix. Without this normalization the balancer's `durations[file]`
-// lookup misses on every file and every file falls back to the
-// 30 s default — defeating the whole point of duration-based balancing.
-// Observed on run 24630407320 where the balancer distributed 14 files
-// per shard by count alone and 3/8 shards timed out.
 function normalizeSpecPath(file) {
     return file.startsWith('specs/') ? file : `specs/${file}`;
 }

@@ -8,25 +8,6 @@ import {createPermissionPolicy, deletePermissionPolicyByName, navigateToPermissi
 
 import {setupUserAndChannel} from './helpers';
 
-/**
- * ABAC Permission Policies - Upload & Combined File Runtime Enforcement (MM-64508)
- *
- * Tests that permission policies for upload_file_attachment (alone) and combined
- * download+upload are correctly enforced in the channel UI.
- *
- * CEL strategy:
- *   - DENIED tests:  celExpression = 'false'  → unconditional deny, no attribute dependency
- *   - ALLOWED tests: no permission policy created → no-policy = implicit allow
- *
- * Cleanup strategy per describe block:
- *   - `let lastPolicyName` tracks the name of whatever policy the current test created
- *   - `afterEach` deletes it by exact name via deletePermissionPolicyByName (reliable)
- *   - `beforeEach` also deletes by name in case afterEach failed (safety net)
- *   - Individual tests just set lastPolicyName and do NOT do their own cleanup
- */
-
-// ─── Upload Enforcement ──────────────────────────────────────────────────────
-
 test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
     let lastPolicyName = '';
     let savedAdminClient: any = null;
@@ -93,8 +74,6 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         await expect(userPage.locator('[data-testid="fileAttachmentList"]').last()).toBeVisible({timeout: 15000});
     });
 });
-
-// ─── Combined Enforcement ────────────────────────────────────────────────────
 
 test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
     let lastPolicyName = '';

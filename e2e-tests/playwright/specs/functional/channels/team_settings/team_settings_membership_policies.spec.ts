@@ -17,13 +17,6 @@ import {
     createTeamAdmin,
 } from './helpers';
 
-/**
- * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
- * `adminClient.updateConfig(...)` full-config reset). Concurrent tests running in
- * the same worker-process pool can have their config patches wiped when another
- * test's initSetup fires mid-run. Creates a uniquely-named team and user per
- * test instead.
- */
 async function setupMembershipPoliciesTest(pw: any) {
     const {adminClient, adminUser} = await pw.getAdminClient();
     const suffix = getRandomId();
@@ -39,10 +32,6 @@ async function setupMembershipPoliciesTest(pw: any) {
 }
 
 test.describe('Team Settings Modal - Membership Policies Tab', () => {
-    // Restore AccessControlSettings to the shared baseline expected by
-    // `specs/test_setup.ts` (ABAC enabled) so that any later file on the same
-    // worker doesn't start with ABAC unexpectedly off. Individual tests may
-    // disable ABAC mid-test but must leave this baseline intact at file end.
     test.afterAll(async () => {
         try {
             const {adminClient} = await getAdminClient({skipLog: true});
@@ -80,11 +69,6 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
     test('MM-67669_2 Membership Policies tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await setupMembershipPoliciesTest(pw);
-
-        // Save-and-restore ABAC around this test only. test_setup.ts enables ABAC as
-        // the shared baseline, so we explicitly disable it here and restore the original
-        // value in a finally block. Never call initSetup() — that wipes other concurrent
-        // tests' config patches.
         const original = await adminClient.getConfig();
         const originalEnabled = original.AccessControlSettings?.EnableAttributeBasedAccessControl ?? false;
 

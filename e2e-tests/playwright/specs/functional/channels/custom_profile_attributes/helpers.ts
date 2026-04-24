@@ -358,9 +358,7 @@ export async function setupCustomProfileAttributeFields(
 
     // Build a name -> existing field map so we can reuse fields that already
     // exist (e.g. a 'Department' field created by global test setup) and only
-    // create the ones that are genuinely missing.  The old "return early if any
-    // fields exist" logic caused the map to be incomplete whenever a previous
-    // test run (or the global setup) had left even a single field behind.
+    // create the ones that are genuinely missing.
     const existingByName: Record<string, UserPropertyField> = {};
     try {
         const existingFields = await adminClient.getCustomProfileAttributeFields();

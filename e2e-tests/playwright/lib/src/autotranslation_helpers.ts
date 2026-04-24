@@ -11,16 +11,6 @@ export type EnableAutotranslationOptions = {
 /**
  * Enable autotranslation in server config with LibreTranslate provider pointing at the mock URL.
  * Requires an enterprise license for the feature to be available.
- *
- * Uses patchConfig (narrow patch) instead of updateConfig (full replacement) so that
- * concurrent tests calling pw.initSetup() → updateConfig(defaultConfig) do not
- * inadvertently reset AutoTranslationSettings.Enable back to false. The default_config
- * has AutoTranslationSettings.Enable: false and LibreTranslate.URL: '', so a concurrent
- * updateConfig wipes translation state for every parallel worker.
- *
- * Call this function as late as possible — just before the operation that needs
- * translation active (e.g. right before creating a post or navigating to the page).
- * This minimises the window in which another test's updateConfig can interfere.
  */
 export async function enableAutotranslationConfig(
     adminClient: Client4,
@@ -83,13 +73,6 @@ export async function disableChannelAutotranslation(adminClient: Client4, channe
     await adminClient.patchChannel(channelId, {autotranslation: false} as any);
 }
 
-/**
- * Set the LibreTranslate mock's detected language for /translate. When source=auto, all /translate
- * responses use this language as detectedLanguage until changed; default is 'es'.
- *
- * Note: This is only supported on the mock server (http://localhost:3010).
- * When using real LibreTranslate, language detection is automatic and this call is silently ignored.
- */
 export async function setMockSourceLanguage(mockBaseUrl: string, language: string): Promise<void> {
     try {
         const controller = new AbortController();
@@ -141,11 +124,6 @@ const AUTO_TRANSLATION_PERMISSIONS = [
 ];
 
 /**
- * Ensure that the channel_admin, team_admin, and system_admin roles all have the
- * manage_public_channel_auto_translation and manage_private_channel_auto_translation
- * permissions. These are added by a DB migration (add_channel_auto_translation_permissions)
- * but may be absent on test servers whose DB pre-dates the migration.
- *
  * Call this after enableAutotranslationConfig and before any UI test that relies on
  * the autotranslation toggle appearing in Channel Settings.
  */

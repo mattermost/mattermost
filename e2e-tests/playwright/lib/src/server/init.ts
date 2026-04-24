@@ -35,21 +35,6 @@ export async function initSetup({
             );
         }
 
-        // Apply the test-suite baseline config via patchConfig (deep-merge),
-        // NOT updateConfig (full-replace).
-        //
-        // Historically this line was `adminClient.updateConfig(getOnPremServerConfig())`.
-        // updateConfig REPLACES the entire server config, which wiped any config
-        // patches that concurrent tests had set under PW_WORKERS >= 2 — producing
-        // widespread flakes in specs that call patchConfig() (ABAC, PrivacySettings,
-        // AutoTranslationSettings, ContentFlaggingSettings, etc.). See PR #36054.
-        //
-        // Changing it to adminClient.getConfig() (no write at all) broke a different
-        // class of tests: the baseline from getOnPremServerConfig() sets required
-        // values like PluginSettings.EnableUploads=true,
-        // ServiceSettings.EnableTesting=true, the playbooks plugin enable,
-        // password-complexity relaxations, etc. Many tests rely on those being set.
-        //
         // patchConfig gives us both: the baseline keys are idempotently applied,
         // and anything NOT in the baseline (ABAC, anonymous URLs, autotranslation,
         // etc.) is preserved across concurrent initSetup calls.

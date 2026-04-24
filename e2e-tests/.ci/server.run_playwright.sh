@@ -41,11 +41,6 @@ ${MME2E_DC_SERVER} exec -u "$MME2E_UID" -d -- playwright bash -c "cd e2e-tests/p
 mme2e_log "Wait for LibreTranslate mock server to be ready"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -c "for i in {1..30}; do curl -s http://localhost:3010/ && exit 0; sleep 1; done; echo 'Mock server failed to start'; exit 1" || true
 
-# Compute the balanced spec list for this shard using the duration-based
-# shard balancer. On the first run (no `.test-durations.json` cached yet)
-# the balancer prints nothing and we fall back to Playwright's built-in
-# `--shard=N/M` contiguous split (via PW_SHARD).
-#
 # When the balancer produces a list, we pass those spec files as positional
 # args and DO NOT pass `--shard` — otherwise Playwright would further
 # subdivide our already-balanced slice.
@@ -55,10 +50,7 @@ if [ -n "${PW_SHARD_INDEX:-}" ] && [ -n "${PW_SHARD_TOTAL:-}" ]; then
     "cd e2e-tests/playwright && node scripts/shard-balancer.mjs ${PW_SHARD_INDEX} ${PW_SHARD_TOTAL}" 2>/dev/null || true)
   BALANCED_SPECS=$(echo "$BALANCED_SPECS" | tr -d '\r' | xargs || true)
   # IMPORTANT: must be exported so `docker compose exec -e BALANCED_SPECS`
-  # copies it from this shell's environment. Without export the variable
-  # is a local shell assignment, docker-compose can't see it, and inside
-  # the container $BALANCED_SPECS expands to empty — making `npm run test:ci`
-  # run the entire suite on every shard (observed in run 24629474637).
+  # copies it from this shell's environment.
   export BALANCED_SPECS
   if [ -n "$BALANCED_SPECS" ]; then
     FILE_COUNT=$(echo "$BALANCED_SPECS" | wc -w | tr -d ' ')
@@ -68,19 +60,8 @@ if [ -n "${PW_SHARD_INDEX:-}" ] && [ -n "${PW_SHARD_TOTAL:-}" ]; then
   fi
 fi
 
-# Run the Playwright functional suite as a single sharded pass under the
-# `chrome` project. Any config-mutating specs must isolate their own setup
-# (unique team/channel/user, afterAll cleanup); the old chrome-serial
-# escape hatch was removed because Playwright's project-dependency
-# implementation re-ran the full chrome suite on every shard.
-#
-# NB: do not exit on test failures — we need the retry step below to run.
-#
 # Pass TEST_FILTER, PW_SHARD and BALANCED_SPECS with `docker compose exec
 # -e VAR` (no =value) so Compose copies them from this shell's environment.
-# Do NOT use -e "VAR=${VAR}": TEST_FILTER is e.g. --grep-invert "@visual"
-# and embedded quotes break the host command line, which previously caused
-# PW_SHARD to be lost and every shard to run the full suite.
 
 mme2e_log "Playwright: running chrome project (sharded)"
 if [ -n "$BALANCED_SPECS" ]; then
@@ -95,20 +76,9 @@ else
     -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-first.log || true
 fi
 
-# ──────────────────────────────────────────────────────────────────────
-# Inline per-shard retry
-# ──────────────────────────────────────────────────────────────────────
-# If any specs failed, re-run JUST those specs on the SAME server (no new
-# provisioning). This replaces the standalone `run-failed-tests` CI job,
-# which spent ~4-7 min spinning up a fresh server per run.
-#
 # IMPORTANT: Playwright's blob reporter WIPES its outputDir at the start
 # of every invocation. If we leave first-pass blobs inside
 # `results/blob-report/`, a follow-on `npm run test:ci` deletes them.
-# So we move first-pass blobs OUT of that directory (into a stash on
-# the mounted volume, outside `results/`), and move them back right
-# before merge-reports. Retry blobs are prefixed with `retry-` to avoid
-# a filename collision with first-pass blobs when both come back.
 STASH_DIR="e2e-tests/playwright/.blob-stash"
 
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc "

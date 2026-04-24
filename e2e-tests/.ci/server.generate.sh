@@ -133,10 +133,6 @@ $(if mme2e_is_token_in_list "openldap" "$ENABLED_DOCKER_SERVICES"; then
     network_mode: host
     networks: !reset []
     restart: "no"
-    # !reset replaces the base list instead of concatenating, preventing Docker
-    # from seeing a duplicate apparmor:unconfined entry (inherited via extends +
-    # appended again) which would cause slapd to start without the exemption.
-    security_opt: !reset [apparmor:unconfined]
     extends:
         file: ../../server/build/docker-compose.common.yml
         service: openldap

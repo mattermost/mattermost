@@ -170,15 +170,6 @@ jobs:
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       test_type: full
-      # NB: do NOT put inner quotes around @visual. TEST_FILTER is passed
-      # unquoted on the Playwright invocation line inside the container
-      # (see e2e-tests/.ci/server.run_playwright.sh), so any quotes here
-      # become literal characters in the final argv. Playwright's second
-      # --grep-invert then tries to match the literal string "@visual"
-      # (with quote chars), which matches nothing, and — since the last
-      # --grep-invert wins — overrides the working one in the test:ci
-      # script, letting all @visual tests run. `@visual` has no special
-      # shell characters, so no quoting is needed.
       test_filter: "--grep-invert @visual"
       workers: 8
       enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"

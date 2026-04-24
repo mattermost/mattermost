@@ -203,10 +203,6 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    // NOTE: Skip toContainPostText here — a parallel worker may have set
-    // HideFlaggedContent: true, which makes the post preview show "(message deleted)"
-    // instead of the original text.  The important assertion is that the server
-    // rejects re-flagging an already-quarantined post.
     await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();

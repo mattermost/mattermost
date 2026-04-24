@@ -41,11 +41,6 @@ import {
  * (MM-T5785) or split into one-operator-per-test (MM-T5786) so the whole
  * test-file parallelises cleanly under sharding.
  */
-
-// MM-T5785: Auto-add policy that uses the Department attribute, with auto-add
-// enabled. The heavy lifting (create 3 users, create channel, create policy,
-// activate, run sync) happens once in beforeAll — individual tests are
-// API-only assertions on the resulting channel membership.
 test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types (auto-add)', () => {
     let sharedAdminClient: any;
     let user1: Awaited<ReturnType<typeof createUserWithAttributes>>; // qualifying, NOT in channel

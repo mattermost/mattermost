@@ -71,10 +71,6 @@ export default class ScheduleMessageModal {
         await dateLocator.click();
 
         // Wait for the date-picker calendar to fully close before returning.
-        // The calendar uses FloatingFocusManager with modal=true; if it is still
-        // mounted when selectTime() tries to click the time button the focus
-        // management can prevent the Menu.Container from registering the click,
-        // causing time_option_0 to never appear.
         const calendarPopper = this.container.locator('.date-picker__popper');
         await calendarPopper.waitFor({state: 'hidden'});
 
@@ -100,9 +96,6 @@ export default class ScheduleMessageModal {
 
         const selectedDate = await this.selectDate(dayFromToday);
 
-        // The date button's textContent includes the label prefix ("Date") and the
-        // icon element, so use includes() rather than strict equality to detect
-        // relative labels such as "Today" and "Tomorrow".
         const fromDateButtonText = (await this.dateButton.textContent()) ?? '';
 
         const selectedTime = await this.selectTime(timeOptionIndex);

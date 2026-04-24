@@ -8,13 +8,6 @@ test.beforeEach(async ({pw}) => {
     await pw.skipIfNoLicense();
 });
 
-/**
- * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
- * `adminClient.updateConfig(...)` full-config reset). Concurrent tests running in
- * the same worker-process pool can have their GuestAccountsSettings wiped when
- * another test's initSetup fires mid-run. Creates a uniquely-named team per test
- * and adds the default admin user to it.
- */
 async function setupSingleChannelGuestsTest(pw: any) {
     const {adminClient, adminUser} = await pw.getAdminClient();
     const suffix = getRandomId();
@@ -27,11 +20,6 @@ async function setupSingleChannelGuestsTest(pw: any) {
     return {adminClient, adminUser, team};
 }
 
-/**
- * Narrowly patch GuestAccountsSettings.Enable to the desired value, returning the
- * previous value. Use with patchGuestEnabled to restore after the test; never use
- * updateConfig() because it wipes every other concurrent test's config patches.
- */
 async function patchGuestEnabled(adminClient: any, enabled: boolean): Promise<boolean> {
     const cfg = await adminClient.getConfig();
     const previous = cfg.GuestAccountsSettings?.Enable ?? false;
@@ -39,17 +27,6 @@ async function patchGuestEnabled(adminClient: any, enabled: boolean): Promise<bo
     return previous;
 }
 
-/**
- * Navigate to a URL, then re-apply the guest-accounts patch and reload so the
- * browser reads fresh config from the server rather than a stale Redux store.
- *
- * Concurrent tests calling pw.initSetup() reset GuestAccountsSettings.Enable to
- * false (the default_config.ts default). Mattermost broadcasts this config change
- * via WebSocket, overwriting the browser's Redux store even while our test has the
- * page open. Calling patchGuestEnabled + reload after the initial navigation ensures
- * the browser fetches the latest server config and the correct value reaches the
- * React component before we assert.
- */
 async function navigateWithGuestPatch(page: any, adminClient: any, url: string, guestEnabled: boolean) {
     await page.goto(url);
     await page.waitForLoadState('networkidle');

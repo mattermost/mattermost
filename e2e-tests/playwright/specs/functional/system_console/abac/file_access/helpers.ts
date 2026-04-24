@@ -3,15 +3,6 @@
 
 import {createPrivateChannelForABAC, ensureUserAttributes} from '../support';
 
-/**
- * Shared setup for ABAC file-permission specs.
- *
- * Ensures at least one user attribute field exists so the permission policy CEL
- * editor's "Switch to Advanced Mode" button is enabled, creates a regular test
- * user, creates a private channel, and adds the user to both the team and the
- * channel. Returns everything the test needs to drive the channel UI and look
- * up the channel via API.
- */
 export async function setupUserAndChannel(
     adminClient: any,
     team: any,

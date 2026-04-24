@@ -50,12 +50,6 @@ services:
     restart: always
     networks:
       - mm-test
-    # Ubuntu 24.04 runners load the host AppArmor profile for slapd, which
-    # blocks the containerised slapd from accessing overlay FS paths and causes
-    # an immediate exit(1).  Unconfining AppArmor for this container is the
-    # minimal fix; it does not grant extra Linux capabilities.
-    security_opt:
-      - apparmor:unconfined
     environment:
       LDAP_TLS_VERIFY_CLIENT: "never"
       LDAP_ORGANISATION: "Mattermost Test"

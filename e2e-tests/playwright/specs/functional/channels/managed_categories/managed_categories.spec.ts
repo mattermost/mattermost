@@ -5,9 +5,6 @@ import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 async function skipIfNoEnterpriseLicense(adminClient: any) {
     const license = await adminClient.getClientLicenseOld();
-    // MinimumEnterpriseLicense on the server requires SkuShortName to be 'enterprise',
-    // 'advanced', or 'entry'. A 'professional' license has IsLicensed=true but does
-    // not satisfy the enterprise tier check that guards managed-category endpoints.
     const enterpriseSkus = ['enterprise', 'advanced', 'entry'];
     test.skip(
         license.IsLicensed !== 'true' || !enterpriseSkus.includes(license.SkuShortName),
@@ -32,11 +29,6 @@ async function disableManagedCategories(adminClient: any) {
 }
 
 /**
- * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
- * `adminClient.updateConfig(...)` full-config reset). Concurrent tests running in
- * the same worker-process pool can have their config patches wiped when another
- * test's initSetup fires mid-run, which is the exact race this helper avoids.
- *
  * Creates a uniquely-named team and user per test and adds the user to the team.
  */
 async function setupManagedCategoriesTest(pw: any) {
@@ -391,9 +383,6 @@ test.describe('Managed Channel Categories', () => {
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
-        // Wait for managed category data to load — the sidebar must show the
-        // 'No Favorites' header before isInManagedCategory resolves to true
-        // (which drives the disabled state of the favorite button).
         const sidebar = channelsPage.sidebarLeft.container;
         await pw.waitUntil(
             async () =>
@@ -516,11 +505,6 @@ test.describe('Managed Channel Categories', () => {
             const channelItem = sidebar.locator(`#sidebarItem_${channel.name}`);
             await expect(channelItem).toBeVisible();
 
-            // Wait for the 'No Move' managed category header to appear in the sidebar
-            // before opening the context menu. isInManagedCategory (which drives the
-            // disabled state of Move To) is only true once managed-category mappings
-            // are loaded into Redux — the sidebar header appearing is the observable
-            // proxy for that state being ready.
             await pw.waitUntil(
                 async () =>
                     sidebar

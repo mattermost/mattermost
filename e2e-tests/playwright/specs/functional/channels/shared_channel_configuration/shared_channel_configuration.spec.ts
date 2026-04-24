@@ -1,11 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-/**
- * E2E tests for Channel Settings → Configuration → Share with connected workspaces
- * Covers: TC-WEB-01, TC-WEB-02, TC-WEB-03, TC-WEB-04, TC-WEB-06, TC-WEB-07, TC-WEB-08, TC-WEB-09, TC-WEB-10
- */
-
 import {
     expect,
     getRandomId,
@@ -35,13 +30,6 @@ type ClientWithRemotes = {
     }) => Promise<unknown>;
 };
 
-/**
- * Self-isolating setup that avoids `pw.initSetup()` (which calls the destructive
- * `adminClient.updateConfig(...)` full-config reset). That reset was wiping
- * ConnectedWorkspacesSettings mid-run when a concurrent test fired initSetup,
- * causing the share toggle to never appear. Creates a uniquely-named team and
- * user per test instead.
- */
 async function setupSharedChannelTest(pw: any) {
     const {adminClient, adminUser} = await pw.getAdminClient();
     const suffix = getRandomId();

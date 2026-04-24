@@ -282,6 +282,18 @@ jobs:
 
           echo "After: docker compose version"
           docker compose version
+      - name: ci/restore-test-durations
+        # Restore shard-balancer timing data so the greedy bin-packing
+        # algorithm distributes spec files evenly across workers.
+        # Lookup order: same branch → any branch (falls back to main's cache).
+        if: inputs.TEST == 'playwright'
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: playwright-test-durations-${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.worker_index }}
+          restore-keys: |
+            playwright-test-durations-${{ github.ref_name }}-
+            playwright-test-durations-
       - name: ci/e2e-test
         run: |
           make cloud-init
@@ -307,6 +319,22 @@ jobs:
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
           make
+      - name: ci/extract-test-durations
+        # Parse the reporter output and write per-spec timing data so the
+        # next run's shard-balancer can distribute work more evenly.
+        if: always() && inputs.TEST == 'playwright'
+        working-directory: e2e-tests
+        run: |
+          RESULTS="playwright/results/reporter/results.json"
+          if [ -f "$RESULTS" ]; then
+            node playwright/scripts/extract-durations.mjs "$RESULTS" playwright/.test-durations.json
+          fi
+      - name: ci/save-test-durations
+        if: always() && inputs.TEST == 'playwright'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: playwright-test-durations-${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.worker_index }}
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown

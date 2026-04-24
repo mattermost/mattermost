@@ -38,11 +38,6 @@ const { execSync } = require("node:child_process");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
-// Threshold for test-level splitting (aggregated pass time from timing cache).
-// Must stay above sqlstore: CI timing cache shows sqlstore at ~430 s, but its
-// TestMain connects to postgres (unavailable on the GitHub host), so go test
-// -list fails during the new-test discovery step.  Only api4 (~33 min) and
-// app (~25 min) should ever be split at the test level.
 const HEAVY_MS = 600000; // 600s (10 min): packages above this get test-level splitting
 
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {

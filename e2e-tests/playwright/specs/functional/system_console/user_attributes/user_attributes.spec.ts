@@ -72,11 +72,6 @@ async function cleanupFields(client: Client4, fieldsMap: FieldsMap): Promise<voi
 }
 
 test.describe('System Console - User Attributes Management', () => {
-    // setupTest() above deletes ALL custom profile attribute fields at the
-    // start of each test (to get a blank slate). This wipes the `Department`
-    // attribute that `specs/test_setup.ts` creates as a shared baseline for
-    // ABAC tests running on the same worker. Restore it here so later files
-    // on the same worker don't see a missing `Department` field.
     test.afterAll(async () => {
         try {
             const {adminClient} = await getAdminClient({skipLog: true});
@@ -236,10 +231,6 @@ test.describe('System Console - User Attributes Management', () => {
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Find the attribute name input by its current value to avoid
-        // # index-based flakiness when other attributes exist on the server.
-        // Resolve to a stable locator BEFORE fill() — nameInputByValue uses
-        // input[value="..."] which breaks after the value changes.
         const nameInputLocator = sp.nameInputByValue('Old Name');
         await expect(nameInputLocator).toBeVisible();
         await nameInputLocator.focus();
