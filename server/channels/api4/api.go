@@ -24,7 +24,7 @@ type Routes struct {
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
-	UserByAuthData *mux.Router // 'api/v4/users/auth_data/{auth_data:.+}/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}'
+	UserByAuthData *mux.Router // 'api/v4/users/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}/auth_data/{auth_data:.+}'
 
 	Bots *mux.Router // 'api/v4/bots'
 	Bot  *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
@@ -197,7 +197,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.User = api.BaseRoutes.APIRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
-	api.BaseRoutes.UserByAuthData = api.BaseRoutes.Users.PathPrefix("/auth_data/{auth_data:.+}/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}").Subrouter()
+	api.BaseRoutes.UserByAuthData = api.BaseRoutes.Users.PathPrefix("/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}/auth_data/{auth_data:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.APIRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
@@ -422,7 +422,7 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
-	api.BaseRoutes.UserByAuthData = api.BaseRoutes.Users.PathPrefix("/auth_data/{auth_data:.+}/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}").Subrouter()
+	api.BaseRoutes.UserByAuthData = api.BaseRoutes.Users.PathPrefix("/auth_service/{auth_service:[A-Za-z0-9_\\-.]+}/auth_data/{auth_data:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.APIRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()

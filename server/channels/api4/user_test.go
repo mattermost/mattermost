@@ -1509,7 +1509,7 @@ func TestGetUserByAuthData(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
-			ruser, _, getErr := client.GetUserByAuthData(context.Background(), authID, model.UserAuthServiceSaml, "")
+			ruser, _, getErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
 			require.NoError(t, getErr)
 			require.Equal(t, user.Id, ruser.Id)
 			require.NotNil(t, ruser.AuthData)
@@ -1518,7 +1518,7 @@ func TestGetUserByAuthData(t *testing.T) {
 		})
 
 		t.Run("not found returns error response", func(t *testing.T) {
-			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), "nope-"+model.NewId(), model.UserAuthServiceSaml, "")
+			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, "nope-"+model.NewId(), "")
 			require.Error(t, notFoundErr)
 			CheckInternalErrorStatus(t, resp)
 		})
@@ -1529,14 +1529,14 @@ func TestGetUserByAuthData(t *testing.T) {
 		// a separate team member to assert the endpoint requires a system admin.
 		_, _, err = th.Client.Login(context.Background(), regularUser.Email, regularUser.Password)
 		require.NoError(t, err)
-		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, model.UserAuthServiceSaml, "")
+		_, resp, err := th.Client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("rejects auth data over max length", func(t *testing.T) {
 		longData := strings.Repeat("x", model.UserAuthDataMaxLength+1)
-		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), longData, model.UserAuthServiceSaml, "")
+		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, longData, "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
