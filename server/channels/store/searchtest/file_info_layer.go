@@ -1621,7 +1621,7 @@ func testFileInfoSlashShouldNotBeCharSeparator(t *testing.T, th *SearchTestHelpe
 	require.NoError(t, err)
 	defer th.deleteUserPosts(th.User.Id)
 
-	p1, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "alpha/beta gamma, theta", "alpha/beta gamma, theta", "jpg", "image/jpeg", 0, 0)
+	p1, err := th.createFileInfo(th.User.Id, post.Id, post.ChannelId, "testfile.jpg", "alpha/beta gamma, theta", "jpg", "image/jpeg", 0, 0)
 	require.NoError(t, err)
 	defer th.deleteUserFileInfos(th.User.Id)
 

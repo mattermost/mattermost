@@ -13,3 +13,7 @@ cd server && make bump-enterprise
 ```
 
 This requires the enterprise directory to be present (configured via `BUILD_ENTERPRISE_DIR`). Commit the updated `enterprise.pin` as part of your server pull request.
+
+## Pull Requests
+
+When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md`.
