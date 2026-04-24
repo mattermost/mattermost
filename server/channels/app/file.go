@@ -1783,10 +1783,8 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		return nil
 	}
 
-	fileNames := make([]string, 0, len(fileInfos))
 	fileInfoIDs := make([]string, 0, len(fileInfos))
 	for _, fileInfo := range fileInfos {
-		fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
 		fileInfoIDs = append(fileInfoIDs, fmt.Sprintf("`%s`", fileInfo.Id))
 	}
 
@@ -1801,7 +1799,7 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		}
 	} else {
 		if report != nil {
-			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileCount": len(fileNames)}, nil)
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileCount": len(fileInfos)}, nil)
 		}
 	}
 

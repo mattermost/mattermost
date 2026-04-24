@@ -6071,10 +6071,6 @@
     "translation": "Failed to retrieve edit history."
   },
   {
-    "id": "app.data_spillage.report.detail.file_attachments_info",
-    "translation": "**File Attachments:** {{.FileNames}} — **FileInfo Rows:** {{.Count}} deleted"
-  },
-  {
     "id": "app.data_spillage.report.detail.file_attachments_info_ids",
     "translation": "**File Info IDs:** {{.FileInfoIDs}}"
   },

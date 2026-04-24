@@ -2812,9 +2812,6 @@ func TestDeleteEditHistories(t *testing.T) {
 		step := findEditStep(report)
 		require.NotNil(t, step)
 		require.Len(t, step.SubSteps, 1)
-		require.Equal(t, "app.data_spillage.report.detail.file_attachments_info", step.SubSteps[0].Detail)
-		require.Contains(t, step.SubSteps[0].DetailParams["FileNames"], "edit_file.txt")
-		require.Equal(t, 1, step.SubSteps[0].DetailParams["Count"])
 	})
 
 	t.Run("nonexistent post reports no revisions", func(t *testing.T) {

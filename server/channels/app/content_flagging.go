@@ -820,17 +820,6 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 	for _, editHistory := range editHistories {
 		subStep := model.DeletionSubStep{Name: editHistory.Id}
 
-		// Capture file names before deletion
-		fileInfos, storeErr := a.Srv().Store().FileInfo().GetForPost(editHistory.Id, false, true, true)
-		if storeErr == nil && len(fileInfos) > 0 {
-			fileNames := make([]string, 0, len(fileInfos))
-			for _, fileInfo := range fileInfos {
-				fileNames = append(fileNames, fmt.Sprintf("`%s`", fileInfo.Name))
-			}
-			subStep.Detail = i18n.TranslationId("app.data_spillage.report.detail.file_attachments_info")
-			subStep.DetailParams = map[string]any{"FileNames": strings.Join(fileNames, ", "), "Count": len(fileInfos)}
-		}
-
 		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, deleteByID); deletePostAppErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
 			subStep.Status = model.StepFailed
