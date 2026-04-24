@@ -2081,10 +2081,16 @@ func TestHookServeMetrics(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
 
+		// The config store silently drops FeatureFlags writes unless FF
+		// read-only mode is disabled first.
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
 		// Configure metrics
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			*cfg.PluginSettings.Enable = true
 			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
@@ -2160,10 +2166,16 @@ func TestHookServeMetrics(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics)
 
+		// The config store silently drops FeatureFlags writes unless FF
+		// read-only mode is disabled first.
+		th.ConfigStore.SetReadOnlyFF(false)
+		defer th.ConfigStore.SetReadOnlyFF(true)
+
 		// Configure metrics
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.MetricsSettings.Enable = true
 			*cfg.MetricsSettings.ListenAddress = ":0"
+			*cfg.PluginSettings.Enable = true
 			cfg.FeatureFlags.AggregatePluginMetrics = true
 		})
 
