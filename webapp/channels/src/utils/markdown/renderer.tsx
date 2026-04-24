@@ -154,6 +154,7 @@ export default class Renderer extends marked.Renderer {
             if (!postId) {
                 return text;
             }
+
             // getScheme() matches scheme:rest without requiring "//"; an
             // opaque form like "mmaction:MxPlan42" would otherwise mis-slice
             // below and produce a silently wrong action ID.

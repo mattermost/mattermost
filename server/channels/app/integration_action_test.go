@@ -2167,6 +2167,11 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
+	// Bot posts with inline_actions must be CREATED via an integration
+	// session — see the matching create-time strip in CreatePostAsUser.
+	intSeedSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+	intSeedCtx := th.Context.WithSession(intSeedSession)
+
 	// originalInline is the inline_actions value we expect the bot post to
 	// keep after non-integration edits.
 	originalInline := buildInlineActionsProp(
@@ -2185,7 +2190,7 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 				model.PostPropsInlineActions: originalInline,
 			},
 		}
-		created, _, cErr := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 		require.Nil(t, cErr)
 		require.NotNil(t, created.GetProp(model.PostPropsInlineActions))
 
@@ -2222,7 +2227,7 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
 		}
-		created, _, cErr := th.App.CreatePostAsUser(th.Context, plainBotPost, "", true)
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, plainBotPost, "", true)
 		require.Nil(t, cErr)
 		require.Nil(t, created.GetProp(model.PostPropsInlineActions))
 
@@ -2239,7 +2244,11 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 		assert.Nil(t, updated.GetProp(model.PostPropsInlineActions), "non-integration update must not introduce inline_actions")
 	})
 
-	t.Run("integration session can modify inline_actions", func(t *testing.T) {
+	t.Run("integration session alone cannot modify inline_actions", func(t *testing.T) {
+		// Even with an integration session (PAT / OAuth / bot-token), the
+		// UpdatePost path requires AllowInlineActionsUpdate to modify
+		// inline_actions. A PAT-holding user could otherwise inject
+		// inline_actions on any post they can edit.
 		botPost := &model.Post{
 			Message:       "bot post for integration edit",
 			ChannelId:     th.BasicChannel.Id,
@@ -2249,11 +2258,9 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 				model.PostPropsInlineActions: originalInline,
 			},
 		}
-		created, _, cErr := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 		require.Nil(t, cErr)
 
-		// IsOAuth=true makes Session.IsIntegration() return true without
-		// needing a full bot or user-access-token session.
 		intSession := &model.Session{UserId: th.BasicUser.Id, IsOAuth: true}
 		intCtx := th.Context.WithSession(intSession)
 		require.True(t, intCtx.Session().IsIntegration())
@@ -2269,10 +2276,11 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 		updated, _, uErr := th.App.UpdatePost(intCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, uErr)
 
-		assert.Nil(t, updated.GetInlineAction("keep"), "original action should be overwritten by integration edit")
-		integration := updated.GetInlineAction("replaced")
-		require.NotNil(t, integration)
-		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/new", integration.URL)
+		// The attacker's "replaced" entry must not land; the original stays.
+		assert.Nil(t, updated.GetInlineAction("replaced"), "integration session alone must not overwrite inline_actions")
+		keep := updated.GetInlineAction("keep")
+		require.NotNil(t, keep, "original inline action must be preserved")
+		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", keep.URL)
 	})
 
 	t.Run("AllowInlineActionsUpdate option accepts new inline_actions", func(t *testing.T) {
@@ -2285,7 +2293,7 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 				model.PostPropsInlineActions: originalInline,
 			},
 		}
-		created, _, cErr := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 		require.Nil(t, cErr)
 
 		newInline := buildInlineActionsProp(
@@ -2356,6 +2364,7 @@ func TestDoPostActionInlineContextMerged(t *testing.T) {
 	})
 
 	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
 
 	// Capture the upstream integration request.
 	var capturedReq model.PostActionIntegrationRequest
@@ -2382,7 +2391,7 @@ func TestDoPostActionInlineContextMerged(t *testing.T) {
 			model.PostPropsInlineActions: inlineActions,
 		},
 	}
-	created, _, err := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 	require.NotNil(t, created.GetProp(model.PostPropsInlineActions))
 
@@ -2410,6 +2419,7 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	})
 
 	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -2428,7 +2438,7 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 			model.PostPropsInlineActions: inlineActions,
 		},
 	}
-	created, _, err := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 
 	// First click: carries one set of inline_context values.
@@ -2536,6 +2546,7 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 	})
 
 	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
 
 	// Plugin returns an update where inline_actions contains an entry with an
 	// empty URL — invalid and should be dropped with a warning, while the
@@ -2586,7 +2597,7 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 			model.PostPropsInlineActions: originalInline,
 		},
 	}
-	created, _, err := th.App.CreatePostAsUser(th.Context, botPost, "", true)
+	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 	attachments, ok := created.GetProp(model.PostPropsAttachments).([]*model.MessageAttachment)
 	require.True(t, ok)

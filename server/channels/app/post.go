@@ -885,10 +885,14 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
-		// inline_actions can be modified only by integration sessions or by trusted
-		// paths that have pre-validated the new value (AllowInlineActionsUpdate).
-		// All other callers keep whatever inline_actions the original post had.
-		if !rctx.Session().IsIntegration() && !updatePostOptions.AllowInlineActionsUpdate {
+		// inline_actions can only be modified by trusted paths that have
+		// pre-validated the new value (AllowInlineActionsUpdate). Session
+		// type is intentionally not a sufficient signal: a PAT/OAuth session
+		// from a regular user would otherwise bypass the freeze and inject
+		// inline_actions on edit, since from_bot on the original post is
+		// user-forgeable. All other callers keep whatever inline_actions
+		// the original post had (or none).
+		if !updatePostOptions.AllowInlineActionsUpdate {
 			if oldVal, ok := oldPost.GetProps()[model.PostPropsInlineActions]; ok {
 				newPost.AddProp(model.PostPropsInlineActions, oldVal)
 			} else {
