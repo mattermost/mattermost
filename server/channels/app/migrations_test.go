@@ -89,9 +89,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	clearCPABackfillMarker(t, th)
 
 	// fieldA exercises the "display_name present as empty string in JSONB" case — the true
-	// idempotency boundary. Phase 1's ToPropertyField always writes the key into the underlying
-	// StringInterface map, so a Phase-1-but-pre-Phase-2 field is stored with an explicit empty
-	// value, not a missing key.
+	// idempotency boundary. 
 	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: "department",
 		Type: model.PropertyFieldTypeText,
@@ -178,14 +176,6 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 		"second run must not re-write the field row")
 }
 
-// TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField is the regression
-// test for the access-control issue surfaced in PR review: a CPA field with
-// attrs["protected"]=true and access_mode="source_only" (e.g. owned by a UAS
-// plugin) must still be backfilled by the system migration. The migration
-// runs without a caller ID in the context, so any path that goes through
-// the normal access-control layer would reject the write because the system
-// is not the source plugin. We assert here that the backfill succeeds and
-// the field's display_name is updated in the database.
 func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
 	th := Setup(t)
 
