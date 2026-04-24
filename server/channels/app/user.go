@@ -597,7 +597,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 		case errors.As(err, &invErr):
 			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusBadRequest).Wrap(err)
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("GetUserByAuth", MissingAuthAccountError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetUserByAuth", "app.user.get_by_auth.other.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

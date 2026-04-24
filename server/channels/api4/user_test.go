@@ -1509,18 +1509,20 @@ func TestGetUserByAuthData(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
-			ruser, _, getErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
+			ruser, resp, getErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
 			require.NoError(t, getErr)
 			require.Equal(t, user.Id, ruser.Id)
 			require.NotNil(t, ruser.AuthData)
 			require.Equal(t, authID, *ruser.AuthData)
 			require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
+			ruser, resp, _ = client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, resp.Etag)
+			CheckEtag(t, ruser, resp)
 		})
 
-		t.Run("not found returns error response", func(t *testing.T) {
+		t.Run("not found returns not found", func(t *testing.T) {
 			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, "nope-"+model.NewId(), "")
 			require.Error(t, notFoundErr)
-			CheckInternalErrorStatus(t, resp)
+			CheckNotFoundStatus(t, resp)
 		})
 	})
 

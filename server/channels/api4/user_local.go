@@ -429,6 +429,15 @@ func localGetUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("localGetUserByAuth", model.AuditStatusFail)
+	if c.Params.AuthService != "" {
+		model.AddEventParameterToAuditRec(auditRec, "auth_service", c.Params.AuthService)
+	}
+	if c.Params.AuthData != "" {
+		model.AddEventParameterToAuditRec(auditRec, "auth_data_hash", hashAuthDataForAudit(c.Params.AuthData))
+	}
+	defer c.LogAuditRec(auditRec)
+
 	if c.Params.AuthService == "" {
 		c.SetInvalidURLParam("auth_service")
 		return
@@ -444,11 +453,17 @@ func localGetUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	authData := c.Params.AuthData
 	user, err := c.App.GetUserByAuth(&authData, c.Params.AuthService)
 	if err != nil {
+		auditRec.AddMeta("outcome", "lookup_failed")
+		if err.Id != "" {
+			auditRec.AddMeta("app_error_id", err.Id)
+		}
 		c.Err = err
 		return
 	}
 
 	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
+	auditRec.AddMeta("user_id", user.Id)
+	auditRec.Success()
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
