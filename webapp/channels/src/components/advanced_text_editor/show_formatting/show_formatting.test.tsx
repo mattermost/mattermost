@@ -7,10 +7,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ShowFormatting from './show_formatting';
 
-jest.mock('@mattermost/shared/components/tooltip', () => ({
-    WithTooltip: ({children}: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
 describe('ShowFormatting Component', () => {
     it('should render correctly with default props', () => {
         renderWithContext(

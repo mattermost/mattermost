@@ -7,12 +7,6 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import DraftActions from './draft_actions';
 
-jest.mock('@mattermost/shared/components/tooltip', () => ({
-    WithTooltip: ({children}: {children: React.ReactNode}) => (
-        <div data-testid='with-tooltip'>{children}</div>
-    ),
-}));
-
 describe('components/drafts/draft_actions', () => {
     const baseProps = {
         displayName: '',

@@ -7,12 +7,6 @@ import {render} from 'tests/react_testing_utils';
 
 import Action from './action';
 
-jest.mock('@mattermost/shared/components/tooltip', () => ({
-    WithTooltip: ({children}: {children: React.ReactNode}) => (
-        <div data-testid='with-tooltip'>{children}</div>
-    ),
-}));
-
 describe('components/drafts/draft_actions/action', () => {
     const baseProps = {
         icon: 'some-icon',
