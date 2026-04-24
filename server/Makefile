@@ -117,6 +117,7 @@ GO ?= go
 
 ifeq ($(FIPS_ENABLED),true)
 	BUILD_TAGS += requirefips
+	MMCTL_BUILD_TAGS += requirefips
 endif
 
 DELVE ?= dlv
