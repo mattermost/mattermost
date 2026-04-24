@@ -29,9 +29,11 @@ export enum OperatorLabel {
     ENDS_WITH = 'ends with',
     CONTAINS = 'contains',
     IN = 'in',
+    HAS_ANY_OF = 'has any of',
+    HAS_ALL_OF = 'has all of',
 }
 
-// Map from CEL operator to UI label
+// Map from visual AST operator to UI label
 export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.EQUALS]: OperatorLabel.IS,
     [CELOperator.NOT_EQUALS]: OperatorLabel.IS_NOT,
@@ -39,6 +41,8 @@ export const OPERATOR_LABELS: Record<string, string> = {
     [CELOperator.ENDS_WITH]: OperatorLabel.ENDS_WITH,
     [CELOperator.CONTAINS]: OperatorLabel.CONTAINS,
     [CELOperator.IN]: OperatorLabel.IN,
+    hasAnyOf: OperatorLabel.HAS_ANY_OF,
+    hasAllOf: OperatorLabel.HAS_ALL_OF,
 };
 
 type OperatorType = 'comparison' | 'method' | 'list';
@@ -51,7 +55,50 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
     [OperatorLabel.ENDS_WITH]: {type: 'method', celOp: CELOperator.ENDS_WITH},
     [OperatorLabel.CONTAINS]: {type: 'method', celOp: CELOperator.CONTAINS},
     [OperatorLabel.IN]: {type: 'list', celOp: CELOperator.IN},
+    [OperatorLabel.HAS_ANY_OF]: {type: 'list', celOp: CELOperator.IN},
+    [OperatorLabel.HAS_ALL_OF]: {type: 'list', celOp: CELOperator.IN},
 };
+
+export function isMultiValueOperator(op: string): boolean {
+    return op === OperatorLabel.IN || op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+export function isMultiselectOperator(op: string): boolean {
+    return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
+}
+
+export function isSimpleCondition(s: string): boolean {
+    const trimmed = s.trim();
+    return Boolean(
+        trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
+        trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
+        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
+        trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
+    );
+}
+
+export function isMultiselectOrGroup(s: string): boolean {
+    const trimmed = s.trim();
+    if (!trimmed.startsWith('(') || !trimmed.endsWith(')')) {
+        return false;
+    }
+    const inner = trimmed.slice(1, -1);
+    return inner.split('||').every((part) => {
+        const p = part.trim();
+        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
+    });
+}
+
+export function isSimpleExpression(expr: string): boolean {
+    if (!expr) {
+        return true;
+    }
+    return expr.split('&&').every((condition) => {
+        return isSimpleCondition(condition) || isMultiselectOrGroup(condition);
+    });
+}
 
 // Checks if there are any usable attributes for ABAC policies.
 // An attribute is usable if:

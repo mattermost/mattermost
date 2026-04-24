@@ -92,6 +92,15 @@
             }
         }
 
+        &.current--user {
+            &.other--root,
+            &.post--root {
+                .post__header-set-custom-status {
+                    display: none;
+                }
+            }
+        }
+
         &.post--comment {
             .post__body {
                 border-left: none;
