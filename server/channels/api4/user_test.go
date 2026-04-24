@@ -1492,6 +1492,8 @@ func TestGetUserByAuthData(t *testing.T) {
 	th := Setup(t)
 
 	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	regularUser := th.CreateUser(t)
+	th.LinkUserToTeam(t, regularUser, team)
 	user := th.CreateUser(t)
 	th.LinkUserToTeam(t, user, team)
 	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
@@ -1523,7 +1525,9 @@ func TestGetUserByAuthData(t *testing.T) {
 	})
 
 	t.Run("rejects non-system admin", func(t *testing.T) {
-		_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
+		// `user` is converted to SAML below and can no longer use password login; use
+		// a separate team member to assert the endpoint requires a system admin.
+		_, _, err = th.Client.Login(context.Background(), regularUser.Email, regularUser.Password)
 		require.NoError(t, err)
 		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, model.UserAuthServiceSaml, "")
 		require.Error(t, err)
