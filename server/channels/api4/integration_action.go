@@ -39,7 +39,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ctxErr := model.ValidateInlineContext(actionRequest.InlineContext); ctxErr != nil {
-		c.Err = model.NewAppError("DoPostAction", "api.post.do_action.inline_context.invalid", nil, "", http.StatusBadRequest).Wrap(ctxErr)
+		c.Err = model.NewAppError("DoPostAction", "api.post.do_action.inline_context.app_error", nil, "", http.StatusBadRequest).Wrap(ctxErr)
 		return
 	}
 

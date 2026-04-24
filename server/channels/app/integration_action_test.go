@@ -2069,6 +2069,12 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
+	// Bot author AND integration session are both required to preserve
+	// inline_actions. IsOAuth=true makes Session.IsIntegration() return true
+	// without needing a full bot-token session.
+	intSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
+	intCtx := th.Context.WithSession(intSession)
+
 	post := &model.Post{
 		Message:       "hello from a bot",
 		ChannelId:     th.BasicChannel.Id,
@@ -2083,9 +2089,9 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 		},
 	}
 
-	created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
+	created, _, err := th.App.CreatePostAsUser(intCtx, post, "", true)
 	require.Nil(t, err)
-	require.NotNil(t, created.GetProp(model.PostPropsInlineActions), "bot post should preserve inline_actions")
+	require.NotNil(t, created.GetProp(model.PostPropsInlineActions), "bot post via integration session should preserve inline_actions")
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
@@ -2095,6 +2101,60 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 	integration := stored.GetInlineAction("actiontwo")
 	require.NotNil(t, integration)
 	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/doit", integration.URL)
+}
+
+// TestInlineActionsStrippedWhenOnlyOneSignal verifies that neither signal
+// alone (bot author with non-integration session, or integration session with
+// non-bot author) is sufficient to preserve inline_actions. Both must hold.
+func TestInlineActionsStrippedWhenOnlyOneSignal(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	botUser := setupBotInChannel(t, th)
+
+	inline := buildInlineActionsProp(
+		"mx",
+		"http://127.0.0.1/plugins/myplugin/mx",
+		nil,
+	)
+
+	t.Run("bot author via non-integration session is stripped", func(t *testing.T) {
+		// th.Context carries th.BasicUser's regular (non-integration) session.
+		post := &model.Post{
+			Message:       "hello",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        botUser.Id,
+			Props:         model.StringInterface{model.PostPropsInlineActions: inline},
+		}
+		created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.Nil(t, err)
+		assert.Nil(t, created.GetProp(model.PostPropsInlineActions),
+			"bot-authored post via non-integration session must strip inline_actions")
+	})
+
+	t.Run("non-bot author via integration session is stripped", func(t *testing.T) {
+		// PAT/OAuth session from a regular user: IsIntegration()==true but
+		// the post's author (BasicUser) is not a bot.
+		intSession := &model.Session{UserId: th.BasicUser.Id, IsOAuth: true}
+		intCtx := th.Context.WithSession(intSession)
+
+		post := &model.Post{
+			Message:       "hello",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props:         model.StringInterface{model.PostPropsInlineActions: inline},
+		}
+		created, _, err := th.App.CreatePostAsUser(intCtx, post, "", true)
+		require.Nil(t, err)
+		assert.Nil(t, created.GetProp(model.PostPropsInlineActions),
+			"non-bot post via integration session must strip inline_actions")
+	})
 }
 
 func TestUpdatePostInlineActionsGuard(t *testing.T) {
@@ -2543,6 +2603,10 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 	assert.Equal(t, "updated via plugin", stored.Message)
 	// The broken inline action from the plugin response must never be stored.
 	assert.Nil(t, stored.GetInlineAction("broken"), "invalid inline action from plugin response must not be persisted")
+	// The original valid inline_actions must survive — an invalid plugin
+	// response must never wipe a post's existing inline buttons.
+	require.NotNil(t, stored.GetInlineAction("orig"), "original valid inline action must be preserved when plugin response is invalid")
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/orig", stored.GetInlineAction("orig").URL)
 }
 
 // TestPostActionRetainsFromBotAndFromPlugin verifies that from_bot and

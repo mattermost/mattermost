@@ -255,13 +255,17 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
-	// Strip inline_actions from non-integration posts.
-	// Only trust user.IsBot (verified from DB) and session.IsIntegration() for origin.
-	// Do NOT trust from_webhook/from_plugin props here — they can be forged by
-	// regular users when hardened mode is off. Webhook and plugin posts set
-	// inline_actions server-side before reaching CreatePost, so they are unaffected.
+	// Strip inline_actions unless BOTH the post author is a bot (DB-verified)
+	// AND the session is an integration (bot token / PAT / OAuth app). Either
+	// signal alone is insufficient: a regular user with a PAT could otherwise
+	// craft a post that phishes other channel members' identity to an
+	// attacker-controlled URL on click, and a non-integration admin session
+	// could post-as-bot with the same effect. Do NOT trust from_webhook /
+	// from_plugin props here — they can be forged by regular users when
+	// hardened mode is off. Plugin posts via PluginAPI.CreatePost bypass
+	// CreatePostAsUser entirely and are unaffected.
 	if post.GetProp(model.PostPropsInlineActions) != nil {
-		if !user.IsBot && !rctx.Session().IsIntegration() {
+		if !user.IsBot || !rctx.Session().IsIntegration() {
 			post.DelProp(model.PostPropsInlineActions)
 		}
 	}

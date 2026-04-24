@@ -45,6 +45,37 @@ describe('link (mmaction://)', () => {
         expect(result).toContain('class="inline-action-button-placeholder"');
     });
 
+    test('mixed-case actionId is preserved (URL.hostname would lowercase it)', () => {
+        const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
+
+        const result = renderer.link('mmaction://MxPlan42?tail=214', '', 'Click');
+
+        // The server action ID regex allows [A-Za-z0-9]+; losing case would
+        // cause lookups to 404 when inline_actions keys are mixed-case.
+        expect(result).toContain('data-inline-action-id="MxPlan42"');
+    });
+
+    test('opaque mmaction: URI (no //) returns plain text', () => {
+        const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
+
+        // getScheme() accepts "mmaction:" without "//". Without an explicit
+        // guard, slicing the authority would produce a silently-wrong action
+        // ID. The renderer must fall through to plain text for this shape.
+        const result = renderer.link('mmaction:MxPlan42', '', 'Click');
+
+        expect(result).toBe('Click');
+        expect(result).not.toContain('inline-action-button-placeholder');
+    });
+
+    test('path segments after authority are dropped from actionId', () => {
+        const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
+
+        const result = renderer.link('mmaction://mx/extra/path?a=1', '', 'Click');
+
+        expect(result).toContain('data-inline-action-id="mx"');
+        expect(result).not.toContain('data-inline-action-id="mx/extra/path"');
+    });
+
     test('allowInlineActions=false returns plain text', () => {
         const renderer = new Renderer({}, {allowInlineActions: false, postId: 'p1'});
 

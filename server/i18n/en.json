@@ -2929,7 +2929,7 @@
     "translation": "Action integration error."
   },
   {
-    "id": "api.post.do_action.inline_context.invalid",
+    "id": "api.post.do_action.inline_context.app_error",
     "translation": "Invalid inline context."
   },
   {

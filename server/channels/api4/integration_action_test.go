@@ -601,7 +601,7 @@ func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.invalid")
+		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
 	})
 
 	t.Run("oversized key returns 400", func(t *testing.T) {
@@ -612,7 +612,7 @@ func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.invalid")
+		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
 	})
 
 	t.Run("oversized value returns 400", func(t *testing.T) {
@@ -623,7 +623,7 @@ func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.invalid")
+		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
 	})
 
 	t.Run("small valid context returns 200", func(t *testing.T) {

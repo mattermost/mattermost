@@ -154,12 +154,22 @@ export default class Renderer extends marked.Renderer {
             if (!postId) {
                 return text;
             }
+            // getScheme() matches scheme:rest without requiring "//"; an
+            // opaque form like "mmaction:MxPlan42" would otherwise mis-slice
+            // below and produce a silently wrong action ID.
+            if (!href.startsWith('mmaction://')) {
+                return text;
+            }
             try {
-                const mmUrl = new URL(href);
-                const actionId = mmUrl.hostname;
+                // new URL().hostname lowercases the authority per WHATWG, but
+                // the server's action ID regex allows [A-Za-z0-9]+ — so parse
+                // the ID out of the raw href to preserve mixed case.
+                const withoutScheme = href.slice('mmaction://'.length);
+                const actionId = withoutScheme.split(/[/?#]/, 1)[0];
                 if (!actionId) {
                     return text;
                 }
+                const mmUrl = new URL(href);
                 const params = mmUrl.search ? mmUrl.search.substring(1) : '';
                 if (params.length > MAX_INLINE_ACTION_PARAMS_LENGTH) {
                     return text;

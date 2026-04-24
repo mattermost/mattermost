@@ -303,9 +303,11 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		// Validate inline_actions on update responses: only allow if original post
-		// had them. Drop with a warning (so integration authors can diagnose)
-		// rather than erroring out, since the rest of the update is still valid.
+		// Validate inline_actions on update responses. Since AllowInlineActionsUpdate
+		// bypasses the non-integration guard in UpdatePost, and inline_actions are
+		// not in PostActionRetainPropKeys, a bad response would otherwise permanently
+		// replace the post's valid inline_actions. Keep the original value (if any)
+		// and log a warning so integration authors can diagnose.
 		if response.Update.GetProp(model.PostPropsInlineActions) != nil {
 			if originalProps[model.PostPropsInlineActions] == nil {
 				rctx.Logger().Warn("Dropping inline_actions from plugin update response: original post had none",
@@ -314,12 +316,12 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 				)
 				response.Update.DelProp(model.PostPropsInlineActions)
 			} else if err := model.ValidateInlineActions(response.Update); err != nil {
-				rctx.Logger().Warn("Dropping invalid inline_actions from plugin update response",
+				rctx.Logger().Warn("Restoring original inline_actions: plugin update response was invalid",
 					mlog.String("post_id", postID),
 					mlog.String("url", upstreamURL),
 					mlog.Err(err),
 				)
-				response.Update.DelProp(model.PostPropsInlineActions)
+				response.Update.AddProp(model.PostPropsInlineActions, originalProps[model.PostPropsInlineActions])
 			}
 		}
 
