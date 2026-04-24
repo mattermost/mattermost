@@ -4,17 +4,27 @@
 
 ### Overview
 
-This is a **dual-repo** Mattermost enterprise development environment:
+This is a **dual-repo capable** Mattermost development environment:
 
 | Repository | Location | Purpose |
 |------------|----------|---------|
 | `mattermost/mattermost` | `/workspace` | Primary monorepo (Go server + React webapp) |
-| `mattermost/enterprise` | `$HOME/enterprise` | Private enterprise code (Go, linked via `go.work`) |
-| `mattermost/mattermost-plugin-agents` | `$HOME/mattermost-plugin-agents` | AI plugin for validation/testing |
+| `mattermost/enterprise` (optional) | `$HOME/enterprise` | Private enterprise code (Go, linked via `go.work`) |
+| `mattermost/mattermost-plugin-agents` (optional) | `$HOME/mattermost-plugin-agents` | AI plugin for validation/testing |
 
 PostgreSQL 14 is the only required external dependency, run via Docker Compose.
 
-The update script handles: git auth, repo cloning, npm install, Go workspace setup, config.override.mk, and the client symlink. See below for what remains manual.
+The startup update script should be treated as best-effort dependency refresh only. Do not assume it already ran or succeeded; agents should still verify local prerequisites before running services.
+
+### Bootstrap checklist (run this first in every fresh cloud session)
+
+```bash
+source "$HOME/.nvm/nvm.sh"
+nvm use 24.11
+cd /workspace/webapp && npm install
+```
+
+Why: snapshots may not always include a valid `webapp/node_modules` state, and the webapp watcher often fails or hangs if dependencies are stale.
 
 ### Localization/i18n
 
@@ -22,10 +32,29 @@ When editing translation strings, changes must ONLY be made to the relevant en.j
 
 ### Starting services
 
-After the update script has run:
+1. **Ensure Docker daemon is reachable as current user.**
 
-1. **Start Docker daemon** (if not already running): `sudo dockerd &>/tmp/dockerd.log &` — wait a few seconds, verify with `docker info`.
-2. **Start server + webapp together:**
+   First check:
+   ```bash
+   docker ps
+   ```
+   If this fails with `Cannot connect to the Docker daemon`:
+   ```bash
+   sudo service docker start
+   ```
+   If this fails with `permission denied while trying to connect to the Docker daemon socket`:
+   ```bash
+   sudo chmod 666 /var/run/docker.sock
+   ```
+   (Cloud VMs can restart Docker with socket permissions reset; this is a pragmatic workaround for ephemeral agents.)
+
+2. **Start Team Edition server + webapp (default path):**
+   ```bash
+   cd /workspace/server && make run
+   ```
+   This starts dependency containers, runs the server on `:8065`, and starts webpack.
+
+3. **Start Enterprise server + webapp (only when a compatible private enterprise checkout exists):**
    ```bash
    cd /workspace/server && \
      MM_LICENSE="$TEST_LICENSE" \
@@ -34,14 +63,46 @@ After the update script has run:
      MM_SERVICESETTINGS_SITEURL=http://localhost:8065 \
      make BUILD_ENTERPRISE_DIR="$HOME/enterprise" run
    ```
-   This single command starts Docker (postgres), builds mmctl, sets up the `go.work` and client symlink, compiles the Go server with enterprise tags, runs it in the background, then starts the webpack watcher for the webapp. The server listens on `:8065`.
-3. **Restart server after code changes:**
+   Use this path only if `$HOME/enterprise` is the correct private repo/branch for this server revision.
+
+4. **Optional split-mode startup (recommended when `make run` web watcher appears stuck):**
+   - In one terminal:
+     ```bash
+     cd /workspace/server && make run-server
+     ```
+   - In a second terminal:
+     ```bash
+     source "$HOME/.nvm/nvm.sh" && nvm use 24.11
+     cd /workspace/webapp/channels && npm run dev-server
+     ```
+
+5. **Restart server after code changes (team):**
+   ```bash
+   cd /workspace/server && make restart-server
+   ```
+
+6. **Restart server after code changes (enterprise):**
    ```bash
    cd /workspace/server && \
      MM_LICENSE="$TEST_LICENSE" \
      make BUILD_ENTERPRISE_DIR="$HOME/enterprise" restart-server
    ```
-   This stops the running server and re-runs it with enterprise. Webapp changes are picked up by webpack automatically (browser refresh needed).
+   Webapp changes are picked up by webpack automatically (browser refresh needed).
+
+### Environment verification checklist
+
+After startup, verify all three checks:
+
+```bash
+curl -sS http://localhost:8065/api/v4/system/ping
+curl -sSI http://localhost:9005
+docker ps --format 'table {{.Names}}\t{{.Status}}'
+```
+
+Expected:
+- ping returns JSON containing `"status":"OK"`;
+- port `9005` returns `HTTP/1.1 200 OK`;
+- dependency containers (postgres/redis/minio/etc.) are running.
 
 The `TEST_LICENSE` secret provides a Mattermost Enterprise Advanced license. When set via `MM_LICENSE`, the server logs `"License key from ENV is valid, unlocking enterprise features."` and the "TEAM EDITION" badge disappears from the UI.
 
@@ -102,12 +163,12 @@ Supported service types: `openai`, `openaicompatible`, `azure`, `anthropic`, `as
 
 ### Key gotchas
 
-- **"TEAM EDITION" means no license, not no enterprise code.** The webapp shows "TEAM EDITION" when `license.IsLicensed === 'false'`, regardless of `BuildEnterpriseReady`. Fix: pass `MM_LICENSE="$TEST_LICENSE"` when starting the server. To verify enterprise code is loaded independently: check server logs for `"Enterprise Build", enterprise_build: true` or the API at `/api/v4/config/client?format=old` for `BuildEnterpriseReady: true`.
+- **"TEAM EDITION" means no license, not necessarily no enterprise code.** The webapp shows "TEAM EDITION" when `license.IsLicensed === 'false'`, regardless of `BuildEnterpriseReady`. Fix: pass `MM_LICENSE="$TEST_LICENSE"` when starting the server. To verify enterprise code is loaded independently: check server logs for `"Enterprise Build", enterprise_build: true` or the API at `/api/v4/config/client?format=old` for `BuildEnterpriseReady: true`.
 - The server auto-generates `server/config/config.json` on first run; default SQL points to `postgres://mmuser:mostest@localhost/mattermost_test` matching Docker Compose.
 - The first user created via `/api/v4/users` gets `system_admin` role automatically.
 - SMTP errors and plugin directory warnings on startup are expected in dev — non-blocking.
 - License errors in logs ("Failed to read license set in environment") are normal — enterprise features requiring a license won't be available but the server runs fine.
-- The enterprise repo must be on a compatible branch with the main repo.
+- The enterprise repo must be on a compatible branch with the main repo, and must contain the expected module metadata for `go.work` linkage.
 - The VM's global gitconfig may have `url.*.insteadOf` rules embedding the default Cursor agent token, which only has access to `mattermost/mattermost`. The update script cleans these and sets up `gh auth` with `CURSOR_GH_TOKEN` instead.
 
 ### Lint, test, and build
