@@ -1445,13 +1445,20 @@
             z-index: 100;
             top: 0;
             right: 0;
+            max-width: 80%;
             padding: 5px 7px;
             background: functions.alpha-color(variables.$black, 0.7);
+            border-radius: 0 0 0 4px;
             color: variables.$white;
             font-size: 0.9em;
 
             a {
                 color: variables.$white;
+            }
+
+            .post-failed-reason {
+                color: rgba(variables.$white, 0.85);
+                font-size: 0.95em;
             }
         }
     }

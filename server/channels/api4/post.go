@@ -1227,6 +1227,14 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 		return false
 	}
 
+	if !c.App.HasPermissionToAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, originalPost.ChannelId, model.AccessControlPolicyActionEditPost) {
+		appErr := model.NewAppError("postPatchChecks", "api.post.edit_post.abac_denied.app_error", nil, "", http.StatusForbidden)
+		appErr.Message = "You do not have the required access to edit posts in this channel."
+		appErr.SkipTranslation = true
+		c.Err = appErr
+		return false
+	}
+
 	// Users who can't create posts in a channel shouldn't be able to edit them either.
 	userCreatePostPermissionCheckWithContext(c, originalPost.ChannelId)
 	if c.Err != nil {
@@ -1555,7 +1563,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = filePostErr
 			return
 		}
-		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !c.App.HasPermissionToAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
 			return
 		}

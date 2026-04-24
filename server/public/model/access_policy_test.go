@@ -448,6 +448,46 @@ func TestAccessPolicyVersionV0_3(t *testing.T) {
 		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
 	})
 
+	t.Run("valid permission policy with post actions", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypePermission,
+			Name:     "Post Actions",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{"system_user"},
+			Rules: []AccessControlPolicyRule{{
+				Actions: []string{
+					AccessControlPolicyActionEditPost,
+					AccessControlPolicyActionCreateBurnOnRead,
+				},
+				Expression: "user.properties.dept == \"eng\"",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
+	t.Run("valid parent with all actions", func(t *testing.T) {
+		policy := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "All Actions",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Rules: []AccessControlPolicyRule{{
+				Actions: []string{
+					AccessControlPolicyActionMembership,
+					AccessControlPolicyActionUploadFileAttachment,
+					AccessControlPolicyActionDownloadFileAttachment,
+					AccessControlPolicyActionEditPost,
+					AccessControlPolicyActionCreateBurnOnRead,
+				},
+				Expression: "true",
+			}},
+		}
+		require.Nil(t, policy.accessPolicyVersionV0_3())
+	})
+
 	t.Run("unrecognized action", func(t *testing.T) {
 		policy := &AccessControlPolicy{
 			ID:       NewId(),

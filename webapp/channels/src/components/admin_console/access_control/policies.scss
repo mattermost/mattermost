@@ -49,14 +49,20 @@
                 }
 
                 .policy-name {
+                    overflow: hidden;
                     width: 100%;
                     padding: 10px 0;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
 
                 .policy-resources {
+                    overflow: hidden;
                     width: 100%;
                     padding: 10px 0;
                     text-align: left;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
 
                 .policy-actions {

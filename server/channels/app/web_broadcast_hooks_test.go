@@ -510,7 +510,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
 		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
-		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToAction", mock.Anything, userID, mock.AnythingOfType("string"), refChannelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
 		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
 		wc := &platform.WebConn{
@@ -523,7 +523,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		return wc
 	}
 
-	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToFileAction.
+	// makeWebConnNoFileCheck builds a webConn whose mock does NOT expect HasPermissionToAction.
 	makeWebConnNoFileCheck := func(t *testing.T) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
@@ -642,7 +642,7 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 	t.Run("no file stripping when embed has no files", func(t *testing.T) {
 		postJSON := makeOuterPostJSON(t)
 		msg := makeMessage(postJSON)
-		// Use webConn that does NOT expect HasPermissionToFileAction to be called.
+		// Use webConn that does NOT expect HasPermissionToAction to be called.
 		wc := makeWebConnNoFileCheck(t)
 
 		previewPost := makeRefPost(model.StringArray{}, nil)
@@ -742,7 +742,7 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 	makeWebConn := func(t *testing.T, userID string, allowed bool) *platform.WebConn {
 		t.Helper()
 		mockSuite := &platform_mocks.SuiteIFace{}
-		mockSuite.On("HasPermissionToFileAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
+		mockSuite.On("HasPermissionToAction", mock.Anything, userID, mock.AnythingOfType("string"), channelID, model.AccessControlPolicyActionDownloadFileAttachment).Return(allowed)
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},

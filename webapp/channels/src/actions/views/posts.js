@@ -24,9 +24,12 @@ export function editPost(post) {
     return async (dispatch) => {
         const result = await dispatch(PostActions.editPost(post));
 
-        // Send to error bar if it's an edit post error about time limit.
-        if (result.error && result.error.server_error_id === 'api.post.update_post.permissions_time_limit.app_error') {
-            dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, true));
+        if (result.error) {
+            const errorId = result.error.server_error_id;
+            if (errorId === 'api.post.update_post.permissions_time_limit.app_error' ||
+                errorId === 'api.post.edit_post.abac_denied.app_error') {
+                dispatch(logError({type: AnnouncementBarTypes.ANNOUNCEMENT, message: result.error.message}, true));
+            }
         }
 
         return result;

@@ -169,5 +169,12 @@ func PostBurnOnReadCheckWithApp(where string, a *App, rctx request.CTX, userId, 
 		}
 	}
 
+	if !a.HasPermissionToAction(rctx, userId, "", channelId, model.AccessControlPolicyActionCreateBurnOnRead) {
+		appErr := model.NewAppError(where, "api.post.burn_on_read.abac_denied.app_error", nil, "", http.StatusForbidden)
+		appErr.Message = "You do not have the required access to create burn-on-read posts in this channel."
+		appErr.SkipTranslation = true
+		return appErr
+	}
+
 	return nil
 }

@@ -36,8 +36,16 @@ const FailedPostOptions = ({
         actions.removePost(post);
     }, [actions, post]);
 
+    const failedReason = post.props?.failedReason as string | undefined;
+
     return (
         <span className='pending-post-actions'>
+            {failedReason && (
+                <span className='post-failed-reason'>
+                    {failedReason}
+                    {' — '}
+                </span>
+            )}
             <a
                 className='post-retry'
                 href='#'

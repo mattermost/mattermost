@@ -2825,6 +2825,10 @@
     "translation": "Unable to verify plugin signature."
   },
   {
+    "id": "api.post.burn_on_read.abac_denied.app_error",
+    "translation": "You do not have the required access to create burn-on-read posts in this channel."
+  },
+  {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "You do not have permission to burn this post. You must be a member of the channel."
   },
@@ -2927,6 +2931,10 @@
   {
     "id": "api.post.do_action.action_integration.app_error",
     "translation": "Action integration error."
+  },
+  {
+    "id": "api.post.edit_post.abac_denied.app_error",
+    "translation": "You do not have the required access to edit posts in this channel."
   },
   {
     "id": "api.post.error_get_post_id.pending",

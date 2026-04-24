@@ -301,6 +301,10 @@ export function createPost(
                     id: pendingPostId,
                     failed: true,
                     update_at: Date.now(),
+                    props: {
+                        ...newPost.props,
+                        failedReason: error.message || '',
+                    },
                 };
                 actions = [{type: PostTypes.CREATE_POST_FAILURE, error}];
 

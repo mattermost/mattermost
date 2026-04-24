@@ -208,7 +208,7 @@ func (h *permalinkBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 		stripFiles := true
 		if session != nil {
 			rctxWithSession := rctx.WithSession(session)
-			stripFiles = !webConn.Suite.HasPermissionToFileAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
+			stripFiles = !webConn.Suite.HasPermissionToAction(rctxWithSession, webConn.UserId, session.Roles, permalinkPreviewedPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment)
 		}
 		if stripFiles {
 			postCopy := permalinkPreviewedPost.Post.Clone()
@@ -438,7 +438,7 @@ func (h *abacFilesBroadcastHook) Process(msg *platform.HookedWebSocketEvent, web
 	session := webConn.GetSession()
 	if session != nil {
 		rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
-		if webConn.Suite.HasPermissionToFileAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if webConn.Suite.HasPermissionToAction(rctx, webConn.UserId, session.Roles, channelID, model.AccessControlPolicyActionDownloadFileAttachment) {
 			return nil
 		}
 	}

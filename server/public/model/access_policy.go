@@ -27,6 +27,8 @@ const (
 	AccessControlPolicyActionMembership             = "membership"
 	AccessControlPolicyActionUploadFileAttachment   = "upload_file_attachment"
 	AccessControlPolicyActionDownloadFileAttachment = "download_file_attachment"
+	AccessControlPolicyActionEditPost               = "edit_post"
+	AccessControlPolicyActionCreateBurnOnRead       = "create_burn_on_read"
 
 	AccessControlPolicyScopeTeam = "team"
 )
@@ -35,6 +37,8 @@ var allowedActionsV0_3 = map[string]bool{
 	AccessControlPolicyActionMembership:             true,
 	AccessControlPolicyActionUploadFileAttachment:   true,
 	AccessControlPolicyActionDownloadFileAttachment: true,
+	AccessControlPolicyActionEditPost:               true,
+	AccessControlPolicyActionCreateBurnOnRead:       true,
 }
 
 // AccessControlAttribute represents a user attribute with its name and possible values

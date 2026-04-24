@@ -51,20 +51,56 @@ const permissionMessages = defineMessages({
     downloadDescription: {id: 'admin.permission_policies.permission.download_file.description', defaultMessage: 'Allow users to download files to their device'},
     uploadLabel: {id: 'admin.permission_policies.permission.upload_file.label', defaultMessage: 'Upload Files'},
     uploadDescription: {id: 'admin.permission_policies.permission.upload_file.description', defaultMessage: 'Allow users to upload files while sending a message'},
+    editPostLabel: {id: 'admin.permission_policies.permission.edit_post.label', defaultMessage: 'Edit Posts'},
+    editPostDescription: {id: 'admin.permission_policies.permission.edit_post.description', defaultMessage: 'Allow users to edit their own posts after sending'},
+    createBurnOnReadLabel: {id: 'admin.permission_policies.permission.create_burn_on_read.label', defaultMessage: 'Create Burn-on-Read Posts'},
+    createBurnOnReadDescription: {id: 'admin.permission_policies.permission.create_burn_on_read.description', defaultMessage: 'Allow users to create self-destructing burn-on-read posts'},
+    filePermissionsGroup: {id: 'admin.permission_policies.permission.group.file', defaultMessage: 'File Permissions'},
+    postPermissionsGroup: {id: 'admin.permission_policies.permission.group.post', defaultMessage: 'Post Permissions'},
 });
 
-const AVAILABLE_PERMISSIONS: PermissionDefinition[] = [
+interface PermissionGroup {
+    id: string;
+    label: MessageDescriptor;
+    permissions: PermissionDefinition[];
+}
+
+const PERMISSION_GROUPS: PermissionGroup[] = [
     {
-        value: 'download_file_attachment',
-        label: permissionMessages.downloadLabel,
-        description: permissionMessages.downloadDescription,
+        id: 'file_permissions',
+        label: permissionMessages.filePermissionsGroup,
+        permissions: [
+            {
+                value: 'download_file_attachment',
+                label: permissionMessages.downloadLabel,
+                description: permissionMessages.downloadDescription,
+            },
+            {
+                value: 'upload_file_attachment',
+                label: permissionMessages.uploadLabel,
+                description: permissionMessages.uploadDescription,
+            },
+        ],
     },
     {
-        value: 'upload_file_attachment',
-        label: permissionMessages.uploadLabel,
-        description: permissionMessages.uploadDescription,
+        id: 'post_permissions',
+        label: permissionMessages.postPermissionsGroup,
+        permissions: [
+            {
+                value: 'edit_post',
+                label: permissionMessages.editPostLabel,
+                description: permissionMessages.editPostDescription,
+            },
+            {
+                value: 'create_burn_on_read',
+                label: permissionMessages.createBurnOnReadLabel,
+                description: permissionMessages.createBurnOnReadDescription,
+            },
+        ],
     },
 ];
+
+const AVAILABLE_PERMISSIONS: PermissionDefinition[] = PERMISSION_GROUPS.flatMap((g) => g.permissions);
 
 interface RoleDefinition {
     value: string;
@@ -649,19 +685,35 @@ function PermissionPolicyDetails({
                                                 }),
                                             }}
                                         >
-                                            {availableToAdd.map((perm) => (
-                                                <Menu.Item
-                                                    key={perm.value}
-                                                    id={`pp-add-permission-${perm.value}`}
-                                                    onClick={() => addPermission(perm.value)}
-                                                    labels={
-                                                        <>
-                                                            <span>{formatMessage(perm.label)}</span>
-                                                            <span>{formatMessage(perm.description)}</span>
-                                                        </>
-                                                    }
-                                                />
-                                            ))}
+                                            {PERMISSION_GROUPS.map((group) => {
+                                                const groupPerms = group.permissions.filter(
+                                                    (p) => !selectedPermissions.includes(p.value),
+                                                );
+                                                if (groupPerms.length === 0) {
+                                                    return null;
+                                                }
+                                                return (
+                                                    <React.Fragment key={group.id}>
+                                                        <Menu.Separator/>
+                                                        <div className='pp-permission-group-header'>
+                                                            {formatMessage(group.label)}
+                                                        </div>
+                                                        {groupPerms.map((perm) => (
+                                                            <Menu.Item
+                                                                key={perm.value}
+                                                                id={`pp-add-permission-${perm.value}`}
+                                                                onClick={() => addPermission(perm.value)}
+                                                                labels={
+                                                                    <>
+                                                                        <span>{formatMessage(perm.label)}</span>
+                                                                        <span>{formatMessage(perm.description)}</span>
+                                                                    </>
+                                                                }
+                                                            />
+                                                        ))}
+                                                    </React.Fragment>
+                                                );
+                                            })}
                                         </Menu.Container>
                                     )}
                                 </Card.Body>

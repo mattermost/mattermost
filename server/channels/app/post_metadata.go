@@ -459,7 +459,7 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 	}
 
 	if len(post.Metadata.Files) > 0 {
-		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !a.HasPermissionToAction(rctx, userID, user.Roles, post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			rctx.Logger().Debug("Stripping file attachments from post due to ABAC permission policy",
 				mlog.String("user_id", userID),
 				mlog.String("post_id", post.Id),
@@ -485,7 +485,7 @@ func (a *App) sanitizeFileAttachmentsForUser(rctx request.CTX, post *model.Post,
 		if previewPost.Post.Metadata == nil || len(previewPost.Post.Metadata.Files) == 0 {
 			continue
 		}
-		if !a.HasPermissionToFileAction(rctx, userID, user.Roles, previewPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+		if !a.HasPermissionToAction(rctx, userID, user.Roles, previewPost.Post.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
 			// Clone both the inner Post and the outer PreviewPost before mutating.
 			// embed.Data points into the global link-metadata cache; writing through the
 			// shared *PreviewPost pointer would corrupt it for concurrent requests.
