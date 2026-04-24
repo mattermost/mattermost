@@ -305,8 +305,10 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	found := false
 	for _, row := range expiredRows {
+		// The Token column is never selected by GetExpiredBefore, so no row —
+		// not just the matched expired one — should ever carry the secret.
+		require.Empty(t, row.Token, "GetExpiredBefore must never return the secret Token value")
 		if row.Id == expired.Id {
-			require.Empty(t, row.Token, "expired token secret should not be returned")
 			require.Equal(t, expired.ExpiresAt, row.ExpiresAt)
 			found = true
 		}
@@ -314,6 +316,15 @@ func testUserAccessTokenExpiry(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEqual(t, future.Id, row.Id, "future token must not be returned")
 	}
 	require.True(t, found, "expired token should be present in GetExpiredBefore results")
+
+	// Negative or zero limits short-circuit and return an empty slice without
+	// hitting the DB; verify the contract holds.
+	zeroLimit, err := ss.UserAccessToken().GetExpiredBefore(now, 0)
+	require.NoError(t, err)
+	require.Empty(t, zeroLimit)
+	negativeLimit, err := ss.UserAccessToken().GetExpiredBefore(now, -5)
+	require.NoError(t, err)
+	require.Empty(t, negativeLimit)
 
 	// DeleteByIds on the expired token removes it and its session but leaves
 	// the other two tokens alone.

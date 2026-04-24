@@ -236,8 +236,17 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) (err error) 
 // or equal to the provided cutoff (Unix milliseconds), up to the given limit.
 // The secret Token column is intentionally NOT selected — callers use the
 // returned rows for metadata (audit logging, deletion) only.
+//
+// A non-positive limit returns an empty slice without hitting the DB rather
+// than relying on the int -> uint64 cast (which would otherwise wrap a
+// negative value into an enormous unsigned limit and effectively disable the
+// bound).
 func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error) {
 	tokens := []*model.UserAccessToken{}
+
+	if limit <= 0 {
+		return tokens, nil
+	}
 
 	query := s.getQueryBuilder().
 		Select(
