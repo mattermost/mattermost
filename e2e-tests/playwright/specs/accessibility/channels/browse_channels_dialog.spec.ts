@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {setupDialogOnTownSquare} from './support';
+
 /**
  * @objective Verify accessibility support in Browse Channels Dialog screen
  */
@@ -88,18 +90,7 @@ test(
     'accessibility scan and aria-snapshot of Browse Channels dialog',
     {tag: ['@accessibility', '@browse_channels', '@snapshots']},
     async ({pw, axe}) => {
-        // # Skip test if no license
-        await pw.skipIfNoLicense();
-
-        // # Initialize setup
-        const {team, user} = await pw.initSetup();
-
-        // # Log in as regular user
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {page, channelsPage} = await setupDialogOnTownSquare(pw);
 
         // # Open the Browse Channels modal
         const dialog = await channelsPage.openBrowseChannelsModal();

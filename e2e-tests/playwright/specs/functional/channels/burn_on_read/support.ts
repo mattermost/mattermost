@@ -2,10 +2,11 @@
 // See LICENSE.txt for license information.
 
 import type {Client4} from '@mattermost/client';
+import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import type {ChannelsPage, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const BOR_TAG = '@burn_on_read';
 
@@ -127,4 +128,130 @@ export function parseTimeRemaining(timerText: string): number {
     const minutes = parseInt(parts[0], 10);
     const seconds = parseInt(parts[1], 10);
     return minutes * 60 + seconds;
+}
+
+export type BorDmSetup = BorSetup & {
+    sender: UserProfile;
+    receiver: UserProfile & {password: string};
+};
+
+/**
+ * Setup BoR + create receiver + create DM channel between the setup user (sender) and receiver
+ * @param pw Playwright extended fixture
+ * @param options Configuration options forwarded to setupBorTest
+ * @returns Setup data plus sender/receiver users
+ */
+export async function setupBorDM(
+    pw: PlaywrightExtended,
+    options: {
+        durationSeconds?: number;
+        maxTTLSeconds?: number;
+    } = {},
+): Promise<BorDmSetup> {
+    const setup = await setupBorTest(pw, options);
+    const receiver = await createSecondUser(pw, setup.adminClient, setup.team);
+    await setup.adminClient.createDirectChannel([setup.user.id, receiver.id]);
+    return {...setup, sender: setup.user, receiver};
+}
+
+/**
+ * Create a private channel and ensure the given members are the exact membership
+ * (admin is removed after creation to give precise recipient counts for BoR tests).
+ * @param pw Playwright extended fixture
+ * @param adminClient Admin client
+ * @param team Team to create the channel in
+ * @param memberIds User IDs to add to the channel
+ * @param prefixes Name prefix (for `name`) and display prefix (for `displayName`)
+ * @returns Created channel
+ */
+export async function createPrivateChannelWithMembers(
+    pw: PlaywrightExtended,
+    adminClient: Client4,
+    team: Team,
+    memberIds: string[],
+    prefixes: {name: string; displayName: string},
+): Promise<Channel> {
+    const channelSuffix = Date.now().toString(36);
+    const channel = await adminClient.createChannel(
+        pw.random.channel({
+            teamId: team.id,
+            name: `${prefixes.name}-${channelSuffix}`,
+            displayName: `${prefixes.displayName} ${channelSuffix}`,
+            type: 'P',
+        }),
+    );
+
+    for (const memberId of memberIds) {
+        await adminClient.addToChannel(memberId, channel.id);
+    }
+
+    // Remove admin from channel (auto-added as creator) so channel has exactly the requested members
+    const adminUser = await adminClient.getMe();
+    await adminClient.removeFromChannel(adminUser.id, channel.id);
+
+    return channel;
+}
+
+/**
+ * Login as sender, navigate to the other user's DM, enable BoR toggle, and post a message.
+ * @param pw Playwright extended fixture
+ * @param sender User to login as
+ * @param otherUser User whose DM to open
+ * @param team Team context
+ * @param message Message text to send
+ * @returns The logged-in sender's channels page
+ */
+export async function loginAndPostBorDM(
+    pw: PlaywrightExtended,
+    sender: UserProfile,
+    otherUser: UserProfile,
+    team: Team,
+    message: string,
+): Promise<{channelsPage: ChannelsPage}> {
+    const {channelsPage} = await pw.testBrowser.login(sender);
+    await channelsPage.goto(team.name, `@${otherUser.username}`);
+    await channelsPage.toBeVisible();
+    await channelsPage.centerView.postCreate.toggleBurnOnRead();
+    await channelsPage.postMessage(message);
+    return {channelsPage};
+}
+
+/**
+ * Login as receiver, navigate to the other user's DM, and return the last (BoR) post.
+ * Does not reveal the post.
+ * @param pw Playwright extended fixture
+ * @param receiver User to login as
+ * @param otherUser User whose DM to open
+ * @param team Team context
+ * @returns The logged-in receiver's channels page and the last post
+ */
+export async function loginReceiverOpenDM(
+    pw: PlaywrightExtended,
+    receiver: UserProfile,
+    otherUser: UserProfile,
+    team: Team,
+): Promise<{channelsPage: ChannelsPage; borPost: Awaited<ReturnType<ChannelsPage['getLastPost']>>}> {
+    const {channelsPage} = await pw.testBrowser.login(receiver);
+    await channelsPage.goto(team.name, `@${otherUser.username}`);
+    await channelsPage.toBeVisible();
+    const borPost = await channelsPage.getLastPost();
+    return {channelsPage, borPost};
+}
+
+/**
+ * Reveal a BoR post via the concealed placeholder (clickToReveal + waitForReveal).
+ * @param borPost The post returned by getLastPost
+ */
+export async function revealBorPost(borPost: Awaited<ReturnType<ChannelsPage['getLastPost']>>): Promise<void> {
+    await borPost.concealedPlaceholder.clickToReveal();
+    await borPost.concealedPlaceholder.waitForReveal();
+}
+
+/**
+ * Hover over a post and open its dot (post action) menu.
+ * @param borPost The post returned by getLastPost
+ */
+export async function openPostDotMenu(borPost: Awaited<ReturnType<ChannelsPage['getLastPost']>>): Promise<void> {
+    await borPost.hover();
+    await borPost.postMenu.openDotMenu();
 }

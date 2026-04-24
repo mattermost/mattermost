@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {setupDialogOnTownSquare} from './support';
+
 /**
  * @objective Verify accessibility support in Invite People Flow
  */
@@ -10,18 +12,7 @@ test(
     'MM-T1515 Verify Accessibility Support in Invite People Flow',
     {tag: ['@accessibility', '@invite_people']},
     async ({pw}) => {
-        // # Skip test if no license
-        await pw.skipIfNoLicense();
-
-        // # Initialize setup
-        const {team, adminUser} = await pw.initSetup();
-
-        // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
-
-        // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {page, channelsPage} = await setupDialogOnTownSquare(pw, {asAdmin: true});
 
         // # Open team menu and click Invite people
         await channelsPage.sidebarLeft.teamMenuButton.click();
@@ -63,18 +54,7 @@ test(
     'accessibility scan and aria-snapshot of Invite People dialog',
     {tag: ['@accessibility', '@invite_people', '@snapshots']},
     async ({pw, axe}) => {
-        // # Skip test if no license
-        await pw.skipIfNoLicense();
-
-        // # Initialize setup
-        const {team, user} = await pw.initSetup();
-
-        // # Log in as user
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {page, channelsPage} = await setupDialogOnTownSquare(pw);
 
         // # Open team menu and click Invite people
         await channelsPage.sidebarLeft.teamMenuButton.click();

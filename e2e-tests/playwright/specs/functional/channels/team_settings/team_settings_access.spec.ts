@@ -6,7 +6,9 @@
  * @reference MM-67920
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {loginAndOpenTeamSettings} from './support';
 
 test.describe('Team Settings Modal - Access Tab', () => {
     /**
@@ -16,15 +18,9 @@ test.describe('Team Settings Modal - Access Tab', () => {
     test('MM-67920 Access tab - add and remove allowed domain', async ({pw}) => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
+        // # Navigate to team and open Team Settings Modal
+        const {teamSettings} = await loginAndOpenTeamSettings(pw, adminUser, team.name);
 
         // # Switch to Access tab
         const accessSettings = await teamSettings.openAccessTab();
@@ -75,19 +71,13 @@ test.describe('Team Settings Modal - Access Tab', () => {
     test('MM-67920 Access tab - toggle allow open invite', async ({pw}) => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
 
         // Get original allow_open_invite state
         const originalTeam = await adminClient.getTeam(team.id);
         const originalAllowOpenInvite = originalTeam.allow_open_invite ?? false;
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
+        // # Navigate to team and open Team Settings Modal
+        const {teamSettings} = await loginAndOpenTeamSettings(pw, adminUser, team.name);
 
         // # Switch to Access tab
         const accessSettings = await teamSettings.openAccessTab();
@@ -133,18 +123,12 @@ test.describe('Team Settings Modal - Access Tab', () => {
     test('MM-67920 Access tab - regenerate invite ID', async ({pw}) => {
         // # Set up admin user and login
         const {adminUser, adminClient, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
 
         // Get original invite ID
         const originalInviteId = team.invite_id;
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
+        // # Navigate to team and open Team Settings Modal
+        const {teamSettings} = await loginAndOpenTeamSettings(pw, adminUser, team.name);
 
         // # Switch to Access tab
         const accessSettings = await teamSettings.openAccessTab();

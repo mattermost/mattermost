@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {setupDialogOnTownSquare} from './support';
+
 /**
  * @objective Verify accessibility support in Direct Messages Dialog screen
  */
@@ -86,18 +88,7 @@ test(
     'accessibility scan and aria-snapshot of Direct Messages dialog',
     {tag: ['@accessibility', '@direct_messages', '@snapshots']},
     async ({pw, axe}) => {
-        // # Skip test if no license
-        await pw.skipIfNoLicense();
-
-        // # Initialize setup
-        const {team, user} = await pw.initSetup();
-
-        // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-
-        // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {page} = await setupDialogOnTownSquare(pw);
 
         // # Click on the Write a direct message button to open the Direct Messages dialog
         const writeDirectMessageButton = page.getByRole('button', {name: 'Write a direct message'});

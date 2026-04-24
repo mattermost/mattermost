@@ -1,13 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    enableAutotranslationConfig,
-    hasAutotranslationLicense,
-    expect,
-    test,
-    SystemConsolePage,
-} from '@mattermost/playwright-lib';
+import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+
+import {setupAutotranslationConfig, skipIfNoAutotranslationLicense} from './support';
 
 test(
     'permission exists; Channel Administrators have Manage Channel Auto Translation ON',
@@ -17,11 +13,7 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasAutotranslationLicense(license.SkuShortName),
-            'Skipping test - server does not have Entry or Advanced license',
-        );
+        await skipIfNoAutotranslationLicense(adminClient);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
@@ -44,11 +36,7 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient} = await pw.initSetup();
 
-        const license = await adminClient.getClientLicenseOld();
-        test.skip(
-            !hasAutotranslationLicense(license.SkuShortName),
-            'Skipping test - server does not have Entry or Advanced license',
-        );
+        await skipIfNoAutotranslationLicense(adminClient);
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
@@ -72,21 +60,14 @@ test.describe('autotranslation configuration tests', () => {
         async ({pw}) => {
             const {adminClient, user, team} = await pw.initSetup();
 
-            const license = await adminClient.getClientLicenseOld();
-            test.skip(
-                !hasAutotranslationLicense(license.SkuShortName),
-                'Skipping test - server does not have Entry or Advanced license',
-            );
+            await skipIfNoAutotranslationLicense(adminClient);
 
             // Capture original config for restoration
             const originalConfig = await adminClient.getConfig();
 
             try {
                 // Enable autotranslation
-                await enableAutotranslationConfig(adminClient, {
-                    mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
-                    targetLanguages: ['en', 'es'],
-                });
+                await setupAutotranslationConfig(adminClient);
 
                 const channelName = `autotranslation-perm-${pw.random.id()}`;
                 const created = await adminClient.createChannel({

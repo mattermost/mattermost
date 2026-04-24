@@ -3,6 +3,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {SETTINGS_SIDEBAR_DISABLED_RULES} from './support';
+
 test('Settings sidebar should be keyboard accessible', async ({axe, pw}) => {
     const {user} = await pw.initSetup();
 
@@ -10,13 +12,7 @@ test('Settings sidebar should be keyboard accessible', async ({axe, pw}) => {
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
     // # Initialize Axe
-    const ab = axe.builder(page).disableRules([
-        'color-contrast',
-
-        // Known issue: These fail due to the way we've grouped plugin setting tabs together in the LHS
-        'aria-required-children',
-        'aria-required-parent',
-    ]);
+    const ab = axe.builder(page).disableRules(SETTINGS_SIDEBAR_DISABLED_RULES);
 
     // # Visit default channel page
     await channelsPage.goto();
