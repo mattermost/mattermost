@@ -115,9 +115,9 @@ test.describe('System Console - User Attributes display names', () => {
             // # Navigate to User Attributes and create a new field with a display name
             await sp.goto();
 
-            // * Verify the table exposes both Identifier and Display name columns
-            await expect(sp.container.getByText('Identifier', {exact: true})).toBeVisible();
-            await expect(sp.container.getByText('Display name', {exact: true})).toBeVisible();
+            // * Verify the table exposes both Name and Display Name columns
+            await expect(sp.container.getByText('Name', {exact: true})).toBeVisible();
+            await expect(sp.container.getByText('Display Name', {exact: true})).toBeVisible();
 
             await sp.addAttribute();
             await sp.nameInput(0).fill(identifier);
@@ -208,7 +208,7 @@ test.describe('System Console - User Attributes display names', () => {
             await sp.goto();
             await sp.addAttribute();
 
-            const invalidIdentifiers = ['My Field', 'in', '7department'];
+            const invalidIdentifiers = ['in', 'true', 'for'];
             for (const invalidIdentifier of invalidIdentifiers) {
                 await sp.nameInput(0).fill(invalidIdentifier);
                 await sp.nameInput(0).blur();
@@ -281,8 +281,8 @@ test.describe('System Console - User Attributes display names', () => {
 
             await sp.saveAndWaitForSettled();
 
-            // * Verify renaming the legacy field to another invalid identifier is blocked
-            await legacyNameInput.fill(`Legacy-Field_${uid}`);
+            // * Verify renaming the legacy field to a reserved word is blocked
+            await legacyNameInput.fill('in');
             await legacyNameInput.blur();
             await expect(sp.identifierValidationError()).toHaveText(IDENTIFIER_VALIDATION_MESSAGE);
             await expect(sp.saveButton).toBeDisabled();

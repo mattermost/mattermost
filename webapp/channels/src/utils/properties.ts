@@ -60,6 +60,20 @@ export const CPA_FIELD_NAME_RESERVED_WORDS = new Set<string>([
 /** Max runes for a CPA field name. Mirrors server PropertyFieldNameMaxRunes. */
 export const CPA_FIELD_NAME_MAX_RUNES = 255;
 
+/**
+ * Strips characters that are not valid in a CEL identifier and
+ * prefixes a leading digit with underscore. Unlike slugifyForCEL,
+ * this does NOT collapse/trim underscores — it is designed for
+ * live keystroke filtering where the user controls spacing.
+ */
+export function filterCELIdentifier(input: string): string {
+    let stripped = input.replace(/[^A-Za-z0-9_]/g, '');
+    if (stripped.length > 0 && (/^[0-9]/).test(stripped)) {
+        stripped = '_' + stripped;
+    }
+    return stripped;
+}
+
 export type CPAFieldNameValidationError =
     | {kind: 'invalid_charset'}
     | {kind: 'reserved_word'; word: string}

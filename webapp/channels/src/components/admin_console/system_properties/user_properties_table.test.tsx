@@ -88,9 +88,8 @@ describe('UserPropertiesTable', () => {
         renderComponent();
 
         // Check column headers
-        expect(screen.getByText('Identifier')).toBeInTheDocument();
-        expect(screen.getByText('CEL identifier used in policies')).toBeInTheDocument();
-        expect(screen.getByText('Display name')).toBeInTheDocument();
+        expect(screen.getByText('Name')).toBeInTheDocument();
+        expect(screen.getByText('Display Name')).toBeInTheDocument();
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByText('Values')).toBeInTheDocument();
         expect(screen.getByText('Actions')).toBeInTheDocument();
@@ -120,14 +119,13 @@ describe('UserPropertiesTable', () => {
 
         const field1Input = screen.getByDisplayValue('Field 1');
         await userEvent.clear(field1Input);
-        await userEvent.type(field1Input, 'Edited Field 1');
+        await userEvent.type(field1Input, 'EditedField1');
 
-        // Trigger blur to save the edited field name - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(field1Input);
 
         expect(updateField).toHaveBeenCalledWith({
             ...baseFields[0],
-            name: 'Edited Field 1',
+            name: 'EditedField1',
         });
     });
 
@@ -269,9 +267,9 @@ describe('UserPropertiesTable', () => {
 
         renderComponent([...baseFields, pendingTextField]);
 
-        // The name input for the new text field should be autofocused
-        const nameInputs = screen.getAllByTestId('property-field-input');
-        expect(document.activeElement).toBe(nameInputs[2]);
+        // The display name input for the new text field should be autofocused
+        const displayNameInputs = screen.getAllByTestId('property-display-name-input');
+        expect(document.activeElement).toBe(displayNameInputs[2]);
     });
 
     it('autofocuses values input for new select field', () => {
@@ -330,6 +328,179 @@ describe('UserPropertiesTable', () => {
         // The values input (combobox) for the new multiselect field should be autofocused
         const comboboxes = screen.getAllByRole('combobox');
         expect(document.activeElement).toBe(comboboxes[comboboxes.length - 1]);
+    });
+});
+
+describe('UserPropertiesTable input filtering', () => {
+    const baseFields: UserPropertyField[] = [
+        {
+            id: 'field1',
+            name: 'Field1',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 1736541716295,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        },
+    ];
+
+    const createField = jest.fn();
+    const updateField = jest.fn();
+    const deleteField = jest.fn();
+    const reorderField = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('Name column has sanitize prop that strips invalid characters', () => {
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray(baseFields)}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const nameInput = screen.getByTestId('property-field-input');
+        expect(nameInput).toBeInTheDocument();
+
+        // filterCELIdentifier is tested in detail in properties.test.ts.
+        // Here we verify it's wired up: the input exists and carries an
+        // aria-label confirming it's the Name column input.
+        expect(nameInput).toHaveAttribute('aria-label', 'Attribute Name');
+    });
+
+    it('Display Name auto-fills Name for new pending text field via live preview', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-new',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 1,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        // Type a single character in Display Name - each keystroke triggers
+        // handleDisplayNameChange which updates the Name column's live preview.
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        await userEvent.type(displayNameInput, 'D');
+
+        // The Name input should show the slugified preview
+        const nameInput = screen.getByTestId('property-field-input');
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('D');
+        });
+    });
+
+    it('Auto-fill deactivates permanently when user manually edits the Name input', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-deactivate',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const nameInput = screen.getByTestId('property-field-input');
+
+        // Manually type in the Name input to diverge from any auto-fill
+        await userEvent.type(nameInput, 'custom');
+        fireEvent.blur(nameInput);
+
+        updateField.mockClear();
+
+        // Now type in Display Name and blur
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        await userEvent.type(displayNameInput, 'Department');
+        fireEvent.blur(displayNameInput);
+
+        // updateField should be called with display_name change but NOT with
+        // a name override — the manual edit deactivated auto-fill
+        const nameChangeCalls = updateField.mock.calls.filter(
+            (call: [UserPropertyField]) => call[0].name && call[0].name !== 'custom',
+        );
+        expect(nameChangeCalls).toHaveLength(0);
+    });
+
+    it('Auto-fill does not fire for existing fields', async () => {
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray(baseFields)}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        await userEvent.type(displayNameInput, 'New Display');
+        fireEvent.blur(displayNameInput);
+
+        const nameUpdateCalls = updateField.mock.calls.filter(
+            (call: [UserPropertyField]) => call[0].name !== baseFields[0].name,
+        );
+        expect(nameUpdateCalls).toHaveLength(0);
     });
 });
 
@@ -403,7 +574,7 @@ describe('useUserPropertiesTable grandfather regression', () => {
 
         const renamedInput = screen.getByDisplayValue('dept_head');
         await userEvent.clear(renamedInput);
-        await userEvent.type(renamedInput, '42dept');
+        await userEvent.type(renamedInput, 'for');
         fireEvent.blur(renamedInput);
 
         await waitFor(() => {

@@ -161,8 +161,12 @@ export const useUserPropertyFields = () => {
                         return acc;
                     }
                 } else {
-                    // name not provided
-                    acc[field.id] = {name: ValidationWarningNameRequired};
+                    // name not provided — suppress for brand-new fields that
+                    // haven't been interacted with yet (user just clicked "Add attribute")
+                    const hasDisplayName = Boolean(field.attrs?.display_name?.trim());
+                    if (field.create_at !== 0 || hasDisplayName) {
+                        acc[field.id] = {name: ValidationWarningNameRequired};
+                    }
                     return acc;
                 }
 
@@ -229,10 +233,14 @@ export const useUserPropertyFields = () => {
             pendingIO.apply((pending) => {
                 const nextOrder = Object.values(pending.data).filter((x) => !isDeletePending(x)).length;
 
+                const name = patch?.name ?
+                    getIncrementedCELName(patch.name, pending) :
+                    '';
+
                 const field = newPendingField({
                     type: 'text',
                     ...patch,
-                    name: getIncrementedCELName(patch?.name ?? 'Text', pending),
+                    name,
                     attrs: {
                         visibility: 'when_set',
                         value_type: '',

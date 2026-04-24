@@ -295,11 +295,11 @@ describe('useUserPropertyFields', () => {
             expect(pendingIO4.saving).toBe(false);
         });
 
-        expect(createField).toHaveBeenCalledWith({type: 'text', name: 'Text', attrs: {sort_order: 4, value_type: '', visibility: 'when_set'}});
+        expect(createField).toHaveBeenCalledWith({type: 'text', name: '', attrs: {sort_order: 4, value_type: '', visibility: 'when_set'}});
 
         const [fields4,,,] = result.current;
         expect(Object.values(fields4.data)).toEqual(expect.arrayContaining([
-            expect.objectContaining({name: 'Text'}),
+            expect.objectContaining({name: ''}),
         ]));
 
         expect(fields4.order).toEqual(expect.arrayContaining(Object.keys(fields4.data)));

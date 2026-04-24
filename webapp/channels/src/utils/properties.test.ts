@@ -4,6 +4,7 @@
 import {
     CPA_FIELD_NAME_PATTERN,
     CPA_FIELD_NAME_RESERVED_WORDS,
+    filterCELIdentifier,
     getUserPropertyFieldLabel,
     slugifyForCEL,
     validateCPAFieldName,
@@ -208,5 +209,25 @@ describe('slugifyForCEL', () => {
             const result = slugifyForCEL(input);
             expect(CPA_FIELD_NAME_PATTERN.test(result)).toBe(true);
         }
+    });
+});
+
+describe('filterCELIdentifier', () => {
+    const cases = [
+        ['strips spaces', 'my field', 'myfield'],
+        ['strips dashes', 'my-field', 'myfield'],
+        ['prefixes leading digit', '7department', '_7department'],
+        ['passes valid identifier through', 'my_field_2', 'my_field_2'],
+        ['preserves case', 'MyField', 'MyField'],
+        ['strips emoji', 'field🎉', 'field'],
+        ['empty string stays empty', '', ''],
+        ['all digits prefixed', '123', '_123'],
+        ['all punctuation becomes empty', '!@#', ''],
+        ['preserves multiple underscores', 'my__field', 'my__field'],
+        ['leading underscore preserved', '_private', '_private'],
+    ] as const;
+
+    test.each(cases)('%s: %s → %s', (_label, input, expected) => {
+        expect(filterCELIdentifier(input)).toBe(expected);
     });
 });
