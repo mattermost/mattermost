@@ -244,6 +244,44 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
+      - name: ci/runner-prep-for-openldap
+        # Observed failure: "dependency failed to start: container
+        # mmserver-openldap-1 exited (1)" on ubuntu-24.04 runners — kills
+        # every LDAP spec on the affected shard.
+        #
+        # Ubuntu 24.04 introduced an AppArmor profile that restricts the
+        # creation of unprivileged user namespaces. The osixia/openldap
+        # image's internal init scripts rely on this capability; blocking
+        # it produces an immediate exit(1) with no useful stderr. The
+        # container's own security_opt: apparmor:unconfined is not
+        # sufficient — that only unconfines slapd, not the container's
+        # entrypoint process. The actual switch is at the host-kernel level.
+        #
+        # Also ensure docker-compose is >= 2.36.0 — the 2.35.1 shipped on
+        # some ubuntu-24.04 images has a known `up` regression that
+        # manifests as random dependency-failed errors under load.
+        run: |
+          echo "Before: docker compose version"
+          docker compose version || true
+
+          # Disable the AppArmor user-namespace restriction. Idempotent;
+          # safe if the key doesn't exist (older kernel).
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+          # If docker-compose is older than 2.36.0, install a newer one to
+          # the user's cli-plugins dir (takes precedence over the system copy).
+          CURRENT=$(docker compose version --short 2>/dev/null || echo "0.0.0")
+          NEED="2.36.0"
+          if [ "$(printf '%s\n' "$NEED" "$CURRENT" | sort -V | head -n1)" != "$NEED" ]; then
+            echo "Upgrading docker-compose from ${CURRENT} to 2.39.1"
+            mkdir -p "$HOME/.docker/cli-plugins"
+            curl -SL -o "$HOME/.docker/cli-plugins/docker-compose" \
+              "https://github.com/docker/compose/releases/download/v2.39.1/docker-compose-linux-x86_64"
+            chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+          fi
+
+          echo "After: docker compose version"
+          docker compose version
       - name: ci/e2e-test
         run: |
           make cloud-init
