@@ -14,6 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func celSafeName() string {
+	return "f_" + model.NewId()
+}
+
 func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -31,8 +35,14 @@ func TestGetCPAField(t *testing.T) {
 	})
 
 	t.Run("should fail when getting a field from a different group", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_get_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -48,7 +58,7 @@ func TestGetCPAField(t *testing.T) {
 	t.Run("should get an existing CPA field", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "Test Field",
+			Name:    "test_field",
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		})
@@ -61,7 +71,7 @@ func TestGetCPAField(t *testing.T) {
 		fetchedField, appErr := th.App.GetCPAField(rctx, createdField.ID)
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, fetchedField.ID)
-		require.Equal(t, "Test Field", fetchedField.Name)
+		require.Equal(t, "test_field", fetchedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs.Visibility)
 	})
 
@@ -105,7 +115,7 @@ func TestGetCPAField(t *testing.T) {
 		// Create LDAP synced field
 		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "LDAP Field",
+			Name:    "ldap_field",
 			Type:    model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attribute",
@@ -118,7 +128,7 @@ func TestGetCPAField(t *testing.T) {
 		// Create SAML synced field
 		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "SAML Field",
+			Name:    "saml_field",
 			Type:    model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attribute",
@@ -176,8 +186,14 @@ func TestListCPAFields(t *testing.T) {
 		_, err := th.App.CreatePropertyField(rctx, &field1, false, "")
 		require.Nil(t, err)
 
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_list_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field2 := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    "Field 2",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -238,7 +254,7 @@ func TestListCPAFields(t *testing.T) {
 	t.Run("list fields should return defaults for fields created without visibility and sort_order", func(t *testing.T) {
 		// Create a field with minimal attrs (no visibility or sort_order)
 		fieldMinimal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name:  "Field Without Defaults",
+			Name:  "field_without_defaults",
 			Type:  model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{}, // Empty attrs - no visibility or sort_order
 		})
@@ -249,7 +265,7 @@ func TestListCPAFields(t *testing.T) {
 
 		// Create another field to ensure we test list results with explicit values
 		fieldNormal, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: "Normal Field",
+			Name: "normal_field",
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityAlways,
@@ -298,7 +314,7 @@ func TestCreateCPAField(t *testing.T) {
 	rctx := th.emptyContextWithCallerID(anonymousCallerId)
 
 	t.Run("should fail if the field is not valid", func(t *testing.T) {
-		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{Name: model.NewId()})
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{Name: celSafeName()})
 		require.NoError(t, err)
 
 		createdField, err := th.App.CreateCPAField(rctx, field)
@@ -309,7 +325,7 @@ func TestCreateCPAField(t *testing.T) {
 	t.Run("should not be able to create a property field for a different feature", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: model.NewId(),
-			Name:    model.NewId(),
+			Name:    celSafeName(),
 			Type:    model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -322,7 +338,7 @@ func TestCreateCPAField(t *testing.T) {
 	t.Run("should correctly create a CPA field", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    model.NewId(),
+			Name:    celSafeName(),
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		})
@@ -345,7 +361,7 @@ func TestCreateCPAField(t *testing.T) {
 		// Create a CPAField with DeleteAt != 0
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    model.NewId(),
+			Name:    celSafeName(),
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 		})
@@ -376,7 +392,7 @@ func TestCreateCPAField(t *testing.T) {
 			// we create the rest of the fields required to reach the limit
 			for i := 1; i <= CustomProfileAttributesFieldLimit; i++ {
 				field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-					Name: model.NewId(),
+					Name: fmt.Sprintf("f_%d_%s", i, model.NewId()),
 					Type: model.PropertyFieldTypeText,
 				})
 				require.NoError(t, err)
@@ -389,7 +405,7 @@ func TestCreateCPAField(t *testing.T) {
 			// then, we create a last one that would exceed the limit
 			field := &model.CPAField{
 				PropertyField: model.PropertyField{
-					Name: model.NewId(),
+					Name: celSafeName(),
 					Type: model.PropertyFieldTypeText,
 				},
 			}
@@ -411,7 +427,7 @@ func TestCreateCPAField(t *testing.T) {
 			// creating a new one should work now
 			field := &model.CPAField{
 				PropertyField: model.PropertyField{
-					Name: model.NewId(),
+					Name: celSafeName(),
 					Type: model.PropertyFieldTypeText,
 				},
 			}
@@ -433,7 +449,7 @@ func TestPatchCPAField(t *testing.T) {
 
 	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaID,
-		Name:    model.NewId(),
+		Name:    celSafeName(),
 		Type:    model.PropertyFieldTypeText,
 		Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
 	})
@@ -443,7 +459,7 @@ func TestPatchCPAField(t *testing.T) {
 	require.Nil(t, appErr)
 
 	patch := &model.PropertyFieldPatch{
-		Name:       model.NewPointer("Patched name"),
+		Name:       model.NewPointer("patched_name"),
 		Attrs:      model.NewPointer(model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityWhenSet}),
 		TargetID:   model.NewPointer(model.NewId()),
 		TargetType: model.NewPointer(model.NewId()),
@@ -456,8 +472,14 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to patch a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_patch_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -477,7 +499,7 @@ func TestPatchCPAField(t *testing.T) {
 		updatedField, appErr := th.App.PatchCPAField(rctx, createdField.ID, patch)
 		require.Nil(t, appErr)
 		require.Equal(t, createdField.ID, updatedField.ID)
-		require.Equal(t, "Patched name", updatedField.Name)
+		require.Equal(t, "patched_name", updatedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, updatedField.Attrs.Visibility)
 		require.Empty(t, updatedField.TargetID, "CPA should not allow to patch the field's target ID")
 		require.Empty(t, updatedField.TargetType, "CPA should not allow to patch the field's target type")
@@ -488,7 +510,7 @@ func TestPatchCPAField(t *testing.T) {
 		// Create a select field with options
 		selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "Select Field",
+			Name:    "select_field",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: map[string]any{
 				model.PropertyFieldAttributeOptions: []any{
@@ -561,7 +583,7 @@ func TestPatchCPAField(t *testing.T) {
 		// Create a select field with options
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "Select Field with values",
+			Name:    "select_field_with_values",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
@@ -594,7 +616,7 @@ func TestPatchCPAField(t *testing.T) {
 
 		// Patch the field without changing type (just update name and add a new option)
 		patch := &model.PropertyFieldPatch{
-			Name: model.NewPointer("Updated select field name"),
+			Name: model.NewPointer("updated_select_field_name"),
 			Attrs: model.NewPointer(model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
 					map[string]any{
@@ -615,7 +637,7 @@ func TestPatchCPAField(t *testing.T) {
 		}
 		updatedField, appErr := th.App.PatchCPAField(rctx, createdField.ID, patch)
 		require.Nil(t, appErr)
-		require.Equal(t, "Updated select field name", updatedField.Name)
+		require.Equal(t, "updated_select_field_name", updatedField.Name)
 		require.Equal(t, model.PropertyFieldTypeSelect, updatedField.Type)
 
 		// Verify values still exist
@@ -629,7 +651,7 @@ func TestPatchCPAField(t *testing.T) {
 		// Create a select field with options
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    "Select Field with type change",
+			Name:    "select_field_with_type_change",
 			Type:    model.PropertyFieldTypeSelect,
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttributeOptions: []any{
@@ -691,7 +713,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 	newField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		GroupID: cpaID,
-		Name:    model.NewId(),
+		Name:    celSafeName(),
 		Type:    model.PropertyFieldTypeText,
 	})
 	require.NoError(t, err)
@@ -719,8 +741,14 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_delete_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -1051,7 +1079,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	for i := 1; i <= 3; i++ {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 			GroupID: cpaID,
-			Name:    fmt.Sprintf("Field %d", i),
+			Name:    fmt.Sprintf("field_%d", i),
 			Type:    model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)

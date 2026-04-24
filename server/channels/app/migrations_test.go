@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -73,7 +74,7 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 
 	clearCPABackfillMarker(t, th)
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -110,7 +111,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "Job Title", fieldB.Attrs.DisplayName, "seed invariant: fieldB must have display_name set")
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	updatedFieldA, appErr := th.App.GetCPAField(th.Context, fieldA.ID)
@@ -142,7 +143,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	seeded, appErr := th.App.CreateCPAField(th.Context, fieldBase)
 	require.Nil(t, appErr)
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -161,7 +162,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	firstFieldUpdate := updatedAfterFirst.UpdateAt
 
 	// Second run: idempotency check fires immediately, returns nil without any DB writes.
-	err = th.Server.doSetupCPADisplayNameBackfill()
+	err = th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data2, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -175,4 +176,61 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 	require.Equal(t, firstFieldUpdate, updatedAfterSecond.UpdateAt,
 		"second run must not re-write the field row")
+}
+
+// TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField is the regression
+// test for the access-control issue surfaced in PR review: a CPA field with
+// attrs["protected"]=true and access_mode="source_only" (e.g. owned by a UAS
+// plugin) must still be backfilled by the system migration. The migration
+// runs without a caller ID in the context, so any path that goes through
+// the normal access-control layer would reject the write because the system
+// is not the source plugin. We assert here that the backfill succeeds and
+// the field's display_name is updated in the database.
+func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
+	th := Setup(t)
+
+	clearCPABackfillMarker(t, th)
+
+	groupID, appErr := th.App.CpaGroupID()
+	require.Nil(t, appErr)
+
+	// Insert directly via the store so we bypass the property service's
+	// access-control routing (which would reject creating a protected
+	// source_only field from a non-plugin caller). Type=text avoids the
+	// options-stripping branch in read access control, but the migration's
+	// correctness here doesn't depend on the field type.
+	field := &model.PropertyField{
+		GroupID: groupID,
+		Name:    "uas_employee_id",
+		Type:    model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+			// display_name intentionally omitted - this is the state the migration
+			// is designed to fix.
+		},
+	}
+	created, err := th.Store.PropertyField().Create(field)
+	require.NoError(t, err, "seed: protected source_only field must be insertable directly via the store")
+
+	err = th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err, "migration must succeed even when CPA fields are protected and owned by a plugin")
+
+	// Read back via the store directly to avoid any read-access filtering
+	// the AC layer might apply for a non-source-plugin caller.
+	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	require.NoError(t, err)
+	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"display_name must be backfilled to the field name even on protected/source_only fields")
+
+	// Confirm the protection metadata was preserved untouched.
+	require.Equal(t, true, got.Attrs[model.PropertyAttrsProtected], "protected flag must be preserved")
+	require.Equal(t, model.PropertyAccessModeSourceOnly, got.Attrs[model.PropertyAttrsAccessMode], "access_mode must be preserved")
+	require.Equal(t, "com.mattermost.uas-plugin", got.Attrs[model.PropertyAttrsSourcePluginID], "source_plugin_id must be preserved")
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
 }

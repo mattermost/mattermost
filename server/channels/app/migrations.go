@@ -637,7 +637,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1})
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
@@ -772,7 +772,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return s.cacheManagedCategoryIDs()
 	}
 
-	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
@@ -806,7 +806,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
-func (s *Server) doSetupCPADisplayNameBackfill() error {
+func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
 	if err != nil && !errors.As(err, &nfErr) {
@@ -817,70 +817,19 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 		return nil
 	}
 
-	// Resolve the CPA property group. The group is registered at startup
-	// (RegisterBuiltinGroups) before doAppMigrations runs, so it always exists here.
-	group, err := s.propertyService.GetPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	// The properties package owns the actual field iteration and update logic.
+	// It deliberately bypasses the access-control layer for this single,
+	// well-defined backfill so it can update protected (e.g. UAS-managed) CPA
+	// fields whose source plugin is not the system. Keeping the bypass behind
+	// an explicitly named method on PropertyService avoids exposing a general
+	// "skip access control" surface from this package.
+	backfilled, skipped, err := s.propertyService.MigrateBackfillCPADisplayName(rctx)
 	if err != nil {
-		return fmt.Errorf("failed to get CPA property group for display_name backfill: %w", err)
-	}
-	groupID := group.ID
-
-	const perPage = 100
-	var cursor model.PropertyFieldSearchCursor
-	var fieldsToUpdate []*model.PropertyField
-	skipped := 0
-
-	for {
-		fields, searchErr := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{
-			PerPage: perPage,
-			Cursor:  cursor,
-		})
-		if searchErr != nil {
-			return fmt.Errorf("failed to search CPA fields for display_name backfill: %w", searchErr)
-		}
-
-		if len(fields) == 0 {
-			break
-		}
-
-		for _, pf := range fields {
-			cpaField, convErr := model.NewCPAFieldFromPropertyField(pf)
-			if convErr != nil {
-				return fmt.Errorf("failed to convert property field %q during display_name backfill: %w", pf.ID, convErr)
-			}
-
-			// Backfill if display_name is absent OR empty-string.
-			// This covers fields created before introducing display_name,
-			// fields created after supporting display_name with no explicit display_name (stored as ""),
-			// and fields patched with display_name="" .
-			if cpaField.Attrs.DisplayName != "" {
-				skipped++
-				continue
-			}
-
-			cpaField.Attrs.DisplayName = cpaField.Name
-			fieldsToUpdate = append(fieldsToUpdate, cpaField.ToPropertyField())
-		}
-
-		if len(fields) < perPage {
-			break
-		}
-
-		lastField := fields[len(fields)-1]
-		cursor = model.PropertyFieldSearchCursor{
-			PropertyFieldID: lastField.ID,
-			CreateAt:        lastField.CreateAt,
-		}
-	}
-
-	if len(fieldsToUpdate) > 0 {
-		if _, _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
-			return fmt.Errorf("failed to update CPA fields during display_name backfill: %w", updateErr)
-		}
+		return fmt.Errorf("failed to backfill CPA display_name: %w", err)
 	}
 
 	mlog.Info("CPA display_name backfill migration completed",
-		mlog.Int("backfilled", len(fieldsToUpdate)),
+		mlog.Int("backfilled", backfilled),
 		mlog.Int("skipped", skipped),
 	)
 
@@ -1098,7 +1047,6 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
-		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	for i := range m1 {
@@ -1121,6 +1069,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
+		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	rctx := request.EmptyContext(s.Log())
