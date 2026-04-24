@@ -6,6 +6,8 @@ package elasticsearch
 import (
 	"context"
 	"io"
+	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
@@ -34,6 +36,8 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		logger.Error("Worker: Failed to Create Client", mlog.Err(appErr))
 		return nil
 	}
+
+	var realFailed atomic.Int64
 
 	return common.NewIndexerWorker(workerName, model.ElasticsearchSettingsESBackend,
 		esi.Server.Jobs,
@@ -64,6 +68,10 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				DocumentID: docID,
 				Body:       body,
 				OnFailure: func(_ context.Context, item esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
+					if item.Action == "delete" && resp.Status == http.StatusNotFound {
+						return
+					}
+					realFailed.Add(1)
 					fields := []mlog.Field{
 						mlog.String("index", item.Index),
 						mlog.String("doc_id", item.DocumentID),
@@ -89,7 +97,8 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 			stats := esi.bulkProcessor.Stats()
 			fields := []mlog.Field{
 				mlog.Uint("num_indexed", stats.NumIndexed),
-				mlog.Uint("num_failed", stats.NumFailed),
+				mlog.Int("num_failed", realFailed.Load()),
+				mlog.Uint("stats_num_failed", stats.NumFailed),
 				mlog.Uint("num_added", stats.NumAdded),
 				mlog.Uint("num_flushed", stats.NumFlushed),
 			}
@@ -98,6 +107,6 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 			} else {
 				logger.Info("Bulk indexer closed", fields...)
 			}
-			return int64(stats.NumFailed), err
+			return realFailed.Load(), err
 		})
 }
