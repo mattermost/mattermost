@@ -14,7 +14,7 @@ This is a **dual-repo capable** Mattermost development environment:
 
 PostgreSQL 14 is the only required external dependency, run via Docker Compose.
 
-The startup update script should be treated as best-effort dependency refresh only. Do not assume it already ran or succeeded; agents should still verify local prerequisites before running services.
+The startup update script is expected to prepare Docker, Node/npm, and web dependencies before agent work begins.
 
 ### Bootstrap checklist (run this first in every fresh cloud session)
 
@@ -32,21 +32,12 @@ When editing translation strings, changes must ONLY be made to the relevant en.j
 
 ### Starting services
 
-1. **Ensure Docker daemon is reachable as current user.**
-
-   First check:
+1. **Docker should already be initialized by startup script.**
+   Run a quick check:
    ```bash
    docker ps
    ```
-   If this fails with `Cannot connect to the Docker daemon`:
-   ```bash
-   sudo service docker start
-   ```
-   If this fails with `permission denied while trying to connect to the Docker daemon socket`:
-   ```bash
-   sudo chmod 666 /var/run/docker.sock
-   ```
-   (Cloud VMs can restart Docker with socket permissions reset; this is a pragmatic workaround for ephemeral agents.)
+   If this fails, consider the environment initialization incomplete and re-run VM startup setup.
 
 2. **Start Team Edition server + webapp (default path):**
    ```bash
