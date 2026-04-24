@@ -165,7 +165,7 @@ describe('FilePreview', () => {
         expect(container.querySelector('.file-preview__remove.compact')).toBeInTheDocument();
     });
 
-    test('should render disabled remove button with tooltip when onRemove is absent and disabledRemoveTooltip is provided', () => {
+    test('should render disabled remove button with tooltip when onRemove is absent and disabledRemoveTooltip is provided', async () => {
         const props = {
             ...baseProps,
             onRemove: undefined,
@@ -177,7 +177,17 @@ describe('FilePreview', () => {
             <FilePreview {...props}/>,
         );
 
-        expect(container.querySelector('.file-preview__remove--disabled')).toBeInTheDocument();
+        const disabledRemove = container.querySelector('.file-preview__remove--disabled');
+        expect(disabledRemove).toBeInTheDocument();
+        expect(container.querySelector('a.file-preview__remove')).not.toBeInTheDocument();
+        if (!disabledRemove) {
+            throw new Error('Disabled remove button not found');
+        }
+
+        const user = userEvent.setup();
+        await user.hover(disabledRemove);
+        expect(await screen.findByText('You do not have permission to edit file attachments')).toBeInTheDocument();
+
         expect(container.querySelector('a.file-preview__remove')).not.toBeInTheDocument();
     });
 
