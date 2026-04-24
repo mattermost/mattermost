@@ -807,7 +807,7 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     }
 
     const {x: caretXCoordinateInTxtArea, y: caretYCoordinateInTxtArea} = getCaretXYCoordinate(textArea);
-    const {w: viewportWidth, h: viewportHeight} = getViewportSize();
+    const {h: viewportHeight} = getViewportSize();
     const {offsetWidth: textAreaWidth} = textArea;
     const horizontalBoundary = getSuggestionBoxHorizontalBoundary(textArea);
 
