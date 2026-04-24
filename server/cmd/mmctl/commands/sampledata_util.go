@@ -116,19 +116,19 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 
 	switch userType {
 	case guestUser:
-		password = fmt.Sprintf("SampleGu@st-%d", idx)
+		password = fmt.Sprintf("SampleGu@st-%03d", idx)
 		email = fmt.Sprintf("guest-%d@sample.mattermost.com", idx)
 		roles = "system_guest"
 		if idx == 0 {
 			username = "guest"
-			password = "SampleGu@st1"
+			password = "SampleGu@st-001"
 			email = "guest@sample.mattermost.com"
 		}
 	case deactivatedUser:
 		password = fmt.Sprintf("SampleDe@ctivated-%d", idx)
 		email = fmt.Sprintf("deactivated-%d@sample.mattermost.com", idx)
 	default:
-		password = fmt.Sprintf("SampleUs@r-%d", idx)
+		password = fmt.Sprintf("SampleUs@r-%03d", idx)
 		email = fmt.Sprintf("user-%d@sample.mattermost.com", idx)
 		if idx == 0 {
 			username = "sysadmin"

@@ -562,7 +562,7 @@ inject-test-data: # add test data to the local instance.
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
 	@echo Login with a system admin account username=sysadmin password=Sys@dmin-sample1
-	@echo Login with a regular account username=user-1 password=SampleUs@r-1
+	@echo Login with a regular account username=user-1 password=SampleUs@r-001
 	@echo ========================================================================
 
 test-mmctl-unit: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
