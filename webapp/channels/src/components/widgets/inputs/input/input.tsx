@@ -208,17 +208,17 @@ const Input = React.forwardRef((
     const warning = customInputLabel?.type === ItemStatus.WARNING;
 
     const clearButton = value && clearable ? (
-        <div
-            className='Input__clear'
-            onMouseDown={handleOnClear}
-            onTouchEnd={handleOnClear}
+        <WithTooltip
+            title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
         >
-            <WithTooltip
-                title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
+            <div
+                className='Input__clear'
+                onMouseDown={handleOnClear}
+                onTouchEnd={handleOnClear}
             >
                 <CloseCircleIcon size={18}/>
-            </WithTooltip>
-        </div>
+            </div>
+        </WithTooltip>
     ) : null;
 
     const generateInput = () => {
