@@ -10,7 +10,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/anthonynsimon/bild/transform"
+	"github.com/boxes-ltd/imaging"
 	"github.com/bep/imagemeta"
 )
 
@@ -41,19 +41,19 @@ var errStopDecoding = fmt.Errorf("stop decoding")
 func MakeImageUpright(img image.Image, orientation int) image.Image {
 	switch orientation {
 	case UprightMirrored:
-		return transform.FlipH(img)
+		return imaging.FlipH(img)
 	case UpsideDown:
-		return transform.Rotate(img, 180, &transform.RotationOptions{ResizeBounds: true})
+		return imaging.Rotate180(img)
 	case UpsideDownMirrored:
-		return transform.FlipV(img)
+		return imaging.FlipV(img)
 	case RotatedCWMirrored:
-		return transform.Rotate(transform.FlipH(img), -90, &transform.RotationOptions{ResizeBounds: true})
+		return imaging.Transpose(img)
 	case RotatedCCW:
-		return transform.Rotate(img, 90, &transform.RotationOptions{ResizeBounds: true})
+		return imaging.Rotate270(img)
 	case RotatedCCWMirrored:
-		return transform.Rotate(transform.FlipV(img), -90, &transform.RotationOptions{ResizeBounds: true})
+		return imaging.Transverse(img)
 	case RotatedCW:
-		return transform.Rotate(img, 270, &transform.RotationOptions{ResizeBounds: true})
+		return imaging.Rotate90(img)
 	default:
 		return img
 	}
