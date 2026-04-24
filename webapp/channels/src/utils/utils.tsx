@@ -777,6 +777,27 @@ export function offsetTopLeft(el: HTMLElement) {
     return {top: rect.top + scrollTop, left: rect.left + scrollLeft};
 }
 
+function getSuggestionBoxHorizontalBoundary(textArea: HTMLElement) {
+    const {w: viewportWidth} = getViewportSize();
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    const textAreaRect = textArea.getBoundingClientRect();
+
+    let ancestor = textArea.parentElement;
+    while (ancestor) {
+        const ancestorRect = ancestor.getBoundingClientRect();
+        const ancestorStyle = getElementComputedStyle(ancestor);
+        const clipsHorizontalOverflow = ancestorStyle.overflow !== 'visible' || ancestorStyle.overflowX !== 'visible';
+
+        if (clipsHorizontalOverflow && ancestorRect.width > textAreaRect.width) {
+            return ancestorRect.right + scrollLeft;
+        }
+
+        ancestor = ancestor.parentElement;
+    }
+
+    return viewportWidth + scrollLeft;
+}
+
 export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstract = 0, alignWithTextBox = false) {
     if (!textArea || !(textArea instanceof HTMLElement)) {
         return {
@@ -788,6 +809,7 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     const {x: caretXCoordinateInTxtArea, y: caretYCoordinateInTxtArea} = getCaretXYCoordinate(textArea);
     const {w: viewportWidth, h: viewportHeight} = getViewportSize();
     const {offsetWidth: textAreaWidth} = textArea;
+    const horizontalBoundary = getSuggestionBoxHorizontalBoundary(textArea);
 
     const suggestionBoxWidth = Math.min(textAreaWidth, Constants.SUGGESTION_LIST_MAXWIDTH);
 
@@ -803,8 +825,8 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
     if (alignWithTextBox) {
         // when the list should be aligned with the textbox just set this value to 0
         pxToTheRight = 0;
-    } else if (xBoxRightCoordinate > viewportWidth) {
-        // if the right-border edge of the suggestion box will overflow the x-axis viewport
+    } else if (xBoxRightCoordinate > horizontalBoundary) {
+        // if the right-border edge of the suggestion box will overflow the visible text area container
         // stick the suggestion list to the very right of the TextArea
         pxToTheRight = textAreaWidth - suggestionBoxWidth;
     }

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {FileTypes} from './constants';
-import {getFileType} from './utils';
+import {getFileType, getSuggestionBoxAlgn} from './utils';
 
 describe('Utils.getFileType', () => {
     test('should identify image files by extension', () => {
@@ -59,5 +59,112 @@ describe('Utils.getFileType', () => {
         expect(getFileType(null as any)).toBe(FileTypes.OTHER);
         expect(getFileType(undefined as any)).toBe(FileTypes.OTHER);
         expect(getFileType('')).toBe(FileTypes.OTHER);
+    });
+});
+
+describe('Utils.getSuggestionBoxAlgn', () => {
+    const originalCreateRange = document.createRange;
+    const originalGetSelection = document.getSelection;
+
+    beforeEach(() => {
+        document.body.innerHTML = '';
+        document.documentElement.scrollLeft = 0;
+        document.documentElement.scrollTop = 0;
+
+        document.createRange = jest.fn(() => ({
+            setStart: jest.fn(),
+            setEnd: jest.fn(),
+            getClientRects: jest.fn(() => [{left: 200, top: 40}]),
+        })) as unknown as typeof document.createRange;
+
+        document.getSelection = jest.fn(() => ({
+            removeAllRanges: jest.fn(),
+            addRange: jest.fn(),
+        })) as unknown as typeof document.getSelection;
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+        document.createRange = originalCreateRange;
+        document.getSelection = originalGetSelection;
+    });
+
+    function createTextArea(clippingAncestorRight?: number) {
+        const clippingAncestor = document.createElement('div');
+        clippingAncestor.style.overflow = 'hidden';
+        clippingAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 385,
+            right: clippingAncestorRight ?? 654,
+        })) as unknown as typeof clippingAncestor.getBoundingClientRect;
+
+        const container = document.createElement('div');
+        container.getBoundingClientRect = jest.fn(() => ({
+            width: 600,
+            right: 900,
+        })) as unknown as typeof container.getBoundingClientRect;
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello @';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '20px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        clippingAncestor.appendChild(container);
+        container.appendChild(textArea);
+        document.body.appendChild(clippingAncestor);
+
+        return textArea;
+    }
+
+    test('keeps the suggestion list inside the nearest clipping container', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const textArea = createTextArea(654);
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('uses the viewport width when no clipping ancestor constrains the textbox', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const textArea = document.createElement('textarea');
+        textArea.value = 'hello @';
+        textArea.selectionStart = textArea.value.length;
+        textArea.selectionEnd = textArea.value.length;
+        textArea.style.lineHeight = '20px';
+        textArea.getBoundingClientRect = jest.fn(() => ({
+            left: 295,
+            top: 100,
+            width: 333,
+            right: 628,
+        })) as unknown as typeof textArea.getBoundingClientRect;
+
+        Object.defineProperty(textArea, 'offsetWidth', {
+            configurable: true,
+            value: 333,
+        });
+
+        document.body.appendChild(textArea);
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 200,
+            pixelsToMoveY: 40,
+        });
     });
 });
