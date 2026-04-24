@@ -507,11 +507,10 @@ export async function createBasicPolicy(
     if (applyVisible) {
         // Arm the response interceptor BEFORE the click so we never miss the POST.
         const jobResponsePromise = page
-            .waitForResponse(
-                (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
-                {timeout: 10_000},
-            )
-            .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+            .waitForResponse((r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST', {
+                timeout: 10_000,
+            })
+            .then(async (r) => (r.ok() ? (((await r.json()) as {id?: string}).id ?? null) : null))
             .catch(() => null);
 
         await applyPolicyButton.click();
@@ -686,11 +685,8 @@ export async function createMultiAttributePolicy(
     await applyPolicyButton.waitFor({state: 'visible', timeout: 5000});
 
     const jobResponsePromise = page
-        .waitForResponse(
-            (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
-            {timeout: 10_000},
-        )
-        .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+        .waitForResponse((r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST', {timeout: 10_000})
+        .then(async (r) => (r.ok() ? (((await r.json()) as {id?: string}).id ?? null) : null))
         .catch(() => null);
 
     await applyPolicyButton.click();
@@ -857,11 +853,8 @@ export async function createAdvancedPolicy(
 
     // Arm the response interceptor BEFORE the click so we never miss the POST.
     const jobResponsePromise = page
-        .waitForResponse(
-            (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
-            {timeout: 10_000},
-        )
-        .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+        .waitForResponse((r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST', {timeout: 10_000})
+        .then(async (r) => (r.ok() ? (((await r.json()) as {id?: string}).id ?? null) : null))
         .catch(() => null);
 
     await applyPolicyButton.click();
@@ -894,11 +887,7 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
  * Both paths use `expect.poll` with 500 ms intervals and a 30 s timeout so
  * individual CI jobs that are delayed in the queue don't cause false failures.
  */
-export async function waitForLatestSyncJob(
-    page: Page,
-    _retries?: number,
-    expectedJobId?: string | null,
-): Promise<any> {
+export async function waitForLatestSyncJob(page: Page, _retries?: number, expectedJobId?: string | null): Promise<any> {
     // ── Race-safe path: poll the exact job by ID ──────────────────────────
     if (expectedJobId) {
         await expect
@@ -968,10 +957,7 @@ export async function waitForLatestSyncJob(
  * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
  * briefly delayed in the queue do not cause spurious failures.
  */
-export async function waitForPolicySyncJob(
-    client: Client4,
-    policyId: string,
-): Promise<void> {
+export async function waitForPolicySyncJob(client: Client4, policyId: string): Promise<void> {
     await expect
         .poll(
             async () => {
