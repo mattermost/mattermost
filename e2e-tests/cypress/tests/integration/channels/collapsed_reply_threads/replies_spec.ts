@@ -145,7 +145,8 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(postForAvatar.id).find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm').type('{esc}');
+        cy.get('div.user-profile-popover').first().should('be.visible');
+        cy.get('body').type('{esc}');
 
         // # Visit global threads
         cy.uiClickSidebarItem('threads');

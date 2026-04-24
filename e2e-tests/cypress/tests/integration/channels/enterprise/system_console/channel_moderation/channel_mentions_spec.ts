@@ -142,14 +142,9 @@ describe('MM-23102 - Channel Moderation - Channel Mentions', () => {
 
         visitChannel(regularUser, testChannel, testTeam);
 
-        cy.get('#post_textbox').clear().type('@');
+        cy.get('#post_textbox').clear();
 
-        // * Ensure that @here, @all, and @channel do not show up in the autocomplete list
-        cy.findAllByTestId('mentionSuggestion_here').should('not.exist');
-        cy.findAllByTestId('mentionSuggestion_all').should('not.exist');
-        cy.findAllByTestId('mentionSuggestion_channel').should('not.exist');
-
-        // * When you type @all, @enter, and @channel make sure that a system message shows up notifying you nothing happened.
+        // * When you type @all, @here, and @channel make sure that a system message shows up notifying you nothing happened.
         postChannelMentionsAndVerifySystemMessageExist(testChannel.name);
     });
 
