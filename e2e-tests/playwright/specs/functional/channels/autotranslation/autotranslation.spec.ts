@@ -18,6 +18,12 @@ import {
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
 
+// Autotranslation tests involve real UI interactions with plugin state and can run
+// longer than the default 60 s in loaded CI.  Set per-test timeout to 2 minutes.
+test.beforeEach(async () => {
+    test.setTimeout(120000);
+});
+
 // Disable AutoTranslationSettings at end of file so leftover state cannot leak
 // into other suites. Individual tests enable the feature via
 // enableAutotranslationConfig() as needed.

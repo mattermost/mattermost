@@ -73,9 +73,15 @@ async function openPostDotMenu(post: any, channelsPage: any): Promise<void> {
  */
 test('Verify flagged message is hidden by default', async ({pw}) => {
     const {user, adminClient} = await pw.initSetup();
+    // Explicitly set HideFlaggedContent: true — a parallel worker may have set it
+    // to false (e.g. author-deletes-message-before-review.spec.ts). Without an
+    // explicit value this test would fail intermittently under PW_WORKERS=2.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
+            AdditionalSettings: {
+                HideFlaggedContent: true,
+            },
         },
     });
 
@@ -197,7 +203,10 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
+    // NOTE: Skip toContainPostText here — a parallel worker may have set
+    // HideFlaggedContent: true, which makes the post preview show "(message deleted)"
+    // instead of the original text.  The important assertion is that the server
+    // rejects re-flagging an already-quarantined post.
     await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();

@@ -68,8 +68,8 @@ test.describe('ABAC LDAP Integration - Sync', () => {
             channels: [privateChannel.display_name],
         });
 
-        // Activate policy
-        await waitForLatestSyncJob(systemConsolePage.page);
+        // Activate policy (wait up to 30 s for the creation sync job, no jobId available here)
+        await waitForLatestSyncJob(systemConsolePage.page, 15);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
@@ -88,8 +88,8 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         // PHASE 1: User should NOT be added (Department=Sales)
         // ============================================================
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 15, __jobId1);
 
         const phase1InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase1InChannel).toBe(false);
@@ -99,8 +99,8 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId2 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 15, __jobId2);
 
         const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase2InChannel).toBe(true);
@@ -110,8 +110,8 @@ test.describe('ABAC LDAP Integration - Sync', () => {
         // ============================================================
         await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __jobId3 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 15, __jobId3);
 
         const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
         expect(phase3InChannel).toBe(false);

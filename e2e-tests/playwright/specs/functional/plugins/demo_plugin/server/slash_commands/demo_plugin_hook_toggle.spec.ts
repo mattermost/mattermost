@@ -10,8 +10,21 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
 
-    // Add test user to the demo_plugin private channel (it's private; not joined by default)
-    const demoChannel = await adminClient.getChannelByName(team.id, 'demo_plugin');
+    // Add test user to the demo_plugin private channel (it's private; not joined by default).
+    // The plugin creates this channel asynchronously on activation, so poll until it exists.
+    let demoChannel: any = null;
+    for (let i = 0; i < 15; i++) {
+        try {
+            demoChannel = await adminClient.getChannelByName(team.id, 'demo_plugin');
+            if (demoChannel?.id) break;
+        } catch {
+            // Channel not yet created — wait and retry
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    if (!demoChannel?.id) {
+        throw new Error('demo_plugin channel was not created within 30s of plugin activation');
+    }
     await adminClient.addToChannel(user.id, demoChannel.id);
 
     // 2. Login

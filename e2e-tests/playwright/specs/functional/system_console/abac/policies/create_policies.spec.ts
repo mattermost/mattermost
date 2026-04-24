@@ -135,8 +135,8 @@ test.describe('ABAC Policies - Create Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page);
+        // Wait for sync job to complete (triggered by createBasicPolicy); 15 retries × 2 s = 30 s budget
+        await waitForLatestSyncJob(systemConsolePage.page, 15);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
