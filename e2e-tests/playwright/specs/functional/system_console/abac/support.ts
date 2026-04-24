@@ -967,6 +967,11 @@ export async function waitForPolicySyncJob(client: Client4, policyId: string): P
                         {method: 'GET'},
                     );
                     if (!Array.isArray(jobs) || jobs.length === 0) return 'pending';
+                    // Sort by create_at descending so jobs[0] is the latest.
+                    // The API does not guarantee order, so without this sort
+                    // jobs[0] can be an older already-successful job, causing
+                    // us to return early before the newest sync has finished.
+                    jobs.sort((a: any, b: any) => (b.create_at ?? 0) - (a.create_at ?? 0));
                     const status: string = jobs[0].status ?? 'pending';
                     if (status === 'error' || status === 'canceled' || status === 'cancel_requested') {
                         throw new Error(`Policy sync job failed: ${status}`);
