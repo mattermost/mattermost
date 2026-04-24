@@ -11,7 +11,7 @@ import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 import SettingSet from 'components/admin_console/setting_set';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import FormError from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {Constants} from 'utils/constants';
 

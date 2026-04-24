@@ -27,7 +27,7 @@ import ChannelNameFormField from 'components/channel_name_form_field/channel_nam
 import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';

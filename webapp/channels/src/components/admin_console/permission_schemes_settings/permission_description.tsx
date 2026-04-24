@@ -7,7 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {rolesRolesStrings} from './strings/roles';
 

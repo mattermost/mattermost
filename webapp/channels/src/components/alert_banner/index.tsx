@@ -13,7 +13,7 @@ import {
     InformationOutlineIcon,
 } from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './alert_banner.scss';
 

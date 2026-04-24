@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {FireIcon} from '@mattermost/compass-icons/components';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
 

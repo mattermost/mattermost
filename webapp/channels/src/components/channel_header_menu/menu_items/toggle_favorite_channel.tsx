@@ -9,7 +9,7 @@ import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/chann
 import {isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {GlobalState} from 'types/store';
 

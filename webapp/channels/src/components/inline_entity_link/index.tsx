@@ -9,7 +9,7 @@ import {useDispatch} from 'react-redux';
 
 import {LinkVariantIcon} from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {handleInlineEntityClick} from './actions';
 import {InlineEntityTypes} from './constants';

@@ -27,7 +27,7 @@ import {getNonManagedCategoriesForCurrentTeam} from 'selectors/views/channel_sid
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 

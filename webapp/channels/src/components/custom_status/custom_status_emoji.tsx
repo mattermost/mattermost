@@ -12,7 +12,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {GlobalState} from 'types/store';
 

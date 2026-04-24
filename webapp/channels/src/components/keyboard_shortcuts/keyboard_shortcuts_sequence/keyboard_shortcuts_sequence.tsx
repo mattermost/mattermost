@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import {isMac} from '@mattermost/shared/utils/user_agent';
 
-import {ShortcutKeyVariant, ShortcutKey} from 'components/shortcut_key';
+import {ShortcutKeyVariant, ShortcutKey} from '@mattermost/shared/components/shortcut_key';
 
 import {isMessageDescriptor} from 'utils/i18n';
 

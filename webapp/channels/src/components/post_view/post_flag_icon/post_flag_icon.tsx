@@ -7,7 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {Locations, A11yCustomEventTypes} from 'utils/constants';
 

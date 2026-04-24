@@ -10,7 +10,7 @@ import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux
 import {getActiveRhsComponent} from 'selectors/rhs';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {suitePluginIds} from 'utils/constants';
 

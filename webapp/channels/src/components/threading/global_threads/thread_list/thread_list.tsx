@@ -17,7 +17,7 @@ import {closeModal, openModal} from 'actions/views/modals';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';

@@ -11,7 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import Toggle from 'components/toggle';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import AddWorkspaceDropdown, {type RemoteToAdd} from './add_workspace_dropdown';
 import type {WorkspaceWithStatus} from './types';

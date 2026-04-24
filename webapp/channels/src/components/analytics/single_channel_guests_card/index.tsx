@@ -7,7 +7,7 @@ import {defineMessage, defineMessages, useIntl} from 'react-intl';
 import {AlertOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import StatisticCount from 'components/analytics/statistic_count';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 export const messages = defineMessages({
     singleChannelGuests: {id: 'analytics.system.singleChannelGuests', defaultMessage: 'Single-channel Guests'},

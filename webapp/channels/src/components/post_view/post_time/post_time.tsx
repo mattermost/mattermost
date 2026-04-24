@@ -10,7 +10,7 @@ import {isMobile} from '@mattermost/shared/utils/user_agent';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {Locations} from 'utils/constants';
 

@@ -18,7 +18,7 @@ import {useSectionNavigation} from 'components/common/hooks/useSectionNavigation
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import Constants from 'utils/constants';
 import {isMessageDescriptor} from 'utils/i18n';

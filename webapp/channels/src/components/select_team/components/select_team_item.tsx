@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import type {Team} from '@mattermost/types/teams';
 
 import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import * as Utils from 'utils/utils';
 

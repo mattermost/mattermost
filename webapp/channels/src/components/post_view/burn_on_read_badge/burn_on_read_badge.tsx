@@ -13,7 +13,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getBurnOnReadRecipientData} from 'selectors/burn_on_read_recipients';
 
 import BurnOnReadExpirationHandler from 'components/post_view/burn_on_read_expiration_handler';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {GlobalState} from 'types/store';
 

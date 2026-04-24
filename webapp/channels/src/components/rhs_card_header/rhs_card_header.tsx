@@ -7,7 +7,7 @@ import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {RHSStates} from 'utils/constants';
 

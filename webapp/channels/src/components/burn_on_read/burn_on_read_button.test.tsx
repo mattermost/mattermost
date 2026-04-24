@@ -7,9 +7,9 @@ import {renderWithContext, userEvent, screen} from 'tests/react_testing_utils';
 
 import BurnOnReadButton from './burn_on_read_button';
 
-jest.mock('components/with_tooltip', () => {
-    return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
-});
+jest.mock('@mattermost/shared/components/tooltip', () => ({
+    WithTooltip: ({children}: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 describe('BurnOnReadButton', () => {
     const defaultProps = {

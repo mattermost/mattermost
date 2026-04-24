@@ -10,7 +10,7 @@ import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import {openModal} from 'actions/views/modals';
 
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 

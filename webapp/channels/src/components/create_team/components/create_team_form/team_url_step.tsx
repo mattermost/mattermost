@@ -6,7 +6,7 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import logoImage from 'images/logo.png';
 import {getSiteURL} from 'utils/url';

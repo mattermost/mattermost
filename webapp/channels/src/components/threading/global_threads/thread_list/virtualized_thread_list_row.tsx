@@ -12,7 +12,7 @@ import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
 import {SearchShortcut} from 'components/search_shortcut/search_shortcut';
-import {ShortcutKeyVariant} from 'components/shortcut_key';
+import {ShortcutKeyVariant} from '@mattermost/shared/components/shortcut_key';
 
 import {Constants} from 'utils/constants';
 
