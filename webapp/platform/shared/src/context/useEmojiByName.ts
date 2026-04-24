@@ -8,5 +8,9 @@ import {SharedContext} from './context';
 export function useEmojiByName(name: string) {
     const context = React.useContext(SharedContext);
 
+    if (!context || !('useEmojiByName' in context)) {
+        return undefined;
+    }
+
     return context.useEmojiByName(name);
 }

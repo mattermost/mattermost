@@ -10,5 +10,9 @@ import {SharedContext} from './context';
 export function useEmojiUrl(emoji?: Emoji) {
     const context = React.useContext(SharedContext);
 
+    if (!context || !('useEmojiUrl' in context)) {
+        return '';
+    }
+
     return context.useEmojiUrl(emoji);
 }

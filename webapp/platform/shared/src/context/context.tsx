@@ -14,16 +14,18 @@ export interface SharedContextValue {
 
 declare global {
     interface Window {
-        __MATTERMOST_SHARED_CONTEXT__: React.Context<SharedContextValue> | undefined;
+        __MATTERMOST_SHARED_CONTEXT__: React.Context<SharedContextValue | null>;
     }
 }
+
+console.error('HARRISON does shared context exist already?', '__MATTERMOST_SHARED_CONTEXT__' in window);
 
 // If multiple copies of the shared package happen to be loaded, this makes them share the same context. In practice,
 // // this should never happen because the web app is supposed to provide the only copy of @mattermost/shared,
 // but I borrowed the idea from React Intl.
 export const SharedContext = window?.__MATTERMOST_SHARED_CONTEXT__ ?? (
-    window.__MATTERMOST_SHARED_CONTEXT__ = React.createContext<SharedContextValue>(
-        null as unknown as SharedContextValue,
+    window.__MATTERMOST_SHARED_CONTEXT__ = React.createContext<SharedContextValue | null>(
+        null,
     )
 );
 SharedContext.displayName = 'MattermostSharedContext';
