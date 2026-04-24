@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {FileTypes} from './constants';
-import {getFileType} from './utils';
+import {getFileType, getSuggestionBoxHorizontalOffset, getSuggestionBoxRightBoundary} from './utils';
 
 describe('Utils.getFileType', () => {
     test('should identify image files by extension', () => {
@@ -59,5 +59,110 @@ describe('Utils.getFileType', () => {
         expect(getFileType(null as any)).toBe(FileTypes.OTHER);
         expect(getFileType(undefined as any)).toBe(FileTypes.OTHER);
         expect(getFileType('')).toBe(FileTypes.OTHER);
+    });
+});
+
+describe('Utils.getSuggestionBoxHorizontalOffset', () => {
+    test('should shift the suggestion box left when it would overflow the textbox', () => {
+        expect(getSuggestionBoxHorizontalOffset(
+            360,
+            39,
+            470,
+            496,
+            1100,
+            295,
+        )).toBe(-26);
+    });
+
+    test('should clamp the suggestion box to the left edge of the viewport', () => {
+        expect(getSuggestionBoxHorizontalOffset(
+            20,
+            400,
+            874,
+            496,
+            1100,
+            295,
+        )).toBe(-295);
+    });
+
+    test('should clamp the suggestion box to the visible viewport width', () => {
+        expect(getSuggestionBoxHorizontalOffset(
+            470,
+            39,
+            874,
+            496,
+            1100,
+            295,
+        )).toBe(309);
+    });
+
+    test('should clamp the suggestion box to the visible space before the RHS', () => {
+        expect(getSuggestionBoxHorizontalOffset(
+            470,
+            39,
+            874,
+            496,
+            695,
+            295,
+        )).toBe(-96);
+    });
+
+    test('should align to the textbox when requested', () => {
+        expect(getSuggestionBoxHorizontalOffset(
+            470,
+            39,
+            874,
+            496,
+            1100,
+            295,
+            true,
+        )).toBe(0);
+    });
+});
+
+describe('Utils.getSuggestionBoxRightBoundary', () => {
+    const originalGetElementById = document.getElementById;
+
+    afterEach(() => {
+        document.getElementById = originalGetElementById.bind(document);
+    });
+
+    test('should use the viewport width when the RHS is absent', () => {
+        document.getElementById = jest.fn().mockReturnValue(null);
+
+        expect(getSuggestionBoxRightBoundary(document.createElement('textarea'), 1100)).toBe(1100);
+    });
+
+    test('should use the RHS left edge when the textbox is outside the RHS', () => {
+        const textArea = document.createElement('textarea');
+        const sidebarRight = {
+            contains: jest.fn().mockReturnValue(false),
+            getBoundingClientRect: jest.fn().mockReturnValue({left: 695}),
+        };
+        document.getElementById = jest.fn().mockReturnValue(sidebarRight as unknown as HTMLElement);
+
+        expect(getSuggestionBoxRightBoundary(textArea, 1100)).toBe(695);
+    });
+
+    test('should ignore the RHS boundary for textboxes rendered inside the RHS', () => {
+        const textArea = document.createElement('textarea');
+        const sidebarRight = {
+            contains: jest.fn().mockReturnValue(true),
+            getBoundingClientRect: jest.fn().mockReturnValue({left: 695}),
+        };
+        document.getElementById = jest.fn().mockReturnValue(sidebarRight as unknown as HTMLElement);
+
+        expect(getSuggestionBoxRightBoundary(textArea, 1100)).toBe(1100);
+    });
+
+    test('should use the viewport width when the RHS is offscreen', () => {
+        const textArea = document.createElement('textarea');
+        const sidebarRight = {
+            contains: jest.fn().mockReturnValue(false),
+            getBoundingClientRect: jest.fn().mockReturnValue({left: 1400}),
+        };
+        document.getElementById = jest.fn().mockReturnValue(sidebarRight as unknown as HTMLElement);
+
+        expect(getSuggestionBoxRightBoundary(textArea, 1100)).toBe(1100);
     });
 });

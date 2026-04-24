@@ -793,26 +793,22 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
 
     // value in pixels for the offsetLeft for the textArea
     const {top: txtAreaOffsetTop, left: txtAreaOffsetLft} = offsetTopLeft(textArea);
+    const availableRightBoundary = getSuggestionBoxRightBoundary(textArea, viewportWidth);
 
-    // how many pixels to the right should be moved the suggestion box
-    let pxToTheRight = (caretXCoordinateInTxtArea) - (pxToSubstract);
-
-    // the x coordinate in the viewport of the suggestion box border-right
-    const xBoxRightCoordinate = caretXCoordinateInTxtArea + txtAreaOffsetLft + suggestionBoxWidth;
-
-    if (alignWithTextBox) {
-        // when the list should be aligned with the textbox just set this value to 0
-        pxToTheRight = 0;
-    } else if (xBoxRightCoordinate > viewportWidth) {
-        // if the right-border edge of the suggestion box will overflow the x-axis viewport
-        // stick the suggestion list to the very right of the TextArea
-        pxToTheRight = textAreaWidth - suggestionBoxWidth;
-    }
+    const pxToTheRight = getSuggestionBoxHorizontalOffset(
+        caretXCoordinateInTxtArea,
+        pxToSubstract,
+        textAreaWidth,
+        suggestionBoxWidth,
+        availableRightBoundary,
+        txtAreaOffsetLft,
+        alignWithTextBox,
+    );
 
     return {
 
         // The rough location of the caret in the textbox
-        pixelsToMoveX: Math.max(0, Math.round(pxToTheRight)),
+        pixelsToMoveX: pxToTheRight,
         pixelsToMoveY: Math.round(caretYCoordinateInTxtArea),
 
         // The line height of the textbox is needed so that the SuggestionList can adjust its position to be below the current line in the textbox
@@ -820,6 +816,45 @@ export function getSuggestionBoxAlgn(textArea: HTMLTextAreaElement, pxToSubstrac
 
         placementShift: txtAreaOffsetTop + caretYCoordinateInTxtArea + Constants.SUGGESTION_LIST_MAXHEIGHT > viewportHeight - Constants.POST_AREA_HEIGHT,
     };
+}
+
+export function getSuggestionBoxHorizontalOffset(
+    caretXCoordinateInTxtArea: number,
+    pxToSubstract: number,
+    textAreaWidth: number,
+    suggestionBoxWidth: number,
+    rightBoundary: number,
+    textAreaOffsetLft: number,
+    alignWithTextBox = false,
+) {
+    if (alignWithTextBox) {
+        return 0;
+    }
+
+    const desiredOffset = caretXCoordinateInTxtArea - pxToSubstract;
+    const maxOffsetWithinTextArea = textAreaWidth - suggestionBoxWidth;
+    const maxOffsetWithinBoundary = rightBoundary - textAreaOffsetLft - suggestionBoxWidth;
+    const maxAllowedOffset = Math.min(maxOffsetWithinTextArea, maxOffsetWithinBoundary);
+    const minAllowedOffset = -textAreaOffsetLft;
+
+    return Math.round(Math.max(
+        minAllowedOffset,
+        Math.min(desiredOffset, maxAllowedOffset),
+    ));
+}
+
+export function getSuggestionBoxRightBoundary(textArea: HTMLTextAreaElement, viewportWidth: number) {
+    const sidebarRight = document.getElementById('sidebar-right');
+    if (!sidebarRight || sidebarRight.contains(textArea)) {
+        return viewportWidth;
+    }
+
+    const sidebarRect = sidebarRight.getBoundingClientRect();
+    if (sidebarRect.left >= viewportWidth) {
+        return viewportWidth;
+    }
+
+    return Math.min(viewportWidth, sidebarRect.left);
 }
 
 export function getPxToSubstract(char = '@') {
