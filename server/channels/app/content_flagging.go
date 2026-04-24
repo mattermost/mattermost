@@ -746,7 +746,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	if (err == nil && len(reminders) == 0) || errors.As(err, &nfErr) {
 		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 	} else {
-		if deleteErr := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
+		if deleteErr := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); deleteErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
 			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepFailed, "", []string{deleteErr.Error()})
 		} else {

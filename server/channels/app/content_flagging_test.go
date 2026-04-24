@@ -2631,33 +2631,18 @@ func TestPermanentDeleteFlaggedPostReport(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 	require.Nil(t, setBaseConfig(th))
 
-	// Create a post with file attachments and edit history to exercise all report steps
-	post := th.CreatePost(t, th.BasicChannel)
+	// Upload real files and create a post with those attachments to exercise all report steps
+	fileInfo1, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "report_file1.txt", []byte("file content 1"), true)
+	require.Nil(t, appErr)
+	fileInfo2, appErr := th.App.DoUploadFile(th.Context, time.Now(), th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, "report_file2.txt", []byte("file content 2"), true)
+	require.Nil(t, appErr)
 
-	fileInfo1 := &model.FileInfo{
-		Id:        model.NewId(),
-		PostId:    post.Id,
-		CreatorId: post.UserId,
-		Path:      "test/report_file1.txt",
-		Name:      "report_file1.txt",
-		Size:      100,
-	}
-	fileInfo2 := &model.FileInfo{
-		Id:        model.NewId(),
-		PostId:    post.Id,
-		CreatorId: post.UserId,
-		Path:      "test/report_file2.txt",
-		Name:      "report_file2.txt",
-		Size:      200,
-	}
-
-	_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
-	require.NoError(t, err)
-	_, err = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
-	require.NoError(t, err)
-
-	post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-	_, _, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+	post, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "post with real file attachments",
+		FileIds:   []string{fileInfo1.Id, fileInfo2.Id},
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
 	// Create edit history
