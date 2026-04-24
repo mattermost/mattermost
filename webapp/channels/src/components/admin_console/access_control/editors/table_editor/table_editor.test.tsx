@@ -5,7 +5,7 @@ import type {AccessControlVisualAST} from '@mattermost/types/access_control';
 import type {FieldType, UserPropertyField} from '@mattermost/types/properties';
 
 import {isSimpleExpression, isSimpleCondition, isMultiselectOrGroup} from 'components/admin_console/access_control/editors/shared';
-import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, CORE_FIELD_EMAIL} from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import {parseExpression, findFirstAvailableAttributeFromList, rowToCEL, celStringLiteral, CORE_FIELD_EMAIL, CORE_FIELD_CHANNEL_TYPE, isResourceCoreField, attributeToUserCELPath, parseUserAttributePath} from 'components/admin_console/access_control/editors/table_editor/table_editor';
 
 describe('parseExpression', () => {
     test('handles "==" operator mapping to "is"', () => {
@@ -164,6 +164,252 @@ describe('parseExpression', () => {
         expect(parseExpression(undefined as any)).toEqual([]);
         expect(parseExpression({conditions: []})).toEqual([]);
     });
+
+    test('parses resource.type into CORE_FIELD_CHANNEL_TYPE', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'resource.type',
+                    operator: '==',
+                    value: 'public',
+                    value_type: 0,
+                    attribute_type: 'select',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: CORE_FIELD_CHANNEL_TYPE,
+                operator: 'is',
+                values: ['public'],
+                attribute_type: 'select',
+            },
+        ]);
+    });
+
+    test('parses native user.email into CORE_FIELD_EMAIL', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.email',
+                    operator: 'startsWith',
+                    value: 'admin',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: CORE_FIELD_EMAIL,
+                operator: 'starts with',
+                values: ['admin'],
+                attribute_type: 'text',
+            },
+        ]);
+    });
+
+    test('parses legacy user.attributes.email into CORE_FIELD_EMAIL (backward compat)', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes.email',
+                    operator: '==',
+                    value: 'me@co.com',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: CORE_FIELD_EMAIL,
+                operator: 'is',
+                values: ['me@co.com'],
+                attribute_type: 'text',
+            },
+        ]);
+    });
+});
+
+describe('rowToCEL with resource core fields', () => {
+    test('emits resource.type for channel type core field', () => {
+        const cel = rowToCEL({
+            attribute: CORE_FIELD_CHANNEL_TYPE,
+            operator: 'is',
+            values: ['public'],
+            attribute_type: 'select',
+        });
+        expect(cel).toBe('resource.type == "public"');
+    });
+
+    test('emits resource.type with "in" for multi-value channel type', () => {
+        const cel = rowToCEL({
+            attribute: CORE_FIELD_CHANNEL_TYPE,
+            operator: 'in',
+            values: ['public', 'private'],
+            attribute_type: 'select',
+        });
+        expect(cel).toBe('resource.type in ["public", "private"]');
+    });
+});
+
+describe('rowToCEL with user core fields emits top-level paths', () => {
+    test('emits user.email for email core field with "is" operator', () => {
+        const cel = rowToCEL({
+            attribute: CORE_FIELD_EMAIL,
+            operator: 'is',
+            values: ['me@co.com'],
+            attribute_type: 'text',
+        });
+        expect(cel).toBe('user.email == "me@co.com"');
+    });
+
+    test('emits user.email.startsWith(...) for email core field', () => {
+        const cel = rowToCEL({
+            attribute: CORE_FIELD_EMAIL,
+            operator: 'starts with',
+            values: ['admin'],
+            attribute_type: 'text',
+        });
+        expect(cel).toBe('user.email.startsWith("admin")');
+    });
+});
+
+describe('isResourceCoreField', () => {
+    test('returns true for CORE_FIELD_CHANNEL_TYPE', () => {
+        expect(isResourceCoreField(CORE_FIELD_CHANNEL_TYPE)).toBe(true);
+    });
+
+    test('returns false for user core fields', () => {
+        expect(isResourceCoreField(CORE_FIELD_EMAIL)).toBe(false);
+    });
+
+    test('returns false for unknown fields', () => {
+        expect(isResourceCoreField('department')).toBe(false);
+    });
+});
+
+describe('attributeToUserCELPath', () => {
+    test('emits dot form for simple identifier', () => {
+        expect(attributeToUserCELPath('Team')).toBe('user.attributes.Team');
+    });
+
+    test('emits index form for attribute with space', () => {
+        expect(attributeToUserCELPath('Full Name')).toBe('user.attributes["Full Name"]');
+    });
+
+    test('emits index form for attribute with hyphen', () => {
+        expect(attributeToUserCELPath('full-name')).toBe('user.attributes["full-name"]');
+    });
+
+    test('escapes double quotes and backslashes in the key', () => {
+        expect(attributeToUserCELPath('has "quotes"')).toBe('user.attributes["has \\"quotes\\""]');
+        expect(attributeToUserCELPath('with\\slash')).toBe('user.attributes["with\\\\slash"]');
+    });
+});
+
+describe('parseUserAttributePath', () => {
+    test('parses dot form', () => {
+        expect(parseUserAttributePath('user.attributes.Team')).toBe('Team');
+    });
+
+    test('parses index form with spaces', () => {
+        expect(parseUserAttributePath('user.attributes["Full Name"]')).toBe('Full Name');
+    });
+
+    test('unescapes quotes and backslashes in index form', () => {
+        expect(parseUserAttributePath('user.attributes["has \\"quotes\\""]')).toBe('has "quotes"');
+        expect(parseUserAttributePath('user.attributes["with\\\\slash"]')).toBe('with\\slash');
+    });
+
+    test('returns null for unrecognised paths', () => {
+        expect(parseUserAttributePath('something.else')).toBeNull();
+        expect(parseUserAttributePath('user.email')).toBeNull();
+    });
+});
+
+describe('rowToCEL emits index form for special-char attribute names', () => {
+    test('attribute with space uses index notation', () => {
+        const cel = rowToCEL({
+            attribute: 'Full Name',
+            operator: 'is',
+            values: ['Dr. Jane'],
+            attribute_type: 'text',
+        });
+        expect(cel).toBe('user.attributes["Full Name"] == "Dr. Jane"');
+    });
+
+    test('attribute with space and startsWith method', () => {
+        const cel = rowToCEL({
+            attribute: 'Full Name',
+            operator: 'starts with',
+            values: ['Dr.'],
+            attribute_type: 'text',
+        });
+        expect(cel).toBe('user.attributes["Full Name"].startsWith("Dr.")');
+    });
+});
+
+describe('parseExpression handles index notation', () => {
+    test('parses user.attributes["Spaced Name"] back into short attribute', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.attributes["Spaced Name"]',
+                    operator: '==',
+                    value: 'Schwabing',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        expect(parseExpression(ast)).toEqual([
+            {
+                attribute: 'Spaced Name',
+                operator: 'is',
+                values: ['Schwabing'],
+                attribute_type: 'text',
+            },
+        ]);
+    });
+
+    test('parses mixed native/dot/index conditions', () => {
+        const ast: AccessControlVisualAST = {
+            conditions: [
+                {
+                    attribute: 'user.email_verified',
+                    operator: '==',
+                    value: true,
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+                {
+                    attribute: 'user.attributes.Team',
+                    operator: '==',
+                    value: 'Eng',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+                {
+                    attribute: 'user.attributes["Full Name"]',
+                    operator: 'startsWith',
+                    value: 'Dr.',
+                    value_type: 0,
+                    attribute_type: 'text',
+                },
+            ],
+        };
+
+        const rows = parseExpression(ast);
+        expect(rows).toHaveLength(3);
+        expect(rows[1].attribute).toBe('Team');
+        expect(rows[2].attribute).toBe('Full Name');
+    });
 });
 
 describe('parseExpression with multiselect attributes', () => {
@@ -261,7 +507,7 @@ describe('findFirstAvailableAttributeFromList', () => {
 
     test('returns first attribute that is synced from LDAP', () => {
         const attributes = [
-            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe attribute'), // Not synced, not admin-managed
             createMockAttribute('unsafe_attribute'), // Not synced
             createMockAttribute('ldap_attribute', {ldap: 'ldap_field'}), // Synced from LDAP
         ];
@@ -272,7 +518,7 @@ describe('findFirstAvailableAttributeFromList', () => {
 
     test('returns first attribute that is synced from SAML', () => {
         const attributes = [
-            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe attribute'), // Not synced
             createMockAttribute('saml_attribute', {saml: 'saml_field'}), // Synced from SAML
         ];
 
@@ -282,17 +528,20 @@ describe('findFirstAvailableAttributeFromList', () => {
 
     test('returns first user-managed attribute when enableUserManagedAttributes is true', () => {
         const attributes = [
-            createMockAttribute('invalid attribute'), // Has spaces - still skipped
-            createMockAttribute('user_managed_attribute'), // User managed
+            createMockAttribute('spaced attribute'), // Spaces allowed — emitted with index notation
+            createMockAttribute('user_managed_attribute'),
         ];
 
+        // With user-managed enabled, the first attribute (including those with
+        // spaces) is now considered available; the CEL emitter will use
+        // index notation (user.attributes["spaced attribute"]).
         const result = findFirstAvailableAttributeFromList(attributes, true);
-        expect(result?.name).toBe('user_managed_attribute');
+        expect(result?.name).toBe('spaced attribute');
     });
 
     test('returns first attribute that is admin-managed', () => {
         const attributes = [
-            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe attribute'), // Not synced, not admin-managed
             createMockAttribute('unsafe_attribute'), // Not synced or admin-managed
             createMockAttribute('admin_managed_attribute', {managed: 'admin'}), // Admin-managed
         ];
@@ -303,7 +552,7 @@ describe('findFirstAvailableAttributeFromList', () => {
 
     test('returns first attribute that is plugin-managed (protected)', () => {
         const attributes = [
-            createMockAttribute('invalid attribute'), // Has spaces
+            createMockAttribute('unsafe attribute'), // Not synced, not protected
             createMockAttribute('unsafe_attribute'), // Not synced or protected
             createMockAttribute('protected_attribute', {protected: true, source_plugin_id: 'com.example.plugin'}), // Protected by plugin
         ];
@@ -312,14 +561,16 @@ describe('findFirstAvailableAttributeFromList', () => {
         expect(result?.name).toBe('protected_attribute');
     });
 
-    test('skips attributes with spaces even when synced', () => {
+    test('returns attributes with spaces when synced (spaces no longer disqualify)', () => {
         const attributes = [
-            createMockAttribute('synced attribute', {ldap: 'ldap_field'}), // Has spaces but synced
-            createMockAttribute('valid_synced_attribute', {ldap: 'ldap_field'}), // Valid and synced
+            createMockAttribute('synced attribute', {ldap: 'ldap_field'}), // Has spaces and synced
+            createMockAttribute('valid_synced_attribute', {ldap: 'ldap_field'}),
         ];
 
+        // Spaces are now supported: the CEL emitter uses index notation
+        // (user.attributes["synced attribute"]) for non-identifier names.
         const result = findFirstAvailableAttributeFromList(attributes, false);
-        expect(result?.name).toBe('valid_synced_attribute');
+        expect(result?.name).toBe('synced attribute');
     });
 });
 
@@ -510,5 +761,65 @@ describe('isSimpleCondition', () => {
 
     test('rejects function calls', () => {
         expect(isSimpleCondition('size(user.attributes.roles) > 0')).toBe(false);
+    });
+
+    test('native user.email', () => {
+        expect(isSimpleCondition('user.email == "me@co.com"')).toBe(true);
+    });
+
+    test('native user.is_bot with bool literal', () => {
+        expect(isSimpleCondition('user.is_bot == false')).toBe(true);
+    });
+
+    test('native user.email_verified with bool literal', () => {
+        expect(isSimpleCondition('user.email_verified == true')).toBe(true);
+    });
+
+    test('native user.email startsWith', () => {
+        expect(isSimpleCondition('user.email.startsWith("admin")')).toBe(true);
+    });
+
+    test('resource.type equality', () => {
+        expect(isSimpleCondition('resource.type == "public"')).toBe(true);
+    });
+
+    test('resource.type in list', () => {
+        expect(isSimpleCondition('resource.type in ["public", "private"]')).toBe(true);
+    });
+
+    test('index notation equality', () => {
+        expect(isSimpleCondition('user.attributes["Full Name"] == "Jane"')).toBe(true);
+    });
+
+    test('index notation startsWith', () => {
+        expect(isSimpleCondition('user.attributes["Full Name"].startsWith("Dr.")')).toBe(true);
+    });
+
+    test('index notation in list', () => {
+        expect(isSimpleCondition('user.attributes["Access Level"] in ["L1", "L2"]')).toBe(true);
+    });
+
+    test('scalar in index-form attribute', () => {
+        expect(isSimpleCondition('"Staff" in user.attributes["Team Roles"]')).toBe(true);
+    });
+
+    test('equality with numeric literal', () => {
+        expect(isSimpleCondition('user.attributes.score == 42')).toBe(true);
+    });
+});
+
+describe('isSimpleExpression with native and index-form paths', () => {
+    test('full policy combining native field and index notation', () => {
+        expect(isSimpleExpression('user.email_verified == true && user.attributes["Location"] == "Schwabing"')).toBe(true);
+    });
+
+    test('combining resource, native, and CPA', () => {
+        expect(isSimpleExpression('resource.type == "public" && user.email.endsWith("@co.com") && user.attributes.Team == "Eng"')).toBe(true);
+    });
+});
+
+describe('isMultiselectOrGroup with index-form paths', () => {
+    test('OR group on index-form attribute', () => {
+        expect(isMultiselectOrGroup('("Staff" in user.attributes["Team Roles"] || "Admin" in user.attributes["Team Roles"])')).toBe(true);
     });
 });

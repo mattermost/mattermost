@@ -67,17 +67,37 @@ export function isMultiselectOperator(op: string): boolean {
     return op === OperatorLabel.HAS_ANY_OF || op === OperatorLabel.HAS_ALL_OF;
 }
 
+// ATTR_REF matches a single attribute reference in one of the supported forms:
+//   - user.<native>                   e.g. user.email, user.is_bot, user.email_verified
+//   - user.attributes.<identifier>    dot form for simple CPA field names
+//   - user.attributes["<anything>"]   index form for CPA field names with special chars
+//   - resource.<native>               e.g. resource.type, resource.team_id
+// The inner quoted string allows escaped double quotes and backslashes.
+const ATTR_REF = String.raw`(?:user|resource)\.(?:\w+|attributes\.\w+|attributes\["(?:[^"\\]|\\.)*"\])`;
+
+// LITERAL_RHS matches a literal on the right-hand side of a comparison:
+// a quoted string, or a boolean, or a number.
+const LITERAL_RHS = String.raw`(?:['"][^'"]*['"]|true|false|-?\d+(?:\.\d+)?)`;
+
+function build(...patterns: string[]): RegExp {
+    return new RegExp('^' + patterns.join('') + '$');
+}
+
+const SIMPLE_CONDITION_PATTERNS: RegExp[] = [
+    build(ATTR_REF, String.raw`\s*(==|!=)\s*`, LITERAL_RHS),
+    build(ATTR_REF, String.raw`\s+in\s+\[.*?\]`),
+    build(String.raw`(?:\[.*?\]|['"][^'"]*['"])\s+in\s+`, ATTR_REF),
+    build(ATTR_REF, String.raw`\.startsWith\(['"][^'"]*['"].*?\)`),
+    build(ATTR_REF, String.raw`\.endsWith\(['"][^'"]*['"].*?\)`),
+    build(ATTR_REF, String.raw`\.contains\(['"][^'"]*['"].*?\)`),
+];
+
 export function isSimpleCondition(s: string): boolean {
     const trimmed = s.trim();
-    return Boolean(
-        trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-        trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-        trimmed.match(/^((\[.*?\])|['"][^'"]*['"])\s+in\s+user\.attributes\.\w+$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-        trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/),
-    );
+    return SIMPLE_CONDITION_PATTERNS.some((re) => re.test(trimmed));
 }
+
+const MULTISELECT_PART = build(String.raw`['"][^'"]*['"]\s+in\s+`, ATTR_REF);
 
 export function isMultiselectOrGroup(s: string): boolean {
     const trimmed = s.trim();
@@ -85,10 +105,7 @@ export function isMultiselectOrGroup(s: string): boolean {
         return false;
     }
     const inner = trimmed.slice(1, -1);
-    return inner.split('||').every((part) => {
-        const p = part.trim();
-        return Boolean(p.match(/^['"][^'"]*['"]\s+in\s+user\.attributes\.\w+$/));
-    });
+    return inner.split('||').every((part) => MULTISELECT_PART.test(part.trim()));
 }
 
 export function isSimpleExpression(expr: string): boolean {
@@ -101,20 +118,19 @@ export function isSimpleExpression(expr: string): boolean {
 }
 
 // Checks if there are any usable attributes for ABAC policies.
-// An attribute is usable if:
-// 1. It doesn't contain spaces (CEL incompatible)
-// 2. It's either synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR user-managed attributes are enabled
+// An attribute is usable if it's either synced from LDAP/SAML, admin-managed,
+// plugin-managed (protected), OR user-managed attributes are enabled. Attribute
+// names with spaces or other non-identifier characters are supported: the CEL
+// emitter falls back to index notation (user.attributes["Full Name"]).
 export function hasUsableAttributes(
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): boolean {
     return userAttributes.some((attr) => {
-        const hasSpaces = attr.name.includes(' ');
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
         const isProtected = attr.attrs?.protected;
-        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
-        return !hasSpaces && allowed;
+        return isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
     });
 }
 

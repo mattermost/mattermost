@@ -14,7 +14,6 @@ import {
     FormatListBulletedIcon,
     LinkVariantIcon,
     PoundIcon,
-    InformationOutlineIcon,
     SyncIcon,
     ShieldAlertOutlineIcon,
 } from '@mattermost/compass-icons/components';
@@ -150,7 +149,6 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
                 const isCore = isCoreField(name);
                 const displayName = isCore ? getCoreFieldDisplayName(name) : name;
-                const hasSpaces = !isCore && name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
                 const isAdminManaged = option.attrs?.managed === 'admin';
                 const isProtected = option.attrs?.protected;
@@ -163,9 +161,9 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         role='menuitemradio'
                         forceCloseOnSelect={true}
                         aria-checked={name === currentAttribute}
-                        onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
+                        onClick={allowed ? () => handleAttributeChange(name) : undefined}
                         labels={<span>{displayName}</span>}
-                        disabled={hasSpaces || !allowed}
+                        disabled={!allowed}
                         leadingElement={
                             <AttributeIcon
                                 attribute={option}
@@ -174,11 +172,6 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         }
                         trailingElements={(
                             <>
-                                {hasSpaces && (
-                                    <InformationOutlineIcon
-                                        size={18}
-                                    />
-                                )}
                                 {!allowed && !isSynced && (
                                     <ShieldAlertOutlineIcon
                                         size={18}
@@ -201,12 +194,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
 
                 // Determine tooltip content based on conditions
                 let tooltipContent = null;
-                if (hasSpaces) {
-                    tooltipContent = formatMessage({
-                        id: 'admin.access_control.table_editor.attribute_spaces_not_supported',
-                        defaultMessage: 'CEL is not compatible with variable names containing spaces',
-                    });
-                } else if (!allowed) {
+                if (!allowed) {
                     tooltipContent = formatMessage({
                         id: 'admin.access_control.table_editor.not_safe_to_use',
                         defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',

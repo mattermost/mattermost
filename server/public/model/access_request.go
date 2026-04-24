@@ -53,10 +53,29 @@ type SubjectCursor struct {
 // Resource is the target of an access request.
 type Resource struct {
 	// ID is the unique identifier of the Resource.
-	// It can be a channel ID, post ID, etc and it is scoped to the Type.
+	// It can be a channel ID, post ID, etc and it is scoped to the Kind.
 	ID string `json:"id"`
-	// Type specifies the type of the Resource, eg. channel, post, etc.
-	Type string `json:"type"`
+	// Kind specifies the kind of the Resource, eg. channel, post, team.
+	// This is used internally by the PDP to route requests to the right
+	// policy type and is NOT exposed in CEL expressions.
+	Kind string `json:"kind"`
+
+	// Native resource fields are first-class, built-in attributes exposed
+	// in CEL as resource.<field>. They are populated by the PEP based on
+	// the resource's kind (e.g. channel fields for channel-scoped requests).
+
+	// ChannelType is the channel's type translated to a CEL-friendly value:
+	// "public", "private", "direct", or "group". Exposed as resource.type.
+	ChannelType string `json:"type,omitempty"`
+	// TeamID is the ID of the team the channel belongs to (empty for DMs/GMs).
+	// Exposed as resource.team_id.
+	TeamID string `json:"team_id,omitempty"`
+	// GroupConstrained indicates whether channel membership is constrained
+	// by groups. Exposed as resource.group_constrained.
+	GroupConstrained bool `json:"group_constrained,omitempty"`
+	// Shared indicates whether the channel is shared across clusters.
+	// Exposed as resource.shared.
+	Shared bool `json:"shared,omitempty"`
 }
 
 // AccessRequest represents the input to the Policy Decision Point (PDP).

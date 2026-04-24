@@ -26,6 +26,9 @@ export const CORE_FIELD_EMAIL = '__core_email';
 export const CORE_FIELD_IS_BOT = '__core_is_bot';
 export const CORE_FIELD_EMAIL_VERIFIED = '__core_email_verified';
 
+// Native resource fields (top-level on the Resource object, not CPA-backed)
+export const CORE_FIELD_CHANNEL_TYPE = '__core_channel_type';
+
 export const CORE_FIELDS: UserPropertyField[] = [
     {
         id: CORE_FIELD_EMAIL,
@@ -40,7 +43,7 @@ export const CORE_FIELDS: UserPropertyField[] = [
         delete_at: 0,
         created_by: '',
         updated_by: '',
-        attrs: {managed: 'admin', sort_order: -3, visibility: 'always' as const, value_type: 'email' as const},
+        attrs: {managed: 'admin', sort_order: -4, visibility: 'always' as const, value_type: 'email' as const},
     },
     {
         id: CORE_FIELD_IS_BOT,
@@ -55,7 +58,7 @@ export const CORE_FIELDS: UserPropertyField[] = [
         delete_at: 0,
         created_by: '',
         updated_by: '',
-        attrs: {managed: 'admin', sort_order: -2, visibility: 'always' as const, value_type: '' as const},
+        attrs: {managed: 'admin', sort_order: -3, visibility: 'always' as const, value_type: '' as const},
     },
     {
         id: CORE_FIELD_EMAIL_VERIFIED,
@@ -70,7 +73,33 @@ export const CORE_FIELDS: UserPropertyField[] = [
         delete_at: 0,
         created_by: '',
         updated_by: '',
-        attrs: {managed: 'admin', sort_order: -1, visibility: 'always' as const, value_type: '' as const},
+        attrs: {managed: 'admin', sort_order: -2, visibility: 'always' as const, value_type: '' as const},
+    },
+    {
+        id: CORE_FIELD_CHANNEL_TYPE,
+        name: CORE_FIELD_CHANNEL_TYPE,
+        type: 'select',
+        group_id: 'custom_profile_attributes',
+        target_id: '',
+        target_type: '',
+        object_type: '',
+        create_at: 0,
+        update_at: 0,
+        delete_at: 0,
+        created_by: '',
+        updated_by: '',
+        attrs: {
+            managed: 'admin',
+            sort_order: -1,
+            visibility: 'always' as const,
+            value_type: '' as const,
+            options: [
+                {id: 'public', name: 'public', color: ''},
+                {id: 'private', name: 'private', color: ''},
+                {id: 'direct', name: 'direct', color: ''},
+                {id: 'group', name: 'group', color: ''},
+            ],
+        },
     },
 ];
 
@@ -84,27 +113,95 @@ export function getCoreFieldDisplayName(name: string): string {
     if (name === CORE_FIELD_EMAIL_VERIFIED) {
         return 'Email Verified';
     }
+    if (name === CORE_FIELD_CHANNEL_TYPE) {
+        return 'Channel Type';
+    }
     return name;
 }
 
 export function isCoreField(name: string): boolean {
-    return name === CORE_FIELD_EMAIL || name === CORE_FIELD_IS_BOT || name === CORE_FIELD_EMAIL_VERIFIED;
+    return (
+        name === CORE_FIELD_EMAIL ||
+        name === CORE_FIELD_IS_BOT ||
+        name === CORE_FIELD_EMAIL_VERIFIED ||
+        name === CORE_FIELD_CHANNEL_TYPE
+    );
+}
+
+// isResourceCoreField returns true when the core field belongs to the Resource
+// namespace (CEL path resource.X) instead of the User namespace (user.attributes.X).
+export function isResourceCoreField(name: string): boolean {
+    return name === CORE_FIELD_CHANNEL_TYPE;
+}
+
+// CEL-valid bare identifier pattern: letter/underscore followed by word chars.
+const CEL_IDENT_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+// attributeToUserCELPath emits the correct CEL form for a CPA attribute name:
+//   - "Team"        -> user.attributes.Team          (dot form; valid identifier)
+//   - "Full Name"   -> user.attributes["Full Name"]  (index form; has special chars)
+// Backslashes and double quotes in the name are escaped for CEL.
+export function attributeToUserCELPath(name: string): string {
+    if (CEL_IDENT_PATTERN.test(name)) {
+        return `user.attributes.${name}`;
+    }
+    const escaped = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `user.attributes["${escaped}"]`;
+}
+
+// parseUserAttributePath extracts the raw attribute name from a CEL path:
+//   - user.attributes.Team              -> "Team"
+//   - user.attributes["Full Name"]      -> "Full Name"
+//   - user.attributes["escaped \"q\""]  -> 'escaped "q"'
+// Returns null when the path doesn't match either form.
+export function parseUserAttributePath(path: string): string | null {
+    const DOT = 'user.attributes.';
+    if (path.startsWith(DOT)) {
+        return path.slice(DOT.length);
+    }
+    const INDEX_PREFIX = 'user.attributes[';
+    if (path.startsWith(INDEX_PREFIX) && path.endsWith(']')) {
+        const inner = path.slice(INDEX_PREFIX.length, -1);
+        if (inner.length >= 2 && inner.startsWith('"') && inner.endsWith('"')) {
+            // Unescape CEL string literal: \\ -> \ and \" -> "
+            return inner.
+                slice(1, -1).
+                replace(/\\"/g, '"').
+                replace(/\\\\/g, '\\');
+        }
+    }
+    return null;
 }
 
 function coreFieldToCELPath(name: string): string {
     if (name === CORE_FIELD_EMAIL) {
-        return 'user.attributes.email';
+        return 'user.email';
     }
     if (name === CORE_FIELD_IS_BOT) {
-        return 'user.attributes.is_bot';
+        return 'user.is_bot';
     }
     if (name === CORE_FIELD_EMAIL_VERIFIED) {
-        return 'user.attributes.email_verified';
+        return 'user.email_verified';
     }
-    return `user.attributes.${name}`;
+    if (name === CORE_FIELD_CHANNEL_TYPE) {
+        return 'resource.type';
+    }
+    return attributeToUserCELPath(name);
 }
 
 function celPathToCoreField(path: string): string | null {
+    // New top-level native paths
+    if (path === 'user.email') {
+        return CORE_FIELD_EMAIL;
+    }
+    if (path === 'user.is_bot') {
+        return CORE_FIELD_IS_BOT;
+    }
+    if (path === 'user.email_verified') {
+        return CORE_FIELD_EMAIL_VERIFIED;
+    }
+    // Legacy paths: user.attributes.email etc. (still supported at evaluation
+    // time for backward compatibility) are displayed as native core fields.
     if (path === 'user.attributes.email') {
         return CORE_FIELD_EMAIL;
     }
@@ -114,6 +211,9 @@ function celPathToCoreField(path: string): string | null {
     if (path === 'user.attributes.email_verified') {
         return CORE_FIELD_EMAIL_VERIFIED;
     }
+    if (path === 'resource.type') {
+        return CORE_FIELD_CHANNEL_TYPE;
+    }
     return null;
 }
 
@@ -122,7 +222,7 @@ export function celStringLiteral(val: string): string {
 }
 
 export function rowToCEL(row: TableRow): string {
-    const attributeExpr = isCoreField(row.attribute) ? coreFieldToCELPath(row.attribute) : `user.attributes.${row.attribute}`;
+    const attributeExpr = isCoreField(row.attribute) ? coreFieldToCELPath(row.attribute) : attributeToUserCELPath(row.attribute);
     const config = OPERATOR_CONFIG[row.operator];
 
     if (!config) {
@@ -183,19 +283,19 @@ interface TableEditorProps {
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
-// An attribute is considered available if it doesn't have spaces in its name (CEL incompatible)
-// and is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
+// An attribute is considered available when it's "safe" (synced from LDAP/SAML,
+// admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
+// Attribute names with spaces or other non-identifier characters are allowed:
+// the CEL emitter uses index notation for them.
 export const findFirstAvailableAttributeFromList = (
     userAttributes: UserPropertyField[],
     enableUserManagedAttributes: boolean,
 ): UserPropertyField | undefined => {
     return userAttributes.find((attr) => {
-        const hasSpaces = attr.name.includes(' ');
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
         const isProtected = attr.attrs?.protected;
-        const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
-        return !hasSpaces && allowed;
+        return isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
     });
 };
 
@@ -215,10 +315,12 @@ export const parseExpression = (visualAST: AccessControlVisualAST): TableRow[] =
         const coreField = celPathToCoreField(node.attribute);
         if (coreField) {
             attr = coreField;
-        } else if (node.attribute.startsWith('user.attributes.')) {
-            attr = node.attribute.slice(16); // Length of 'user.attributes.'
         } else {
-            throw new Error(`Unknown attribute: ${node.attribute}`);
+            const parsed = parseUserAttributePath(node.attribute);
+            if (parsed === null) {
+                throw new Error(`Unknown attribute: ${node.attribute}`);
+            }
+            attr = parsed;
         }
 
         let op = OPERATOR_LABELS[node.operator];

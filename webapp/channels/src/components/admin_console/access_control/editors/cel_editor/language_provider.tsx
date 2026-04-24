@@ -211,19 +211,39 @@ export function MonacoLanguageProvider({schemas}: MonacoLanguageProviderProps) {
                         // Get properties for this path
                         const properties = getPropertiesFromPath(fullPath);
 
+                        const IDENT = /^[A-Za-z_][A-Za-z0-9_]*$/;
                         if (properties.length > 0) {
                             return {
-                                suggestions: properties.map((field) => ({
-                                    label: field,
-                                    kind: monaco.languages.CompletionItemKind.Field,
-                                    insertText: field,
-                                    range: {
-                                        startLineNumber: lineNumber,
-                                        startColumn: column,
-                                        endLineNumber: lineNumber,
-                                        endColumn: column,
-                                    },
-                                })),
+                                suggestions: properties.map((field) => {
+                                    if (IDENT.test(field)) {
+                                        return {
+                                            label: field,
+                                            kind: monaco.languages.CompletionItemKind.Field,
+                                            insertText: field,
+                                            range: {
+                                                startLineNumber: lineNumber,
+                                                startColumn: column,
+                                                endLineNumber: lineNumber,
+                                                endColumn: column,
+                                            },
+                                        };
+                                    }
+
+                                    // Non-identifier name (has spaces, hyphens, etc.):
+                                    // replace the trailing "." with ["field"] index notation.
+                                    const escaped = field.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                                    return {
+                                        label: field,
+                                        kind: monaco.languages.CompletionItemKind.Field,
+                                        insertText: `["${escaped}"]`,
+                                        range: {
+                                            startLineNumber: lineNumber,
+                                            startColumn: column - 1, // cover the preceding "."
+                                            endLineNumber: lineNumber,
+                                            endColumn: column,
+                                        },
+                                    };
+                                }),
                             };
                         }
                     }

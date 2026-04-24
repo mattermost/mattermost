@@ -1426,3 +1426,36 @@ func TestHasPermissionToAction(t *testing.T) {
 		assert.True(t, result)
 	})
 }
+
+func TestBuildChannelResource(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("public channel populates resource with type=public", func(t *testing.T) {
+		resource, appErr := th.App.BuildChannelResource(th.Context, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, th.BasicChannel.Id, resource.ID)
+		assert.Equal(t, model.AccessControlPolicyTypeChannel, resource.Kind)
+		assert.Equal(t, "public", resource.ChannelType)
+		assert.Equal(t, th.BasicChannel.TeamId, resource.TeamID)
+	})
+
+	t.Run("private channel populates resource with type=private", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		resource, appErr := th.App.BuildChannelResource(th.Context, privateChannel.Id)
+		require.Nil(t, appErr)
+		assert.Equal(t, "private", resource.ChannelType)
+	})
+}
+
+func TestChannelTypeToCELValue(t *testing.T) {
+	t.Run("maps all channel types", func(t *testing.T) {
+		assert.Equal(t, "public", channelTypeToCELValue(model.ChannelTypeOpen))
+		assert.Equal(t, "private", channelTypeToCELValue(model.ChannelTypePrivate))
+		assert.Equal(t, "direct", channelTypeToCELValue(model.ChannelTypeDirect))
+		assert.Equal(t, "group", channelTypeToCELValue(model.ChannelTypeGroup))
+	})
+
+	t.Run("unknown type falls through to raw value", func(t *testing.T) {
+		assert.Equal(t, "X", channelTypeToCELValue(model.ChannelType("X")))
+	})
+}

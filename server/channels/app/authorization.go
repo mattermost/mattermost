@@ -653,13 +653,21 @@ func (a *App) HasPermissionToAction(rctx request.CTX, userID string, roles strin
 		return false
 	}
 
+	resource, appErr := a.BuildChannelResource(rctx, channelID)
+	if appErr != nil {
+		rctx.Logger().Info("Failed to build ABAC resource for action evaluation",
+			mlog.String("user_id", userID),
+			mlog.String("action", action),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return false
+	}
+
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: *subject,
-		Resource: model.Resource{
-			Type: model.AccessControlPolicyTypeChannel,
-			ID:   channelID,
-		},
-		Action: action,
+		Subject:  *subject,
+		Resource: resource,
+		Action:   action,
 	})
 	if evalErr != nil {
 		rctx.Logger().Debug("ABAC action evaluation failed, denying by default",

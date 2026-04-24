@@ -529,7 +529,7 @@ func (a *App) EvaluateTeamMembershipPolicy(rctx request.CTX, userId string, team
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 		Subject: *subject,
 		Resource: model.Resource{
-			Type: model.AccessControlPolicyTypeTeam,
+			Kind: model.AccessControlPolicyTypeTeam,
 			ID:   team.Id,
 		},
 		Action: "membership",
@@ -751,6 +751,51 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	}
 
 	return subject, nil
+}
+
+// BuildChannelResource builds a model.Resource for a channel, populating resource
+// attributes used in ABAC CEL evaluation (e.g. resource.attributes.type).
+// Channel type codes ("O"/"P"/"D"/"G") are translated to human-readable values
+// ("public"/"private"/"direct"/"group") to keep CEL expressions natural.
+func (a *App) BuildChannelResource(rctx request.CTX, channelID string) (model.Resource, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return model.Resource{}, appErr
+	}
+	return buildChannelResourceFromChannel(channel), nil
+}
+
+// buildChannelResourceFromChannel constructs a Resource for a pre-fetched channel.
+// Callers that already have the channel should prefer this to avoid a DB round-trip.
+// Native channel fields are populated as top-level Resource fields so CEL expressions
+// can access them as resource.type, resource.team_id, etc.
+func buildChannelResourceFromChannel(channel *model.Channel) model.Resource {
+	return model.Resource{
+		Kind:             model.AccessControlPolicyTypeChannel,
+		ID:               channel.Id,
+		ChannelType:      channelTypeToCELValue(channel.Type),
+		TeamID:           channel.TeamId,
+		GroupConstrained: channel.GroupConstrained != nil && *channel.GroupConstrained,
+		Shared:           channel.IsShared(),
+	}
+}
+
+// channelTypeToCELValue translates internal channel type codes to human-readable
+// values used in CEL policies. This keeps expressions natural, e.g.
+// resource.attributes.type == "public" instead of resource.attributes.type == "O".
+func channelTypeToCELValue(t model.ChannelType) string {
+	switch t {
+	case model.ChannelTypeOpen:
+		return "public"
+	case model.ChannelTypePrivate:
+		return "private"
+	case model.ChannelTypeDirect:
+		return "direct"
+	case model.ChannelTypeGroup:
+		return "group"
+	default:
+		return string(t)
+	}
 }
 
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last

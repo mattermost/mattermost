@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS channeljoinrequests (
     UNIQUE (channelid, userid, status)
 );
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_channeljoinrequests_channel_status ON channeljoinrequests (channelid, status);
+CREATE INDEX IF NOT EXISTS idx_channeljoinrequests_channel_status ON channeljoinrequests (channelid, status);

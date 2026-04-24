@@ -112,7 +112,7 @@ function CELEditor({
         user: ['attributes', 'email', 'is_bot', 'email_verified'],
         'user.attributes': userAttributes.
             map((attr) => attr.attribute).
-            filter((attr) => !attr.includes(' ') && attr.trim() !== ''),
+            filter((attr) => attr.trim() !== ''),
     };
 
     const editorRef = useRef(null);

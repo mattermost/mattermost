@@ -1605,9 +1605,19 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
+	resource, appErr := a.BuildChannelResource(rctx, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn("ABAC file download: failed to build resource, denying",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return false
+	}
+
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 		Subject:  *subject,
-		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
+		Resource: resource,
 		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
 	})
 	if evalErr != nil {

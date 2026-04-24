@@ -1760,12 +1760,9 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 				}
 
 				decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-					Subject: *s,
-					Resource: model.Resource{
-						Type: model.AccessControlPolicyTypeChannel,
-						ID:   channel.Id,
-					},
-					Action: "membership",
+					Subject:  *s,
+					Resource: buildChannelResourceFromChannel(channel),
+					Action:   "membership",
 				})
 				if evalErr != nil {
 					return nil, evalErr
@@ -4557,12 +4554,9 @@ func (a *App) evaluateChannelMembershipPolicy(rctx request.CTX, userId string, c
 	}
 
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject: *subject,
-		Resource: model.Resource{
-			Type: model.AccessControlPolicyTypeChannel,
-			ID:   channel.Id,
-		},
-		Action: "membership",
+		Subject:  *subject,
+		Resource: buildChannelResourceFromChannel(channel),
+		Action:   "membership",
 	})
 	if evalErr != nil {
 		return false, evalErr
