@@ -583,17 +583,15 @@ export class UsersEmailsInput extends React.PureComponent<Props, State> {
             input: (css) => ({
                 ...css,
 
-                display: 'flex',
-                flex: '1 1 auto',
-
-                '> div': {
-                    width: '100%',
-                },
+                gridTemplateColumns: '0 minmax(0, 1fr)',
 
                 input: {
-                    width: '100% !important',
                     textAlign: 'left',
                 },
+            }),
+            valueContainer: (css) => ({
+                ...css,
+                gridTemplateColumns: 'minmax(0, 1fr)',
             }),
         } satisfies StylesConfig<UserProfile | EmailInvite, true >;
 

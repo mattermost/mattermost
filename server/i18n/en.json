@@ -3147,6 +3147,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "The specified property group was not found."
+  },
+  {
     "id": "api.property_field.create.invalid_target_type.app_error",
     "translation": "The provided target type is not valid."
   },
@@ -3173,10 +3177,6 @@
   {
     "id": "api.property_field.get.target_id_required.app_error",
     "translation": "A target_id is required when querying by channel or team target_type."
-  },
-  {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "The specified property group was not found."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
@@ -3217,10 +3217,6 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "Cannot update a protected property field via API."
-  },
-  {
-    "id": "api.property_value.invalid_group_name.app_error",
-    "translation": "The provided group name is not valid or does not exist."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
@@ -7987,6 +7983,10 @@
     "translation": "Cannot change type of a field with active linked dependents."
   },
   {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "The property field and group versions are incompatible."
+  },
+  {
     "id": "app.property_group.get.app_error",
     "translation": "Unable to get property group."
   },
@@ -12019,6 +12019,10 @@
   {
     "id": "model.property_field.is_valid.app_error",
     "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Invalid property group: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_value.is_valid.app_error",
