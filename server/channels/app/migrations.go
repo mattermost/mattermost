@@ -637,7 +637,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1})
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
@@ -772,7 +772,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return s.cacheManagedCategoryIDs()
 	}
 
-	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
