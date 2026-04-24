@@ -102,9 +102,16 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
     const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
     const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
+    const [recommendedUserIds, setRecommendedUserIds] = useState<Set<string>>(new Set());
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
+
+    // Public channels with a policy are advisory — the invite list is not
+    // filtered and matching users are merely surfaced as a recommendation.
+    // Private channels with a policy remain a hard gate.
+    const isPolicyEnforcedPrivate = props.channel.policy_enforced && props.channel.type !== Constants.OPEN_CHANNEL;
+    const isPolicyRecommendedPublic = props.channel.policy_enforced && props.channel.type === Constants.OPEN_CHANNEL;
 
     // Use the useAccessControlAttributes hook
     const {structuredAttributes} = useAccessControlAttributes(
@@ -191,42 +198,56 @@ const ChannelInviteModalComponent = (props: Props) => {
     const getOptions = useCallback(() => {
         const excludedAndNotInTeamUserIds = excludedUsers;
 
-        // Only include DM users if ABAC is not enabled
+        // DM users and include_users are suppressed only for the hard-gated
+        // private policy path, since public policies are purely advisory.
         let dmUsers: UserProfileValue[] = [];
-        if (!props.channel.policy_enforced) {
+        if (!isPolicyEnforcedPrivate) {
             const filteredDmUsers = filterProfilesStartingWithTerm(props.profilesFromRecentDMs, term);
             dmUsers = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredDmUsers, excludedAndNotInTeamUserIds).slice(0, USERS_FROM_DMS) as UserProfileValue[];
         }
 
         let users: UserProfileValue[];
-        if (props.channel.policy_enforced) {
-            // ABAC mode: Use local state with fresh API data, completely bypass Redux
+        if (isPolicyEnforcedPrivate) {
+            // Hard-gate ABAC: use the server-filtered list (only matching users).
             const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers, term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
         } else {
-            // Non-ABAC mode: existing logic
+            // Non-ABAC or advisory (public policy): full team list.
             const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
             users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
 
-            // Only include explicitly added users if ABAC is not enabled
             if (props.includeUsers) {
                 users = [...users, ...Object.values(props.includeUsers)];
             }
         }
 
+        // Groups are suppressed only for the hard-gated private ABAC path.
         const groupsAndUsers = [
-
-            // Only include groups if ABAC policy is NOT enforced
-            ...(props.channel.policy_enforced ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
+            ...(isPolicyEnforcedPrivate ? [] : filterGroupsMatchingTerm(props.groups, term) as GroupValue[]),
             ...users,
         ].sort(sortUsersAndGroups);
 
-        const optionValues = [
+        let optionValues: Array<UserProfileValue | GroupValue> = [
             ...dmUsers,
             ...groupsAndUsers,
-        ].slice(0, MAX_USERS);
+        ];
 
-        return Array.from(new Set(optionValues));
+        // For advisory (public) policies, boost recommended users to the top
+        // while keeping the rest of the order stable.
+        if (isPolicyRecommendedPublic && recommendedUserIds.size > 0) {
+            const recommended: Array<UserProfileValue | GroupValue> = [];
+            const rest: Array<UserProfileValue | GroupValue> = [];
+            for (const opt of optionValues) {
+                if (isUser(opt) && recommendedUserIds.has(opt.id)) {
+                    recommended.push(opt);
+                } else {
+                    rest.push(opt);
+                }
+            }
+            optionValues = [...recommended, ...rest];
+        }
+
+        return Array.from(new Set(optionValues.slice(0, MAX_USERS)));
     }, [
         term,
         props.profilesFromRecentDMs,
@@ -234,7 +255,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.profilesInCurrentChannel,
         props.includeUsers,
         props.groups,
-        props.channel.policy_enforced,
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
+        recommendedUserIds,
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
         abacFilteredUsers,
@@ -267,8 +290,17 @@ const ChannelInviteModalComponent = (props: Props) => {
         setLoadingUsers(loadingState);
     }, []);
 
-    // Custom function to fetch ABAC users without polluting Redux store
+    // Custom function to fetch ABAC users without polluting Redux store.
+    // Used only for the private (hard-gated) policy path.
+    //
+    // The first call (page 0, no cursor) replaces the buffer; subsequent
+    // calls append (deduped by id) so paging through the policy-filtered
+    // list grows the in-memory buffer that getOptions() searches over.
+    // We can't merge with Redux profile lists here because the global
+    // search/profile actions don't apply the ABAC server-side filter, and
+    // doing so would surface non-matching users in the strict-gate UI.
     const fetchAbacUsers = useCallback(async (page = 0, perPage = USERS_PER_PAGE, cursorId = '') => {
+        const isInitialLoad = page === 0 && !cursorId;
         try {
             const profiles = await Client4.getProfilesNotInChannel(
                 props.channel.team_id,
@@ -278,11 +310,38 @@ const ChannelInviteModalComponent = (props: Props) => {
                 perPage,
                 cursorId,
             );
-            setAbacFilteredUsers(profiles || []);
+            if (isInitialLoad) {
+                setAbacFilteredUsers(profiles || []);
+            } else if (profiles && profiles.length > 0) {
+                setAbacFilteredUsers((prev) => {
+                    const seen = new Set(prev.map((u) => u.id));
+                    const additions = profiles.filter((u) => !seen.has(u.id));
+                    return additions.length > 0 ? [...prev, ...additions] : prev;
+                });
+            }
             return {data: profiles || []};
         } catch (error) {
-            setAbacFilteredUsers([]);
+            if (isInitialLoad) {
+                setAbacFilteredUsers([]);
+            }
             return {error};
+        }
+    }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
+
+    // For advisory (public) policies, fetch the matching-user subset to
+    // render a subtle "Recommended" indicator and boost them to the top.
+    // This bypasses Redux so the normal (unfiltered) list remains intact.
+    const fetchRecommendedUserIds = useCallback(async () => {
+        try {
+            const profiles = await Client4.getProfilesMatchingChannelPolicy(
+                props.channel.team_id,
+                props.channel.id,
+                props.channel.group_constrained,
+                USERS_PER_PAGE,
+            );
+            setRecommendedUserIds(new Set((profiles || []).map((u) => u.id)));
+        } catch {
+            setRecommendedUserIds(new Set());
         }
     }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
 
@@ -294,14 +353,23 @@ const ChannelInviteModalComponent = (props: Props) => {
             // Get cursor for this page (if we're going forward)
             const cursorId = page > 0 ? pageCursors[page - 1] : '';
 
-            props.actions.getProfilesNotInChannel(
-                props.channel.team_id,
-                props.channel.id,
-                props.channel.group_constrained,
-                page + 1,
-                USERS_PER_PAGE,
-                cursorId,
-            ).then((result) => {
+            // Private ABAC channels page through Client4 directly so the
+            // result lands in our scoped abacFilteredUsers buffer that
+            // getOptions() reads from. Routing through Redux here would
+            // populate profilesNotInCurrentChannel which getOptions ignores
+            // on the strict-gate path, leaving subsequent pages invisible.
+            const fetchPage = isPolicyEnforcedPrivate ?
+                fetchAbacUsers(page + 1, USERS_PER_PAGE, cursorId) :
+                props.actions.getProfilesNotInChannel(
+                    props.channel.team_id,
+                    props.channel.id,
+                    props.channel.group_constrained,
+                    page + 1,
+                    USERS_PER_PAGE,
+                    cursorId,
+                );
+
+            fetchPage.then((result) => {
                 // Store the cursor for the next page (ID of the last user)
                 if (result.data && result.data.length > 0) {
                     const lastUserId = result.data[result.data.length - 1].id;
@@ -315,9 +383,14 @@ const ChannelInviteModalComponent = (props: Props) => {
                 setUsersLoadingState(false);
             });
 
-            props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
+            // Existing channel members are only relevant outside the strict
+            // ABAC path — its in-channel listing comes from policy data, not
+            // from the global Redux profile lists.
+            if (!isPolicyEnforcedPrivate) {
+                props.actions.getProfilesInChannel(props.channel.id, page + 1, USERS_PER_PAGE, '', {active: true});
+            }
         }
-    }, [props.actions, props.channel, setUsersLoadingState, pageCursors, setPageCursors]);
+    }, [props.actions, props.channel, setUsersLoadingState, pageCursors, setPageCursors, isPolicyEnforcedPrivate, fetchAbacUsers]);
 
     // Handle form submission
     const handleSubmit = useCallback(() => {
@@ -382,8 +455,8 @@ const ChannelInviteModalComponent = (props: Props) => {
                     props.actions.searchProfiles(term, options),
                 ];
 
-                // Only search for groups if groups are enabled AND ABAC policy is NOT enforced
-                if (props.isGroupsEnabled && !props.channel.policy_enforced) {
+                // Only suppress group search for the hard-gated private policy path.
+                if (props.isGroupsEnabled && !isPolicyEnforcedPrivate) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -391,7 +464,7 @@ const ChannelInviteModalComponent = (props: Props) => {
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS,
         );
-    }, [props.actions, props.channel, props.isGroupsEnabled, setUsersLoadingState]);
+    }, [props.actions, props.channel, props.isGroupsEnabled, isPolicyEnforcedPrivate, setUsersLoadingState]);
 
     // Render aria label for options
     const renderAriaLabel = useCallback((option: UserProfileValue | GroupValue): string => {
@@ -419,6 +492,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 userMapping[ProfilesInGroup[i]] = 'Already in channel';
             }
             const displayName = displayUsername(option, props.teammateNameDisplaySetting);
+            const isRecommended = isPolicyRecommendedPublic && recommendedUserIds.has(option.id);
             return (
                 <div
                     key={option.id}
@@ -443,6 +517,19 @@ const ChannelInviteModalComponent = (props: Props) => {
                                     {'@'}{option.username}
                                 </span>
                                 }
+                                {isRecommended && (
+                                    <AlertTag
+                                        className='channel-invite__recommended-tag'
+                                        text={props.intl.formatMessage({
+                                            id: 'channel_invite.recommended_tag',
+                                            defaultMessage: 'Recommended',
+                                        })}
+                                        tooltipTitle={props.intl.formatMessage({
+                                            id: 'channel_invite.recommended_tag.tooltip',
+                                            defaultMessage: 'Matches the access rules suggested for this channel',
+                                        })}
+                                    />
+                                )}
                                 <span
                                     className='channel-invite__user-mapping light'
                                 >
@@ -476,17 +563,19 @@ const ChannelInviteModalComponent = (props: Props) => {
                 selectedItemRef={selectedItemRef}
             />
         );
-    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses]);
+    }, [props.profilesInCurrentChannel, props.teammateNameDisplaySetting, props.userStatuses, props.intl, isPolicyRecommendedPublic, recommendedUserIds]);
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
-        if (props.channel.policy_enforced) {
-            // For ABAC channels, use custom function to avoid Redux store pollution
+        if (isPolicyEnforcedPrivate) {
+            // Hard-gate ABAC: avoid Redux store pollution; only matching users.
             fetchAbacUsers().then(() => {
                 setUsersLoadingState(false);
             });
         } else {
-            // For non-ABAC channels, use normal Redux actions
+            // Non-ABAC or advisory (public) policy: fetch the full team list
+            // via the standard Redux action. The server returns the unfiltered
+            // list for public policy-enforced channels.
             props.actions.getProfilesNotInChannel(
                 props.channel.team_id,
                 props.channel.id,
@@ -496,6 +585,10 @@ const ChannelInviteModalComponent = (props: Props) => {
             ).then(() => {
                 setUsersLoadingState(false);
             });
+
+            if (isPolicyRecommendedPublic) {
+                fetchRecommendedUserIds();
+            }
         }
 
         props.actions.getProfilesInChannel(props.channel.id, 0, USERS_PER_PAGE, '', {active: true});
@@ -506,9 +599,11 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.id,
         props.channel.team_id,
         props.channel.group_constrained,
-        props.channel.policy_enforced,
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
         props.actions,
         fetchAbacUsers,
+        fetchRecommendedUserIds,
     ]);
 
     // Compute options with useMemo to ensure they're always fresh
@@ -521,7 +616,9 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.groups,
         props.profilesNotInCurrentTeam,
         props.excludeUsers,
-        props.channel.policy_enforced, // Add this to trigger recomputation when ABAC mode changes
+        isPolicyEnforcedPrivate,
+        isPolicyRecommendedPublic,
+        recommendedUserIds,
         abacFilteredUsers, // Add local ABAC state
     ]);
 
@@ -593,7 +690,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                     InvitationModalLink: (chunks) => (
                         <InviteModalLink
                             id='customNoOptionsMessageLink'
-                            abacChannelPolicyEnforced={props.channel.policy_enforced}
+                            abacChannelPolicyEnforced={isPolicyEnforcedPrivate}
                         >
                             {chunks}
                         </InviteModalLink>
@@ -670,13 +767,23 @@ const ChannelInviteModalComponent = (props: Props) => {
                         <AlertBanner
                             mode='info'
                             variant='app'
-                            title={(
+                            title={channel.type === Constants.OPEN_CHANNEL ? (
+                                <FormattedMessage
+                                    id='channel_invite.policy_recommended.title'
+                                    defaultMessage='This channel has recommended members based on user attributes'
+                                />
+                            ) : (
                                 <FormattedMessage
                                     id='channel_invite.policy_enforced.title'
                                     defaultMessage='Channel access is restricted by user attributes'
                                 />
                             )}
-                            message={(
+                            message={channel.type === Constants.OPEN_CHANNEL ? (
+                                <FormattedMessage
+                                    id='channel_invite.policy_recommended.description'
+                                    defaultMessage='Access rules suggest who should be in this channel. You can still add anyone who can join a public channel.'
+                                />
+                            ) : (
                                 <FormattedMessage
                                     id='channel_invite.policy_enforced.description'
                                     defaultMessage='Only people who match the specified access rules can be selected and added to this channel.'
@@ -694,7 +801,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                         teamId={channel.team_id}
                         users={usersNotInTeam}
                     />
-                    {(props.emailInvitationsEnabled && props.canInviteGuests && !channel.policy_enforced) && inviteGuestLink}
+                    {(props.emailInvitationsEnabled && props.canInviteGuests && !isPolicyEnforcedPrivate) && inviteGuestLink}
                 </div>
             </div>
         </GenericModal>

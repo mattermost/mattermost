@@ -2400,6 +2400,34 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	})
 }
 
+func TestGetRecommendedChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("without enterprise license ABAC is disabled so the endpoint returns an empty list", func(t *testing.T) {
+		resp, err := th.Client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var channels []*model.Channel
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&channels))
+		require.Empty(t, channels)
+	})
+
+	t.Run("user must be on the team", func(t *testing.T) {
+		otherTeamUser := th.CreateUser(t)
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), otherTeamUser.Email, otherTeamUser.Password)
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+}
+
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

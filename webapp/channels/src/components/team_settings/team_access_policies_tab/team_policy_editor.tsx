@@ -24,6 +24,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import Constants from 'utils/constants';
 
 import TeamPolicyConfirmationModal from './team_policy_confirmation_modal';
 
@@ -85,6 +86,12 @@ export default function TeamPolicyEditor({
     const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [channelsCount, setChannelsCount] = useState(0);
     const [savedChannelIds, setSavedChannelIds] = useState<string[]>([]);
+
+    // Map of saved channelId → channel type ('O' | 'P' | ...). Used to compute
+    // how many public vs. private channels a save will affect, so the
+    // confirmation modal can pick the right messaging. Only 'O'/'P' can ever
+    // be assigned to a policy, but we key by ID so removals map cleanly.
+    const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
     const [addChannelOpen, setAddChannelOpen] = useState(false);
 
     // Attribute state
@@ -135,8 +142,10 @@ export default function TeamPolicyEditor({
             }
         });
         actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
+            const channels: ChannelWithTeamData[] = result.data?.channels || [];
             setChannelsCount(result.data?.total_count || 0);
-            setSavedChannelIds((result.data?.channels || []).map((ch: ChannelWithTeamData) => ch.id));
+            setSavedChannelIds(channels.map((ch) => ch.id));
+            setSavedChannelTypes(Object.fromEntries(channels.map((ch) => [ch.id, ch.type])));
         });
     }, [policyId]);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -553,21 +562,49 @@ export default function TeamPolicyEditor({
                     onChannelsSelected={addToNewChannels}
                     groupID=''
                     alreadySelected={[...savedChannelIds, ...Object.keys(channelChanges.added)].filter((id) => !channelChanges.removed[id])}
-                    excludeTypes={['O', 'D', 'G']}
+                    excludeTypes={['D', 'G']}
                     excludeGroupConstrained={true}
+                    excludeDefaultChannels={true}
                     teamId={teamId}
                     isStacked={true}
                 />
             )}
 
-            {showConfirmationModal && (
-                <TeamPolicyConfirmationModal
-                    onExited={() => setShowConfirmationModal(false)}
-                    onConfirm={handleSave}
-                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                    saving={saving}
-                />
-            )}
+            {showConfirmationModal && (() => {
+                // Effective channel mix = (saved - removed) + added. Count by
+                // type so the confirmation modal can describe the outcome
+                // precisely — public and private channels behave differently
+                // under the same policy.
+                let publicCount = 0;
+                let privateCount = 0;
+                for (const [id, type] of Object.entries(savedChannelTypes)) {
+                    if (channelChanges.removed[id]) {
+                        continue;
+                    }
+                    if (type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                for (const ch of Object.values(channelChanges.added)) {
+                    if (ch.type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                return (
+                    <TeamPolicyConfirmationModal
+                        onExited={() => setShowConfirmationModal(false)}
+                        onConfirm={handleSave}
+                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                        publicChannelsAffected={publicCount}
+                        privateChannelsAffected={privateCount}
+                        saving={saving}
+                    />
+                );
+            })()}
 
             {showDeleteModal && (
                 <GenericModal

@@ -21,6 +21,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -681,10 +682,19 @@ function ChannelSettingsAccessRulesTab({
 
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
-                    {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.title_public',
+                        defaultMessage: 'Membership Rules',
+                    }) : formatMessage({
+                        id: 'channel_settings.access_rules.title',
+                        defaultMessage: 'Access Rules',
+                    })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {formatMessage({
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.subtitle_public',
+                        defaultMessage: 'Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.',
+                    }) : formatMessage({
                         id: 'channel_settings.access_rules.subtitle',
                         defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
                     })}
@@ -754,16 +764,30 @@ function ChannelSettingsAccessRulesTab({
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
+                        const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
+                            if (isPublic) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
+                                    defaultMessage: 'Qualifying users are automatically added as members. Members can still leave on their own — no one is removed based on these rules.',
+                                });
+                            }
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',
-                                defaultMessage: 'Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                                defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
+                            });
+                        }
+
+                        if (isPublic) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
+                                defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
                             });
                         }
 
                         return formatMessage({
                             id: 'channel_settings.access_rules.auto_sync_disabled_description',
-                            defaultMessage: 'Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.',
+                            defaultMessage: 'Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.',
                         });
                     })()}
                 </p>

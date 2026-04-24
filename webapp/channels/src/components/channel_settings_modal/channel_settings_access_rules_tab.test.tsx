@@ -294,8 +294,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
+        // Public channels use membership-oriented copy because ABAC on public
+        // channels is advisory, not a hard gate.
+        expect(screen.getByRole('heading', {name: 'Membership Rules'})).toBeInTheDocument();
+        expect(screen.getByText('Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {
@@ -497,7 +499,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
@@ -522,7 +524,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {

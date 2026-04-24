@@ -140,6 +140,7 @@ describe('components/BrowseChannels', () => {
         teamName: 'team_name',
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
+        accessControlEnabled: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
                 channel_id: 'channel-id-3',
@@ -149,6 +150,7 @@ describe('components/BrowseChannels', () => {
         actions: {
             getChannels: jest.fn(channelActions.getChannels),
             getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
+            getRecommendedChannelsForUser: jest.fn().mockResolvedValue({data: []}),
             joinChannel: jest.fn(channelActions.joinChannelAction),
             searchAllChannels: jest.fn(channelActions.searchAllChannels),
             openModal: jest.fn(),
@@ -644,5 +646,54 @@ describe('components/BrowseChannels', () => {
             expect(screen.getByText('Private')).toBeInTheDocument();
             expect(screen.queryByText('Private Not Member')).not.toBeInTheDocument();
         });
+    });
+
+    test('Recommended filter fetches recommended channels and lists only those', async () => {
+        const recommendedChannel = TestHelper.getChannelMock({
+            id: 'recommended-channel-id',
+            team_id: 'team_1',
+            display_name: 'Recommended Channel',
+            name: 'recommended-channel',
+            type: 'O',
+        });
+
+        const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedChannel]});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            channels: [defaultChannel, recommendedChannel],
+            actions: {...baseProps.actions, getRecommendedChannelsForUser},
+        };
+
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        expect(getRecommendedChannelsForUser).toHaveBeenCalledWith('team_1');
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Recommended channels'));
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('Recommended Channel')).toBeInTheDocument();
+            expect(screen.queryByText('Default Channel')).not.toBeInTheDocument();
+        });
+    });
+
+    test('Recommended filter entry is hidden when ABAC is disabled', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        expect(screen.queryByText('Recommended channels')).not.toBeInTheDocument();
     });
 });

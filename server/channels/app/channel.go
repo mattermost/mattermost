@@ -733,7 +733,7 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	if appErr != nil {
 		return nil, appErr
 	}
-	if ok && channel.Type != model.ChannelTypePrivate {
+	if ok && channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
 		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
 	}
 
@@ -1692,6 +1692,12 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Archiving a channel tears down the membership policy attached to it.
+	// If the channel is later restored the admin can re-apply policies;
+	// leaving the policy row behind would otherwise keep the sync job
+	// processing an archived channel.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
@@ -3412,6 +3418,11 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	// Remove any orphaned channel-scope ABAC policy tied to this channel ID.
+	// Safe to call whether or not a policy exists: cleanupChannelAccessControlPolicy
+	// short-circuits when PolicyEnforced is false.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
+
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	var message *model.WebSocketEvent
@@ -4141,6 +4152,114 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 	}
 
 	return channel.PolicyEnforced, nil
+}
+
+// cleanupChannelAccessControlPolicy removes the channel-scope ABAC policy row,
+// if any, for a channel being archived or permanently deleted. Orphan policy
+// rows left behind would still be picked up by the sync job and surface in
+// searches that filter by AccessControlPolicyEnforced. Failures are logged
+// but not returned — deleting/archiving a channel must not be blocked by an
+// ABAC cleanup error.
+//
+// We intentionally do NOT gate this on channel.PolicyEnforced: that flag is
+// computed from the AccessControlPolicies table via the channel store and can
+// be stale when read through the channel cache, which would cause us to skip
+// cleanup and leave an orphaned policy behind. DeletePolicy is a no-op when
+// no matching row exists, so calling it unconditionally is safe.
+func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model.Channel) {
+	if channel == nil || channel.Id == "" {
+		return
+	}
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return
+	}
+	if appErr := acs.DeletePolicy(rctx, channel.Id); appErr != nil {
+		rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(appErr),
+		)
+	}
+}
+
+// recommendedPublicChannelsScanLimit caps how many policy-enforced public channels
+// are evaluated per call. Evaluation is O(n) on channel count; for teams with many
+// policy-enforced channels a cursor-based approach may be needed later.
+const recommendedPublicChannelsScanLimit = 200
+
+// GetRecommendedPublicChannelsForUser returns public channels in the given team
+// that have an ABAC policy assigned and whose membership rule the user
+// satisfies. ABAC policies on public channels are advisory — this list is
+// consumed by the "Recommended channels" feature in the Browse Channels UI.
+//
+// Channels the user is already a member of are intentionally NOT filtered out:
+// membership filtering is a presentation concern handled by the caller (the
+// Browse Channels UI has its own "Hide joined channels" preference and may
+// want to show membership state alongside each recommendation).
+//
+// Returns an empty list when the Enterprise Advanced license or ABAC feature
+// flag is not available, or when the access control service is not wired up.
+func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, teamID string) (model.ChannelList, *model.AppError) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return model.ChannelList{}, nil
+	}
+
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return model.ChannelList{}, nil
+	}
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	candidates, _, appErr := a.SearchAllChannels(rctx, "", model.ChannelSearchOpts{
+		TeamIds:                     []string{teamID},
+		Public:                      true,
+		AccessControlPolicyEnforced: true,
+		Page:                        model.NewPointer(0),
+		PerPage:                     model.NewPointer(recommendedPublicChannelsScanLimit),
+	})
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// We intentionally do NOT filter out channels the user is already a member
+	// of here — the Browse Channels UI has its own "Hide joined channels"
+	// preference and callers may want to show membership state next to each
+	// recommendation. Membership filtering is a presentation concern.
+	recommended := make(model.ChannelList, 0, len(candidates))
+	for _, channel := range candidates {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject: *subject,
+			Resource: model.Resource{
+				Type: model.AccessControlPolicyTypeChannel,
+				ID:   channel.Id,
+			},
+			Action: "membership",
+		})
+		if evalErr != nil {
+			rctx.Logger().Debug("ABAC evaluation failed when computing recommended channels",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(evalErr),
+			)
+			continue
+		}
+		if !decision.Decision {
+			continue
+		}
+
+		recommended = append(recommended, &channel.Channel)
+	}
+
+	return recommended, nil
 }
 
 func (a *App) handleChannelCategoryName(channel *model.Channel) {

@@ -134,7 +134,8 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
 
-    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
+    const isPolicyEligibleChannelType = channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL;
+    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && isPolicyEligibleChannelType && !channel.group_constrained;
 
     const shouldShowArchiveTab = channel.name !== Constants.DEFAULT_CHANNEL &&
         ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
@@ -285,9 +286,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         },
         {
             name: ChannelSettingsTabs.ACCESS_RULES,
-            uiName: formatMessage({id: 'channel_settings.tab.access_control', defaultMessage: 'Access Control'}),
+            uiName: formatMessage({id: 'channel_settings.tab.membership_policy', defaultMessage: 'Membership Policy'}),
             icon: 'icon icon-shield-outline',
-            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: shouldShowAccessRulesTab,
         },
         {

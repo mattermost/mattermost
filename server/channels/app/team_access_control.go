@@ -241,9 +241,10 @@ func (a *App) ReconcilePolicyTeamScope(rctx request.CTX, policyID string) *model
 //   - At least one channel provided
 //   - All channels exist
 //   - All channels belong to the given team
-//   - All channels are private
+//   - All channels are public or private (DM/GM excluded)
 //   - No group-constrained channels
 //   - No shared channels
+//   - No team default channels (e.g. town-square)
 func (a *App) ValidateTeamScopePolicyChannelAssignment(rctx request.CTX, teamID string, channelIDs []string) *model.AppError {
 	if len(channelIDs) == 0 {
 		return model.NewAppError("ValidateTeamScopePolicyChannelAssignment",
@@ -270,7 +271,7 @@ func (a *App) ValidateTeamScopePolicyChannelAssignment(rctx request.CTX, teamID 
 				"channel does not belong to this team", http.StatusBadRequest)
 		}
 
-		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+		if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
 			return appErr
 		}
 	}

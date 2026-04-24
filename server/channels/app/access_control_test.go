@@ -572,21 +572,18 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		assert.Equal(t, "app.pap.assign_access_control_policy_to_channels.app_error", err.Id)
 	})
 
-	t.Run("Channel is not private", func(t *testing.T) {
+	t.Run("Default channel is not supported", func(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 		mockAccessControl.On("GetPolicy", th.Context, parentID).Return(&model.AccessControlPolicy{Type: model.AccessControlPolicyTypeParent}, nil)
-		// Create a public channel
-		publicChannel := th.CreateChannel(t, th.BasicTeam)
-		t.Cleanup(func() {
-			appErr := th.App.PermanentDeleteChannel(th.Context, publicChannel)
-			require.Nil(t, appErr)
-		})
 
-		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{publicChannel.Id})
+		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		policies, err := th.App.AssignAccessControlPolicyToChannels(th.Context, parentID, []string{townSquare.Id})
 		require.NotNil(t, err)
 		assert.Nil(t, policies)
-		assert.Contains(t, err.Error(), "Channel is not of type private")
+		assert.Equal(t, "app.pap.access_control.channel_default", err.Id)
 	})
 
 	t.Run("Channel is shared", func(t *testing.T) {
@@ -653,6 +650,96 @@ func TestAssignAccessControlPolicyToChannels(t *testing.T) {
 		require.Len(t, policies, 2)
 		assert.ElementsMatch(t, []string{ch1.Id, ch2.Id}, []string{policies[0].ID, policies[1].ID})
 		mockAccessControl.AssertCalled(t, "SavePolicy", th.Context, mock.AnythingOfType("*model.AccessControlPolicy"))
+	})
+}
+
+func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Wire up a mock ACS whose DeletePolicy writes through to the store, so the
+	// cleanup path exercised by DeleteChannel/PermanentDeleteChannel actually
+	// removes the row. Without this, cleanupChannelAccessControlPolicy is a
+	// no-op when the enterprise service is not registered.
+	mockACS := &mocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() {
+		th.App.Srv().ch.AccessControl = originalACS
+	})
+	mockACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
+		Return(func(rctx request.CTX, id string) *model.AppError {
+			if err := th.App.Srv().Store().AccessControlPolicy().Delete(rctx, id); err != nil {
+				return model.NewAppError("DeletePolicy", "test.delete", nil, err.Error(), http.StatusInternalServerError)
+			}
+			return nil
+		}).Maybe()
+
+	saveChildPolicy := func(t *testing.T, channelID string) {
+		t.Helper()
+		policy := &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Active:   true,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+		saved, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		require.NotNil(t, saved)
+	}
+
+	t.Run("Archiving a channel deletes its channel-scope policy", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		saveChildPolicy(t, ch.Id)
+
+		// Sanity: policy exists before archive.
+		fetched, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
+		require.NoError(t, err)
+		require.NotNil(t, fetched)
+
+		// Reload via GetChannel without invalidating the cache. The channel
+		// was created before the policy was saved directly to the store, so
+		// the cached channel still reports PolicyEnforced=false. Cleanup must
+		// still remove the orphan policy — it no longer trusts the stale
+		// cached flag.
+		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.DeleteChannel(th.Context, reloaded, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, err = th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
+		require.Error(t, err, "channel-scope policy should be removed when the channel is archived")
+	})
+
+	t.Run("Permanently deleting a channel deletes its channel-scope policy", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		saveChildPolicy(t, ch.Id)
+
+		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.PermanentDeleteChannel(th.Context, reloaded)
+		require.Nil(t, appErr)
+
+		_, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
+		require.Error(t, err, "channel-scope policy should be removed when the channel is permanently deleted")
+	})
+
+	t.Run("Archiving a channel with no policy is a no-op", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		t.Cleanup(func() {
+			_ = th.App.PermanentDeleteChannel(th.Context, ch)
+		})
+
+		reloaded, appErr := th.App.GetChannel(th.Context, ch.Id)
+		require.Nil(t, appErr)
+
+		appErr = th.App.DeleteChannel(th.Context, reloaded, th.BasicUser.Id)
+		require.Nil(t, appErr)
 	})
 }
 
@@ -883,7 +970,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		assert.Equal(t, "app.channel.get.existing.app_error", appErr.Id)
 	})
 
-	t.Run("Public channel should fail", func(t *testing.T) {
+	t.Run("Public channel should succeed", func(t *testing.T) {
 		th.AddUserToChannel(t, channelAdmin, publicChannel)
 
 		// Make user channel admin for public channel
@@ -891,8 +978,7 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		require.Nil(t, appErr2)
 
 		appErr2 = th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, publicChannel.Id)
-		require.NotNil(t, appErr2)
-		assert.Equal(t, "app.pap.access_control.channel_not_private", appErr2.Id)
+		require.Nil(t, appErr2)
 	})
 
 	t.Run("Shared channel should fail", func(t *testing.T) {
@@ -916,6 +1002,20 @@ func TestValidateChannelAccessControlPermission(t *testing.T) {
 		appErr3 = th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, sharedChannel.Id)
 		require.NotNil(t, appErr3)
 		assert.Equal(t, "app.pap.access_control.channel_shared", appErr3.Id)
+	})
+
+	t.Run("Default channel should fail", func(t *testing.T) {
+		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		th.AddUserToChannel(t, channelAdmin, townSquare)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, townSquare.Id, channelAdmin.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+
+		appErr = th.App.ValidateChannelAccessControlPermission(th.Context, channelAdmin.Id, townSquare.Id)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.pap.access_control.channel_default", appErr.Id)
 	})
 }
 
@@ -1092,7 +1192,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		assert.Equal(t, "app.access_control.insufficient_permissions", appErr.Id)
 	})
 
-	t.Run("Creating policy for public channel should fail", func(t *testing.T) {
+	t.Run("Creating policy for public channel should succeed", func(t *testing.T) {
 		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		t.Cleanup(func() {
 			appErr := th.App.PermanentDeleteChannel(th.Context, publicChannel)
@@ -1116,8 +1216,7 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		}
 
 		appErr4 = th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
-		require.NotNil(t, appErr4)
-		assert.Equal(t, "app.pap.access_control.channel_not_private", appErr4.Id)
+		require.Nil(t, appErr4)
 	})
 
 	t.Run("Creating policy for shared channel should fail", func(t *testing.T) {
@@ -1151,6 +1250,30 @@ func TestValidateChannelAccessControlPolicyCreation(t *testing.T) {
 		appErr5 = th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
 		require.NotNil(t, appErr5)
 		assert.Equal(t, "app.pap.access_control.channel_shared", appErr5.Id)
+	})
+
+	t.Run("Creating policy for default channel should fail", func(t *testing.T) {
+		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		th.AddUserToChannel(t, channelAdmin, townSquare)
+
+		_, appErr = th.App.UpdateChannelMemberRoles(th.Context, townSquare.Id, channelAdmin.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+
+		policy := &model.AccessControlPolicy{
+			ID:       townSquare.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+
+		appErr = th.App.ValidateChannelAccessControlPolicyCreation(th.Context, channelAdmin.Id, policy)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.pap.access_control.channel_default", appErr.Id)
 	})
 }
 
