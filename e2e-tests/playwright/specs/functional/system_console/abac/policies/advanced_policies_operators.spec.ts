@@ -71,7 +71,7 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
 
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, policyId, 10);
+    await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
@@ -132,7 +132,7 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
 
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, policyId, 10);
+    await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);
@@ -193,7 +193,7 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
 
     await activatePolicy(adminClient, policyId);
     await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, policyId, 10);
+    await waitForPolicySyncJob(adminClient, policyId);
 
     const engInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
     const salesInChannel = await verifyUserInChannel(adminClient, salesUser.id, channel.id);

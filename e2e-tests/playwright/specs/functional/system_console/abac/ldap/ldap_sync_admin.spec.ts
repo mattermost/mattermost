@@ -93,7 +93,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Initial sync — user has non-qualifying attribute, should not be added
         await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId1, 15);
+        await waitForPolicySyncJob(adminClient, policyId1);
 
         const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
         expect(user1InitialCheck).toBe(false);
@@ -103,7 +103,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Sync again — auto-add=false, so user is NOT auto-added even when qualifying
         await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId1, 15);
+        await waitForPolicySyncJob(adminClient, policyId1);
 
         const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
 
@@ -141,7 +141,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Initial sync — non-qualifying, should not be added
         await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId2, 15);
+        await waitForPolicySyncJob(adminClient, policyId2);
 
         const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
         expect(user2InitialCheck).toBe(false);
@@ -151,7 +151,7 @@ test.describe('ABAC LDAP Integration - Sync', () => {
 
         // Sync again — auto-add=false, admin must manually add
         await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId2, 15);
+        await waitForPolicySyncJob(adminClient, policyId2);
 
         const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
 

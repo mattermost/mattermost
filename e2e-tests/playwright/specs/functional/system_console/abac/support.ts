@@ -966,14 +966,11 @@ export async function waitForLatestSyncJob(
  * under PW_WORKERS >= 2: another shard's sync job cannot be mistaken for ours.
  *
  * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
- * briefly delayed in the queue do not cause spurious failures.  The legacy
- * `maxRetries` parameter is accepted but ignored — callers do not need to be
- * updated.
+ * briefly delayed in the queue do not cause spurious failures.
  */
 export async function waitForPolicySyncJob(
     client: Client4,
     policyId: string,
-    _maxRetries?: number,
 ): Promise<void> {
     await expect
         .poll(
