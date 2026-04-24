@@ -65,6 +65,7 @@ describe('Utils.getFileType', () => {
 describe('Utils.getSuggestionBoxAlgn', () => {
     const originalCreateRange = document.createRange;
     const originalGetSelection = document.getSelection;
+    const originalGetComputedStyle = window.getComputedStyle;
 
     beforeEach(() => {
         document.body.innerHTML = '';
@@ -87,11 +88,14 @@ describe('Utils.getSuggestionBoxAlgn', () => {
         document.body.innerHTML = '';
         document.createRange = originalCreateRange;
         document.getSelection = originalGetSelection;
+        window.getComputedStyle = originalGetComputedStyle;
     });
 
     function createTextArea(clippingAncestorRight?: number) {
         const clippingAncestor = document.createElement('div');
         clippingAncestor.style.overflow = 'hidden';
+        clippingAncestor.style.overflowX = 'hidden';
+        clippingAncestor.style.overflowY = 'hidden';
         clippingAncestor.getBoundingClientRect = jest.fn(() => ({
             width: 385,
             right: clippingAncestorRight ?? 654,
@@ -124,14 +128,40 @@ describe('Utils.getSuggestionBoxAlgn', () => {
         container.appendChild(textArea);
         document.body.appendChild(clippingAncestor);
 
-        return textArea;
+        return {textArea, clippingAncestor};
     }
 
     test('keeps the suggestion list inside the nearest clipping container', () => {
         Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
         Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
 
-        const textArea = createTextArea(654);
+        const {textArea, clippingAncestor} = createTextArea(654);
+
+        window.getComputedStyle = jest.fn((element: Element) => {
+            if (element === clippingAncestor) {
+                return {
+                    overflow: 'hidden',
+                    overflowX: 'hidden',
+                    overflowY: 'hidden',
+                } as CSSStyleDeclaration;
+            }
+
+            if (element === textArea) {
+                return {
+                    lineHeight: '20px',
+                    overflow: 'visible',
+                    overflowX: 'visible',
+                    overflowY: 'visible',
+                } as CSSStyleDeclaration;
+            }
+
+            return {
+                lineHeight: '20px',
+                overflow: 'visible',
+                overflowX: 'visible',
+                overflowY: 'visible',
+            } as CSSStyleDeclaration;
+        }) as typeof window.getComputedStyle;
 
         expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
             pixelsToMoveX: 0,
@@ -161,6 +191,13 @@ describe('Utils.getSuggestionBoxAlgn', () => {
         });
 
         document.body.appendChild(textArea);
+
+        window.getComputedStyle = jest.fn(() => ({
+            lineHeight: '20px',
+            overflow: 'visible',
+            overflowX: 'visible',
+            overflowY: 'visible',
+        }) as CSSStyleDeclaration) as typeof window.getComputedStyle;
 
         expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
             pixelsToMoveX: 200,
