@@ -6,7 +6,7 @@
  * These functions are used across multiple ABAC test files to reduce duplication
  */
 
-import type {Page} from '@playwright/test';
+import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
@@ -342,6 +342,11 @@ export async function createPrivateChannelForABAC(client: Client4, teamId: strin
 /**
  * Create basic policy using Table Editor (Simple mode)
  */
+/**
+ * Returns the sync job ID triggered by the "Apply policy" confirmation, or null
+ * when no channels are assigned (no sync is triggered). Pass the returned ID to
+ * waitForLatestSyncJob so you get race-safe job polling instead of UI table scraping.
+ */
 export async function createBasicPolicy(
     page: Page,
     options: {
@@ -352,7 +357,7 @@ export async function createBasicPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<void> {
+): Promise<string | null> {
     // Ensure we are on the Membership Policies page before looking for "Add policy".
     // The ABAC settings page was split: the enable/disable toggle is now on
     // /attribute_based_access_control while the policy list lives on /membership_policies.
@@ -491,7 +496,7 @@ export async function createBasicPolicy(
         }
     }
 
-    // Save policy and confirm
+    // Save policy and confirm, intercepting the sync job ID triggered by Apply.
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.click();
     await page.waitForTimeout(1000);
@@ -500,13 +505,25 @@ export async function createBasicPolicy(
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     const applyVisible = await applyPolicyButton.isVisible({timeout: 3000}).catch(() => false);
     if (applyVisible) {
+        // Arm the response interceptor BEFORE the click so we never miss the POST.
+        const jobResponsePromise = page
+            .waitForResponse(
+                (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
+                {timeout: 10_000},
+            )
+            .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+            .catch(() => null);
+
         await applyPolicyButton.click();
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(2000);
-    } else {
-        // No channels assigned, just wait for save to complete
-        await page.waitForLoadState('networkidle');
+
+        return jobResponsePromise;
     }
+
+    // No channels assigned — no sync job is triggered.
+    await page.waitForLoadState('networkidle');
+    return null;
 }
 
 /**
@@ -520,7 +537,7 @@ export async function createMultiAttributePolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<void> {
+): Promise<string | null> {
     if (!page.url().includes('/membership_policies')) {
         await page.goto('/admin_console/system_attributes/membership_policies');
         await page.waitForLoadState('networkidle');
@@ -660,21 +677,32 @@ export async function createMultiAttributePolicy(
         }
     }
 
-    // Save policy and confirm
+    // Save policy and confirm, intercepting the sync job ID triggered by Apply.
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.click();
     await page.waitForTimeout(1000);
 
-    // Click "Apply policy" button in confirmation modal
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     await applyPolicyButton.waitFor({state: 'visible', timeout: 5000});
+
+    const jobResponsePromise = page
+        .waitForResponse(
+            (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
+            {timeout: 10_000},
+        )
+        .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+        .catch(() => null);
+
     await applyPolicyButton.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
+    return jobResponsePromise;
 }
 
 /**
- * Create advanced policy using CEL Editor (Advanced mode)
+ * Create advanced policy using CEL Editor (Advanced mode).
+ * Returns the sync job ID triggered by "Apply policy", or null when no channels
+ * are assigned. Pass to waitForLatestSyncJob for race-safe job polling.
  */
 export async function createAdvancedPolicy(
     page: Page,
@@ -684,7 +712,7 @@ export async function createAdvancedPolicy(
         autoSync?: boolean;
         channels?: string[];
     },
-): Promise<void> {
+): Promise<string | null> {
     if (!page.url().includes('/membership_policies')) {
         await page.goto('/admin_console/system_attributes/membership_policies');
         await page.waitForLoadState('networkidle');
@@ -823,14 +851,24 @@ export async function createAdvancedPolicy(
     const applyPolicyButton = page.getByRole('button', {name: /apply policy/i});
     const applyVisible = await applyPolicyButton.isVisible({timeout: 10000}).catch(() => false);
 
-    if (applyVisible) {
-        await applyPolicyButton.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(2000);
-    } else {
-        // console.error(`❌ Apply Policy button not found`);
+    if (!applyVisible) {
         throw new Error(`Apply Policy button not visible after Save`);
     }
+
+    // Arm the response interceptor BEFORE the click so we never miss the POST.
+    const jobResponsePromise = page
+        .waitForResponse(
+            (r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST',
+            {timeout: 10_000},
+        )
+        .then(async (r) => (r.ok() ? ((await r.json()) as {id?: string}).id ?? null : null))
+        .catch(() => null);
+
+    await applyPolicyButton.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    return jobResponsePromise;
 }
 
 /**
@@ -845,134 +883,124 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
  * Wait for a sync job to complete.
  *
  * When `expectedJobId` is supplied (obtained from `runSyncJob()` which
- * intercepts the POST /api/v4/jobs response), this polls the job list via
- * API and filters to that specific job — race-free under PW_WORKERS >= 2,
- * where another worker's `access_control_sync` job can appear as the
- * "latest" in the global job list between the trigger and this call.
+ * intercepts the POST /api/v4/jobs response), polls GET /api/v4/jobs/{id}
+ * directly — race-free under PW_WORKERS >= 2 because it checks the exact
+ * job, not the first row of a shared list.
  *
- * When `expectedJobId` is not supplied, falls back to the legacy page-based
- * polling (reloads the UI, reads the first job row). This path is racy
- * under concurrency and kept only for backwards compatibility — prefer the
- * API path by passing the ID returned from `runSyncJob()`, or use
- * `waitForPolicySyncJob` when you have a `policyId`.
+ * When `expectedJobId` is not supplied, falls back to reading the first row
+ * of the UI sync-jobs table (racy under concurrency; avoid when possible by
+ * passing the ID returned from `runSyncJob()` or `createBasicPolicy()`).
+ *
+ * Both paths use `expect.poll` with 500 ms intervals and a 30 s timeout so
+ * individual CI jobs that are delayed in the queue don't cause false failures.
  */
 export async function waitForLatestSyncJob(
     page: Page,
-    maxRetries: number = 5,
+    _retries?: number,
     expectedJobId?: string | null,
 ): Promise<any> {
-    // Race-safe path: poll the specific job ID via API.
+    // ── Race-safe path: poll the exact job by ID ──────────────────────────
     if (expectedJobId) {
-        const pollIntervalMs = 2000;
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            await page.waitForTimeout(pollIntervalMs);
-
-            let job: any;
-            try {
-                job = await page.evaluate(async (id: string) => {
-                    const resp = await fetch(`/api/v4/jobs/${encodeURIComponent(id)}`, {
-                        credentials: 'include',
-                    });
-                    if (!resp.ok) {
-                        return {status: `http_${resp.status}`};
+        await expect
+            .poll(
+                async () => {
+                    try {
+                        const job: any = await page.evaluate(async (id: string) => {
+                            const resp = await fetch(`/api/v4/jobs/${encodeURIComponent(id)}`, {
+                                credentials: 'include',
+                            });
+                            if (!resp.ok) return {status: `http_${resp.status}`};
+                            return resp.json();
+                        }, expectedJobId);
+                        const status = (job?.status ?? '').toLowerCase();
+                        if (['error', 'failed', 'canceled', 'cancel_requested'].includes(status)) {
+                            throw new Error(`Sync job ${expectedJobId} failed: ${status}`);
+                        }
+                        return status;
+                    } catch (err) {
+                        if (err instanceof Error && err.message.startsWith('Sync job')) throw err;
+                        return 'pending'; // network hiccup — keep polling
                     }
-                    return resp.json();
-                }, expectedJobId);
-            } catch {
-                // Network hiccup — keep polling
-                continue;
-            }
-
-            const status = (job?.status || '').toLowerCase();
-            if (status === 'success') {
-                return job;
-            }
-            if (status === 'error' || status === 'failed' || status === 'canceled' || status === 'cancel_requested') {
-                throw new Error(`Sync job ${expectedJobId} failed with status: ${job.status}`);
-            }
-            // 'pending' or 'in_progress' — keep polling
-        }
-        throw new Error(`Sync job ${expectedJobId} did not complete after ${maxRetries} retries`);
+                },
+                {
+                    timeout: 30_000,
+                    intervals: [500, 500, 500, 1000, 1000, 2000],
+                    message: `Sync job ${expectedJobId} did not reach success within 30 s`,
+                },
+            )
+            .toBe('success');
+        return;
     }
 
-    // Legacy path: read the top row of the UI sync-jobs table. RACY under
-    // PW_WORKERS >= 2 — another worker's sync job can become "latest"
-    // between the trigger and this call. Kept only for callers that don't
-    // yet propagate the job ID from `runSyncJob()`.
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Wait a bit for the job to process
-        await page.waitForTimeout(2000);
-
-        // Reload the page to get fresh data
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
-
-        // Get the first (latest) job row
-        const latestJobRow = page.locator('tr.clickable').first();
-
-        if (await latestJobRow.isVisible({timeout: 3000})) {
-            // Check the status
-            const statusCell = latestJobRow.locator('td').first();
-            const status = await statusCell.textContent();
-
-            if (status?.trim() === 'Success') {
-                return latestJobRow;
-            } else if (status?.trim() === 'Error' || status?.trim() === 'Failed') {
-                throw new Error(`Sync job failed with status: ${status?.trim()}`);
-            }
-        }
-    }
-
-    throw new Error(`Sync job did not complete after ${maxRetries} retries`);
+    // ── Legacy path: read the first row of the sync-jobs table ───────────
+    // RACY under PW_WORKERS >= 2 — use the jobId path when possible.
+    await expect
+        .poll(
+            async () => {
+                await page.reload();
+                await page.waitForLoadState('networkidle');
+                const latestJobRow = page.locator('tr.clickable').first();
+                if (!(await latestJobRow.isVisible({timeout: 3000}).catch(() => false))) {
+                    return 'no_jobs';
+                }
+                const status = (await latestJobRow.locator('td').first().textContent()) ?? '';
+                const s = status.trim().toLowerCase();
+                if (s === 'error' || s === 'failed') {
+                    throw new Error(`Sync job failed with status: ${status.trim()}`);
+                }
+                return s;
+            },
+            {
+                timeout: 30_000,
+                intervals: [2000, 2000, 3000, 3000],
+                message: 'Sync job did not complete within 30 s (legacy path)',
+            },
+        )
+        .toBe('success');
 }
 
 /**
  * Wait for a policy-specific access_control_sync job to complete.
  *
- * Unlike waitForLatestSyncJob (which reloads the page and checks the first row),
- * this function queries the server API directly with a policy_id filter. In parallel
- * CI shards, multiple shards trigger sync jobs at the same time; without filtering
- * a shard could pick up another shard's completed job and assume its own job finished.
- * Filtering by policyId makes each shard wait for the job that belongs to it.
+ * Queries the server API directly with a policy_id filter so it is race-safe
+ * under PW_WORKERS >= 2: another shard's sync job cannot be mistaken for ours.
  *
- * Requires the server-side policy_id filter endpoint (added in this PR):
- *   GET /api/v4/jobs/type/access_control_sync?policy_id=<id>
+ * Uses `expect.poll` with 500 ms intervals and a 30 s timeout so jobs that are
+ * briefly delayed in the queue do not cause spurious failures.  The legacy
+ * `maxRetries` parameter is accepted but ignored — callers do not need to be
+ * updated.
  */
-export async function waitForPolicySyncJob(client: Client4, policyId: string, maxRetries: number = 10): Promise<void> {
-    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        // Give the job time to start / progress before polling
-        await delay(2000);
-
-        try {
-            const jobs: any[] = await (client as any).doFetch(
-                `${client.getBaseRoute()}/jobs/type/access_control_sync?policy_id=${encodeURIComponent(policyId)}&page=0&per_page=5`,
-                {method: 'GET'},
-            );
-
-            if (Array.isArray(jobs) && jobs.length > 0) {
-                // Server returns jobs sorted by CreateAt DESC — index 0 is the latest
-                const latest = jobs[0];
-                if (latest.status === 'success') {
-                    return;
+export async function waitForPolicySyncJob(
+    client: Client4,
+    policyId: string,
+    _maxRetries?: number,
+): Promise<void> {
+    await expect
+        .poll(
+            async () => {
+                try {
+                    const jobs: any[] = await (client as any).doFetch(
+                        `${client.getBaseRoute()}/jobs/type/access_control_sync?policy_id=${encodeURIComponent(policyId)}&page=0&per_page=5`,
+                        {method: 'GET'},
+                    );
+                    if (!Array.isArray(jobs) || jobs.length === 0) return 'pending';
+                    const status: string = jobs[0].status ?? 'pending';
+                    if (status === 'error' || status === 'canceled' || status === 'cancel_requested') {
+                        throw new Error(`Policy sync job failed: ${status}`);
+                    }
+                    return status;
+                } catch (err) {
+                    if (err instanceof Error && err.message.startsWith('Policy sync job')) throw err;
+                    return 'pending'; // network hiccup — keep polling
                 }
-                if (latest.status === 'error' || latest.status === 'canceled' || latest.status === 'cancel_requested') {
-                    throw new Error(`Policy sync job failed with status: ${latest.status}`);
-                }
-                // status is 'pending' or 'in_progress' — keep polling
-            }
-            // No jobs yet — keep polling
-        } catch (err) {
-            if (err instanceof Error && err.message.startsWith('Policy sync job')) {
-                throw err;
-            }
-            // Network / parse error — keep polling
-        }
-    }
-
-    throw new Error(`Policy sync job for policy ${policyId} did not complete after ${maxRetries} retries`);
+            },
+            {
+                timeout: 30_000,
+                intervals: [500, 500, 500, 1000, 1000, 2000],
+                message: `Policy sync job for ${policyId} did not reach success within 30 s`,
+            },
+        )
+        .toBe('success');
 }
 
 /**

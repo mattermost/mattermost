@@ -103,7 +103,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use the working createBasicPolicy helper (same as MM-T5784)
         const policyName = `Engineering Policy ${pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        const __jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -135,8 +135,8 @@ test.describe('ABAC Policies - Create Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        // Wait for sync job to complete (triggered by createBasicPolicy); 15 retries × 2 s = 30 s budget
-        await waitForLatestSyncJob(systemConsolePage.page, 15);
+        // Wait for sync job to complete (triggered by createBasicPolicy)
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5783);
 
         // ============================================================
         // STEP 5-7: Verify channel membership after sync
@@ -281,7 +281,7 @@ test.describe('ABAC Policies - Create Policies', () => {
 
         // Use createBasicPolicy with autoSync: true
         const policyName = `Auto-Add Policy ${pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        const __jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -311,8 +311,8 @@ test.describe('ABAC Policies - Create Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        // Wait for initial sync job to complete (15 retries × 2s = 30s for queued parallel jobs)
-        await waitForLatestSyncJob(systemConsolePage.page, 15);
+        // Wait for initial sync job to complete
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobIdMM5784);
 
         // Get policy ID and activate it for auto-add to work
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
@@ -336,9 +336,9 @@ test.describe('ABAC Policies - Create Policies', () => {
         await activatePolicy(adminClient, policyId);
 
         // Run sync job with active policy; poll by policyId to avoid picking up a
-        // concurrent shard's job completing first (15 retries × 2s = 30s budget)
+        // concurrent shard's job completing first
         await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId, 15);
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ============================================================
         // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes
