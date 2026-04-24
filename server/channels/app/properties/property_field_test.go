@@ -225,9 +225,10 @@ func TestCreatePropertyField(t *testing.T) {
 	rctx := th.Context
 
 	t.Run("legacy property with empty ObjectType should skip conflict check", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
 		field := &model.PropertyField{
 			ObjectType: "", // Legacy
-			GroupID:    model.NewId(),
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Legacy Property",
@@ -239,10 +240,10 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "System Property",
@@ -254,13 +255,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with existing team property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		// Create team-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -270,7 +271,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create system-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Status",
@@ -285,14 +286,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with existing channel property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create channel-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -302,7 +303,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create system-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Priority",
@@ -317,12 +318,12 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -335,13 +336,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with existing system property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		// Create system-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "SystemField",
@@ -350,7 +351,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create team-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -366,14 +367,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with existing channel property in same team should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create channel-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -383,7 +384,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create team-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -399,13 +400,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -418,14 +419,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with existing system property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create system-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "GlobalProp",
@@ -434,7 +435,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create channel-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -450,14 +451,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with existing team property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create team-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -467,7 +468,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create channel-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -483,14 +484,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("DM channel only checks system-level for conflicts", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		dmChannel := th.CreateDMChannel(t)
 
 		// Create a team-level property in a team
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -501,7 +502,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// since DM channels have no team association
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   dmChannel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -513,7 +514,7 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel in different team does not conflict with team property", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team1 := th.CreateTeam(t)
 		team2 := th.CreateTeam(t)
 		channelInTeam2 := th.CreateChannel(t, team2.Id)
@@ -521,7 +522,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Create team-level property in team1
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team1.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -531,7 +532,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Channel-level property in team2 should not conflict with team1's property
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channelInTeam2.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -543,8 +544,8 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("properties in different groups with same name do not conflict", func(t *testing.T) {
-		group1 := model.NewId()
-		group2 := model.NewId()
+		group1 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
+		group2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create system-level property in group1
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -569,7 +570,7 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("deleted properties do not cause conflicts", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create and delete a system-level property
 		deleted := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -601,7 +602,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	rctx := th.Context
 
 	t.Run("updating non-name fields should not trigger conflict check", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -630,7 +631,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to non-conflicting value should succeed", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -649,7 +650,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to conflicting value at team level should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 
 		// Create a team-level property
@@ -683,7 +684,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating DM channel property to same name as regular channel property should succeed", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 		dmChannel := th.CreateDMChannel(t)
@@ -717,7 +718,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to conflicting value at system level should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 
 		// Create a system-level property
@@ -751,7 +752,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating TargetType that creates conflict should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel1 := th.CreateChannel(t, team.Id)
 		channel2 := th.CreateChannel(t, team.Id)
@@ -790,7 +791,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating TargetID that creates conflict should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel1 := th.CreateChannel(t, team.Id)
 		channel2 := th.CreateChannel(t, team.Id)
@@ -828,7 +829,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("legacy property updates should skip conflict check", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 		// Create a legacy property (no ObjectType)
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -847,7 +848,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("property can be renamed to its own name", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -869,13 +870,13 @@ func TestUpdatePropertyField(t *testing.T) {
 func TestLinkedPropertyFields(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
 	// Helper to create a source template field with select options
 	createSourceField := func(t *testing.T, name string) *model.PropertyField {
 		t.Helper()
 		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeSelect,
@@ -893,7 +894,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "Source-"+model.NewId())
 
 		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "Linked-" + model.NewId(),
@@ -915,7 +916,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
 		fakeID := model.NewId()
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "Linked-" + model.NewId(),
@@ -928,7 +929,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("create linked field rejects non-template source", func(t *testing.T) {
 		// Create a regular (non-template) field
 		regular := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeSelect,
@@ -942,7 +943,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Try to link to the non-template field — should be rejected
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "LinkToRegular-" + model.NewId(),
@@ -957,7 +958,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "ChainSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "ChainLinked-" + model.NewId(),
@@ -967,7 +968,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Try to link to the linked field (chain) — rejected because it's not a template
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "ChainAttempt-" + model.NewId(),
@@ -983,7 +984,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// A template field should not itself be linked to another template
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeTemplate,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "LinkedTemplate-" + model.NewId(),
@@ -999,7 +1000,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Source has TargetType=system, try to link with TargetType=channel
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelChannel),
 			Name:          "TTMismatch-" + model.NewId(),
@@ -1014,7 +1015,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "TypeBlockSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "TypeBlockLinked-" + model.NewId(),
@@ -1023,7 +1024,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Type = model.PropertyFieldTypeText
-		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1034,7 +1035,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "OptsBlockSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "OptsBlockLinked-" + model.NewId(),
@@ -1045,7 +1046,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		linked.Attrs[model.PropertyFieldAttributeOptions] = []any{
 			map[string]any{"id": model.NewId(), "name": "Different"},
 		}
-		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1056,7 +1057,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "NameChangeSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "NameChangeLinked-" + model.NewId(),
@@ -1065,7 +1066,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked.Name = "NewName-" + model.NewId()
-		result, err := th.service.UpdatePropertyField(rctx, groupID, linked)
+		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Equal(t, linked.Name, result.Name)
 	})
@@ -1074,7 +1075,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "PropagateSource-"+model.NewId())
 
 		linked1 := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "PropLinked1-" + model.NewId(),
@@ -1083,7 +1084,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked2 := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeChannel,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "PropLinked2-" + model.NewId(),
@@ -1099,15 +1100,15 @@ func TestLinkedPropertyFields(t *testing.T) {
 		}
 		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
 
-		result, propagated, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 1)     // only the requested source field
 		require.Len(t, propagated, 2) // 2 linked fields
 
 		// Verify linked fields got the new options
-		updatedLinked1, err := th.service.GetPropertyField(rctx, groupID, linked1.ID)
+		updatedLinked1, err := th.service.GetPropertyField(rctx, group.ID, linked1.ID)
 		require.NoError(t, err)
-		updatedLinked2, err := th.service.GetPropertyField(rctx, groupID, linked2.ID)
+		updatedLinked2, err := th.service.GetPropertyField(rctx, group.ID, linked2.ID)
 		require.NoError(t, err)
 
 		for _, linked := range []*model.PropertyField{updatedLinked1, updatedLinked2} {
@@ -1121,7 +1122,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "TypeBlockDeps-"+model.NewId())
 
 		th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "DepLinked-" + model.NewId(),
@@ -1130,7 +1131,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		source.Type = model.PropertyFieldTypeMultiselect
-		_, err := th.service.UpdatePropertyField(rctx, groupID, source)
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, source)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1141,7 +1142,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "DeleteBlock-"+model.NewId())
 
 		th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "DelDepLinked-" + model.NewId(),
@@ -1149,7 +1150,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 			LinkedFieldID: &source.ID,
 		})
 
-		err := th.service.DeletePropertyField(rctx, groupID, source.ID)
+		err := th.service.DeletePropertyField(rctx, group.ID, source.ID)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1160,7 +1161,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "DeleteOK-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "DeleteOKLinked-" + model.NewId(),
@@ -1169,11 +1170,11 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Delete the linked dependent first
-		err := th.service.DeletePropertyField(rctx, groupID, linked.ID)
+		err := th.service.DeletePropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, err)
 
 		// Now delete the source
-		err = th.service.DeletePropertyField(rctx, groupID, source.ID)
+		err = th.service.DeletePropertyField(rctx, group.ID, source.ID)
 		require.NoError(t, err)
 	})
 
@@ -1181,7 +1182,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "UnlinkSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "UnlinkLinked-" + model.NewId(),
@@ -1191,7 +1192,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Unlink by clearing LinkedFieldID
 		linked.LinkedFieldID = nil
-		result, err := th.service.UpdatePropertyField(rctx, groupID, linked)
+		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.NoError(t, err)
 		assert.Nil(t, result.LinkedFieldID)
 		assert.Equal(t, source.Type, result.Type)
@@ -1209,7 +1210,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			FieldID:    source.ID,
 			Value:      json.RawMessage(`"some value"`),
 		}
@@ -1225,7 +1226,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			FieldID:    source.ID,
 			Value:      json.RawMessage(`"some value"`),
 		}
@@ -1238,7 +1239,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
 		// Create a regular (non-linked) field
 		regular := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Name:       "Regular-" + model.NewId(),
@@ -1250,7 +1251,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		// Attempt to set LinkedFieldID on update — should be rejected
 		source := createSourceField(t, "LinkAttemptSource-"+model.NewId())
 		regular.LinkedFieldID = &source.ID
-		_, err := th.service.UpdatePropertyField(rctx, groupID, regular)
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, regular)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1263,7 +1264,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source2 := createSourceField(t, "ChangeSource2-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "ChangeLink-" + model.NewId(),
@@ -1273,7 +1274,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Attempt to change the link target — should be rejected
 		linked.LinkedFieldID = &source2.ID
-		_, err := th.service.UpdatePropertyField(rctx, groupID, linked)
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
 		require.Error(t, err)
 		appErr, ok := err.(*model.AppError)
 		require.True(t, ok)
@@ -1286,7 +1287,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Create a CPA-style linked field (user object type)
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "CPALinked-" + model.NewId(),
@@ -1304,7 +1305,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		source := createSourceField(t, "CPADelSource-"+model.NewId())
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "CPADelLinked-" + model.NewId(),
@@ -1313,7 +1314,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		// Deleting the linked field should succeed
-		err := th.service.DeletePropertyField(rctx, groupID, linked.ID)
+		err := th.service.DeletePropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, err)
 	})
 
@@ -1323,7 +1324,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		optCID := model.NewId()
 
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeSelect,
@@ -1338,7 +1339,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 		})
 
 		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
-			GroupID:       groupID,
+			GroupID:       group.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "RemovalLinked-" + model.NewId(),
@@ -1352,13 +1353,13 @@ func TestLinkedPropertyFields(t *testing.T) {
 			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
 		}
 
-		result, propagated, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{source})
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
 		require.NoError(t, err)
 		require.Len(t, result, 1)     // only the requested source field
 		require.Len(t, propagated, 1) // 1 linked field
 
 		// Verify the linked field has the updated options (B removed)
-		updatedLinked, err := th.service.GetPropertyField(rctx, groupID, linked.ID)
+		updatedLinked, err := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, err)
 
 		linkedOptIDs := extractOptionIDs(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
@@ -1373,13 +1374,34 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "green", linkedOpts[1]["color"])
 	})
 
+	// FIXME: remove this test once CPA is fully migrated to v2 — template
+	// fields should then only be created on v2 groups.
+	t.Run("template field creation is allowed on v1 group", func(t *testing.T) {
+		v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    v1Group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "V1Template-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+	})
+
 	t.Run("cross-group linking is rejected", func(t *testing.T) {
-		groupA := model.NewId()
-		groupB := model.NewId()
+		registeredA := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+		registeredB := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
 		// Create a template in group A
 		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
-			GroupID:    groupA,
+			GroupID:    registeredA.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeSelect,
@@ -1394,7 +1416,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 
 		// Linking from group B to a template in group A must fail
 		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
-			GroupID:       groupB,
+			GroupID:       registeredB.ID,
 			ObjectType:    model.PropertyFieldObjectTypeUser,
 			TargetType:    string(model.PropertyFieldTargetLevelSystem),
 			Name:          "CrossGroupLinked-" + model.NewId(),
@@ -1413,12 +1435,12 @@ func TestLinkedPropertyFields(t *testing.T) {
 		value := &model.PropertyValue{
 			TargetID:   model.NewId(),
 			TargetType: "user",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			FieldID:    source.ID,
 			Value:      json.RawMessage(`"some value"`),
 		}
 
-		_, err := th.service.UpdatePropertyValues(rctx, groupID, []*model.PropertyValue{value})
+		_, err := th.service.UpdatePropertyValues(rctx, group.ID, []*model.PropertyValue{value})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "template")
 	})
