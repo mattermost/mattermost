@@ -99,7 +99,7 @@
         - properties
       summary: Get property fields
       description: >
-        Get a list of property fields for a specific group and object type. Requires a target_type parameter to scope the query. Filter further by target_id to narrow results. Uses cursor-based pagination.
+        Get a list of property fields for a specific group and object type. Requires a target_type parameter to scope the query, except when `object_type=system` — in that case `target_type` is implicit and any value supplied is ignored. Filter further by target_id to narrow results. Uses cursor-based pagination.
       operationId: GetPropertyFields
       parameters:
         - name: group_name
@@ -283,6 +283,7 @@
       description: >
         Get all property values for a specific target within a group.
         The `template` object type cannot have values and will return 400.
+        The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
       operationId: GetPropertyValues
       parameters:
         - name: group_name
@@ -342,6 +343,7 @@
       description: >
         Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
         The `template` object type cannot have values and will return 400.
+        The `system` object type must use the dedicated `/api/v4/properties/groups/{group_name}/system/values` endpoint and will return 400 on this route.
       operationId: UpdatePropertyValues
       parameters:
         - name: group_name
@@ -383,6 +385,105 @@
       responses:
         "200":
           description: Property values update successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  "/api/v4/properties/groups/{group_name}/system/values":
+    get:
+      tags:
+        - properties
+      summary: Get property values for the system
+      description: >
+        Get all property values attached to the Mattermost instance itself
+        within a group. System-scoped values are readable by any authenticated
+        user. This endpoint is the dedicated route for `system` object type;
+        the `{object_type}/values/{target_id}` route returns 400 for `system`.
+      operationId: GetSystemPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+        - name: cursor_id
+          in: query
+          description: The ID of the last property value from the previous page, for cursor-based pagination.
+          schema:
+            type: string
+        - name: cursor_create_at
+          in: query
+          description: The create_at timestamp of the last property value from the previous page. Must be provided together with cursor_id.
+          schema:
+            type: integer
+            format: int64
+        - name: per_page
+          in: query
+          description: The number of property values per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: System property values retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropertyValue"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    patch:
+      tags:
+        - properties
+      summary: Update property values for the system
+      description: >
+        Update one or more property values attached to the Mattermost instance
+        itself. Uses upsert semantics: creates the value if it doesn't exist,
+        updates it if it does. Requires system administrator access. All field
+        IDs must reference `system` object-type fields in the specified group;
+        template field IDs are rejected with 400.
+      operationId: UpdateSystemPropertyValues
+      parameters:
+        - name: group_name
+          in: path
+          description: The name of the property group
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - field_id
+                  - value
+                properties:
+                  field_id:
+                    type: string
+                    description: The ID of the property field
+                  value:
+                    description: The value to set for this property. Can be any JSON type.
+        description: Array of property values to update
+        required: true
+      responses:
+        "200":
+          description: System property values update successful
           content:
             application/json:
               schema:
