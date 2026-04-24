@@ -66,19 +66,22 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				DocumentID: docID,
 				Body:       body,
 				OnFailure: func(_ context.Context, item opensearchutil.BulkIndexerItem, resp opensearchapi.BulkRespItem, err error) {
-					var errType, errReason string
-					if resp.Error != nil {
-						errType = resp.Error.Type
-						errReason = resp.Error.Reason
-					}
-					logger.Error("Bulk indexer: failed to index document",
+					fields := []mlog.Field{
 						mlog.String("index", item.Index),
 						mlog.String("doc_id", item.DocumentID),
 						mlog.String("action", item.Action),
-						mlog.String("error_type", errType),
-						mlog.String("error_reason", errReason),
-						mlog.Err(err),
-					)
+						mlog.Int("status", resp.Status),
+					}
+					if resp.Error != nil {
+						fields = append(fields,
+							mlog.String("error_type", resp.Error.Type),
+							mlog.String("error_reason", resp.Error.Reason),
+						)
+					}
+					if err != nil {
+						fields = append(fields, mlog.Err(err))
+					}
+					logger.Warn("Bulk indexer: failed to index document", fields...)
 				},
 			})
 		},

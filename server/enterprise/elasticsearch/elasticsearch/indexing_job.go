@@ -64,14 +64,22 @@ func (esi *ElasticsearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				DocumentID: docID,
 				Body:       body,
 				OnFailure: func(_ context.Context, item esutil.BulkIndexerItem, resp esutil.BulkIndexerResponseItem, err error) {
-					logger.Error("Bulk indexer: failed to index document",
+					fields := []mlog.Field{
 						mlog.String("index", item.Index),
 						mlog.String("doc_id", item.DocumentID),
 						mlog.String("action", item.Action),
-						mlog.String("error_type", resp.Error.Type),
-						mlog.String("error_reason", resp.Error.Reason),
-						mlog.Err(err),
-					)
+						mlog.Int("status", resp.Status),
+					}
+					if resp.Error.Type != "" || resp.Error.Reason != "" {
+						fields = append(fields,
+							mlog.String("error_type", resp.Error.Type),
+							mlog.String("error_reason", resp.Error.Reason),
+						)
+					}
+					if err != nil {
+						fields = append(fields, mlog.Err(err))
+					}
+					logger.Warn("Bulk indexer: failed to index document", fields...)
 				},
 			})
 		},
