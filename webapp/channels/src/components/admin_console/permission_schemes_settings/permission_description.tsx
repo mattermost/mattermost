@@ -5,9 +5,8 @@ import React from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {Role} from '@mattermost/types/roles';
-
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {Role} from '@mattermost/types/roles';
 
 import {rolesRolesStrings} from './strings/roles';
 

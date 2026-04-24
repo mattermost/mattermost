@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import {useIntl} from 'react-intl';
 
 import {FireIcon} from '@mattermost/compass-icons/components';
-
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {useBurnOnReadTimer} from 'hooks/useBurnOnReadTimer';

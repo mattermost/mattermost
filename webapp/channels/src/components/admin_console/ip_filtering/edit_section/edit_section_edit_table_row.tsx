@@ -8,9 +8,8 @@ import {
     PencilOutlineIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
-import type {AllowedIPRange} from '@mattermost/types/config';
-
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {AllowedIPRange} from '@mattermost/types/config';
 
 type EditTableRowProps = {
     allowedIPRange: AllowedIPRange;

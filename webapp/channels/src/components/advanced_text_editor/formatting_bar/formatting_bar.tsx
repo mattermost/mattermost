@@ -9,7 +9,6 @@ import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
-
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
