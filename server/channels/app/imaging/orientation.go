@@ -10,8 +10,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/boxes-ltd/imaging"
 	"github.com/bep/imagemeta"
+	"github.com/boxes-ltd/imaging"
 )
 
 const (

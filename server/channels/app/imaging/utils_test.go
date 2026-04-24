@@ -115,4 +115,3 @@ func TestFillImageTransparency(t *testing.T) {
 		require.Equal(t, expectedImg, inputImg)
 	})
 }
-

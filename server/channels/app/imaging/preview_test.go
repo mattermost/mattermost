@@ -75,4 +75,3 @@ func TestGenerateThumbnail(t *testing.T) {
 		})
 	}
 }
-

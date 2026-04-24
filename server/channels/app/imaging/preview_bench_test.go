@@ -18,8 +18,8 @@ func newRGBAImage(w, h int) *image.RGBA {
 
 func BenchmarkGeneratePreview(b *testing.B) {
 	cases := []struct {
-		name       string
-		w, h       int
+		name        string
+		w, h        int
 		targetWidth int
 	}{
 		{"2000x1500 -> 1024", 2000, 1500, 1024},
@@ -39,8 +39,8 @@ func BenchmarkGeneratePreview(b *testing.B) {
 
 func BenchmarkGenerateThumbnail(b *testing.B) {
 	cases := []struct {
-		name          string
-		w, h          int
+		name             string
+		w, h             int
 		targetW, targetH int
 	}{
 		{"2000x1500 landscape -> 120x100", 2000, 1500, 120, 100},
@@ -60,10 +60,10 @@ func BenchmarkGenerateThumbnail(b *testing.B) {
 
 func BenchmarkGenerateMiniPreviewImage(b *testing.B) {
 	cases := []struct {
-		name       string
-		w, h       int
+		name             string
+		w, h             int
 		targetW, targetH int
-		quality    int
+		quality          int
 	}{
 		{"2000x1500 -> 120x100 q50", 2000, 1500, 120, 100, 50},
 		{"4000x3000 -> 120x100 q50", 4000, 3000, 120, 100, 50},
@@ -81,8 +81,8 @@ func BenchmarkGenerateMiniPreviewImage(b *testing.B) {
 
 func BenchmarkFillCenter(b *testing.B) {
 	cases := []struct {
-		name       string
-		w, h       int
+		name             string
+		w, h             int
 		targetW, targetH int
 	}{
 		{"2000x1500 -> 120x100", 2000, 1500, 120, 100},
