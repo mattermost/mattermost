@@ -4,7 +4,6 @@
 /** @type {import('jest').Config} */
 
 const config = {
-    snapshotSerializers: ['enzyme-to-json/serializer'],
     testPathIgnorePatterns: ['/node_modules/'],
     clearMocks: true,
     collectCoverageFrom: [

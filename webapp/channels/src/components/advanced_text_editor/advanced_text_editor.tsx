@@ -319,7 +319,7 @@ const AdvancedTextEditor = ({
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
-        additionalControl: aiRewriteAdditionalControl,
+        rewriteMenuProps,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
@@ -712,10 +712,9 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
-        aiRewriteEnabled && aiRewriteAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode, aiRewriteEnabled, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -845,7 +844,7 @@ const AdvancedTextEditor = ({
                                 onChange={handleChange}
                                 onKeyPress={postMsgKeyPress}
                                 onKeyDown={handleKeyDown}
-                                onComposition={emitTypingEvent}
+                                onCompositionUpdate={emitTypingEvent}
                                 onHeightChange={handleHeightChange}
                                 handlePostError={handlePostError}
                                 value={messageValue}
