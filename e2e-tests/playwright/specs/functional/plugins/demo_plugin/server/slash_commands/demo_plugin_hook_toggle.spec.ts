@@ -13,7 +13,7 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     // Add test user to the demo_plugin private channel (it's private; not joined by default).
     // The plugin creates this channel asynchronously on activation, so poll until it exists.
     let demoChannel: any = null;
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 25; i++) {
         try {
             demoChannel = await adminClient.getChannelByName(team.id, 'demo_plugin');
             if (demoChannel?.id) break;

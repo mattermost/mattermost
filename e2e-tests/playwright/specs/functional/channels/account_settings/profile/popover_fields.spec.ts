@@ -47,7 +47,14 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     // 4. Close the current user's profile popover
     await currentUserProfilePopover.close();
 
-    // 5. Open profile popover for the other user on second mention
+    // 5. Open profile popover for the other user on second mention.
+    // Re-apply privacy settings in case a concurrent initSetup() reset them.
+    await adminClient.patchConfig({
+        PrivacySettings: {
+            ShowEmailAddress: false,
+            ShowFullName: false,
+        },
+    });
     const secondMention = await lastPost.container.getByText(`@${testUser2.username}`, {exact: true});
     await secondMention.click();
     const otherUserProfilePopover = channelsPage.userProfilePopover;

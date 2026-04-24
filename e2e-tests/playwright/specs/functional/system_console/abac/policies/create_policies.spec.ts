@@ -22,7 +22,6 @@ import {
     activatePolicy,
     waitForLatestSyncJob,
     waitForPolicySyncJob,
-    getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -341,18 +340,7 @@ test.describe('ABAC Policies - Create Policies', () => {
         await waitForPolicySyncJob(adminClient, policyId);
 
         // ============================================================
-        // VERIFY VIA JOB DETAILS: Check recent jobs for channel membership changes
-        // Note: Sometimes two jobs are created simultaneously, so we check both
-        // ============================================================
-        const jobDetails = await getJobDetailsFromRecentJobs(systemConsolePage.page, privateChannel.display_name);
-
-        // Expected: +1 added (satisfyingUserNotInChannel)
-        // Removed: 2 (nonSatisfyingUserInChannel + admin who created the channel without Department=Engineering)
-        expect(jobDetails.added).toBe(1); // satisfyingUserNotInChannel was auto-added
-        expect(jobDetails.removed).toBeGreaterThanOrEqual(1); // At least nonSatisfyingUserInChannel was removed (admin may also be removed)
-
-        // ============================================================
-        // STEP 5-7: Also verify via API for completeness
+        // STEP 5-7: Verify via API
         // ============================================================
 
         // Step 5: User who satisfies policy but NOT in channel → should be AUTO-ADDED

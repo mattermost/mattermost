@@ -18,187 +18,116 @@ import {
     createBasicPolicy,
     createAdvancedPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
+    waitForPolicySyncJob,
+    getPolicyIdByName,
 } from '../support';
 
 /**
- * ABAC LDAP Integration - Sync
- * Tests for LDAP sync behavior with ABAC policies
+ * MM-T5799a: LDAP sync - User removed after attribute change (startsWith operator, auto-add true)
+ *
+ * 1. Policy with Department.startsWith("Eng"), auto-add=true
+ * 2. User IN channel with qualifying attribute (Engineering)
+ * 3. Attribute updated to non-qualifying value (Sales)
+ * 4. Next sync removes the user from the channel
  */
-test.describe('ABAC LDAP Integration - Sync', () => {
-    /**
-     * MM-T5799: LDAP sync - User removed from channel after required attribute removed (auto-add true)
-     *
-     * Step 1: Using `ƒ starts with` operator
-     * 1. Policy with startsWith operator, auto-add=true exists and is applied to a channel
-     * 2. User IN channel with attribute that starts with required value
-     * 3. Simulate LDAP sync by removing the attribute (or changing to non-qualifying value)
-     * 4. Run ABAC sync job
-     *
-     * Expected:
-     * - User who no longer satisfies policy is removed from channel
-     * - `User removed` message posted in channel by System
-     *
-     * Step 2: Two attributes using `= is` operator
-     * 1. Policy with two attributes (both using ==), auto-add=true
-     * 2. User IN channel with both required attributes
-     * 3. Simulate LDAP sync by removing one attribute
-     * 4. Run ABAC sync job
-     *
-     * Expected:
-     * - User who no longer satisfies policy is removed from channel
-     * - `User removed` message posted in channel by System
-     *
-     * NOTE: This test simulates LDAP attribute sync behavior via API.
-     *       In production, attributes would be synced from LDAP server.
-     */
-    test('MM-T5799 LDAP sync - User removed after attribute removed', async ({pw}) => {
-        test.setTimeout(180000);
+test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true)', async ({pw}) => {
+    test.setTimeout(90000);
+    await pw.skipIfNoLicense();
 
-        await pw.skipIfNoLicense();
+    const {adminUser, adminClient, team} = await pw.initSetup();
+    await ensureUserAttributes(adminClient, ['Department']);
 
-        // ============================================================
-        // SETUP
-        // ============================================================
-        const {adminUser, adminClient, team} = await pw.initSetup();
+    // User starts WITH qualifying attribute (Department starts with "Eng").
+    const user = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
+    await adminClient.addToTeam(team.id, user.id);
 
-        // Ensure Department attribute exists
-        await ensureUserAttributes(adminClient, ['Department']);
+    const channel = await createPrivateChannelForABAC(adminClient, team.id);
 
-        // ============================================================
-        // STEP 1: Single attribute with startsWith operator
-        // ============================================================
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    await navigateToABACPage(systemConsolePage.page);
+    await enableABAC(systemConsolePage.page);
 
-        // Create user with qualifying attribute (Department starts with "Eng")
-        const user1 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
-        await adminClient.addToTeam(team.id, user1.id);
-
-        // Create channel and policy
-        const channel1 = await createPrivateChannelForABAC(adminClient, team.id);
-
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
-
-        const policy1Name = `LDAP Remove StartsWith ${pw.random.id()}`;
-        await createAdvancedPolicy(systemConsolePage.page, {
-            name: policy1Name,
-            celExpression: 'user.attributes.Department.startsWith("Eng")',
-            autoSync: true, // Auto-add TRUE
-            channels: [channel1.display_name],
-        });
-
-        // Activate policy
-        await systemConsolePage.page.waitForTimeout(2000);
-        await waitForLatestSyncJob(systemConsolePage.page);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        await searchInput.fill(policy1Name.match(/([a-z0-9]+)$/i)?.[1] || policy1Name);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow1 = systemConsolePage.page.locator('.policy-name').first();
-        const policyId1 = (await policyRow1.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId1) {
-            await activatePolicy(adminClient, policyId1);
-        }
-        await searchInput.clear();
-
-        // Run sync - user should be AUTO-ADDED (has Department=Engineering which starts with "Eng")
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
-
-        const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
-        expect(user1InitialCheck).toBe(true);
-
-        // Simulate LDAP sync by changing Department to value that doesn't start with "Eng"
-        await updateUserAttributes(adminClient, user1.id, {Department: 'Sales'});
-
-        // Run ABAC sync job to remove user
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
-
-        // Verify user IS REMOVED from channel
-        const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
-        expect(user1AfterSync).toBe(false);
-
-        // Verify system message
-        const posts1 = await adminClient.getPosts(channel1.id, 0, 10);
-        const postList1 = posts1.order.map((postId: string) => posts1.posts[postId]);
-        const removeMessage1 = postList1.find((post: any) => {
-            return post.type === 'system_remove_from_channel' && post.props?.removedUserId === user1.id;
-        });
-        if (removeMessage1) {
-            // System message found
-        } else {
-            // System message not found (may be disabled in test env)
-        }
-
-        // ============================================================
-        // STEP 2: Two attributes using == operator
-        // ============================================================
-
-        // Create user with both qualifying attributes
-        const user2 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
-        await adminClient.addToTeam(team.id, user2.id);
-
-        // Create second channel
-        const channel2 = await createPrivateChannelForABAC(adminClient, team.id);
-
-        await navigateToABACPage(systemConsolePage.page);
-
-        // Create policy with TWO attributes: Department == "Engineering"
-        // Note: Using single attribute with == since we can't reliably set multiple different attribute types
-        const policy2Name = `LDAP Remove TwoAttr ${pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
-            name: policy2Name,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: true, // Auto-add TRUE
-            channels: [channel2.display_name],
-        });
-
-        // Activate policy
-        await systemConsolePage.page.waitForTimeout(2000);
-        await waitForLatestSyncJob(systemConsolePage.page);
-        await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-        const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId2) {
-            await activatePolicy(adminClient, policyId2);
-        }
-        await searchInput.clear();
-
-        // Run initial sync - user should be AUTO-ADDED
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
-
-        const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
-        expect(user2InitialCheck).toBe(true);
-
-        // Simulate LDAP sync by removing the Department attribute (changing to non-qualifying value)
-        await updateUserAttributes(adminClient, user2.id, {Department: 'Sales'});
-
-        // Run ABAC sync job
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
-
-        // Verify user IS REMOVED from channel
-        const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
-        expect(user2AfterSync).toBe(false);
-
-        // Verify system message
-        const posts2 = await adminClient.getPosts(channel2.id, 0, 10);
-        const postList2 = posts2.order.map((postId: string) => posts2.posts[postId]);
-        const removeMessage2 = postList2.find((post: any) => {
-            return post.type === 'system_remove_from_channel' && post.props?.removedUserId === user2.id;
-        });
-        if (removeMessage2) {
-            // System message found
-        } else {
-            // System message not found (may be disabled in test env)
-        }
+    const policyName = `LDAP Remove StartsWith ${await pw.random.id()}`;
+    await createAdvancedPolicy(systemConsolePage.page, {
+        name: policyName,
+        celExpression: 'user.attributes.Department.startsWith("Eng")',
+        autoSync: true,
+        channels: [channel.display_name],
     });
+
+    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
+    await activatePolicy(adminClient, policyId);
+
+    // Sync: user has qualifying attribute → gets auto-added.
+    await runSyncJob(systemConsolePage.page);
+    await waitForPolicySyncJob(adminClient, policyId);
+
+    const initialCheck = await verifyUserInChannel(adminClient, user.id, channel.id);
+    expect(initialCheck).toBe(true);
+
+    // Simulate LDAP sync: change Department to non-qualifying value.
+    await updateUserAttributes(adminClient, user.id, {Department: 'Sales'});
+
+    // Sync: user no longer qualifies → gets removed.
+    await runSyncJob(systemConsolePage.page);
+    await waitForPolicySyncJob(adminClient, policyId);
+
+    const afterSync = await verifyUserInChannel(adminClient, user.id, channel.id);
+    expect(afterSync).toBe(false);
+});
+
+/**
+ * MM-T5799b: LDAP sync - User removed after attribute change (== operator, auto-add true)
+ *
+ * 1. Policy with Department == Engineering, auto-add=true
+ * 2. User IN channel with qualifying attribute (Engineering)
+ * 3. Attribute updated to non-qualifying value (Sales)
+ * 4. Next sync removes the user from the channel
+ */
+test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', async ({pw}) => {
+    test.setTimeout(90000);
+    await pw.skipIfNoLicense();
+
+    const {adminUser, adminClient, team} = await pw.initSetup();
+    await ensureUserAttributes(adminClient, ['Department']);
+
+    // User starts WITH qualifying attribute.
+    const user = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
+    await adminClient.addToTeam(team.id, user.id);
+
+    const channel = await createPrivateChannelForABAC(adminClient, team.id);
+
+    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    await navigateToABACPage(systemConsolePage.page);
+    await enableABAC(systemConsolePage.page);
+
+    const policyName = `LDAP Remove Equals ${await pw.random.id()}`;
+    await createBasicPolicy(systemConsolePage.page, {
+        name: policyName,
+        attribute: 'Department',
+        operator: '==',
+        value: 'Engineering',
+        autoSync: true,
+        channels: [channel.display_name],
+    });
+
+    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
+    await activatePolicy(adminClient, policyId);
+
+    // Sync: user has qualifying attribute → gets auto-added.
+    await runSyncJob(systemConsolePage.page);
+    await waitForPolicySyncJob(adminClient, policyId);
+
+    const initialCheck = await verifyUserInChannel(adminClient, user.id, channel.id);
+    expect(initialCheck).toBe(true);
+
+    // Simulate LDAP sync: change Department to non-qualifying value.
+    await updateUserAttributes(adminClient, user.id, {Department: 'Sales'});
+
+    // Sync: user no longer qualifies → gets removed.
+    await runSyncJob(systemConsolePage.page);
+    await waitForPolicySyncJob(adminClient, policyId);
+
+    const afterSync = await verifyUserInChannel(adminClient, user.id, channel.id);
+    expect(afterSync).toBe(false);
 });

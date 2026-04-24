@@ -483,10 +483,13 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.toBeVisible();
             await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${legacyChannelSlug}`);
 
-            // # Create a new channel after the anonymous URL toggle
+            // # Create a new channel after the anonymous URL toggle.
+            // Re-apply config immediately before the UI action: a concurrent initSetup()
+            // on another shard can reset UseAnonymousURLs between the patch above and here.
             const anonymousChannelDisplayName = `Anonymous Channel ${pw.random.id()}`;
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
+            await setAnonymousUrls(adminClient, true);
             await createChannelFromUI(channelsPage, anonymousChannelDisplayName);
 
             const anonymousChannel = await getChannelByDisplayName(adminClient, team.id, anonymousChannelDisplayName);
@@ -495,8 +498,10 @@ test.describe('Anonymous URLs', () => {
             expectObfuscatedSlug(anonymousChannel.name);
             await expect(channelsPage.page).toHaveURL(`/${team.name}/channels/${anonymousChannel.name}`);
 
-            // # Create a new team after the anonymous URL toggle
+            // # Create a new team after the anonymous URL toggle.
+            // Re-apply again: team creation is a separate UI flow and config may have drifted.
             const anonymousTeamDisplayName = `Anonymous Team ${pw.random.id()}`;
+            await setAnonymousUrls(adminClient, true);
             await createTeamFromUI(channelsPage, anonymousTeamDisplayName);
 
             const anonymousTeam = await getTeamByDisplayName(adminClient, anonymousTeamDisplayName);
