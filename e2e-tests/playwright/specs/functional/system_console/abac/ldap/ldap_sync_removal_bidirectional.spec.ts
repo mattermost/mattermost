@@ -61,8 +61,13 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5800PolicyId);
 
-    const phase2InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
-    expect(phase2InChannel).toBe(true);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been added to channel after qualifying sync',
+        })
+        .toBe(true);
 
     // PHASE 3: Change back to non-qualifying → User auto-removed.
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
@@ -70,6 +75,11 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5800PolicyId);
 
-    const phase3InChannel = await verifyUserInChannel(adminClient, user.id, privateChannel.id);
-    expect(phase3InChannel).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been removed from channel after non-qualifying sync',
+        })
+        .toBe(false);
 });

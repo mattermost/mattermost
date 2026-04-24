@@ -63,8 +63,14 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const initialCheck = await verifyUserInChannel(adminClient, user.id, channel.id);
-    expect(initialCheck).toBe(false);
+    // Poll: sync job marks itself success before channel_members write is committed.
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should NOT be in channel after first sync (Department=Sales)',
+        })
+        .toBe(false);
 
     // Simulate LDAP sync: update attribute to qualifying value.
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
@@ -73,8 +79,13 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const afterSync = await verifyUserInChannel(adminClient, user.id, channel.id);
-    expect(afterSync).toBe(true);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should be in channel after second sync (Department=Engineering)',
+        })
+        .toBe(true);
 });
 
 /**
@@ -116,8 +127,13 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const initialCheck = await verifyUserInChannel(adminClient, user.id, channel.id);
-    expect(initialCheck).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should NOT be in channel after first sync (Department=Sales)',
+        })
+        .toBe(false);
 
     // Simulate LDAP sync: update Department to value containing "Eng".
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
@@ -126,6 +142,11 @@ test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add tru
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, policyId);
 
-    const afterSync = await verifyUserInChannel(adminClient, user.id, channel.id);
-    expect(afterSync).toBe(true);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user.id, channel.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should be in channel after second sync (Department=Engineering)',
+        })
+        .toBe(true);
 });

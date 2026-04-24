@@ -55,8 +55,15 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5799Policy1Id);
 
-    const user1InitialCheck = await verifyUserInChannel(adminClient, user1.id, channel1.id);
-    expect(user1InitialCheck).toBe(true);
+    // Poll: the sync job marks itself success before the channel_members write
+    // is fully committed.  Give the server up to 15 s to catch up.
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user1.id, channel1.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been added to channel after first sync',
+        })
+        .toBe(true);
 
     // Simulate LDAP sync: change Department to non-qualifying value.
     await updateUserAttributes(adminClient, user1.id, {Department: 'Sales'});
@@ -65,6 +72,11 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5799Policy1Id);
 
-    const user1AfterSync = await verifyUserInChannel(adminClient, user1.id, channel1.id);
-    expect(user1AfterSync).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user1.id, channel1.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been removed from channel after second sync',
+        })
+        .toBe(false);
 });

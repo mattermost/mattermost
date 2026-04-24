@@ -55,8 +55,13 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5799Policy2Id);
 
-    const user2InitialCheck = await verifyUserInChannel(adminClient, user2.id, channel2.id);
-    expect(user2InitialCheck).toBe(true);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been added to channel after first sync',
+        })
+        .toBe(true);
 
     // Change Department to non-qualifying value.
     await updateUserAttributes(adminClient, user2.id, {Department: 'Sales'});
@@ -65,6 +70,11 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await runSyncJob(systemConsolePage.page);
     await waitForPolicySyncJob(adminClient, t5799Policy2Id);
 
-    const user2AfterSync = await verifyUserInChannel(adminClient, user2.id, channel2.id);
-    expect(user2AfterSync).toBe(false);
+    await expect
+        .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {
+            timeout: 15_000,
+            intervals: [500, 1000, 2000],
+            message: 'User should have been removed from channel after second sync',
+        })
+        .toBe(false);
 });
