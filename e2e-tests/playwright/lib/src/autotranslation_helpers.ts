@@ -3,8 +3,6 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {mergeWithOnPremServerConfig} from './server/default_config';
-
 export type EnableAutotranslationOptions = {
     mockBaseUrl: string;
     targetLanguages?: string[];
@@ -13,12 +11,22 @@ export type EnableAutotranslationOptions = {
 /**
  * Enable autotranslation in server config with LibreTranslate provider pointing at the mock URL.
  * Requires an enterprise license for the feature to be available.
+ *
+ * Uses patchConfig (narrow patch) instead of updateConfig (full replacement) so that
+ * concurrent tests calling pw.initSetup() → updateConfig(defaultConfig) do not
+ * inadvertently reset AutoTranslationSettings.Enable back to false. The default_config
+ * has AutoTranslationSettings.Enable: false and LibreTranslate.URL: '', so a concurrent
+ * updateConfig wipes translation state for every parallel worker.
+ *
+ * Call this function as late as possible — just before the operation that needs
+ * translation active (e.g. right before creating a post or navigating to the page).
+ * This minimises the window in which another test's updateConfig can interfere.
  */
 export async function enableAutotranslationConfig(
     adminClient: Client4,
     options: EnableAutotranslationOptions,
 ): Promise<void> {
-    const config = mergeWithOnPremServerConfig({
+    await adminClient.patchConfig({
         FeatureFlags: {
             AutoTranslation: true,
         },
@@ -34,15 +42,15 @@ export async function enableAutotranslationConfig(
             Workers: 4,
             TimeoutMs: 5000,
         },
-    });
-    await adminClient.updateConfig(config as any);
+    } as any);
 }
 
 /**
  * Disable autotranslation in server config.
+ * Uses patchConfig for the same reasons as enableAutotranslationConfig.
  */
 export async function disableAutotranslationConfig(adminClient: Client4): Promise<void> {
-    const config = mergeWithOnPremServerConfig({
+    await adminClient.patchConfig({
         FeatureFlags: {
             AutoTranslation: false,
         },
@@ -58,8 +66,7 @@ export async function disableAutotranslationConfig(adminClient: Client4): Promis
             TimeoutMs: 0,
             RestrictDMAndGM: false,
         },
-    });
-    await adminClient.updateConfig(config as any);
+    } as any);
 }
 
 /**

@@ -68,6 +68,8 @@ test(
         });
         if (!posterClient) throw new Error('Failed to create poster client');
 
+        // Re-apply config immediately before the post so the server translates it.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         // Set Spanish source to ensure translation happens for new member
         await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
@@ -79,6 +81,11 @@ test(
         await adminClient.addToChannel(user.id, created.id);
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload so the badge and translated text reflect the latest server config.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
         // * Verify translation badge is visible (indicates autotranslation is ON by default)
@@ -125,6 +132,14 @@ test(
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload so the badge reflects the latest AutoTranslationSettings.
+        // A concurrent initSetup() → updateConfig(defaultConfig) resets Enable to false,
+        // preventing the badge from appearing and the "Disable autotranslation" menu item
+        // from being shown.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
         // Wait for autotranslation state to be reflected in the header before opening the menu,
@@ -182,6 +197,8 @@ test(
         if (!posterClient) throw new Error('Failed to create poster client');
 
         const originalText = 'Solo texto original';
+        // Re-apply config immediately before posting so the server translates this message.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         // Set Spanish to ensure translation
         await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
@@ -270,6 +287,8 @@ test(
         });
         if (!posterClient2) throw new Error('Failed to create second poster client');
 
+        // Re-apply config immediately before posting so the server translates these messages.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         // Set source language for mock/real server before creating posts
         // For mock: controls which language is detected; for real: auto-detection is used
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
@@ -373,6 +392,8 @@ test(
         });
         if (!posterClient2) throw new Error('Failed to create second poster client');
 
+        // Re-apply config immediately before posting so the server translates these messages.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         // Set source language before creating posts
         // Post Spanish first so it gets the translation indicator (first message from posterClient)
         await setMockSourceLanguage(translationUrl, 'es');

@@ -240,6 +240,11 @@ test(
         await enableChannelAutotranslation(adminClient, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 
+        // Re-apply config immediately before the post that must be translated.
+        // A concurrent initSetup() → updateConfig(defaultConfig) can reset
+        // AutoTranslationSettings.Enable back to false between the initial
+        // enableAutotranslationConfig call and here.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         const newMessage = 'Hola nuevo';
         await posterClient.createPost({
             channel_id: created.id,
@@ -296,6 +301,12 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply config + reload so the browser reads the latest AutoTranslationSettings,
+        // not state clobbered by a concurrent initSetup() → updateConfig(defaultConfig).
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
         await channelsPage.centerView.autotranslationBadge.hover();
         await expect(page.getByRole('tooltip')).toContainText('Auto-translation is enabled');
@@ -342,6 +353,8 @@ test(
         });
         if (!posterClient) throw new Error('Failed to create poster client');
 
+        // Re-apply config before the post that needs to be translated.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Translated before disable',
@@ -350,6 +363,11 @@ test(
 
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload so the badge reflects the latest server config.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
         // * Verify translation badge is visible (indicates translation is enabled)

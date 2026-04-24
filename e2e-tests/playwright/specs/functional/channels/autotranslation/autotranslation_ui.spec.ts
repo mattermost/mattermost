@@ -176,6 +176,9 @@ test(
         });
         if (!posterClient2) throw new Error('Failed to create second poster client');
 
+        // Re-apply config immediately before posting so the server translates this message.
+        // A concurrent initSetup() can reset AutoTranslationSettings.Enable to false.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         // Set Spanish source to ensure translation happens
         await setMockSourceLanguage(translationUrl, 'es');
         // Post Spanish message that's long enough for reliable detection
@@ -252,6 +255,11 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply config + reload to counter concurrent initSetup() resets.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
 
         await channelsPage.centerView.header.openChannelMenu();
@@ -310,6 +318,12 @@ test(
 
         await channelsPage.goto(team.name, translatedChannelName);
         await channelsPage.toBeVisible();
+
+        // Re-apply config + reload to counter concurrent initSetup() resets.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
 
         await channelsPage.goto(team.name, noTranslationChannelName);
@@ -351,6 +365,13 @@ test(
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload to ensure the browser reads the latest AutoTranslationSettings.
+        // The badge should still be absent (French locale is not in targetLanguages), but the
+        // server config must be active so the channel header menu shows the "unsupported" notice.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
