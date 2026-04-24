@@ -103,12 +103,25 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
 	}
 	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
+	containerLimits, err := getContainerLimits()
+	if err != nil {
+		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
+	} else {
+		d.Server.ContainerCPULimit = containerLimits.CPULimit
+		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
+	}
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
 	}
+	d.Server.ProcessID = os.Getpid()
+	d.Server.StartedAt = ps.startTime.UTC()
+	if hostUptimeSeconds, hostUptimeErr := getHostUptimeSeconds(); hostUptimeErr == nil {
+		d.Server.HostStartedAt = time.Now().Add(-time.Duration(hostUptimeSeconds) * time.Second).UTC()
+	}
 	d.Server.Version = model.CurrentVersion
 	d.Server.BuildHash = model.BuildHash
+	d.Server.GoVersion = runtime.Version()
 	installationType := ps.installTypeOverride
 	if installationType == "" {
 		installationType = os.Getenv(envVarInstallType)
@@ -117,6 +130,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		installationType = unknownDataPoint
 	}
 	d.Server.InstallationType = installationType
+	d.Server.OpenFileDescriptors, err = getOpenFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting open file descriptor count"))
+	}
+	d.Server.MaxFileDescriptors, err = getMaxFileDescriptors()
+	if err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting max file descriptor limit"))
+	}
 
 	/* Config */
 	d.Config.Source = ps.DescribeConfig()

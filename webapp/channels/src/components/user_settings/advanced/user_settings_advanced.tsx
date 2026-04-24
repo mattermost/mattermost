@@ -7,6 +7,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -17,7 +18,6 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
-import {isMac} from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';

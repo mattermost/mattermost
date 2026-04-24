@@ -50,15 +50,24 @@ on:
         required: false
         type: number
         default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
+      race-enabled:
+        description: "Run tests with Go race detector (-race)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ${{ inputs.runner }}
     continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
@@ -166,6 +175,14 @@ jobs:
 
           echo "$ALL_PKGS" > all-packages.txt
 
+          # ── Create go.work for test discovery ──
+          # Without it, `go test -list` in shard-split.js resolves
+          # github.com/mattermost/mattermost/server/public against the published
+          # module version from server/go.mod, which lags HEAD and causes build
+          # failures when heavy packages reference new symbols in ./public.
+          go work init
+          go work use . ./public
+
           # ── Run shard solver ──
           node scripts/shard-split.js
 
@@ -175,7 +192,7 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true && "${{ inputs.test-target }}" == "test-server" ]]; then
+          if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
             export RACE_MODE="-race"
           fi
 

@@ -117,6 +117,9 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
 
 const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
     const {mode, onClick, isActive, className, ...otherProps} = props;
+    const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+    }, []);
 
     const Icon = MAP_MARKDOWN_MODE_TO_ICON[mode];
     const {formatMessage} = useIntl();
@@ -128,6 +131,7 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
             type='button'
             id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
+            onMouseDown={handleMouseDown}
             aria-label={buttonAriaLabel}
             className={isActive ? `${className || ''} active`.trim() : className}
             {...otherProps}

@@ -66,6 +66,14 @@
                     Permission level for managing options on select/multiselect fields.
                     Only system admins can set this; ignored for non-admin users.
                   default: member
+                linked_field_id:
+                  type: string
+                  description: >
+                    The ID of a template field to link to. The source must be a
+                    template field in the same group, must not itself be linked, and must
+                    not be deleted. When set, the created field inherits the source's type,
+                    options, and security attributes; the `type` field in the request body
+                    is ignored. Can only be set at creation time.
         description: Property field object to create
         required: true
       responses:
@@ -81,6 +89,11 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          description: >
+            A property field with the same name already exists at the same or a
+            conflicting hierarchy level.
+          $ref: "#/components/responses/Conflict"
     get:
       tags:
         - properties
@@ -156,6 +169,17 @@
       description: >
         Partially update a property field by providing only the fields you want to update. Omitted fields will not be updated.
         The `attrs` object uses merge semantics: only the keys present in the patch are updated; omitted keys are preserved. Setting a key to `null` removes it from attrs.
+
+
+        **Immutable fields:** `target_type`, `target_id`, and `object_type` cannot be changed after creation and are ignored if included in the patch.
+
+
+        **Linked fields:** Fields with a `linked_field_id` cannot have their `type` or `attrs.options` modified (returns 400).
+        The `linked_field_id` can only be cleared (set to empty string `""`) to unlink the field; it cannot be changed to a different value.
+        For non-linked fields, `linked_field_id` cannot be set to a new value (linking is only allowed at creation time).
+
+
+        **Propagation:** When a template field's options are updated, the changes propagate atomically to all fields that link to it.
       operationId: UpdatePropertyField
       parameters:
         - name: group_name
@@ -198,12 +222,19 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            Name conflict with an existing field, or cannot change type of a
+            field that has active linked dependents.
+          $ref: "#/components/responses/Conflict"
     delete:
       tags:
         - properties
       summary: Delete a property field
       description: >
         Deletes a property field and all its associated values.
+        Returns 409 Conflict if the field has active linked dependents;
+        unlink or delete dependent fields first.
       operationId: DeletePropertyField
       parameters:
         - name: group_name
@@ -239,6 +270,11 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          description: >
+            The field has active linked dependents. Unlink or delete dependent
+            fields before deleting the source.
+          $ref: "#/components/responses/Conflict"
   "/api/v4/properties/groups/{group_name}/{object_type}/values/{target_id}":
     get:
       tags:
@@ -246,6 +282,7 @@
       summary: Get property values for a target
       description: >
         Get all property values for a specific target within a group.
+        The `template` object type cannot have values and will return 400.
       operationId: GetPropertyValues
       parameters:
         - name: group_name
@@ -304,6 +341,7 @@
       summary: Update property values for a target
       description: >
         Update one or more property values for a specific target within a group. Uses upsert semantics: creates the value if it doesn't exist, updates it if it does. All field IDs must belong to the specified group.
+        The `template` object type cannot have values and will return 400.
       operationId: UpdatePropertyValues
       parameters:
         - name: group_name
