@@ -16,6 +16,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func celSafeName() string {
+	return "f_" + model.NewId()
+}
+
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -23,7 +27,7 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
+		field := &model.PropertyField{Name: celSafeName(), Type: model.PropertyFieldTypeText}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckForbiddenStatus(t, resp)
@@ -37,7 +41,7 @@ func TestCreateCPAField(t *testing.T) {
 
 	t.Run("a user without admin permissions should not be able to create a field", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 
@@ -47,7 +51,7 @@ func TestCreateCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		field := &model.PropertyField{Name: model.NewId()}
+		field := &model.PropertyField{Name: celSafeName()}
 
 		createdField, resp, err := client.CreateCPAField(context.Background(), field)
 		CheckBadRequestStatus(t, resp)
@@ -58,7 +62,7 @@ func TestCreateCPAField(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
-		name := model.NewId()
+		name := celSafeName()
 		field := &model.PropertyField{
 			Name:  fmt.Sprintf("  %s\t", name), // name should be sanitized
 			Type:  model.PropertyFieldTypeText,
@@ -96,7 +100,7 @@ func TestCreateCPAField(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		managedField := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -121,7 +125,7 @@ func TestListCPAFields(t *testing.T) {
 	})
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name:  model.NewId(),
+		Name:  celSafeName(),
 		Type:  model.PropertyFieldTypeText,
 		Attrs: map[string]any{"visibility": "when_set"},
 	})
@@ -167,7 +171,7 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
 		patchedField, resp, err := client.PatchCPAField(context.Background(), model.NewId(), patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -180,7 +184,7 @@ func TestPatchCPAField(t *testing.T) {
 
 	t.Run("a user without admin permissions should not be able to patch a field", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -189,7 +193,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
-		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
+		patch := &model.PropertyFieldPatch{Name: model.NewPointer(celSafeName())}
 		_, resp, err := th.Client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckForbiddenStatus(t, resp)
 		require.Error(t, err)
@@ -199,7 +203,7 @@ func TestPatchCPAField(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -208,7 +212,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, createdField)
 
-		newName := model.NewId()
+		newName := celSafeName()
 		patch := &model.PropertyFieldPatch{Name: model.NewPointer(fmt.Sprintf("  %s \t ", newName))} // name should be sanitized
 		patchedField, resp, err := client.PatchCPAField(context.Background(), createdField.ID, patch)
 		CheckOKStatus(t, resp)
@@ -241,7 +245,7 @@ func TestPatchCPAField(t *testing.T) {
 			optionID1 := model.NewId()
 			optionID2 := model.NewId()
 			selectField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-				Name: model.NewId(),
+				Name: celSafeName(),
 				Type: model.PropertyFieldTypeSelect,
 				Attrs: model.StringInterface{
 					"options": []map[string]any{
@@ -303,7 +307,7 @@ func TestPatchCPAField(t *testing.T) {
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		// Create a regular field first
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -361,7 +365,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 	t.Run("a user without admin permissions should not be able to delete a field", func(t *testing.T) {
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 		createdField, _, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
@@ -377,7 +381,7 @@ func TestDeleteCPAField(t *testing.T) {
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
 
 		field := &model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		}
 		createdField, _, err := th.SystemAdminClient.CreateCPAField(context.Background(), field)
@@ -426,7 +430,7 @@ func TestListCPAValues(t *testing.T) {
 	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
 	})
 	require.NoError(t, err)
@@ -464,7 +468,7 @@ func TestListCPAValues(t *testing.T) {
 		optionID1 := model.NewId()
 		optionID2 := model.NewId()
 		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -511,7 +515,7 @@ func TestPatchCPAValues(t *testing.T) {
 	}).InitBasic(t)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
 	})
 	require.NoError(t, err)
@@ -606,7 +610,7 @@ func TestPatchCPAValues(t *testing.T) {
 		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 
 		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -649,7 +653,7 @@ func TestPatchCPAValues(t *testing.T) {
 	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
 		// Create a field with LDAP attribute
 		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
@@ -663,7 +667,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 		// Create a field with SAML attribute
 		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
@@ -706,7 +710,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -730,7 +734,7 @@ func TestPatchCPAValues(t *testing.T) {
 	t.Run("admin-managed fields", func(t *testing.T) {
 		// Create a managed field (only admins can create fields)
 		managedField := &model.PropertyField{
-			Name: "Managed Field",
+			Name: "managed_field",
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -744,7 +748,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 		// Create a non-managed field for comparison
 		regularField := &model.PropertyField{
-			Name: "Regular Field",
+			Name: "regular_field",
 			Type: model.PropertyFieldTypeText,
 		}
 
@@ -876,7 +880,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	}).InitBasic(t)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-		Name: model.NewId(),
+		Name: celSafeName(),
 		Type: model.PropertyFieldTypeText,
 	})
 	require.NoError(t, err)
@@ -971,7 +975,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 		optionsID := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
 
 		arrayField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeMultiselect,
 			Attrs: model.StringInterface{
 				"options": []map[string]any{
@@ -1014,7 +1018,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	t.Run("should fail if any of the values belongs to a field that is LDAP/SAML synced", func(t *testing.T) {
 		// Create a field with LDAP attribute
 		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsLDAP: "ldap_attr",
@@ -1028,7 +1032,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 		// Create a field with SAML attribute
 		samlField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsSAML: "saml_attr",
@@ -1071,7 +1075,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 	t.Run("an invalid patch should be rejected", func(t *testing.T) {
 		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
-			Name: model.NewId(),
+			Name: celSafeName(),
 			Type: model.PropertyFieldTypeText,
 		})
 		require.NoError(t, err)
@@ -1095,7 +1099,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 	t.Run("admin-managed fields", func(t *testing.T) {
 		// Create a managed field (only admins can create fields)
 		managedField := &model.PropertyField{
-			Name: "Managed Field",
+			Name: "managed_field_v2",
 			Type: model.PropertyFieldTypeText,
 			Attrs: model.StringInterface{
 				model.CustomProfileAttributesPropertyAttrsManaged: "admin",
@@ -1109,7 +1113,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 		// Create a non-managed field for comparison
 		regularField := &model.PropertyField{
-			Name: "Regular Field",
+			Name: "regular_field_v2",
 			Type: model.PropertyFieldTypeText,
 		}
 
