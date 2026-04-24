@@ -65,12 +65,12 @@ test(
 
 test.describe('autotranslation configuration tests', () => {
     test(
-        'DM menu shows Edit Header for regular user and Channel Settings for admin',
+        'DM menu shows Channel Settings when RestrictDMAndGM is disabled',
         {
             tag: ['@autotranslation', '@permissions'],
         },
         async ({pw}) => {
-            const {adminClient, adminUser, user, team} = await pw.initSetup();
+            const {adminClient, user, team} = await pw.initSetup();
 
             const license = await adminClient.getClientLicenseOld();
             test.skip(
@@ -78,44 +78,118 @@ test.describe('autotranslation configuration tests', () => {
                 'Skipping test - server does not have Entry or Advanced license',
             );
 
-            await enableAutotranslationConfig(adminClient, {
-                mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
-                targetLanguages: ['en', 'es'],
-            });
+            const originalConfig = await adminClient.getConfig();
 
-            const regularUserPeerData = await pw.random.user('dm-peer-user');
-            const regularUserPeer = await adminClient.createUser(regularUserPeerData, '', '');
-            await adminClient.addToTeam(team.id, regularUserPeer.id);
-            await adminClient.createDirectChannel([user.id, regularUserPeer.id]);
+            try {
+                await enableAutotranslationConfig(adminClient, {
+                    mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
+                    targetLanguages: ['en', 'es'],
+                });
 
-            const {channelsPage: regularUserPage} = await pw.testBrowser.login(user);
-            await regularUserPage.goto(team.name, `@${regularUserPeer.username}`);
-            await regularUserPage.toBeVisible();
-            await regularUserPage.centerView.header.openChannelMenu();
-            await expect(regularUserPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-            await expect(regularUserPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                const peerData = await pw.random.user('dm-peer');
+                const peerUser = await adminClient.createUser(peerData, '', '');
+                await adminClient.addToTeam(team.id, peerUser.id);
+                await adminClient.createDirectChannel([user.id, peerUser.id]);
 
-            const adminPeerData = await pw.random.user('dm-peer-admin');
-            const adminPeer = await adminClient.createUser(adminPeerData, '', '');
-            await adminClient.addToTeam(team.id, adminPeer.id);
-            await adminClient.createDirectChannel([adminUser.id, adminPeer.id]);
+                const {channelsPage} = await pw.testBrowser.login(user);
+                await channelsPage.goto(team.name, `@${peerUser.username}`);
+                await channelsPage.toBeVisible();
 
-            const {channelsPage: adminPage} = await pw.testBrowser.login(adminUser);
-            await adminPage.goto(team.name, `@${adminPeer.username}`);
-            await adminPage.toBeVisible();
-            await adminPage.centerView.header.openChannelMenu();
-            await expect(adminPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-            await expect(adminPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                await expect
+                    .poll(async () =>
+                        channelsPage.page.evaluate(() => {
+                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
+                            return config?.EnableAutoTranslation ?? null;
+                        }),
+                    )
+                    .toBe('true');
+                await expect
+                    .poll(async () =>
+                        channelsPage.page.evaluate(() => {
+                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
+                            return config?.RestrictDMAndGMAutotranslation ?? null;
+                        }),
+                    )
+                    .toBe('false');
+
+                await channelsPage.centerView.header.openChannelMenu();
+                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
+                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+            } finally {
+                await adminClient.updateConfig(originalConfig as any);
+            }
         },
     );
 
     test(
-        'DM header saves from Channel Settings when permission is present',
+        'DM menu shows Edit Header when RestrictDMAndGM is enabled',
         {
             tag: ['@autotranslation', '@permissions'],
         },
         async ({pw}) => {
-            const {adminClient, adminUser, team} = await pw.initSetup();
+            const {adminClient, user, team} = await pw.initSetup();
+
+            const license = await adminClient.getClientLicenseOld();
+            test.skip(
+                !hasAutotranslationLicense(license.SkuShortName),
+                'Skipping test - server does not have Entry or Advanced license',
+            );
+
+            const originalConfig = await adminClient.getConfig();
+
+            try {
+                await enableAutotranslationConfig(adminClient, {
+                    mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
+                    targetLanguages: ['en', 'es'],
+                });
+                await adminClient.patchConfig({
+                    AutoTranslationSettings: {
+                        RestrictDMAndGM: true,
+                    },
+                });
+
+                const peerData = await pw.random.user('dm-peer-restricted');
+                const peerUser = await adminClient.createUser(peerData, '', '');
+                await adminClient.addToTeam(team.id, peerUser.id);
+                await adminClient.createDirectChannel([user.id, peerUser.id]);
+
+                const {channelsPage} = await pw.testBrowser.login(user);
+                await channelsPage.goto(team.name, `@${peerUser.username}`);
+                await channelsPage.toBeVisible();
+
+                await expect
+                    .poll(async () =>
+                        channelsPage.page.evaluate(() => {
+                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
+                            return config?.EnableAutoTranslation ?? null;
+                        }),
+                    )
+                    .toBe('true');
+                await expect
+                    .poll(async () =>
+                        channelsPage.page.evaluate(() => {
+                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
+                            return config?.RestrictDMAndGMAutotranslation ?? null;
+                        }),
+                    )
+                    .toBe('true');
+
+                await channelsPage.centerView.header.openChannelMenu();
+                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
+                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+            } finally {
+                await adminClient.updateConfig(originalConfig as any);
+            }
+        },
+    );
+
+    test(
+        'DM header saves from Channel Settings',
+        {
+            tag: ['@autotranslation', '@permissions'],
+        },
+        async ({pw}) => {
+            const {adminClient, user, team} = await pw.initSetup();
 
             const license = await adminClient.getClientLicenseOld();
             test.skip(
@@ -131,9 +205,9 @@ test.describe('autotranslation configuration tests', () => {
             const otherUserData = await pw.random.user('dm-peer');
             const otherUser = await adminClient.createUser(otherUserData, '', '');
             await adminClient.addToTeam(team.id, otherUser.id);
-            const dmChannel = await adminClient.createDirectChannel([adminUser.id, otherUser.id]);
+            const dmChannel = await adminClient.createDirectChannel([user.id, otherUser.id]);
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name, `@${otherUser.username}`);
             await channelsPage.toBeVisible();
 

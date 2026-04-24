@@ -96,6 +96,10 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             return false;
         }
 
+        if (isDMorGM) {
+            return true;
+        }
+
         const permissionToCheck = channel.type === Constants.PRIVATE_CHANNEL ? Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION : Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION;
         return haveIChannelPermission(state, channel.team_id, channel.id, permissionToCheck);
     });

@@ -188,9 +188,6 @@ describe('Selectors.Views.ChannelSettings', () => {
         it('should return true for DM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
             const state = getBaseState();
             state.entities.general.config.EnableAutoTranslation = 'true';
-            setPermissionCheckResults({
-                [Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION]: true,
-            });
             const result = canAccessChannelSettings(state, dmChannelId);
             expect(result).toBe(true);
         });
@@ -198,21 +195,8 @@ describe('Selectors.Views.ChannelSettings', () => {
         it('should return true for GM channel when RestrictDMAndGMAutotranslation is not enabled', () => {
             const state = getBaseState();
             state.entities.general.config.EnableAutoTranslation = 'true';
-            setPermissionCheckResults({
-                [Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION]: true,
-            });
             const result = canAccessChannelSettings(state, gmChannelId);
             expect(result).toBe(true);
-        });
-
-        it('should return false for DM channel when auto-translation permission is missing', () => {
-            const state = getBaseState();
-            state.entities.general.config.EnableAutoTranslation = 'true';
-            setPermissionCheckResults({
-                [Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION]: false,
-            });
-            const result = canAccessChannelSettings(state, dmChannelId);
-            expect(result).toBe(false);
         });
 
         it('should return false for DM channel when RestrictDMAndGMAutotranslation is enabled', () => {

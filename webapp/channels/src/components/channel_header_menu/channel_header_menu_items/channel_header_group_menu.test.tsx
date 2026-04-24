@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {Permissions} from 'mattermost-redux/constants';
-
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -18,16 +16,6 @@ import ChannelHeaderGroupMenu from './channel_header_group_menu';
 
 const GM_CHANNEL_ID = 'gm_channel_id';
 const CURRENT_USER_ID = 'user_id';
-const mockHaveIChannelPermission = jest.fn();
-
-jest.mock('mattermost-redux/selectors/entities/roles', () => {
-    const original = jest.requireActual('mattermost-redux/selectors/entities/roles');
-    return {
-        ...original,
-        haveIChannelPermission: (...args: unknown[]) => mockHaveIChannelPermission(...args),
-    };
-});
-
 function getBaseState(): DeepPartial<GlobalState> {
     const channel = TestHelper.getChannelMock({
         id: GM_CHANNEL_ID,
@@ -90,13 +78,6 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         isChannelAutotranslated: false,
     };
 
-    beforeEach(() => {
-        mockHaveIChannelPermission.mockImplementation(
-            (_state: GlobalState, _teamId: string, _channelId: string, permission: string) =>
-                permission === Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION,
-        );
-    });
-
     it('shows Channel Settings when RestrictDMAndGMAutotranslation is not enabled', () => {
         renderWithContext(
             <WithTestMenuContext>
@@ -118,20 +99,6 @@ describe('components/ChannelHeaderMenu/ChannelHeaderGroupMenu', () => {
         );
 
         expect(screen.getByText('Settings')).toBeInTheDocument();
-    });
-
-    it('shows Settings submenu when user lacks GM auto-translation permission', () => {
-        mockHaveIChannelPermission.mockReturnValue(false);
-
-        renderWithContext(
-            <WithTestMenuContext>
-                <ChannelHeaderGroupMenu {...defaultProps}/>
-            </WithTestMenuContext>,
-            getBaseState(),
-        );
-
-        expect(screen.getByText('Settings')).toBeInTheDocument();
-        expect(screen.queryByText('Channel Settings')).not.toBeInTheDocument();
     });
 
     it('shows Auto-translation menu when isChannelAutotranslated is true', () => {
