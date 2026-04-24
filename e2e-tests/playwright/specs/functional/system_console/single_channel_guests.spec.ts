@@ -40,6 +40,25 @@ async function patchGuestEnabled(adminClient: any, enabled: boolean): Promise<bo
 }
 
 /**
+ * Navigate to a URL, then re-apply the guest-accounts patch and reload so the
+ * browser reads fresh config from the server rather than a stale Redux store.
+ *
+ * Concurrent tests calling pw.initSetup() reset GuestAccountsSettings.Enable to
+ * false (the default_config.ts default). Mattermost broadcasts this config change
+ * via WebSocket, overwriting the browser's Redux store even while our test has the
+ * page open. Calling patchGuestEnabled + reload after the initial navigation ensures
+ * the browser fetches the latest server config and the correct value reaches the
+ * React component before we assert.
+ */
+async function navigateWithGuestPatch(page: any, adminClient: any, url: string, guestEnabled: boolean) {
+    await page.goto(url);
+    await page.waitForLoadState('networkidle');
+    await patchGuestEnabled(adminClient, guestEnabled);
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+}
+
+/**
  * @objective Verify the Single-channel Guests stat card appears on the Site Statistics page when guests are enabled
  *
  * @precondition
@@ -72,8 +91,15 @@ test(
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+
+        // Re-apply patch after initial load + reload to counter WebSocket config resets
+        // from concurrent initSetup() calls (default_config has Enable: false).
+        await navigateWithGuestPatch(
+            systemConsolePage.page,
+            adminClient,
+            '/admin_console/reporting/system_analytics',
+            true,
+        );
 
         // * Verify the single-channel guests card is visible
         const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
@@ -120,8 +146,9 @@ test(
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/about/license');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+
+        // Re-apply patch after initial load + reload to counter WebSocket config resets.
+        await navigateWithGuestPatch(systemConsolePage.page, adminClient, '/admin_console/about/license', true);
 
         // * Verify the single-channel guests row is visible
         await expect(systemConsolePage.page.getByText('SINGLE-CHANNEL GUESTS:')).toBeVisible();
@@ -148,8 +175,14 @@ test(
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+
+        // Re-apply patch (disabled) + reload to ensure the browser reads the fresh config.
+        await navigateWithGuestPatch(
+            systemConsolePage.page,
+            adminClient,
+            '/admin_console/reporting/system_analytics',
+            false,
+        );
 
         // * Verify the single-channel guests card is not in the DOM
         await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).not.toBeVisible();
@@ -222,8 +255,14 @@ test(
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+
+        // Re-apply patch + reload to counter WebSocket config resets.
+        await navigateWithGuestPatch(
+            systemConsolePage.page,
+            adminClient,
+            '/admin_console/reporting/system_analytics',
+            true,
+        );
 
         // * Verify the card title does NOT have error class (count is within limit)
         const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
@@ -248,10 +287,14 @@ test('does not show guest limit banner when count is within limit', {tag: '@syst
     // # Enable guest accounts (narrow patch, not destructive full-config update)
     await patchGuestEnabled(adminClient, true);
 
-    // # Navigate to any page as admin
+    // # Navigate to system console and re-apply patch + reload so the browser reads
+    // the latest config (not a WebSocket-clobbered Redux store from a concurrent initSetup).
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await systemConsolePage.goto();
     await systemConsolePage.toBeVisible();
+    await patchGuestEnabled(adminClient, true);
+    await systemConsolePage.page.reload();
+    await systemConsolePage.page.waitForLoadState('networkidle');
 
     // * Verify the guest limit banner is not visible (count is within limit)
     await expect(systemConsolePage.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
@@ -304,11 +347,16 @@ test(
             await route.fulfill({response, json});
         });
 
-        // # Navigate to site statistics page
+        // # Navigate to site statistics page, re-applying patch to counter concurrent resets.
+        // The page.route mock persists across reloads, so navigateWithGuestPatch is safe here.
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await navigateWithGuestPatch(
+            systemConsolePage.page,
+            adminClient,
+            '/admin_console/reporting/system_analytics',
+            true,
+        );
 
         // * Verify the card title has error styling
         const cardTitle = systemConsolePage.page.getByTestId('singleChannelGuestsTitle');
@@ -363,12 +411,17 @@ test(
         await adminClient.addToChannel(multiChannelGuest.id, channelA.id);
         await adminClient.addToChannel(multiChannelGuest.id, channelB.id);
 
-        // # Log in as admin and navigate to site statistics
+        // # Log in as admin and navigate to site statistics, re-applying patch to counter
+        // concurrent initSetup() resets (default_config has GuestAccountsSettings.Enable: false).
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.page.goto('/admin_console/reporting/system_analytics');
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        await navigateWithGuestPatch(
+            systemConsolePage.page,
+            adminClient,
+            '/admin_console/reporting/system_analytics',
+            true,
+        );
 
         // * Verify the single-channel guests card is visible
         const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
