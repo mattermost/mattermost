@@ -73,7 +73,7 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 
 	clearCPABackfillMarker(t, th)
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -110,7 +110,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	require.Nil(t, appErr)
 	require.Equal(t, "Job Title", fieldB.Attrs.DisplayName, "seed invariant: fieldB must have display_name set")
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	updatedFieldA, appErr := th.App.GetCPAField(th.Context, fieldA.ID)
@@ -142,7 +142,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	seeded, appErr := th.App.CreateCPAField(th.Context, fieldBase)
 	require.Nil(t, appErr)
 
-	err := th.Server.doSetupCPADisplayNameBackfill()
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
@@ -161,7 +161,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	firstFieldUpdate := updatedAfterFirst.UpdateAt
 
 	// Second run: idempotency check fires immediately, returns nil without any DB writes.
-	err = th.Server.doSetupCPADisplayNameBackfill()
+	err = th.Server.doSetupCPADisplayNameBackfill(th.Context)
 	require.NoError(t, err)
 
 	data2, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)

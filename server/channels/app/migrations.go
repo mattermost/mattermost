@@ -806,7 +806,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
-func (s *Server) doSetupCPADisplayNameBackfill() error {
+func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
 	if err != nil && !errors.As(err, &nfErr) {
@@ -831,7 +831,7 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 	skipped := 0
 
 	for {
-		fields, searchErr := s.propertyService.SearchPropertyFields(nil, groupID, model.PropertyFieldSearchOpts{
+		fields, searchErr := s.propertyService.SearchPropertyFields(rctx, groupID, model.PropertyFieldSearchOpts{
 			PerPage: perPage,
 			Cursor:  cursor,
 		})
@@ -874,7 +874,7 @@ func (s *Server) doSetupCPADisplayNameBackfill() error {
 	}
 
 	if len(fieldsToUpdate) > 0 {
-		if _, _, updateErr := s.propertyService.UpdatePropertyFields(nil, groupID, fieldsToUpdate); updateErr != nil {
+		if _, _, updateErr := s.propertyService.UpdatePropertyFields(rctx, groupID, fieldsToUpdate); updateErr != nil {
 			return fmt.Errorf("failed to update CPA fields during display_name backfill: %w", updateErr)
 		}
 	}
@@ -1098,7 +1098,6 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
-		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	for i := range m1 {
@@ -1121,6 +1120,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
+		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	rctx := request.EmptyContext(s.Log())
