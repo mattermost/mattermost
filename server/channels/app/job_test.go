@@ -221,6 +221,48 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
 	})
 
+	t.Run("team admin can create policy-scoped sync job for their owned policy", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		// Create a parent policy scoped explicitly to this team in the store
+		policy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "team-owned-policy",
+			Type:    model.AccessControlPolicyTypeParent,
+			Scope:   model.AccessControlPolicyScopeTeam,
+			ScopeID: th.BasicTeam.Id,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+		savedPolicy, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, storeErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithOwnedPolicy := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id":   th.BasicTeam.Id,
+				"policy_id": savedPolicy.ID,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithOwnedPolicy)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
 	t.Run("team admin cannot smuggle a foreign policy_id alongside their team_id", func(t *testing.T) {
 		teamAdmin := th.CreateUser(t)
 		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
