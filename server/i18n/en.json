@@ -3247,6 +3247,10 @@
     "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
   },
   {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "System values must use the dedicated system values endpoint."
+  },
+  {
     "id": "api.property_value.target_user.forbidden.app_error",
     "translation": "You do not have permission to access property values for another user."
   },
