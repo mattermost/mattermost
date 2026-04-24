@@ -7,6 +7,15 @@ import {createPortal} from 'react-dom';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {
+    LinkVariantIcon,
+    OpenInNewIcon,
+    TrashCanOutlineIcon,
+    TextBoxOutlineIcon,
+} from '@mattermost/compass-icons/components';
+
+const POPOVER_WIDTH = 496;
+
 const Backdrop = styled.div`
     position: fixed;
     inset: 0;
@@ -16,87 +25,82 @@ const Backdrop = styled.div`
 const PopoverContainer = styled.div`
     position: fixed;
     z-index: 101;
-    width: 320px;
+    width: ${POPOVER_WIDTH}px;
     border-radius: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     background: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
 `;
 
-const PopoverLabel = styled.label`
+const Row = styled.div`
     display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--center-channel-color);
+    align-items: center;
+    height: 44px;
+    padding: 0 12px;
+    gap: 8px;
+
+    &:not(:first-child) {
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    }
 `;
 
-const PopoverInput = styled.input`
-    height: 32px;
-    padding: 0 10px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
+const RowInput = styled.input`
+    flex: 1;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
     color: var(--center-channel-color);
     font-size: 14px;
     outline: none;
 
-    &:focus {
-        border-color: var(--button-bg);
-        box-shadow: inset 0 0 0 1px var(--button-bg);
+    &::placeholder {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
     }
 `;
 
-const PopoverActions = styled.div`
+const HintText = styled.span`
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 4px;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 12px;
+    white-space: nowrap;
 `;
 
-const PopoverButton = styled.button<{$primary?: boolean; $danger?: boolean}>`
-    height: 32px;
-    padding: 0 16px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+const IconButton = styled.button`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    padding: 0;
     border: none;
-
-    background: ${({$primary, $danger}) => {
-        if ($danger) {
-            return 'var(--dnd-indicator)';
-        }
-        if ($primary) {
-            return 'var(--button-bg)';
-        }
-        return 'transparent';
-    }};
-    color: ${({$primary, $danger}) => {
-        if ($primary || $danger) {
-            return 'var(--button-color)';
-        }
-        return 'var(--center-channel-color)';
-    }};
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
 
     &:hover {
-        opacity: 0.88;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+    &.danger:hover {
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text);
     }
 `;
 
-const RemoveRow = styled.div`
+const RowIcon = styled.span`
     display: flex;
-    justify-content: flex-start;
+    align-items: center;
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
 `;
 
 interface LinkPopoverProps {
@@ -126,15 +130,15 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const isEditing = editor.isActive('link');
     const existingData = getExistingLinkData(editor);
 
-    const [text, setText] = useState(() => existingData?.text || getSelectionText(editor));
-    const [url, setUrl] = useState(() => existingData?.href || 'https://');
+    const [displayText, setDisplayText] = useState(() => existingData?.text || getSelectionText(editor));
+    const [url, setUrl] = useState(() => existingData?.href || '');
 
     useEffect(() => {
         setTimeout(() => urlRef.current?.focus(), 0);
     }, []);
 
     const handleSave = useCallback(() => {
-        if (!url || url === 'https://') {
+        if (!url) {
             return;
         }
 
@@ -145,11 +149,11 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
             if (selectedText) {
                 editor.chain().focus().setLink({href: url}).run();
             } else {
-                const displayText = text || url;
+                const linkText = displayText || url;
                 editor.chain().focus().insertContent([
                     {
                         type: 'text',
-                        text: displayText,
+                        text: linkText,
                         marks: [{type: 'link', attrs: {href: url}}],
                     },
                 ]).run();
@@ -157,12 +161,18 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
         }
 
         onClose();
-    }, [editor, url, text, isEditing, onClose]);
+    }, [editor, url, displayText, isEditing, onClose]);
 
     const handleRemove = useCallback(() => {
         editor.chain().focus().unsetLink().run();
         onClose();
     }, [editor, onClose]);
+
+    const handleOpenExternal = useCallback(() => {
+        if (url) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    }, [url]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
@@ -177,17 +187,18 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     }, [handleSave, onClose, editor]);
 
     const hasSelection = getSelectionText(editor).length > 0;
-    const isUrlValid = url.length > 0 && url !== 'https://';
+    const isUrlDirty = url.length > 0;
+    const isSaved = isEditing && !isUrlDirty ? false : isEditing;
 
     let bottom = 0;
     let left = 0;
     if (anchorEl) {
         const rect = anchorEl.getBoundingClientRect();
-        bottom = window.innerHeight - rect.top + 4;
+        bottom = (window.innerHeight - rect.top) + 4;
         left = rect.left;
 
-        if (left + 320 > window.innerWidth) {
-            left = window.innerWidth - 328;
+        if (left + POPOVER_WIDTH > window.innerWidth) {
+            left = window.innerWidth - POPOVER_WIDTH - 8;
         }
     }
 
@@ -204,58 +215,65 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
                 onKeyDown={handleKeyDown}
                 onMouseDown={(e) => e.stopPropagation()}
             >
-                {!hasSelection && !isEditing && (
-                    <PopoverLabel>
-                        {formatMessage({id: 'wysiwyg.link.text', defaultMessage: 'Text'})}
-                        <PopoverInput
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            placeholder={formatMessage({id: 'wysiwyg.link.text_placeholder', defaultMessage: 'Display text'})}
+                <Row>
+                    <RowIcon>
+                        <LinkVariantIcon
+                            size={18}
+                            color='currentColor'
                         />
-                    </PopoverLabel>
-                )}
-                <PopoverLabel>
-                    {formatMessage({id: 'wysiwyg.link.url', defaultMessage: 'URL'})}
-                    <PopoverInput
+                    </RowIcon>
+                    <RowInput
                         ref={urlRef}
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
-                        placeholder='https://'
-                        type='url'
+                        placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
                     />
-                </PopoverLabel>
-                <PopoverActions>
-                    <PopoverButton
-                        type='button'
-                        onClick={() => {
-                            editor.chain().focus().run();
-                            onClose();
-                        }}
-                    >
-                        {formatMessage({id: 'wysiwyg.link.cancel', defaultMessage: 'Cancel'})}
-                    </PopoverButton>
-                    <PopoverButton
-                        $primary={true}
-                        type='button'
-                        onClick={handleSave}
-                        disabled={!isUrlValid}
-                    >
-                        {isEditing
-                            ? formatMessage({id: 'wysiwyg.link.update', defaultMessage: 'Update'})
-                            : formatMessage({id: 'wysiwyg.link.save', defaultMessage: 'Save'})
-                        }
-                    </PopoverButton>
-                </PopoverActions>
-                {isEditing && (
-                    <RemoveRow>
-                        <PopoverButton
-                            $danger={true}
+                    {isUrlDirty && (
+                        <HintText>
+                            {'↵ '}
+                            <span>{'ENTER to save'}</span>
+                        </HintText>
+                    )}
+                    {isSaved && (
+                        <IconButton
                             type='button'
-                            onClick={handleRemove}
+                            onClick={handleOpenExternal}
+                            title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
                         >
-                            {formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
-                        </PopoverButton>
-                    </RemoveRow>
+                            <OpenInNewIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </IconButton>
+                    )}
+                    {isSaved && (
+                        <IconButton
+                            type='button'
+                            className='danger'
+                            onClick={handleRemove}
+                            title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
+                        >
+                            <TrashCanOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </IconButton>
+                    )}
+                </Row>
+                {!hasSelection && !isEditing && (
+                    <Row>
+                        <RowIcon>
+                            <TextBoxOutlineIcon
+                                size={18}
+                                color='currentColor'
+                            />
+                        </RowIcon>
+                        <RowInput
+                            value={displayText}
+                            onChange={(e) => setDisplayText(e.target.value)}
+                            placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
+                        />
+                    </Row>
                 )}
             </PopoverContainer>
         </>

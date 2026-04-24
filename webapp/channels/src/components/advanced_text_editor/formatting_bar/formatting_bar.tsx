@@ -335,7 +335,10 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 return (
                     <React.Fragment key={mode}>
                         {mode === 'link' && getWysiwygEditor ? (
-                            <span ref={(el) => { linkButtonRef.current = el; }}>
+                            <span ref={(el) => {
+                                linkButtonRef.current = el;
+                            }}
+                            >
                                 <FormattingIcon
                                     mode={mode}
                                     className='control'
@@ -410,7 +413,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                             return (
                                 <span
                                     key={mode}
-                                    ref={(el) => { linkButtonRef.current = el; }}
+                                    ref={(el) => {
+                                        linkButtonRef.current = el;
+                                    }}
                                 >
                                     <FormattingIcon
                                         mode={mode}

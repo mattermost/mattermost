@@ -9,7 +9,7 @@ import styled from 'styled-components';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
 
-const DropdownButton = styled.button`
+const DropdownButton = styled.button.attrs({type: 'button'})`
     display: flex;
     align-items: center;
     flex-shrink: 0;
@@ -52,7 +52,7 @@ const DropdownMenu = styled.div`
     z-index: 20;
 `;
 
-const MenuItem = styled.button<{$active?: boolean}>`
+const MenuItem = styled.button.attrs({type: 'button'})<{$active?: boolean}>`
     display: flex;
     align-items: center;
     width: 100%;
@@ -199,8 +199,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
                 ref={refs.setReference}
                 className={isOpen ? 'active' : ''}
                 disabled={disabled}
-                onMouseDown={handleButtonMouseDown}
-                {...getReferenceProps()}
+                {...getReferenceProps({onMouseDown: handleButtonMouseDown})}
             >
                 {getStyleLabel(activeStyle, formatMessage)}
                 <ChevronDownIcon

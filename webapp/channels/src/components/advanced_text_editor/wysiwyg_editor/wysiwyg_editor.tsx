@@ -83,6 +83,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onEditLatestPostRef.current = onEditLatestPost;
     }, [onEditLatestPost]);
 
+    const useCtrlSendRef = useRef(useCtrlSend);
+    useEffect(() => {
+        useCtrlSendRef.current = useCtrlSend;
+    }, [useCtrlSend]);
+
     const editorRef = useRef<Editor | null>(null);
 
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
@@ -207,7 +212,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
                 const ctrlOrMeta = event.metaKey || event.ctrlKey;
 
-                if (useCtrlSend) {
+                if (useCtrlSendRef.current) {
                     if (ctrlOrMeta && !event.shiftKey && !event.altKey) {
                         if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
                             return false;
@@ -248,7 +253,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const {state} = editor;
                 const {from} = state.selection;
                 const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
-                const needsSpace = charBefore.length > 0 && !/\s/.test(charBefore);
+                const needsSpace = charBefore.length > 0 && !(/\s/).test(charBefore);
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 editor.chain().focus().insertContent({type: 'text', text: content}).run();
             }

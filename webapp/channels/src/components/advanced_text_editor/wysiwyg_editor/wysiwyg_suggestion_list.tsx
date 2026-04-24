@@ -66,6 +66,13 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
     const [selection, setSelection] = useState('');
     const [isOpen, setIsOpen] = useState(false);
 
+    const editorDomRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (editor && !editor.isDestroyed) {
+            editorDomRef.current = editor.view.dom as HTMLDivElement;
+        }
+    }, [editor]);
+
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
     const license = useSelector(getLicense);
@@ -271,6 +278,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
             style={{position: 'relative'}}
         >
             <SuggestionList
+                inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
                 open={isOpen}
                 pretext={pretext}
                 cleared={false}
