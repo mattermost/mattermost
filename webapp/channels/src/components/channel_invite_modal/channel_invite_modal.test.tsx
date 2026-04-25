@@ -145,6 +145,7 @@ describe('components/channel_invite_modal', () => {
         // Reset Client4 mocks before each test
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockClear();
+        Client4.getProfilesMatchingChannelPolicy.mockClear();
         Client4.getProfilePictureUrl.mockClear();
         Client4.getUsersRoute.mockClear();
         Client4.getTeamsRoute.mockClear();
@@ -154,6 +155,9 @@ describe('components/channel_invite_modal', () => {
 
         // Set default return values
         Client4.getProfilesNotInChannel.mockResolvedValue([]);
+
+        // Reset to default empty resolution so per-test overrides don't leak.
+        Client4.getProfilesMatchingChannelPolicy.mockResolvedValue([]);
         Client4.getProfilePictureUrl.mockReturnValue('mock-url');
         Client4.getUsersRoute.mockReturnValue('/api/v4/users');
         Client4.getTeamsRoute.mockReturnValue('/api/v4/teams');
@@ -946,12 +950,14 @@ describe('components/channel_invite_modal', () => {
         // The matching user (user-2) gets the Recommended tag.
         expect(screen.getByText('Recommended')).toBeInTheDocument();
 
-        // The recommended-users endpoint was queried.
+        // The recommended-users endpoint was queried with an empty cursor
+        // for the first page; pagination terminates after a short batch.
         expect(Client4.getProfilesMatchingChannelPolicy).toHaveBeenCalledWith(
             props.channel.team_id,
             props.channel.id,
             props.channel.group_constrained,
             50,
+            '',
         );
     });
 });

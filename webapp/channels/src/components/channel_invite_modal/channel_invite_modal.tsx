@@ -331,15 +331,38 @@ const ChannelInviteModalComponent = (props: Props) => {
     // For advisory (public) policies, fetch the matching-user subset to
     // render a subtle "Recommended" indicator and boost them to the top.
     // This bypasses Redux so the normal (unfiltered) list remains intact.
+    //
+    // Uses the cursor-based pagination on getProfilesMatchingChannelPolicy
+    // to walk every page of matching users; otherwise users beyond the
+    // first page would never be tagged as recommended. Capped to keep the
+    // tag-rendering set bounded for very large teams.
     const fetchRecommendedUserIds = useCallback(async () => {
+        const RECOMMENDED_HARD_CAP = 1000;
         try {
-            const profiles = await Client4.getProfilesMatchingChannelPolicy(
-                props.channel.team_id,
-                props.channel.id,
-                props.channel.group_constrained,
-                USERS_PER_PAGE,
-            );
-            setRecommendedUserIds(new Set((profiles || []).map((u) => u.id)));
+            const ids = new Set<string>();
+            let cursorId = '';
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+                // eslint-disable-next-line no-await-in-loop
+                const profiles = await Client4.getProfilesMatchingChannelPolicy(
+                    props.channel.team_id,
+                    props.channel.id,
+                    props.channel.group_constrained,
+                    USERS_PER_PAGE,
+                    cursorId,
+                );
+                if (!profiles || profiles.length === 0) {
+                    break;
+                }
+                for (const u of profiles) {
+                    ids.add(u.id);
+                }
+                if (profiles.length < USERS_PER_PAGE || ids.size >= RECOMMENDED_HARD_CAP) {
+                    break;
+                }
+                cursorId = profiles[profiles.length - 1].id;
+            }
+            setRecommendedUserIds(ids);
         } catch {
             setRecommendedUserIds(new Set());
         }
@@ -526,7 +549,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                         })}
                                         tooltipTitle={props.intl.formatMessage({
                                             id: 'channel_invite.recommended_tag.tooltip',
-                                            defaultMessage: 'Matches the access rules suggested for this channel',
+                                            defaultMessage: 'Matches the suggested membership for this channel',
                                         })}
                                     />
                                 )}
@@ -781,7 +804,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                             message={channel.type === Constants.OPEN_CHANNEL ? (
                                 <FormattedMessage
                                     id='channel_invite.policy_recommended.description'
-                                    defaultMessage='Access rules suggest who should be in this channel. You can still add anyone who can join a public channel.'
+                                    defaultMessage='A membership policy suggests who should be members of this channel. You can still add anyone who can join a public channel.'
                                 />
                             ) : (
                                 <FormattedMessage

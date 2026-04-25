@@ -447,12 +447,13 @@
 
             On private channels with an ABAC policy this filter is always
             applied regardless of this parameter (hard gate). On public channels
-            with an advisory ABAC policy the full member list is returned by
-            default; set this to `true` to fetch only the matching subset (for
-            example to annotate recommended members in the invite UI).
+            with an advisory ABAC policy the full not_in_channel candidate list
+            is returned by default; set this to `true` to fetch only the
+            matching subset of candidates (for example to annotate recommended
+            members in the invite UI).
 
 
-            __Minimum server version__: 11.7
+            __Minimum server version__: 11.8
           schema:
             type: boolean
         - name: without_team

@@ -2405,8 +2405,14 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("without enterprise license ABAC is disabled so the endpoint returns an empty list", func(t *testing.T) {
+		// Be explicit about the license precondition so this subtest is
+		// deterministic even if a parallel test elsewhere installed one.
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+
 		resp, err := th.Client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
 		require.NoError(t, err)
+		require.NotNil(t, resp)
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -2423,6 +2429,9 @@ func TestGetRecommendedChannelsForTeam(t *testing.T) {
 
 		resp, err := client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
 		require.Error(t, err)
+		// resp can be nil on transport errors; only defer Close when we
+		// actually got an HTTP response back so we can assert the status.
+		require.NotNil(t, resp)
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})

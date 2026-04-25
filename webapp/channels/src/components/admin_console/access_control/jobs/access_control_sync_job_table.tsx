@@ -92,7 +92,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     <p>
                         <FormattedMessage
                             id='admin.access_control.sync_jobs.description'
-                            defaultMessage='Reconcile channel membership with active membership policies. Running a job now adds qualifying members and, for private channels, removes non-matching members.'
+                            defaultMessage='Reconcile channel membership with active membership policies. For private channels, the job adds qualifying members and removes non-matching members. For public channels with auto-add enabled, it adds qualifying members but never removes anyone. For public channels with auto-add disabled, the job surfaces matching channels as recommendations to qualifying users instead of changing membership.'
                         />
                     </p>
                 </div>

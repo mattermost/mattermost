@@ -4166,26 +4166,55 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 // be stale when read through the channel cache, which would cause us to skip
 // cleanup and leave an orphaned policy behind. DeletePolicy is a no-op when
 // no matching row exists, so calling it unconditionally is safe.
+//
+// When the enterprise access control service is unavailable (acs == nil) or
+// reports the operation as unsupported (NotImplemented / NotAcceptable —
+// e.g. running on Team Edition or under a license that gates the ABAC
+// engine), we still need to remove the underlying row to avoid leaving an
+// orphaned policy behind. In those cases we fall back to deleting directly
+// through the access control policy store.
 func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model.Channel) {
 	if channel == nil || channel.Id == "" {
 		return
 	}
+
+	useStoreFallback := false
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
-		return
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, channel.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(appErr),
+			)
+		}
 	}
-	if appErr := acs.DeletePolicy(rctx, channel.Id); appErr != nil {
-		rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
-			mlog.String("channel_id", channel.Id),
-			mlog.Err(appErr),
-		)
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, channel.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(err),
+			)
+		}
 	}
 }
 
-// recommendedPublicChannelsScanLimit caps how many policy-enforced public channels
-// are evaluated per call. Evaluation is O(n) on channel count; for teams with many
-// policy-enforced channels a cursor-based approach may be needed later.
-const recommendedPublicChannelsScanLimit = 200
+// recommendedPublicChannelsScanPageSize is the per-page size used while
+// paginating through policy-enforced public channels in
+// GetRecommendedPublicChannelsForUser.
+const recommendedPublicChannelsScanPageSize = 200
+
+// recommendedPublicChannelsScanCap is a hard upper bound on the total number
+// of candidate channels we will evaluate per request. Evaluation is O(n) and
+// CEL programs are non-trivial; this guards against runaway scans on
+// pathological deployments. In practice teams have far fewer policy-enforced
+// public channels than this cap.
+const recommendedPublicChannelsScanCap = 2000
 
 // GetRecommendedPublicChannelsForUser returns public channels in the given team
 // that have an ABAC policy assigned and whose membership rule the user
@@ -4219,15 +4248,28 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		return nil, appErr
 	}
 
-	candidates, _, appErr := a.SearchAllChannels(rctx, "", model.ChannelSearchOpts{
-		TeamIds:                     []string{teamID},
-		Public:                      true,
-		AccessControlPolicyEnforced: true,
-		Page:                        model.NewPointer(0),
-		PerPage:                     model.NewPointer(recommendedPublicChannelsScanLimit),
-	})
-	if appErr != nil {
-		return nil, appErr
+	// Page through policy-enforced public channels until the team is fully
+	// scanned or we hit the hard cap. SearchAllChannels signals "no more
+	// pages" by returning fewer rows than the requested page size.
+	candidates := make(model.ChannelListWithTeamData, 0)
+	for page := 0; len(candidates) < recommendedPublicChannelsScanCap; page++ {
+		batch, _, searchErr := a.SearchAllChannels(rctx, "", model.ChannelSearchOpts{
+			TeamIds:                     []string{teamID},
+			Public:                      true,
+			AccessControlPolicyEnforced: true,
+			Page:                        model.NewPointer(page),
+			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+		})
+		if searchErr != nil {
+			return nil, searchErr
+		}
+		if len(batch) == 0 {
+			break
+		}
+		candidates = append(candidates, batch...)
+		if len(batch) < recommendedPublicChannelsScanPageSize {
+			break
+		}
 	}
 
 	// We intentionally do NOT filter out channels the user is already a member

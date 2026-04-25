@@ -146,7 +146,12 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
     return (
         <LineSwitch
             id='policy-enforce-toggle'
-            disabled={isDisabled || isSynced || !policyEnforcedToggleAvailable}
+
+            // Keep the visual disabled state aligned with the click guard in
+            // onToggle (which short-circuits when isDefault is true). Without
+            // including isDefault here the toggle would look enabled but do
+            // nothing on the default channel.
+            disabled={isDisabled || isSynced || isDefault || !policyEnforcedToggleAvailable}
             toggled={policyEnforced}
             last={true}
             onToggle={() => {
