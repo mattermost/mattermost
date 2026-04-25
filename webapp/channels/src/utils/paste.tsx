@@ -176,9 +176,17 @@ export function isKnownTargetForPaste(event: ClipboardEvent, location: string, i
     return isKnownTarget;
 }
 
-export function pasteHandler(event: ClipboardEvent, location: string, message: string, isNonFormattedPaste: boolean, isInEditMode?: boolean) {
+export function pasteHandler(
+    event: ClipboardEvent,
+    location: string,
+    message: string,
+    isNonFormattedPaste: boolean,
+    isInEditMode?: boolean,
+): void {
     const isKnownTarget = isKnownTargetForPaste(event, location, isInEditMode);
-    if (!isKnownTarget || isNonFormattedPaste) {
+
+    // Not our textbox let other handlers deal with it.
+    if (!isKnownTarget) {
         return;
     }
 
@@ -190,28 +198,58 @@ export function pasteHandler(event: ClipboardEvent, location: string, message: s
 
     const {selectionStart, selectionEnd} = target as TextboxElement;
 
-    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
-    const hasTextUrl = isTextUrl(clipboardData);
     const hasHTMLLinks = hasHtmlLink(clipboardData);
     const htmlTable = getHtmlTable(clipboardData);
+    const hasSelection = !isNil(selectionStart) && !isNil(selectionEnd) && selectionStart < selectionEnd;
+    const hasTextUrl = isTextUrl(clipboardData);
+
     const shouldApplyLinkMarkdown = hasSelection && hasTextUrl;
     const shouldApplyGithubCodeBlock = htmlTable && isGitHubCodeBlock(htmlTable.className);
 
-    if (!htmlTable && !hasHTMLLinks && !shouldApplyLinkMarkdown) {
+    // Only intercept when content would be transformed
+    const shouldIntercept = htmlTable || hasHTMLLinks || shouldApplyLinkMarkdown;
+
+    // Handle plain-text paste ONLY when we would otherwise modify content
+    if (isNonFormattedPaste && shouldIntercept) {
+        event.preventDefault();
+
+        const plainText = clipboardData.getData('text/plain');
+        if (plainText) {
+            execCommandInsertText(plainText);
+        }
+
+        return;
+    }
+
+    // Nothing special → let browser handle normally
+    if (!shouldIntercept) {
         return;
     }
 
     event.preventDefault();
 
-    // execCommand's insertText' triggers a 'change' event, hence we need not set respective state explicitly.
     if (shouldApplyLinkMarkdown) {
-        const formattedLink = formatMarkdownLinkMessage({selectionStart, selectionEnd, message, clipboardData});
+        const formattedLink = formatMarkdownLinkMessage({
+            selectionStart: selectionStart!,
+            selectionEnd: selectionEnd!,
+            message,
+            clipboardData,
+        });
         execCommandInsertText(formattedLink);
     } else if (shouldApplyGithubCodeBlock) {
-        const {formattedCodeBlock} = formatGithubCodePaste({selectionStart, selectionEnd, message, clipboardData});
+        const {formattedCodeBlock} = formatGithubCodePaste({
+            selectionStart,
+            selectionEnd,
+            message,
+            clipboardData,
+        });
         execCommandInsertText(formattedCodeBlock);
     } else {
-        const {formattedMarkdown} = formatMarkdownMessage(clipboardData, message, selectionStart ?? message.length);
+        const {formattedMarkdown} = formatMarkdownMessage(
+            clipboardData,
+            message,
+            selectionStart ?? message.length,
+        );
         execCommandInsertText(formattedMarkdown);
     }
 }
@@ -246,3 +284,4 @@ export function createFileFromClipboardDataItem(item: DataTransferItem, fileName
 
     return new File([file as Blob], name, {type: file.type});
 }
+
