@@ -7557,6 +7557,10 @@
     "translation": "Access control service is not ready."
   },
   {
+    "id": "app.pap.merge_expression.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.pap.missing_attribute.app_error",
     "translation": "An attribute is missing from the expression."
   },
