@@ -124,7 +124,7 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
         subTitle = (
             <FormattedMessage
                 id='admin.channel_settings.channel_details.default_channel_not_supported'
-                defaultMessage='The default channel cannot have access rules.'
+                defaultMessage='The default channel cannot have a membership policy.'
             />
         );
     } else if (isPublic) {

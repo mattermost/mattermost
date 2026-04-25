@@ -235,7 +235,7 @@ export default function TeamPolicyEditor({
                     return false;
                 }
             } catch {
-                setFormError(formatMessage({id: 'team_settings.policy_editor.error.validation_failed', defaultMessage: 'Failed to validate access rules. Please try again.'}));
+                setFormError(formatMessage({id: 'team_settings.policy_editor.error.validation_failed', defaultMessage: 'Failed to validate membership rules. Please try again.'}));
                 setSaveChangesPanelState(SAVE_RESULT_ERROR);
                 return false;
             }
@@ -448,13 +448,13 @@ export default function TeamPolicyEditor({
                         <h4 className='TeamPolicyEditor__section-title'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_title'
-                                defaultMessage='Access rules'
+                                defaultMessage='Membership rules'
                             />
                         </h4>
                         <p className='TeamPolicyEditor__section-subtitle'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_subtitle'
-                                defaultMessage='Select user attributes and values as rules to restrict access'
+                                defaultMessage='Select user attributes and values as rules for membership'
                             />
                         </p>
                     </div>

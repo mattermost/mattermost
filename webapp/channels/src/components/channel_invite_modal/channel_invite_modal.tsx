@@ -474,11 +474,16 @@ const ChannelInviteModalComponent = (props: Props) => {
                     include_member_count: true,
                     include_member_ids: true,
                 };
-                const promises = [
+
+                // Skip searchProfiles for the hard-gated private policy path:
+                // getOptions() reads from the scoped abacFilteredUsers buffer in
+                // that mode and never touches profilesNotInCurrentChannel, so any
+                // results dispatched into the global Redux profile cache would be
+                // unused noise (and a wasted server round-trip).
+                const promises = isPolicyEnforcedPrivate ? [] : [
                     props.actions.searchProfiles(term, options),
                 ];
 
-                // Only suppress group search for the hard-gated private policy path.
                 if (props.isGroupsEnabled && !isPolicyEnforcedPrivate) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }

@@ -3419,8 +3419,9 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 	}
 
 	// Remove any orphaned channel-scope ABAC policy tied to this channel ID.
-	// Safe to call whether or not a policy exists: cleanupChannelAccessControlPolicy
-	// short-circuits when PolicyEnforced is false.
+	// cleanupChannelAccessControlPolicy intentionally does not gate on
+	// PolicyEnforced (see its doc comment) — the underlying DeletePolicy is a
+	// no-op when no row exists, so it's safe to call unconditionally.
 	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)

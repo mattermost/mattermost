@@ -1888,3 +1888,117 @@ func TestHasPermissionToFileAction(t *testing.T) {
 		assert.True(t, result)
 	})
 }
+
+func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	originalACS := th.App.Srv().ch.AccessControl
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
+
+	t.Run("returns empty when license is missing", func(t *testing.T) {
+		// No enterprise license set on the test server: the license short-circuit
+		// at the top of the function must keep the response empty without ever
+		// calling the access control service.
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, channels)
+		mockACS.AssertNotCalled(t, "AccessEvaluation", mock.Anything, mock.Anything)
+	})
+
+	t.Run("returns empty when access control service is nil", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		th.App.Srv().ch.AccessControl = nil
+
+		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		assert.Empty(t, channels)
+	})
+
+	t.Run("returns only channels the policy allows; tolerates per-channel eval errors", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		// PermanentDeleteChannel calls cleanupChannelAccessControlPolicy → DeletePolicy
+		// during the test cleanup phase. Allow it as a no-op so cleanups don't fail
+		// the test on unexpected mock calls.
+		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+			Return((*model.AppError)(nil)).Maybe()
+
+		// Three policy-enforced public channels covering allow / deny / eval-error,
+		// plus one bare public channel without a policy. The bare channel must
+		// never reach the AccessEvaluation loop because SearchAllChannels filters
+		// it out via AccessControlPolicyEnforced=true.
+		allow := th.CreateChannel(t, th.BasicTeam)
+		deny := th.CreateChannel(t, th.BasicTeam)
+		evalErr := th.CreateChannel(t, th.BasicTeam)
+		bare := th.CreateChannel(t, th.BasicTeam)
+		t.Cleanup(func() {
+			for _, ch := range []*model.Channel{allow, deny, evalErr, bare} {
+				_ = th.App.PermanentDeleteChannel(th.Context, ch)
+			}
+		})
+
+		policyEnforced := func(channelID string) {
+			policy := &model.AccessControlPolicy{
+				ID:       channelID,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Active:   true,
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{"membership"}, Expression: "true"},
+				},
+			}
+			_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+			})
+		}
+		policyEnforced(allow.Id)
+		policyEnforced(deny.Id)
+		policyEnforced(evalErr.Id)
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == allow.Id && req.Action == "membership"
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == deny.Id
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		// Per-channel evaluation errors must NOT abort the whole request — the
+		// channel is dropped from the recommendation list and the loop moves on.
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == evalErr.Id
+		})).Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "test.eval.error", nil, "boom", http.StatusInternalServerError))
+
+		channels, appErr := th.App.GetRecommendedPublicChannelsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		ids := make([]string, 0, len(channels))
+		for _, ch := range channels {
+			ids = append(ids, ch.Id)
+		}
+		assert.ElementsMatch(t, []string{allow.Id}, ids,
+			"only the channel whose policy allows the subject should be returned (deny/eval-error excluded)")
+		assert.NotContains(t, ids, bare.Id, "channel without a policy should never enter the candidate set")
+
+		mockACS.AssertExpectations(t)
+	})
+}

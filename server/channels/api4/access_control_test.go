@@ -1066,6 +1066,57 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		require.NotNil(t, channelsResp)
 	})
 
+	t.Run("public channels assigned to the policy appear in search results", func(t *testing.T) {
+		setupLicenseAndABAC(t)
+
+		parentPolicy := newSamplePolicy()
+		savedParent, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedParent.ID)
+		})
+
+		// Public channels were previously hidden from this search by a hardcoded
+		// Private: true filter. Removing that filter is the whole point of the
+		// public-channel ABAC change; this test prevents regressions if someone
+		// re-introduces the filter in a future cleanup.
+		publicChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+		childPolicy := &model.AccessControlPolicy{
+			ID:       publicChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Imports:  []string{savedParent.ID},
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"membership"},
+				},
+			},
+		}
+		_, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, publicChannel.Id)
+		})
+
+		channelsResp, resp, err := th.SystemAdminClient.SearchChannelsForAccessControlPolicy(
+			context.Background(), savedParent.ID,
+			model.ChannelSearch{TeamIds: []string{th.BasicTeam.Id}})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, channelsResp)
+
+		channelsByID := make(map[string]*model.ChannelWithTeamData, len(channelsResp.Channels))
+		for _, ch := range channelsResp.Channels {
+			channelsByID[ch.Id] = ch
+		}
+		require.Contains(t, channelsByID, publicChannel.Id,
+			"public channel assigned to the policy should appear in search results")
+		require.Equal(t, model.ChannelTypeOpen, channelsByID[publicChannel.Id].Type,
+			"expected the matched channel to be public")
+	})
+
 	t.Run("team admin body TeamIds forced to authorized team", func(t *testing.T) {
 		setupLicenseAndABAC(t)
 
