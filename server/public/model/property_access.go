@@ -59,13 +59,6 @@ func ValidatePropertyFieldAccessMode(field *PropertyField) error {
 		return fmt.Errorf("invalid access mode '%s'", accessMode)
 	}
 
-	// Validate shared_only is only used with select/multiselect fields
-	if accessMode == PropertyAccessModeSharedOnly {
-		if field.Type != PropertyFieldTypeSelect && field.Type != PropertyFieldTypeMultiselect {
-			return fmt.Errorf("access mode 'shared_only' can only be used with select or multiselect field types, got '%s'", field.Type)
-		}
-	}
-
 	// Validate that non-public access modes require protected flag
 	if accessMode == PropertyAccessModeSourceOnly || accessMode == PropertyAccessModeSharedOnly {
 		if !IsPropertyFieldProtected(field) {

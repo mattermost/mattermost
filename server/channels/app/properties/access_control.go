@@ -1060,6 +1060,7 @@ func (pas *PropertyAccessService) filterSharedOnlyValue(field *model.PropertyFie
 // applyFieldReadAccessControl applies read access control to a single field.
 // Returns the field with options filtered based on the caller's access permissions.
 // - Public fields: returned as-is
+// - User-editable fields (PermissionValues=member): returned as-is so users can see all choices
 // - Source-only fields: returned with empty options if caller is not the source plugin
 // - Shared-only fields: returned with options filtered using filterSharedOnlyFieldOptions
 // - Unknown access modes: treated as source-only (secure default)
@@ -1067,6 +1068,12 @@ func (pas *PropertyAccessService) applyFieldReadAccessControl(field *model.Prope
 	// Check if caller has unrestricted access (public field or source plugin for source_only)
 	if pas.hasUnrestrictedFieldReadAccess(field, callerID) {
 		// Unrestricted access - return as-is
+		return field
+	}
+
+	// shared_only + member-writable is a contradictory but valid config; skip option filtering
+	// so users can self-assign a value rather than seeing an empty dropdown.
+	if field.PermissionValues != nil && *field.PermissionValues == model.PermissionLevelMember {
 		return field
 	}
 

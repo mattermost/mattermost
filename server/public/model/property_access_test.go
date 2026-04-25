@@ -161,7 +161,7 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "invalid shared_only access mode with text field",
+			name: "valid shared_only access mode with text field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeText,
 				Attrs: StringInterface{
@@ -169,10 +169,10 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 					PropertyAttrsProtected:  true,
 				},
 			},
-			expectError: true,
+			expectError: false,
 		},
 		{
-			name: "invalid shared_only access mode with date field",
+			name: "valid shared_only access mode with date field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeDate,
 				Attrs: StringInterface{
@@ -180,16 +180,24 @@ func TestValidatePropertyFieldAccessMode(t *testing.T) {
 					PropertyAttrsProtected:  true,
 				},
 			},
-			expectError: true,
+			expectError: false,
 		},
 		{
-			name: "invalid shared_only access mode with user field",
+			name: "valid shared_only access mode with user field and protected",
 			field: &PropertyField{
 				Type: PropertyFieldTypeUser,
 				Attrs: StringInterface{
 					PropertyAttrsAccessMode: PropertyAccessModeSharedOnly,
 					PropertyAttrsProtected:  true,
 				},
+			},
+			expectError: false,
+		},
+		{
+			name: "shared_only access mode with text field requires protected",
+			field: &PropertyField{
+				Type:  PropertyFieldTypeText,
+				Attrs: StringInterface{PropertyAttrsAccessMode: PropertyAccessModeSharedOnly},
 			},
 			expectError: true,
 		},
