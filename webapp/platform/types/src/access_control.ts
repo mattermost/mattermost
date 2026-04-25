@@ -100,6 +100,7 @@ export type AccessControlVisualASTNode = {
     value: any;
     value_type: number;
     attribute_type: string;
+    has_masked_values?: boolean;
 }
 
 /**
