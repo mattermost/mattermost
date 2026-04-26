@@ -248,10 +248,6 @@ exclude (
 	github.com/willf/bitset v1.2.0
 )
 
-// Prevent from being upgraded because this library has a minimum requirement
-// of Go 1.24.
-replace github.com/ledongthuc/pdf => github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
-
 // Also prevent tablewriter from being upgraded because the downstream dependency
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest
 // version always. Tablewriter has made breaking changes to its latest release.
@@ -259,3 +255,6 @@ replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v
 
 // See MM-66167, MM-68222 for more details.
 replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
+
+// See MM-63434 for more details.
+replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe
