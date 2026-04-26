@@ -28,23 +28,23 @@ async function resetNotificationsConfig(adminClient: {
  * @objective Verify that the Push Notification Contents setting is properly displayed and can be changed to all available options
  */
 test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.initSetup();
+    const {adminUser, adminClient} = await pw.getAdminClient();
+
+    if (!adminUser || !adminClient) {
+        throw new Error('Failed to get admin user');
+    }
+
+    // Ensure required Notifications fields are populated so the Save button
+    // starts enabled — prevents state pollution from concurrent initSetup() calls
+    // that reset FeedbackName and SupportEmail to '' via updateConfig(defaultConfig).
+    await resetNotificationsConfig(adminClient);
 
     // # Update to default config
     await adminClient.patchConfig({
         EmailSettings: {
             PushNotificationContents: 'full',
-            FeedbackName: 'Mattermost Test Team',
-            FeedbackEmail: 'feedback@mattertest.com',
-        },
-        SupportSettings: {
-            SupportEmail: 'support@mattertest.com',
         },
     } as Partial<AdminConfig>);
-
-    if (!adminUser) {
-        throw new Error('Failed to get admin user');
-    }
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -155,6 +155,9 @@ test('MM-T1210 Can change Support Email setting', async ({pw}) => {
 
     // * Verify that set value is visible and matches text
     await expect(notifications.supportEmailAddress.input).toHaveValue(newEmail);
+
+    // # Wait for Save button to be enabled (React processes fill() events asynchronously)
+    await expect(notifications.saveButton).not.toBeDisabled();
 
     // # Save setting
     await notifications.save();

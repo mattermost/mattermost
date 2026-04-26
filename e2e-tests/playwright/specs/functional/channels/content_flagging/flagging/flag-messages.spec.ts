@@ -377,15 +377,13 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
  */
 test('Verify message is removed from channel if the reviewer removed the message', async ({pw}) => {
     const {user, adminClient, team} = await pw.initSetup();
+    // Only set the fields this test actually needs. Omitting ReviewerSettings.CommonReviewerIds
+    // prevents racing with reviewer-* tests that set their own reviewer list — a patchConfig
+    // that includes CommonReviewerIds replaces the array for ALL concurrent tests on the same
+    // server, causing reviewer-actions.spec.ts to lose its notification recipients.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
-            ReviewerSettings: {
-                CommonReviewers: true,
-                SystemAdminsAsReviewers: true,
-                TeamAdminsAsReviewers: true,
-                CommonReviewerIds: [user.id],
-            },
             AdditionalSettings: {
                 HideFlaggedContent: false,
             },

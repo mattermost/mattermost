@@ -12,10 +12,11 @@ import {
 } from '@mattermost/playwright-lib';
 
 import {
+    ensureUserAttributes,
     createPrivateChannelForABAC,
     createBasicPolicy,
     activatePolicy,
-    waitForPolicySyncJob,
+    waitForLatestSyncJob,
     getPolicyIdByName,
 } from '../support';
 
@@ -28,6 +29,11 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
+
+    // Ensure the "Department" custom profile attribute exists before creating users.
+    // A concurrent test shard may not yet have run the global setup, or the attribute
+    // may have been recreated under a different ID — ensureUserAttributes is idempotent.
+    await ensureUserAttributes(adminClient);
 
     // User starts with non-qualifying attribute.
     const user = await createUserWithAttributes(adminClient, {Department: 'Sales'});
@@ -58,8 +64,10 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     // PHASE 2: Change to qualifying → User auto-added.
     await updateUserAttributes(adminClient, user.id, {Department: 'Engineering'});
 
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5800PolicyId);
+    // Capture exact job ID so waitForLatestSyncJob polls the right job, not
+    // the most-recent row (which may belong to a concurrent shard's sync job).
+    const __syncJob2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
@@ -72,8 +80,8 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     // PHASE 3: Change back to non-qualifying → User auto-removed.
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5800PolicyId);
+    const __syncJob3 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob3);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {

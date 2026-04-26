@@ -4,6 +4,7 @@
 import {
     expect,
     test,
+    enableABAC,
     navigateToABACPage,
     runSyncJob,
     verifyUserInChannel,
@@ -12,10 +13,11 @@ import {
 } from '@mattermost/playwright-lib';
 
 import {
+    ensureUserAttributes,
     createPrivateChannelForABAC,
     createAdvancedPolicy,
     activatePolicy,
-    waitForPolicySyncJob,
+    waitForLatestSyncJob,
     getPolicyIdByName,
 } from '../support';
 
@@ -29,6 +31,10 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
 
     const {adminUser, adminClient, team} = await pw.initSetup();
 
+    // Ensure the "Department" attribute exists — may not be present if global
+    // setup hasn't run yet or ran on a different shard.
+    await ensureUserAttributes(adminClient, ['Department']);
+
     // User starts WITH qualifying attribute (Department starts with "Eng").
     const user1 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
     await adminClient.addToTeam(team.id, user1.id);
@@ -37,6 +43,7 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await navigateToABACPage(systemConsolePage.page);
+    await enableABAC(systemConsolePage.page);
 
     const policy1Name = `LDAP Remove StartsWith ${await pw.random.id()}`;
     await createAdvancedPolicy(systemConsolePage.page, {
@@ -51,9 +58,10 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await activatePolicy(adminClient, t5799Policy1Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
-    // Use policy-scoped API polling to avoid cross-shard job contamination.
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5799Policy1Id);
+    // Capture exact job ID so we poll the right job, not the most-recent row
+    // (which may belong to a concurrent shard's sync job under PW_WORKERS >= 2).
+    const __syncJob5799a1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799a1);
 
     // Poll: the sync job marks itself success before the channel_members write
     // is fully committed.  Give the server up to 15 s to catch up.
@@ -69,8 +77,8 @@ test('MM-T5799a LDAP sync - User removed with startsWith operator (auto-add true
     await updateUserAttributes(adminClient, user1.id, {Department: 'Sales'});
 
     // Sync: user no longer qualifies → gets removed.
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5799Policy1Id);
+    const __syncJob5799a2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799a2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user1.id, channel1.id), {

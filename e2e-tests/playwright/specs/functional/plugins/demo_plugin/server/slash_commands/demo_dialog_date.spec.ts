@@ -23,9 +23,11 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.centerView.postCreate.input.fill('/dialog date');
     await channelsPage.centerView.postCreate.sendMessage();
 
-    // 5. Confirm dialog opens with correct title
+    // 5. Confirm dialog opens with correct title.
+    // Allow up to 15 s for the plugin's interactive dialog to open — under CI
+    // load the plugin's slash-command handler can take several seconds.
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');
 
     // 6. Verify field labels and Event Title default value

@@ -179,15 +179,16 @@ test(
         // Re-apply config immediately before posting so the server translates this message.
         // A concurrent initSetup() can reset AutoTranslationSettings.Enable to false.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        // Set Spanish source to ensure translation happens
+        // Set Spanish source so the mock returns source='es', triggering es→en translation.
         await setMockSourceLanguage(translationUrl, 'es');
-        // Post Spanish message that's long enough for reliable detection
+        // Post Spanish message that's long enough for reliable detection.
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Este mensaje es para probar el menú de acciones con la opción de mostrar traducción automática',
             user_id: createdPoster.id,
         });
-        // Second user posts a message so the first user's translation indicator appears
+        // Second post ensures the first post's translation indicator is rendered
+        // (the UI only renders it for posts that are not the last in the channel).
         await posterClient2.createPost({
             channel_id: created.id,
             message: 'Segundo usuario con mensaje más largo para mejor detección de idioma',
@@ -198,11 +199,22 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Find the target post and wait for its translation before opening the menu
+        // Re-apply config + reload so the browser reads the latest AutoTranslationSettings
+        // and fetches stored translations via populatePostListTranslations.
+        // This matches the pattern used by passing autotranslation_users.spec.ts tests.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+
+        // * Wait for the channel-level autotranslation badge — confirms the feature is active.
+        await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
+
+        // * Wait for the translated target post to appear.
+        // The mock appends "[translated to en]" to the original Spanish text, confirming
+        // translation.state==='ready' so that "Show translation" will be in the dot menu.
         const messagePost = channelsPage.centerView.container
             .getByTestId('postView')
             .filter({hasText: 'Este mensaje es para probar el menú de acciones'});
-        await messagePost.waitFor({state: 'visible', timeout: 15000});
         await expect(messagePost.getByText(/\[translated to en\]/i)).toBeVisible({timeout: 15000});
 
         // * Open dot menu using the established hover → wait → click pattern

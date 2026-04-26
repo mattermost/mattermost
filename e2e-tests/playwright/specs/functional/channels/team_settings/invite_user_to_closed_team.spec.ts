@@ -44,6 +44,13 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await teamSettings.close();
     await expect(teamSettings.container).not.toBeVisible();
 
+    // Re-apply email invitations immediately before opening the invite modal: a
+    // concurrent initSetup() → patchConfig(defaultConfig) resets
+    // ServiceSettings.EnableEmailInvitations: false between the initial patchConfig and here.
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableEmailInvitations: true},
+    });
+
     // # Open team menu and click 'Invite People'
     await channelsPage.sidebarLeft.teamMenuButton.click();
     await channelsPage.teamMenu.toBeVisible();

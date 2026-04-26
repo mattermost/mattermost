@@ -175,6 +175,10 @@ test(
             type: 'O',
         });
 
+        // Re-apply config immediately before login: a concurrent initSetup() →
+        // patchConfig(defaultConfig) can reset AutoTranslationSettings.Enable back
+        // to false between the initial enableAutotranslationConfig call and here.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();

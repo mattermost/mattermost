@@ -16,7 +16,10 @@ setup('ensure server deployment', async ({pw}) => {
 setup('ensure ABAC is configured', async ({pw}) => {
     // Enable ABAC and the Department attribute once for the entire test run.
     // Individual tests call pw.skipIfNoLicense() and handle the unlicensed case themselves.
-    const {adminClient} = await pw.initSetup();
+    // Use getAdminClient (not initSetup) to avoid calling updateConfig(defaultConfig)
+    // which resets the entire server config and broadcasts via WebSocket to all open
+    // browser sessions across the 13 parallel shards starting simultaneously.
+    const {adminClient} = await pw.getAdminClient();
 
     try {
         await adminClient.patchConfig({

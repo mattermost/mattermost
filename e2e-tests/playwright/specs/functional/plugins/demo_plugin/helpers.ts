@@ -23,7 +23,7 @@ export async function setupDemoPlugin(
             Plugins: {
                 'com.mattermost.demo-plugin': {
                     username: 'demouser',
-                    channelname: 'demo',
+                    channelname: 'demo_plugin',
                     lastname: 'User',
                 },
             },

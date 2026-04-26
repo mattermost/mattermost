@@ -188,6 +188,11 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
 
+            // Re-apply anonymous URLs immediately before the UI interaction: a
+            // concurrent initSetup() → patchConfig(defaultConfig) resets
+            // UseAnonymousURLs: false between the initial setAnonymousUrls call and here.
+            await setAnonymousUrls(adminClient, true);
+
             // # Open new channel modal
             await channelsPage.sidebarLeft.browseOrCreateChannelButton.click();
             await channelsPage.page.locator('#createNewChannelMenuItem').click();
@@ -318,6 +323,11 @@ test.describe('Anonymous URLs', () => {
             const {channelsPage} = await pw.testBrowser.login(adminUser);
             await channelsPage.goto();
             await channelsPage.toBeVisible();
+
+            // Re-apply anonymous URLs immediately before the UI interaction: a
+            // concurrent initSetup() → patchConfig(defaultConfig) resets
+            // UseAnonymousURLs: false between the initial setAnonymousUrls call and here.
+            await setAnonymousUrls(adminClient, true);
 
             // # Open team menu and click Create a team
             await channelsPage.sidebarLeft.teamMenuButton.click();
