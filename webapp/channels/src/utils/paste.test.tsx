@@ -239,15 +239,21 @@ jest.mock('utils/exec_commands', () => ({
 }));
 
 describe('pasteHandler', () => {
-    const testCases = [
+    beforeEach(() => {
+        (execCommandInsertText as jest.Mock).mockClear();
+    });
+
+    const githubHtml = '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
+    const githubPlain = "// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}";
+
+    // ── Formatted paste (normal Ctrl+V) ──────────────────────────────────────
+    const formattedTestCases = [
         {
             testName: 'should be able to format a pasted markdown table',
             clipboardData: {
                 items: [1],
                 types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
+                getData: () => '<table><tr><th>test</th><th>test</th></tr><tr><td>test</td><td>test</td></tr></table>',
             },
             expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |',
         },
@@ -256,9 +262,7 @@ describe('pasteHandler', () => {
             clipboardData: {
                 items: [1],
                 types: ['text/html'],
-                getData: () => {
-                    return '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>';
-                },
+                getData: () => '<table><tr><td>test</td><td>test</td></tr><tr><td>test</td><td>test</td></tr></table>',
             },
             expectedMarkdown: '| test | test |\n| --- | --- |\n| test | test |\n',
         },
@@ -267,9 +271,7 @@ describe('pasteHandler', () => {
             clipboardData: {
                 items: [1],
                 types: ['text/html'],
-                getData: () => {
-                    return '<a href="https://test.domain">link text</a>';
-                },
+                getData: () => '<a href="https://test.domain">link text</a>',
             },
             expectedMarkdown: '[link text](https://test.domain)',
         },
@@ -278,18 +280,33 @@ describe('pasteHandler', () => {
             clipboardData: {
                 items: [1],
                 types: ['text/plain', 'text/html'],
-                getData: (type: string) => {
-                    if (type === 'text/plain') {
-                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-                    }
-                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
-                },
+                getData: (type: string) => (type === 'text/plain' ? githubPlain : githubHtml),
             },
             expectedMarkdown: "```\n// a javascript codeblock example\nif (1 > 0) {\n  return 'condition is true';\n}\n```",
         },
-        {
-            testName: 'should paste table as plain text when shift is held',
-            isNonFormattedPaste: true,
+    ];
+
+    for (const tc of formattedTestCases) {
+        it(tc.testName, () => {
+            const event: any = {
+                target: {id: 'reply_textbox', selectionStart: 0, selectionEnd: 0},
+                preventDefault: jest.fn(),
+                clipboardData: tc.clipboardData,
+            };
+
+            pasteHandler(event, Locations.RHS_COMMENT, '', false);
+
+            expect(event.preventDefault).toHaveBeenCalled();
+            expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
+        });
+    }
+
+    // ── Non-formatted paste (Ctrl+Shift+V) ───────────────────────────────────
+
+    it('should paste table as plain text when shift is held', () => {
+        const event: any = {
+            target: {id: 'reply_textbox', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
             clipboardData: {
                 items: [1],
                 types: ['text/plain', 'text/html'],
@@ -300,45 +317,108 @@ describe('pasteHandler', () => {
                     return '<table><tr><th>test</th>\n<th>test</th>\n</tr>\n<tr>\n<td>test</td>\n<td>test</td></tr></table>';
                 },
             },
-            expectedMarkdown: 'test \ttest\ntest \ttest',
-        },
-        {
-            testName: 'should paste github code as plain text when shift is held',
-            isNonFormattedPaste: true,
+        };
+
+        pasteHandler(event, Locations.RHS_COMMENT, '', true);
+
+        // plain text is available — must preventDefault and insert plain text
+        expect(event.preventDefault).toHaveBeenCalled();
+        expect(execCommandInsertText).toHaveBeenCalledWith('test \ttest\ntest \ttest');
+    });
+
+    it('should paste github code as plain text when shift is held', () => {
+        const event: any = {
+            target: {id: 'reply_textbox', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/plain', 'text/html'],
+                getData: (type: string) => (type === 'text/plain' ? githubPlain : githubHtml),
+            },
+        };
+
+        pasteHandler(event, Locations.RHS_COMMENT, '', true);
+
+        expect(event.preventDefault).toHaveBeenCalled();
+        expect(execCommandInsertText).toHaveBeenCalledWith(githubPlain);
+    });
+
+    it('should paste HTML hyperlink as plain text when Ctrl+Shift+V is used', () => {
+        const event: any = {
+            target: {id: 'reply_textbox', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
             clipboardData: {
                 items: [1],
                 types: ['text/plain', 'text/html'],
                 getData: (type: string) => {
-                    if (type === 'text/plain') {
-                        return '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}';
-                    }
-                    return '<table class="highlight tab-size js-file-line-container" data-tab-size="8"><tbody><tr><td id="LC1" class="blob-code blob-code-inner js-file-line"><span class="pl-c"><span class="pl-c">//</span> a javascript codeblock example</span></td></tr><tr><td id="L2" class="blob-num js-line-number" data-line-number="2">&nbsp;</td><td id="LC2" class="blob-code blob-code-inner js-file-line"><span class="pl-k">if</span> (<span class="pl-c1">1</span> <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>) {</td></tr><tr><td id="L3" class="blob-num js-line-number" data-line-number="3">&nbsp;</td><td id="LC3" class="blob-code blob-code-inner js-file-line"><span class="pl-en">console</span>.<span class="pl-c1">log</span>(<span class="pl-s"><span class="pl-pds">\'</span>condition is true<span class="pl-pds">\'</span></span>);</td></tr><tr><td id="L4" class="blob-num js-line-number" data-line-number="4">&nbsp;</td><td id="LC4" class="blob-code blob-code-inner js-file-line">}</td></tr></tbody></table>';
+                    if (type === 'text/plain') { return 'link text'; }
+                    return '<a href="https://test.domain">link text</a>';
                 },
             },
-            expectedMarkdown: '// a javascript codeblock example\nif (1 > 0) {\n  return \'condition is true\';\n}',
-        },
-    ];
+        };
 
-    for (const tc of testCases) {
-        it(tc.testName, () => {
-            const location = Locations.RHS_COMMENT;
-            const event: any = {
-                target: {
-                    id: 'reply_textbox',
+        pasteHandler(event, Locations.RHS_COMMENT, '', true);
+
+        // Must insert raw plain text, NOT [link text](https://test.domain)
+        expect(event.preventDefault).toHaveBeenCalled();
+        expect(execCommandInsertText).toHaveBeenCalledWith('link text');
+    });
+
+    it('should not preventDefault when clipboard has no plain text (HTML-only payload)', () => {
+        // Edge case from CodeRabbit review: if text/plain is empty,
+        // do not swallow the paste — let the browser handle it.
+        const event: any = {
+            target: {id: 'reply_textbox', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: (type: string) => {
+                    if (type === 'text/plain') { return ''; }
+                    return '<a href="https://test.domain">link text</a>';
                 },
-                preventDefault: jest.fn(),
-                clipboardData: tc.clipboardData,
-            };
+            },
+        };
 
-            pasteHandler(event, location, '', tc.isNonFormattedPaste ?? false);
+        pasteHandler(event, Locations.RHS_COMMENT, '', true);
 
-            if (tc.isNonFormattedPaste) {
-                expect(execCommandInsertText).not.toHaveBeenCalled();
-            } else {
-                expect(execCommandInsertText).toHaveBeenCalledWith(tc.expectedMarkdown);
-            }
-        });
-    }
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(execCommandInsertText).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing for an unknown target', () => {
+        const event: any = {
+            target: {id: 'some_other_input', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/html'],
+                getData: () => '<a href="https://x.com">X</a>',
+            },
+        };
+
+        pasteHandler(event, Locations.CENTER, '', false);
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(execCommandInsertText).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing when clipboard contains only plain text with no HTML', () => {
+        const event: any = {
+            target: {id: 'post_textbox', selectionStart: 0, selectionEnd: 0},
+            preventDefault: jest.fn(),
+            clipboardData: {
+                items: [1],
+                types: ['text/plain'],
+                getData: () => 'just some words',
+            },
+        };
+
+        pasteHandler(event, Locations.CENTER, '', false);
+
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        expect(execCommandInsertText).not.toHaveBeenCalled();
+    });
 });
 
 describe('hasPlainText', () => {
