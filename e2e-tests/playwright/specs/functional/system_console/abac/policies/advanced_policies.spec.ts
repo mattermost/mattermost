@@ -283,8 +283,6 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page);
-
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.fill(searchTerm);
         await systemConsolePage.page.waitForTimeout(1000);

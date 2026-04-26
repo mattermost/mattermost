@@ -6,6 +6,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should open /dialog date and post submit confirmation after selecting dates', async ({pw}) => {
+    // Plugin installation can take up to 60 s; extend the test timeout to avoid
+    // a premature timeout before the dialog even opens.
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);

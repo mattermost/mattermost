@@ -30,7 +30,10 @@ export async function setupDemoPlugin(
         },
     });
 
-    await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+    const alreadyActive = await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
+    if (!alreadyActive) {
+        await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+    }
 
     await expect
         .poll(

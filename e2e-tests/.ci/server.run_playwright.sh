@@ -106,7 +106,12 @@ fi
 
 if [ -n "$FAILED_SPECS" ]; then
   mme2e_log "Retrying failed specs on the same runner: $FAILED_SPECS"
-  SPEC_ARGS=$(echo "$FAILED_SPECS" | tr ',' ' ')
+  # Split the comma-separated list into an array and shell-quote every entry
+  # with printf '%q' so that filenames containing shell metacharacters
+  # (;, &&, $(), etc.) are treated as literals by the inner bash -lc shell
+  # and cannot be used for command injection.
+  IFS=',' read -ra _spec_array <<< "$FAILED_SPECS"
+  SPEC_ARGS=$(printf '%q ' "${_spec_array[@]}")
 
   # If we used the balancer for the first pass, we pass the failed specs
   # as positional args without --shard (the specs are already scoped to

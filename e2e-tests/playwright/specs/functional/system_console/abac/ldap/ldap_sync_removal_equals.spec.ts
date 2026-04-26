@@ -4,6 +4,7 @@
 import {
     expect,
     test,
+    enableABAC,
     navigateToABACPage,
     runSyncJob,
     verifyUserInChannel,
@@ -12,10 +13,11 @@ import {
 } from '@mattermost/playwright-lib';
 
 import {
+    ensureUserAttributes,
     createPrivateChannelForABAC,
     createBasicPolicy,
     activatePolicy,
-    waitForPolicySyncJob,
+    waitForLatestSyncJob,
     getPolicyIdByName,
 } from '../support';
 
@@ -28,6 +30,7 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
+    await ensureUserAttributes(adminClient, ['Department']);
 
     // User starts WITH qualifying attribute.
     const user2 = await createUserWithAttributes(adminClient, {Department: 'Engineering'});
@@ -37,6 +40,7 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await navigateToABACPage(systemConsolePage.page);
+    await enableABAC(systemConsolePage.page);
 
     const policy2Name = `LDAP Remove TwoAttr ${await pw.random.id()}`;
     await createBasicPolicy(systemConsolePage.page, {
@@ -52,8 +56,10 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await activatePolicy(adminClient, t5799Policy2Id);
 
     // Sync: user has qualifying attribute → gets auto-added.
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5799Policy2Id);
+    // Capture exact job ID so we poll the right job, not the most-recent row
+    // (which may belong to a concurrent shard's sync job under PW_WORKERS >= 2).
+    const __syncJob5799b1 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799b1);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {
@@ -67,8 +73,8 @@ test('MM-T5799b LDAP sync - User removed with == operator (auto-add true)', asyn
     await updateUserAttributes(adminClient, user2.id, {Department: 'Sales'});
 
     // Sync: user no longer qualifies → gets removed.
-    await runSyncJob(systemConsolePage.page);
-    await waitForPolicySyncJob(adminClient, t5799Policy2Id);
+    const __syncJob5799b2 = await runSyncJob(systemConsolePage.page);
+    await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob5799b2);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user2.id, channel2.id), {

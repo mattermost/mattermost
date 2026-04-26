@@ -88,6 +88,12 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
     const {post, postId} = await postMessage(channelsPage, message);
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: true},
+        },
+    });
 
     // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
@@ -131,6 +137,14 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     const message = 'This is a test message to be flagged';
     const {post, postId} = await postMessage(channelsPage, message);
     await post.toBeVisible();
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+        },
+    });
 
     // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
@@ -194,6 +208,14 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
         user_id: user.id,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+
+    // Re-apply guard before UI interaction.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+        },
+    });
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
@@ -262,6 +284,14 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
+    // Re-apply guard before UI interaction.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {HideFlaggedContent: false},
+        },
+    });
+
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
     const post = await channelsPage.getLastPost();
@@ -324,6 +354,16 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+            },
+        },
+    });
+
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -354,6 +394,17 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
     const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            AdditionalSettings: {
+                Reasons: ['Spam', FLAG_REASON_CLASSIFICATION_MISMATCH, 'Harassment', 'Hate Speech', 'Other'],
+                ReporterCommentRequired: true,
+            },
+        },
+    });
 
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();

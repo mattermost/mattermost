@@ -455,6 +455,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const {channelsPage: senderChannelsPage} = await pw.testBrowser.login(adminUser);
         await senderChannelsPage.goto(team.name, channelName);
         await senderChannelsPage.toBeVisible();
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 604800,
+            },
+        });
 
         // # Toggle BoR on and post message
         await senderChannelsPage.centerView.postCreate.toggleBurnOnRead();
