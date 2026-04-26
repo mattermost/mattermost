@@ -209,15 +209,13 @@ export function pasteHandler(
     // Only intercept when content would be transformed
     const shouldIntercept = htmlTable || hasHTMLLinks || shouldApplyLinkMarkdown;
 
-    // Handle plain-text paste ONLY when we would otherwise modify content
+    
     if (isNonFormattedPaste && shouldIntercept) {
-        event.preventDefault();
-
         const plainText = clipboardData.getData('text/plain');
         if (plainText) {
+            event.preventDefault();
             execCommandInsertText(plainText);
         }
-
         return;
     }
 
