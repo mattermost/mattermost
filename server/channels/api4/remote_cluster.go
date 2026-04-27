@@ -660,10 +660,10 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	updatedRC.Sanitize()
+
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedRC)
-
-	updatedRC.Sanitize()
 
 	if err := json.NewEncoder(w).Encode(updatedRC); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
