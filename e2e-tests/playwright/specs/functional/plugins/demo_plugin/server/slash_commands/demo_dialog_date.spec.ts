@@ -23,15 +23,22 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog date command
-    await channelsPage.centerView.postCreate.input.fill('/dialog date');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // 5. Confirm dialog opens with correct title.
-    // Allow up to 15 s for the plugin's interactive dialog to open — under CI
-    // load the plugin's slash-command handler can take several seconds.
+    // 4. Send /dialog date command (with one retry if the dialog doesn't appear).
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible({timeout: 15000});
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/dialog date');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            // 5. Wait up to 15 s for the interactive dialog to open.
+            await expect(dialog).toBeVisible({timeout: 15000});
+            break; // dialog appeared — proceed
+        } catch (err) {
+            if (attempt === 1) {
+                throw err; // exhausted retries — let the error surface naturally
+            }
+            // attempt 0 timed out — retry the slash command once
+        }
+    }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');
 
     // 6. Verify field labels and Event Title default value

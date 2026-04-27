@@ -33,9 +33,14 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
 
     const {post} = await createPost(adminClient, userClient, team, user, message);
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false
-    // between the initial setupContentFlagging call and the flagPost call, causing
-    // the notification to not be sent (test fails at verifyAuthorNotification).
+    // between the initial setupContentFlagging call and the flagPost call.
+    // pw.waitUntil confirms the config is actually true before proceeding — this
+    // closes the race window to < 100 ms (time between final poll and flagPost).
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
@@ -49,12 +54,11 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     await secondContentReviewPage.waitForRHSVisible();
 
     await secondContentReviewPage.openViewDetails();
-    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false
-    // between the initial setupContentFlagging call and the remove action.
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
     await secondContentReviewPage.clickRemoveMessage();
     await secondContentReviewPage.enterConfirmationComment(commentRemove);
     await secondContentReviewPage.confirmRemove();
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
 
     const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
         await pw.testBrowser.login(thirdUser);

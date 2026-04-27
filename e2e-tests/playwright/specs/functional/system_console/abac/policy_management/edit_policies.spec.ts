@@ -654,6 +654,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // ===========================================
         const policyName = `ABAC-RemoveRule-${pw.random.id()}`;
 
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
+
         // Use advanced mode for multi-attribute policy
         await createAdvancedPolicy(page, {
             name: policyName,
@@ -679,6 +686,13 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         // New expression: Department=Engineering (only)
         // This makes policy LESS restrictive
         // ===========================================
+
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
 
         // Navigate back to ABAC list page
         await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});

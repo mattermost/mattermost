@@ -243,6 +243,7 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.page.locator('#createNewChannelMenuItem').click();
             await channelsPage.newChannelModal.toBeVisible();
             await channelsPage.newChannelModal.fillDisplayName(channelDisplayName);
+            await setAnonymousUrls(adminClient, true);
             await channelsPage.newChannelModal.create();
 
             // # Wait for channel to be created and navigated to
