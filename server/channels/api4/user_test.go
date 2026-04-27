@@ -3973,6 +3973,7 @@ func TestResetPassword(t *testing.T) {
 		return tokenErr == nil
 	}, 10*time.Second, 500*time.Millisecond, "Recovery token not found (%s)", recoveryTokenString)
 
+	newPwd := model.NewTestPassword()
 	resp, err := th.Client.ResetPassword(context.Background(), recoveryToken.Token, "")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
@@ -3989,16 +3990,16 @@ func TestResetPassword(t *testing.T) {
 	for range model.TokenSize {
 		code.WriteString("a")
 	}
-	resp, err = th.Client.ResetPassword(context.Background(), code.String(), "newpasswd")
+	resp, err = th.Client.ResetPassword(context.Background(), code.String(), newPwd)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	_, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpasswd")
+	_, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, newPwd)
 	require.NoError(t, err)
-	_, _, err = th.Client.Login(context.Background(), user.Email, "newpasswd")
+	_, _, err = th.Client.Login(context.Background(), user.Email, newPwd)
 	require.NoError(t, err)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
-	resp, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpasswd")
+	resp, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, newPwd)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
@@ -4028,7 +4029,7 @@ func TestResetPasswordAuditDoesNotLeakToken(t *testing.T) {
 		_ = th.App.Srv().Store().Token().Delete(token.Token)
 	}()
 
-	_, err = th.Client.ResetPassword(context.Background(), token.Token, "newPassword1!")
+	_, err = th.Client.ResetPassword(context.Background(), token.Token, model.NewTestPassword())
 	require.NoError(t, err)
 
 	audits, appErr := th.App.GetAudits(request.EmptyContext(th.TestLogger), "", 100)
