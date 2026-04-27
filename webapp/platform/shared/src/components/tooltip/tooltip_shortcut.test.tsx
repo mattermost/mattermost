@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/dom';
 import React from 'react';
-import {defineMessage} from 'react-intl';
-
-import * as userAgentUtils from '@mattermost/shared/utils/user_agent';
-
-import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import TooltipShortcut from './tooltip_shortcut';
 
-jest.mock('@mattermost/shared/utils/user_agent', () => ({
+import {renderWithContext} from '../../testing';
+import * as userAgentUtils from '../../utils/user_agent';
+import {ShortcutKeys} from '../shortcut_key';
+
+jest.mock('../../utils/user_agent', () => ({
     isMac: jest.fn(),
 }));
 
@@ -59,10 +59,7 @@ describe('TooltipShortcut', () => {
     test('show shortcut with message descriptor', () => {
         const shortcut = {
             default: [
-                defineMessage({
-                    id: 'shortcuts.generic.enter',
-                    defaultMessage: 'Enter',
-                }),
+                ShortcutKeys.enter,
             ],
         };
 

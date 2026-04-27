@@ -2712,10 +2712,6 @@
     "translation": "Elasticsearch on kytketty pois."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch on jo lopetettu"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Hakutulosten dekoodaus epäonnistui"
   },
@@ -3702,39 +3698,39 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Muuta tilaksesi online"
+    "translation": "Aseta tilaksisi verkossa"
   },
   {
     "id": "api.command_offline.success",
-    "translation": "Olet nyt näkymätön"
+    "translation": "Olet nyt ei-verkossa"
   },
   {
     "id": "api.command_offline.name",
-    "translation": "poissa"
+    "translation": "ei-verkossa"
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Muuta tila poissaolevaksi"
+    "translation": "Aseta tilaksisi ei-verkko"
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "Kanava ei ole enää mykistetty."
+    "translation": "Tämä kanava ei ole enää mykistetty."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "{{.Channel}} ei enää mykistetty."
+    "translation": "{{.Channel}} ei ole enää mykistetty."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "Et saa ilmoituksia tältä kanavalta kunnes mykistys on otettu pois päältä."
+    "translation": "Et saa ilmoituksia tästä kanavasta, ennen kuin kanavan mykistys on poistettu käytöstä."
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "Et saa ilmoituksia kanavalta {{.Channel}} ennen kuin mykistys on otettu pois päältä."
+    "translation": "Et saa ilmoituksia kanavalta {{.Channel}}, ennen kuin kanavan mykistys on poistettu käytöstä."
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Kanavaa ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) sen määrittämiseen."
+    "translation": "Määritettyä kanavaa ei löytynyt. Käytäthän [kanavan kahvaa](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kanavien tunnistamiseen."
   },
   {
     "id": "api.command_mute.name",
@@ -3746,7 +3742,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) kanavan määrittämiseen."
+    "translation": "Kanavaa {{.Channel}} ei löytynyt. Käytä [kanavankahvaa](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kanavien tunnistamiseen."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -4002,11 +3998,11 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Estä työpöytä-, sähköposti- ja push-ilmoitukset aktiivisella tai määritetyllä [kanavalla]."
+    "translation": "Poistaa käytöstä työpöytä-, sähköposti- ja työntöilmoitukset nykyiselle kanavalle tai määritetylle [kanavalle]."
   },
   {
     "id": "api.command_msg.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia lähettää yksityisviestiä tälle käyttäjälle."
+    "translation": "Sinulla ei ole tarvittavia lupia lähettää suoraviestiä tälle käyttäjälle."
   },
   {
     "id": "api.command_msg.name",
@@ -4014,23 +4010,23 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Ei löydetty käyttäjää."
+    "translation": "Käyttäjää ei löydy."
   },
   {
     "id": "api.command_msg.hint",
-    "translation": "@[käyttäjätunnus] 'viesti'"
+    "translation": "@[käyttäjänimi] 'viesti'"
   },
   {
     "id": "api.command_msg.fail.app_error",
-    "translation": "Viestin lähettäminen käyttäjälle epäonnistui."
+    "translation": "Käyttäjälle viestittäessä tapahtui virhe."
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Yksityisviestin luonnissa tapahtui virhe."
+    "translation": "Suoraviestin luomisen yhteydessä tapahtui virhe."
   },
   {
     "id": "api.command_msg.desc",
-    "translation": "Lähetä yksityisviesti käyttäjälle"
+    "translation": "Lähetä suoraviesti käyttäjälle"
   },
   {
     "id": "api.command_me.name",
@@ -4042,11 +4038,11 @@
   },
   {
     "id": "api.command_me.desc",
-    "translation": "Toiminto"
+    "translation": "Tee toiminto"
   },
   {
     "id": "api.command_logout.name",
-    "translation": "uloskirjautuminen"
+    "translation": "uloskirjaus"
   },
   {
     "id": "api.command_logout.desc",
@@ -4058,7 +4054,7 @@
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "Virhe tapahtui kanavalle poistumisen aikana."
+    "translation": "Kanavalta poistumisen yhteydessä tapahtui virhe."
   },
   {
     "id": "api.command_leave.desc",
@@ -4078,7 +4074,7 @@
   },
   {
     "id": "api.command_join.list.app_error",
-    "translation": "Virhe tapahtui kanavien listauksen aikana."
+    "translation": "Kanavien luettelemisen yhteydessä tapahtui virhe."
   },
   {
     "id": "api.command_join.hint",
@@ -4086,7 +4082,7 @@
   },
   {
     "id": "api.command_join.fail.app_error",
-    "translation": "Virhe tapahtui kanavalle liittymisen aikana."
+    "translation": "Kanavalle liittymisen yhteydessä tapahtui virhe."
   },
   {
     "id": "api.command_join.desc",
@@ -4094,7 +4090,7 @@
   },
   {
     "id": "api.command_invite_people.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia kutsua uusia käyttäjiä tälle palvelimelle."
+    "translation": "Sinulla ei ole lupaa kutsua uusia käyttäjiä tälle palvelimelle."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
@@ -4113,11 +4109,11 @@
   },
   {
     "id": "api.command_invite.private_channel.app_error",
-    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä kanavan tunnistetta sen määrittämiseen."
+    "translation": "Kanavaa {{.Channel}} ei löytynyt. Käytä [kanavankahvaa](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kanavien tunnistamiseen."
   },
   {
     "id": "api.command_invite.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia lisätä käyttäjää {{.User}} kanavalle {{.Channel}}."
+    "translation": "Sinulla ei ole riittäviä lupia lisätäksesi {{.User}} kanavalle {{.Channel}}."
   },
   {
     "id": "api.command_invite.name",
@@ -4129,7 +4125,7 @@
   },
   {
     "id": "api.command_invite.missing_message.app_error",
-    "translation": "Käyttäjänimi ja kanava puuttuvat."
+    "translation": "Käyttäjänimi ja/tai kanava puuttuvat."
   },
   {
     "id": "api.command_invite.hint",
@@ -4149,11 +4145,11 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "Kanavaa {{.Channel}} ei löydetty. Käytä [kanavan tunnistetta](https://about.mattermost.com/default-channel-handle-documentation) kanavan löytämiseen."
+    "translation": "Kanavaa {{.Channel}} ei löytynyt. Käytä [kanavankahvaa](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) kanavien tunnistamiseen."
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "Virhe noudettaessa kanavaa."
+    "translation": "Virhe nykyisen kanavan noutamisessa."
   },
   {
     "id": "api.command_help.name",
@@ -4161,11 +4157,11 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Avaa Mattermostin ohjesivusto"
+    "translation": "Näytä Mattermostin ohjeviesti"
   },
   {
     "id": "api.command_groupmsg.permission.app_error",
-    "translation": "Sinulla ei ole oikeuksia lähettää uutta ryhmäviestiä."
+    "translation": "Sinulla ei ole tarvittavia lupia uuden ryhmäviestin luomiseen."
   },
   {
     "id": "api.command_groupmsg.name",
@@ -4173,11 +4169,11 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Ryhmäviesti on rajoitettu vähintään {{.MinUsers}} käyttäjälle."
+    "translation": "Ryhmäviestien vähimmäismäärä on {{.MinUsers}} käyttäjää."
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Ryhmäviesti on rajoitettu enintään {{.MaxUsers}} käyttäjälle."
+    "translation": "Ryhmäviestien enimmäismäärä on {{.MaxUsers}} käyttäjää."
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",

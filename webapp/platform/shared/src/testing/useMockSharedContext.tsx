@@ -8,6 +8,15 @@ import {isSystemEmoji, type CustomEmoji, type Emoji, type SystemEmoji} from '@ma
 import {SharedProvider, type SharedProviderProps} from '../context/context';
 
 const mockEmojisByName = {
+    smile: {
+        name: 'SSMILING FACE WITH OPEN MOUTH AND SMILING EYES',
+        unified: '1F604',
+        short_name: 'smile',
+        short_names: [
+            'smile',
+        ],
+        category: 'smileys-emotion',
+    } as SystemEmoji,
     smiley: {
         name: 'SMILING FACE WITH OPEN MOUTH',
         unified: '1F603',
@@ -48,10 +57,10 @@ export function useMockSharedContext({
                 }
 
                 if (isSystemEmoji(emoji)) {
-                    return `https://mattermost.example.com/static/emoji/${emoji.unified}.png`;
+                    return `/static/emoji/${emoji.unified}.png`;
                 }
 
-                return `https://mattermost.example.com/api/v4/emojis/${emoji.id}`;
+                return `/api/v4/emojis/${emoji.id}`;
             }),
         };
     }, [useEmojiByName, useEmojiUrl]);

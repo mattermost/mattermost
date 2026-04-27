@@ -3038,10 +3038,6 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} は既に停止されています。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} は無効です。"
   },
@@ -4551,19 +4547,19 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.mac",
-    "translation": "macOS 12+"
+    "translation": "macOS 14+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
-    "translation": "Version 17.4+"
+    "translation": "Version 26.2+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
@@ -5211,7 +5207,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermostエンタープライズライセンスは無効になっています。"
+    "translation": "{{.SkuName}}ライセンスの有効期限が切れました。"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7243,7 +7239,7 @@
   },
   {
     "id": "api.templates.email_footer_v2",
-    "translation": "© 2022 Mattermost, Inc. 530 Lytton Avenue, Second floor, Palo Alto, CA, 94301"
+    "translation": "© 2015 - {{ .CurrentYear }} Mattermost, Inc. 2100 Geng Road, Suite 210, Palo Alto, CA, 94303"
   },
   {
     "id": "store.sql_file_info.search.disabled",
@@ -7963,11 +7959,11 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}さん、あなたのサブスクリプションは{{.Days}}日で期限切れになるように設定されています。Mattermostが可能にする柔軟で安全なチームコラボレーションを体験していただければ幸いです。チームがこれらのメリットを引き続き享受できるように、今すぐ更新してください。"
+    "translation": "<a href=\"{{.SiteURL}}\">{{.SiteName}}</a>の{{.SkuName}}ライセンスの有効期限があと{{.Days}}日で切れます。Mattermostが可能にする安全かつミッションクリティカルなコラボレーションを引き続き活用していただければ幸いです。"
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "ライセンスは更新中です"
+    "translation": "{{.SkuName}}ライセンスは更新中です"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -7983,7 +7979,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "あなたのMattermostのサブスクリプションは更新が必要です"
+    "translation": "あなたのMattermostのライセンスは更新が必要です"
   },
   {
     "id": "api.user.invalidate_verify_email_tokens.error",
@@ -10103,7 +10099,7 @@
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "あなたのライセンスはカスタムプロフィール属性をサポートしていません。"
+    "translation": "あなたのライセンスはユーザー属性をサポートしていません。"
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -10175,7 +10171,7 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "無効なカスタムプロフィール属性フィールドのパッチ"
+    "translation": "無効なユーザー属性フィールドのパッチ"
   },
   {
     "id": "app.user.reset_password_failed_attempts.app_error",
@@ -10760,10 +10756,6 @@
   {
     "id": "api.reaction.save.restricted_dm.error",
     "translation": "制限されたDM内ではリアクションできません"
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "既存のジョブを取得できませんでした。"
   },
   {
     "id": "app.post_priority.delete_for_post.app_error",

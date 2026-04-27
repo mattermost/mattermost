@@ -201,6 +201,10 @@ function processResponse(originalUrl, response) {
         return {url: originalUrl, status, redirect: true};
     }
 
+    if (status === 429) {
+        return {url: originalUrl, status, ok: true, rateLimited: true};
+    }
+
     if (response.ok) {
         return {url: originalUrl, status, ok: true};
     }
@@ -235,11 +239,15 @@ async function checkUrls(urls, concurrency = 5, silentProgress = false) {
 
 function printResults(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
-    const working = results.filter((r) => r.ok);
+    const rateLimited = results.filter((r) => r.ok && r.rateLimited);
+    const working = results.filter((r) => r.ok && !r.rateLimited);
 
     console.log('\n' + chalk.bold('=== External Link Check Results ===\n'));
 
     console.log(chalk.green(`✓ ${working.length} URLs are accessible`));
+    if (rateLimited.length > 0) {
+        console.log(chalk.yellow(`⚠ ${rateLimited.length} URLs returned 429 (rate limited, skipped)`));
+    }
     if (broken.length > 0) {
         console.log(chalk.red(`✗ ${broken.length} URLs are broken`));
     }
@@ -247,6 +255,19 @@ function printResults(results, urlMap, nonPermalinkUrls) {
         console.log(chalk.yellow(`⚠ ${nonPermalinkUrls.length} URLs are not using permalink format (warning)`));
     }
     console.log();
+
+    if (rateLimited.length > 0) {
+        console.log(chalk.yellow.bold('Rate-limited URLs (warning only):\n'));
+        for (const result of rateLimited) {
+            console.log(chalk.yellow(`  ${result.url}`));
+            console.log(chalk.gray(`    Status: HTTP 429 (Too Many Requests)`));
+            console.log(chalk.gray(`    Found in:`));
+            for (const file of urlMap.get(result.url)) {
+                console.log(chalk.gray(`      - ${file}`));
+            }
+            console.log();
+        }
+    }
 
     if (broken.length > 0) {
         console.log(chalk.red.bold('Broken URLs:\n'));
@@ -284,13 +305,14 @@ function printResults(results, urlMap, nonPermalinkUrls) {
 
 function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
     const broken = results.filter((r) => !r.ok);
-    const working = results.filter((r) => r.ok);
+    const rateLimited = results.filter((r) => r.ok && r.rateLimited);
+    const working = results.filter((r) => r.ok && !r.rateLimited);
 
     const lines = [];
 
     lines.push('## External Link Check Results\n');
 
-    if (broken.length === 0 && nonPermalinkUrls.length === 0) {
+    if (broken.length === 0 && nonPermalinkUrls.length === 0 && rateLimited.length === 0) {
         lines.push(`✅ **All ${working.length} mattermost.com URLs are valid and accessible**\n`);
         return lines.join('\n');
     }
@@ -298,6 +320,9 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
     lines.push(`| Status | Count |`);
     lines.push(`|--------|-------|`);
     lines.push(`| ✅ Working | ${working.length} |`);
+    if (rateLimited.length > 0) {
+        lines.push(`| ⚠️ Rate limited / 429 (warning) | ${rateLimited.length} |`);
+    }
     if (broken.length > 0) {
         lines.push(`| ❌ Broken | ${broken.length} |`);
     }
@@ -305,6 +330,19 @@ function generateMarkdownSummary(results, urlMap, nonPermalinkUrls) {
         lines.push(`| ⚠️ Missing /pl/ prefix (warning) | ${nonPermalinkUrls.length} |`);
     }
     lines.push('');
+
+    if (rateLimited.length > 0) {
+        lines.push('### ⚠️ Rate-limited URLs (warning only)\n');
+        lines.push('> These URLs returned HTTP 429 (Too Many Requests) and could not be verified. They are not treated as failures.\n');
+        lines.push('| URL | Files |');
+        lines.push('|-----|-------|');
+
+        for (const result of rateLimited) {
+            const files = urlMap.get(result.url).map((f) => `\`${f}\``).join(', ');
+            lines.push(`| ${result.url} | ${files} |`);
+        }
+        lines.push('');
+    }
 
     if (broken.length > 0) {
         lines.push('### Broken URLs\n');
@@ -380,7 +418,12 @@ async function main() {
     if (jsonOutput) {
         const output = {
             total: results.length,
-            working: results.filter((r) => r.ok).length,
+            working: results.filter((r) => r.ok && !r.rateLimited).length,
+            rateLimited: results.filter((r) => r.rateLimited).map((r) => ({
+                url: r.url,
+                status: r.status,
+                files: urlMap.get(r.url),
+            })),
             broken: results.filter((r) => !r.ok).map((r) => ({
                 url: r.url,
                 status: r.status,

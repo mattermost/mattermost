@@ -2222,10 +2222,4 @@ export const OverlayTransitionStyles = {
     },
 };
 
-export const OverlayArrow = {
-    WIDTH: 10, // in px
-    HEIGHT: 6, // in px
-    OFFSET: 8, // in px
-};
-
 export default Constants;

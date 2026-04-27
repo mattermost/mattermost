@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen, waitFor} from '@testing-library/dom';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {WithTooltip} from './with_tooltip';
 
-import WithTooltip from './index';
+import {renderWithContext} from '../../testing';
 
 jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isMac: jest.fn().mockReturnValue(false),

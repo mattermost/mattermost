@@ -6,6 +6,8 @@ package opensearch
 import (
 	"context"
 	"io"
+	"net/http"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch/common"
@@ -35,6 +37,8 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 		logger.Error("Worker: Failed to Create Client", mlog.Err(appErr))
 		return nil
 	}
+
+	var realFailed atomic.Int64
 
 	return common.NewIndexerWorker(workerName, model.ElasticsearchSettingsOSBackend,
 		esi.Server.Jobs,
@@ -66,19 +70,26 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 				DocumentID: docID,
 				Body:       body,
 				OnFailure: func(_ context.Context, item opensearchutil.BulkIndexerItem, resp opensearchapi.BulkRespItem, err error) {
-					var errType, errReason string
-					if resp.Error != nil {
-						errType = resp.Error.Type
-						errReason = resp.Error.Reason
+					if item.Action == "delete" && resp.Status == http.StatusNotFound {
+						return
 					}
-					logger.Error("Bulk indexer: failed to index document",
+					realFailed.Add(1)
+					fields := []mlog.Field{
 						mlog.String("index", item.Index),
 						mlog.String("doc_id", item.DocumentID),
 						mlog.String("action", item.Action),
-						mlog.String("error_type", errType),
-						mlog.String("error_reason", errReason),
-						mlog.Err(err),
-					)
+						mlog.Int("status", resp.Status),
+					}
+					if resp.Error != nil {
+						fields = append(fields,
+							mlog.String("error_type", resp.Error.Type),
+							mlog.String("error_reason", resp.Error.Reason),
+						)
+					}
+					if err != nil {
+						fields = append(fields, mlog.Err(err))
+					}
+					logger.Warn("Bulk indexer: failed to index document", fields...)
 				},
 			})
 		},
@@ -88,7 +99,8 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 			stats := esi.bulkProcessor.Stats()
 			fields := []mlog.Field{
 				mlog.Uint("num_indexed", stats.NumIndexed),
-				mlog.Uint("num_failed", stats.NumFailed),
+				mlog.Int("num_failed", realFailed.Load()),
+				mlog.Uint("stats_num_failed", stats.NumFailed),
 				mlog.Uint("num_added", stats.NumAdded),
 				mlog.Uint("num_flushed", stats.NumFlushed),
 			}
@@ -97,6 +109,6 @@ func (esi *OpensearchIndexerInterfaceImpl) MakeWorker() model.Worker {
 			} else {
 				logger.Info("Bulk indexer closed", fields...)
 			}
-			return int64(stats.NumFailed), err
+			return realFailed.Load(), err
 		})
 }
