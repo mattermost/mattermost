@@ -26,15 +26,33 @@ export type GlobalBannerConfig = {
     enabled: boolean;
     placement: GlobalBannerPlacement;
     level_name: string;
-    color: string;
 };
 
 export const DEFAULT_GLOBAL_BANNER: GlobalBannerConfig = {
     enabled: false,
     placement: 'top',
     level_name: '',
-    color: '',
 };
+
+export function normalizePlacement(value: string | undefined): GlobalBannerPlacement {
+    return value === 'top_and_bottom' ? 'top_and_bottom' : 'top';
+}
+
+/**
+ * Reads the global_banner config stored inside a PropertyField's attrs.
+ * Returns defaults when the field has no global_banner attrs set yet.
+ */
+export function readGlobalBannerFromField(field: PropertyField): GlobalBannerConfig {
+    const raw = field.attrs?.global_banner as Record<string, unknown> | undefined;
+    if (!raw) {
+        return {...DEFAULT_GLOBAL_BANNER};
+    }
+    return {
+        enabled: Boolean(raw.enabled),
+        placement: normalizePlacement(raw.placement as string | undefined),
+        level_name: (raw.level_name as string) ?? '',
+    };
+}
 
 export function detectPreset(levels: ClassificationLevel[]): string {
     for (const preset of presets) {
@@ -92,21 +110,30 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
     return undefined;
 }
 
-export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
+export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string; globalBanner: GlobalBannerConfig} {
     const options = (field.attrs?.options as PropertyFieldOption[]) || [];
     const levels = optionsToLevels(options);
     const presetId = detectPreset(levels);
-    return {levels, presetId};
+    const globalBanner = readGlobalBannerFromField(field);
+    return {levels, presetId, globalBanner};
 }
 
-export async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
+export async function saveCreateField(levels: ClassificationLevel[], globalBanner: GlobalBannerConfig): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
         name: FIELD_NAME,
         type: 'select' as PropertyField['type'],
         target_type: TARGET_TYPE,
         target_id: TARGET_ID,
-        attrs: {options, managed: 'admin'},
+        attrs: {
+            options,
+            managed: 'admin',
+            global_banner: {
+                enabled: globalBanner.enabled,
+                placement: globalBanner.placement,
+                level_name: globalBanner.level_name,
+            },
+        },
         permission_field: 'sysadmin',
         permission_values: 'sysadmin',
         permission_options: 'sysadmin',
@@ -117,9 +144,17 @@ export async function saveDeleteField(fieldId: string): Promise<void> {
     await Client4.deletePropertyField(GROUP_NAME, OBJECT_TYPE, fieldId);
 }
 
-export async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
+export async function savePatchField(fieldId: string, levels: ClassificationLevel[], globalBanner: GlobalBannerConfig): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, fieldId, {
-        attrs: {options},
+        attrs: {
+            options,
+            managed: 'admin',
+            global_banner: {
+                enabled: globalBanner.enabled,
+                placement: globalBanner.placement,
+                level_name: globalBanner.level_name,
+            },
+        },
     } as Partial<PropertyField>);
 }

@@ -16,7 +16,6 @@ import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    resetGlobalBannerConfig,
     setClassificationMarkingsFeatureFlag,
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
@@ -382,7 +381,7 @@ test.describe('System Console - Classification markings', () => {
             await page.waitForLoadState('networkidle');
             await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked();
 
-            await resetGlobalBannerConfig(adminClient);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
 
@@ -438,7 +437,7 @@ test.describe('System Console - Classification markings', () => {
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
             await expect(page.getByTestId('globalBannerLevel')).toContainText('CONFIDENTIAL');
 
-            await resetGlobalBannerConfig(adminClient);
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
 

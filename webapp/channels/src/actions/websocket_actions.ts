@@ -41,6 +41,7 @@ import {
     AppsTypes,
     CloudTypes,
     ChannelBookmarkTypes,
+    PropertyTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
@@ -72,6 +73,7 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
+import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
@@ -107,7 +109,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -149,6 +151,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID} from 'components/admin_console/classification_markings/utils';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
@@ -326,6 +329,11 @@ export function reconnect() {
     // Refresh custom profile attributes on reconnect
     if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
         dispatch(getCustomProfileAttributeFields());
+    }
+
+    // Refresh classification template field on reconnect when the feature flag is active
+    if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
+        dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
     }
 
     if (state.websocket.lastDisconnectAt) {
@@ -627,6 +635,13 @@ export function handleEvent(msg: WebSocketMessage) {
         break;
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
+        break;
+    case WebSocketEvents.PropertyFieldCreated:
+    case WebSocketEvents.PropertyFieldUpdated:
+        dispatch(handlePropertyFieldCreatedOrUpdated(msg as WebSocketMessages.PropertyFieldCreated | WebSocketMessages.PropertyFieldUpdated));
+        break;
+    case WebSocketEvents.PropertyFieldDeleted:
+        dispatch(handlePropertyFieldDeleted(msg as WebSocketMessages.PropertyFieldDeleted));
         break;
     case WebSocketEvents.PropertyValuesUpdated:
         dispatch(handlePropertyValuesUpdated(msg));
@@ -1181,6 +1196,31 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+function handlePropertyFieldCreatedOrUpdated(msg: WebSocketMessages.PropertyFieldCreated | WebSocketMessages.PropertyFieldUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let field;
+        try {
+            field = JSON.parse(msg.data.property_field);
+        } catch {
+            return;
+        }
+
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+    };
+}
+
+function handlePropertyFieldDeleted(msg: WebSocketMessages.PropertyFieldDeleted): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        doDispatch({
+            type: PropertyTypes.PROPERTY_FIELD_DELETED,
+            data: {fieldId: msg.data.field_id},
+        });
     };
 }
 

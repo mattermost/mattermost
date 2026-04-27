@@ -367,6 +367,21 @@ export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.S
 
 // Property system messages
 
+export type PropertyFieldCreated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldCreated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldUpdated, {
+    property_field: JsonEncodedValue<PropertyField>;
+    object_type: string;
+}>;
+
+export type PropertyFieldDeleted = BaseWebSocketMessage<WebSocketEvents.PropertyFieldDeleted, {
+    field_id: string;
+    object_type: string;
+}>;
+
 export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
     object_type?: string;
     target_id?: string;

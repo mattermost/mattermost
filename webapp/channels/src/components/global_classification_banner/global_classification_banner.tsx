@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useMemo, useRef} from 'react';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
+
+import {GROUP_NAME, FIELD_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, readGlobalBannerFromField} from 'components/admin_console/classification_markings/utils';
 
 import './global_classification_banner.scss';
 
@@ -17,17 +21,44 @@ type Props = {
     position: 'top' | 'bottom';
 };
 
+function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
+    const byId = state.entities.properties?.fields?.byId;
+    if (!byId) {
+        return undefined;
+    }
+    return Object.values(byId).find(
+        (f) => f.object_type === OBJECT_TYPE && f.name === FIELD_NAME && f.delete_at === 0,
+    );
+}
+
 export default function GlobalClassificationBanner({position}: Props) {
+    const dispatch = useDispatch();
     const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
-    const config = useSelector((state: GlobalState) => getConfig(state));
+    const classificationField = useSelector(selectClassificationTemplateField);
     const bannerRef = useRef<HTMLDivElement>(null);
 
-    const enabled = featureEnabled && config.ClassificationMarkingsGlobalBannerEnabled === 'true';
-    const placement = config.ClassificationMarkingsGlobalBannerPlacement;
-    const levelName = config.ClassificationMarkingsGlobalBannerLevelName;
-    const color = config.ClassificationMarkingsGlobalBannerColor;
+    // Bootstrap: fetch the classification field once when the feature is enabled and
+    // the field is not yet in the store. WebSocket events keep it up to date after that.
+    useEffect(() => {
+        if (featureEnabled && !classificationField) {
+            dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
+        }
+    }, [featureEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const shouldRender = enabled && Boolean(levelName) && (position === 'top' || placement === 'top_and_bottom');
+    const bannerConfig = classificationField ? readGlobalBannerFromField(classificationField) : undefined;
+    const bannerEnabled = bannerConfig?.enabled ?? false;
+    const placement = bannerConfig?.placement ?? 'top';
+    const levelName = bannerConfig?.level_name ?? '';
+
+    const color = useMemo(() => {
+        if (!levelName || !classificationField) {
+            return '';
+        }
+        const options = classificationField.attrs?.options as PropertyFieldOption[] | undefined;
+        return options?.find((o) => o.name === levelName)?.color ?? '';
+    }, [classificationField, levelName]);
+
+    const shouldRender = featureEnabled && bannerEnabled && Boolean(levelName) && (position === 'top' || placement === 'top_and_bottom');
     const textColor = useMemo(() => (color ? getContrastingSimpleColor(color) : ''), [color]);
 
     useEffect(() => {

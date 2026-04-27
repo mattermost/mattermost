@@ -3,16 +3,11 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {AdminConfig} from '@mattermost/types/config';
 import type {PropertyField} from '@mattermost/types/properties';
-import type {DeepPartial} from '@mattermost/types/utilities';
-
-import {patchConfig} from 'mattermost-redux/actions/admin';
-import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -25,8 +20,6 @@ import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import type {GlobalState} from 'types/store';
-
 import {
     AddLevelButton,
     AddLevelButtonRow,
@@ -36,7 +29,7 @@ import {
 } from './classification_markings_styled';
 import ClassificationLevelsTable from './components/classification_levels_table';
 import GlobalClassificationIndicators from './components/global_classification_indicators';
-import type {GlobalBannerConfig, GlobalBannerPlacement} from './utils';
+import type {GlobalBannerConfig} from './utils';
 import {DEFAULT_GLOBAL_BANNER, fetchClassificationField, processClassificationField, saveCreateField, saveDeleteField, savePatchField} from './utils';
 import {classificationPresetDropdownStyles} from './utils/preset_dropdown_styles';
 import type {ClassificationLevel} from './utils/presets';
@@ -75,42 +68,9 @@ type Props = {
     disabled?: boolean;
 };
 
-function normalizePlacement(value: string | undefined): GlobalBannerPlacement {
-    return value === 'top_and_bottom' ? 'top_and_bottom' : 'top';
-}
-
-function readGlobalBannerFromConfig(config: Partial<AdminConfig> | undefined): GlobalBannerConfig {
-    const banner = config?.ClassificationMarkingsSettings?.GlobalBanner;
-    if (!banner) {
-        return {...DEFAULT_GLOBAL_BANNER};
-    }
-    return {
-        enabled: Boolean(banner.Enabled),
-        placement: normalizePlacement(banner.Placement),
-        level_name: banner.LevelName ?? '',
-        color: banner.Color ?? '',
-    };
-}
-
-function buildGlobalBannerPatch(banner: GlobalBannerConfig): DeepPartial<AdminConfig> {
-    return {
-        ClassificationMarkingsSettings: {
-            GlobalBanner: {
-                Enabled: banner.enabled,
-                Placement: banner.placement,
-                LevelName: banner.level_name,
-                Color: banner.color,
-            },
-        },
-    };
-}
-
 export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-
-    const adminConfig = useSelector((state: GlobalState) => getConfig(state));
-    const configGlobalBanner = useMemo(() => readGlobalBannerFromConfig(adminConfig), [adminConfig]);
 
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string>();
@@ -121,11 +81,11 @@ export default function ClassificationMarkings({disabled}: Props) {
     const [enabled, setEnabled] = useState(false);
     const [presetId, setPresetId] = useState<string>(PRESET_CUSTOM);
     const [levels, setLevels] = useState<ClassificationLevel[]>([]);
-    const [globalBanner, setGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
+    const [globalBanner, setGlobalBanner] = useState<GlobalBannerConfig>({...DEFAULT_GLOBAL_BANNER});
 
     const [initialEnabled, setInitialEnabled] = useState(false);
     const [initialLevels, setInitialLevels] = useState<ClassificationLevel[]>([]);
-    const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBannerConfig>(configGlobalBanner);
+    const [initialGlobalBanner, setInitialGlobalBanner] = useState<GlobalBannerConfig>({...DEFAULT_GLOBAL_BANNER});
 
     const [confirmPresetSwitch, setConfirmPresetSwitch] = useState<string | null>(null);
 
@@ -133,12 +93,10 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (enabled !== initialEnabled) {
             return true;
         }
-        const resolvedColor = levels.find((l) => l.name.trim() === globalBanner.level_name)?.color ?? '';
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
-            globalBanner.level_name !== initialGlobalBanner.level_name ||
-            resolvedColor !== initialGlobalBanner.color
+            globalBanner.level_name !== initialGlobalBanner.level_name
         ) {
             return true;
         }
@@ -170,6 +128,8 @@ export default function ClassificationMarkings({disabled}: Props) {
                     setLevels(result.levels);
                     setInitialLevels(result.levels);
                     setPresetId(result.presetId);
+                    setGlobalBanner(result.globalBanner);
+                    setInitialGlobalBanner(result.globalBanner);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -304,12 +264,17 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, [enabled, levels, globalBanner, formatMessage]);
 
     const persistLevels = useCallback(async (): Promise<void> => {
+        const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
+
         if (enabled && !initialEnabled) {
-            const created = await saveCreateField(levels);
+            const created = await saveCreateField(levels, effectiveBanner);
             const result = processClassificationField(created);
             setExistingField(created);
             setLevels(result.levels);
             setInitialLevels(result.levels);
+            setPresetId(result.presetId);
+            setGlobalBanner(result.globalBanner);
+            setInitialGlobalBanner(result.globalBanner);
             setInitialEnabled(true);
         } else if (!enabled && initialEnabled && existingField) {
             await saveDeleteField(existingField.id);
@@ -318,49 +283,18 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialLevels([]);
             setLevels([]);
             setPresetId(PRESET_CUSTOM);
+            setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
+            setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         } else if (enabled && initialEnabled && existingField) {
-            const patched = await savePatchField(existingField.id, levels);
+            const patched = await savePatchField(existingField.id, levels, effectiveBanner);
             const result = processClassificationField(patched);
             setExistingField(patched);
             setLevels(result.levels);
             setInitialLevels(result.levels);
+            setGlobalBanner(result.globalBanner);
+            setInitialGlobalBanner(result.globalBanner);
         }
-    }, [enabled, initialEnabled, existingField, levels]);
-
-    const persistGlobalBanner = useCallback(async (): Promise<void> => {
-        // When classification markings are disabled, reset the banner to defaults
-        // so stale references to deleted levels don't linger in the config.
-        const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
-
-        // Always resolve the color from the current levels so it stays in sync
-        // even when the admin edits a level's color in the table without re-picking
-        // the dropdown, or when upgrading from a config that predates the Color field.
-        const resolvedColor = levels.find((l) => l.name.trim() === effectiveBanner.level_name)?.color ?? '';
-        const resolvedBanner: GlobalBannerConfig = {...effectiveBanner, color: resolvedColor};
-
-        if (
-            resolvedBanner.enabled === initialGlobalBanner.enabled &&
-            resolvedBanner.placement === initialGlobalBanner.placement &&
-            resolvedBanner.level_name === initialGlobalBanner.level_name &&
-            resolvedBanner.color === initialGlobalBanner.color
-        ) {
-            // Even when nothing needs to be persisted, sync local state so that
-            // hasChanges compares against the resolved values (e.g. after the
-            // top-level toggle was turned off and back on).
-            setGlobalBanner(resolvedBanner);
-            setInitialGlobalBanner(resolvedBanner);
-            return;
-        }
-
-        const patch = buildGlobalBannerPatch(resolvedBanner);
-        const {data, error} = await dispatch(patchConfig(patch)) as {data?: AdminConfig; error?: Error};
-        if (error) {
-            throw error;
-        }
-        const next = data ? readGlobalBannerFromConfig(data) : {...resolvedBanner};
-        setGlobalBanner(next);
-        setInitialGlobalBanner(next);
-    }, [dispatch, enabled, globalBanner, initialGlobalBanner, levels]);
+    }, [enabled, initialEnabled, existingField, levels, globalBanner]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
@@ -374,7 +308,6 @@ export default function ClassificationMarkings({disabled}: Props) {
         setSaving(true);
         try {
             await persistLevels();
-            await persistGlobalBanner();
             dispatch(setNavigationBlocked(false));
         } catch (err: unknown) {
             const clientErr = err as ClientError;
@@ -387,7 +320,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         } finally {
             setSaving(false);
         }
-    }, [validate, persistLevels, persistGlobalBanner, dispatch]);
+    }, [validate, persistLevels, dispatch]);
 
     if (loading) {
         return (

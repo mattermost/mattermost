@@ -3928,70 +3928,6 @@ func (s *AccessControlSettings) SetDefaults() {
 	}
 }
 
-const (
-	ClassificationMarkingsGlobalBannerPlacementTop          = "top"
-	ClassificationMarkingsGlobalBannerPlacementTopAndBottom = "top_and_bottom"
-	ClassificationMarkingsGlobalBannerPlacementDefault      = ClassificationMarkingsGlobalBannerPlacementTop
-)
-
-type ClassificationMarkingsGlobalBannerSettings struct {
-	Enabled   *bool
-	Placement *string
-	LevelName *string
-	Color     *string
-}
-
-func (s *ClassificationMarkingsGlobalBannerSettings) SetDefaults() {
-	if s.Enabled == nil {
-		s.Enabled = NewPointer(false)
-	}
-
-	if s.Placement == nil {
-		s.Placement = NewPointer(ClassificationMarkingsGlobalBannerPlacementDefault)
-	}
-
-	if s.LevelName == nil {
-		s.LevelName = NewPointer("")
-	}
-
-	if s.Color == nil {
-		s.Color = NewPointer("")
-	}
-}
-
-func (s *ClassificationMarkingsGlobalBannerSettings) IsValid() *AppError {
-	if s.Placement != nil && *s.Placement != "" {
-		switch *s.Placement {
-		case ClassificationMarkingsGlobalBannerPlacementTop,
-			ClassificationMarkingsGlobalBannerPlacementTopAndBottom:
-		default:
-			return NewAppError("ClassificationMarkingsGlobalBannerSettings.IsValid", "model.config.is_valid.classification_markings.global_banner.placement.app_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
-	return nil
-}
-
-type ClassificationMarkingsSettings struct {
-	GlobalBanner *ClassificationMarkingsGlobalBannerSettings
-}
-
-func (s *ClassificationMarkingsSettings) SetDefaults() {
-	if s.GlobalBanner == nil {
-		s.GlobalBanner = &ClassificationMarkingsGlobalBannerSettings{}
-	}
-	s.GlobalBanner.SetDefaults()
-}
-
-func (s *ClassificationMarkingsSettings) IsValid() *AppError {
-	if s.GlobalBanner != nil {
-		if appErr := s.GlobalBanner.IsValid(); appErr != nil {
-			return appErr
-		}
-	}
-	return nil
-}
-
 type ConfigFunc func() *Config
 
 const (
@@ -4086,7 +4022,6 @@ type Config struct {
 	AccessControlSettings          AccessControlSettings
 	ContentFlaggingSettings        ContentFlaggingSettings
 	AutoTranslationSettings        AutoTranslationSettings
-	ClassificationMarkingsSettings ClassificationMarkingsSettings
 }
 
 func (o *Config) Auditable() map[string]any {
@@ -4206,7 +4141,6 @@ func (o *Config) SetDefaults() {
 	o.ConnectedWorkspacesSettings.SetDefaults(isUpdate, o.ExperimentalSettings)
 	o.AccessControlSettings.SetDefaults()
 	o.ContentFlaggingSettings.SetDefaults()
-	o.ClassificationMarkingsSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -4364,10 +4298,6 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if appErr := o.ContentFlaggingSettings.IsValid(); appErr != nil {
-		return appErr
-	}
-
-	if appErr := o.ClassificationMarkingsSettings.IsValid(); appErr != nil {
 		return appErr
 	}
 

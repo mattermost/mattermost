@@ -4,7 +4,7 @@
 /**
  * Global Classification Banner — end-to-end tests.
  * Validates that the banner component renders (or does not render) correctly
- * based on admin config: feature flag, enabled state, level selection, placement.
+ * based on property field attrs: feature flag, enabled state, level selection, placement.
  *
  * These tests sit next to the classification_markings admin-page tests because
  * they share the same helpers and feature-flag gating.
@@ -17,7 +17,6 @@ import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
     deleteClassificationMarkingsFieldIfExists,
-    resetGlobalBannerConfig,
     setClassificationMarkingsFeatureFlag,
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
@@ -99,7 +98,6 @@ test.describe('Global Classification Banner', () => {
             await expect(channelsPage.page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
             await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -154,7 +152,7 @@ test.describe('Global Classification Banner', () => {
                     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {name: 'SECRET', color: '#C8102E', rank: 2},
                 ],
-                {levelName: 'SECRET', enabled: true, placement: 'top', color: '#C8102E'},
+                {levelName: 'SECRET', enabled: true, placement: 'top'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -169,7 +167,6 @@ test.describe('Global Classification Banner', () => {
             // Bottom banner should NOT be visible (placement is top only)
             await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -188,7 +185,7 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'TOP SECRET', color: '#FCE83A', rank: 1}],
-                {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom', color: '#FCE83A'},
+                {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -208,7 +205,6 @@ test.describe('Global Classification Banner', () => {
             await expect(topBanner).toHaveCSS('background-color', 'rgb(252, 232, 58)'); // #FCE83A
             await expect(bottomBanner).toHaveCSS('background-color', 'rgb(252, 232, 58)');
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -227,7 +223,7 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'CONFIDENTIAL', color: '#FFD700', rank: 1}],
-                {levelName: 'CONFIDENTIAL', enabled: true, placement: 'top', color: '#FFD700'},
+                {levelName: 'CONFIDENTIAL', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -238,7 +234,6 @@ test.describe('Global Classification Banner', () => {
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toContainText('CONFIDENTIAL');
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -257,7 +252,7 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'RESTRICTED', color: '#FF8C00', rank: 1}],
-                {levelName: 'RESTRICTED', enabled: true, placement: 'top', color: '#FF8C00'},
+                {levelName: 'RESTRICTED', enabled: true, placement: 'top'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -295,7 +290,6 @@ test.describe('Global Classification Banner', () => {
                 levelName: 'SECRET',
                 enabled: true,
                 placement: 'top',
-                color: '#C8102E',
             });
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -316,7 +310,6 @@ test.describe('Global Classification Banner', () => {
             await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
             await expect(page.locator(BOTTOM_BANNER_SELECTOR)).toBeVisible();
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -336,7 +329,7 @@ test.describe('Global Classification Banner', () => {
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'TOP SECRET', color: '#FF0000', rank: 1}],
-                {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom', color: '#FF0000'},
+                {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom'},
             );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -357,7 +350,6 @@ test.describe('Global Classification Banner', () => {
             await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
             await expect(page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );
@@ -365,6 +357,7 @@ test.describe('Global Classification Banner', () => {
     /**
      * @objective Text color adapts for readability: dark text on light background,
      * white text on dark background.
+     * Color is now derived from the level's color in attrs.options (not stored separately).
      */
     test(
         'MM-T6229 global banner: text color contrasts with background for readability',
@@ -374,11 +367,11 @@ test.describe('Global Classification Banner', () => {
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            // Light background — text should be dark (#000000)
+            // Light background (#FFFFFF) — text should be dark (#000000)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'UNCLASSIFIED', color: '#FFFFFF', rank: 1}],
-                {levelName: 'UNCLASSIFIED', enabled: true, placement: 'top', color: '#FFFFFF'},
+                {levelName: 'UNCLASSIFIED', enabled: true, placement: 'top'},
             );
 
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -389,11 +382,11 @@ test.describe('Global Classification Banner', () => {
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toHaveCSS('color', 'rgb(0, 0, 0)');
 
-            // Dark background — text should be white (#FFFFFF)
+            // Dark background (#000000) — text should be white (#FFFFFF)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
                 [{name: 'TOP SECRET', color: '#000000', rank: 1}],
-                {levelName: 'TOP SECRET', enabled: true, placement: 'top', color: '#000000'},
+                {levelName: 'TOP SECRET', enabled: true, placement: 'top'},
             );
 
             await channelsPage.page.reload();
@@ -402,7 +395,6 @@ test.describe('Global Classification Banner', () => {
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toHaveCSS('color', 'rgb(255, 255, 255)');
 
-            await resetGlobalBannerConfig(adminClient);
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
     );

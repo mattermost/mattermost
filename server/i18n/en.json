@@ -10801,10 +10801,6 @@
     "translation": "Cache type must be either lru or redis."
   },
   {
-    "id": "model.config.is_valid.classification_markings.global_banner.placement.app_error",
-    "translation": "Invalid global banner placement value. Must be \"top\" or \"top_and_bottom\"."
-  },
-  {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
   },

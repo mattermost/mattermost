@@ -246,12 +246,6 @@ export type ClientConfig = {
     AutoTranslationLanguages: string;
     EnableAutoTranslation: string;
     RestrictDMAndGMAutotranslation: string;
-
-    // Classification Markings Settings
-    ClassificationMarkingsGlobalBannerEnabled: 'true' | 'false';
-    ClassificationMarkingsGlobalBannerPlacement: string;
-    ClassificationMarkingsGlobalBannerLevelName: string;
-    ClassificationMarkingsGlobalBannerColor: string;
 };
 
 export type License = {
@@ -1063,17 +1057,6 @@ export type ContentFlaggingSettings = {
     AdditionalSettings: ContentFlaggingAdditionalSettings;
 }
 
-export type ClassificationMarkingsGlobalBannerSettings = {
-    Enabled: boolean;
-    Placement: string;
-    LevelName: string;
-    Color: string;
-}
-
-export type ClassificationMarkingsSettings = {
-    GlobalBanner: ClassificationMarkingsGlobalBannerSettings;
-}
-
 export type AdminConfig = {
     ServiceSettings: ServiceSettings;
     TeamSettings: TeamSettings;
@@ -1121,7 +1104,6 @@ export type AdminConfig = {
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
     AutoTranslationSettings: AutoTranslationSettings;
-    ClassificationMarkingsSettings: ClassificationMarkingsSettings;
 };
 
 export type ReplicaLagSetting = {

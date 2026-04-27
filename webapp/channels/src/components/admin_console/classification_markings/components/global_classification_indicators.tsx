@@ -82,7 +82,6 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
         const levelOption = selected as LevelDropdownOption | null;
         onChange({
             level_name: levelOption?.value ?? '',
-            color: levelOption?.color ?? '',
         });
     }, [onChange]);
 
