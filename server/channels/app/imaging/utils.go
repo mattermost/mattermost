@@ -145,3 +145,9 @@ func FillImageTransparency(img image.Image, c color.Color) {
 func FillCenter(img image.Image, w, h int) *image.NRGBA {
 	return imaging.Fill(img, w, h, imaging.Center, imaging.Lanczos)
 }
+
+// Fit scales down the image to fit within the specified maximum dimensions,
+// preserving the aspect ratio.
+func Fit(img image.Image, maxW, maxH int) *image.NRGBA {
+	return imaging.Fit(img, maxW, maxH, imaging.Lanczos)
+}
