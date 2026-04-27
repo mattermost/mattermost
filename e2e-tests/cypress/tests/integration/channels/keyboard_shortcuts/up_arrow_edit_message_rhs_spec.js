@@ -37,7 +37,7 @@ describe('Keyboard Shortcuts', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Verify that edit box have value of edited message
-            cy.get('#edit_textbox').should('have.value', replyMessage);
+            cy.get('#edit_textbox').should('have.text', replyMessage);
         });
     });
 });

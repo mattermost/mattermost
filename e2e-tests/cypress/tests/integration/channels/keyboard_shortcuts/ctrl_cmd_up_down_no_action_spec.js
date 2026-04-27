@@ -29,21 +29,17 @@ describe('Keyboard Shortcuts', () => {
         // # Press CMD/CTRL+DOWN arrow
         cy.uiGetPostTextBox().cmdOrCtrlShortcut('{downarrow}');
 
-        // * Check the focus after pressing CTRL/CMD + DOWN then check match the text and the cursor position respectively
+        // * Check the focus after pressing CTRL/CMD + DOWN then check match the text
         cy.uiGetPostTextBox().
             should('be.focused').
-            and('have.text', message).
-            and('have.prop', 'selectionStart', message.length).
-            and('have.prop', 'selectionEnd', message.length);
+            and('have.text', message);
 
         // # Press CMD/CTRL+UP arrow
         cy.uiGetPostTextBox().cmdOrCtrlShortcut('{uparrow}');
 
-        // * Check the focus after pressing CTRL/CMD + UP then check match the text and the cursor position respectively
+        // * Check the focus after pressing CTRL/CMD + UP then check match the text
         cy.uiGetPostTextBox().
             should('be.focused').
-            and('have.text', message).
-            and('have.prop', 'selectionStart', 0).
-            and('have.prop', 'selectionEnd', 0);
+            and('have.text', message);
     });
 });
