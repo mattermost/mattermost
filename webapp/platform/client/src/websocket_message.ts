@@ -72,6 +72,9 @@ export type WebSocketMessage = (
     Messages.SidebarCategoryUpdated |
     Messages.SidebarCategoryDeleted |
     Messages.SidebarCategoryOrderUpdated |
+    Messages.PropertyFieldCreated |
+    Messages.PropertyFieldUpdated |
+    Messages.PropertyFieldDeleted |
     Messages.PropertyValuesUpdated |
 
     Messages.EmojiAdded |

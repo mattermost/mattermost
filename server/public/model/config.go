@@ -3976,52 +3976,52 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 //	    Product bool `access:write_restrictable`
 //	}
 type Config struct {
-	ServiceSettings                ServiceSettings
-	TeamSettings                   TeamSettings
-	ClientRequirements             ClientRequirements
-	SqlSettings                    SqlSettings
-	LogSettings                    LogSettings
-	ExperimentalAuditSettings      ExperimentalAuditSettings
-	PasswordSettings               PasswordSettings
-	FileSettings                   FileSettings
-	EmailSettings                  EmailSettings
-	RateLimitSettings              RateLimitSettings
-	PrivacySettings                PrivacySettings
-	SupportSettings                SupportSettings
-	AnnouncementSettings           AnnouncementSettings
-	ThemeSettings                  ThemeSettings
-	GitLabSettings                 SSOSettings
-	GoogleSettings                 SSOSettings
-	Office365Settings              Office365Settings
-	OpenIdSettings                 SSOSettings
-	LdapSettings                   LdapSettings
-	ComplianceSettings             ComplianceSettings
-	LocalizationSettings           LocalizationSettings
-	SamlSettings                   SamlSettings
-	NativeAppSettings              NativeAppSettings
-	IntuneSettings                 IntuneSettings
-	CacheSettings                  CacheSettings
-	ClusterSettings                ClusterSettings
-	MetricsSettings                MetricsSettings
-	ExperimentalSettings           ExperimentalSettings
-	AnalyticsSettings              AnalyticsSettings
-	ElasticsearchSettings          ElasticsearchSettings
-	DataRetentionSettings          DataRetentionSettings
-	MessageExportSettings          MessageExportSettings
-	JobSettings                    JobSettings
-	PluginSettings                 PluginSettings
-	DisplaySettings                DisplaySettings
-	GuestAccountsSettings          GuestAccountsSettings
-	ImageProxySettings             ImageProxySettings
-	CloudSettings                  CloudSettings  // telemetry: none
-	FeatureFlags                   *FeatureFlags  `access:"*_read" json:",omitempty"`
-	ImportSettings                 ImportSettings // telemetry: none
-	ExportSettings                 ExportSettings
-	WranglerSettings               WranglerSettings
-	ConnectedWorkspacesSettings    ConnectedWorkspacesSettings
-	AccessControlSettings          AccessControlSettings
-	ContentFlaggingSettings        ContentFlaggingSettings
-	AutoTranslationSettings        AutoTranslationSettings
+	ServiceSettings             ServiceSettings
+	TeamSettings                TeamSettings
+	ClientRequirements          ClientRequirements
+	SqlSettings                 SqlSettings
+	LogSettings                 LogSettings
+	ExperimentalAuditSettings   ExperimentalAuditSettings
+	PasswordSettings            PasswordSettings
+	FileSettings                FileSettings
+	EmailSettings               EmailSettings
+	RateLimitSettings           RateLimitSettings
+	PrivacySettings             PrivacySettings
+	SupportSettings             SupportSettings
+	AnnouncementSettings        AnnouncementSettings
+	ThemeSettings               ThemeSettings
+	GitLabSettings              SSOSettings
+	GoogleSettings              SSOSettings
+	Office365Settings           Office365Settings
+	OpenIdSettings              SSOSettings
+	LdapSettings                LdapSettings
+	ComplianceSettings          ComplianceSettings
+	LocalizationSettings        LocalizationSettings
+	SamlSettings                SamlSettings
+	NativeAppSettings           NativeAppSettings
+	IntuneSettings              IntuneSettings
+	CacheSettings               CacheSettings
+	ClusterSettings             ClusterSettings
+	MetricsSettings             MetricsSettings
+	ExperimentalSettings        ExperimentalSettings
+	AnalyticsSettings           AnalyticsSettings
+	ElasticsearchSettings       ElasticsearchSettings
+	DataRetentionSettings       DataRetentionSettings
+	MessageExportSettings       MessageExportSettings
+	JobSettings                 JobSettings
+	PluginSettings              PluginSettings
+	DisplaySettings             DisplaySettings
+	GuestAccountsSettings       GuestAccountsSettings
+	ImageProxySettings          ImageProxySettings
+	CloudSettings               CloudSettings  // telemetry: none
+	FeatureFlags                *FeatureFlags  `access:"*_read" json:",omitempty"`
+	ImportSettings              ImportSettings // telemetry: none
+	ExportSettings              ExportSettings
+	WranglerSettings            WranglerSettings
+	ConnectedWorkspacesSettings ConnectedWorkspacesSettings
+	AccessControlSettings       AccessControlSettings
+	ContentFlaggingSettings     ContentFlaggingSettings
+	AutoTranslationSettings     AutoTranslationSettings
 }
 
 func (o *Config) Auditable() map[string]any {
