@@ -11850,10 +11850,6 @@
     "translation": "按 channel 或 team 的 target_type 查询时需要 target_id。"
   },
   {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "未找到指定的属性组。"
-  },
-  {
     "id": "api.property_field.invalid_patch.app_error",
     "translation": "无效的属性字段补丁。"
   },
@@ -11876,10 +11872,6 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "无法通过 API 更新受保护的属性字段。"
-  },
-  {
-    "id": "api.property_value.invalid_group_name.app_error",
-    "translation": "提供的组名称无效或不存在。"
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",

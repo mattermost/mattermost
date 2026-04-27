@@ -12052,10 +12052,6 @@
     "translation": "Identyfikator target_id jest wymagany przy wyszukiwaniu według typu target_type Kanału lub Zespołu."
   },
   {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "Określona grupa właściwości nie została znaleziona."
-  },
-  {
     "id": "api.property_field.invalid_patch.app_error",
     "translation": "Nieprawidłowa poprawka pola właściwości."
   },
@@ -12078,10 +12074,6 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
-  },
-  {
-    "id": "api.property_value.invalid_group_name.app_error",
-    "translation": "Podana nazwa grupy jest nieprawidłowa lub nie istnieje."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",

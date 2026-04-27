@@ -12060,10 +12060,6 @@
     "translation": "Een target_id is nodig bij het zoeken op kanaal of team target_id."
   },
   {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "De opgegeven eigenschapgroep is niet gevonden."
-  },
-  {
     "id": "api.property_field.invalid_patch.app_error",
     "translation": "Ongeldig eigendomsveld patch."
   },
@@ -12086,10 +12082,6 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "Kan een beschermd eigenschapveld niet bijwerken via API."
-  },
-  {
-    "id": "api.property_value.invalid_group_name.app_error",
-    "translation": "De opgegeven groepsnaam is ongeldig of bestaat niet."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
