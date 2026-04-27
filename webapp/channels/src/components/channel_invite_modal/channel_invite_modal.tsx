@@ -89,6 +89,16 @@ const isUser = (option: UserProfileValue | GroupValue): option is UserProfileVal
     return (option as UserProfile).username !== undefined;
 };
 
+// Convert snake_case or camelCase attribute names to Title Case with spaces
+// (e.g. "user_role" -> "User Role"). Pure function; hoisted out of the
+// component so memoisation downstream stays stable across re-renders.
+const formatAttributeName = (name: string): string => {
+    return name.
+        replace(/_/g, ' ').
+        replace(/([A-Z])/g, ' $1').
+        replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+};
+
 const ChannelInviteModalComponent = (props: Props) => {
     const [selectedUsers, setSelectedUsers] = useState<UserProfileValue[]>([]);
     const [usersNotInTeam, setUsersNotInTeam] = useState<UserProfileValue[]>([]);
@@ -112,14 +122,29 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.channel.policy_enforced,
     );
 
-    // Helper function to format attribute names for tooltips
-    const formatAttributeName = (name: string): string => {
-        // Convert snake_case or camelCase to Title Case with spaces
-        return name.
-            replace(/_/g, ' ').
-            replace(/([A-Z])/g, ' $1').
-            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-    };
+    // Memoise the rendered access-control tags so they don't re-render on
+    // every keystroke in the invite text box.
+    const accessControlTags = useMemo(() => {
+        if (structuredAttributes.length === 0) {
+            return null;
+        }
+        return (
+            <TagGroup>
+                {structuredAttributes.flatMap((attribute) =>
+                    attribute.values.map((value) => {
+                        const attributeLabel = formatAttributeName(attribute.name);
+                        return (
+                            <AlertTag
+                                key={`${attribute.name}-${value}`}
+                                tooltipTitle={attributeLabel}
+                                text={`${attributeLabel}: ${value}`}
+                            />
+                        );
+                    }),
+                )}
+            </TagGroup>
+        );
+    }, [structuredAttributes]);
 
     // Helper function to add a user or group to the selected list
     const addValue = useCallback((value: UserProfileValue | GroupValue) => {
@@ -667,22 +692,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                                 />
                             )}
                         >
-                            {structuredAttributes.length > 0 && (
-                                <TagGroup>
-                                    {structuredAttributes.flatMap((attribute) =>
-                                        attribute.values.map((value) => {
-                                            const attributeLabel = formatAttributeName(attribute.name);
-                                            return (
-                                                <AlertTag
-                                                    key={`${attribute.name}-${value}`}
-                                                    tooltipTitle={attributeLabel}
-                                                    text={`${attributeLabel}: ${value}`}
-                                                />
-                                            );
-                                        }),
-                                    )}
-                                </TagGroup>
-                            )}
+                            {accessControlTags}
                         </AlertBanner>
                     </div>
                 )}

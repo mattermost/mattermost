@@ -34,6 +34,11 @@
 
             .TagGroup {
                 margin-top: 12px;
+
+                // Tighten vertical spacing when tags wrap onto multiple rows
+                // (TagGroup defaults to gap: 8px which is too airy in this
+                // banner). Column spacing is preserved.
+                row-gap: 0;
             }
         }
     }

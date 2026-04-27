@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
@@ -32,6 +32,16 @@ import SearchBar from './search';
 import './channel_members_rhs.scss';
 
 const USERS_PER_PAGE = 100;
+
+// Convert snake_case or camelCase attribute names to Title Case with spaces
+// (e.g. "user_role" -> "User Role"). Pure function; hoisted out of the
+// component so memoisation downstream stays stable across re-renders.
+const formatAttributeName = (name: string): string => {
+    return name.
+        replace(/_/g, ' ').
+        replace(/([A-Z])/g, ' $1').
+        replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
+};
 
 export interface Props {
     channel: Channel;
@@ -84,14 +94,29 @@ export default function ChannelMembersRHS({
         channel.policy_enforced,
     );
 
-    // Helper function to format attribute names for tooltips
-    const formatAttributeName = (name: string): string => {
-        // Convert snake_case or camelCase to Title Case with spaces
-        return name.
-            replace(/_/g, ' ').
-            replace(/([A-Z])/g, ' $1').
-            replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase());
-    };
+    // Memoise the rendered access-control tags so they don't re-render on
+    // every unrelated state change in the centre channel.
+    const accessControlTags = useMemo(() => {
+        if (structuredAttributes.length === 0) {
+            return null;
+        }
+        return (
+            <TagGroup>
+                {structuredAttributes.flatMap((attribute) =>
+                    attribute.values.map((value) => {
+                        const attributeLabel = formatAttributeName(attribute.name);
+                        return (
+                            <AlertTag
+                                key={`${attribute.name}-${value}`}
+                                tooltipTitle={attributeLabel}
+                                text={`${attributeLabel}: ${value}`}
+                            />
+                        );
+                    }),
+                )}
+            </TagGroup>
+        );
+    }, [structuredAttributes]);
 
     const searching = searchTerms !== '';
 
@@ -245,22 +270,7 @@ export default function ChannelMembersRHS({
                             defaultMessage: 'Channel access is restricted by user attributes',
                         })}
                     >
-                        {structuredAttributes.length > 0 && (
-                            <TagGroup>
-                                {structuredAttributes.flatMap((attribute) =>
-                                    attribute.values.map((value) => {
-                                        const attributeLabel = formatAttributeName(attribute.name);
-                                        return (
-                                            <AlertTag
-                                                key={`${attribute.name}-${value}`}
-                                                tooltipTitle={attributeLabel}
-                                                text={`${attributeLabel}: ${value}`}
-                                            />
-                                        );
-                                    }),
-                                )}
-                            </TagGroup>
-                        )}
+                        {accessControlTags}
                         {loading && <span className='loading-indicator'>{'Loading...'}</span>}
                     </AlertBanner>
                 </div>
