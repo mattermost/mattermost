@@ -98,6 +98,23 @@ export const supportsOptions = (field: UserPropertyField) => {
 
 export type UserPropertyFieldPatch = Partial<Pick<UserPropertyField, 'name' | 'attrs' | 'type'>>;
 
+// Generic PSAv2 patch / create shapes (object_type and group_id are taken
+// from the URL path, so they're not part of the request body).
+export type PropertyFieldCreate = Pick<PropertyField, 'name' | 'type' | 'target_id' | 'target_type'> & {
+    attrs?: PropertyField['attrs'];
+};
+
+export type PropertyFieldPatch = Partial<{
+    name: PropertyField['name'];
+    type: PropertyField['type'];
+    attrs: PropertyField['attrs'];
+}>;
+
+export type PropertyValuePatchItem = {
+    field_id: string;
+    value: unknown;
+};
+
 // PSA v2 state types
 
 export type PropertiesState = {

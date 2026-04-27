@@ -118,6 +118,9 @@ import type {
     UserPropertyFieldPatch,
     PropertyValue,
     PropertyField,
+    PropertyFieldCreate,
+    PropertyFieldPatch,
+    PropertyValuePatchItem,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
@@ -2136,9 +2139,13 @@ export default class Client4 {
         );
     };
 
-    getPropertyFields = (groupName: string, objectType: string, targetType: string) => {
+    getPropertyFields = (groupName: string, objectType: string, targetType: string, targetId?: string) => {
+        const params: Record<string, string> = {target_type: targetType};
+        if (targetId) {
+            params.target_id = targetId;
+        }
         return this.doFetch<PropertyField[]>(
-            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields?target_type=${targetType}`,
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields${buildQueryString(params)}`,
             {method: 'get'},
         );
     };
@@ -2147,6 +2154,34 @@ export default class Client4 {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
             {method: 'get'},
+        );
+    };
+
+    createPropertyField = (groupName: string, objectType: string, field: PropertyFieldCreate) => {
+        return this.doFetch<PropertyField>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields`,
+            {method: 'post', body: JSON.stringify(field)},
+        );
+    };
+
+    patchPropertyField = (groupName: string, objectType: string, fieldId: string, patch: PropertyFieldPatch) => {
+        return this.doFetch<PropertyField>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields/${fieldId}`,
+            {method: 'patch', body: JSON.stringify(patch)},
+        );
+    };
+
+    deletePropertyField = (groupName: string, objectType: string, fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields/${fieldId}`,
+            {method: 'delete'},
+        );
+    };
+
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: PropertyValuePatchItem[]) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'patch', body: JSON.stringify(items)},
         );
     };
 
