@@ -11,9 +11,9 @@ import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 
-import type {FilePreviewInfo} from 'components/file_preview/file_preview';
-
 import {getConnectionId} from 'selectors/general';
+
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
 import {localizeMessage} from 'utils/utils';
 
