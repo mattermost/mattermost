@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"image/color"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
@@ -114,4 +115,50 @@ func TestFillImageTransparency(t *testing.T) {
 		FillImageTransparency(inputImg, color.RGBA{0, 255, 0, 255})
 		require.Equal(t, expectedImg, inputImg)
 	})
+}
+
+func TestFillCenter(t *testing.T) {
+	tcs := []struct {
+		name       string
+		outputName string
+		width      int
+		height     int
+	}{
+		{"100x100", "fill_test_output_100x100.png", 100, 100},
+		{"45x45", "fill_test_output_45x45.png", 45, 45},
+		{"100x45", "fill_test_output_100x45.png", 100, 45},
+		{"45x100", "fill_test_output_45x100.png", 45, 100},
+	}
+
+	imgDir, ok := fileutils.FindDir("tests")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	e, err := NewEncoder(EncoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, e)
+
+	inputFile, err := os.Open(filepath.Join(imgDir, "fill_test_input.png"))
+	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			expectedBytes, err := os.ReadFile(filepath.Join(imgDir, tc.outputName))
+			require.NoError(t, err)
+
+			out := FillCenter(inputImg, tc.width, tc.height)
+
+			var b bytes.Buffer
+			require.NoError(t, e.EncodePNG(&b, out))
+			require.Equal(t, expectedBytes, b.Bytes())
+		})
+	}
 }

@@ -4,8 +4,13 @@
 package imaging
 
 import (
+	"bytes"
 	"image"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 
 	"github.com/stretchr/testify/require"
 )
@@ -74,4 +79,58 @@ func TestGenerateThumbnail(t *testing.T) {
 			require.Equal(t, tc.expectedHeight, thumb.Bounds().Dy(), "expectedHeight")
 		})
 	}
+}
+
+func TestGeneratePreview(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	e, err := NewEncoder(EncoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, e)
+
+	inputFile, err := os.Open(filepath.Join(imgDir, "qa-data-graph.png"))
+	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	expectedBytes, err := os.ReadFile(filepath.Join(imgDir, "preview_test_qa_data_graph_1024.png"))
+	require.NoError(t, err)
+
+	preview := GeneratePreview(inputImg, 1024)
+
+	var b bytes.Buffer
+	require.NoError(t, e.EncodePNG(&b, preview))
+	require.Equal(t, expectedBytes, b.Bytes())
+}
+
+func TestGenerateMiniPreviewImage(t *testing.T) {
+	imgDir, ok := fileutils.FindDir("tests")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	inputFile, err := os.Open(filepath.Join(imgDir, "qa-data-graph.png"))
+	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	expectedBytes, err := os.ReadFile(filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg"))
+	require.NoError(t, err)
+
+	out, err := GenerateMiniPreviewImage(inputImg, 16, 16, 90)
+	require.NoError(t, err)
+	require.Equal(t, expectedBytes, out)
 }

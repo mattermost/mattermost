@@ -197,3 +197,68 @@ func TestGetImageOrientation(t *testing.T) {
 		})
 	}
 }
+
+func TestMakeImageUpright(t *testing.T) {
+	// Each case loads the canonical EXIF fixture for orientation N (the
+	// 128x128 quadrants pattern in its stored, uncorrected form), applies
+	// MakeImageUpright(., N), and asserts that the encoded output matches
+	// the encoded upright reference. Both sides re-encode through the same
+	// pipeline so encoder-induced differences cancel — what's compared is
+	// pixel content, observable as a byte diff on disk if it ever drifts.
+	tcs := []struct {
+		name        string
+		orientation int
+		inputName   string
+	}{
+		{"Upright (no-op)", Upright, "quadrants-orientation-1.png"},
+		{"UprightMirrored (FlipH)", UprightMirrored, "quadrants-orientation-2.png"},
+		{"UpsideDown (Rotate180)", UpsideDown, "quadrants-orientation-3.png"},
+		{"UpsideDownMirrored (FlipV)", UpsideDownMirrored, "quadrants-orientation-4.png"},
+		{"RotatedCWMirrored (Transpose)", RotatedCWMirrored, "quadrants-orientation-5.png"},
+		{"RotatedCCW (Rotate270)", RotatedCCW, "quadrants-orientation-6.png"},
+		{"RotatedCCWMirrored (Transverse)", RotatedCCWMirrored, "quadrants-orientation-7.png"},
+		{"RotatedCW (Rotate90)", RotatedCW, "quadrants-orientation-8.png"},
+		// Unsupported orientations fall through to the default branch and
+		// return the input unchanged. Pass the upright fixture so the
+		// no-op result still equals the upright reference.
+		{"unsupported orientation", 99, "quadrants-orientation-1.png"},
+	}
+
+	imgDir, ok := fileutils.FindDir("tests/exif_samples")
+	require.True(t, ok)
+
+	d, err := NewDecoder(DecoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, d)
+
+	e, err := NewEncoder(EncoderOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, e)
+
+	uprightFile, err := os.Open(filepath.Join(imgDir, "quadrants-orientation-1.png"))
+	require.NoError(t, err)
+	defer uprightFile.Close()
+
+	uprightImg, format, err := d.Decode(uprightFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
+
+	var want bytes.Buffer
+	require.NoError(t, e.EncodePNG(&want, uprightImg))
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			inputFile, err := os.Open(filepath.Join(imgDir, tc.inputName))
+			require.NoError(t, err)
+			defer inputFile.Close()
+
+			inputImg, format, err := d.Decode(inputFile)
+			require.NoError(t, err)
+			require.Equal(t, "png", format)
+
+			var got bytes.Buffer
+			require.NoError(t, e.EncodePNG(&got, MakeImageUpright(inputImg, tc.orientation)))
+			require.Equal(t, want.Bytes(), got.Bytes())
+		})
+	}
+}
