@@ -27,6 +27,11 @@ $category_selector_index: 999999;
 
         .CategorySelector__input {
             box-shadow: none;
+            color: var(--center-channel-color);
+        }
+
+        .ManagedCategory__input-container {
+            color: var(--center-channel-color);
         }
     }
 }

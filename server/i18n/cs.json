@@ -2472,10 +2472,6 @@
     "translation": "{{.Backend}} je zakázán."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} je již zastaven."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nepodařilo se zpracovat verzi {{.Backend}} serveru."
   },
@@ -10730,10 +10726,6 @@
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
     "translation": "Cesta k profilovému obrázku uživatele je neplatná: \"{{.Path}}\""
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Nelze získat existující úlohy."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",

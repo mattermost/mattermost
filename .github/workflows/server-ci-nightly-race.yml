@@ -1,0 +1,52 @@
+# Nightly race detector run.
+#
+# Runs all server tests with Go's -race detector enabled to catch
+# data races. Runs sequentially (fullyparallel: false) on a 2-core
+# runner to minimize resource usage — race detection adds significant
+# overhead that makes parallel execution impractical.
+#
+# Schedule: Nightly at ~2am ET (6am UTC)
+#
+# Previously, -race was implicitly bundled with the binary params job
+# via the fullyparallel=false → RACE_MODE coupling. This decouples
+# the two concerns: binary params tests the Postgres driver encoding;
+# this workflow tests for data races.
+name: Server CI Nightly Race
+on:
+  schedule:
+    - cron: "0 6 * * *" # Daily 6am UTC (~2am ET)
+  workflow_dispatch: # Manual trigger for on-demand race detection
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Compute Go Version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.calculate.outputs.GO_VERSION }}
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Calculate version
+        id: calculate
+        working-directory: server/
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+  test-race:
+    name: Race Detector
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Race Detector
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: race-detector-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+      fullyparallel: false
+      race-enabled: true
+      runner: ubuntu-22.04
+      allow-failure: true

@@ -105,6 +105,9 @@ type FeatureFlags struct {
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
 
+	// Collect plugin metrics and serve them on the /metrics endpoint
+	AggregatePluginMetrics bool
+
 	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
 	ManagedChannelCategories bool
 }
@@ -155,6 +158,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.AggregatePluginMetrics = false
 
 	f.ManagedChannelCategories = false
 }
