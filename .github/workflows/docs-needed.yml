@@ -25,14 +25,10 @@
 #   updates the same branch (idempotent via the exists check).
  
 name: docs/needed — Open Docs PR
-
+ 
 on:
-  pull_request_target:
-    types: [labeled, synchronize, milestoned]
-
-permissions:
-  contents: read
-  pull-requests: write
+  pull_request:
+    types: [labeled]
  
 # One run at a time per dev PR — prevents a race if the label bounces.
 concurrency:
@@ -43,9 +39,7 @@ jobs:
   open-docs-pr:
     name: Open docs PR for ${{ github.repository }}#${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
-    if: >-
-      (github.event.action == 'labeled' && github.event.label.name == 'Docs/Needed') ||
-      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'Docs/Needed'))
+    if: github.event.label.name == 'Docs/Needed'
  
     steps:
       # ── 0. Guard: milestone is required ──────────────────────────────────
@@ -128,11 +122,10 @@ jobs:
               exit 0
             fi
  
-            MILESTONE_DATE="${MILESTONE_DUE%%T*}"
-            MM_MILESTONE=$(gh api "repos/mattermost/mattermost/milestones?state=all&per_page=100" \
-               --paginate \
-              --jq ".[] | select((.due_on // \"\") | startswith(\"$MILESTONE_DATE\")) | .title" \
-               | head -1)
+            MM_MILESTONE=$(gh api repos/mattermost/mattermost/milestones \
+              --paginate \
+              --jq ".[] | select(.due_on == \"$MILESTONE_DUE\") | .title" \
+              | head -1)
  
             if [ -z "$MM_MILESTONE" ]; then
               echo "::warning::No mattermost/mattermost milestone found with due date '${MILESTONE_DUE}' to match '${MILESTONE_TITLE}'. Targeting master."
@@ -236,57 +229,181 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           PR_TITLE:          ${{ steps.vars.outputs.pr_title }}
+          PR_NUMBER:         ${{ steps.vars.outputs.pr_number }}
+          SOURCE_REPO:       ${{ steps.vars.outputs.source_repo }}
+          MILESTONE_TITLE:   ${{ steps.vars.outputs.milestone_title }}
         run: |
-          SYSTEM_PROMPT="You are a technical documentation writer for Mattermost, an open-source enterprise messaging platform.
+          # Write the system prompt (draft_docs.md) to a temp file.
+          # This is the canonical Mattermost docs-drafting prompt — do not inline
+          # business logic here; edit the prompt content below to update behaviour.
+          cat > /tmp/system_prompt.txt << 'PROMPT_EOF'
+ROLE You are a senior technical writer triaging Engineering PRs for docs impact.
  
-          Write user-facing documentation for a pull request. Your audience is Mattermost system administrators and end users.
+MANDATORY SOURCE OF TRUTH You MUST review the PR content provided. The PR diff, description, title, and metadata below are your source of truth. All claims must map to explicit PR evidence (code/config/tests/comments/UI strings). If evidence is absent, mark: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT]
  
-          Style guidelines:
-          - Follow Mattermost documentation conventions: clear, concise, and direct
-          - Imperative mood for steps: Select..., Enter..., Navigate to...
-          - Second person (you, your) and present tense
-          - Focus on user impact; omit implementation details unless they affect behavior
-          - Do not speculate beyond what is evident in the PR
+EVIDENCE RULE All claims must map to explicit PR evidence. If not present, mark: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT]
  
-          Output format — Markdown, no top-level H1 (added by the template):
+NON-EDITABLE DOCS (HARD BLOCK) DO NOT modify: changelogs, important upgrade notes, version archive, removed/deprecated features, unsupported legacy releases.
  
-          ## Summary
-          1-2 sentences: what changed and why it matters to users.
+CAPABILITY ASSESSMENT (do this FIRST, before personas and priority)
+Answer these questions before anything else:
+1. What capability gap is closed? (e.g., "Mobile users couldn't access custom emojis, now they can")
+2. Is this capability PARITY (closing a gap) or NET-NEW capability (something that never existed)?
+3. Does the user's MENTAL MODEL change, or just the implementation?
+4. What can users do now that they couldn't before? Answer in ONE sentence.
  
-          ## Configuration (if applicable)
-          Numbered steps to enable or configure the feature.
+ANTI-PATTERNS (avoid over-engineering docs)
+DO NOT document implementation details: code structure, internal components, algorithms, technical architecture
+BUT DO document admin-facing observability: log messages, metrics, events that admins use for operations/troubleshooting
+DO NOT document platform implementation differences when end-user action is identical
+DO NOT create execution prompts from code diffs — create them from capability changes
+DO NOT treat technical scope (files changed, new libraries, code complexity) as proxy for doc scope
+DO NOT assume big PR = big docs. 100 files changed can = 1 sentence doc update.
+DO ask: "What can users do now that they couldn't before?" Answer in ONE sentence
+DO document platform differences ONLY if users take different actions or see different outcomes
+DO default to minimal docs for capability parity — verify existing docs don't claim limitations, add version reference
+DO focus on user capability gain, not implementation details
  
-          ## Usage (if applicable)
-          How users interact with the feature.
+OBSERVABILITY & DIAGNOSTICS (logging, metrics, events)
+When PR adds logging, metrics, monitoring events, or diagnostic output:
+- DO document if: Product has existing logging/metrics/observability reference documentation
+- DO document if: Messages help admins troubleshoot or understand system behavior
+- DO document if: New log levels, categories, or configuration options added
+- DO NOT document if: Internal debug traces with no admin troubleshooting value
+- DO NOT document if: Product has no logging documentation (implementation-only logs)
  
-          ## Notes (if applicable)
-          Limitations, prerequisites, or important caveats.
+Check: Does the product documentation include log message reference / log levels documentation, troubleshooting guides that reference specific log messages, or metrics/monitoring documentation?
+If YES: New observability output likely requires documentation update (typically P2/P3).
+If NO: Logging changes are likely implementation details only.
  
-          Only include sections that apply. Keep the total under 400 words."
+Example - Document:
+- "New DEBUG message: 'Skipping job X on non-leader node'" (helps admin troubleshooting in cluster deployments)
+- "New metric: api_request_duration_seconds" (measurable system behavior for monitoring)
+- "New audit log event: USER_PASSWORD_CHANGED" (security/compliance visibility)
+Example - Don't Document:
+- "Added trace logging to function processWidgets()" (internal debugging, no admin value)
+- "Improved log formatting in module X" (implementation detail, output unchanged)
+ 
+VERSION RULE Extract milestone.title from PR metadata. If present, MUST use it in doc text (e.g., "From Mattermost vX.Y..."). If NOT present, use: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT]. The milestone.title is provided explicitly in the PR metadata below — treat it as authoritative evidence.
+ 
+PERSONA MAP (use only when PR evidence applies)
+- Operational Champion: prove solution, speed to value, adoption outcomes
+- Economic Buyer: ROI, purchase justification, value proof
+- System Admin: deploy/configure/operate safely
+- IT Service Operations: onboarding/setup, standardize ops, minimize disruption
+- Risk Assessor: security/compliance verification, liability risk
+- End User: day-to-day workflow/usability
+- System Integrator: integrations/tools/connectivity, automation, expert docs
+ 
+PERSONA INFERENCE RULES (evidence-based; include persona only if PR changes success criteria)
+- System Admin: changes to config defaults, admin settings, server behavior, admin APIs, maintenance, system behavior when config is missing, OR new log messages/metrics/events for troubleshooting/operations.
+- IT Service Operations: onboarding, rollout/setup workflows, standardization, procedural runbooks.
+- End User: UI/UX, end-user workflows, client behavior, interactions, or user-facing strings.
+- System Integrator: APIs, webhooks, automation, integration tooling, SDKs, schema changes.
+- Risk Assessor: security, compliance, audit, permissions, privacy, data handling.
+- Operational Champion: adoption outcomes, enablement, measurable improvements.
+- Economic Buyer: pricing/ROI claims, purchase justification, value outcomes.
+ 
+PHASE-SENSITIVE DRAFTING (do NOT label the phase; use it to shape content)
+- If PR affects defaults or runtime behavior: emphasize operational expectations, migration impact, and troubleshooting notes.
+- If PR affects onboarding/setup: emphasize step-by-step setup, prerequisites, and rollout guidance.
+- If PR affects error handling or UX confusion: emphasize "what changed," "why it happens," and "how to fix."
+- If PR affects integrations/APIs: emphasize compatibility, request/response examples, and automation guidance.
+ 
+DRAFTING PRINCIPLES
+Write like official Mattermost docs:
+- Clear, concise, and scannable
+- No fluff or marketing language
+- No speculation
+- Use Mattermost tone (direct, instructional)
+- Prefer updating existing sections over adding new ones
+- Avoid redundancy with existing docs
+ 
+SPECIAL DOC RULES
+- New feature: include release intro as "From Mattermost vX.Y, you can ..." only if PR evidence includes version. Otherwise: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT].
+- Deprecation: do not delete content. Mark deprecated from a specific release forward only if PR evidence includes version. Otherwise: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT].
+ 
+VERSION FROM PR MILESTONE Before drafting, extract milestone.title from the PR metadata provided below. If a milestone exists, MUST use that milestone version for any "From Mattermost vX.Y" references and cite the milestone field as evidence (e.g., milestone.title: "v11.7.0"). This overrides the "version not present" rule. Only if the milestone is not present in PR metadata, explicitly state "milestone not found in PR evidence" and mark the version as [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT].
+ 
+REQUIRED STEPS
+1) Review the PR content below (diff, description, metadata).
+2) Answer CAPABILITY ASSESSMENT questions FIRST.
+3) Identify user/admin/ops-visible change (what they can DO, not what changed technically).
+4) Assess risk if docs not updated.
+5) Identify impacted personas (minimal set — fewer is better).
+ 
+OUTPUT FORMAT (MUST MATCH EXACTLY)
+ 
+=== CAPABILITY SUMMARY ===
+- Capability change (one sentence):
+- PARITY or NET-NEW:
+- Docs scope: New / Update existing / None
+- Target personas:
+ 
+=== DOCUMENTATION DRAFT ===
+Provide ONLY the doc-ready content.
+Structure:
+1) Recommended doc location
+   - Specific page(s) OR "Identify likely pages"
+2) Proposed content (ready to paste)
+   Use proper doc tone and formatting:
+   - Section headers (if needed)
+   - Short paragraphs
+   - Bullet points where appropriate
+   - Admin steps if applicable
+   - Troubleshooting notes if applicable
+   Include version reference ONLY if supported by PR evidence.
+3) Notes (if needed)
+   - Call out assumptions
+   - Flag anything requiring SME validation: [NOT PRESENT IN PR — REQUIRES HUMAN JUDGMENT]
+ 
+FAIL CONDITIONS
+If ANY of the following are true, STOP and say why:
+- No user/admin-visible change identified
+- Change is purely internal or performance-only with no user impact
+ 
+HOW TO THINK
+1. What can the user/admin DO now?
+2. Where would they expect to read about it?
+3. What is the smallest possible doc update that makes this clear?
+PROMPT_EOF
+ 
+          # Build the user message with explicit PR metadata for VERSION RULE
+          PR_URL="https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}"
+ 
+          {
+            echo "=== PR METADATA ==="
+            echo "PR URL: ${PR_URL}"
+            echo "PR Title: ${PR_TITLE}"
+            echo "Source Repository: ${SOURCE_REPO}"
+            echo "milestone.title: ${MILESTONE_TITLE}"
+            echo ""
+            echo "=== PR DESCRIPTION ==="
+            cat /tmp/pr-body.txt
+            echo ""
+            echo "=== CODE DIFF (first 20KB) ==="
+            cat /tmp/pr-diff.txt
+          } > /tmp/user_message.txt
  
           PAYLOAD=$(jq -n \
-            --arg system "$SYSTEM_PROMPT" \
-            --arg title  "$PR_TITLE" \
-            --rawfile body /tmp/pr-body.txt \
-            --rawfile diff /tmp/pr-diff.txt \
+            --rawfile system  /tmp/system_prompt.txt \
+            --rawfile content /tmp/user_message.txt \
             '{
               model: "claude-opus-4-6",
-              max_tokens: 1024,
+              max_tokens: 2048,
               system: $system,
               messages: [{
                 role: "user",
-                content: ("PR Title: " + $title + "\n\nPR Description:\n" + $body + "\n\nCode Diff:\n" + $diff)
+                content: $content
               }]
             }')
  
-          RESPONSE=$(curl -sf https://api.anthropic.com/v1/messages \
+          curl -sf https://api.anthropic.com/v1/messages \
             -H "x-api-key: $ANTHROPIC_API_KEY" \
             -H "anthropic-version: 2023-06-01" \
             -H "content-type: application/json" \
-            -d "$PAYLOAD")
-
-          jq -er '.content[]? | select(.type=="text") | .text' <<<"$RESPONSE" > /tmp/generated-docs.md
-          test -s /tmp/generated-docs.md || exit 1
+            -d "$PAYLOAD" \
+            | jq -r '.content[0].text' > /tmp/generated-docs.md
  
       # ── 6. Write docs file ────────────────────────────────────────────────
       - name: Write docs file
@@ -301,13 +418,16 @@ jobs:
           mkdir -p "$(dirname "$DOCS_FILE")"
  
           # Overwrite the file on every run so a re-trigger regenerates cleanly
-          {
-            printf '# %s\n\n' "$PR_TITLE"
-            printf '> **Status:** Draft — auto-generated. Requires editorial review before publishing.\n'
-            printf '> **Source:** [%s#%s](https://github.com/%s/pull/%s)\n' "$SOURCE_REPO" "$PR_NUMBER" "$SOURCE_REPO" "$PR_NUMBER"
-            printf '> **Dev reviewer:** @%s\n\n' "$PR_AUTHOR"
-            printf -- '---\n\n'
-          } > "$DOCS_FILE"
+          cat > "$DOCS_FILE" <<HEADER
+# ${PR_TITLE}
+ 
+> **Status:** Draft — auto-generated. Requires editorial review before publishing.
+> **Source:** [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER})
+> **Dev reviewer:** @${PR_AUTHOR}
+ 
+---
+ 
+HEADER
  
           cat /tmp/generated-docs.md >> "$DOCS_FILE"
  
@@ -364,15 +484,17 @@ jobs:
           PR_TITLE:         ${{ steps.vars.outputs.pr_title }}
           PR_AUTHOR:        ${{ steps.vars.outputs.pr_author }}
         run: |
-          BODY=$(printf '%s\n\n%s\n\n%s\n%s\n%s\n%s\n%s\n\n%s' \
-            "Documentation draft for [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER})." \
-            "> Auto-generated by Claude — requires editorial review before merging." \
-            "| Field | Value |" \
-            "|---|---|" \
-            "| **Source PR** | [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}) |" \
-            "| **Dev reviewer** | @${PR_AUTHOR} |" \
-            "| **Milestone** | ${MILESTONE_TITLE} |" \
-            "<!-- dev-pr: ${SOURCE_REPO}#${PR_NUMBER} -->")
+          BODY="Documentation draft for [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}).
+ 
+> Auto-generated by Claude — requires editorial review before merging.
+ 
+| Field | Value |
+|---|---|
+| **Source PR** | [${SOURCE_REPO}#${PR_NUMBER}](https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}) |
+| **Dev reviewer** | @${PR_AUTHOR} |
+| **Milestone** | ${MILESTONE_TITLE} |
+ 
+<!-- dev-pr: ${SOURCE_REPO}#${PR_NUMBER} -->"
  
           URL=$(gh pr create \
             --repo mattermost/docs \
@@ -435,11 +557,10 @@ jobs:
             ACTION="opened at"
           fi
  
-          COMMENT_BODY=$(printf '%s\n\n%s\n\n%s' \
-            "📝 A documentation draft has been ${ACTION} [mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL})." \
-            "Please review the auto-generated content and update it as needed before the docs PR is merged." \
-            "> The \`Docs/Needed\` label was applied automatically by the Documentation Impact Review. It will be replaced with \`Docs/Done\` once the docs PR is merged or closed.")
-
           gh pr comment "$PR_NUMBER" \
             --repo "$SOURCE_REPO" \
-            --body "$COMMENT_BODY"
+            --body "📝 A documentation draft has been ${ACTION} [mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL}).
+ 
+Please review the auto-generated content and update it as needed before the docs PR is merged.
+ 
+> The \`Docs/Needed\` label was applied automatically by the Documentation Impact Review. It will be replaced with \`Docs/Done\` once the docs PR is merged or closed."
