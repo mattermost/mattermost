@@ -201,10 +201,8 @@ func TestGetImageOrientation(t *testing.T) {
 func TestMakeImageUpright(t *testing.T) {
 	// Each case loads the canonical EXIF fixture for orientation N (the
 	// 128x128 quadrants pattern in its stored, uncorrected form), applies
-	// MakeImageUpright(., N), and asserts that the encoded output matches
-	// the encoded upright reference. Both sides re-encode through the same
-	// pipeline so encoder-induced differences cancel — what's compared is
-	// pixel content, observable as a byte diff on disk if it ever drifts.
+	// MakeImageUpright(., N), and asserts that the result has the same
+	// pixels as the upright reference.
 	tcs := []struct {
 		name        string
 		orientation int
@@ -231,10 +229,6 @@ func TestMakeImageUpright(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, d)
 
-	e, err := NewEncoder(EncoderOptions{})
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
 	uprightFile, err := os.Open(filepath.Join(imgDir, "quadrants-orientation-1.png"))
 	require.NoError(t, err)
 	defer uprightFile.Close()
@@ -242,9 +236,6 @@ func TestMakeImageUpright(t *testing.T) {
 	uprightImg, format, err := d.Decode(uprightFile)
 	require.NoError(t, err)
 	require.Equal(t, "png", format)
-
-	var want bytes.Buffer
-	require.NoError(t, e.EncodePNG(&want, uprightImg))
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
@@ -256,9 +247,7 @@ func TestMakeImageUpright(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, "png", format)
 
-			var got bytes.Buffer
-			require.NoError(t, e.EncodePNG(&got, MakeImageUpright(inputImg, tc.orientation)))
-			require.Equal(t, want.Bytes(), got.Bytes())
+			requireSameImage(t, uprightImg, MakeImageUpright(inputImg, tc.orientation))
 		})
 	}
 }

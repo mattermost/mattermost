@@ -89,10 +89,6 @@ func TestGeneratePreview(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, d)
 
-	e, err := NewEncoder(EncoderOptions{})
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
 	inputFile, err := os.Open(filepath.Join(imgDir, "qa-data-graph.png"))
 	require.NoError(t, err)
 	defer inputFile.Close()
@@ -101,14 +97,16 @@ func TestGeneratePreview(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "png", format)
 
-	expectedBytes, err := os.ReadFile(filepath.Join(imgDir, "preview_test_qa_data_graph_1024.png"))
+	expectedFile, err := os.Open(filepath.Join(imgDir, "preview_test_qa_data_graph_1024.png"))
 	require.NoError(t, err)
+	defer expectedFile.Close()
+
+	expectedImg, format, err := d.Decode(expectedFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
 
 	preview := GeneratePreview(inputImg, 1024)
-
-	var b bytes.Buffer
-	require.NoError(t, e.EncodePNG(&b, preview))
-	require.Equal(t, expectedBytes, b.Bytes())
+	requireSameImage(t, expectedImg, preview)
 }
 
 func TestGenerateMiniPreviewImage(t *testing.T) {
@@ -127,10 +125,20 @@ func TestGenerateMiniPreviewImage(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "png", format)
 
-	expectedBytes, err := os.ReadFile(filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg"))
+	expectedFile, err := os.Open(filepath.Join(imgDir, "mini_preview_test_qa_data_graph_16x16_q90.jpg"))
 	require.NoError(t, err)
+	defer expectedFile.Close()
+
+	expectedImg, format, err := d.Decode(expectedFile)
+	require.NoError(t, err)
+	require.Equal(t, "jpeg", format)
 
 	out, err := GenerateMiniPreviewImage(inputImg, 16, 16, 90)
 	require.NoError(t, err)
-	require.Equal(t, expectedBytes, out)
+
+	actualImg, format, err := d.Decode(bytes.NewReader(out))
+	require.NoError(t, err)
+	require.Equal(t, "jpeg", format)
+
+	requireSameImage(t, expectedImg, actualImg)
 }

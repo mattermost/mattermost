@@ -16,6 +16,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// requireSameImage asserts that want and got cover the same bounds and have
+// identical RGBA values at every pixel. We compare decoded pixels rather than
+// re-encoded byte streams because image/png is not byte-stable across Go
+// versions even for identical pixel content.
+func requireSameImage(t *testing.T, want, got image.Image) {
+	t.Helper()
+	require.Equal(t, want.Bounds(), got.Bounds())
+	b := got.Bounds()
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			wr, wg, wb, wa := want.At(x, y).RGBA()
+			gr, gg, gb, ga := got.At(x, y).RGBA()
+			if wr != gr || wg != gg || wb != gb || wa != ga {
+				t.Fatalf("pixel mismatch at (%d, %d): want (%d, %d, %d, %d), got (%d, %d, %d, %d)",
+					x, y, wr, wg, wb, wa, gr, gg, gb, ga)
+			}
+		}
+	}
+}
+
 func TestFillImageTransparency(t *testing.T) {
 	tcs := []struct {
 		name       string
@@ -138,10 +158,6 @@ func TestFillCenter(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, d)
 
-	e, err := NewEncoder(EncoderOptions{})
-	require.NoError(t, err)
-	require.NotNil(t, e)
-
 	inputFile, err := os.Open(filepath.Join(imgDir, "fill_test_input.png"))
 	require.NoError(t, err)
 	defer inputFile.Close()
@@ -152,14 +168,16 @@ func TestFillCenter(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			expectedBytes, err := os.ReadFile(filepath.Join(imgDir, tc.outputName))
+			expectedFile, err := os.Open(filepath.Join(imgDir, tc.outputName))
 			require.NoError(t, err)
+			defer expectedFile.Close()
+
+			expectedImg, format, err := d.Decode(expectedFile)
+			require.NoError(t, err)
+			require.Equal(t, "png", format)
 
 			out := FillCenter(inputImg, tc.width, tc.height)
-
-			var b bytes.Buffer
-			require.NoError(t, e.EncodePNG(&b, out))
-			require.Equal(t, expectedBytes, b.Bytes())
+			requireSameImage(t, expectedImg, out)
 		})
 	}
 }
