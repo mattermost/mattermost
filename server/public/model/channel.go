@@ -160,9 +160,11 @@ type ChannelPatch struct {
 
 func (c *ChannelPatch) Auditable() map[string]any {
 	return map[string]any{
-		"header":            c.Header,
-		"group_constrained": c.GroupConstrained,
-		"purpose":           c.Purpose,
+		"header":                c.Header,
+		"group_constrained":     c.GroupConstrained,
+		"purpose":               c.Purpose,
+		"default_category_name": c.DefaultCategoryName,
+		"managed_category_name": c.ManagedCategoryName,
 	}
 }
 

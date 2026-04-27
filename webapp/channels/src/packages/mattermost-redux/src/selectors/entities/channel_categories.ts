@@ -548,12 +548,13 @@ export function makeGetSidebarCategoryNamesForTeam(): (state: GlobalState, teamI
     return createSelector(
         'makeGetSidebarCategoryNamesForTeam',
         (state: GlobalState, teamId: string) => getCategoriesForTeam(state, teamId),
-        (categories) => {
+        (state: GlobalState) => getCurrentUserLocale(state),
+        (categories, locale) => {
             const names = categories.
                 filter((c) => c.type === CategoryTypes.CUSTOM || c.type === CategoryTypes.MANAGED).
                 map((c) => c.display_name);
             const unique = [...new Set(names)];
-            unique.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+            unique.sort((a, b) => a.localeCompare(b, locale, {numeric: true}));
             return unique;
         },
     );
