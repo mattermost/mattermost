@@ -13,6 +13,8 @@ import {Client4} from 'mattermost-redux/client';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
+import {getConnectionId} from 'selectors/general';
+
 import {localizeMessage} from 'utils/utils';
 
 import type {ThunkActionFunc} from 'types/store';
@@ -51,6 +53,11 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         });
 
         xhr.setRequestHeader('Accept', 'application/json');
+
+        const connectionId = getConnectionId(getState());
+        if (connectionId) {
+            xhr.setRequestHeader('Connection-Id', connectionId);
+        }
 
         const formData = new FormData();
         formData.append('channel_id', channelId);
