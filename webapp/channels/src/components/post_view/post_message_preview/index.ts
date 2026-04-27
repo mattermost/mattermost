@@ -9,7 +9,7 @@ import type {PostPreviewMetadata} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
 import {isMyChannelAutotranslated, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getPost, isPostPriorityEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
@@ -64,6 +64,7 @@ function makeMapStateToProps() {
             compactDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isChannelAutotranslated: isMyChannelAutotranslated(state, previewPost?.channel_id),
+            permissionPoliciesEnabled: isPermissionPoliciesEnabled(state),
         };
     };
 }
