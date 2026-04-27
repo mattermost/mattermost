@@ -13,6 +13,11 @@ import {parseImageDimensions} from './helpers';
 
 const MAX_INLINE_ACTION_PARAMS_LENGTH = 2048;
 
+// Mirrors the server-side action ID regex (model.inlineActionIDRegex). Invalid
+// IDs can never resolve to an inline_actions entry, so reject them at render
+// time rather than emitting a dead button.
+const INLINE_ACTION_ID_REGEX = /^[A-Za-z0-9]+$/;
+
 export default class Renderer extends marked.Renderer {
     private formattingOptions: TextFormatting.TextFormattingOptions;
     private emojiMap: EmojiMap;
@@ -164,10 +169,12 @@ export default class Renderer extends marked.Renderer {
             try {
                 // new URL().hostname lowercases the authority per WHATWG, but
                 // the server's action ID regex allows [A-Za-z0-9]+ — so parse
-                // the ID out of the raw href to preserve mixed case.
+                // the ID out of the raw href to preserve mixed case, then
+                // reject anything that doesn't match the server's regex
+                // (e.g. mmaction://plan:443, mmaction://user@plan).
                 const withoutScheme = href.slice('mmaction://'.length);
                 const actionId = withoutScheme.split(/[/?#]/, 1)[0];
-                if (!actionId) {
+                if (!INLINE_ACTION_ID_REGEX.test(actionId)) {
                     return text;
                 }
                 const mmUrl = new URL(href);

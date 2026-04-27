@@ -76,6 +76,18 @@ describe('link (mmaction://)', () => {
         expect(result).not.toContain('data-inline-action-id="mx/extra/path"');
     });
 
+    test('non-alphanumeric actionId falls through to plain text', () => {
+        const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
+
+        // Server action ID regex is ^[A-Za-z0-9]+$; a port, userinfo, dash,
+        // or other URL authority chars would never resolve server-side.
+        for (const href of ['mmaction://plan:443', 'mmaction://user@plan', 'mmaction://my-plan', 'mmaction://my.plan']) {
+            const result = renderer.link(href, '', 'Click');
+            expect(result).toBe('Click');
+            expect(result).not.toContain('inline-action-button-placeholder');
+        }
+    });
+
     test('allowInlineActions=false returns plain text', () => {
         const renderer = new Renderer({}, {allowInlineActions: false, postId: 'p1'});
 

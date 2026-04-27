@@ -262,8 +262,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// attacker-controlled URL on click, and a non-integration admin session
 	// could post-as-bot with the same effect. Do NOT trust from_webhook /
 	// from_plugin props here — they can be forged by regular users when
-	// hardened mode is off. Plugin posts via PluginAPI.CreatePost bypass
-	// CreatePostAsUser entirely and are unaffected.
+	// hardened mode is off.
+	//
+	// This block runs only on the REST-API user-post path. Incoming webhooks
+	// (CreateWebhookPost) and plugins (PluginAPI.CreatePost) call CreatePost
+	// or CreatePostMissingChannel directly, bypassing CreatePostAsUser, and
+	// are unaffected by this strip.
 	if post.GetProp(model.PostPropsInlineActions) != nil {
 		if !user.IsBot || !rctx.Session().IsIntegration() {
 			post.DelProp(model.PostPropsInlineActions)
