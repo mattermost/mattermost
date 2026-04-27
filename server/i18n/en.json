@@ -7431,6 +7431,10 @@
     "translation": "Failed evaluate access control policy."
   },
   {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Failed to evaluate permission policy."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
