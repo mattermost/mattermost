@@ -8,9 +8,9 @@ package plugin
 // For hooks, app.PluginContext() is called.
 type Context struct {
 	SessionId      string
+	ConnectionId   string
 	RequestId      string
 	IPAddress      string
 	AcceptLanguage string
 	UserAgent      string
-	ConnectionId   string
 }
