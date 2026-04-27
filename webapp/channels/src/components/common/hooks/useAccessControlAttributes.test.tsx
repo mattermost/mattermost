@@ -92,6 +92,28 @@ describe('useAccessControlAttributes', () => {
         expect(result.current.loading).toBe(false);
     });
 
+    test('clears attribute state when hasAccessControl becomes false after data was loaded', async () => {
+        const {result, rerender, unmount} = renderHook(
+            ({hasAC}: {hasAC: boolean}) => useAccessControlAttributes(EntityType.Channel, 'channel-1', hasAC),
+            {initialProps: {hasAC: true}, wrapper},
+        );
+
+        await waitFor(() => {
+            expect(result.current.attributeTags).toEqual(['engineering', 'marketing', 'remote']);
+        });
+
+        rerender({hasAC: false});
+        await act(async () => {
+            await result.current.fetchAttributes();
+        });
+
+        expect(result.current.attributeTags).toEqual([]);
+        expect(result.current.structuredAttributes).toEqual([]);
+
+        unmount();
+        invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-1');
+    });
+
     test('should fetch and process attributes successfully', async () => {
         const {result} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
 

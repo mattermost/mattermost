@@ -17,6 +17,7 @@ import (
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
+const accessControlChildPolicySearchLimit = 1000
 
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
@@ -100,8 +101,11 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
-	if policy.Type == model.AccessControlPolicyTypeChannel {
+	switch policy.Type {
+	case model.AccessControlPolicyTypeChannel:
 		a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+	case model.AccessControlPolicyTypeParent:
+		a.publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx, policy.ID)
 	}
 
 	return policy, nil
@@ -121,12 +125,19 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		return appErr
 	}
 
+	var affectedChannelIDs []string
+	if policy != nil && policy.Type != model.AccessControlPolicyTypeChannel {
+		affectedChannelIDs = a.channelPolicyIDsWithImport(rctx, id)
+	}
+
 	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}
 
 	if policy != nil && policy.Type == model.AccessControlPolicyTypeChannel {
 		a.publishChannelPolicyEnforcedUpdate(rctx, id)
+	} else if policy.Type == model.AccessControlPolicyTypeParent {
+		a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, affectedChannelIDs)
 	}
 
 	return nil
@@ -343,6 +354,14 @@ func (a *App) UpdateAccessControlPoliciesActive(rctx request.CTX, updates []mode
 	if err != nil {
 		return nil, model.NewAppError("UpdateAccessControlPoliciesActive", "app.pap.update_access_control_policies_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	for _, policy := range policies {
+		// only channel policies use the active state
+		if policy.Type == model.AccessControlPolicyTypeChannel {
+			a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+		}
+	}
+
 	return policies, nil
 }
 
@@ -360,6 +379,56 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	return visualAST, nil
 }
 
+// publishChannelPolicyEnforcedForChannelPoliciesWithImport broadcasts
+// channel_access_control_updated for every channel-type policy that lists
+// importID in its imports. Call only after the imported policy (parent,
+// permission, etc.) is persisted.
+func (a *App) publishChannelPolicyEnforcedForChannelPoliciesWithImport(rctx request.CTX, importID string) {
+	a.publishChannelPolicyEnforcedUpdatesForChannels(rctx, a.channelPolicyIDsWithImport(rctx, importID))
+}
+
+func (a *App) publishChannelPolicyEnforcedUpdatesForChannels(rctx request.CTX, channelIDs []string) {
+	seen := make(map[string]struct{}, len(channelIDs))
+	for _, channelID := range channelIDs {
+		if channelID == "" {
+			continue
+		}
+		if _, ok := seen[channelID]; ok {
+			continue
+		}
+		seen[channelID] = struct{}{}
+		a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
+	}
+}
+
+func (a *App) channelPolicyIDsWithImport(rctx request.CTX, importID string) []string {
+	channelIDs := []string{}
+	var cursor model.AccessControlPolicyCursor
+	for {
+		children, _, err := a.Srv().Store().AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ParentID: importID,
+			Cursor:   cursor,
+			Limit:    accessControlChildPolicySearchLimit,
+		})
+		if err != nil {
+			rctx.Logger().Warn("Failed to list channel policies that import a policy; skipping channel access control fan-out",
+				mlog.String("imported_policy_id", importID),
+				mlog.Err(err),
+			)
+			return channelIDs
+		}
+		for _, child := range children {
+			channelIDs = append(channelIDs, child.ID)
+		}
+		if len(children) < accessControlChildPolicySearchLimit {
+			break
+		}
+		cursor.ID = children[len(children)-1].ID
+	}
+	return channelIDs
+}
+
 // publishChannelPolicyEnforcedUpdate invalidates the channel cache for the
 // given channel ID and broadcasts a channel_access_control_updated websocket
 // event so that connected clients can refresh their view of the channel's
@@ -367,8 +436,7 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 // attributes used by the policy). A dedicated event is used rather than
 // channel_updated because this is fired on every policy mutation and clients
 // only need to refresh access control state — not run the full
-// channel_updated reducer/router pipeline. It is best-effort: failures to
-// load or marshal the channel are logged but do not affect the caller.
+// channel_updated reducer/router pipeline.
 func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
 	a.Srv().Store().Channel().InvalidateChannel(channelID)
 

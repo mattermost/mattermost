@@ -131,6 +131,8 @@ export const useAccessControlAttributes = (
 
     const fetchAttributes = useCallback(async (forceRefresh = false) => {
         if (!entityId || !hasAccessControl) {
+            setAttributeTags([]);
+            setStructuredAttributes([]);
             return;
         }
 
