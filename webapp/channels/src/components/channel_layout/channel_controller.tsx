@@ -27,9 +27,6 @@ const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() =>
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
 const MobileSidebarRight = makeAsyncComponent('MobileSidebarRight', lazy(() => import('components/mobile_sidebar_right')));
 
-// Note: `app__body` is intentionally NOT included here. It is owned by `WithUserTheme` so it remains present
-// across product navigation (Channels ↔ Playbooks/Boards) and does not briefly disappear during the React
-// effect gap, which previously caused a white flash in the global header and LHS (MM-67913).
 const BODY_CLASS_FOR_CHANNEL = ['channel-view'];
 
 type Props = {
