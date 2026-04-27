@@ -891,7 +891,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("user", true, "")
-		cmd.Flags().String("password", "password", "")
+		cmd.Flags().String("password", model.NewTestPassword(), "")
 
 		err := userConvertCmdF(c, cmd, []string{bot.Username})
 		s.Require().NoError(err)
