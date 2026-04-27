@@ -30,10 +30,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
     </button>
   </div>
   <div
-    aria-hidden="true"
-    id="root-portal"
-  />
-  <div
     class="MuiModal-root-jIscme ljbrzK MuiPopover-root-kLIimo MuiPopover-root a11y__popup menu_menuStyled MuiModal-root"
     role="presentation"
   >
@@ -297,10 +293,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
 <body
   style="padding-right: 1024px; overflow: hidden;"
 >
-  <div
-    aria-hidden="true"
-    id="root-portal"
-  />
   <div
     aria-hidden="true"
   >
@@ -592,10 +584,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should match sn
 >
   <div
     aria-hidden="true"
-    id="root-portal"
-  />
-  <div
-    aria-hidden="true"
   >
     <button
       aria-controls="SidebarChannelMenu-MenuList-channel_id"
@@ -885,10 +873,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 >
   <div
     aria-hidden="true"
-    id="root-portal"
-  />
-  <div
-    aria-hidden="true"
   >
     <button
       aria-controls="SidebarChannelMenu-MenuList-channel_id"
@@ -1108,10 +1092,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 <body
   style="padding-right: 1024px; overflow: hidden;"
 >
-  <div
-    aria-hidden="true"
-    id="root-portal"
-  />
   <div
     aria-hidden="true"
   >
@@ -1369,10 +1349,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 <body
   style="padding-right: 1024px; overflow: hidden;"
 >
-  <div
-    aria-hidden="true"
-    id="root-portal"
-  />
   <div
     aria-hidden="true"
   >
@@ -1659,10 +1635,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 <body
   style="padding-right: 1024px; overflow: hidden;"
 >
-  <div
-    aria-hidden="true"
-    id="root-portal"
-  />
   <div
     aria-hidden="true"
   >
@@ -1954,10 +1926,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 >
   <div
     aria-hidden="true"
-    id="root-portal"
-  />
-  <div
-    aria-hidden="true"
   >
     <button
       aria-controls="SidebarChannelMenu-MenuList-channel_id"
@@ -2247,10 +2215,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 >
   <div
     aria-hidden="true"
-    id="root-portal"
-  />
-  <div
-    aria-hidden="true"
   >
     <button
       aria-controls="SidebarChannelMenu-MenuList-channel_id"
@@ -2538,10 +2502,6 @@ exports[`components/sidebar/sidebar_channel/sidebar_channel_menu should show cor
 <body
   style="padding-right: 1024px; overflow: hidden;"
 >
-  <div
-    aria-hidden="true"
-    id="root-portal"
-  />
   <div
     aria-hidden="true"
   >
