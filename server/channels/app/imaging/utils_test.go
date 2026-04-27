@@ -142,16 +142,15 @@ func TestFillCenter(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, e)
 
-	inputFile, err := os.Open(filepath.Join(imgDir, "fill_test_input.png"))
+	inputBytes, err := os.ReadFile(filepath.Join(imgDir, "fill_test_input.png"))
 	require.NoError(t, err)
-	defer inputFile.Close()
-
-	inputImg, format, err := d.Decode(inputFile)
-	require.NoError(t, err)
-	require.Equal(t, "png", format)
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
+			inputImg, format, err := d.Decode(bytes.NewReader(inputBytes))
+			require.NoError(t, err)
+			require.Equal(t, "png", format)
+
 			expectedBytes, err := os.ReadFile(filepath.Join(imgDir, tc.outputName))
 			require.NoError(t, err)
 
@@ -174,7 +173,7 @@ func TestFit(t *testing.T) {
 		expectedHeight int
 	}{
 		{
-			name:           "smaller than bounds (clone)",
+			name:           "no resize when smaller than bounds",
 			inputImg:       image.NewRGBA(image.Rect(0, 0, 50, 50)),
 			maxW:           100,
 			maxH:           100,
