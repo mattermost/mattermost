@@ -142,15 +142,16 @@ func TestFillCenter(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, e)
 
-	inputBytes, err := os.ReadFile(filepath.Join(imgDir, "fill_test_input.png"))
+	inputFile, err := os.Open(filepath.Join(imgDir, "fill_test_input.png"))
 	require.NoError(t, err)
+	defer inputFile.Close()
+
+	inputImg, format, err := d.Decode(inputFile)
+	require.NoError(t, err)
+	require.Equal(t, "png", format)
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
-			inputImg, format, err := d.Decode(bytes.NewReader(inputBytes))
-			require.NoError(t, err)
-			require.Equal(t, "png", format)
-
 			expectedBytes, err := os.ReadFile(filepath.Join(imgDir, tc.outputName))
 			require.NoError(t, err)
 
