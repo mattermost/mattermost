@@ -209,17 +209,18 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
 
-    // Re-apply guard before UI interaction.
+    // Login as the second user
+    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
+    const post = await channelsPage.getLastPost();
+
+    // Re-apply guard immediately before dot-menu: login takes 3-5 s during which a
+    // concurrent initSetup() can reset EnableContentFlagging to false.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {HideFlaggedContent: false},
         },
     });
-
-    // Login as the second user
-    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
-    const post = await channelsPage.getLastPost();
 
     // Try to flag already flagged post
     await openPostDotMenu(post, channelsPage);
@@ -435,6 +436,9 @@ test('Verify message is removed from channel if the reviewer removed the message
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
+            ReviewerSettings: {
+                SystemAdminsAsReviewers: true,
+            },
             AdditionalSettings: {
                 HideFlaggedContent: false,
             },
@@ -452,6 +456,20 @@ test('Verify message is removed from channel if the reviewer removed the message
         user_id: user.id,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
+
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false or
+    // SystemAdminsAsReviewers: false between the initial patchConfig and the remove call.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            ReviewerSettings: {
+                SystemAdminsAsReviewers: true,
+            },
+            AdditionalSettings: {
+                HideFlaggedContent: false,
+            },
+        },
+    });
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user

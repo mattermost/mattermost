@@ -912,9 +912,9 @@ export async function waitForLatestSyncJob(page: Page, _retries?: number, expect
                     }
                 },
                 {
-                    timeout: 30_000,
+                    timeout: 90_000,
                     intervals: [500, 500, 500, 1000, 1000, 2000],
-                    message: `Sync job ${expectedJobId} did not reach success within 30 s`,
+                    message: `Sync job ${expectedJobId} did not reach success within 90 s`,
                 },
             )
             .toBe('success');

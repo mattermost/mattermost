@@ -246,6 +246,20 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
         await senderPage.goto(team.name, `@${receiver.username}`);
         await senderPage.toBeVisible();
+        // Re-apply guard: concurrent initSetup() may reset BurnOnReadDurationSeconds to 60
+        // (default) after the pw.waitUntil check above but before the message is posted.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 10,
+                BurnOnReadMaximumTimeToLiveSeconds: 86400,
+            },
+        });
+        // Confirm the re-apply actually took effect before the post is created.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
+        });
         await senderPage.centerView.postCreate.toggleBurnOnRead();
         const message = `Auto-delete test ${pw.random.id()}`;
         await senderPage.postMessage(message);

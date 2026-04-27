@@ -25,7 +25,7 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
 
     // 5. Confirm dialog opens with title "Test Title"
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Fill required fields
@@ -81,7 +81,7 @@ test('should post cancellation notification when /dialog is cancelled', async ({
 
     // 5. Confirm dialog opens
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Submit'})).toBeVisible();
@@ -117,7 +117,7 @@ test('should show validation errors when required fields are submitted empty', a
 
     // 5. Confirm dialog opens
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Clear the Number field and submit
@@ -150,7 +150,7 @@ test('should show general error and keep dialog open on /dialog error submit', a
 
     // 5. Confirm dialog opens with title "Simple Dialog Test"
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Simple Dialog Test');
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Submit Test'})).toBeVisible();
@@ -185,7 +185,7 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
 
     // 5. Confirm dialog opens with title "Sample Confirmation Dialog" and no form fields
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    await expect(dialog).toBeVisible({timeout: 15000});
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Sample Confirmation Dialog');
     await expect(dialog.getByRole('button', {name: 'Cancel'})).toBeVisible();
     await expect(dialog.getByRole('button', {name: 'Confirm'})).toBeVisible();

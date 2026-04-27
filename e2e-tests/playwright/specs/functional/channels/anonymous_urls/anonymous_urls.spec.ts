@@ -646,6 +646,9 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.toBeVisible();
 
             const originalTeamDisplayName = `Original Team ${pw.random.id()}`;
+            // Re-apply guard: concurrent initSetup() may reset UseAnonymousURLs: false
+            // between the initial setAnonymousUrls call above and the team creation UI flow.
+            await setAnonymousUrls(adminClient, true);
             await createTeamFromUI(channelsPage, originalTeamDisplayName);
 
             const createdTeam = await getTeamByDisplayName(adminClient, originalTeamDisplayName);

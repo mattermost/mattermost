@@ -221,6 +221,14 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // ===========================================
     // STEP 4: Save the changes
     // ===========================================
+
+    // Intercept the sync-job POST triggered by "Apply policy" so we can poll the
+    // exact job ID instead of using the racy UI-table path.
+    const editSyncJobIdPromise = page
+        .waitForResponse((r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST', {timeout: 15_000})
+        .then(async (r) => (r.ok() ? (((await r.json()) as {id?: string}).id ?? null) : null))
+        .catch(() => null);
+
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.waitFor({state: 'visible', timeout: 5000});
     await saveButton.click();
@@ -238,7 +246,8 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     await page.waitForTimeout(500);
 
     // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-    await waitForLatestSyncJob(page, 10);
+    const editSyncJobId = await editSyncJobIdPromise;
+    await waitForLatestSyncJob(page, 10, editSyncJobId);
 
     // ===========================================
     // STEP 5 & 6: Verify channel membership after edit
@@ -440,6 +449,14 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // ===========================================
     // STEP 4: Save the changes
     // ===========================================
+
+    // Intercept the sync-job POST triggered by "Apply policy" so we can poll the
+    // exact job ID instead of using the racy UI-table path.
+    const editSyncJobIdPromiseT5792 = page
+        .waitForResponse((r) => r.url().includes('/api/v4/jobs') && r.request().method() === 'POST', {timeout: 15_000})
+        .then(async (r) => (r.ok() ? (((await r.json()) as {id?: string}).id ?? null) : null))
+        .catch(() => null);
+
     const saveButton = page.getByRole('button', {name: 'Save'});
     await saveButton.waitFor({state: 'visible', timeout: 5000});
     await saveButton.click();
@@ -452,7 +469,8 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     }
 
     await navigateToABACPage(page);
-    await waitForLatestSyncJob(page, 10);
+    const editSyncJobIdT5792 = await editSyncJobIdPromiseT5792;
+    await waitForLatestSyncJob(page, 10, editSyncJobIdT5792);
 
     // ===========================================
     // STEP 5 & 6: Verify channel membership after edit
