@@ -316,13 +316,18 @@ test(
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        // # Mock the server limits API to simulate overage by returning a limit of 1
-        await systemConsolePage.page.route('**/api/v4/limits/server', async (route) => {
-            const response = await route.fetch();
-            const json = await response.json();
-            json.singleChannelGuestLimit = 1;
-            await route.fulfill({response, json});
-        });
+        // # Mock the server limits API to simulate overage by returning a limit of 1.
+        // Use a URL predicate (not a glob) so the mock intercepts requests regardless of
+        // any query-string cache-busters the frontend may append.
+        await systemConsolePage.page.route(
+            (url) => url.pathname === '/api/v4/limits/server',
+            async (route) => {
+                const response = await route.fetch();
+                const json = await response.json();
+                json.singleChannelGuestLimit = 1;
+                await route.fulfill({response, json});
+            },
+        );
 
         // # Navigate to site statistics page, re-applying patch to counter concurrent resets.
         // The page.route mock persists across reloads, so navigateWithGuestPatch is safe here.

@@ -35,6 +35,15 @@ test('Verify multiple reviewers receive same flagged post', async ({pw}) => {
     const message = `Post by @${user.username}, is flagged once`;
 
     const {post} = await createPost(adminClient, userClient, team, user, message);
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false
+    // between the initial setupContentFlagging call and the flagPost call.
+    // pw.waitUntil confirms the config is actually true before proceeding — closes
+    // the race window to < 100 ms (time between final poll and flagPost).
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =

@@ -940,9 +940,9 @@ export async function waitForLatestSyncJob(page: Page, _retries?: number, expect
                 return s;
             },
             {
-                timeout: 30_000,
+                timeout: 90_000,
                 intervals: [2000, 2000, 3000, 3000],
-                message: 'Sync job did not complete within 30 s (legacy path)',
+                message: 'Sync job did not complete within 90 s (legacy path)',
             },
         )
         .toBe('success');

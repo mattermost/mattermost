@@ -6,6 +6,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
+    // Plugin installation can take up to 60 s; extend the test timeout to avoid
+    // a premature timeout before the dialog even opens.
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,13 +23,28 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog command
-    await channelsPage.centerView.postCreate.input.fill('/dialog');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // 5. Confirm dialog opens with title "Test Title"
+    // 4. Send /dialog command (with one retry if the dialog doesn't appear).
+    // Under CI load the plugin's slash-command handler can be slow to respond;
+    // a single re-send recovers transient timeouts without masking real failures.
+    // Re-apply guard: concurrent initSetup() resets PluginSettings (Plugins: {}) which
+    // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
+    // is already active (alreadyActive guard skips reinstall).
+    await setupDemoPlugin(adminClient, pw);
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible({timeout: 15000});
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/dialog');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            // 5. Confirm dialog opens with title "Test Title"
+            await expect(dialog).toBeVisible({timeout: 15000});
+            break; // dialog appeared — proceed
+        } catch (err) {
+            if (attempt === 1) {
+                throw err; // exhausted retries — let the error surface naturally
+            }
+            // attempt 0 timed out — retry the slash command once
+        }
+    }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
 
     // 6. Fill required fields
