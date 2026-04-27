@@ -2784,10 +2784,6 @@
     "translation": "{{.Backend}} är avaktiverat."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} är redan stoppad."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Det gick inte att tolka {{.Backend}}-serverns versionsnummer."
   },
@@ -10784,10 +10780,6 @@
     "translation": "Fel på \"get common teams for channel\""
   },
   {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Kan inte hämta befintliga jobb."
-  },
-  {
     "id": "app.post_priority.delete_for_post.app_error",
     "translation": "Misslyckades med att permanent radera prioritetsdata från databasen för inlägget."
   },
@@ -10986,5 +10978,101 @@
   {
     "id": "api.post.burn_post.user_not_in_channel.app_error",
     "translation": "Du har inte tillstånd att bränna det här inlägget. Du måste vara medlem i kanalen."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Hjälpfunktionen för brygg-testning är inaktiverad."
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_about",
+    "translation": "Om"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_help",
+    "translation": "Hjälp"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_terms",
+    "translation": "Villkor"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.footer_privacy",
+    "translation": "Integritetspolicy"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.title",
+    "translation": "Uppdatering krävs"
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Behöver du hjälp?"
+  },
+  {
+    "id": "ent.autotranslation.validate_id.invalid",
+    "translation": "Ogiltigt ID-format."
+  },
+  {
+    "id": "model.translation.is_valid.object_id.app_error",
+    "translation": "Ogiltigt objekt-id."
+  },
+  {
+    "id": "model.translation.is_valid.object_type.app_error",
+    "translation": "Ogiltig objekt-typ."
+  },
+  {
+    "id": "model.translation.is_valid.provider.app_error",
+    "translation": "Ogiltig översättningsleverantör."
+  },
+  {
+    "id": "model.translation.is_valid.text.app_error",
+    "translation": "Ogiltig översättningstext."
+  },
+  {
+    "id": "model.translation.is_valid.type.app_error",
+    "translation": "Ogiltig översättningstyp."
+  },
+  {
+    "id": "app.toast.send_toast_message.message.app_error",
+    "translation": "Meddelande krävs"
+  },
+  {
+    "id": "web.error.unsupported_desktop_app.download_button",
+    "translation": "Hämta uppdaterad app"
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Ogiltig inmatning angavs."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Visning krävs."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Visningen hittades inte."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Ogiltigt ID för visningen."
   }
 ]
