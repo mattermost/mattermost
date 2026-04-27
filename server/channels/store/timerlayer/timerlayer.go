@@ -7942,6 +7942,22 @@ func (s *TimerLayerPropertyFieldStore) CountForTarget(groupID string, targetType
 	return result, err
 }
 
+func (s *TimerLayerPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.PropertyFieldStore.CountLinkedFields(fieldID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyFieldStore.CountLinkedFields", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 	start := time.Now()
 
@@ -7974,10 +7990,10 @@ func (s *TimerLayerPropertyFieldStore) Delete(groupID string, id string) error {
 	return err
 }
 
-func (s *TimerLayerPropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) Get(ctx context.Context, groupID string, id string) (*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.Get(groupID, id)
+	result, err := s.PropertyFieldStore.Get(ctx, groupID, id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -7990,10 +8006,10 @@ func (s *TimerLayerPropertyFieldStore) Get(groupID string, id string) (*model.Pr
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) GetFieldByName(groupID string, targetID string, name string) (*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) GetFieldByName(ctx context.Context, groupID string, targetID string, name string) (*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.GetFieldByName(groupID, targetID, name)
+	result, err := s.PropertyFieldStore.GetFieldByName(ctx, groupID, targetID, name)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8006,10 +8022,10 @@ func (s *TimerLayerPropertyFieldStore) GetFieldByName(groupID string, targetID s
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.GetMany(groupID, ids)
+	result, err := s.PropertyFieldStore.GetMany(ctx, groupID, ids)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8038,10 +8054,10 @@ func (s *TimerLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 	return result, err
 }
 
-func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *TimerLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 	start := time.Now()
 
-	result, err := s.PropertyFieldStore.Update(groupID, fields)
+	result, err := s.PropertyFieldStore.Update(groupID, fields, expectedUpdateAts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8070,10 +8086,26 @@ func (s *TimerLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, e
 	return result, err
 }
 
-func (s *TimerLayerPropertyGroupStore) Register(name string) (*model.PropertyGroup, error) {
+func (s *TimerLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error) {
 	start := time.Now()
 
-	result, err := s.PropertyGroupStore.Register(name)
+	result, err := s.PropertyGroupStore.GetByID(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyGroupStore.GetByID", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
+	start := time.Now()
+
+	result, err := s.PropertyGroupStore.Register(group)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
