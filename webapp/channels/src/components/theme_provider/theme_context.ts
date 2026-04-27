@@ -20,10 +20,6 @@ export function useUserTheme() {
 
         return () => {
             context.stopUsingUserTheme();
-        };
-    }, [context]);
-}
-
 /**
  * useAppBodyClass manages the `app__body` class on the document body for as long as the calling component
  * remains mounted. That class is required for much of our CSS to apply the user's theme, so it should be used
