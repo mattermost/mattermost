@@ -201,8 +201,12 @@ test(
 
         // Re-apply config + reload so the browser reads the latest AutoTranslationSettings
         // and fetches stored translations via populatePostListTranslations.
-        // This matches the pattern used by passing autotranslation_users.spec.ts tests.
+        // pw.waitUntil confirms the API value before reload to minimise the race window.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
@@ -269,6 +273,10 @@ test(
 
         // Re-apply config + reload to counter concurrent initSetup() resets.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
@@ -333,6 +341,10 @@ test(
 
         // Re-apply config + reload to counter concurrent initSetup() resets.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 

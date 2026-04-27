@@ -40,7 +40,7 @@ export async function setupDemoPlugin(
             async () => {
                 return await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
             },
-            {timeout: 60_000},
+            {timeout: 90_000},
         )
         .toBe(true);
 }

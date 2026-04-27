@@ -42,9 +42,13 @@ export default class FlagPostConfirmationDialog {
     async selectFlagReason(reason: string) {
         // Open the dropdown
         await this.flagPostReasonInput.click();
-        // Wait for dropdown options to appear and click the desired one
+        // Wait for dropdown menu list to appear, then wait for the specific option
+        // to be visible before clicking. The second waitFor guards against a race
+        // where the list renders but the individual options are not yet in the DOM.
         await this.flagReasonOption.waitFor({state: 'visible'});
-        await this.flagReasonMenuItems(reason).click();
+        const menuItem = this.flagReasonMenuItems(reason);
+        await menuItem.waitFor({state: 'visible', timeout: 10000});
+        await menuItem.click();
     }
 
     async toBeVisible() {

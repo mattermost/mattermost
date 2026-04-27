@@ -85,6 +85,11 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // * Confirm the channel appears in the editor list before saving
         await expect(teamSettings.container.getByText(channel.display_name)).toBeVisible({timeout: 10000});
 
+        // Re-apply guard: a concurrent initSetup() on another shard may have disabled ABAC
+        // between the initial enableABACConfig call and this save. Without ABAC enabled the
+        // server may not create the policy and the confirmation modal will never appear.
+        await enableABACConfig(adminClient);
+
         // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty).
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
         await expect(saveBtn).toBeEnabled({timeout: 20000});

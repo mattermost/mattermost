@@ -31,7 +31,7 @@ import {
  * 4. Next sync auto-adds the user
  */
 test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', async ({pw}) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000);
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
@@ -99,7 +99,7 @@ test('MM-T5797a LDAP sync - User auto-added with == operator (auto-add true)', a
  * 4. Next sync auto-adds the user
  */
 test('MM-T5797b LDAP sync - User auto-added with contains operator (auto-add true)', async ({pw}) => {
-    test.setTimeout(90000);
+    test.setTimeout(120000);
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();

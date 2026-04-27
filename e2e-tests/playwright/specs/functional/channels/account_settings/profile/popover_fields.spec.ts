@@ -48,12 +48,18 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     await currentUserProfilePopover.close();
 
     // 5. Open profile popover for the other user on second mention.
-    // Re-apply privacy settings in case a concurrent initSetup() reset them.
+    // Re-apply privacy settings in case a concurrent initSetup() reset them,
+    // then wait until the server confirms the value before proceeding so the
+    // browser gets the WebSocket update before the popover renders.
     await adminClient.patchConfig({
         PrivacySettings: {
             ShowEmailAddress: false,
             ShowFullName: false,
         },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false;
     });
     const secondMention = await lastPost.container.getByText(`@${testUser2.username}`, {exact: true});
     await secondMention.click();

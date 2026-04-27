@@ -272,11 +272,20 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Configure BoR via API with specific values (using valid dropdown options)
         // Duration: 300 (5 minutes), Max TTL: 259200 (3 days)
-        const config = await adminClient.getConfig();
-        config.ServiceSettings.EnableBurnOnRead = true;
-        config.ServiceSettings.BurnOnReadDurationSeconds = 300;
-        config.ServiceSettings.BurnOnReadMaximumTimeToLiveSeconds = 259200;
-        await adminClient.patchConfig(config);
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 259200,
+            },
+        });
+        // Wait until the server confirms the patch before logging in, so the browser
+        // reads the correct value when it loads the Posts section. A concurrent
+        // initSetup() reset may otherwise overwrite BurnOnReadDurationSeconds.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);

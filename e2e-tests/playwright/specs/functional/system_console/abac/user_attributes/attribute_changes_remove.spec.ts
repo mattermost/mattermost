@@ -176,6 +176,13 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         }
         await searchInput.clear();
 
+        // Re-apply ABAC enable guard: a concurrent initSetup() on another shard may have
+        // disabled ABAC between the initial enableABAC call and this sync job.
+        // Without ABAC enabled the server skips policy evaluation and won't auto-add the user.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         const __syncJob2 = await runSyncJob(systemConsolePage.page);
         await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob2);
 

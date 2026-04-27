@@ -273,6 +273,21 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         const borPost = await receiverPage.getLastPost();
         const postId = await borPost.getId();
 
+        // Re-apply guard: TTL is assigned by the server at reveal time, not post time.
+        // A concurrent initSetup() may have reset BurnOnReadDurationSeconds to its
+        // default (60 s) between the sender's post and the receiver's reveal click.
+        // Re-applying here ensures the server uses 10 s when it writes the TTL.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 10,
+                BurnOnReadMaximumTimeToLiveSeconds: 86400,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
+        });
         await borPost.concealedPlaceholder.clickToReveal();
         await borPost.concealedPlaceholder.waitForReveal();
 

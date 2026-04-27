@@ -27,6 +27,10 @@ test.describe('Permission Policies - Create Policy', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(systemConsolePage.page);
+        // Re-apply via API: a concurrent initSetup() on another shard may have
+        // disabled ABAC between the enableABAC UI call and the navigation to
+        // permission_policies, causing a redirect to the license page.
+        await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
         const policyName = `PP Download ${pw.random.id()}`;
         try {
@@ -55,6 +59,7 @@ test.describe('Permission Policies - Create Policy', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(systemConsolePage.page);
+        await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
         const policyName = `PP Both Perms ${pw.random.id()}`;
         try {
@@ -80,6 +85,7 @@ test.describe('Permission Policies - Create Policy', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(systemConsolePage.page);
+        await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 
         const policyName = `PP List Check ${pw.random.id()}`;
         try {
@@ -107,6 +113,7 @@ test.describe('Permission Policies - Create Policy', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(systemConsolePage.page);
+        await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
         await navigateToPermissionPoliciesPage(systemConsolePage.page);
         await systemConsolePage.page.getByRole('button', {name: 'Add policy'}).click();
         await systemConsolePage.page.waitForLoadState('networkidle');

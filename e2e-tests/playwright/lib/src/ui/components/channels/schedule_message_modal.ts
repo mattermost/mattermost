@@ -85,10 +85,14 @@ export default class ScheduleMessageModal {
     async selectTime(optionIndex: number = 0) {
         await this.timeButton.click();
         const timeOption = this.container.page().getByTestId(`time_option_${optionIndex}`);
-        await expect(timeOption).toBeVisible();
+        // Use a generous timeout: the time-picker dropdown can be slow to render in CI.
+        await expect(timeOption).toBeVisible({timeout: 30000});
+        // Capture text BEFORE clicking — clicking closes the dropdown and detaches the
+        // option element from the DOM, so textContent() would time out if called after.
+        const text = await timeOption.textContent();
         await timeOption.click();
 
-        return await timeOption.textContent();
+        return text;
     }
 
     async scheduleMessage(dayFromToday: number = 0, timeOptionIndex: number = 0) {

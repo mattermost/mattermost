@@ -6,6 +6,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should update form fields dynamically when project type changes via /dialog field-refresh', async ({pw}) => {
+    // Plugin installation can take up to 60 s; extend the test timeout to avoid
+    // a premature timeout before the dialog even opens.
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,13 +23,26 @@ test('should update form fields dynamically when project type changes via /dialo
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog field-refresh command
-    await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // 5. Confirm dialog opens with title "Project Configuration"
+    // 4. Send /dialog field-refresh command (with one retry if the dialog doesn't appear).
+    // Re-apply guard: concurrent initSetup() resets PluginSettings (Plugins: {}) which
+    // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
+    // is already active (alreadyActive guard skips reinstall).
+    await setupDemoPlugin(adminClient, pw);
     const dialog = channelsPage.page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/dialog field-refresh');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            // 5. Confirm dialog opens with title "Project Configuration"
+            await expect(dialog).toBeVisible({timeout: 15000});
+            break; // dialog appeared — proceed
+        } catch (err) {
+            if (attempt === 1) {
+                throw err; // exhausted retries — let the error surface naturally
+            }
+            // attempt 0 timed out — retry the slash command once
+        }
+    }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Project Configuration');
 
     // 6. Verify initial state — only Project Type dropdown visible

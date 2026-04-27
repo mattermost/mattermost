@@ -20,11 +20,15 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     const secondUser = await pw.random.user('reviewer');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
+    // Make system_admin so SystemAdminsAsReviewers: true covers them even if
+    // CommonReviewerIds is reset to [] by a concurrent initSetup() call.
+    await adminClient.updateUserRoles(secondUserID, 'system_user system_admin');
 
     // Create third user and add to team
     const thirdUser = await pw.random.user('reviewer');
     const {id: thirdUserID} = await adminClient.createUser(thirdUser, '', '');
     await adminClient.addToTeam(team.id, thirdUserID);
+    await adminClient.updateUserRoles(thirdUserID, 'system_user system_admin');
 
     // Setup content flagging *after* roles are set
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
@@ -55,6 +59,10 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
 
     await secondContentReviewPage.openViewDetails();
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
     await secondContentReviewPage.clickRemoveMessage();
     await secondContentReviewPage.enterConfirmationComment(commentRemove);
     await secondContentReviewPage.confirmRemove();

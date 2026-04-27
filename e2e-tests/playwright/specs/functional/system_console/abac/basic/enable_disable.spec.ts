@@ -44,6 +44,20 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     await systemConsolePage.toBeVisible();
     await systemConsolePage.sidebar.systemAttributes.attributeBasedAccess.click();
 
+    // Re-apply the ABAC=false reset right before UI interaction: a concurrent
+    // initSetup() on another shard may have re-enabled ABAC between the initial
+    // updateConfig call above and here. If it's already enabled when we click
+    // enableRadio the radio is a no-op and Save stays disabled.
+    const freshConfig = await adminClient.getConfig();
+    freshConfig.AccessControlSettings.EnableAttributeBasedAccessControl = false;
+    await adminClient.updateConfig(freshConfig);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
+    });
+    await systemConsolePage.page.reload();
+    await systemConsolePage.page.waitForLoadState('networkidle');
+
     // * Verify we're on the correct page
     const abacSection = systemConsolePage.page.getByTestId('sysconsole_section_AttributeBasedAccessControl');
     await expect(abacSection).toBeVisible();
@@ -66,6 +80,9 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
 
     // * Verify Membership Policies page shows "Add policy" when ABAC is enabled
+    // Re-apply enable guard: a concurrent shard may have disabled ABAC between the
+    // save above and this navigation, which would cause a redirect to the license page.
+    await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
     await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
     await systemConsolePage.page.waitForLoadState('networkidle');
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();

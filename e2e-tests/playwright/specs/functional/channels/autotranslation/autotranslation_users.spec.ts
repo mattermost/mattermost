@@ -85,6 +85,10 @@ test(
 
         // Re-apply config + reload so the badge and translated text reflect the latest server config.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
@@ -139,6 +143,10 @@ test(
         // preventing the badge from appearing and the "Disable autotranslation" menu item
         // from being shown.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
@@ -209,6 +217,17 @@ test(
 
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
+        await channelsPage.toBeVisible();
+
+        // Re-apply config + reload so the browser reads the latest AutoTranslationSettings.
+        // A concurrent initSetup() on another shard may have disabled autotranslation between
+        // the initial enableAutotranslationConfig call (before posting) and login.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+        await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
         // * Verify post with translated text appears before disabling
