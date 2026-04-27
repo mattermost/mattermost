@@ -19,20 +19,40 @@ import (
 // requireSameImage asserts that want and got cover the same bounds and have
 // identical RGBA values at every pixel. We compare decoded pixels rather than
 // re-encoded byte streams because image/png is not byte-stable across Go
-// versions even for identical pixel content.
+// versions even for identical pixel content. On mismatch we walk every pixel
+// before failing so the report includes the total diff rate, not just the
+// first divergence.
 func requireSameImage(t *testing.T, want, got image.Image) {
 	t.Helper()
 	require.Equal(t, want.Bounds(), got.Bounds())
 	b := got.Bounds()
+	total := b.Dx() * b.Dy()
+	var (
+		diff      int
+		firstX    int
+		firstY    int
+		firstWant [4]uint32
+		firstGot  [4]uint32
+	)
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
 			wr, wg, wb, wa := want.At(x, y).RGBA()
 			gr, gg, gb, ga := got.At(x, y).RGBA()
-			if wr != gr || wg != gg || wb != gb || wa != ga {
-				t.Fatalf("pixel mismatch at (%d, %d): want (%d, %d, %d, %d), got (%d, %d, %d, %d)",
-					x, y, wr, wg, wb, wa, gr, gg, gb, ga)
+			if wr == gr && wg == gg && wb == gb && wa == ga {
+				continue
 			}
+			if diff == 0 {
+				firstX, firstY = x, y
+				firstWant = [4]uint32{wr, wg, wb, wa}
+				firstGot = [4]uint32{gr, gg, gb, ga}
+			}
+			diff++
 		}
+	}
+	if diff > 0 {
+		t.Fatalf("%d / %d pixels differ (%.2f%%); first at (%d, %d): want %v got %v",
+			diff, total, 100*float64(diff)/float64(total),
+			firstX, firstY, firstWant, firstGot)
 	}
 }
 
