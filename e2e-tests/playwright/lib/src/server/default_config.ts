@@ -239,6 +239,7 @@ const defaultServerConfig: AdminConfig = {
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
         ExperimentalDefaultChannels: [],
+        EnableChannelCategorySorting: true,
     },
     ClientRequirements: {
         AndroidLatestVersion: '',
@@ -618,7 +619,6 @@ const defaultServerConfig: AdminConfig = {
         DisableWakeUpReconnectHandler: false,
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
-        ExperimentalChannelCategorySorting: false,
         EnableWatermark: false,
     },
     AnalyticsSettings: {
@@ -788,6 +788,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAIRecaps: false,
         IntegratedBoards: false,
         CJKSearch: false,
+        ManagedChannelCategories: false,
     },
     ImportSettings: {
         Directory: './import',

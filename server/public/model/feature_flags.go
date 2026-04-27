@@ -104,6 +104,9 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
+	ManagedChannelCategories bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -152,6 +155,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.ManagedChannelCategories = false
 }
 
 // ToMap returns the feature flags as a map[string]string

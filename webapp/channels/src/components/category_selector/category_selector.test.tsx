@@ -3,14 +3,16 @@
 
 import React from 'react';
 
+import {makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import ManagedCategorySelector from './managed_category_selector';
+import CategorySelector from './category_selector';
 
 const baseState = {
     entities: {
         general: {
-            config: {EnableManagedChannelCategories: 'true'},
+            config: {FeatureFlagManagedChannelCategories: 'true'},
         },
         teams: {
             currentTeamId: 'team1',
@@ -29,10 +31,11 @@ const baseState = {
     },
 };
 
-describe('ManagedCategorySelector', () => {
+describe('CategorySelector', () => {
     const baseProps = {
         value: '',
         onChange: jest.fn(),
+        getOptions: makeGetSidebarCategoryNamesForTeam(),
     };
 
     beforeEach(() => {
@@ -41,7 +44,7 @@ describe('ManagedCategorySelector', () => {
 
     it('should render with the selected value', () => {
         renderWithContext(
-            <ManagedCategorySelector
+            <CategorySelector
                 {...baseProps}
                 value='Operations'
             />,
@@ -52,7 +55,7 @@ describe('ManagedCategorySelector', () => {
     });
 
     it('should show existing categories as options', async () => {
-        renderWithContext(<ManagedCategorySelector {...baseProps}/>, baseState);
+        renderWithContext(<CategorySelector {...baseProps}/>, baseState);
 
         const input = screen.getByRole('combobox');
         await userEvent.click(input);
@@ -62,7 +65,7 @@ describe('ManagedCategorySelector', () => {
     });
 
     it('should call onChange when a category is selected', async () => {
-        renderWithContext(<ManagedCategorySelector {...baseProps}/>, baseState);
+        renderWithContext(<CategorySelector {...baseProps}/>, baseState);
 
         const input = screen.getByRole('combobox');
         await userEvent.click(input);
@@ -73,24 +76,63 @@ describe('ManagedCategorySelector', () => {
 
     it('should be disabled when disabled prop is true', () => {
         const {container} = renderWithContext(
-            <ManagedCategorySelector
+            <CategorySelector
                 {...baseProps}
                 disabled={true}
             />,
             baseState,
         );
 
-        const selectControl = container.querySelector('.ManagedCategory__control--is-disabled');
+        const selectControl = container.querySelector('.CategorySelector__control--is-disabled');
         expect(selectControl).toBeInTheDocument();
     });
 
     it('should not show create option for single character input', async () => {
-        renderWithContext(<ManagedCategorySelector {...baseProps}/>, baseState);
+        renderWithContext(<CategorySelector {...baseProps}/>, baseState);
 
         const input = screen.getByRole('combobox');
         await userEvent.click(input);
         await userEvent.type(input, 'N');
 
         expect(screen.queryByText(/Create new category/)).not.toBeInTheDocument();
+    });
+
+    it('should use default placeholder when not overridden', () => {
+        renderWithContext(<CategorySelector {...baseProps}/>, baseState);
+
+        expect(screen.getByText('Choose a category (optional)')).toBeInTheDocument();
+    });
+
+    it('should use label and placeholder overrides when provided', async () => {
+        renderWithContext(
+            <CategorySelector
+                {...baseProps}
+                label='Custom label'
+                placeholder='Custom placeholder'
+            />,
+            baseState,
+        );
+
+        expect(screen.getByText('Custom placeholder')).toBeInTheDocument();
+        await userEvent.click(screen.getByRole('combobox'));
+        expect(screen.getByText('Custom label')).toBeInTheDocument();
+    });
+
+    it('should use options from injected getOptions', async () => {
+        const injectedOptions = ['Alpha', 'Beta'];
+        const getOptions = () => injectedOptions;
+        renderWithContext(
+            <CategorySelector
+                {...baseProps}
+                getOptions={getOptions}
+            />,
+            baseState,
+        );
+
+        const input = screen.getByRole('combobox');
+        await userEvent.click(input);
+
+        expect(screen.getByText('Alpha')).toBeInTheDocument();
+        expect(screen.getByText('Beta')).toBeInTheDocument();
     });
 });

@@ -229,9 +229,9 @@ func (a *App) RenameChannel(rctx request.CTX, channel *model.Channel, newChannel
 }
 
 func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	a.handleChannelCategoryName(channel)
-
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+	channel.DefaultCategoryName = strings.TrimSpace(channel.DefaultCategoryName)
+	channel.ManagedCategoryName = strings.TrimSpace(channel.ManagedCategoryName)
 	sc, nErr := a.Srv().Store().Channel().Save(rctx, channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -304,7 +304,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if channel.ManagedCategoryName != "" {
-		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !a.Config().FeatureFlags.ManagedChannelCategories {
 			rctx.Logger().Warn("Managed category update ignored: feature not available")
 			sc.ManagedCategoryName = ""
 		} else {
@@ -967,7 +967,6 @@ func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *mode
 	oldChannelAutotranslation := channel.AutoTranslation
 
 	channel.Patch(patch)
-	a.handleChannelCategoryName(channel)
 	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
@@ -4143,17 +4142,9 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 	return channel.PolicyEnforced, nil
 }
 
-func (a *App) handleChannelCategoryName(channel *model.Channel) {
-	if *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting && strings.Contains(channel.DisplayName, "/") {
-		parts := strings.Split(channel.DisplayName, "/")
-		channel.DisplayName = strings.TrimSpace(strings.Join(parts[1:], "/"))
-		channel.DefaultCategoryName = strings.TrimSpace(parts[0])
-	}
-}
-
 func (a *App) addChannelToDefaultCategory(rctx request.CTX, userID string, channel *model.Channel) {
 	// Add channel to default category if specified
-	if channel.DefaultCategoryName != "" && *a.Config().ExperimentalSettings.ExperimentalChannelCategorySorting {
+	if channel.DefaultCategoryName != "" && *a.Config().TeamSettings.EnableChannelCategorySorting {
 		// Get user's categories for this team
 		categories, err := a.GetSidebarCategoriesForTeamForUser(rctx, userID, channel.TeamId)
 		if err != nil {
