@@ -5,6 +5,7 @@ package imaging
 
 import (
 	"bytes"
+	"image"
 	"image/color"
 	"os"
 	"path/filepath"
@@ -159,6 +160,58 @@ func TestFillCenter(t *testing.T) {
 			var b bytes.Buffer
 			require.NoError(t, e.EncodePNG(&b, out))
 			require.Equal(t, expectedBytes, b.Bytes())
+		})
+	}
+}
+
+func TestFit(t *testing.T) {
+	tcs := []struct {
+		name           string
+		inputImg       image.Image
+		maxW           int
+		maxH           int
+		expectedWidth  int
+		expectedHeight int
+	}{
+		{
+			name:           "smaller than bounds (clone)",
+			inputImg:       image.NewRGBA(image.Rect(0, 0, 50, 50)),
+			maxW:           100,
+			maxH:           100,
+			expectedWidth:  50,
+			expectedHeight: 50,
+		},
+		{
+			name:           "landscape clamps to width",
+			inputImg:       image.NewRGBA(image.Rect(0, 0, 200, 100)),
+			maxW:           100,
+			maxH:           100,
+			expectedWidth:  100,
+			expectedHeight: 50,
+		},
+		{
+			name:           "portrait clamps to height",
+			inputImg:       image.NewRGBA(image.Rect(0, 0, 100, 200)),
+			maxW:           100,
+			maxH:           100,
+			expectedWidth:  50,
+			expectedHeight: 100,
+		},
+		{
+			name:           "both dimensions exceed",
+			inputImg:       image.NewRGBA(image.Rect(0, 0, 400, 200)),
+			maxW:           100,
+			maxH:           100,
+			expectedWidth:  100,
+			expectedHeight: 50,
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			out := Fit(tc.inputImg, tc.maxW, tc.maxH)
+			require.Equal(t, tc.expectedWidth, out.Bounds().Dx())
+			require.Equal(t, tc.expectedHeight, out.Bounds().Dy())
 		})
 	}
 }
