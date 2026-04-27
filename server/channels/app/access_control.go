@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"slices"
@@ -99,6 +100,10 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	if policy.Type == model.AccessControlPolicyTypeChannel {
+		a.publishChannelPolicyEnforcedUpdate(rctx, policy.ID)
+	}
+
 	return policy, nil
 }
 
@@ -108,9 +113,20 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		return model.NewAppError("DeleteAccessControlPolicy", "app.pap.delete_access_control_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	appErr := acs.DeletePolicy(rctx, id)
+	// Resolve the policy first so we know whether to broadcast a channel
+	// access control update after deletion (channel-type policies share the
+	// channel's ID, so we can use the policy ID as the channel ID).
+	policy, appErr := acs.GetPolicy(rctx, id)
 	if appErr != nil {
 		return appErr
+	}
+
+	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
+		return appErr
+	}
+
+	if policy != nil && policy.Type == model.AccessControlPolicyTypeChannel {
+		a.publishChannelPolicyEnforcedUpdate(rctx, id)
 	}
 
 	return nil
@@ -194,6 +210,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 		if appErr != nil {
 			return nil, appErr
 		}
+		a.publishChannelPolicyEnforcedUpdate(rctx, child.ID)
 		policies = append(policies, child)
 	}
 
@@ -239,14 +256,15 @@ func (a *App) UnassignPoliciesFromChannels(rctx request.CTX, policyID string, ch
 			if err := acs.DeletePolicy(rctx, child.ID); err != nil {
 				return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
-			// invalidate the channel cache
-			a.Srv().Store().Channel().InvalidateChannel(channelID)
+			// invalidate the channel cache and broadcast the policy change
+			a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 			continue
 		}
 		_, appErr = acs.SavePolicy(rctx, child)
 		if appErr != nil {
 			return model.NewAppError("UnassignPoliciesFromChannels", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, appErr.Error(), http.StatusInternalServerError)
 		}
+		a.publishChannelPolicyEnforcedUpdate(rctx, channelID)
 	}
 
 	return nil
@@ -340,6 +358,41 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	}
 
 	return visualAST, nil
+}
+
+// publishChannelPolicyEnforcedUpdate invalidates the channel cache for the
+// given channel ID and broadcasts a channel_access_control_updated websocket
+// event so that connected clients can refresh their view of the channel's
+// access control state (e.g. the policy_enforced flag and the set of
+// attributes used by the policy). A dedicated event is used rather than
+// channel_updated because this is fired on every policy mutation and clients
+// only need to refresh access control state — not run the full
+// channel_updated reducer/router pipeline. It is best-effort: failures to
+// load or marshal the channel are logged but do not affect the caller.
+func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID string) {
+	a.Srv().Store().Channel().InvalidateChannel(channelID)
+
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to load channel after access control policy change",
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	channelJSON, jsonErr := json.Marshal(channel)
+	if jsonErr != nil {
+		rctx.Logger().Warn("Failed to marshal channel after access control policy change",
+			mlog.String("channel_id", channelID),
+			mlog.Err(jsonErr),
+		)
+		return
+	}
+
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelAccessControlUpdated, "", channel.Id, "", nil, "")
+	messageWs.Add("channel", string(channelJSON))
+	a.Publish(messageWs)
 }
 
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for

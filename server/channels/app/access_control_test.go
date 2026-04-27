@@ -606,6 +606,9 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockStore.On("Channel").Return(&mockChannelStore)
 		// Expect InvalidateChannel to be called
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		// publishChannelPolicyEnforcedUpdate calls Channel().Get(...) to load
+		// the fresh channel (with PolicyEnforced computed) for the WS payload.
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
