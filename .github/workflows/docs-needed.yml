@@ -250,20 +250,25 @@ jobs:
           fi
           cp "$PROMPT_FILE" /tmp/system_prompt.txt
  
-          # Build structured user message so Claude can satisfy the VERSION RULE
+          # Build structured user message.
+          # Untrusted PR content is wrapped in XML tags so it is treated as
+          # data only — never as instructions — preventing prompt injection.
           PR_URL="https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}"
           {
-            echo "=== PR METADATA ==="
+            echo "<pr_metadata>"
             echo "PR URL: ${PR_URL}"
             echo "PR Title: ${PR_TITLE}"
             echo "Source Repository: ${SOURCE_REPO}"
             echo "milestone.title: ${MILESTONE_TITLE}"
+            echo "</pr_metadata>"
             echo ""
-            echo "=== PR DESCRIPTION ==="
+            echo "<pr_description>"
             cat /tmp/pr-body.txt
+            echo "</pr_description>"
             echo ""
-            echo "=== CODE DIFF (first 20KB) ==="
+            echo "<code_diff>"
             cat /tmp/pr-diff.txt
+            echo "</code_diff>"
           } > /tmp/user_message.txt
  
           PAYLOAD=$(jq -n \
