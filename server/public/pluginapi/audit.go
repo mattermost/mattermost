@@ -13,14 +13,14 @@ type AuditService struct {
 
 // Record logs an audit record using the default audit log level.
 //
-// Minimum server version: 11.8
+// Minimum server version: 10.10
 func (a *AuditService) Record(rec *model.AuditRecord) {
 	a.api.LogAuditRec(rec)
 }
 
 // RecordWithLevel logs an audit record with the given log level.
 //
-// Minimum server version: 11.8
+// Minimum server version: 10.10
 func (a *AuditService) RecordWithLevel(rec *model.AuditRecord, level mlog.Level) {
 	a.api.LogAuditRecWithLevel(rec, level)
 }
