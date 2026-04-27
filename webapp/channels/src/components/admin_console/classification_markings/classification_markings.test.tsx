@@ -4,13 +4,10 @@
 import React from 'react';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
-
-import type {GlobalState} from 'types/store';
 
 import ClassificationMarkings from './classification_markings';
 import {

@@ -64,13 +64,15 @@ export async function setupClassificationField(
     // Ensure a clean slate first
     await deleteClassificationMarkingsFieldIfExists(adminClient);
 
-    const bannerAttrs = globalBanner ? {
-        global_banner: {
-            enabled: globalBanner.enabled ?? true,
-            placement: globalBanner.placement ?? 'top',
-            level_name: globalBanner.levelName,
-        },
-    } : {};
+    const bannerAttrs = globalBanner
+        ? {
+              global_banner: {
+                  enabled: globalBanner.enabled ?? true,
+                  placement: globalBanner.placement ?? 'top',
+                  level_name: globalBanner.levelName,
+              },
+          }
+        : {};
 
     return adminClient.createPropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, {
         name: CLASSIFICATION_FIELD_NAME,
