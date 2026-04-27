@@ -89,7 +89,7 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	clearCPABackfillMarker(t, th)
 
 	// fieldA exercises the "display_name present as empty string in JSONB" case — the true
-	// idempotency boundary. 
+	// idempotency boundary.
 	fieldABase, convErr := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: "department",
 		Type: model.PropertyFieldTypeText,
