@@ -8,11 +8,19 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 const (
 	FileinfoSortByCreated = "CreateAt"
 	FileinfoSortBySize    = "Size"
+
+	// MaxFilenameLength is the maximum length, in Unicode codepoints, of a
+	// sanitized FileInfo.Name. It matches the VARCHAR(256) width of the
+	// fileinfo.name column.
+	MaxFilenameLength = 256
 )
 
 // FileDownloadType represents the type of file download or access being performed.
@@ -131,7 +139,65 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.path.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
+	if fi.Name != "" && !IsValidFilename(fi.Name) {
+		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.name.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
+	}
+
 	return nil
+}
+
+// IsValidFilename reports whether name is acceptable as FileInfo.Name.
+// It rejects empty strings, bare "." and "..", names exceeding
+// MaxFilenameLength, path separators, and ASCII control characters.
+// The input is not mutated; see SanitizeFilename for the mutating form.
+func IsValidFilename(name string) bool {
+	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	if utf8.RuneCountInString(name) > MaxFilenameLength {
+		return false
+	}
+	if strings.ContainsAny(name, `/\`) {
+		return false
+	}
+	return !strings.ContainsFunc(name, func(r rune) bool {
+		return r < 0x20 || r == 0x7f
+	})
+}
+
+// SanitizeFilename returns a canonical form of name suitable for
+// FileInfo.Name. It NFC-normalizes Unicode, removes ASCII control
+// characters, collapses backslashes to forward slashes, reduces the
+// value to its final path element via filepath.Base, and truncates
+// to MaxFilenameLength codepoints to match the DB column width.
+//
+// Returns an empty string when nothing usable remains (for example
+// when the input was "", ".", "..", "/", or entirely control
+// characters); callers should treat an empty result as a failure.
+func SanitizeFilename(name string) string {
+	if name == "" {
+		return ""
+	}
+
+	name = norm.NFC.String(name)
+	name = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, name)
+	name = strings.ReplaceAll(name, `\`, "/")
+	name = filepath.Base(name)
+
+	if name == "." || name == ".." || name == string(filepath.Separator) {
+		return ""
+	}
+
+	if runes := []rune(name); len(runes) > MaxFilenameLength {
+		name = string(runes[:MaxFilenameLength])
+	}
+
+	return name
 }
 
 func (fi *FileInfo) IsImage() bool {

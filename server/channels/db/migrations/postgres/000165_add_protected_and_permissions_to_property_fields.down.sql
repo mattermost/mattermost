@@ -1,5 +1,3 @@
-DROP INDEX IF EXISTS idx_propertyfields_protected;
-
 ALTER TABLE PropertyFields
 DROP COLUMN IF EXISTS PermissionOptions,
 DROP COLUMN IF EXISTS PermissionValues,

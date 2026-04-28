@@ -3038,10 +3038,6 @@
     "translation": "검색 결과를 디코딩하지 못했습니다"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} is disabled."
   },

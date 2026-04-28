@@ -1126,8 +1126,9 @@ type ScheduledPostStore interface {
 }
 
 type PropertyGroupStore interface {
-	Register(name string) (*model.PropertyGroup, error)
+	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
 	Get(name string) (*model.PropertyGroup, error)
+	GetByID(id string) (*model.PropertyGroup, error)
 }
 
 type PropertyFieldStore interface {

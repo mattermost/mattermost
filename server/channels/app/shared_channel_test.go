@@ -1334,7 +1334,7 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsg(t *testing.T) {
 		remoteUser := &model.User{
 			Email:    model.NewId() + "@remote.test",
 			Username: "remote-attach-" + model.NewId()[:8],
-			Password: "Password1!",
+			Password: model.NewTestPassword(),
 			RemoteId: model.NewPointer(rc.RemoteId),
 		}
 		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
@@ -1409,7 +1409,7 @@ func TestPluginAPIReceiveSharedChannelProfileImageSyncMsg(t *testing.T) {
 		remoteUser := &model.User{
 			Email:    model.NewId() + "@remote.test",
 			Username: "remote-img-" + model.NewId()[:8],
-			Password: "Password1!",
+			Password: model.NewTestPassword(),
 			RemoteId: model.NewPointer(rc.RemoteId),
 		}
 		remoteUser, appErr := th.App.CreateUser(th.Context, remoteUser)
