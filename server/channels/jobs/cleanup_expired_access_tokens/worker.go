@@ -24,6 +24,20 @@ const (
 	maxBatches = 1000
 )
 
+// expiredTokenStore is the subset of UserAccessTokenStore used by the worker.
+// Defined here rather than depending on the full store interface so the
+// orchestration logic can be unit-tested with a small fake.
+type expiredTokenStore interface {
+	GetExpiredBefore(cutoff int64, limit int) ([]*model.UserAccessToken, error)
+	DeleteByIds(tokenIDs []string) (int64, error)
+}
+
+// auditRecorder is the subset of *audit.Audit used by the worker. *audit.Audit
+// satisfies this interface.
+type auditRecorder interface {
+	LogRecord(level mlog.Level, rec model.AuditRecord)
+}
+
 // MakeWorker creates a worker that periodically deletes personal access tokens
 // whose ExpiresAt has passed, along with any sessions created from them. An
 // audit record is emitted for every token that is cleaned up so that the
@@ -37,69 +51,91 @@ func MakeWorker(jobServer *jobs.JobServer, auditLogger *audit.Audit) *jobs.Simpl
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
-
-		cutoff := model.GetMillis()
-		var totalDeleted int64
-
-		for range maxBatches {
-			expired, err := jobServer.Store.UserAccessToken().GetExpiredBefore(cutoff, batchLimit)
-			if err != nil {
-				logger.Error("Failed to read expired personal access tokens", mlog.Err(err))
-				return err
-			}
-			if len(expired) == 0 {
-				break
-			}
-
-			ids := make([]string, len(expired))
-			for i, token := range expired {
-				ids[i] = token.Id
-			}
-
-			deleted, err := jobServer.Store.UserAccessToken().DeleteByIds(ids)
-			if err != nil {
-				logger.Error("Failed to delete expired personal access tokens", mlog.Err(err))
-				return err
-			}
-			totalDeleted += deleted
-
-			if auditLogger != nil {
-				for _, token := range expired {
-					rec := model.AuditRecord{
-						EventName: model.AuditEventExpireUserAccessToken,
-						Status:    model.AuditStatusSuccess,
-						Actor: model.AuditEventActor{
-							Client: "server " + model.BuildNumber + "-" + model.BuildHash,
-						},
-						EventData: model.AuditEventData{
-							Parameters:  map[string]any{},
-							PriorState:  map[string]any{},
-							ResultState: map[string]any{},
-							ObjectType:  "user_access_token",
-						},
-						Meta: map[string]any{
-							"token_id":   token.Id,
-							"user_id":    token.UserId,
-							"expires_at": token.ExpiresAt,
-						},
-					}
-					auditLogger.LogRecord(mlog.LvlAuditCLI, rec)
-				}
-			}
-
-			if len(expired) < batchLimit {
-				break
-			}
-		}
-
-		logger.Info(
-			"Cleaned up expired personal access tokens",
-			mlog.Int("deleted", int(totalDeleted)),
-			mlog.Int("cutoff", int(cutoff)),
+		// Use the package-private cleanup function so the same code path is
+		// exercised by both the production worker and unit tests.
+		return cleanupExpired(
+			logger,
+			jobServer.Store.UserAccessToken(),
+			auditLogger,
+			model.GetMillis(),
+			batchLimit,
+			maxBatches,
 		)
-
-		return nil
 	}
 
 	return jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
+}
+
+// cleanupExpired drains expired personal access tokens in batches up to
+// maxBatches iterations, emitting one audit record per deleted token. It is
+// extracted from MakeWorker so that the batching, audit, and error-propagation
+// logic can be exercised by unit tests with a fake store.
+func cleanupExpired(
+	logger mlog.LoggerIFace,
+	store expiredTokenStore,
+	auditLogger auditRecorder,
+	cutoff int64,
+	limit int,
+	maxIter int,
+) error {
+	var totalDeleted int64
+
+	for range maxIter {
+		expired, err := store.GetExpiredBefore(cutoff, limit)
+		if err != nil {
+			logger.Error("Failed to read expired personal access tokens", mlog.Err(err))
+			return err
+		}
+		if len(expired) == 0 {
+			break
+		}
+
+		ids := make([]string, len(expired))
+		for i, token := range expired {
+			ids[i] = token.Id
+		}
+
+		deleted, err := store.DeleteByIds(ids)
+		if err != nil {
+			logger.Error("Failed to delete expired personal access tokens", mlog.Err(err))
+			return err
+		}
+		totalDeleted += deleted
+
+		if auditLogger != nil {
+			for _, token := range expired {
+				rec := model.AuditRecord{
+					EventName: model.AuditEventExpireUserAccessToken,
+					Status:    model.AuditStatusSuccess,
+					Actor: model.AuditEventActor{
+						Client: "server " + model.BuildNumber + "-" + model.BuildHash,
+					},
+					EventData: model.AuditEventData{
+						Parameters:  map[string]any{},
+						PriorState:  map[string]any{},
+						ResultState: map[string]any{},
+						ObjectType:  "user_access_token",
+					},
+					Meta: map[string]any{
+						"token_id":   token.Id,
+						"user_id":    token.UserId,
+						"expires_at": token.ExpiresAt,
+					},
+				}
+				auditLogger.LogRecord(mlog.LvlAuditCLI, rec)
+			}
+		}
+
+		if len(expired) < limit {
+			break
+		}
+	}
+
+	logger.Info(
+		"Cleaned up expired personal access tokens",
+		mlog.Int("deleted", int(totalDeleted)),
+		mlog.Int("cutoff", int(cutoff)),
+	)
+
+	return nil
 }
