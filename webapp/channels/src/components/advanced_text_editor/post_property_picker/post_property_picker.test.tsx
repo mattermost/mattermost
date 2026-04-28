@@ -147,4 +147,37 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
         const trigger = screen.getByRole('button', {name: /add property/i});
         expect(trigger).toBeInTheDocument();
     });
+
+    test('renders a "Manage properties" item when onManageClick is provided', () => {
+        renderWithContext(
+            <PostPropertyPicker
+                fields={[makeField()]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
+                onManageClick={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+
+        expect(screen.getByText(/manage properties/i)).toBeInTheDocument();
+    });
+
+    test('does not render "Manage properties" item when onManageClick is not provided', () => {
+        renderWithContext(
+            <PostPropertyPicker
+                fields={[makeField()]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+
+        expect(screen.queryByText(/manage properties/i)).not.toBeInTheDocument();
+    });
 });

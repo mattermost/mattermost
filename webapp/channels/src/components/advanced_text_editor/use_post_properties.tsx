@@ -12,8 +12,13 @@ import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPostPropertyFieldsForChannel} from 'mattermost-redux/selectors/entities/properties';
 
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
+import {openModal} from 'actions/views/modals';
 
-import type {DispatchFunc, GlobalState} from 'types/store';
+import ManagePostPropertiesModal from 'components/manage_post_properties_modal/manage_post_properties_modal';
+
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import NewPropertyForm from './post_property_picker/new_property_form';
 import type {NewPropertyData} from './post_property_picker/new_property_form';
@@ -24,7 +29,7 @@ import type {StagedPropertyItem} from './post_property_picker/types';
 const EMPTY_FIELDS: PropertyField[] = [];
 
 const usePostProperties = (channelId: string, rootId: string, disabled: boolean) => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const integratedBoardsEnabled = useSelector(
         (state: GlobalState) => getFeatureFlagValue(state, 'IntegratedBoards') === 'true',
@@ -65,6 +70,14 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
     const handleAddNewClick = useCallback(() => {
         setShowNewFieldForm(true);
     }, []);
+
+    const handleManageClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.MANAGE_POST_PROPERTIES_MODAL,
+            dialogType: ManagePostPropertiesModal,
+            dialogProps: {channelId},
+        }));
+    }, [dispatch, channelId]);
 
     const handleCancelNewField = useCallback(() => {
         setShowNewFieldForm(false);
@@ -111,10 +124,11 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
                 stagedFieldIds={stagedFieldIds}
                 onToggleStaged={handleToggleStaged}
                 onAddNewClick={handleAddNewClick}
+                onManageClick={handleManageClick}
                 disabled={disabled}
             />
         );
-    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, handleAddNewClick, disabled]);
+    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, handleAddNewClick, handleManageClick, disabled]);
 
     const stagedChips = useMemo(() => {
         if (!integratedBoardsEnabled || rootId || stagedItems.length === 0) {

@@ -485,6 +485,7 @@ export const ModalIdentifiers = {
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
     CREATE_RECAP_MODAL: 'create_recap_modal',
+    MANAGE_POST_PROPERTIES_MODAL: 'manage_post_properties_modal',
 };
 
 export const UserStatuses = {
