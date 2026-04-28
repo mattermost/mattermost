@@ -54,6 +54,7 @@ import {
     handlePropertyFieldCreated,
     handlePropertyFieldUpdated,
     handlePropertyFieldDeleted,
+    handlePropertyValuesUpdated,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -1739,5 +1740,50 @@ describe('handlePropertyField websocket handlers', () => {
         }));
 
         expect(testStore.getState().entities.properties.fields.byId).toEqual(before.entities.properties.fields.byId);
+    });
+
+    test('handlePropertyValuesUpdated stores received values in state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        const value1 = {
+            id: 'value1',
+            target_id: 'post1',
+            target_type: 'post',
+            group_id: 'group1',
+            field_id: field1.id,
+            value: 'hello',
+            create_at: 1,
+            update_at: 1,
+            delete_at: 0,
+        };
+
+        testStore.dispatch(handlePropertyValuesUpdated({
+            event: WebSocketEvents.PropertyValuesUpdated,
+            data: {
+                object_type: 'post',
+                target_id: 'post1',
+                values: JSON.stringify([value1]),
+            },
+        }));
+
+        const state = testStore.getState();
+        expect(state.entities.properties.values.byTargetId.post1[field1.id]).toEqual(value1);
+        expect(state.entities.properties.values.byFieldId[field1.id].post1).toEqual(value1);
+    });
+
+    test('handlePropertyValuesUpdated silently ignores invalid JSON', () => {
+        const testStore = realConfigureStore(makeInitialState());
+        const before = testStore.getState();
+
+        testStore.dispatch(handlePropertyValuesUpdated({
+            event: WebSocketEvents.PropertyValuesUpdated,
+            data: {
+                object_type: 'post',
+                target_id: 'post1',
+                values: '{not valid',
+            },
+        }));
+
+        expect(testStore.getState().entities.properties.values).toEqual(before.entities.properties.values);
     });
 });

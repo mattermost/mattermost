@@ -227,7 +227,7 @@ describe('components/post_property_chips/PostPropertyChips', () => {
         expect(pill?.style.backgroundColor).toBeTruthy();
     });
 
-    test('renders one chip per option for multiselect values', () => {
+    test('renders a single chip with one pill per selected option for multiselect values', () => {
         const field = makeField({
             id: 'f1',
             name: 'Tags',
@@ -252,9 +252,13 @@ describe('components/post_property_chips/PostPropertyChips', () => {
         );
 
         const chips = container.querySelectorAll('.property-chip');
-        expect(chips).toHaveLength(2);
-        expect(chips[0]).toHaveTextContent('urgent');
-        expect(chips[1]).toHaveTextContent('bug');
+        expect(chips).toHaveLength(1);
+        expect(chips[0]).toHaveTextContent('Tags');
+
+        const pills = chips[0].querySelectorAll('.property-chip__multi-pill');
+        expect(pills).toHaveLength(2);
+        expect(pills[0]).toHaveTextContent('urgent');
+        expect(pills[1]).toHaveTextContent('bug');
     });
 
     test('renders a date value formatted via FormattedDate', () => {

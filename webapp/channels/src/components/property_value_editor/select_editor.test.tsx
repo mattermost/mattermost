@@ -38,8 +38,14 @@ function makeSelectField(overrides: Partial<PropertyField> = {}): PropertyField 
     };
 }
 
+function openMenu() {
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    fireEvent.focus(combobox);
+}
+
 describe('components/property_value_editor/SelectEditor (single)', () => {
-    test('renders a select element with options from field attrs', () => {
+    test('renders a combobox', () => {
         render(wrap(
             <SelectEditor
                 field={makeSelectField()}
@@ -50,24 +56,9 @@ describe('components/property_value_editor/SelectEditor (single)', () => {
         ));
 
         expect(screen.getByRole('combobox')).toBeInTheDocument();
-        expect(screen.getByRole('option', {name: 'Open'})).toBeInTheDocument();
-        expect(screen.getByRole('option', {name: 'In Progress'})).toBeInTheDocument();
-        expect(screen.getByRole('option', {name: 'Done'})).toBeInTheDocument();
     });
 
-    test('shows blank option when value is empty', () => {
-        render(wrap(
-            <SelectEditor
-                field={makeSelectField()}
-                value=''
-                onChange={jest.fn()}
-                multi={false}
-            />,
-        ));
-        expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('');
-    });
-
-    test('selects the option matching the current value', () => {
+    test('shows the option matching the current value', () => {
         render(wrap(
             <SelectEditor
                 field={makeSelectField()}
@@ -76,10 +67,27 @@ describe('components/property_value_editor/SelectEditor (single)', () => {
                 multi={false}
             />,
         ));
-        expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('opt2');
+        expect(screen.getByText('In Progress')).toBeInTheDocument();
     });
 
-    test('calls onChange with the option id when changed', () => {
+    test('renders all options in the menu when opened', () => {
+        render(wrap(
+            <SelectEditor
+                field={makeSelectField()}
+                value=''
+                onChange={jest.fn()}
+                multi={false}
+            />,
+        ));
+
+        openMenu();
+
+        expect(screen.getByRole('option', {name: 'Open'})).toBeInTheDocument();
+        expect(screen.getByRole('option', {name: 'In Progress'})).toBeInTheDocument();
+        expect(screen.getByRole('option', {name: 'Done'})).toBeInTheDocument();
+    });
+
+    test('calls onChange with the option id when an option is selected', () => {
         const onChange = jest.fn();
         render(wrap(
             <SelectEditor
@@ -90,23 +98,10 @@ describe('components/property_value_editor/SelectEditor (single)', () => {
             />,
         ));
 
-        fireEvent.change(screen.getByRole('combobox'), {target: {value: 'opt1'}});
+        openMenu();
+        fireEvent.click(screen.getByRole('option', {name: 'Open'}));
+
         expect(onChange).toHaveBeenCalledWith('opt1');
-    });
-
-    test('calls onChange with undefined when the blank option is chosen', () => {
-        const onChange = jest.fn();
-        render(wrap(
-            <SelectEditor
-                field={makeSelectField()}
-                value='opt1'
-                onChange={onChange}
-                multi={false}
-            />,
-        ));
-
-        fireEvent.change(screen.getByRole('combobox'), {target: {value: ''}});
-        expect(onChange).toHaveBeenCalledWith(undefined);
     });
 
     test('renders a placeholder when field has no options', () => {
@@ -123,7 +118,7 @@ describe('components/property_value_editor/SelectEditor (single)', () => {
 });
 
 describe('components/property_value_editor/SelectEditor (multi)', () => {
-    test('renders checkboxes for each option', () => {
+    test('renders a combobox with multi selection', () => {
         render(wrap(
             <SelectEditor
                 field={makeSelectField()}
@@ -133,12 +128,10 @@ describe('components/property_value_editor/SelectEditor (multi)', () => {
             />,
         ));
 
-        expect(screen.getByRole('checkbox', {name: 'Open'})).toBeInTheDocument();
-        expect(screen.getByRole('checkbox', {name: 'In Progress'})).toBeInTheDocument();
-        expect(screen.getByRole('checkbox', {name: 'Done'})).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
-    test('pre-checks options whose ids are in the value array', () => {
+    test('shows pills for the option ids in the value array', () => {
         render(wrap(
             <SelectEditor
                 field={makeSelectField()}
@@ -148,12 +141,12 @@ describe('components/property_value_editor/SelectEditor (multi)', () => {
             />,
         ));
 
-        expect(screen.getByRole('checkbox', {name: 'Open'})).toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'In Progress'})).not.toBeChecked();
-        expect(screen.getByRole('checkbox', {name: 'Done'})).toBeChecked();
+        expect(screen.getByText('Open')).toBeInTheDocument();
+        expect(screen.getByText('Done')).toBeInTheDocument();
+        expect(screen.queryByText('In Progress')).not.toBeInTheDocument();
     });
 
-    test('adds an option id to the array when its checkbox is checked', () => {
+    test('adds an option id to the array when picked from the menu', () => {
         const onChange = jest.fn();
         render(wrap(
             <SelectEditor
@@ -164,22 +157,9 @@ describe('components/property_value_editor/SelectEditor (multi)', () => {
             />,
         ));
 
-        fireEvent.click(screen.getByRole('checkbox', {name: 'In Progress'}));
+        openMenu();
+        fireEvent.click(screen.getByRole('option', {name: 'In Progress'}));
+
         expect(onChange).toHaveBeenCalledWith(['opt1', 'opt2']);
-    });
-
-    test('removes an option id from the array when its checkbox is unchecked', () => {
-        const onChange = jest.fn();
-        render(wrap(
-            <SelectEditor
-                field={makeSelectField()}
-                value={['opt1', 'opt2']}
-                onChange={onChange}
-                multi={true}
-            />,
-        ));
-
-        fireEvent.click(screen.getByRole('checkbox', {name: 'Open'}));
-        expect(onChange).toHaveBeenCalledWith(['opt2']);
     });
 });

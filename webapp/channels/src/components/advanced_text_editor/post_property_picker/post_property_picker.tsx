@@ -58,7 +58,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
         setSearchQuery(e.target.value);
     }, []);
 
-    const stopPropagationOnKey = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    const stopPropagationOnKey = useCallback((e: React.KeyboardEvent<HTMLElement>) => {
         // Prevent the menu from intercepting typing keys (Esc still bubbles to close).
         if (e.key !== 'Escape') {
             e.stopPropagation();
@@ -196,6 +196,8 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                         <li
                             key='post-property-picker-form'
                             className='post-property-picker__form-wrapper'
+                            onKeyDown={stopPropagationOnKey}
+                            onKeyUp={stopPropagationOnKey}
                         >
                             <NewPropertyForm
                                 onSave={handleSaveNew}

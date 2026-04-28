@@ -73,7 +73,7 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
         expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
-    test('routes multiselect fields to checkboxes', () => {
+    test('routes multiselect fields to a multi-select combobox', () => {
         render(wrap(
             <PropertyValueEditor
                 field={makeField({
@@ -85,7 +85,7 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
                 onChange={jest.fn()}
             />,
         ));
-        expect(screen.getByRole('checkbox', {name: 'Bug'})).toBeInTheDocument();
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
     test('routes user fields to the user editor', () => {

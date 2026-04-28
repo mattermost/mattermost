@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
+import type {NewPropertyData} from 'components/advanced_text_editor/post_property_picker/new_property_form';
 import PostPropertyPicker from 'components/advanced_text_editor/post_property_picker/post_property_picker';
 import PropertyValueEditor from 'components/property_value_editor';
 import PropertyChipPopover from 'components/property_value_editor/property_chip_popover';
@@ -26,6 +27,7 @@ export type Props = {
     valuesByFieldId: {[fieldId: string]: PropertyValue<unknown>};
     loadPostPropertyValues: (postId: string) => unknown;
     onChangeValue: (fieldId: string, value: unknown) => void;
+    onCreateField?: (data: NewPropertyData) => Promise<string | undefined>;
 };
 
 function isFilled(raw: unknown): boolean {
@@ -107,14 +109,13 @@ function FieldRow({
     );
 }
 
-const NOOP = () => {};
-
 export default function RhsPostPropertiesPanel({
     postId,
     fields,
     valuesByFieldId,
     loadPostPropertyValues,
     onChangeValue,
+    onCreateField,
 }: Props) {
     const [showAll, setShowAll] = useState(false);
     const [locallyAttached, setLocallyAttached] = useState<string[]>([]);
@@ -145,6 +146,16 @@ export default function RhsPostPropertiesPanel({
     const handleAttach = useCallback((fieldId: string) => {
         setLocallyAttached((current) => (current.includes(fieldId) ? current : [...current, fieldId]));
     }, []);
+
+    const handleCreateField = useCallback(async (data: NewPropertyData) => {
+        if (!onCreateField) {
+            return;
+        }
+        const newId = await onCreateField(data);
+        if (newId) {
+            setLocallyAttached((current) => (current.includes(newId) ? current : [...current, newId]));
+        }
+    }, [onCreateField]);
 
     if (fields.length === 0) {
         return null;
@@ -180,7 +191,7 @@ export default function RhsPostPropertiesPanel({
                         fields={pickerFields}
                         stagedFieldIds={[]}
                         onToggleStaged={handleAttach}
-                        onAddNewClick={NOOP}
+                        onCreateField={onCreateField ? handleCreateField : undefined}
                         disabled={false}
                     />
                 </div>

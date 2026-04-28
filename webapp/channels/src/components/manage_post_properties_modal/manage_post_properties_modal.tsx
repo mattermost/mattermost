@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {
     deleteChannelPostPropertyField,
@@ -26,6 +26,29 @@ type Props = {
     onExited: () => void;
 };
 
+function generateOptionId(): string {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return `opt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getFieldOptions(field: PropertyField): PropertyFieldOption[] {
+    return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+}
+
+function optionsEqual(a: PropertyFieldOption[], b: PropertyFieldOption[]): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let i = 0; i < a.length; i++) {
+        if (a[i].id !== b[i].id || a[i].name !== b[i].name) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function FieldRow({field, onDeleteRequest}: {
     field: PropertyField;
     onDeleteRequest: (fieldId: string) => void;
@@ -34,21 +57,56 @@ function FieldRow({field, onDeleteRequest}: {
     const dispatch = useDispatch<DispatchFunc>();
 
     const [draftName, setDraftName] = useState(field.name);
+    const supportsOptions = field.type === 'select' || field.type === 'multiselect';
+    const initialOptions = useMemo(() => getFieldOptions(field), [field]);
+    const [draftOptions, setDraftOptions] = useState<PropertyFieldOption[]>(initialOptions);
+
+    useEffect(() => {
+        setDraftOptions(initialOptions);
+    }, [initialOptions]);
 
     const trimmed = draftName.trim();
-    const isDirty = trimmed !== field.name;
-    const isValid = trimmed.length > 0;
-    const canSave = isDirty && isValid;
+    const nameDirty = trimmed !== field.name;
+    const nameValid = trimmed.length > 0;
+    const trimmedOptions = useMemo(
+        () => draftOptions.map((o) => ({...o, name: o.name.trim()})),
+        [draftOptions],
+    );
+    const optionsDirty = supportsOptions && !optionsEqual(initialOptions, trimmedOptions);
+    const optionsValid = !supportsOptions || (
+        trimmedOptions.length > 0 &&
+        trimmedOptions.every((o) => o.name.length > 0)
+    );
+    const canSave = (nameDirty || optionsDirty) && nameValid && optionsValid;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setDraftName(e.target.value);
+    };
+
+    const handleAddOption = () => {
+        setDraftOptions((prev) => [...prev, {id: generateOptionId(), name: ''}]);
+    };
+
+    const handleOptionNameChange = (id: string, value: string) => {
+        setDraftOptions((prev) => prev.map((o) => (o.id === id ? {...o, name: value} : o)));
+    };
+
+    const handleRemoveOption = (id: string) => {
+        setDraftOptions((prev) => prev.filter((o) => o.id !== id));
     };
 
     const handleSave = () => {
         if (!canSave) {
             return;
         }
-        dispatch(patchChannelPostPropertyField(field.id, {name: trimmed}));
+        const patch: {name?: string; attrs?: PropertyField['attrs']} = {};
+        if (nameDirty) {
+            patch.name = trimmed;
+        }
+        if (optionsDirty) {
+            patch.attrs = {...(field.attrs ?? {}), options: trimmedOptions};
+        }
+        dispatch(patchChannelPostPropertyField(field.id, patch));
     };
 
     const handleDelete = () => {
@@ -69,36 +127,79 @@ function FieldRow({field, onDeleteRequest}: {
             className='manage-post-properties-modal__row'
             data-property-field-id={field.id}
         >
-            <span className='manage-post-properties-modal__row-icon'>
-                <PropertyTypeIcon type={field.type}/>
-            </span>
-            <input
-                type='text'
-                className='manage-post-properties-modal__name'
-                value={draftName}
-                aria-label={field.name}
-                onChange={handleChange}
-            />
-            <button
-                type='button'
-                className='manage-post-properties-modal__save'
-                aria-label={saveLabel}
-                disabled={!canSave}
-                onClick={handleSave}
-            >
-                <FormattedMessage
-                    id='manage_post_properties_modal.save'
-                    defaultMessage='Save'
+            <div className='manage-post-properties-modal__row-main'>
+                <span className='manage-post-properties-modal__row-icon'>
+                    <PropertyTypeIcon type={field.type}/>
+                </span>
+                <input
+                    type='text'
+                    className='manage-post-properties-modal__name'
+                    value={draftName}
+                    aria-label={field.name}
+                    onChange={handleChange}
                 />
-            </button>
-            <button
-                type='button'
-                className='manage-post-properties-modal__delete'
-                aria-label={deleteLabel}
-                onClick={handleDelete}
-            >
-                <TrashCanOutlineIcon size={18}/>
-            </button>
+                <button
+                    type='button'
+                    className='manage-post-properties-modal__save'
+                    aria-label={saveLabel}
+                    disabled={!canSave}
+                    onClick={handleSave}
+                >
+                    <FormattedMessage
+                        id='manage_post_properties_modal.save'
+                        defaultMessage='Save'
+                    />
+                </button>
+                <button
+                    type='button'
+                    className='manage-post-properties-modal__delete'
+                    aria-label={deleteLabel}
+                    onClick={handleDelete}
+                >
+                    <TrashCanOutlineIcon size={18}/>
+                </button>
+            </div>
+            {supportsOptions && (
+                <div className='manage-post-properties-modal__options'>
+                    {draftOptions.map((opt, idx) => (
+                        <div
+                            key={opt.id}
+                            className='manage-post-properties-modal__option-row'
+                        >
+                            <input
+                                type='text'
+                                aria-label={formatMessage(
+                                    {id: 'manage_post_properties_modal.option_name', defaultMessage: 'Option name {n}'},
+                                    {n: idx + 1},
+                                )}
+                                value={opt.name}
+                                onChange={(e) => handleOptionNameChange(opt.id, e.target.value)}
+                            />
+                            <button
+                                type='button'
+                                className='manage-post-properties-modal__option-remove'
+                                aria-label={formatMessage({
+                                    id: 'manage_post_properties_modal.remove_option',
+                                    defaultMessage: 'Remove option',
+                                })}
+                                onClick={() => handleRemoveOption(opt.id)}
+                            >
+                                <TrashCanOutlineIcon size={14}/>
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        type='button'
+                        className='manage-post-properties-modal__add-option'
+                        onClick={handleAddOption}
+                    >
+                        <FormattedMessage
+                            id='manage_post_properties_modal.add_option'
+                            defaultMessage='Add option'
+                        />
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

@@ -28,6 +28,11 @@
         color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
+    .property-chip__name {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-weight: 500;
+    }
+
     .property-chip__value {
         display: inline-flex;
         overflow: hidden;
@@ -43,6 +48,23 @@
         color: inherit;
         font-weight: 500;
     }
+
+    .property-chip__multi {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .property-chip__multi-pill {
+        padding: 0 6px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-weight: 500;
+        line-height: 16px;
+    }
+
 
     .property-user {
         display: inline-flex;

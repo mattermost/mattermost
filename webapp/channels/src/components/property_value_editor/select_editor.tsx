@@ -2,45 +2,75 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+import type {StylesConfig} from 'react-select';
+import ReactSelect from 'react-select';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
 import type {PropertyValueEditorProps} from './types';
 
-type SingleSelectProps = PropertyValueEditorProps;
-type MultiSelectProps = PropertyValueEditorProps;
-
 export type Props = PropertyValueEditorProps & {
     multi: boolean;
 };
 
-function toStringArray(value: unknown): string[] {
-    if (Array.isArray(value)) {
-        return value.map(String);
-    }
-    return [];
-}
+type SelectOption = {label: string; value: string};
 
-function toStringValue(value: unknown): string {
-    if (typeof value === 'string') {
-        return value;
-    }
-    return '';
-}
+const selectStyles: StylesConfig<SelectOption, true> = {
+    valueContainer: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+        flexWrap: 'wrap',
+        whiteSpace: 'normal',
+    }),
+    multiValue: (baseStyles) => ({
+        ...baseStyles,
+        margin: '2px',
+    }),
+    control: (baseStyles) => ({
+        ...baseStyles,
+        height: 'auto',
+        minHeight: '38px',
+    }),
+    multiValueLabel: (baseStyles) => ({
+        ...baseStyles,
+        padding: '2px 6px',
+    }),
+};
 
 function getOptions(field: PropertyValueEditorProps['field']): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
 }
 
-function SingleSelect({field, value, onChange}: SingleSelectProps) {
-    const options = getOptions(field);
-    const current = toStringValue(value);
+function toOption(opt: PropertyFieldOption): SelectOption {
+    return {label: opt.name, value: opt.id};
+}
 
-    const handleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-        const next = e.target.value;
-        onChange(next === '' ? undefined : next);
-    }, [onChange]);
+export default function SelectEditor({field, value, onChange, multi}: Props) {
+    const {formatMessage} = useIntl();
+    const options = getOptions(field);
+
+    const opts = useMemo(() => options.map(toOption), [options]);
+
+    const selectedValue = useMemo(() => {
+        if (multi) {
+            const ids = Array.isArray(value) ? value.map(String) : [];
+            return opts.filter((o) => ids.includes(o.value));
+        }
+        const id = typeof value === 'string' ? value : '';
+        return opts.find((o) => o.value === id) ?? null;
+    }, [multi, opts, value]);
+
+    const handleChange = useCallback((next: unknown) => {
+        if (multi) {
+            const arr = (next as SelectOption[] | null) ?? [];
+            onChange(arr.map((o) => o.value));
+            return;
+        }
+        const single = next as SelectOption | null;
+        onChange(single?.value ?? '');
+    }, [multi, onChange]);
 
     if (options.length === 0) {
         return (
@@ -57,67 +87,28 @@ function SingleSelect({field, value, onChange}: SingleSelectProps) {
     }
 
     return (
-        <select
-            className='property-value-editor property-value-editor--select'
-            data-property-field-id={field.id}
-            value={current}
-            aria-label={field.name}
-            onChange={handleChange}
-        >
-            <option value=''/>
-            {options.map((opt) => (
-                <option
-                    key={opt.id}
-                    value={opt.id}
-                >
-                    {opt.name}
-                </option>
-            ))}
-        </select>
-    );
-}
-
-function MultiSelect({field, value, onChange}: MultiSelectProps) {
-    const options = getOptions(field);
-    const selectedArray = useMemo(() => toStringArray(value), [value]);
-    const selectedSet = useMemo(() => new Set(selectedArray), [selectedArray]);
-
-    const handleChange = useCallback((optId: string, checked: boolean) => {
-        let next: string[];
-        if (checked) {
-            next = [...selectedSet, optId];
-        } else {
-            next = [...selectedSet].filter((id) => id !== optId);
-        }
-        onChange(next.length > 0 ? next : undefined);
-    }, [onChange, selectedSet]);
-
-    return (
         <div
-            className='property-value-editor property-value-editor--multiselect'
+            className={`property-value-editor property-value-editor--${multi ? 'multiselect' : 'select'}`}
             data-property-field-id={field.id}
         >
-            {options.map((opt) => (
-                <label
-                    key={opt.id}
-                    className='property-value-editor__option'
-                >
-                    <input
-                        type='checkbox'
-                        aria-label={opt.name}
-                        checked={selectedSet.has(opt.id)}
-                        onChange={(e) => handleChange(opt.id, e.target.checked)}
-                    />
-                    {opt.name}
-                </label>
-            ))}
+            <ReactSelect
+                isMulti={multi || undefined}
+                inputId={`property-value-editor-${field.id}`}
+                aria-label={field.name}
+                className='react-select'
+                classNamePrefix='react-select'
+                options={opts}
+                isClearable={true}
+                isSearchable={false}
+                placeholder={formatMessage({
+                    id: 'property_value_editor.select.placeholder',
+                    defaultMessage: 'Select',
+                })}
+                components={{IndicatorSeparator: null}}
+                styles={selectStyles}
+                value={selectedValue as SelectOption[]}
+                onChange={handleChange}
+            />
         </div>
     );
-}
-
-export default function SelectEditor({multi, ...rest}: Props) {
-    if (multi) {
-        return <MultiSelect {...rest}/>;
-    }
-    return <SingleSelect {...rest}/>;
 }

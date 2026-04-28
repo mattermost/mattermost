@@ -4,9 +4,13 @@
 import React, {useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {loadPostPropertyValues, patchPostPropertyValues} from 'mattermost-redux/actions/properties';
+import type {FieldType} from '@mattermost/types/properties';
+
+import {createChannelPostPropertyField, loadPostPropertyValues, patchPostPropertyValues} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPostPropertyFieldsForChannel} from 'mattermost-redux/selectors/entities/properties';
+
+import type {NewPropertyData} from 'components/advanced_text_editor/post_property_picker/new_property_form';
 
 import type {DispatchFunc, GlobalState} from 'types/store';
 
@@ -40,6 +44,18 @@ export default function RhsPostPropertiesPanelConnected({postId, channelId}: Pro
         dispatch(patchPostPropertyValues(postId, [{field_id: fieldId, value}]));
     }, [dispatch, postId]);
 
+    const handleCreateField = useCallback(async (data: NewPropertyData): Promise<string | undefined> => {
+        const result = await dispatch(createChannelPostPropertyField(channelId, {
+            name: data.name,
+            type: data.type as FieldType,
+            attrs: data.options ? {options: data.options} : undefined,
+        }));
+        if (!result.error && result.data) {
+            return result.data.id;
+        }
+        return undefined;
+    }, [dispatch, channelId]);
+
     if (!integratedBoardsEnabled) {
         return null;
     }
@@ -52,6 +68,7 @@ export default function RhsPostPropertiesPanelConnected({postId, channelId}: Pro
             valuesByFieldId={valuesByFieldId}
             loadPostPropertyValues={handleLoadValues}
             onChangeValue={handleChangeValue}
+            onCreateField={handleCreateField}
         />
     );
 }

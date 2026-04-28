@@ -14,14 +14,80 @@
 }
 
 .manage-post-properties-modal__row {
-    display: grid;
-    align-items: center;
-    column-gap: 8px;
-    grid-template-columns: 24px 1fr auto auto;
+    display: flex;
+    flex-direction: column;
     padding: 6px 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: 4px;
     background: rgba(var(--center-channel-color-rgb), 0.02);
+    gap: 6px;
+}
+
+.manage-post-properties-modal__row-main {
+    display: grid;
+    align-items: center;
+    column-gap: 8px;
+    grid-template-columns: 24px 1fr auto auto;
+}
+
+.manage-post-properties-modal__options {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0 4px 32px;
+    gap: 4px;
+}
+
+.manage-post-properties-modal__option-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    input[type='text'] {
+        flex: 1;
+        padding: 4px 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 12px;
+        line-height: 16px;
+
+        &:focus {
+            border-color: var(--button-bg);
+            outline: none;
+        }
+    }
+}
+
+.manage-post-properties-modal__option-remove {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--error-text-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text, #d24b4e);
+    }
+}
+
+.manage-post-properties-modal__add-option {
+    align-self: flex-start;
+    padding: 4px 8px;
+    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .manage-post-properties-modal__row-icon {

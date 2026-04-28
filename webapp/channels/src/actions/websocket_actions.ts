@@ -1195,7 +1195,7 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
     };
 }
 
-function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+export function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         let values;
         try {
@@ -1203,6 +1203,13 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
         } catch {
             // invalid JSON
             return;
+        }
+
+        if (Array.isArray(values) && values.length > 0) {
+            doDispatch({
+                type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+                data: {values},
+            });
         }
 
         const parsedPropertyValuesUpdated = {

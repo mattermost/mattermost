@@ -126,6 +126,22 @@
 .post-property-picker__form-wrapper {
     list-style: none;
     min-width: 280px;
-    padding: 8px 12px;
+    max-width: 320px;
+    padding: 0;
+
+    .new-property-form {
+        overflow-y: auto;
+        max-height: 60vh;
+        padding: 8px 12px;
+    }
+
+    .new-property-form__actions {
+        position: sticky;
+        bottom: 0;
+        padding-top: 8px;
+        margin-top: 4px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        background: var(--center-channel-bg);
+    }
 }
 

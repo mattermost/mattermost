@@ -7,6 +7,8 @@ import {UserSelector} from 'components/admin_console/content_flagging/user_multi
 
 import type {PropertyValueEditorProps} from './types';
 
+import './user_editor.scss';
+
 function toUserId(value: unknown): string {
     if (typeof value === 'string') {
         return value;
@@ -30,6 +32,7 @@ export default function UserEditor({field, value, onChange}: PropertyValueEditor
                 isClearable={true}
                 singleSelectOnChange={handleSelect}
                 singleSelectInitialValue={toUserId(value)}
+                menuPortalTarget={null}
             />
         </div>
     );
