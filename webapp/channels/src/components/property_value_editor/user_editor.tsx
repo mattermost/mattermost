@@ -16,7 +16,7 @@ function toUserId(value: unknown): string {
 
 export default function UserEditor({field, value, onChange}: PropertyValueEditorProps) {
     const handleSelect = useCallback((userId: string) => {
-        onChange(userId || undefined);
+        onChange(userId || '');
     }, [onChange]);
 
     return (
@@ -27,6 +27,7 @@ export default function UserEditor({field, value, onChange}: PropertyValueEditor
             <UserSelector
                 id={`user-editor-${field.id}`}
                 isMulti={false}
+                isClearable={true}
                 singleSelectOnChange={handleSelect}
                 singleSelectInitialValue={toUserId(value)}
             />

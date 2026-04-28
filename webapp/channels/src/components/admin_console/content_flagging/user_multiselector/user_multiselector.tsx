@@ -68,9 +68,10 @@ type Props = MultiSelectProps & SingleSelectProps & {
     enableGroups?: boolean;
     enableTeams?: boolean;
     disabled?: boolean;
+    isClearable?: boolean;
 };
 
-export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc, enableGroups = false, enableTeams = false, disabled = false}: Props) {
+export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc, enableGroups = false, enableTeams = false, disabled = false, isClearable = false}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -408,7 +409,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             inputId: `${id}_input`,
             classNamePrefix: 'UserMultiSelector',
             className: classNames('Input Input__focus', className, {error: hasError}),
-            isClearable: false,
+            isClearable,
             hideSelectedOptions: true,
             cacheOptions: true,
             placeholder: placeholder || defaultPlaceholder,
@@ -418,7 +419,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             menuPortalTarget: document.body,
             isDisabled: disabled,
         };
-    }, [className, defaultPlaceholder, disabled, hasError, id, noUsersMessage, placeholder, searchUsers, userLoadingMessage]);
+    }, [className, defaultPlaceholder, disabled, hasError, id, isClearable, noUsersMessage, placeholder, searchUsers, userLoadingMessage]);
 
     const containerClassName = classNames('UserMultiSelector', {multiSelect: isMulti, singleSelect: !isMulti});
 
