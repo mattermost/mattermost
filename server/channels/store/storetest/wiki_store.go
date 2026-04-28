@@ -17,13 +17,13 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func getPagePropertyIDs(t *testing.T, ss store.Store) (groupID string, fieldID string) {
-	group, err := ss.PropertyGroup().Register("pages")
+func getPagePropertyIDs(t *testing.T, rctx request.CTX, ss store.Store) (groupID string, fieldID string) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: "pages"})
 	require.NoError(t, err)
 	require.NotNil(t, group)
 
 	// Create wiki field if it doesn't exist
-	field, err := ss.PropertyField().GetFieldByName(group.ID, "", "wiki")
+	field, err := ss.PropertyField().GetFieldByName(rctx.Context(), group.ID, "", "wiki")
 	if err != nil {
 		// Field doesn't exist, create it
 		field, err = ss.PropertyField().Create(&model.PropertyField{
@@ -399,7 +399,7 @@ func testDeleteWiki(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
-	groupID, fieldID := getPagePropertyIDs(t, ss)
+	groupID, fieldID := getPagePropertyIDs(t, rctx, ss)
 
 	team := &model.Team{
 		DisplayName: "Test Team",
@@ -639,7 +639,7 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testMovePageToWiki(t *testing.T, rctx request.CTX, ss store.Store) {
-	groupID, fieldID := getPagePropertyIDs(t, ss)
+	groupID, fieldID := getPagePropertyIDs(t, rctx, ss)
 
 	team := &model.Team{
 		DisplayName: "Test Team",
@@ -974,7 +974,7 @@ func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
-	groupID, fieldID := getPagePropertyIDs(t, ss)
+	groupID, fieldID := getPagePropertyIDs(t, rctx, ss)
 
 	team := &model.Team{
 		DisplayName: "Test Team",
@@ -1222,7 +1222,7 @@ func testGetAbandonedPages(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testMoveWikiToChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	groupID, fieldID := getPagePropertyIDs(t, ss)
+	groupID, fieldID := getPagePropertyIDs(t, rctx, ss)
 
 	team := &model.Team{
 		DisplayName: "Test Team",
