@@ -62,9 +62,11 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		return rc.RemoteId, nil
 	}
 
-	// New connection.
+	// New connection. Name must satisfy the slug-style regex enforced by
+	// RemoteCluster.IsValid, so derive it from Displayname; the original
+	// human-readable label is preserved on DisplayName.
 	rc = &model.RemoteCluster{
-		Name:        opts.Displayname,
+		Name:        model.CleanRemoteName(opts.Displayname),
 		DisplayName: opts.Displayname,
 		SiteURL:     opts.SiteURL,
 		Token:       model.NewId(),
