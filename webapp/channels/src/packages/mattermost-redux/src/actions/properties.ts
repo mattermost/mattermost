@@ -22,6 +22,12 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 const POST_OBJECT_TYPE = 'post';
 const CHANNEL_TARGET_TYPE = 'channel';
 
+const loadedChannelPostFields = new Set<string>();
+
+export function resetLoadedChannelPostFields() {
+    loadedChannelPostFields.clear();
+}
+
 function dispatchReceivedFields(dispatch: any, fields: PropertyField[], groupName?: string) {
     if (fields.length === 0) {
         return;
@@ -44,6 +50,11 @@ function dispatchReceivedFields(dispatch: any, fields: PropertyField[], groupNam
 
 export function loadChannelPostPropertyFields(channelId: string): ActionFuncAsync<PropertyField[]> {
     return async (dispatch, getState) => {
+        if (loadedChannelPostFields.has(channelId)) {
+            return {data: []};
+        }
+        loadedChannelPostFields.add(channelId);
+
         let fields: PropertyField[];
         try {
             fields = await Client4.getPropertyFields(
@@ -53,6 +64,7 @@ export function loadChannelPostPropertyFields(channelId: string): ActionFuncAsyn
                 channelId,
             );
         } catch (error) {
+            loadedChannelPostFields.delete(channelId);
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};

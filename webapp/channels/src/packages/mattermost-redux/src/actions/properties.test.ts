@@ -58,6 +58,7 @@ describe('Actions.properties', () => {
 
     afterEach(() => {
         nock.cleanAll();
+        Actions.resetLoadedChannelPostFields();
     });
 
     describe('loadChannelPostPropertyFields', () => {
@@ -79,6 +80,45 @@ describe('Actions.properties', () => {
                 id: groupId,
                 name: ChannelPostPropertyGroupName,
             });
+        });
+
+        it('skips a second fetch for the same channel without nock', async () => {
+            const store = configureStore();
+            const field = mockField();
+
+            nock(Client4.getBaseRoute()).
+                get(`/properties/groups/${ChannelPostPropertyGroupName}/post/fields`).
+                query({target_type: 'channel', target_id: channelId}).
+                reply(200, [field]);
+
+            const first = await store.dispatch(Actions.loadChannelPostPropertyFields(channelId));
+            expect(first.data).toEqual([field]);
+
+            // No second nock interceptor — if the thunk hits the network we'd
+            // get a "no match for request" error from nock.
+            const second = await store.dispatch(Actions.loadChannelPostPropertyFields(channelId));
+            expect(second.data).toEqual([]);
+        });
+
+        it('clears the dedup entry on error so a retry can re-fetch', async () => {
+            const store = configureStore();
+
+            nock(Client4.getBaseRoute()).
+                get(`/properties/groups/${ChannelPostPropertyGroupName}/post/fields`).
+                query({target_type: 'channel', target_id: channelId}).
+                reply(500, {});
+
+            const first = await store.dispatch(Actions.loadChannelPostPropertyFields(channelId));
+            expect(first.error).toBeDefined();
+
+            const field = mockField();
+            nock(Client4.getBaseRoute()).
+                get(`/properties/groups/${ChannelPostPropertyGroupName}/post/fields`).
+                query({target_type: 'channel', target_id: channelId}).
+                reply(200, [field]);
+
+            const retry = await store.dispatch(Actions.loadChannelPostPropertyFields(channelId));
+            expect(retry.data).toEqual([field]);
         });
 
         it('returns an empty array without registering a group', async () => {

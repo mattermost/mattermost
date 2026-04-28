@@ -95,6 +95,12 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         this.setState({waitForLoader: v});
     };
 
+    componentDidMount() {
+        if (this.props.integratedBoardsEnabled && this.props.channelId) {
+            this.props.loadChannelPostPropertyFields(this.props.channelId);
+        }
+    }
+
     componentDidUpdate(prevProps: Props) {
         // TODO: debounce
         if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
@@ -104,6 +110,14 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         // If we're restricting direct messages and the value is not yet set, fetch it
         if (this.props.canRestrictDirectMessage && this.props.restrictDirectMessage === undefined) {
             this.props.fetchIsRestrictedDM(this.props.channelId);
+        }
+
+        if (
+            this.props.integratedBoardsEnabled &&
+            this.props.channelId &&
+            prevProps.channelId !== this.props.channelId
+        ) {
+            this.props.loadChannelPostPropertyFields(this.props.channelId);
         }
     }
 

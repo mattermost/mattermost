@@ -4,6 +4,7 @@
 import type {PropertyField, PropertyGroup, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {ChannelPostPropertyGroupName} from 'mattermost-redux/constants/properties';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 // Field selectors
@@ -39,6 +40,25 @@ export const getPropertyFieldsByIds = createSelector(
             }
             return acc;
         }, []);
+    },
+);
+
+export const getPostPropertyFieldsForChannel = createSelector(
+    'getPostPropertyFieldsForChannel',
+    (state: GlobalState) => state.entities.properties.groups.byName[ChannelPostPropertyGroupName],
+    (state: GlobalState) => state.entities.properties.fields.byObjectType.post,
+    (_state: GlobalState, channelId: string) => channelId,
+    (group, postFields, channelId) => {
+        if (!group || !postFields) {
+            return [];
+        }
+        const groupFields = postFields[group.id];
+        if (!groupFields) {
+            return [];
+        }
+        return Object.values(groupFields).filter(
+            (f) => f.target_type === 'channel' && f.target_id === channelId,
+        );
     },
 );
 
