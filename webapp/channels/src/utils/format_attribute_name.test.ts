@@ -15,4 +15,12 @@ describe('formatAttributeName', () => {
     test('leading uppercase does not leave a leading space in output', () => {
         expect(formatAttributeName('Program')).toBe('Program');
     });
+
+    test('preserves acronym runs before a capitalized word', () => {
+        expect(formatAttributeName('ABACPolicy')).toBe('Abac Policy');
+    });
+
+    test('preserves trailing acronym after camelCase prefix', () => {
+        expect(formatAttributeName('userID')).toBe('User Id');
+    });
 });
