@@ -21,9 +21,10 @@ export type Props = {
     onToggleStaged: (fieldId: string) => void;
     onAddNewClick: () => void;
     disabled: boolean;
+    mode?: 'staging' | 'rhs';
 };
 
-function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onAddNewClick, disabled}: Props) {
+function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onAddNewClick, disabled, mode = 'staging'}: Props) {
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
 
@@ -41,6 +42,17 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onAddNewCli
     }, [onToggleStaged]);
 
     const items = fields.map((field) => {
+        if (mode === 'rhs') {
+            return (
+                <Menu.Item
+                    key={field.id}
+                    id={`post-property-picker-item-${field.id}`}
+                    onClick={() => handleSelect(field.id)}
+                    labels={<span>{field.name}</span>}
+                />
+            );
+        }
+
         const checked = stagedSet.has(field.id);
         return (
             <Menu.Item
@@ -54,26 +66,41 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onAddNewCli
         );
     });
 
+    const triggerButton = mode === 'rhs' ? (
+        <button
+            type='button'
+            id='postPropertyPickerButton'
+            className='rhs-post-properties-panel__add-property'
+            disabled={disabled}
+            aria-label={triggerLabel}
+        >
+            <FormattedMessage
+                id='post_property_picker.add_property_cta'
+                defaultMessage='+ Add property'
+            />
+        </button>
+    ) : (
+        <IconContainer
+            id='postPropertyPickerButton'
+            className={classNames({control: true, active: open})}
+            disabled={disabled}
+            type='button'
+            aria-label={triggerLabel}
+        >
+            <PlaylistCheckIcon
+                size={18}
+                color='currentColor'
+            />
+        </IconContainer>
+    );
+
     return (
         <CompassDesignProvider theme={theme}>
             <Menu.Container
                 menuButton={{
                     id: 'postPropertyPickerButton',
                     as: 'div',
-                    children: (
-                        <IconContainer
-                            id='postPropertyPickerButton'
-                            className={classNames({control: true, active: open})}
-                            disabled={disabled}
-                            type='button'
-                            aria-label={triggerLabel}
-                        >
-                            <PlaylistCheckIcon
-                                size={18}
-                                color='currentColor'
-                            />
-                        </IconContainer>
-                    ),
+                    children: triggerButton,
                 }}
                 menu={{
                     id: 'post-property-picker-menu',

@@ -113,4 +113,38 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
 
         expect(screen.getByText(/no properties yet/i)).toBeInTheDocument();
     });
+
+    test('mode="rhs" renders items as plain menuitems without aria-checked', () => {
+        renderWithContext(
+            <PostPropertyPicker
+                mode='rhs'
+                fields={[makeField({id: 'f1', name: 'Status'})]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /add property/i}));
+
+        expect(screen.getByRole('menuitem', {name: /status/i})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitemcheckbox')).not.toBeInTheDocument();
+    });
+
+    test('mode="rhs" trigger has accessible label "Add property"', () => {
+        renderWithContext(
+            <PostPropertyPicker
+                mode='rhs'
+                fields={[]}
+                stagedFieldIds={[]}
+                onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        const trigger = screen.getByRole('button', {name: /add property/i});
+        expect(trigger).toBeInTheDocument();
+    });
 });
