@@ -44,7 +44,6 @@ func TestScheduleJobEnqueuesEachDueRecapAndSkipsDuplicateAtomically(t *testing.T
 		Return(dueRecaps, nil)
 
 	for _, sr := range []*model.ScheduledRecap{dueRecap1, dueRecap2} {
-		sr := sr
 		mockStore.JobStore.
 			On("SaveOnceByTypeAndData", mock.MatchedBy(func(job *model.Job) bool {
 				return job.Type == model.JobTypeScheduledRecap &&
