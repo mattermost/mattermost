@@ -40,7 +40,7 @@ export default defineConfig({
         },
         screenshot: 'only-on-failure',
         timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        trace: 'retain-on-failure-and-retries',
+        trace: 'retain-on-failure',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
     },

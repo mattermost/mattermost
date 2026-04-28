@@ -64,12 +64,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
-    Conflict:
-      description: Resource conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AppError"
   schemas:
     User:
       type: object

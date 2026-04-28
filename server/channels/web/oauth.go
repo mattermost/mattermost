@@ -330,6 +330,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
+	c.Logger.Info("[oauth-debug] completeOAuth called", mlog.String("service", service), mlog.String("code_len", fmt.Sprintf("%d", len(code))), mlog.String("state_len", fmt.Sprintf("%d", len(state))))
 	body, props, tokenUser, err := c.App.AuthorizeOAuthUser(c.AppContext, w, r, service, code, state, uri)
 
 	action := ""
@@ -345,6 +346,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
+	c.Logger.Info("[oauth-debug] AuthorizeOAuthUser done", mlog.String("action", action), mlog.String("redirect_url", redirectURL), mlog.Bool("has_body", body != nil))
 
 	renderError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -355,6 +357,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		c.Logger.Error("[oauth-debug] AuthorizeOAuthUser error", mlog.Err(err))
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
 		renderError(err)
@@ -363,11 +366,13 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.CompleteOAuth(c.AppContext, service, body, props, tokenUser)
 	if err != nil {
+		c.Logger.Error("[oauth-debug] CompleteOAuth error", mlog.Err(err))
 		err.Translate(c.AppContext.T)
 		c.LogErrorByCode(err)
 		renderError(err)
 		return
 	}
+	c.Logger.Info("[oauth-debug] CompleteOAuth OK", mlog.String("user_id", user.Id), mlog.String("username", user.Username))
 
 	if action == model.OAuthActionEmailToSSO {
 		redirectURL = c.GetSiteURLHeader() + "/login?extra=signin_change"
@@ -413,13 +418,16 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		isOAuthUser := user.IsOAuthUser()
 
+		c.Logger.Info("[oauth-debug] calling DoLogin", mlog.String("user_id", user.Id), mlog.Bool("is_oauth_user", isOAuthUser))
 		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, isOAuthUser, false)
 		if err != nil {
+			c.Logger.Error("[oauth-debug] DoLogin error", mlog.Err(err))
 			err.Translate(c.AppContext.T)
 			c.Logger.Error(err.Error())
 			renderError(err)
 			return
 		}
+		c.Logger.Info("[oauth-debug] DoLogin OK", mlog.String("session_id", session.Id))
 		c.AppContext = c.AppContext.WithSession(session)
 
 		// Old mobile version
@@ -446,12 +454,15 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// For web
+		c.Logger.Info("[oauth-debug] calling AttachSessionCookies")
 		c.App.AttachSessionCookies(c.AppContext, w, r)
+		c.Logger.Info("[oauth-debug] AttachSessionCookies done")
 	}
 
 	auditRec.Success()
 	c.LogAudit("success")
 
+	c.Logger.Info("[oauth-debug] final redirect", mlog.String("redirect_url", redirectURL))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	http.Redirect(w, r, redirectURL, http.StatusTemporaryRedirect)
 }

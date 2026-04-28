@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Disposable, Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 interface MockTranslateRequest {
     q?: string;
@@ -138,7 +138,7 @@ export async function mockAutotranslationRoute(
         sourceLanguage?: string;
         supportedLanguages?: string[];
     },
-): Promise<Disposable> {
+): Promise<{dispose(): Promise<void>; [Symbol.asyncDispose](): Promise<void>}> {
     // Reset mockSourceLanguage to avoid state leakage between tests
     mockSourceLanguage = options?.sourceLanguage || 'es';
 
@@ -146,7 +146,7 @@ export async function mockAutotranslationRoute(
 
     // Mock LibreTranslate API endpoint
     // Handles both /translate and /detect endpoints
-    const translateRoute = await page.route('**/api/translate', async (route) => {
+    await page.route('**/api/translate', async (route) => {
         const request = route.request();
         const method = request.method();
 
@@ -261,7 +261,7 @@ export async function mockAutotranslationRoute(
     });
 
     // Mock language detection endpoint (if used separately)
-    const detectRoute = await page.route('**/api/detect', async (route) => {
+    await page.route('**/api/detect', async (route) => {
         // Language detection is mocked to always return the configured source language
         // regardless of the input text
 
@@ -282,12 +282,12 @@ export async function mockAutotranslationRoute(
 
     return {
         async dispose() {
-            await translateRoute.dispose();
-            await detectRoute.dispose();
+            await page.unroute('**/api/translate');
+            await page.unroute('**/api/detect');
         },
         async [Symbol.asyncDispose]() {
-            await translateRoute.dispose();
-            await detectRoute.dispose();
+            await page.unroute('**/api/translate');
+            await page.unroute('**/api/detect');
         },
     };
 }
