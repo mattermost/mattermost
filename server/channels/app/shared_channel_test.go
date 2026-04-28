@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 	"text/template"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -822,6 +823,216 @@ func TestUninviteRemoteFromChannel_OnlyRemovesRequestedRemote(t *testing.T) {
 		err = th.App.checkChannelIsShared(channel.Id)
 		require.Error(t, err, "Channel should be unshared after removing the last active remote")
 		require.True(t, errors.Is(err, model.ErrChannelNotShared), "Error should be ErrChannelNotShared")
+	})
+}
+
+func TestGetSharedChannelInvitations(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+	ss := th.App.Srv().Store()
+
+	channelA := th.CreateChannel(t, th.BasicTeam)
+	channelB := th.CreateChannel(t, th.BasicTeam)
+	remoteA := model.NewId()
+	remoteB := model.NewId()
+
+	invA1, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: channelA.Id,
+		RemoteId:  remoteA,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusPending,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	time.Sleep(2 * time.Millisecond)
+
+	invA2, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: channelB.Id,
+		RemoteId:  remoteA,
+		Direction: model.SharedChannelInvitationDirectionReceived,
+		Status:    model.SharedChannelInvitationStatusFailed,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+		ChannelId: channelA.Id,
+		RemoteId:  remoteB,
+		Direction: model.SharedChannelInvitationDirectionSent,
+		Status:    model.SharedChannelInvitationStatusRejected,
+		CreatorId: th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+
+	byRemote, err := th.App.GetSharedChannelInvitationsByRemote(remoteA, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, byRemote, 2)
+	require.Equal(t, invA2.Id, byRemote[0].Id, "newest invitation should be first")
+	require.Equal(t, invA1.Id, byRemote[1].Id)
+
+	byRemotePage2, err := th.App.GetSharedChannelInvitationsByRemote(remoteA, 1, 1)
+	require.NoError(t, err)
+	require.Len(t, byRemotePage2, 1)
+	require.Equal(t, invA1.Id, byRemotePage2[0].Id, "paging should use page*perPage offset")
+
+	byChannel, err := th.App.GetSharedChannelInvitationsByChannel(channelA.Id, 0, 10)
+	require.NoError(t, err)
+	require.Len(t, byChannel, 2)
+}
+
+func TestRemoveSharedChannelInvitation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := setupSharedChannels(t).InitBasic(t)
+	ss := th.App.Srv().Store()
+
+	newRemoteCluster := func(name string) *model.RemoteCluster {
+		t.Helper()
+
+		rc := &model.RemoteCluster{
+			RemoteId:     model.NewId(),
+			Name:         name,
+			DisplayName:  name,
+			SiteURL:      "https://" + name + ".example.com",
+			Token:        model.NewId(),
+			CreateAt:     model.GetMillis(),
+			LastPingAt:   model.GetMillis(),
+			CreatorId:    th.BasicUser.Id,
+			RemoteTeamId: model.NewId(),
+		}
+		rc, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+		return rc
+	}
+
+	saveRemoteLink := func(channelID, remoteID string) {
+		t.Helper()
+
+		_, err := ss.SharedChannel().SaveRemote(&model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         channelID,
+			CreatorId:         th.BasicUser.Id,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          remoteID,
+			LastPostUpdateAt:  model.GetMillis(),
+		})
+		require.NoError(t, err)
+	}
+
+	shareChannel := func(channel *model.Channel) {
+		t.Helper()
+
+		_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
+			ChannelId:        channel.Id,
+			TeamId:           channel.TeamId,
+			Home:             true,
+			ShareName:        channel.Name,
+			ShareDisplayName: channel.DisplayName,
+			CreatorId:        th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+	}
+
+	t.Run("returns not found when invitation is missing", func(t *testing.T) {
+		err := th.App.RemoveSharedChannelInvitation(model.NewId(), model.NewId())
+		require.Error(t, err)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("returns bad request when remote does not match invitation", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		remoteA := model.NewId()
+		remoteB := model.NewId()
+
+		inv, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+			ChannelId: channel.Id,
+			RemoteId:  remoteA,
+			Direction: model.SharedChannelInvitationDirectionSent,
+			Status:    model.SharedChannelInvitationStatusFailed,
+			CreatorId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		err = th.App.RemoveSharedChannelInvitation(remoteB, inv.Id)
+		require.Error(t, err)
+
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		_, err = ss.SharedChannelInvitation().Get(inv.Id)
+		require.NoError(t, err, "invitation should still exist on remote mismatch")
+	})
+
+	t.Run("deletes failed invitation rows directly", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		remoteID := model.NewId()
+
+		inv, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+			ChannelId: channel.Id,
+			RemoteId:  remoteID,
+			Direction: model.SharedChannelInvitationDirectionSent,
+			Status:    model.SharedChannelInvitationStatusFailed,
+			CreatorId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		err = th.App.RemoveSharedChannelInvitation(remoteID, inv.Id)
+		require.NoError(t, err)
+
+		_, err = ss.SharedChannelInvitation().Get(inv.Id)
+		require.Error(t, err)
+	})
+
+	t.Run("pending sent invitation uninvites existing remote", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		shareChannel(channel)
+
+		rc := newRemoteCluster("remove-invitation-sent")
+		saveRemoteLink(channel.Id, rc.RemoteId)
+
+		inv, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+			ChannelId: channel.Id,
+			RemoteId:  rc.RemoteId,
+			Direction: model.SharedChannelInvitationDirectionSent,
+			Status:    model.SharedChannelInvitationStatusPending,
+			CreatorId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		err = th.App.RemoveSharedChannelInvitation(rc.RemoteId, inv.Id)
+		require.NoError(t, err)
+
+		hasRemote, err := ss.SharedChannel().HasRemote(channel.Id, rc.RemoteId)
+		require.NoError(t, err)
+		require.False(t, hasRemote, "pending sent invitation should uninvite the remote")
+
+		_, err = ss.SharedChannelInvitation().Get(inv.Id)
+		require.Error(t, err, "invitation row should be deleted by uninvite path")
+	})
+
+	t.Run("pending received invitation without remote link deletes orphan row", func(t *testing.T) {
+		channel := th.CreateChannel(t, th.BasicTeam)
+		rc := newRemoteCluster("remove-invitation-received")
+
+		inv, err := ss.SharedChannelInvitation().Save(&model.SharedChannelInvitation{
+			ChannelId: channel.Id,
+			RemoteId:  rc.RemoteId,
+			Direction: model.SharedChannelInvitationDirectionReceived,
+			Status:    model.SharedChannelInvitationStatusPending,
+			CreatorId: th.BasicUser.Id,
+		})
+		require.NoError(t, err)
+
+		err = th.App.RemoveSharedChannelInvitation(rc.RemoteId, inv.Id)
+		require.NoError(t, err)
+
+		_, err = ss.SharedChannelInvitation().Get(inv.Id)
+		require.Error(t, err, "orphan pending received invitation should be deleted directly")
 	})
 }
 

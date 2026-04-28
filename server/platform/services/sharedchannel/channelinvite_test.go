@@ -9,7 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -866,6 +868,64 @@ func TestSendChannelInvite_invitationPersistence(t *testing.T) {
 		require.NoError(t, err)
 
 		invMock.AssertNotCalled(t, "Save")
+	})
+
+	t.Run("offline remote save remote failure persists generic error and logs detail", func(t *testing.T) {
+		mockServer := &MockServerIface{}
+		logger := mlog.CreateConsoleTestLogger(t)
+		var logs mlog.Buffer
+		require.NoError(t, mlog.AddWriterTarget(logger, &logs, false, mlog.MlvlAll...))
+		mockServer.On("Log").Return(logger)
+		mockApp := &MockAppIface{}
+		scs := &Service{
+			server: mockServer,
+			app:    mockApp,
+		}
+
+		channel := &model.Channel{Id: model.NewId(), TeamId: model.NewId(), Type: model.ChannelTypeOpen}
+		userID := model.NewId()
+		rc := &model.RemoteCluster{
+			RemoteId:    model.NewId(),
+			CreatorId:   userID,
+			LastPingAt:  0,
+			DisplayName: "Offline",
+		}
+		sc := &model.SharedChannel{
+			ChannelId:        channel.Id,
+			ShareDisplayName: "d",
+			ShareHeader:      "h",
+			SharePurpose:     "p",
+		}
+		dbErr := errors.New("pq: duplicate key value violates unique constraint sharedchannelremotes_pkey")
+
+		invCalls := &invitationStoreCalls{}
+		invMock := mocks.NewSharedChannelInvitationStore(t)
+		registerSharedChannelInvitationStoreMocks(invMock, invCalls)
+		mockSharedChannelStore := &mocks.SharedChannelStore{}
+		mockSharedChannelStore.On("Get", channel.Id).Return(sc, nil)
+		mockSharedChannelStore.On("GetRemoteByIds", channel.Id, rc.RemoteId).Return(nil, store.NewErrNotFound("SharedChannelRemote", ""))
+		mockSharedChannelStore.On("SaveRemote", mock.Anything).Return(nil, dbErr).Once()
+
+		mockStore := &mocks.Store{}
+		mockStore.On("SharedChannel").Return(mockSharedChannelStore)
+		mockStore.On("SharedChannelInvitation").Return(invMock)
+
+		mockServer.On("GetStore").Return(mockStore)
+		setupMockServerWithRemoteClusterService(mockServer, &stubRemoteClusterService{})
+
+		mockApp.On("SendEphemeralPost", mockTypeReqContext, userID, mock.AnythingOfType("*model.Post")).Return(nil, false)
+		defer mockApp.AssertExpectations(t)
+
+		err := scs.SendChannelInvite(channel, userID, rc)
+		require.ErrorIs(t, err, dbErr)
+
+		require.Len(t, invCalls.saved, 1)
+		assert.Equal(t, model.SharedChannelInvitationStatusFailed, invCalls.saved[0].Status)
+		assert.Equal(t, invitationInternalErrorMsg, invCalls.saved[0].ErrMsg)
+		assert.Eventually(t, func() bool {
+			return strings.Contains(logs.String(), "failed to save shared channel remote while sending invite") &&
+				strings.Contains(logs.String(), dbErr.Error())
+		}, time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("offline remote with invite options persists failed invitation only", func(t *testing.T) {

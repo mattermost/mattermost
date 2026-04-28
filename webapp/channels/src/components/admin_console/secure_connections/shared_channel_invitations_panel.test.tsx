@@ -18,6 +18,7 @@ jest.mock('mattermost-redux/client', () => {
         ...actual,
         Client4: Object.assign(actual.Client4, {
             getSharedChannelInvitationsByRemote: jest.fn(),
+            deleteSharedChannelInvitation: jest.fn(),
             getChannel: jest.fn(),
         }),
     };
@@ -25,6 +26,9 @@ jest.mock('mattermost-redux/client', () => {
 
 const getInvitations = Client4.getSharedChannelInvitationsByRemote as jest.MockedFunction<
     typeof Client4.getSharedChannelInvitationsByRemote
+>;
+const deleteInvitation = Client4.deleteSharedChannelInvitation as jest.MockedFunction<
+    typeof Client4.deleteSharedChannelInvitation
 >;
 const getChannelApi = Client4.getChannel as jest.MockedFunction<typeof Client4.getChannel>;
 
@@ -73,6 +77,11 @@ function makeInvitation(overrides: Partial<SharedChannelInvitation> = {}): Share
 }
 
 const remoteId = 'remote-abc';
+const toggleInvitationsActivity = async () => {
+    await userEvent.click(
+        screen.getByRole('button', {name: 'Show or hide invitation activity'}),
+    );
+};
 
 const minimalState = {
     entities: {
@@ -105,6 +114,7 @@ describe('SharedChannelInvitationsPanel', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         getChannelApi.mockResolvedValue(asServerChannel(makeTestChannel({id: 'channel-not-in-store'})));
+        deleteInvitation.mockResolvedValue({status: 'OK'});
     });
 
     test('shows loading until the API resolves', async () => {
@@ -117,6 +127,7 @@ describe('SharedChannelInvitationsPanel', () => {
         );
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         expect(screen.getByText('Loading')).toBeInTheDocument();
 
@@ -130,6 +141,7 @@ describe('SharedChannelInvitationsPanel', () => {
         getInvitations.mockRejectedValue(new Error('network'));
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(screen.getByText('Unable to load invitations. Try again later.')).toBeInTheDocument();
@@ -140,6 +152,7 @@ describe('SharedChannelInvitationsPanel', () => {
         getInvitations.mockResolvedValue([]);
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(
@@ -169,6 +182,7 @@ describe('SharedChannelInvitationsPanel', () => {
         getInvitations.mockResolvedValue([]);
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(
@@ -178,9 +192,7 @@ describe('SharedChannelInvitationsPanel', () => {
             ).toBeInTheDocument();
         });
 
-        await userEvent.click(
-            screen.getByRole('button', {name: 'Show or hide invitation activity'}),
-        );
+        await toggleInvitationsActivity();
 
         expect(
             screen.queryByText(
@@ -233,6 +245,7 @@ describe('SharedChannelInvitationsPanel', () => {
             <SharedChannelInvitationsPanel remoteId='remote-first'/>,
             minimalState,
         );
+        await toggleInvitationsActivity();
 
         await waitFor(() => expect(invocation).toBe(1));
 
@@ -285,6 +298,7 @@ describe('SharedChannelInvitationsPanel', () => {
         ]);
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(screen.getByRole('columnheader', {name: 'Channel'})).toBeInTheDocument();
@@ -310,6 +324,7 @@ describe('SharedChannelInvitationsPanel', () => {
         ]);
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(screen.getByText(missingId)).toBeInTheDocument();
@@ -325,6 +340,7 @@ describe('SharedChannelInvitationsPanel', () => {
         ]);
 
         renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
 
         await waitFor(() => {
             expect(screen.getByText('Unknown status (weird)')).toBeInTheDocument();
@@ -353,5 +369,103 @@ describe('SharedChannelInvitationsPanel', () => {
             expect(getChannelApi).toHaveBeenCalledWith('channel-b', false);
         });
         expect(getChannelApi).toHaveBeenCalledTimes(2);
+    });
+
+    test('shows remove action only for removable invitation statuses', async () => {
+        getInvitations.mockResolvedValue([
+            makeInvitation({id: 'inv-p', status: 'pending'}),
+            makeInvitation({id: 'inv-f', status: 'failed'}),
+            makeInvitation({id: 'inv-r', status: 'rejected'}),
+            makeInvitation({id: 'inv-u', status: 'weird' as unknown as SharedChannelInvitation['status']}),
+        ]);
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
+
+        await waitFor(() => {
+            expect(screen.getAllByRole('button', {name: 'Remove'})).toHaveLength(3);
+        });
+
+        expect(screen.getByText('Unknown status (weird)')).toBeInTheDocument();
+    });
+
+    test('removes an invitation and refreshes the table', async () => {
+        getInvitations.
+            mockResolvedValueOnce([
+                makeInvitation({id: 'inv-remove', status: 'pending', remote_id: remoteId}),
+                makeInvitation({id: 'inv-keep', status: 'failed', remote_id: remoteId}),
+            ]).
+            mockResolvedValueOnce([
+                makeInvitation({id: 'inv-keep', status: 'failed', remote_id: remoteId}),
+            ]);
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
+
+        await waitFor(() => {
+            expect(screen.getAllByRole('button', {name: 'Remove'})).toHaveLength(2);
+        });
+
+        await userEvent.click(screen.getAllByRole('button', {name: 'Remove'})[0]);
+
+        await waitFor(() => {
+            expect(deleteInvitation).toHaveBeenCalledWith(remoteId, 'inv-remove');
+        });
+        await waitFor(() => {
+            expect(getInvitations).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    test('shows remove error message when deletion fails', async () => {
+        getInvitations.mockResolvedValue([makeInvitation({id: 'inv-remove', status: 'pending', remote_id: remoteId})]);
+        deleteInvitation.mockRejectedValue(new Error('delete failed'));
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Remove'})).toBeInTheDocument();
+        });
+        await userEvent.click(screen.getByRole('button', {name: 'Remove'}));
+
+        await waitFor(() => {
+            expect(screen.getByText('Could not remove this invitation. Try again.')).toBeInTheDocument();
+        });
+        expect(deleteInvitation).toHaveBeenCalledWith(remoteId, 'inv-remove');
+    });
+
+    test('disables all remove buttons while one invitation is being removed', async () => {
+        let resolveDelete!: (value: Awaited<ReturnType<typeof Client4.deleteSharedChannelInvitation>>) => void;
+        getInvitations.mockResolvedValue([
+            makeInvitation({id: 'inv-a', status: 'pending', remote_id: remoteId}),
+            makeInvitation({id: 'inv-b', status: 'failed', remote_id: remoteId}),
+        ]);
+        deleteInvitation.mockImplementation(
+            () =>
+                new Promise((resolve) => {
+                    resolveDelete = resolve;
+                }),
+        );
+
+        renderWithContext(<SharedChannelInvitationsPanel remoteId={remoteId}/>, minimalState);
+        await toggleInvitationsActivity();
+
+        await waitFor(() => {
+            expect(screen.getAllByRole('button', {name: 'Remove'})).toHaveLength(2);
+        });
+
+        await userEvent.click(screen.getAllByRole('button', {name: 'Remove'})[0]);
+
+        await waitFor(() => {
+            const removeButtons = screen.getAllByRole('button', {name: 'Remove'});
+            expect(removeButtons[0]).toBeDisabled();
+            expect(removeButtons[1]).toBeDisabled();
+            expect(removeButtons[0].querySelector('.fa-spinner')).not.toBeNull();
+        });
+
+        resolveDelete({status: 'OK'});
+        await waitFor(() => {
+            expect(deleteInvitation).toHaveBeenCalledWith(remoteId, 'inv-a');
+        });
     });
 });

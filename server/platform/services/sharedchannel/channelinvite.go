@@ -17,6 +17,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
+const invitationInternalErrorMsg = "There was an internal error while processing the invitation. Please check the system logs."
+
 // channelInviteMsg represents an invitation for a remote cluster to start sharing a channel.
 type channelInviteMsg struct {
 	ChannelId            string            `json:"channel_id"`
@@ -110,7 +112,12 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			existingScr.IsInviteConfirmed = false
 			existingScr.LastMembersSyncAt = 0
 			if _, err = scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
-				scs.persistOutgoingInvitationFailed(channel.Id, userId, rc, err.Error())
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to restore shared channel remote while sending invite",
+					mlog.String("channel_id", channel.Id),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+				scs.persistOutgoingInvitationFailed(channel.Id, userId, rc, invitationInternalErrorMsg)
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
 				return err
 			}
@@ -124,7 +131,12 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				LastMembersSyncAt: 0,
 			}
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-				scs.persistOutgoingInvitationFailed(channel.Id, userId, rc, err.Error())
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to save shared channel remote while sending invite",
+					mlog.String("channel_id", channel.Id),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.Err(err),
+				)
+				scs.persistOutgoingInvitationFailed(channel.Id, userId, rc, invitationInternalErrorMsg)
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error saving channel invite for %s: %v", rc.DisplayName, err))
 				return err
 			}
@@ -204,7 +216,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 		existingScr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(sc.ChannelId, rc.RemoteId)
 		var errNotFound *store.ErrNotFound
 		if err != nil && !errors.As(err, &errNotFound) {
-			scs.markInvitationFailedByID(invitationID, err.Error())
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to load shared channel remote during invite confirmation",
+				mlog.String("channel_id", sc.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("invitation_id", invitationID),
+				mlog.Err(err),
+			)
+			scs.markInvitationFailedByID(invitationID, invitationInternalErrorMsg)
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error sending channel invite for %s: %s", rc.DisplayName, err))
 			return
 		}
@@ -227,7 +245,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			existingScr.LastPostUpdateAt = curTime
 			existingScr.IsInviteConfirmed = true
 			if _, sErr := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); sErr != nil {
-				scs.markInvitationFailedByID(invitationID, sErr.Error())
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to confirm shared channel remote",
+					mlog.String("channel_id", sc.ChannelId),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.String("invitation_id", invitationID),
+					mlog.Err(sErr),
+				)
+				scs.markInvitationFailedByID(invitationID, invitationInternalErrorMsg)
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, sErr))
 				return
 			}
@@ -244,7 +268,13 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 				LastMembersSyncAt: 0,
 			}
 			if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
-				scs.markInvitationFailedByID(invitationID, err.Error())
+				scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to save confirmed shared channel remote",
+					mlog.String("channel_id", sc.ChannelId),
+					mlog.String("remote_id", rc.RemoteId),
+					mlog.String("invitation_id", invitationID),
+					mlog.Err(err),
+				)
+				scs.markInvitationFailedByID(invitationID, invitationInternalErrorMsg)
 				scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
 				return
 			}
@@ -492,7 +522,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		var err error
 		channel, err = scs.server.GetStore().Channel().Get(invite.ChannelId, true)
 		if err != nil {
-			scs.markInvitationFailedByID(receivedInvitationID, err.Error())
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to load channel while restoring shared channel remote",
+				mlog.String("channel_id", invite.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("invitation_id", receivedInvitationID),
+				mlog.Err(err),
+			)
+			scs.markInvitationFailedByID(receivedInvitationID, invitationInternalErrorMsg)
 			return fmt.Errorf("cannot get channel (channel_id=%s) to restore a shared channel remote: %w", invite.ChannelId, err)
 		}
 	}
@@ -516,7 +552,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		if created {
 			scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 		}
-		scs.markInvitationFailedByID(receivedInvitationID, err.Error())
+		scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to save shared channel record while receiving invite",
+			mlog.String("channel_id", invite.ChannelId),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("invitation_id", receivedInvitationID),
+			mlog.Err(err),
+		)
+		scs.markInvitationFailedByID(receivedInvitationID, invitationInternalErrorMsg)
 		return fmt.Errorf("cannot create shared channel (channel_id=%s): %w", invite.ChannelId, err)
 	}
 
@@ -527,7 +569,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		existingScr.LastPostCreateAt = curTime
 		existingScr.LastPostUpdateAt = curTime
 		if _, err := scs.server.GetStore().SharedChannel().UpdateRemote(existingScr); err != nil {
-			scs.markInvitationFailedByID(receivedInvitationID, err.Error())
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to restore shared channel remote while receiving invite",
+				mlog.String("channel_id", invite.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("invitation_id", receivedInvitationID),
+				mlog.Err(err),
+			)
+			scs.markInvitationFailedByID(receivedInvitationID, invitationInternalErrorMsg)
 			return fmt.Errorf("cannot restore deleted shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
 
@@ -557,7 +605,13 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 				scs.app.PermanentDeleteChannel(request.EmptyContext(scs.server.Log()), channel)
 			}
 			scs.server.GetStore().SharedChannel().Delete(sharedChannel.ChannelId)
-			scs.markInvitationFailedByID(receivedInvitationID, err.Error())
+			scs.server.Log().LogM(mlog.MlvlSharedChannelServiceError, "SharedChannelService: failed to save shared channel remote while receiving invite",
+				mlog.String("channel_id", invite.ChannelId),
+				mlog.String("remote_id", rc.RemoteId),
+				mlog.String("invitation_id", receivedInvitationID),
+				mlog.Err(err),
+			)
+			scs.markInvitationFailedByID(receivedInvitationID, invitationInternalErrorMsg)
 			return fmt.Errorf("cannot create shared channel remote (channel_id=%s): %w", invite.ChannelId, err)
 		}
 
