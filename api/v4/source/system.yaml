@@ -102,13 +102,97 @@
                 $ref: "#/components/schemas/SystemStatusResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  "/api/v4/system/notices/{teamId}":
+  /api/v4/websocket:
+    get:
+      tags:
+        - system
+      summary: Open a WebSocket connection
+      description: |
+        Upgrades the HTTP connection to a WebSocket connection used for real-time events and websocket actions.
+
+        ##### Permissions
+        No permission required to connect. Authentication can be performed via standard API auth (cookie/header)
+        or by sending an `authentication_challenge` action after connecting.
+      operationId: ConnectWebSocket
+      parameters:
+        - name: connection_id
+          in: query
+          description: Existing connection identifier for reconnect flows.
+          required: false
+          schema:
+            type: string
+        - name: sequence_number
+          in: query
+          description: Last received sequence number for reconnect flows.
+          required: false
+          schema:
+            type: string
+        - name: posted_ack
+          in: query
+          description: Whether post acknowledgement events are enabled for this connection.
+          required: false
+          schema:
+            type: boolean
+        - name: disconnect_err_code
+          in: query
+          description: Optional close code used by clients to indicate disconnect reason.
+          required: false
+          schema:
+            type: string
+      responses:
+        "101":
+          description: Switching Protocols
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /manualtest:
+    get:
+      tags:
+        - system
+      summary: Run manual testing helpers
+      description: |
+        Invokes manual test helpers used by developers and automated manual test scenarios.
+        This endpoint is only registered when `ServiceSettings.EnableTesting` is enabled.
+      operationId: ManualTest
+      parameters:
+        - name: test
+          in: query
+          description: Name of the manual test to run.
+          required: true
+          schema:
+            type: string
+        - name: uid
+          in: query
+          description: Optional unique value used to randomize generated resources.
+          required: false
+          schema:
+            type: string
+        - name: username
+          in: query
+          description: Optional username used for helper account creation.
+          required: false
+          schema:
+            type: string
+        - name: teamname
+          in: query
+          description: Optional team display name used for helper team creation.
+          required: false
+          schema:
+            type: string
+      responses:
+        "307":
+          description: Manual test setup completed and redirected to the default channel.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/system/notices/{team_id}":
     get:
       tags:
         - system
       summary: Get notices for logged in user in specified team
       description: >
-        Will return appropriate product notices for current user in the team specified by teamId parameter.
+        Will return appropriate product notices for current user in the team specified by team_id parameter.
 
         __Minimum server version__: 5.26
 
@@ -135,7 +219,7 @@
           required: true
           schema:
             type: string
-        - name: teamId
+        - name: team_id
           in: path
           description: ID of the team
           required: true
@@ -185,6 +269,68 @@
                 $ref: "#/components/schemas/StatusOK"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/system/onboarding/complete:
+    get:
+      tags:
+        - system
+      summary: Get first admin onboarding completion status
+      description: >
+        Get whether first admin onboarding is complete.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: GetOnboardingComplete
+      responses:
+        "200":
+          description: Onboarding completion state retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/System"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - system
+      summary: Complete first admin onboarding
+      description: >
+        Mark first admin onboarding as complete and optionally trigger plugin installation.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: CompleteOnboarding
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                organization:
+                  type: string
+                  description: Organization name for self-hosted onboarding.
+                install_plugins:
+                  type: array
+                  description: Marketplace plugin IDs to install as part of onboarding.
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Onboarding completion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/system/e2e/ai_bridge:
     put:
       tags:
@@ -525,6 +671,42 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/config/migrate:
+    post:
+      tags:
+        - system
+      summary: Migrate config storage
+      description: |
+        Migrate configuration between storage backends.
+        This endpoint is only exposed over a local socket.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: MigrateConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - from
+                - to
+              properties:
+                from:
+                  type: string
+                  description: Source config store name.
+                to:
+                  type: string
+                  description: Destination config store name.
+      responses:
+        "200":
+          description: Config migration successful
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/config/client:
     get:
       tags:
@@ -733,35 +915,6 @@
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/v4/license/renewal:
-    get:
-      tags:
-        - system
-      summary: Request the license renewal link
-      description: >
-        Request the renewal link that would be used to start the license renewal process
-
-        __Minimum server version__: 5.32
-
-        ##### Permissions
-
-        Must have `sysconsole_write_about` permission.
-      operationId: RequestLicenseRenewalLink
-      responses:
-        "200":
-          description: License renewal link obtained
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LicenseRenewalLink"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "500":
-          $ref: "#/components/responses/InternalServerError"
   /api/v4/trial-license:
     post:
       tags:
@@ -805,13 +958,13 @@
       summary: Get last trial license used
       operationId: GetPrevTrialLicense
       description: >
-        Get the last trial license used on the sevrer
+        Get the last trial license used on the server
 
         __Minimum server version__: 5.36
 
         ##### Permissions
 
-        Must have `manage_systems` permissions.
+        Must have `manage_system` permission.
       responses:
         "200":
           description: License fetched successfully.
@@ -961,6 +1114,68 @@
                   type: string
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/logs/query:
+    post:
+      tags:
+        - system
+      summary: Query server logs with filters
+      description: >
+        Query server logs using filter criteria.
+
+        ##### Permissions
+        Must have `get_logs` permission.
+      operationId: QueryLogs
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: logs_per_page
+          in: query
+          description: The number of logs per page.
+          schema:
+            type: string
+            default: "10000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                server_names:
+                  type: array
+                  items:
+                    type: string
+                log_levels:
+                  type: array
+                  items:
+                    type: string
+                date_from:
+                  type: string
+                date_to:
+                  type: string
+      responses:
+        "200":
+          description: Log query successful
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: object
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/analytics/old:
     get:
       tags:
@@ -1006,6 +1221,76 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/latest_version:
+    get:
+      tags:
+        - system
+      summary: Get latest public server release information
+      description: >
+        Retrieves metadata about the latest Mattermost server release from GitHub.
+
+        ##### Permissions
+        Must have `manage_system` permission.
+      operationId: GetLatestVersion
+      responses:
+        "200":
+          description: Latest release metadata retrieval successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  tag_name:
+                    type: string
+                  name:
+                    type: string
+                  created_at:
+                    type: string
+                  published_at:
+                    type: string
+                  body:
+                    type: string
+                  html_url:
+                    type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/system/schema/version:
+    get:
+      tags:
+        - system
+      summary: Get applied database schema migrations
+      description: >
+        Returns the list of applied database schema migrations.
+
+        ##### Permissions
+        Must have at least one sysconsole read permission.
+      operationId: GetAppliedSchemaMigrations
+      responses:
+        "200":
+          description: Applied schema migrations retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    version:
+                      type: integer
+                    name:
+                      type: string
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
   /api/v4/server_busy:
     post:
       tags:

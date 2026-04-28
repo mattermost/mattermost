@@ -10,8 +10,7 @@
         __Minimum server version: 4.1__
 
         ##### Permissions
-
-        Must have `manage_jobs` permission.
+        Must have permission to read at least one job type.
       operationId: GetJobs
       parameters:
         - name: page
@@ -59,7 +58,7 @@
         Create a new job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have permission to create the requested job type.
       operationId: CreateJob
       requestBody:
         content:
@@ -100,7 +99,7 @@
         Gets a single job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have permission to read the requested job type.
       operationId: GetJob
       parameters:
         - name: job_id
@@ -133,7 +132,7 @@
         Download the result of a single job.
         __Minimum server version: 5.28__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have `download_compliance_export_result` permission for message export jobs.
       operationId: DownloadJob
       parameters:
         - name: job_id
@@ -160,7 +159,7 @@
         Cancel a job.
         __Minimum server version: 4.1__
         ##### Permissions
-        Must have `manage_jobs` permission.
+        Must have permission to create the requested job type.
       operationId: CancelJob
       parameters:
         - name: job_id
@@ -184,7 +183,7 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/jobs/type/{type}":
+  "/api/v4/jobs/type/{job_type}":
     get:
       tags:
         - jobs
@@ -196,11 +195,10 @@
         __Minimum server version: 4.1__
 
         ##### Permissions
-
-        Must have `manage_jobs` permission.
+        Must have permission to read the requested job type.
       operationId: GetJobsByType
       parameters:
-        - name: type
+        - name: job_type
           in: path
           description: Job type
           required: true
@@ -245,6 +243,9 @@
         - 'cancel_requested' -> 'canceled'
 
         Add force to the body of the PATCH request to bypass the given rules, the only statuses you can go to are: pending, cancel_requested and canceled. This can have unexpected consequences and should be used with caution.
+        
+        ##### Permissions
+        Must have permission to manage the requested job type.
       operationId: UpdateJobStatus
       parameters:
         - name: job_id
