@@ -74,6 +74,9 @@ export default function GlobalClassificationBanner({position}: Props) {
     // Bootstrap: fetch template fields, the linked system field, and system property values.
     // WebSocket events (property_field_created/updated and property_values_updated) keep
     // the store current after the initial load.
+    //
+    // The effect must re-run when linkedField arrives in the store so the values
+    // fetch can proceed (it depends on linkedField being present).
     useEffect(() => {
         if (!featureEnabled || !currentUserId) {
             return;
@@ -84,10 +87,10 @@ export default function GlobalClassificationBanner({position}: Props) {
         if (!linkedField) {
             dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
         }
-        if (!systemValue && linkedField) {
+        if (linkedField && !systemValue) {
             dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, currentUserId));
         }
-    }, [featureEnabled, currentUserId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [featureEnabled, currentUserId, templateField, linkedField, systemValue, dispatch]);
 
     // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];

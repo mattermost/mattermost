@@ -271,7 +271,7 @@ test.describe('System Console - Classification markings', () => {
             // * The section now appears
             await expect(page.getByText('Global Classification Indicators')).toBeVisible();
             await expect(page.getByText('Configure the global classification banner')).toBeVisible();
-            await expect(page.getByText('Global Classification Banner')).toBeVisible();
+            await expect(page.getByText('Global Classification Banner', {exact: true})).toBeVisible();
         },
     );
 
