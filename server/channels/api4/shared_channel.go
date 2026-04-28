@@ -228,6 +228,28 @@ func deleteSharedChannelInvitation(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	var invitation *model.SharedChannelInvitation
+	if inv, invErr := c.App.Srv().Store().SharedChannelInvitation().Get(c.Params.SharedChannelInvitationId); invErr == nil {
+		invitation = inv
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSharedChannelInvitationDeleted, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "remote_id", c.Params.RemoteId)
+	model.AddEventParameterToAuditRec(auditRec, "shared_channel_invitation_id", c.Params.SharedChannelInvitationId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", c.AppContext.Session().UserId)
+	if invitation != nil {
+		model.AddEventParameterToAuditRec(auditRec, "channel_id", invitation.ChannelId)
+		model.AddEventParameterToAuditRec(auditRec, "invitation_status", invitation.Status)
+		model.AddEventParameterToAuditRec(auditRec, "invitation_direction", invitation.Direction)
+		if ch, chAppErr := c.App.GetChannel(c.AppContext, invitation.ChannelId); chAppErr == nil && ch != nil {
+			model.AddEventParameterToAuditRec(auditRec, "channel_name", ch.Name)
+			model.AddEventParameterToAuditRec(auditRec, "channel_display_name", ch.DisplayName)
+		} else if chAppErr != nil {
+			c.Logger.Warn("deleteSharedChannelInvitation: could not load channel for audit metadata", mlog.String("channel_id", invitation.ChannelId), mlog.Err(chAppErr))
+		}
+	}
+
 	if err := c.App.RemoveSharedChannelInvitation(c.Params.RemoteId, c.Params.SharedChannelInvitationId); err != nil {
 		if appErr, ok := err.(*model.AppError); ok {
 			c.Err = appErr
@@ -237,6 +259,7 @@ func deleteSharedChannelInvitation(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	auditRec.Success()
 	ReturnStatusOK(w)
 }
 

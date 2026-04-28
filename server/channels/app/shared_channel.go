@@ -192,13 +192,19 @@ func (a *App) GetSharedChannelRemotesStatus(channelID string) ([]*model.SharedCh
 func (a *App) GetSharedChannelInvitationsByRemote(remoteID string, page, perPage int) ([]*model.SharedChannelInvitation, error) {
 	offset := page * perPage
 	opts := model.SharedChannelInvitationFilterOpts{RemoteId: remoteID}
-	return a.Srv().Store().SharedChannelInvitation().GetAll(opts, offset, perPage)
+
+	// We get from master to make sure we get the latest data
+	// just after we create a new invitation.
+	return a.Srv().Store().SharedChannelInvitation().GetAllFromMaster(opts, offset, perPage)
 }
 
 func (a *App) GetSharedChannelInvitationsByChannel(channelID string, page, perPage int) ([]*model.SharedChannelInvitation, error) {
 	offset := page * perPage
 	opts := model.SharedChannelInvitationFilterOpts{ChannelId: channelID}
-	return a.Srv().Store().SharedChannelInvitation().GetAll(opts, offset, perPage)
+
+	// We get from master to make sure we get the latest data
+	// just after we create a new invitation.
+	return a.Srv().Store().SharedChannelInvitation().GetAllFromMaster(opts, offset, perPage)
 }
 
 // RemoveSharedChannelInvitation removes a stored invitation for the given remote.

@@ -47,11 +47,10 @@ func truncateSharedChannelInvitationErrMsg(msg string) string {
 
 func (s SqlSharedChannelInvitationStore) Save(invitation *model.SharedChannelInvitation) (*model.SharedChannelInvitation, error) {
 	invitation.PreSave()
+	invitation.ErrMsg = truncateSharedChannelInvitationErrMsg(invitation.ErrMsg)
 	if err := invitation.IsValid(); err != nil {
 		return nil, err
 	}
-
-	invitation.ErrMsg = truncateSharedChannelInvitationErrMsg(invitation.ErrMsg)
 
 	query := s.getQueryBuilder().
 		Insert("SharedChannelInvitations").

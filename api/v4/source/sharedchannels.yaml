@@ -176,7 +176,8 @@
 
         For **pending** invitations, behavior depends on direction: a pending **sent**
         invitation withdraws the share (same as uninvite) when applicable; a **received**
-        pending invitation is deleted if no active remote link exists.
+        pending invitation withdraws the share (same as uninvite) if an active remote link
+        exists, and is deleted if no active remote link exists.
 
         ##### Permissions
         `manage_secure_connections` or `manage_shared_channels`

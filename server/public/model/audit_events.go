@@ -336,6 +336,7 @@ const (
 	AuditEventRemoteClusterAcceptMessage     = "remoteClusterAcceptMessage"     // accept message from remote cluster
 	AuditEventRemoteUploadProfileImage       = "remoteUploadProfileImage"       // upload profile image from remote cluster
 	AuditEventUninviteRemoteClusterToChannel = "uninviteRemoteClusterToChannel" // remove remote cluster access from shared channel
+	AuditEventSharedChannelInvitationDeleted = "sharedChannelInvitationDeleted" // remove or withdraw a stored shared channel invitation
 	AuditEventUploadRemoteData               = "uploadRemoteData"               // upload data to remote cluster
 )
 

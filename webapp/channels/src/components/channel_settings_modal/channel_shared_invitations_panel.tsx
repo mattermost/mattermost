@@ -39,6 +39,7 @@ export default function ChannelSharedInvitationsPanel({
     const [removingInvitationId, setRemovingInvitationId] = useState<string | null>(null);
     const [expanded, setExpanded] = useState(false);
     const loadRequestIdRef = useRef(0);
+    const inFlight = useRef(new Set<string>());
 
     const failedCount = useMemo(
         () => (rows === undefined ? 0 : rows.filter((r) => r.status === 'failed').length),
@@ -97,10 +98,16 @@ export default function ChannelSharedInvitationsPanel({
         if (!rows?.length) {
             return;
         }
+        for (const id of [...inFlight.current]) {
+            if (channelMap[id]) {
+                inFlight.current.delete(id);
+            }
+        }
         const ids = [...new Set(rows.map((r) => r.channel_id))];
         ids.
-            filter((id) => !channelMap[id]).
+            filter((id) => !channelMap[id] && !inFlight.current.has(id)).
             forEach((id) => {
+                inFlight.current.add(id);
                 dispatch(fetchChannelAction(id));
             });
     }, [rows, dispatch, channelMap]);
