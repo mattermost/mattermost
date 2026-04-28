@@ -222,6 +222,11 @@ func (s *LocalCacheUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 	return s.UserStore.UpdateFailedPasswordAttempts(userID, attempts)
 }
 
+func (s *LocalCacheUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+	s.InvalidateProfileCacheForUser(userID)
+	return s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+}
+
 // Get is a cache wrapper around the SqlStore method to get a user profile by id.
 // It checks if the user entry is present in the cache, returning the entry from cache
 // if it is present. Otherwise, it fetches the entry from the store and stores it in the

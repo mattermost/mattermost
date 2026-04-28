@@ -426,6 +426,29 @@ func (us SqlUserStore) UpdateFailedPasswordAttempts(userId string, attempts int)
 	return nil
 }
 
+// TryIncrementFailedPasswordAttempts atomically increments FailedAttempts by one
+// for the given user, only if FailedAttempts is strictly less than maxAttempts.
+// Returns true if the row was updated (a slot was claimed), false if the cap had
+// already been reached (or the user does not exist). The row lock taken by the
+// UPDATE serializes concurrent attempts on the same user, so the cap predicate
+// is enforced without any application-level locking.
+func (us SqlUserStore) TryIncrementFailedPasswordAttempts(userId string, maxAttempts int) (bool, error) {
+	res, err := us.GetMaster().Exec(
+		"UPDATE Users SET FailedAttempts = FailedAttempts + 1 WHERE Id = ? AND FailedAttempts < ?",
+		userId, maxAttempts,
+	)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to read rows affected for userId=%s", userId)
+	}
+
+	return rows == 1, nil
+}
+
 func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, error) {
 	updateAt := model.GetMillis()
 

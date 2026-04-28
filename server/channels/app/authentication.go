@@ -62,7 +62,7 @@ func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError
 	return nil
 }
 
-func (a *App) checkUserPassword(user *model.User, password string, invalidateCache bool) *model.AppError {
+func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
 	if user.Password == "" || password == "" {
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -76,16 +76,6 @@ func (a *App) checkUserPassword(user *model.User, password string, invalidateCac
 	// Compare the password using the hasher that generated it
 	err = hasher.CompareHashAndPassword(phc, password)
 	if err != nil && errors.Is(err, hashers.ErrMismatchedHashAndPassword) {
-		// Increment the number of failed password attempts in case of
-		// mismatched hash and password
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
-			return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-		}
-
-		if invalidateCache {
-			a.InvalidateCacheForUser(user.Id)
-		}
-
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized).Wrap(err)
 	} else if err != nil {
 		return model.NewAppError("checkUserPassword", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -118,11 +108,6 @@ func (a *App) migratePassword(user *model.User, password string) *model.AppError
 }
 
 func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, password string, mfaToken string) *model.AppError {
-	// MM-37585
-	// Use locks to avoid concurrently checking AND updating the failed login attempts.
-	a.ch.emailLoginAttemptsMut.Lock()
-	defer a.ch.emailLoginAttemptsMut.Unlock()
-
 	user, err := a.GetUser(userID)
 	if err != nil {
 		if err.Id != MissingAccountError {
@@ -137,15 +122,31 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		return err
 	}
 
-	if err := a.checkUserPassword(user, password, false); err != nil {
+	// MM-37585: atomically claim a failed-attempt slot before doing the
+	// expensive password hash comparison. The conditional UPDATE caps
+	// concurrent in-flight authentications to MaximumLoginAttempts per user
+	// without any application-level locking; further attempts for the same
+	// user are rejected here while other users authenticate unhindered.
+	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
+	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
+	if claimErr != nil {
+		return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(claimErr)
+	}
+	if !claimed {
+		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+
+	if err := a.checkUserPassword(user, password); err != nil {
 		return err
 	}
 
 	if err := a.CheckUserMfa(rctx, user, mfaToken); err != nil {
-		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
-		// about the MFA state of the user in question
-		if mfaToken != "" {
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); passErr != nil {
+		// The slot we claimed already counts this as a failed attempt;
+		// the only special case is when no mfaToken was provided, which
+		// is treated as a pre-flight MFA-state probe rather than a real
+		// attempt — refund the slot so the probe is not counted.
+		if mfaToken == "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts); passErr != nil {
 				return model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
@@ -166,11 +167,16 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 
 // This to be used for places we check the users password when they are already logged in
 func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password string) *model.AppError {
-	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
-		return err
+	maxAttempts := *a.Config().ServiceSettings.MaximumLoginAttempts
+	claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
+	if claimErr != nil {
+		return model.NewAppError("DoubleCheckPassword", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(claimErr)
+	}
+	if !claimed {
+		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
-	if err := a.checkUserPassword(user, password, true); err != nil {
+	if err := a.checkUserPassword(user, password); err != nil {
 		return err
 	}
 
@@ -184,11 +190,7 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 }
 
 func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	// MM-37585: Use locks to avoid concurrently checking AND updating the failed login attempts.
-	a.ch.ldapLoginAttemptsMut.Lock()
-	defer a.ch.ldapLoginAttemptsMut.Unlock()
-
-	// We need to get the latest value of the user from the database after we acquire the lock. user is nil for first-time LDAP users.
+	// We need to get the latest value of the user from the database. user.Id is empty for first-time LDAP users.
 	if user.Id != "" {
 		var err *model.AppError
 		user, err = a.GetUser(user.Id)
@@ -209,10 +211,23 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	// First time LDAP users will not have a userID
+	maxAttempts := *a.Config().LdapSettings.MaximumLoginAttempts
+
+	// MM-37585: for existing LDAP users, atomically claim a failed-attempt
+	// slot before contacting the LDAP server. This caps concurrent in-flight
+	// authentications to MaximumLoginAttempts per user without serializing
+	// requests across users. First-time LDAP users have no local row yet, so
+	// we cannot pre-claim — they fall through to DoLogin which creates the
+	// row, and any failure is tracked unconditionally on that fresh row
+	// (preserving the prior behavior that first-time LDAP attempts are not
+	// rate-limited locally).
 	if user.Id != "" {
-		if err := checkUserLoginAttempts(user, *a.Config().LdapSettings.MaximumLoginAttempts); err != nil {
-			return nil, err
+		claimed, claimErr := a.Srv().Store().User().TryIncrementFailedPasswordAttempts(user.Id, maxAttempts)
+		if claimErr != nil {
+			return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(claimErr)
+		}
+		if !claimed {
+			return nil, model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many_ldap.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 		}
 	}
 
@@ -233,8 +248,14 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		if err.Id == "ent.ldap.do_login.invalid_password.app_error" {
 			rctx.Logger().LogM(mlog.MlvlLDAPInfo, "A user tried to sign in, which matched an LDAP account, but the password was incorrect.", mlog.String("ldap_id", *ldapID))
 
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
-				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+			// For existing users we already claimed the slot above, so the
+			// counter has already been bumped. For first-time users (the
+			// row was just created by DoLogin) we still need to count the
+			// failed attempt explicitly.
+			if user.Id == "" {
+				if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
+					return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+				}
 			}
 		}
 
@@ -243,11 +264,13 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 	}
 
 	if err = a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
-		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
-		// about the MFA state of the user in question
-		if mfaToken != "" && ldapUser.Id != "" {
-			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts+1); passErr != nil {
-				return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
+		// The slot we claimed already counts this as a failed attempt;
+		// the only special case is when no mfaToken was provided, which
+		// is treated as a pre-flight MFA-state probe rather than a real
+		// attempt — refund the slot so the probe is not counted.
+		if mfaToken == "" && user.Id != "" {
+			if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, ldapUser.FailedAttempts); passErr != nil {
+				return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 			}
 		}
 		return nil, err
@@ -257,10 +280,8 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if ldapUser.FailedAttempts > 0 {
-		if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
-			return nil, model.NewAppError("CheckPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
-		}
+	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(ldapUser.Id, 0); passErr != nil {
+		return nil, model.NewAppError("checkLdapUserPasswordAndAllCriteria", "app.user.update_failed_pwd_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(passErr)
 	}
 
 	// user successfully authenticated
