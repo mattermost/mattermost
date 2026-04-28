@@ -245,8 +245,18 @@ jobs:
           fi
           cp "$PROMPT_FILE" /tmp/system_prompt.txt
  
-          # Untrusted PR content is wrapped in XML tags so Claude treats it
-          # as data only - never as instructions - preventing prompt injection.
+          # Untrusted PR content is HTML-escaped then wrapped in XML tags.
+          # Escaping converts < > & to &lt; &gt; &amp; so that an attacker
+          # cannot inject a closing tag (e.g. </pr_description>) to break out
+          # of the data section and inject arbitrary instructions.
+          escape_xml() {
+            python3 -c \
+              'import sys,html;print(html.escape(sys.stdin.read(),quote=False),end="")'
+          }
+ 
+          escape_xml < /tmp/pr-body.txt > /tmp/pr-body-safe.txt
+          escape_xml < /tmp/pr-diff.txt > /tmp/pr-diff-safe.txt
+ 
           PR_URL="https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}"
           {
             echo "<pr_metadata>"
@@ -257,11 +267,11 @@ jobs:
             echo "</pr_metadata>"
             echo ""
             echo "<pr_description>"
-            cat /tmp/pr-body.txt
+            cat /tmp/pr-body-safe.txt
             echo "</pr_description>"
             echo ""
             echo "<code_diff>"
-            cat /tmp/pr-diff.txt
+            cat /tmp/pr-diff-safe.txt
             echo "</code_diff>"
           } > /tmp/user_message.txt
  
