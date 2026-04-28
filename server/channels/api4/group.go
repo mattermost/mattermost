@@ -723,16 +723,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 // GroupSyncablePatch attempts to set SchemeAdmin to true. It enforces that
 // the caller has the role-management permission for the syncable type
 // (manage_team_roles / manage_channel_roles), or the sysconsole groups
-// write permission as an override. Returns nil if no elevation is being
-// requested (patch == nil or SchemeAdmin == nil or *SchemeAdmin == false).
-//
-// This is the MM-68547 mitigation: linking/patching a group syncable and
-// granting team/channel admin via that syncable are two distinct privileged
-// actions and must be authorized independently. verifyLinkUnlinkPermission
-// gates the link itself on PermissionInviteUser / manage_*_channel_members,
-// which are granted to plain team/channel members; without this additional
-// check, any team or channel member could elevate the entire group to
-// team-admin or channel-admin by setting scheme_admin: true.
+// write permission as an override.
 func verifySchemeAdminAssignmentPermission(c *Context, syncableType model.GroupSyncableType, syncableID string, patch *model.GroupSyncablePatch) *model.AppError {
 	if patch == nil || patch.SchemeAdmin == nil || !*patch.SchemeAdmin {
 		return nil
