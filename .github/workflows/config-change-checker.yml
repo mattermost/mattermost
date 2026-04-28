@@ -27,9 +27,10 @@ jobs:
   check-release-notes:
     name: Detect release-note-worthy changes
     runs-on: ubuntu-latest
-    concurrency:
-      group: config-change-checker-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+    # Skip bot-authored PRs (Dependabot, mattermost-bot, etc.) — they will
+    # not touch these paths intentionally and cannot receive description updates
+    # via GITHUB_TOKEN anyway (fork-like restrictions apply to most bots).
+    if: github.event.pull_request.user.type != 'Bot'
  
     permissions:
       pull-requests: write   # needed to update the PR description
@@ -37,18 +38,18 @@ jobs:
  
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
           # Fetch enough history to diff against the base branch
           fetch-depth: 0
  
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
         with:
           python-version: '3.11'
  
       - name: Install dependencies
-        run: pip install requests --quiet
+        run: pip install requests==2.32.3 --quiet
  
       - name: Detect changes and update PR description
         env:
