@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -114,8 +115,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	th, service := setupTestEnvironment(t)
 
 	t.Run("Post Priority Metadata Self-Referential Sync", func(t *testing.T) {
-		t.Skip("MM-64687")
 		var syncedPosts []*model.Post
+		var mu sync.Mutex
 
 		// Create test HTTP server using self-referential approach
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +136,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 					post.Metadata.Priority.RequestedAck,
 					post.Metadata.Priority.PersistentNotifications)
 			}
+			mu.Lock()
 			syncedPosts = append(syncedPosts, post)
+			mu.Unlock()
 		}
 
 		// Update test server to use the sync handler
@@ -165,12 +168,16 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Wait for sync completion using Eventually pattern
 		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
 			return len(syncedPosts) >= 2
 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
 
 		// Verify priority metadata is preserved through the complete sync flow
+		mu.Lock()
 		t.Logf("Found %d synced posts", len(syncedPosts))
 		syncedPost := syncedPosts[len(syncedPosts)-1]
+		mu.Unlock()
 		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
 		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
 		assert.Equal(t, model.PostPriorityUrgent, *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
@@ -181,6 +188,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	t.Run("Post Acknowledgement Metadata Self-Referential Sync", func(t *testing.T) {
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPosts []*model.Post
+		var mu sync.Mutex
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			writeOKResponse(w)
@@ -191,7 +199,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		syncHandler := NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnPostSync = func(post *model.Post) {
+			mu.Lock()
 			syncedPosts = append(syncedPosts, post)
+			mu.Unlock()
 		}
 
 		testServer.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -227,11 +237,15 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Wait for sync completion
 		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
 			return len(syncedPosts) >= 2
 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
 
 		// Verify acknowledgement metadata is preserved
+		mu.Lock()
 		syncedPost := syncedPosts[len(syncedPosts)-1]
+		mu.Unlock()
 		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
 		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
 		assert.Equal(t, model.PostPriorityUrgent, *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
@@ -240,10 +254,10 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Acknowledgement Count Sync Back to Sender", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPosts []*model.Post
 		var postIdToSync string
+		var mu sync.Mutex
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			writeOKResponse(w)
@@ -254,6 +268,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		syncHandler := NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnPostSync = func(post *model.Post) {
+			mu.Lock()
+			defer mu.Unlock()
 			if post.Id == postIdToSync {
 				t.Logf("Received sync for target post: ID=%s, HasAcks=%v", post.Id,
 					post.Metadata != nil && post.Metadata.Acknowledgements != nil)
@@ -294,6 +310,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Wait for initial sync
 		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
 			return len(syncedPosts) >= 2
 		}, 5*time.Second, 100*time.Millisecond, "Should complete initial sync")
 
@@ -308,11 +326,15 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Clear previous synced posts and trigger sync
+		mu.Lock()
 		syncedPosts = syncedPosts[:0]
+		mu.Unlock()
 		service.NotifyChannelChanged(testChannel.Id)
 
 		// Wait for acknowledgement sync
 		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
 			for _, post := range syncedPosts {
 				if post.Id == postIdToSync &&
 					post.Metadata != nil &&
@@ -325,6 +347,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond, "Should sync acknowledgements back")
 
 		// Verify acknowledgement was synced
+		mu.Lock()
 		var syncedPostWithAcks *model.Post
 		for _, post := range syncedPosts {
 			if post.Id == postIdToSync && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
@@ -332,6 +355,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 				break
 			}
 		}
+		mu.Unlock()
 
 		require.NotNil(t, syncedPostWithAcks, "Should find synced post with acknowledgements")
 		require.NotNil(t, syncedPostWithAcks.Metadata.Acknowledgements, "Acknowledgements should exist")
@@ -344,9 +368,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Persistent Notifications Self-Referential Sync", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPosts []*model.Post
+		var mu sync.Mutex
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			writeOKResponse(w)
@@ -357,7 +381,9 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		syncHandler := NewSelfReferentialSyncHandler(t, service, selfCluster)
 		syncHandler.OnPostSync = func(post *model.Post) {
+			mu.Lock()
 			syncedPosts = append(syncedPosts, post)
+			mu.Unlock()
 		}
 
 		testServer.Config.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -384,11 +410,15 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// Wait for sync completion
 		require.Eventually(t, func() bool {
+			mu.Lock()
+			defer mu.Unlock()
 			return len(syncedPosts) >= 2
 		}, 5*time.Second, 100*time.Millisecond, "Should receive synced posts via self-referential handler")
 
 		// Verify persistent notifications setting is preserved
+		mu.Lock()
 		syncedPost := syncedPosts[len(syncedPosts)-1]
+		mu.Unlock()
 		require.NotNil(t, syncedPost.Metadata, "Post metadata should be preserved")
 		require.NotNil(t, syncedPost.Metadata.Priority, "Priority metadata should be preserved")
 		assert.Equal(t, model.PostPriorityUrgent, *syncedPost.Metadata.Priority.Priority, "Priority should be preserved")
@@ -397,11 +427,11 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 	})
 
 	t.Run("Cross-Cluster Acknowledgement End-to-End Flow", func(t *testing.T) {
-		t.Skip("MM-64687")
 		EnsureCleanState(t, th, th.App.Srv().Store())
 		var syncedPostsServerA []*model.Post
 		var syncedPostsServerB []*model.Post
 		var postIdToTrack string
+		var muA, muB sync.Mutex
 
 		// Create test HTTP servers for both "clusters"
 		testServerA := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -502,6 +532,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Initialize sync handlers for both clusters
 		syncHandlerA := NewSelfReferentialSyncHandler(t, service, clusterA)
 		syncHandlerA.OnPostSync = func(post *model.Post) {
+			muA.Lock()
+			defer muA.Unlock()
 			t.Logf("Cluster A received sync: ID=%s, Message=%s, HasAcks=%v",
 				post.Id, post.Message,
 				post.Metadata != nil && post.Metadata.Acknowledgements != nil)
@@ -513,6 +545,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		syncHandlerB := NewSelfReferentialSyncHandler(t, service, clusterB)
 		syncHandlerB.OnPostSync = func(post *model.Post) {
+			muB.Lock()
+			defer muB.Unlock()
 			t.Logf("Cluster B received sync: ID=%s, Message=%s, RequestedAck=%v",
 				post.Id, post.Message,
 				post.Metadata != nil && post.Metadata.Priority != nil && post.Metadata.Priority.RequestedAck != nil && *post.Metadata.Priority.RequestedAck)
@@ -557,6 +591,8 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// Wait for Server B to receive the post
 		var syncedPostIdOnServerB string
 		require.Eventually(t, func() bool {
+			muB.Lock()
+			defer muB.Unlock()
 			for _, post := range syncedPostsServerB {
 				if post.Message == originalPost.Message && post.Metadata != nil && post.Metadata.Priority != nil &&
 					post.Metadata.Priority.RequestedAck != nil && *post.Metadata.Priority.RequestedAck {
@@ -588,14 +624,20 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		// STEP 4: Acknowledgement syncs back from Server B to Server A
 		t.Log("=== STEP 4: Acknowledgement syncs back from Server B to Server A ===")
 		// Clear previous sync data to focus on acknowledgement sync
+		muA.Lock()
 		syncedPostsServerA = syncedPostsServerA[:0]
+		muA.Unlock()
+		muB.Lock()
 		syncedPostsServerB = syncedPostsServerB[:0]
+		muB.Unlock()
 
 		// Trigger sync to send acknowledgement back to Server A
 		service.NotifyChannelChanged(testChannel.Id)
 
 		// Wait for Server A to receive the acknowledgement sync
 		require.Eventually(t, func() bool {
+			muA.Lock()
+			defer muA.Unlock()
 			for _, post := range syncedPostsServerA {
 				if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
 					t.Logf("Server A received post %s with %d acknowledgements", post.Id, len(post.Metadata.Acknowledgements))
@@ -607,6 +649,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// STEP 5: Verify the complete acknowledgement flow
 		t.Log("=== STEP 5: Verify complete acknowledgement flow ===")
+		muA.Lock()
 		var serverAPostWithAcks *model.Post
 		for _, post := range syncedPostsServerA {
 			if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
@@ -614,6 +657,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 				break
 			}
 		}
+		muA.Unlock()
 
 		require.NotNil(t, serverAPostWithAcks, "Server A should receive post with acknowledgements")
 		require.NotNil(t, serverAPostWithAcks.Metadata.Acknowledgements, "Acknowledgements should exist")
@@ -632,13 +676,17 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// STEP 6: Test echo prevention - verify no duplicate acknowledgements
 		t.Log("=== STEP 6: Test echo prevention ===")
+		muA.Lock()
 		syncedPostsServerA = syncedPostsServerA[:0]
+		muA.Unlock()
 
 		// Trigger another sync to ensure no duplicates are created
 		service.NotifyChannelChanged(testChannel.Id)
 
 		// Verify acknowledgement count remains 1 (no duplicates)
 		require.Eventually(t, func() bool {
+			muA.Lock()
+			defer muA.Unlock()
 			for _, post := range syncedPostsServerA {
 				if post.Id == postIdToTrack && post.Metadata != nil && post.Metadata.Acknowledgements != nil {
 					return len(post.Metadata.Acknowledgements) == 1

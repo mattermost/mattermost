@@ -225,6 +225,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 />
                 <ChannelHeader/>
                 <ChannelBanner channelId={this.props.channelId}/>
+                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <ChannelTabs
                     activeTab={this.state.activeTab}
                     onTabChange={this.onTabChange}

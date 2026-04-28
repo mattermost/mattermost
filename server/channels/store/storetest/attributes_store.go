@@ -92,7 +92,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 	_, err = ss.User().Save(rctx, &u4)
 	require.NoError(t, err, "couldn't save user")
 
-	group, err := ss.PropertyGroup().Register(testPropertyGroupName)
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: testPropertyGroupName, Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 	require.NotZero(t, group.ID)
 	require.Equal(t, testPropertyGroupName, group.Name)

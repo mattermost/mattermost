@@ -8,6 +8,8 @@ import type {PropertyFieldOption} from '@mattermost/types/properties';
 import MultiValueSelector from './multi_value_selector_menu';
 import SingleValueSelector from './single_value_selector_menu';
 
+import {isMultiValueOperator} from '../shared';
+
 export interface TableRow {
     attribute: string;
     operator: string;
@@ -33,7 +35,7 @@ const ValueSelectorMenu = ({
     allowCreateValue = false,
     placeholder,
 }: ValueSelectorMenuProps) => {
-    const isMultiOperator = row.operator === 'in';
+    const isMultiOperator = isMultiValueOperator(row.operator);
 
     if (isMultiOperator) {
         return (

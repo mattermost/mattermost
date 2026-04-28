@@ -54,16 +54,26 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 		return nil, err
 	}
 
-	// check for pluginID collisions - on collision treat as idempotent
+	// For plugin remotes, check for SiteURL collisions and treat as idempotent.
+	// Non-plugin remotes skip this check and rely on the DB unique constraint
+	// so that AddRemoteCluster can report a proper conflict error.
+	// This reads from master to avoid race conditions on lagging replicas.
 	if remoteCluster.PluginID != "" {
-		rc, err := s.GetByPluginID(remoteCluster.PluginID)
-		if err == nil {
-			// if this plugin id already exists, just return it
-			return rc, nil
+		lookupQuery := s.getQueryBuilder().
+			Select(remoteClusterFields("")...).
+			From("RemoteClusters").
+			Where(sq.Eq{"SiteURL": remoteCluster.SiteURL})
+
+		lookupSQL, args, err := lookupQuery.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "remote_cluster_save_lookup_tosql")
 		}
-		if !errors.Is(err, sql.ErrNoRows) {
-			// anything other than NotFound is unexpected
-			return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by pluginID %s", remoteCluster.PluginID)
+
+		var existing model.RemoteCluster
+		if err := s.GetMaster().Get(&existing, lookupSQL, args...); err == nil {
+			return &existing, nil
+		} else if !errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by SiteURL %s", remoteCluster.SiteURL)
 		}
 	}
 
@@ -183,6 +193,8 @@ func (s sqlRemoteClusterStore) Get(remoteId string, includeDeleted bool) (*model
 	return &rc, nil
 }
 
+// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
+// when the plugin has one registration. Use GetAllByPluginID instead.
 func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("")...).
@@ -197,6 +209,43 @@ func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClus
 	var rc model.RemoteCluster
 	if err := s.GetReplica().Get(&rc, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find RemoteCluster by plugin_id")
+	}
+	return &rc, nil
+}
+
+func (s sqlRemoteClusterStore) GetAllByPluginID(pluginID string) ([]*model.RemoteCluster, error) {
+	query := s.getQueryBuilder().
+		Select(remoteClusterFields("")...).
+		From("RemoteClusters").
+		Where(sq.Eq{"PluginID": pluginID}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_cluster_get_all_by_pluginid_tosql")
+	}
+
+	var list []*model.RemoteCluster
+	if err := s.GetReplica().Select(&list, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find RemoteClusters by plugin_id")
+	}
+	return list, nil
+}
+
+func (s sqlRemoteClusterStore) GetBySiteURL(siteURL string) (*model.RemoteCluster, error) {
+	query := s.getQueryBuilder().
+		Select(remoteClusterFields("")...).
+		From("RemoteClusters").
+		Where(sq.Eq{"SiteURL": siteURL})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_cluster_get_by_siteurl_tosql")
+	}
+
+	var rc model.RemoteCluster
+	if err := s.GetReplica().Get(&rc, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find RemoteCluster by SiteURL")
 	}
 	return &rc, nil
 }

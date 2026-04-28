@@ -10,6 +10,7 @@ import (
 type Client struct {
 	api plugin.API
 
+	Audit         AuditService
 	Bot           BotService
 	Channel       ChannelService
 	Cluster       ClusterService
@@ -42,6 +43,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 	return &Client{
 		api: api,
 
+		Audit:         AuditService{api: api},
 		Bot:           BotService{api: api},
 		Channel:       ChannelService{api: api},
 		Cluster:       ClusterService{api: api},

@@ -6565,6 +6565,35 @@ func (s *apiRPCServer) UnregisterPluginForSharedChannels(args *Z_UnregisterPlugi
 	return nil
 }
 
+type Z_UnregisterPluginRemoteForSharedChannelsArgs struct {
+	A string
+}
+
+type Z_UnregisterPluginRemoteForSharedChannelsReturns struct {
+	A error
+}
+
+func (g *apiRPCClient) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	_args := &Z_UnregisterPluginRemoteForSharedChannelsArgs{remoteID}
+	_returns := &Z_UnregisterPluginRemoteForSharedChannelsReturns{}
+	if err := g.client.Call("Plugin.UnregisterPluginRemoteForSharedChannels", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterPluginRemoteForSharedChannels API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterPluginRemoteForSharedChannels(args *Z_UnregisterPluginRemoteForSharedChannelsArgs, returns *Z_UnregisterPluginRemoteForSharedChannelsReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterPluginRemoteForSharedChannels(remoteID string) error
+	}); ok {
+		returns.A = hook.UnregisterPluginRemoteForSharedChannels(args.A)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterPluginRemoteForSharedChannels called but not implemented."))
+	}
+	return nil
+}
+
 type Z_ShareChannelArgs struct {
 	A *model.SharedChannel
 }
