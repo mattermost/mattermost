@@ -54,8 +54,8 @@ jobs:
       - name: Detect changes and update PR description
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER:    ${{ github.event.pull_request.number }}
-          BASE_SHA:     ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA:     ${{ github.event.pull_request.head.sha }}
-          REPO:         ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REPO: ${{ github.repository }}
         run: python3 .github/scripts/check_config_changes_ci.py
