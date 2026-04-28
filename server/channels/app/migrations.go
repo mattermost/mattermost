@@ -1065,7 +1065,7 @@ func (s *Server) doSetupPageProperties() error {
 		return nil
 	}
 
-	group, err := s.PropertyService().RegisterPropertyGroup("pages")
+	group, err := s.PropertyService().RegisterPropertyGroup(&model.PropertyGroup{Name: "pages", Version: model.PropertyGroupVersionV1})
 	if err != nil {
 		return fmt.Errorf("failed to register Pages group: %w", err)
 	}
@@ -1123,7 +1123,7 @@ func (s *Server) doSetupPageProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.PropertyService().PropertyAccessService().UpdatePropertyFields(anonymousCallerID, group.ID, propertiesToUpdate); err != nil {
+		if _, _, err := s.PropertyService().PropertyAccessService().UpdatePropertyFields(anonymousCallerID, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update page property fields: %w", err)
 		}
 	}
