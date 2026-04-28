@@ -36,7 +36,9 @@ jobs:
 
           merge_base_ts=$(git show -s --format=%ct "$merge_base")
           now_ts=$(date -u +%s)
-          age_days=$(( (now_ts - merge_base_ts) / 86400 ))
+          age_seconds=$(( now_ts - merge_base_ts ))
+          age_days=$(( age_seconds / 86400 ))
+          max_age_seconds=$(( MAX_AGE_DAYS * 86400 ))
 
           echo "Commits behind ${BASE_REF}: ${commits_behind} (max ${MAX_COMMITS_BEHIND})"
           echo "Merge-base age:           ${age_days} days (max ${MAX_AGE_DAYS})"
@@ -46,7 +48,7 @@ jobs:
             echo "::error::Branch is ${commits_behind} commits behind ${BASE_REF} (max ${MAX_COMMITS_BEHIND}). Rebase or merge ${BASE_REF} into your branch."
             fail=1
           fi
-          if [ "$age_days" -gt "$MAX_AGE_DAYS" ]; then
+          if [ "$age_seconds" -gt "$max_age_seconds" ]; then
             echo "::error::Branch's merge-base with ${BASE_REF} is ${age_days} days old (max ${MAX_AGE_DAYS}). Rebase or merge ${BASE_REF} into your branch."
             fail=1
           fi
