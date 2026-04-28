@@ -32,6 +32,19 @@ type ClientWithRemotes = {
 
 async function setupSharedChannelTest(pw: any) {
     const {adminClient, adminUser} = await pw.getAdminClient();
+
+    // Clean up test-created teams (from ABAC, parallel tests) to avoid
+    // bloating the admin sidebar. Uses parallel batch deletion for speed.
+    try {
+        const teams = await adminClient.getMyTeams();
+        const toDelete = teams.filter((t: any) => t.name !== 'team' && t.name !== 'ad-1');
+        for (let i = 0; i < toDelete.length; i += 10) {
+            await Promise.all(toDelete.slice(i, i + 10).map((t: any) => adminClient.deleteTeam(t.id).catch(() => {})));
+        }
+    } catch {
+        // Best-effort cleanup
+    }
+
     const suffix = getRandomId();
     const team = await adminClient.createTeam({
         name: `shr-${suffix}`,

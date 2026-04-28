@@ -227,6 +227,36 @@ jobs:
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
+      - name: ci/dump-docker-state-on-failure
+        # Always run a final docker-state capture so failures unrelated to
+        # openldap startup (e.g. server container later crashes) still produce
+        # logs we can inspect. The script's own retry loop dumps openldap
+        # state per-attempt; this step is a backstop covering the whole job.
+        if: failure()
+        run: |
+          set +e
+          DIAG="e2e-tests/docker-diagnostics/job-failure"
+          mkdir -p "$DIAG"
+          docker ps -a >"$DIAG/docker.ps.txt" 2>&1
+          docker version >"$DIAG/docker.version.txt" 2>&1
+          docker info >"$DIAG/docker.info.txt" 2>&1
+          for c in $(docker ps -a --format '{{.Names}}'); do
+            docker inspect "$c" >"$DIAG/$c.inspect.json" 2>&1
+            docker logs "$c" >"$DIAG/$c.log" 2>&1
+          done
+          uname -a >"$DIAG/host.uname.txt" 2>&1
+          free -m >"$DIAG/host.free.txt" 2>&1
+          df -h >"$DIAG/host.df.txt" 2>&1
+          sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
+          sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
+      - name: ci/upload-docker-diagnostics
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: docker-diagnostics-playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-${{ matrix.worker_index }}
+          path: e2e-tests/docker-diagnostics/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: ci/upload-results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
