@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import {getRandomId} from '../../../../utils';
-
 import {loginAndVisitChannel} from './helper';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Integrations', () => {
     let testUser;

@@ -1252,12 +1252,22 @@ type API interface {
 	// Minimum server version: 9.5
 	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 
-	// UnregisterPluginForSharedChannels unregisters the plugin as a `Remote` for SharedChannels.
-	// The plugin will no longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook.
+	// UnregisterPluginForSharedChannels unregisters all remotes for this plugin. The plugin will no
+	// longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook. Used in
+	// OnDeactivate for bulk cleanup.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UnregisterPluginForSharedChannels(pluginID string) error
+
+	// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+	// The remote must belong to the calling plugin (ownership is validated server-side).
+	// The remote will no longer receive synchronization messages. Used for config change
+	// reconciliation when a connection is removed but others remain.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	UnregisterPluginRemoteForSharedChannels(remoteID string) error
 
 	// ShareChannel marks a channel for sharing via shared channels. Note, this does not automatically
 	// invite any remote clusters to the channel - use `InviteRemote` to invite a remote , or this plugin,
@@ -1310,6 +1320,40 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
+
+	// ReceiveSharedChannelSyncMsg processes a sync message from this plugin, creating or updating
+	// posts, reactions, users, statuses, acknowledgements, and membership changes.
+	// When msg.ChannelId is set, content is synced into that shared channel.
+	// When msg.ChannelId is empty and only Users are present, a global user sync is performed.
+	// This is the inbound counterpart of the OnSharedChannelsSyncMsg hook.
+	// The remoteID identifies which of the plugin's registered remotes this message is from
+	// (the value returned by RegisterPluginForSharedChannels). Entities in the SyncMsg will
+	// have their RemoteId set to match this remote.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error)
+
+	// ReceiveSharedChannelAttachmentSyncMsg syncs a file attachment into a shared channel.
+	// The FileInfo provides metadata (Name, Size, CreatorId); the server constructs the
+	// storage path and manages the upload. The data reader provides the raw file bytes.
+	// This is the inbound counterpart of the OnSharedChannelsAttachmentSyncMsg hook.
+	// The remoteID identifies which of the plugin's registered remotes this attachment is from
+	// (the value returned by RegisterPluginForSharedChannels).
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error)
+
+	// ReceiveSharedChannelProfileImageSyncMsg syncs a user's profile image from this plugin's
+	// remote into Mattermost. The user must have a RemoteId matching the specified remote.
+	// This is the inbound counterpart of the OnSharedChannelsProfileImageSyncMsg hook.
+	// The remoteID identifies which of the plugin's registered remotes this image is from
+	// (the value returned by RegisterPluginForSharedChannels).
+	//
+	// @tag SharedChannels
+	// Minimum server version: 11.7
+	ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error
 
 	// UpsertGroupMember adds a user to a group or updates their existing membership.
 	//
@@ -1425,6 +1469,11 @@ type API interface {
 
 	// CreatePropertyField creates a new property field.
 	//
+	// If the field's LinkedFieldID is set, the field inherits type, options,
+	// and security attributes from the referenced template field. The source
+	// must be a template field in the same group, must not itself be linked,
+	// and must not be deleted.
+	//
 	// @tag PropertyField
 	// Minimum server version: 10.10
 	CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error)
@@ -1443,11 +1492,17 @@ type API interface {
 
 	// UpdatePropertyField updates an existing property field.
 	//
+	// Fields with a LinkedFieldID cannot have their type or options modified.
+	// Set LinkedFieldID to an empty string to unlink a field from its source.
+	//
 	// @tag PropertyField
 	// Minimum server version: 10.10
 	UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error)
 
 	// DeletePropertyField deletes a property field (soft delete).
+	//
+	// Returns an error if the field has active linked dependents. Unlink or
+	// delete dependent fields first.
 	//
 	// @tag PropertyField
 	// Minimum server version: 10.10

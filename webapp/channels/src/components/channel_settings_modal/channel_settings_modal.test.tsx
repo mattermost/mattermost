@@ -3,6 +3,9 @@
 
 import React from 'react';
 
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {General} from 'mattermost-redux/constants';
 
 import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
@@ -14,6 +17,7 @@ import ChannelSettingsModal from './channel_settings_modal';
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
+let mockManageSharedChannelsPermission = false;
 
 // Mock the channel banner selector
 jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
@@ -37,6 +41,12 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
             return mockManageChannelAccessRulesPermission;
         }
         return true;
+    }),
+    haveISystemPermission: jest.fn().mockImplementation((state, {permission}) => {
+        if (permission === 'manage_shared_channels') {
+            return mockManageSharedChannelsPermission;
+        }
+        return false;
     }),
 }));
 
@@ -140,8 +150,8 @@ describe('ChannelSettingsModal', () => {
         focusOriginElement: 'button1',
     };
 
-    function makeTestState() {
-        return {
+    function makeTestState(): GlobalState {
+        const state: DeepPartial<GlobalState> = {
             entities: {
                 channels: {
                     channels: {
@@ -158,15 +168,18 @@ describe('ChannelSettingsModal', () => {
                     license: {
                         SkuShortName: '',
                     },
+                    config: {},
                 },
             },
         };
+        return state as GlobalState;
     }
 
     beforeEach(() => {
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
+        mockManageSharedChannelsPermission = false;
     });
 
     it('should render the modal with correct header text', async () => {
@@ -174,7 +187,11 @@ describe('ChannelSettingsModal', () => {
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
-        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        // Use wait for to ensure the component is completely loaded and avoid
+        // act related errors during test.
+        await waitFor(() => {
+            expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        });
     });
 
     it('should render Info tab by default', async () => {
@@ -320,6 +337,16 @@ describe('ChannelSettingsModal', () => {
     it('should show configuration tab when enterprise advanced license', async () => {
         const testState = makeTestState();
         testState.entities.general.license.SkuShortName = 'advanced';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
+    });
+
+    it('should show configuration tab when Connected Workspaces enabled and user has manage_shared_channels', async () => {
+        mockManageSharedChannelsPermission = true;
+
+        const testState = makeTestState();
+        testState.entities.general.config.ExperimentalSharedChannels = 'true';
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();

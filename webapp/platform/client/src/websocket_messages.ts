@@ -365,6 +365,15 @@ export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.S
     order: string[];
 }>;
 
+// Property system messages
+
+export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
+}>;
+
 // Emoji messages
 
 export type EmojiAdded = BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {

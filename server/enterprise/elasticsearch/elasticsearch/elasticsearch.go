@@ -43,6 +43,7 @@ type ElasticsearchInterfaceImpl struct {
 	client      *elastic.TypedClient
 	mutex       sync.RWMutex
 	ready       atomic.Int32
+	healthy     atomic.Int32 // 1 = reachable, 0 = unreachable (set by watcher)
 	version     int
 	fullVersion string
 	plugins     []string
@@ -74,6 +75,18 @@ func (es *ElasticsearchInterfaceImpl) IsEnabled() bool {
 
 func (es *ElasticsearchInterfaceImpl) IsActive() bool {
 	return *es.Platform.Config().ElasticsearchSettings.EnableIndexing && es.ready.Load() == 1
+}
+
+func (es *ElasticsearchInterfaceImpl) IsHealthy() bool {
+	return es.healthy.Load() == 1
+}
+
+func (es *ElasticsearchInterfaceImpl) SetHealthy(healthy bool) {
+	if healthy {
+		es.healthy.Store(1)
+	} else {
+		es.healthy.Store(0)
+	}
 }
 
 func (es *ElasticsearchInterfaceImpl) IsIndexingEnabled() bool {
@@ -228,6 +241,7 @@ func (es *ElasticsearchInterfaceImpl) Start(ctx context.Context) *model.AppError
 	}
 
 	es.ready.Store(1)
+	es.healthy.Store(1)
 
 	return nil
 }
@@ -295,6 +309,7 @@ func (es *ElasticsearchInterfaceImpl) Stop() *model.AppError {
 	}
 
 	es.ready.Store(0)
+	es.healthy.Store(0)
 
 	return nil
 }

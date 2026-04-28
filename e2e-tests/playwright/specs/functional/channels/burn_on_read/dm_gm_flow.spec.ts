@@ -50,7 +50,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `DM secret ${await pw.random.id()}`;
+        const secretMessage = `DM secret ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Get sender's view of the post
@@ -128,7 +128,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
             // # Enable BoR and send message
             await senderPage.centerView.postCreate.toggleBurnOnRead();
-            const secretMessage = `GM secret ${await pw.random.id()}`;
+            const secretMessage = `GM secret ${pw.random.id()}`;
             await senderPage.postMessage(secretMessage);
 
             // # Get sender's view
@@ -195,7 +195,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `To be deleted ${await pw.random.id()}`;
+        const secretMessage = `To be deleted ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Get the post ID
@@ -247,7 +247,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `Receiver will burn ${await pw.random.id()}`;
+        const secretMessage = `Receiver will burn ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Login as receiver
@@ -302,7 +302,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Enable BoR and send message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const secretMessage = `Count test ${await pw.random.id()}`;
+        const secretMessage = `Count test ${pw.random.id()}`;
         await senderPage.postMessage(secretMessage);
 
         // # Get sender's view
@@ -332,12 +332,12 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
 
         // # Send first BoR message
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message1 = `First BoR ${await pw.random.id()}`;
+        const message1 = `First BoR ${pw.random.id()}`;
         await senderPage.postMessage(message1);
 
         // # Send second BoR message (toggle again to ensure BoR is on)
         await senderPage.centerView.postCreate.toggleBurnOnRead();
-        const message2 = `Second BoR ${await pw.random.id()}`;
+        const message2 = `Second BoR ${pw.random.id()}`;
         await senderPage.postMessage(message2);
 
         // # Login as receiver and verify they can see concealed messages
@@ -395,7 +395,7 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         expect(isEnabledBefore).toBe(true);
 
         // # Send a message
-        const message1 = `BoR message ${await pw.random.id()}`;
+        const message1 = `BoR message ${pw.random.id()}`;
         await senderPage.postMessage(message1);
 
         // * Verify BoR is disabled after sending (toggle resets)

@@ -599,27 +599,6 @@
         }
     }
 
-    .browser--ie & {
-        .post__header {
-            .col__reply {
-                .comment-icon__container {
-                    flex: 0 1 auto;
-                    align-items: center;
-                }
-
-                > .open,
-                > div {
-                    flex: 0 1 30px;
-                    align-items: center;
-
-                    &:first-child {
-                        flex: 0 1 25px;
-                    }
-                }
-            }
-        }
-    }
-
     &.post--system {
         .post__header {
             .post-menu {
@@ -949,6 +928,7 @@
 
                 display: flex;
                 width: 100%;
+                max-width: 100%;
                 align-items: center;
                 justify-content: flex-start;
                 padding: 0 5px;
@@ -960,6 +940,12 @@
                     margin-right: 5px;
                     font-size: 0.9em;
                     opacity: 0.5;
+                }
+
+                .post-image__filename {
+                    display: inline;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
                 }
             }
 
@@ -1673,11 +1659,11 @@
         }
     }
 
-    .post__translation-icon-processing {        
+    .post__translation-icon-processing {
         color: rgba(var(--center-channel-color-rgb), 0.73);
         font-size: 10px;
         line-height: 16px;
-        
+
         .LoadingSpinner.with-text .spinner {
             margin-right: 3px;
         }

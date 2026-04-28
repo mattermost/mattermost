@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {Channel} from '@mattermost/types/channels';
-import {ChainableT} from 'tests/types';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../support/env';
-import {newTestPassword} from '../../../../utils';
 import {SimpleUser} from '../../autocomplete/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {newTestPassword} from '@/utils';
+import {ChainableT} from '@/types';
 
 const admin = getAdminAccount();
 
@@ -40,7 +41,7 @@ export function searchForChannel(name: string) {
         type(name);
 }
 
-function createChannel(channelType, teamId, userToAdd = null): ChainableT<Channel> {
+function createChannel(channelType: string, teamId: string, userToAdd: {email: string} | null = null): ChainableT<Channel> {
     // # Create a channel as sysadmin
     return cy.externalRequest({
         user: admin,
@@ -206,17 +207,17 @@ export function getTestUsers(): Record<string, SimpleUser> {
     };
 }
 
-export function createPrivateChannel(teamId: string, userToAdd = null) {
+export function createPrivateChannel(teamId: string, userToAdd: {email: string} | null = null) {
     // # Create a private channel as sysadmin
     return createChannel('P', teamId, userToAdd);
 }
 
-export function createPublicChannel(teamId, userToAdd = null) {
+export function createPublicChannel(teamId: string, userToAdd: {email: string} | null = null) {
     // # Create a public channel as sysadmin
     return createChannel('O', teamId, userToAdd);
 }
 
-export function searchAndVerifyChannel(channel, shouldExist = true) {
+export function searchAndVerifyChannel(channel: Cypress.Channel, shouldExist = true) {
     const name = channel.display_name;
     searchForChannel(name);
 
@@ -230,7 +231,7 @@ export function searchAndVerifyChannel(channel, shouldExist = true) {
     }
 }
 
-export function searchAndVerifyUser(user) {
+export function searchAndVerifyUser(user: Cypress.UserProfile) {
     // # Start @ mentions autocomplete with username
     cy.uiGetPostTextBox().
         as('input').

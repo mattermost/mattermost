@@ -5,6 +5,7 @@ import React, {useState, useEffect} from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {getDesktopVersion, isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -16,7 +17,6 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {AboutLinks} from 'utils/constants';
 import {getSkuDisplayName} from 'utils/subscription';
-import {getDesktopVersion, isDesktopApp} from 'utils/user_agent';
 
 import AboutBuildModalCloud from './about_build_modal_cloud/about_build_modal_cloud';
 

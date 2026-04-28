@@ -99,6 +99,11 @@ on:
       AWS_SECRET_ACCESS_KEY:
         required: true
 
+# Callers must grant at least these scopes on the job that uses this workflow
+permissions:
+  contents: read
+  statuses: write
+
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 

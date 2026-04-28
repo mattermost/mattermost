@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @accessibility @mfa
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
 
 describe('Verify Accessibility Support in different sections in Settings and Profile Dialog', () => {
     const accountSettings = {

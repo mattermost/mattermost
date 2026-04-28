@@ -4,7 +4,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import HistoryButtons from './history_buttons';
 import ProductMenu from './product_menu';

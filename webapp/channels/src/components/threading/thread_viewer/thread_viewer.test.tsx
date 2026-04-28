@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -9,6 +8,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fakeDate} from 'tests/helpers/date';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {FakePost} from 'types/store/rhs';
@@ -108,7 +108,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should match snapshot', async () => {
         const reset = fakeDate(new Date(1502715365000));
 
-        const {container} = render(
+        const {container} = renderWithContext(
             <ThreadViewer {...baseProps}/>,
         );
 
@@ -120,7 +120,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should make api call to get thread posts on socket reconnect', async () => {
-        const {rerender} = render(
+        const {rerender} = renderWithContext(
             <ThreadViewer {...baseProps}/>,
         );
 
@@ -157,7 +157,7 @@ describe('components/threading/ThreadViewer', () => {
         };
 
         expect(() => {
-            render(<ThreadViewer {...props}/>);
+            renderWithContext(<ThreadViewer {...props}/>);
         }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
@@ -169,14 +169,14 @@ describe('components/threading/ThreadViewer', () => {
         };
 
         expect(() => {
-            render(<ThreadViewer {...props}/>);
+            renderWithContext(<ThreadViewer {...props}/>);
         }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
     test('should call fetchThread when no thread on mount', async () => {
         const {actions} = baseProps;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
@@ -199,7 +199,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 32,
         } as UserThread;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 userThread={userThread}
@@ -221,7 +221,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 userThread={userThread}
@@ -246,7 +246,7 @@ describe('components/threading/ThreadViewer', () => {
             last_reply_at: 142,
         } as UserThread;
 
-        const {rerender} = render(
+        const {rerender} = renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 isCollapsedThreadsEnabled={true}
@@ -287,7 +287,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should call fetchRHSAppsBindings on mount if appsEnabled', () => {
         const {actions} = baseProps;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
             />,
@@ -299,7 +299,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should not call fetchRHSAppsBindings on mount if not appsEnabled', () => {
         const {actions} = baseProps;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 appsEnabled={false}
@@ -312,7 +312,7 @@ describe('components/threading/ThreadViewer', () => {
     test('should update thread with highest update_at value when lastUpdateAt is 0', async () => {
         const {actions} = baseProps;
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
                 lastUpdateAt={0} // Set lastUpdateAt to 0
@@ -341,7 +341,7 @@ describe('components/threading/ThreadViewer', () => {
             },
         });
 
-        render(
+        renderWithContext(
             <ThreadViewer
                 {...baseProps}
             />,

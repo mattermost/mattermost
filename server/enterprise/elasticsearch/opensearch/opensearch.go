@@ -44,6 +44,7 @@ type OpensearchInterfaceImpl struct {
 	client      *opensearchapi.Client
 	mutex       sync.RWMutex
 	ready       atomic.Int32
+	healthy     atomic.Int32 // 1 = reachable, 0 = unreachable (set by watcher)
 	version     int
 	fullVersion string
 	plugins     []string
@@ -75,6 +76,18 @@ func (os *OpensearchInterfaceImpl) IsEnabled() bool {
 
 func (os *OpensearchInterfaceImpl) IsActive() bool {
 	return *os.Platform.Config().ElasticsearchSettings.EnableIndexing && os.ready.Load() == 1
+}
+
+func (os *OpensearchInterfaceImpl) IsHealthy() bool {
+	return os.healthy.Load() == 1
+}
+
+func (os *OpensearchInterfaceImpl) SetHealthy(healthy bool) {
+	if healthy {
+		os.healthy.Store(1)
+	} else {
+		os.healthy.Store(0)
+	}
 }
 
 func (os *OpensearchInterfaceImpl) IsIndexingEnabled() bool {
@@ -235,6 +248,7 @@ func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	}
 
 	os.ready.Store(1)
+	os.healthy.Store(1)
 
 	return nil
 }
@@ -287,6 +301,7 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 
 	os.client = nil
 	os.ready.Store(0)
+	os.healthy.Store(0)
 
 	return nil
 }

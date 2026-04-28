@@ -13,9 +13,9 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {isMac} from '../../../utils';
-import {ChainableT} from '../../../types';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {isMac} from '@/utils';
+import {ChainableT} from '@/types';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -244,7 +244,7 @@ describe('Collapsed Reply Threads', () => {
     });
 });
 
-function postMessageWithReply(channelId, postSender, postMessage, replySender, replyMessage): ChainableT {
+function postMessageWithReply(channelId: string, postSender: {username: string; password: string}, postMessage: string, replySender: {username: string; password: string}, replyMessage: string): ChainableT {
     return cy.postMessageAs({
         sender: postSender,
         message: postMessage || 'Another interesting post.',
@@ -261,18 +261,18 @@ function postMessageWithReply(channelId, postSender, postMessage, replySender, r
 
 function scrollThreadsListToEnd(maxScrolls = 1, scrolls = 0): ChainableT<void> {
     if (scrolls === maxScrolls) {
-        return;
+        return cy.wrap(undefined);
     }
 
-    cy.get('.ThreadList .virtualized-thread-list').scrollTo('bottom').then(($el) => {
+    return cy.get('.ThreadList .virtualized-thread-list').scrollTo('bottom').then(($el) => {
         const element = $el.find('.no-results__wrapper');
 
         if (element.length < 1) {
-            cy.wait(TIMEOUTS.ONE_SEC).then(() => {
-                scrollThreadsListToEnd(maxScrolls, scrolls + 1);
+            return cy.wait(TIMEOUTS.ONE_SEC).then(() => {
+                return scrollThreadsListToEnd(maxScrolls, scrolls + 1);
             });
-        } else {
-            cy.wrap(element).scrollIntoView();
         }
+
+        return cy.wrap(element).scrollIntoView().then(() => undefined);
     });
 }

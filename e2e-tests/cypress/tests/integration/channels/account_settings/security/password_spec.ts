@@ -12,8 +12,8 @@
 
 import moment from 'moment-timezone';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {newTestPassword} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {newTestPassword} from '@/utils';
 
 describe('Profile', () => {
     let siteName: string;
@@ -147,7 +147,7 @@ describe('Profile', () => {
     });
 });
 
-function enterPasswords(currentPassword, newPassword, confirmPassword) {
+function enterPasswords(currentPassword: string, newPassword: string, confirmPassword: string) {
     // # Enter Current password
     cy.get('#currentPassword').should('be.visible').type(currentPassword);
 

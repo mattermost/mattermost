@@ -56,6 +56,9 @@ services:
       MM_SERVICESETTINGS_ALLOWCORSFROM: "*"
       MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
       MM_SERVICESETTINGS_ENABLESECURITYFIXALERT: "false"
+      MM_CONNECTEDWORKSPACESSETTINGS_ENABLEREMOTECLUSTERSERVICE: "true"
+      MM_CONNECTEDWORKSPACESSETTINGS_ENABLESHAREDWORKSPACES: "true"
+      MM_FEATUREFLAGS_ENABLEREMOTECLUSTERSERVICE: "true"
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
       MM_EMAILSETTINGS_SMTPSERVER: "localhost"
@@ -63,6 +66,7 @@ services:
       MM_SERVICEENVIRONMENT: "test"
       MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
       MM_FEATUREFLAGS_CUSTOMPROFILEATTRIBUTES: "true"
+      MM_FEATUREFLAGS_PERMISSIONPOLICIES: "true"
       MM_LOGSETTINGS_ENABLEDIAGNOSTICS: "false"
       MM_LOGSETTINGS_CONSOLELEVEL: "DEBUG"
     network_mode: host
@@ -281,7 +285,7 @@ $(if mme2e_is_token_in_list "playwright" "$ENABLED_DOCKER_SERVICES"; then
     # shellcheck disable=SC2016
     echo '
   playwright:
-    image: mcr.microsoft.com/playwright:v1.58.0-noble
+    image: mcr.microsoft.com/playwright:v1.59.1-noble
     entrypoint: ["/bin/bash", "-c"]
     command:
       - |

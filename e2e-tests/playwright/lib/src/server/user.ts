@@ -41,7 +41,7 @@ export async function createNewUserProfile(
 }
 
 export async function createRandomUser(prefix = 'user') {
-    const randomId = await getRandomId();
+    const randomId = getRandomId();
 
     const user = {
         email: `${prefix}${randomId}@sample.mattermost.com`,

@@ -5,10 +5,11 @@ import {Channel} from '@mattermost/types/channels';
 import {UserProfile} from '@mattermost/types/users';
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../../support/env';
-
 import {checkBoxes} from './constants';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+
 
 // # Visits the channel configuration for a channel with channelName
 export const visitChannelConfigPage = (channel: Channel) => {
@@ -22,9 +23,9 @@ export const visitChannelConfigPage = (channel: Channel) => {
 };
 
 // # Disable a permission
-export const disablePermission = (permission) => {
+export const disablePermission = (permission: string) => {
     cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().should('be.visible').then((el) => {
-        const classAttribute = el[0].getAttribute('class');
+        const classAttribute = el[0].getAttribute('class') ?? '';
         if (classAttribute.includes('checked') || classAttribute.includes('intermediate')) {
             el[0].click();
             return false;
@@ -35,7 +36,7 @@ export const disablePermission = (permission) => {
 };
 
 // # Saves channel config and navigates back to the channel config page if specified
-export const saveConfigForChannel = (channelName: string = null, clickConfirmationButton = false) => {
+export const saveConfigForChannel = (channelName: string | null = null, clickConfirmationButton = false) => {
     cy.get('#saveSetting').then((btn) => {
         if (btn.is(':enabled')) {
             btn.click();
@@ -74,7 +75,7 @@ export const visitChannel = (user: UserProfile, channel: Channel, team: Team) =>
 
 // # Checks to see if we got a system message warning after using @all/@here/@channel
 export const postChannelMentionsAndVerifySystemMessageExist = (channelName: string) => {
-    function getSystemMessage(text) {
+    function getSystemMessage(text: string) {
         return `Channel notifications are disabled in ${channelName}. The ${text} did not trigger any notifications.`;
     }
 
@@ -106,9 +107,9 @@ export const postChannelMentionsAndVerifySystemMessageExist = (channelName: stri
 };
 
 // # Enable a permission
-export const enablePermission = (permission) => {
+export const enablePermission = (permission: string) => {
     cy.waitUntil(() => cy.findByTestId(permission).scrollIntoView().should('be.visible').then((el) => {
-        const classAttribute = el[0].getAttribute('class');
+        const classAttribute = el[0].getAttribute('class') ?? '';
         if (!classAttribute.includes('checked')) {
             el[0].click();
             return false;
@@ -120,7 +121,7 @@ export const enablePermission = (permission) => {
 
 // # Checks to see if we did not get a system message warning after using @all/@here/@channel
 export const postChannelMentionsAndVerifySystemMessageNotExist = (channel: Channel) => {
-    function getSystemMessage(text) {
+    function getSystemMessage(text: string) {
         return `Channel notifications are disabled in ${channel.name}. The ${text} did not trigger any notifications.`;
     }
 

@@ -4,13 +4,18 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+const attributeViewRefreshInterval = 30 * time.Second
 
 func (a *App) GetChannelsForPolicy(rctx request.CTX, policyID string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.ChannelWithTeamData, int64, *model.AppError) {
 	policy, appErr := a.GetAccessControlPolicy(rctx, policyID)
@@ -77,6 +82,15 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 
 	if policy.ID == "" {
 		policy.ID = model.NewId()
+	}
+
+	policy.Version = model.AccessControlPolicyVersionV0_3
+	for i, rule := range policy.Rules {
+		for j, action := range rule.Actions {
+			if action == "*" {
+				policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+			}
+		}
 	}
 
 	var appErr *model.AppError
@@ -147,17 +161,13 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 
 	channels, err := a.GetChannels(rctx, channelIDs)
 	if err != nil {
-		return nil, appErr
+		return nil, err
 	}
 
 	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))
 	for _, channel := range channels {
-		if channel.Type != model.ChannelTypePrivate || channel.IsGroupConstrained() {
-			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is not of type private", http.StatusBadRequest)
-		}
-
-		if channel.IsShared() {
-			return nil, model.NewAppError("AssignAccessControlPolicyToChannels", "app.pap.assign_access_control_policy_to_channels.app_error", nil, "Channel is shared", http.StatusBadRequest)
+		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+			return nil, appErr
 		}
 
 		child, err := acs.GetPolicy(rctx, channel.Id)
@@ -173,7 +183,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 				Props:    map[string]any{},
 			}
 		}
-		child.Version = model.AccessControlPolicyVersionV0_2
+		child.Version = model.AccessControlPolicyVersionV0_3
 
 		appErr := child.Inherit(policy)
 		if appErr != nil {
@@ -332,6 +342,30 @@ func (a *App) ExpressionToVisualAST(rctx request.CTX, expression string) (*model
 	return visualAST, nil
 }
 
+// ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
+// access control policy assignment: must be private, not group-constrained, not shared.
+func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.AppError {
+	if channel.Type != model.ChannelTypePrivate {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_not_private",
+			nil, "Channel is not of type private", http.StatusBadRequest)
+	}
+
+	if channel.IsGroupConstrained() {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_group_constrained",
+			nil, "Channel is group constrained", http.StatusBadRequest)
+	}
+
+	if channel.IsShared() {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_shared",
+			nil, "Channel is shared", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 // ValidateChannelAccessControlPermission validates if a user has permission to manage access control for a specific channel
 func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, channelID string) *model.AppError {
 	// Verify the channel exists
@@ -345,17 +379,8 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
-	// Verify the channel is a private channel
-	if channel.Type != model.ChannelTypePrivate {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_not_private", nil, "channel_id="+channelID, http.StatusBadRequest)
-	}
-
-	if channel.IsGroupConstrained() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_group_constrained", nil, "channel_id="+channelID, http.StatusBadRequest)
-	}
-
-	if channel.IsShared() {
-		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.channel_shared", nil, "channel_id="+channelID, http.StatusBadRequest)
+	if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+		return appErr
 	}
 
 	return nil
@@ -508,4 +533,62 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 		return true, nil
 	}
 	return false, nil
+}
+
+// BuildAccessControlSubject creates a fully populated Subject with user attributes and system role
+// for use in AccessEvaluation calls. It also ensures the materialized attribute view is
+// refreshed periodically (at most once per attributeViewRefreshInterval).
+func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string) (*model.Subject, *model.AppError) {
+	a.refreshAttributeViewIfStale(rctx)
+
+	groupID, err := a.CpaGroupID()
+	if err != nil {
+		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	subject, storeErr := a.Srv().Store().Attributes().GetSubject(rctx, userID, groupID)
+	if storeErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(storeErr, &nfErr) {
+			return &model.Subject{
+				ID:         userID,
+				Type:       "user",
+				Role:       roles,
+				Attributes: map[string]any{},
+			}, nil
+		}
+
+		rctx.Logger().Warn("Failed to get subject for access control subject",
+			mlog.String("user_id", userID),
+			mlog.String("roles", roles),
+			mlog.Err(storeErr),
+		)
+		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	subject.Role = roles
+	return subject, nil
+}
+
+// refreshAttributeViewIfStale refreshes the materialized AttributeView if the last
+// refresh was more than attributeViewRefreshInterval ago. The refresh is non-blocking:
+// if another goroutine is already refreshing, this call returns immediately.
+func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
+	ch := a.Srv().Channels()
+
+	if !ch.attributeViewRefreshMut.TryLock() {
+		return
+	}
+	defer ch.attributeViewRefreshMut.Unlock()
+
+	if time.Since(ch.attributeViewRefreshLast) < attributeViewRefreshInterval {
+		return
+	}
+
+	if err := a.Srv().Store().Attributes().RefreshAttributes(); err != nil {
+		rctx.Logger().Warn("Failed to refresh attribute materialized view", mlog.Err(err))
+		return
+	}
+
+	ch.attributeViewRefreshLast = time.Now()
 }

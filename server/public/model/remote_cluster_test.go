@@ -24,6 +24,7 @@ func TestRemoteClusterIsValid(t *testing.T) {
 		{name: "Zero value", rc: &RemoteCluster{}, valid: false},
 		{name: "Missing cluster_name", rc: &RemoteCluster{RemoteId: id}, valid: false},
 		{name: "Missing host_name", rc: &RemoteCluster{RemoteId: id, Name: NewId()}, valid: false},
+		{name: "Missing site_url", rc: &RemoteCluster{RemoteId: id, Name: NewId(), CreatorId: creator, CreateAt: now}, valid: false},
 		{name: "Missing create_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com"}, valid: false},
 		{name: "Missing last_ping_at", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreatorId: creator, CreateAt: now}, valid: true},
 		{name: "Missing creator", rc: &RemoteCluster{RemoteId: id, Name: NewId(), SiteURL: "example.com", CreateAt: now, LastPingAt: now}, valid: false},
@@ -216,24 +217,43 @@ func makeInvite(url string) RemoteClusterInvite {
 	}
 }
 
-func TestNewIDFromBytes(t *testing.T) {
-	tests := []struct {
-		name string
-		ss   string
-	}{
-		{name: "empty", ss: ""},
-		{name: "very short", ss: "x"},
-		{name: "normal", ss: "com.mattermost.msteams-sync"},
-		{name: "long", ss: "com.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-synccom.mattermost.msteams-sync"},
+func TestRemoteClusterToRemoteClusterInfo(t *testing.T) {
+	remoteID := NewId()
+	now := GetMillis()
+	rc := &RemoteCluster{
+		RemoteId:    remoteID,
+		Name:        "test-name",
+		DisplayName: "Test Display Name",
+		CreateAt:    now,
+		DeleteAt:    0,
+		LastPingAt:  now,
+		SiteURL:     "https://example.com:8065",
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got1 := newIDFromBytes([]byte(tt.ss))
 
-			assert.True(t, IsValidId(got1), "not a valid id")
+	info := rc.ToRemoteClusterInfo()
 
-			got2 := newIDFromBytes([]byte(tt.ss))
-			assert.Equal(t, got1, got2, "newIDFromBytes must generate same id for same inputs")
-		})
-	}
+	assert.Equal(t, remoteID, info.RemoteId, "RemoteId should be set")
+	assert.Equal(t, rc.Name, info.Name)
+	assert.Equal(t, rc.DisplayName, info.DisplayName)
+	assert.Equal(t, rc.CreateAt, info.CreateAt)
+	assert.Equal(t, rc.DeleteAt, info.DeleteAt)
+	assert.Equal(t, rc.LastPingAt, info.LastPingAt)
+	assert.Equal(t, rc.SiteURL, info.SiteURL)
+}
+
+func TestRemoteClusterIsPlugin(t *testing.T) {
+	t.Run("PluginID set returns true", func(t *testing.T) {
+		rc := &RemoteCluster{PluginID: "com.example.plugin", SiteURL: "https://example.com"}
+		assert.True(t, rc.IsPlugin())
+	})
+
+	t.Run("empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: "https://example.com"}
+		assert.False(t, rc.IsPlugin())
+	})
+
+	t.Run("plugin_ SiteURL prefix with empty PluginID returns false", func(t *testing.T) {
+		rc := &RemoteCluster{SiteURL: SiteURLPlugin + "com.example.plugin"}
+		assert.False(t, rc.IsPlugin(), "IsPlugin should only check PluginID, not SiteURL prefix")
+	})
 }

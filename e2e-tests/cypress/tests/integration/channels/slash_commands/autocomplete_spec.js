@@ -9,7 +9,7 @@
 
 // Group: @channels @not_cloud @integrations @plugin
 
-import {demoPlugin, jiraPlugin} from '../../../utils/plugins';
+import {demoPlugin, jiraPlugin} from '@/utils/plugins';
 
 describe('Integrations', () => {
     before(() => {

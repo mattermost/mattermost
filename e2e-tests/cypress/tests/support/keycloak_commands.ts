@@ -1,21 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
 
 import * as TIMEOUTS from '../fixtures/timeouts';
 
 import {LdapUser} from './ldap_server_commands';
 
+import {ChainableT} from '@/types';
+
 const {
     keycloakBaseUrl,
     keycloakAppName,
-} = Cypress.env();
+} = Cypress.expose();
 
 const baseUrl = `${keycloakBaseUrl}/auth/admin/realms/${keycloakAppName}`;
 const loginUrl = `${keycloakBaseUrl}/auth/realms/master/protocol/openid-connect/token`;
 
-function buildProfile(user) {
+function buildProfile(user: LdapUser) {
     return {
         firstName: user.firstname,
         lastName: user.lastname,
@@ -37,6 +38,7 @@ function keycloakGetAccessTokenAPI(): ChainableT<string> {
         method: 'post',
         headers: {'Content-type': 'application/x-www-form-urlencoded'},
         data: 'grant_type=password&username=mmuser&password=mostest&client_id=admin-cli',
+    // cy.task() returns untyped data
     }).then((response: any) => {
         expect(response.status).to.equal(200);
         const token: string = response.data.access_token;
@@ -55,7 +57,7 @@ Cypress.Commands.add('keycloakGetAccessTokenAPI', keycloakGetAccessTokenAPI);
 * @example
 *   cy.keycloakCreateUserAPI('abcde', {firstName: 'test', lastName: 'test', email: 'test', username: 'test', enabled: true,});
 */
-function keycloakCreateUserAPI(accessToken: string, user: any = {}): ChainableT {
+function keycloakCreateUserAPI(accessToken: string, user: LdapUser): ChainableT {
     const profile = buildProfile(user);
     return cy.task('keycloakRequest', {
         baseUrl,
@@ -66,7 +68,8 @@ function keycloakCreateUserAPI(accessToken: string, user: any = {}): ChainableT 
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
         },
-    }).then((response: Response) => {
+    // cy.task() returns untyped data
+    }).then((response: any) => {
         expect(response.status).to.equal(201);
     });
 }
@@ -93,6 +96,7 @@ function keycloakResetPasswordAPI(accessToken: string, userId: string, password:
             Authorization: `Bearer ${accessToken}`,
         },
         data: {type: 'password', temporary: false, value: password},
+    // cy.task() returns untyped data
     }).then((response: any) => {
         if (response.status === 200 && response.data.length > 0) {
             return cy.wrap(response.data[0].id);
@@ -122,11 +126,12 @@ function keycloakGetUserAPI(accessToken: string, email: string): ChainableT<stri
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
         },
+    // cy.task() returns untyped data
     }).then((response: any) => {
         if (response.status === 200 && response.data.length > 0) {
             return cy.wrap<string>(response.data[0].id);
         }
-        return null;
+        return cy.wrap(null as unknown as string);
     });
 }
 
@@ -150,6 +155,7 @@ function keycloakDeleteUserAPI(accessToken: string, userId: string): ChainableT 
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
         },
+    // cy.task() returns untyped data
     }).then((response: any) => {
         expect(response.status).to.equal(204);
     });
@@ -166,7 +172,7 @@ Cypress.Commands.add('keycloakDeleteUserAPI', keycloakDeleteUserAPI);
 * @example
 *   cy.keycloakUpdateUserAPI('abcde', '12345', {'enabled': false}});
 */
-function keycloakUpdateUserAPI(accessToken: string, userId: string, data: any): ChainableT {
+function keycloakUpdateUserAPI(accessToken: string, userId: string, data: Record<string, unknown>): ChainableT {
     return cy.task('keycloakRequest', {
         baseUrl,
         path: 'users/' + userId,
@@ -175,6 +181,7 @@ function keycloakUpdateUserAPI(accessToken: string, userId: string, data: any): 
             Authorization: `Bearer ${accessToken}`,
         },
         data,
+    // cy.task() returns untyped data
     }).then((response: any) => {
         expect(response.status).to.equal(204);
     });
@@ -198,6 +205,7 @@ function keycloakDeleteSessionAPI(accessToken: string, sessionId: string): Chain
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
+    // cy.task() returns untyped data
     }).then((delResponse: any) => {
         expect(delResponse.status).to.equal(204);
     });
@@ -224,6 +232,7 @@ function keycloakGetUserSessionsAPI(accessToken: string, userId: string): Chaina
             'Content-Type': 'application/json',
             Authorization: `Bearer ${accessToken}`,
         },
+    // cy.task() returns untyped data
     }).then((response: any) => {
         expect(response.status).to.equal(200);
         expect(response.data);
@@ -266,7 +275,7 @@ Cypress.Commands.add('keycloakDeleteUserSessions', keycloakDeleteUserSessions);
 * @example
 *   cy.keycloakResetUsers([{firstName: 'test', lastName: 'test', email: 'test', username: 'test', enabled: true}]);
 */
-function keycloakResetUsers(users: any[]): ChainableT {
+function keycloakResetUsers(users: LdapUser[]): ChainableT {
     return cy.keycloakGetAccessTokenAPI().then((accessToken) => {
         users.forEach((_user) => {
             cy.keycloakGetUserAPI(accessToken, _user.email).then((userId) => {
@@ -291,7 +300,7 @@ Cypress.Commands.add('keycloakResetUsers', keycloakResetUsers);
 * @example
 *   cy.keycloakCreateUser({firstName: 'test', lastName: 'test', email: 'test', username: 'test', enabled: true});
 */
-function keycloakCreateUser(accessToken: string, user: any): ChainableT {
+function keycloakCreateUser(accessToken: string, user: LdapUser): ChainableT {
     return cy.keycloakCreateUserAPI(accessToken, user).then(() => {
         cy.keycloakGetUserAPI(accessToken, user.email).then((newId) => {
             cy.keycloakResetPasswordAPI(accessToken, newId, user.password).then(() => {
@@ -311,7 +320,7 @@ Cypress.Commands.add('keycloakCreateUser', keycloakCreateUser);
 * @example
 *   cy.keycloakCreateUsers(users);
 */
-function keycloakCreateUsers(users = []) {
+function keycloakCreateUsers(users: LdapUser[] = []) {
     return cy.keycloakGetAccessTokenAPI().then((accessToken) => {
         return users.forEach((user) => {
             return cy.keycloakCreateUser(accessToken, user);
@@ -324,12 +333,12 @@ Cypress.Commands.add('keycloakCreateUsers', keycloakCreateUsers);
 /**
 * keycloakUpdateUser is a command that updates a keycloak user data.
 * @param {string} userEmail - the user email
-* @param {any} data - the user data to update
+* @param {Record<string, unknown>} data - the user data to update
 *
 * @example
 *   cy.keycloakUpdateUser('user@example.com', {firstName: 'test', lastName: 'test'});
 */
-function keycloakUpdateUser(userEmail: string, data: any) {
+function keycloakUpdateUser(userEmail: string, data: Record<string, unknown>) {
     return cy.keycloakGetAccessTokenAPI().then((accessToken) => {
         return cy.keycloakGetUserAPI(accessToken, userEmail).then((userId) => {
             return cy.keycloakUpdateUserAPI(accessToken, userId, data);

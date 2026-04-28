@@ -27,7 +27,7 @@ export async function createRandomTeam(
     type: TeamType = 'O',
     unique = true,
 ): Promise<Team> {
-    const randomSuffix = await getRandomId();
+    const randomSuffix = getRandomId();
 
     const team = {
         name: unique ? `${name}-${randomSuffix}` : name,
