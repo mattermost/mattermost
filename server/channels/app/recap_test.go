@@ -244,6 +244,55 @@ func TestMarkRecapAsRead(t *testing.T) {
 	})
 }
 
+func TestMarkRecapsAsViewed(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
+	save := func(userID, status string, viewedAt int64) string {
+		r := &model.Recap{
+			Id:                model.NewId(),
+			UserId:            userID,
+			Title:             "T",
+			CreateAt:          model.GetMillis(),
+			UpdateAt:          model.GetMillis(),
+			Status:            status,
+			ViewedAt:          viewedAt,
+			TotalMessageCount: 1,
+		}
+		_, err := th.App.Srv().Store().Recap().SaveRecap(r)
+		require.NoError(t, err)
+		return r.Id
+	}
+
+	t.Run("marks completed and failed and ignores in-flight statuses", func(t *testing.T) {
+		userID := model.NewId()
+		completed := save(userID, model.RecapStatusCompleted, 0)
+		failed := save(userID, model.RecapStatusFailed, 0)
+		pending := save(userID, model.RecapStatusPending, 0)
+		processing := save(userID, model.RecapStatusProcessing, 0)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: userID})
+		ids, appErr := th.App.MarkRecapsAsViewed(ctx)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, []string{completed, failed}, ids)
+
+		r1, err := th.App.Srv().Store().Recap().GetRecap(pending)
+		require.NoError(t, err)
+		assert.Zero(t, r1.ViewedAt)
+		r2, err := th.App.Srv().Store().Recap().GetRecap(processing)
+		require.NoError(t, err)
+		assert.Zero(t, r2.ViewedAt)
+	})
+
+	t.Run("returns empty list when nothing to mark", func(t *testing.T) {
+		ctx := th.Context.WithSession(&model.Session{UserId: model.NewId()})
+		ids, appErr := th.App.MarkRecapsAsViewed(ctx)
+		require.Nil(t, appErr)
+		assert.Empty(t, ids)
+	})
+}
+
 func TestProcessRecapChannel(t *testing.T) {
 	t.Run("process empty channel", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)

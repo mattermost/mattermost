@@ -1,0 +1,2 @@
+ALTER TABLE Recaps ADD COLUMN IF NOT EXISTS ViewedAt BIGINT NOT NULL DEFAULT 0;
+CREATE INDEX IF NOT EXISTS idx_recaps_user_id_viewed_at ON Recaps(UserId, ViewedAt);
