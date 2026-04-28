@@ -51,6 +51,9 @@ import {
     handleCustomAttributesCreated,
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
+    handlePropertyFieldCreated,
+    handlePropertyFieldUpdated,
+    handlePropertyFieldDeleted,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -1631,5 +1634,110 @@ describe('handleCustomAttributeCRUD', () => {
             expect(user.custom_profile_attributes).toBeTruthy();
             expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
         });
+    });
+});
+
+describe('handlePropertyField websocket handlers', () => {
+    const field1 = {
+        id: 'field1',
+        group_id: 'group1',
+        name: 'Status',
+        type: 'text',
+        target_id: 'channel1',
+        target_type: 'channel',
+        object_type: 'post',
+        create_at: 1,
+        update_at: 1,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+    };
+
+    function makeInitialState() {
+        return {
+            entities: {
+                properties: {
+                    fields: {byObjectType: {}, byId: {}},
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {}, byName: {}},
+                },
+            },
+        };
+    }
+
+    test('handlePropertyFieldCreated parses property_field and stores it in state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handlePropertyFieldCreated({
+            event: WebSocketEvents.PropertyFieldCreated,
+            data: {
+                object_type: 'post',
+                property_field: JSON.stringify(field1),
+            },
+        }));
+
+        const state = testStore.getState();
+        expect(state.entities.properties.fields.byId[field1.id]).toEqual(field1);
+        expect(state.entities.properties.fields.byObjectType.post[field1.group_id][field1.id]).toEqual(field1);
+    });
+
+    test('handlePropertyFieldUpdated overwrites the existing field in state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handlePropertyFieldCreated({
+            event: WebSocketEvents.PropertyFieldCreated,
+            data: {
+                object_type: 'post',
+                property_field: JSON.stringify(field1),
+            },
+        }));
+
+        const renamed = {...field1, name: 'Renamed'};
+        testStore.dispatch(handlePropertyFieldUpdated({
+            event: WebSocketEvents.PropertyFieldUpdated,
+            data: {
+                object_type: 'post',
+                property_field: JSON.stringify(renamed),
+            },
+        }));
+
+        expect(testStore.getState().entities.properties.fields.byId[field1.id].name).toBe('Renamed');
+    });
+
+    test('handlePropertyFieldDeleted removes the field from state', () => {
+        const testStore = realConfigureStore(makeInitialState());
+
+        testStore.dispatch(handlePropertyFieldCreated({
+            event: WebSocketEvents.PropertyFieldCreated,
+            data: {
+                object_type: 'post',
+                property_field: JSON.stringify(field1),
+            },
+        }));
+
+        testStore.dispatch(handlePropertyFieldDeleted({
+            event: WebSocketEvents.PropertyFieldDeleted,
+            data: {
+                object_type: 'post',
+                field_id: field1.id,
+            },
+        }));
+
+        expect(testStore.getState().entities.properties.fields.byId[field1.id]).toBeUndefined();
+    });
+
+    test('handlePropertyFieldCreated silently ignores invalid JSON', () => {
+        const testStore = realConfigureStore(makeInitialState());
+        const before = testStore.getState();
+
+        testStore.dispatch(handlePropertyFieldCreated({
+            event: WebSocketEvents.PropertyFieldCreated,
+            data: {
+                object_type: 'post',
+                property_field: '{not valid',
+            },
+        }));
+
+        expect(testStore.getState().entities.properties.fields.byId).toEqual(before.entities.properties.fields.byId);
     });
 });

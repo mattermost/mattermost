@@ -374,6 +374,21 @@ export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.Propert
     values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
 }>;
 
+export type PropertyFieldCreated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldCreated, {
+    object_type: string;
+    property_field: JsonEncodedValue<PropertyField>;
+}>;
+
+export type PropertyFieldUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyFieldUpdated, {
+    object_type: string;
+    property_field: JsonEncodedValue<PropertyField>;
+}>;
+
+export type PropertyFieldDeleted = BaseWebSocketMessage<WebSocketEvents.PropertyFieldDeleted, {
+    object_type: string;
+    field_id: string;
+}>;
+
 // Emoji messages
 
 export type EmojiAdded = BaseWebSocketMessage<WebSocketEvents.EmojiAdded, {

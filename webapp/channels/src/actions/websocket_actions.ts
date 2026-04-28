@@ -18,6 +18,7 @@ import type {Group, GroupMember} from '@mattermost/types/groups';
 import type {OpenDialogRequest} from '@mattermost/types/integrations';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
+import type {PropertyField} from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {ScheduledPost} from '@mattermost/types/schedule_post';
@@ -43,6 +44,7 @@ import {
     ChannelBookmarkTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
+    PropertyTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -631,6 +633,15 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.PropertyValuesUpdated:
         dispatch(handlePropertyValuesUpdated(msg));
         break;
+    case WebSocketEvents.PropertyFieldCreated:
+        dispatch(handlePropertyFieldCreated(msg));
+        break;
+    case WebSocketEvents.PropertyFieldUpdated:
+        dispatch(handlePropertyFieldUpdated(msg));
+        break;
+    case WebSocketEvents.PropertyFieldDeleted:
+        dispatch(handlePropertyFieldDeleted(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -1202,6 +1213,55 @@ function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdate
         };
 
         doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
+    };
+}
+
+function parsePropertyFieldFromMessage(raw: string | undefined): PropertyField | undefined {
+    if (!raw) {
+        return undefined;
+    }
+    try {
+        return JSON.parse(raw) as PropertyField;
+    } catch {
+        return undefined;
+    }
+}
+
+export function handlePropertyFieldCreated(msg: WebSocketMessages.PropertyFieldCreated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const field = parsePropertyFieldFromMessage(msg.data.property_field);
+        if (!field) {
+            return;
+        }
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+    };
+}
+
+export function handlePropertyFieldUpdated(msg: WebSocketMessages.PropertyFieldUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const field = parsePropertyFieldFromMessage(msg.data.property_field);
+        if (!field) {
+            return;
+        }
+        doDispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+            data: {fields: [field]},
+        });
+    };
+}
+
+export function handlePropertyFieldDeleted(msg: WebSocketMessages.PropertyFieldDeleted): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.field_id) {
+            return;
+        }
+        doDispatch({
+            type: PropertyTypes.PROPERTY_FIELD_DELETED,
+            data: {fieldId: msg.data.field_id},
+        });
     };
 }
 
