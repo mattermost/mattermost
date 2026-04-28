@@ -6,6 +6,7 @@ package app
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -19,24 +20,31 @@ import (
 )
 
 func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error) {
-	// check for pluginID already registered
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(opts.PluginID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			// anything other than not_found is unrecoverable
-			return "", err
-		}
+	// When SiteURL is empty, fall back to the legacy single-remote behavior
+	// using the "plugin_" prefix. This preserves compatibility for older plugins
+	// that haven't been updated to provide a SiteURL.
+	if opts.SiteURL == "" {
+		opts.SiteURL = model.SiteURLPlugin + opts.PluginID
 	}
 
-	// if plugin is already registered then treat this as an update.
+	// Check if this SiteURL is already registered.
+	rc, err := a.Srv().Store().RemoteCluster().GetBySiteURL(opts.SiteURL)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", err
+	}
+
 	if rc != nil {
-		// plugin was deleted at some point
+		// SiteURL exists. Verify it belongs to this plugin.
+		if rc.PluginID != opts.PluginID {
+			return "", fmt.Errorf("SiteURL %q is already in use by remote %s (plugin %q)", opts.SiteURL, rc.RemoteId, rc.PluginID)
+		}
+
+		// Same plugin, same SiteURL: idempotent re-registration.
 		if rc.DeleteAt != 0 {
 			rctx.Logger().Debug("Restoring plugin registration for Shared Channels",
 				mlog.String("plugin_id", opts.PluginID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
-
 			rc.DeleteAt = 0
 		} else {
 			rctx.Logger().Debug("Plugin already registered for Shared Channels",
@@ -54,10 +62,11 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		return rc.RemoteId, nil
 	}
 
+	// New connection.
 	rc = &model.RemoteCluster{
 		Name:        opts.Displayname,
 		DisplayName: opts.Displayname,
-		SiteURL:     model.SiteURLPlugin + opts.PluginID, // require a unique siteurl
+		SiteURL:     opts.SiteURL,
 		Token:       model.NewId(),
 		CreatorId:   opts.CreatorID,
 		PluginID:    opts.PluginID,
@@ -72,9 +81,10 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	rctx.Logger().Debug("Registered new plugin for Shared Channels",
 		mlog.String("plugin_id", opts.PluginID),
 		mlog.String("remote_id", rcSaved.RemoteId),
+		mlog.String("site_url", opts.SiteURL),
 	)
 
-	// ping the plugin remote immediately if the service is running
+	// Ping the plugin remote immediately if the service is running.
 	// If the service is not available the ping will happen once the
 	// service starts. This is expected since plugins start before the
 	// service.
@@ -86,14 +96,36 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	return rcSaved.RemoteId, nil
 }
 
+// UnregisterPluginForSharedChannels unregisters all remotes for the specified plugin.
+// Used in OnDeactivate for bulk cleanup.
 func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	remotes, err := a.Srv().Store().RemoteCluster().GetAllByPluginID(pluginID)
 	if err != nil {
 		return err
 	}
 
+	for _, rc := range remotes {
+		if _, appErr := a.DeleteRemoteCluster(rc.RemoteId); appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
+// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+// The pluginID is validated against the remote's PluginID to ensure a plugin can only
+// unregister its own remotes.
+func (a *App) UnregisterPluginRemoteForSharedChannels(pluginID, remoteID string) error {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, true)
+	if err != nil {
+		return err
+	}
+
+	if rc.PluginID != pluginID {
+		return fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
 	if rc.DeleteAt != 0 {
-		// plugin already unregistered, nothing to do
 		return nil
 	}
 
