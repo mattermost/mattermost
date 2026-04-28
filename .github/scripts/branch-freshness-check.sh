@@ -24,7 +24,7 @@ set -euo pipefail
 : "${MAX_AGE_DAYS:=7}"
 
 cmp=$(gh api "repos/${REPO}/compare/${BASE_SHA}...${HEAD_SHA}" \
-  --jq '{behind: .behind_by, mb_date: .merge_base_commit.committer.date}')
+  --jq '{behind: .behind_by, mb_date: .merge_base_commit.commit.committer.date}')
 
 commits_behind=$(jq -r '.behind' <<<"$cmp")
 mb_date=$(jq -r '.mb_date' <<<"$cmp")
