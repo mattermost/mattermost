@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
 import {
@@ -14,7 +15,11 @@ import {
 } from 'mattermost-redux/actions/properties';
 import {getPostPropertyFieldsForChannel} from 'mattermost-redux/selectors/entities/properties';
 
+import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+
 import type {DispatchFunc, GlobalState} from 'types/store';
+
+import './manage_post_properties_modal.scss';
 
 type Props = {
     channelId: string;
@@ -64,6 +69,9 @@ function FieldRow({field, onDeleteRequest}: {
             className='manage-post-properties-modal__row'
             data-property-field-id={field.id}
         >
+            <span className='manage-post-properties-modal__row-icon'>
+                <PropertyTypeIcon type={field.type}/>
+            </span>
             <input
                 type='text'
                 className='manage-post-properties-modal__name'
@@ -89,10 +97,7 @@ function FieldRow({field, onDeleteRequest}: {
                 aria-label={deleteLabel}
                 onClick={handleDelete}
             >
-                <FormattedMessage
-                    id='manage_post_properties_modal.delete'
-                    defaultMessage='Delete'
-                />
+                <TrashCanOutlineIcon size={18}/>
             </button>
         </div>
     );
@@ -170,14 +175,17 @@ export default function ManagePostPropertiesModal({channelId, onExited}: Props) 
                         role='alertdialog'
                         aria-label={formatMessage({id: 'manage_post_properties_modal.confirm_aria', defaultMessage: 'Confirm delete'})}
                     >
-                        <FormattedMessage
-                            id='manage_post_properties_modal.confirm_delete'
-                            defaultMessage='Delete property "{name}"? Existing values on posts will be removed.'
-                            values={{name: pendingField.name}}
-                        />
+                        <p className='manage-post-properties-modal__confirm-message'>
+                            <FormattedMessage
+                                id='manage_post_properties_modal.confirm_delete'
+                                defaultMessage='Delete property "{name}"? Existing values on posts will be removed.'
+                                values={{name: pendingField.name}}
+                            />
+                        </p>
                         <div className='manage-post-properties-modal__confirm-actions'>
                             <button
                                 type='button'
+                                className='manage-post-properties-modal__confirm-cancel'
                                 aria-label={formatMessage({id: 'manage_post_properties_modal.cancel_aria', defaultMessage: 'Cancel delete'})}
                                 onClick={handleCancelDelete}
                             >
@@ -188,6 +196,7 @@ export default function ManagePostPropertiesModal({channelId, onExited}: Props) 
                             </button>
                             <button
                                 type='button'
+                                className='manage-post-properties-modal__confirm-delete'
                                 aria-label={formatMessage({id: 'manage_post_properties_modal.confirm_aria', defaultMessage: 'Confirm delete'})}
                                 onClick={handleConfirmDelete}
                             >

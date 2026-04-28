@@ -3,7 +3,12 @@
 
 import React, {useEffect} from 'react';
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+
+import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
+import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+
+import './post_property_chips.scss';
 
 export type Props = {
     postId: string;
@@ -25,14 +30,57 @@ function isFilled(raw: unknown): boolean {
     return true;
 }
 
-function formatValue(raw: unknown): string {
-    if (Array.isArray(raw)) {
-        return raw.map((v) => String(v)).join(', ');
+function getOptions(field: PropertyField): PropertyFieldOption[] {
+    return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
+}
+
+function Chip({field, content, optionColor}: {
+    field: PropertyField;
+    content: React.ReactNode;
+    optionColor?: string;
+}) {
+    const style: React.CSSProperties = optionColor ? {backgroundColor: optionColor} : {};
+    return (
+        <span
+            className='property-chip'
+            data-property-field-id={field.id}
+            style={style}
+        >
+            <span className='property-chip__icon'>
+                <PropertyTypeIcon type={field.type}/>
+            </span>
+            <span className='property-chip__value'>{content}</span>
+        </span>
+    );
+}
+
+function renderChipsForField(field: PropertyField, raw: unknown): React.ReactNode[] {
+    if (field.type === 'multiselect' && Array.isArray(raw)) {
+        const options = getOptions(field);
+        return raw.
+            map((id) => options.find((opt) => opt.id === id)).
+            filter((opt): opt is PropertyFieldOption => Boolean(opt)).
+            map((opt) => (
+                <Chip
+                    key={`${field.id}:${opt.id}`}
+                    field={field}
+                    content={opt.name}
+                    optionColor={opt.color}
+                />
+            ));
     }
-    if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
-        return String(raw);
+
+    const summary = renderPropertyValue(field, raw);
+    if (!summary) {
+        return [];
     }
-    return JSON.stringify(raw);
+    return [
+        <Chip
+            key={field.id}
+            field={field}
+            content={summary}
+        />,
+    ];
 }
 
 export default function PostPropertyChips({postId, fields, valuesByFieldId, loadPostPropertyValues}: Props) {
@@ -42,26 +90,21 @@ export default function PostPropertyChips({postId, fields, valuesByFieldId, load
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [postId]);
 
-    const chips = fields.
-        map((field) => ({field, value: valuesByFieldId[field.id]})).
-        filter(({value}) => value && isFilled(value.value));
+    const renderedChips = fields.flatMap((field) => {
+        const value = valuesByFieldId[field.id];
+        if (!value || !isFilled(value.value)) {
+            return [];
+        }
+        return renderChipsForField(field, value.value);
+    });
 
-    if (chips.length === 0) {
+    if (renderedChips.length === 0) {
         return null;
     }
 
     return (
         <div className='post__property-chips'>
-            {chips.map(({field, value}) => (
-                <span
-                    key={field.id}
-                    className='property-chip'
-                    data-property-field-id={field.id}
-                >
-                    <span className='property-chip__name'>{field.name}</span>
-                    <span className='property-chip__value'>{formatValue(value.value)}</span>
-                </span>
-            ))}
+            {renderedChips}
         </div>
     );
 }

@@ -77,6 +77,21 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(load).toHaveBeenCalledWith('post-1');
     });
 
+    test('header reads "Task"', () => {
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[makeField()]}
+                valuesByFieldId={{}}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText('Task')).toBeInTheDocument();
+    });
+
     test('collapsed view shows only fields with values', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
@@ -122,6 +137,30 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(screen.getByRole('button', {name: /show less/i})).toBeInTheDocument();
     });
 
+    test('renders an "Empty" placeholder for fields without a value when expanded', () => {
+        const status = makeField({id: 'f1', name: 'Status'});
+        const priority = makeField({id: 'f2', name: 'Priority'});
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status, priority]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: /show all/i}));
+
+        const empty = screen.getByText(/^empty$/i);
+        expect(empty).toBeInTheDocument();
+        expect(empty).toHaveClass('rhs-post-properties-panel__empty');
+    });
+
     test('does not show "Show all" when every field has a value', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
@@ -144,6 +183,31 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         expect(screen.queryByRole('button', {name: /show less/i})).not.toBeInTheDocument();
     });
 
+    test('clicking a value cell opens the editor in a popover', () => {
+        const status = makeField({id: 'f1', name: 'Status', type: 'text'});
+
+        renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        // Editor isn't mounted before opening
+        expect(screen.queryByDisplayValue('open')).not.toBeInTheDocument();
+
+        const trigger = screen.getByRole('button', {name: /edit status/i});
+        fireEvent.click(trigger);
+
+        expect(screen.getByDisplayValue('open')).toBeInTheDocument();
+    });
+
     test('editing a value calls onChangeValue with the field id and new value', () => {
         const status = makeField({id: 'f1', name: 'Status', type: 'text'});
         const onChangeValue = jest.fn();
@@ -161,6 +225,7 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
             />,
         );
 
+        fireEvent.click(screen.getByRole('button', {name: /edit status/i}));
         const input = screen.getByDisplayValue('open');
         fireEvent.change(input, {target: {value: 'in progress'}});
 
@@ -180,6 +245,29 @@ describe('components/rhs_post_properties_panel/RhsPostPropertiesPanel', () => {
         );
 
         expect(screen.getByRole('button', {name: /add property/i})).toBeInTheDocument();
+    });
+
+    test('footer renders "Add property" and "Show all" together inside one row', () => {
+        const status = makeField({id: 'f1', name: 'Status'});
+        const priority = makeField({id: 'f2', name: 'Priority'});
+
+        const {container} = renderWithContext(
+            <RhsPostPropertiesPanel
+                postId='post-1'
+                channelId='channel-1'
+                fields={[status, priority]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'open'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+                onChangeValue={jest.fn()}
+            />,
+        );
+
+        const footer = container.querySelector('.rhs-post-properties-panel__footer');
+        expect(footer).not.toBeNull();
+        expect(footer?.querySelector('.rhs-post-properties-panel__add-property')).not.toBeNull();
+        expect(footer?.querySelector('.rhs-post-properties-panel__toggle')).not.toBeNull();
     });
 
     test('picker only lists fields that are not already attached to the post', () => {

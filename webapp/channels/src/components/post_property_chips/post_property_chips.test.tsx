@@ -5,9 +5,11 @@ import React from 'react';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {render, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PostPropertyChips from './post_property_chips';
+
+const render = renderWithContext;
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -69,7 +71,7 @@ describe('components/post_property_chips/PostPropertyChips', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
-    test('renders one chip per field with a value, displaying name and value', () => {
+    test('renders one chip per text field with a value', () => {
         const status = makeField({id: 'f1', name: 'Status'});
         const priority = makeField({id: 'f2', name: 'Priority'});
 
@@ -85,9 +87,7 @@ describe('components/post_property_chips/PostPropertyChips', () => {
             />,
         );
 
-        expect(screen.getByText('Status')).toBeInTheDocument();
         expect(screen.getByText('open')).toBeInTheDocument();
-        expect(screen.getByText('Priority')).toBeInTheDocument();
         expect(screen.getByText('high')).toBeInTheDocument();
     });
 
@@ -108,9 +108,9 @@ describe('components/post_property_chips/PostPropertyChips', () => {
             />,
         );
 
-        expect(screen.queryByText('B')).not.toBeInTheDocument();
-        expect(screen.getByText('A')).toBeInTheDocument();
-        expect(screen.getByText('C')).toBeInTheDocument();
+        expect(screen.getByText('a-val')).toBeInTheDocument();
+        expect(screen.queryByText('b-val')).not.toBeInTheDocument();
+        expect(screen.getByText('c-val')).toBeInTheDocument();
     });
 
     test('skips fields whose value is an empty string', () => {
@@ -180,19 +180,97 @@ describe('components/post_property_chips/PostPropertyChips', () => {
         expect(load).toHaveBeenLastCalledWith('post-2');
     });
 
-    test('renders array values joined by comma (multiselect)', () => {
-        const field = makeField({id: 'f1', name: 'Tags', type: 'multiselect'});
-        render(
+    test('renders a type icon for each chip', () => {
+        const field = makeField({id: 'f1', name: 'Notes', type: 'text'});
+
+        const {container} = render(
             <PostPropertyChips
                 postId='post-1'
                 fields={[field]}
                 valuesByFieldId={{
-                    f1: makeValue({field_id: 'f1', value: ['urgent', 'bug']}),
+                    f1: makeValue({field_id: 'f1', value: 'remember the milk'}),
                 }}
                 loadPostPropertyValues={jest.fn()}
             />,
         );
 
-        expect(screen.getByText('urgent, bug')).toBeInTheDocument();
+        expect(container.querySelector('.property-type-icon--text')).toBeInTheDocument();
+    });
+
+    test('renders select values as a colored option pill', () => {
+        const field = makeField({
+            id: 'f1',
+            name: 'Status',
+            type: 'select',
+            attrs: {
+                options: [
+                    {id: 'opt1', name: 'Open', color: '#ff00aa'},
+                    {id: 'opt2', name: 'Closed', color: '#00aaff'},
+                ],
+            },
+        });
+
+        const {container} = render(
+            <PostPropertyChips
+                postId='post-1'
+                fields={[field]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: 'opt1'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+            />,
+        );
+
+        const pill = container.querySelector('.property-pill') as HTMLElement | null;
+        expect(pill).not.toBeNull();
+        expect(pill).toHaveTextContent('Open');
+        expect(pill?.style.backgroundColor).toBeTruthy();
+    });
+
+    test('renders one chip per option for multiselect values', () => {
+        const field = makeField({
+            id: 'f1',
+            name: 'Tags',
+            type: 'multiselect',
+            attrs: {
+                options: [
+                    {id: 'opt1', name: 'urgent', color: '#ff0000'},
+                    {id: 'opt2', name: 'bug', color: '#00ff00'},
+                ],
+            },
+        });
+
+        const {container} = render(
+            <PostPropertyChips
+                postId='post-1'
+                fields={[field]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: ['opt1', 'opt2']}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+            />,
+        );
+
+        const chips = container.querySelectorAll('.property-chip');
+        expect(chips).toHaveLength(2);
+        expect(chips[0]).toHaveTextContent('urgent');
+        expect(chips[1]).toHaveTextContent('bug');
+    });
+
+    test('renders a date value formatted via FormattedDate', () => {
+        const field = makeField({id: 'f1', name: 'Due', type: 'date'});
+        const {container} = render(
+            <PostPropertyChips
+                postId='post-1'
+                fields={[field]}
+                valuesByFieldId={{
+                    f1: makeValue({field_id: 'f1', value: '2026-04-28'}),
+                }}
+                loadPostPropertyValues={jest.fn()}
+            />,
+        );
+
+        expect(container.querySelector('.property-date')).toBeInTheDocument();
+        expect(container).toHaveTextContent(/2026/);
     });
 });

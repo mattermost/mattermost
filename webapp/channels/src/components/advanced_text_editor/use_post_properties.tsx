@@ -20,7 +20,6 @@ import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import NewPropertyForm from './post_property_picker/new_property_form';
 import type {NewPropertyData} from './post_property_picker/new_property_form';
 import PostPropertyPicker from './post_property_picker/post_property_picker';
 import StagedPropertyChips from './post_property_picker/staged_property_chips';
@@ -40,7 +39,6 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
     ));
 
     const [stagedItems, setStagedItems] = useState<StagedPropertyItem[]>([]);
-    const [showNewFieldForm, setShowNewFieldForm] = useState(false);
 
     const stagedFieldIds = useMemo(() => stagedItems.map((i) => i.field_id), [stagedItems]);
 
@@ -67,10 +65,6 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
         setStagedItems([]);
     }, []);
 
-    const handleAddNewClick = useCallback(() => {
-        setShowNewFieldForm(true);
-    }, []);
-
     const handleManageClick = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MANAGE_POST_PROPERTIES_MODAL,
@@ -78,10 +72,6 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
             dialogProps: {channelId},
         }));
     }, [dispatch, channelId]);
-
-    const handleCancelNewField = useCallback(() => {
-        setShowNewFieldForm(false);
-    }, []);
 
     const handleCreateField = useCallback(async (data: NewPropertyData) => {
         const result = await dispatch(createChannelPostPropertyField(channelId, {
@@ -96,8 +86,6 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
                 {field_id: result.data!.id, value: undefined},
             ]);
         }
-
-        setShowNewFieldForm(false);
     }, [dispatch, channelId]);
 
     const onAfterSubmit = useCallback((response: SubmitPostReturnType) => {
@@ -123,12 +111,12 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
                 fields={fields}
                 stagedFieldIds={stagedFieldIds}
                 onToggleStaged={handleToggleStaged}
-                onAddNewClick={handleAddNewClick}
+                onCreateField={handleCreateField}
                 onManageClick={handleManageClick}
                 disabled={disabled}
             />
         );
-    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, handleAddNewClick, handleManageClick, disabled]);
+    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, handleCreateField, handleManageClick, disabled]);
 
     const stagedChips = useMemo(() => {
         if (!integratedBoardsEnabled || rootId || stagedItems.length === 0) {
@@ -144,25 +132,12 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
         );
     }, [integratedBoardsEnabled, rootId, fields, stagedItems, handleRemoveStaged, handleChangeStagedValue]);
 
-    const newFieldForm = useMemo(() => {
-        if (!integratedBoardsEnabled || rootId || !showNewFieldForm) {
-            return undefined;
-        }
-        return (
-            <NewPropertyForm
-                onSave={handleCreateField}
-                onCancel={handleCancelNewField}
-            />
-        );
-    }, [integratedBoardsEnabled, rootId, showNewFieldForm, handleCreateField, handleCancelNewField]);
-
     return {
         stagedItems,
         clearStaged,
         onAfterSubmit,
         additionalControl,
         stagedChips,
-        newFieldForm,
 
         // Exposed for testing staged state setup
         handleToggleStagedForTest: handleToggleStaged,

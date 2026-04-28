@@ -6,6 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
 
+import './new_property_form.scss';
+
 export type NewPropertyData = {
     name: string;
     type: FieldType;

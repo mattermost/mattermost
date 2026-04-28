@@ -356,7 +356,6 @@ const AdvancedTextEditor = ({
     const {
         additionalControl: postPropertiesControl,
         stagedChips: postPropertiesStagedChips,
-        newFieldForm: postPropertiesNewFieldForm,
         onAfterSubmit: propertiesAfterSubmit,
     } = usePostProperties(channelId, rootId, showPreview);
     const composedAfterSubmit = useCallback((response: SubmitPostReturnType) => {
@@ -838,7 +837,6 @@ const AdvancedTextEditor = ({
                             </div>
                         )}
                         {!isInEditMode && postPropertiesStagedChips}
-                        {!isInEditMode && postPropertiesNewFieldForm}
                         <Textbox
                             hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}

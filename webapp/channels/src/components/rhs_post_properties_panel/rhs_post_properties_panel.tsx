@@ -2,12 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import PostPropertyPicker from 'components/advanced_text_editor/post_property_picker/post_property_picker';
 import PropertyValueEditor from 'components/property_value_editor';
+import PropertyChipPopover from 'components/property_value_editor/property_chip_popover';
+import {renderPropertyValue} from 'components/property_value_editor/render_property_value';
+import PropertyTypeIcon from 'components/property_value_editor/type_icon';
+
+import './rhs_post_properties_panel.scss';
 
 export type Props = {
     postId: string;
@@ -45,9 +50,34 @@ function FieldRow({
     value: unknown;
     onChangeValue: (fieldId: string, value: unknown) => void;
 }) {
+    const {formatMessage} = useIntl();
+
     const handleChange = useCallback((next: unknown) => {
         onChangeValue(field.id, next);
     }, [field.id, onChangeValue]);
+
+    const summary = renderPropertyValue(field, value);
+    const editLabel = formatMessage(
+        {id: 'rhs_post_properties_panel.edit', defaultMessage: 'Edit {name}'},
+        {name: field.name},
+    );
+
+    const trigger = (
+        <button
+            type='button'
+            className='rhs-post-properties-panel__row-trigger'
+            aria-label={editLabel}
+        >
+            {summary ?? (
+                <span className='rhs-post-properties-panel__empty'>
+                    <FormattedMessage
+                        id='rhs_post_properties_panel.empty_value'
+                        defaultMessage='Empty'
+                    />
+                </span>
+            )}
+        </button>
+    );
 
     return (
         <div
@@ -55,14 +85,23 @@ function FieldRow({
             data-property-field-id={field.id}
         >
             <div className='rhs-post-properties-panel__row-label'>
-                {field.name}
+                <span className='rhs-post-properties-panel__row-icon'>
+                    <PropertyTypeIcon type={field.type}/>
+                </span>
+                <span className='rhs-post-properties-panel__row-name'>{field.name}</span>
             </div>
-            <div className='rhs-post-properties-panel__row-editor'>
-                <PropertyValueEditor
-                    field={field}
-                    value={value}
-                    onChange={handleChange}
-                />
+            <div className='rhs-post-properties-panel__row-value'>
+                <PropertyChipPopover trigger={trigger}>
+                    {() => (
+                        <div className='rhs-post-properties-panel__editor'>
+                            <PropertyValueEditor
+                                field={field}
+                                value={value}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    )}
+                </PropertyChipPopover>
             </div>
         </div>
     );
@@ -86,8 +125,6 @@ export default function RhsPostPropertiesPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [postId]);
 
-    // Reset locally-attached fields when switching posts so a stale set doesn't
-    // leak across selections.
     useEffect(() => {
         setLocallyAttached([]);
     }, [postId]);
@@ -123,7 +160,7 @@ export default function RhsPostPropertiesPanel({
             <div className='rhs-post-properties-panel__header'>
                 <FormattedMessage
                     id='rhs_post_properties_panel.title'
-                    defaultMessage='Properties'
+                    defaultMessage='Task'
                 />
             </div>
             <div className='rhs-post-properties-panel__rows'>
@@ -136,34 +173,36 @@ export default function RhsPostPropertiesPanel({
                     />
                 ))}
             </div>
-            {hasUnfilled && (
-                <button
-                    type='button'
-                    className='rhs-post-properties-panel__toggle'
-                    onClick={toggleShowAll}
-                >
-                    {showAll ? (
-                        <FormattedMessage
-                            id='rhs_post_properties_panel.show_less'
-                            defaultMessage='Show less'
-                        />
-                    ) : (
-                        <FormattedMessage
-                            id='rhs_post_properties_panel.show_all'
-                            defaultMessage='Show all'
-                        />
-                    )}
-                </button>
-            )}
-            <div className='rhs-post-properties-panel__add-row'>
-                <PostPropertyPicker
-                    mode='rhs'
-                    fields={pickerFields}
-                    stagedFieldIds={[]}
-                    onToggleStaged={handleAttach}
-                    onAddNewClick={NOOP}
-                    disabled={false}
-                />
+            <div className='rhs-post-properties-panel__footer'>
+                <div className='rhs-post-properties-panel__footer-left'>
+                    <PostPropertyPicker
+                        mode='rhs'
+                        fields={pickerFields}
+                        stagedFieldIds={[]}
+                        onToggleStaged={handleAttach}
+                        onAddNewClick={NOOP}
+                        disabled={false}
+                    />
+                </div>
+                {hasUnfilled && (
+                    <button
+                        type='button'
+                        className='rhs-post-properties-panel__toggle'
+                        onClick={toggleShowAll}
+                    >
+                        {showAll ? (
+                            <FormattedMessage
+                                id='rhs_post_properties_panel.show_less'
+                                defaultMessage='Show less'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='rhs_post_properties_panel.show_all'
+                                defaultMessage='Show all'
+                            />
+                        )}
+                    </button>
+                )}
             </div>
         </div>
     );
