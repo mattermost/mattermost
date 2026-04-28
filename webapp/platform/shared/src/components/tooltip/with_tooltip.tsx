@@ -22,37 +22,20 @@ import classNames from 'classnames';
 import React, {useRef, useState, useMemo, cloneElement, isValidElement} from 'react';
 import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {defineMessage} from 'react-intl';
 
-import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
-
+import {OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from './constants';
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
-import './with_tooltip.scss';
+import './with_tooltip.css';
 
-/**
- * Shortcut keys map to translations that can be used in the tooltip
- * when shortcut definition is provided
- */
-export const ShortcutKeys = {
-    alt: defineMessage({
-        id: 'shortcuts.generic.alt',
-        defaultMessage: 'Alt',
-    }),
-    cmd: '⌘',
-    ctrl: defineMessage({
-        id: 'shortcuts.generic.ctrl',
-        defaultMessage: 'Ctrl',
-    }),
-    option: '⌥',
-    shift: defineMessage({
-        id: 'shortcuts.generic.shift',
-        defaultMessage: 'Shift',
-    }),
+export const OverlayArrow = {
+    WIDTH: 10, // in px
+    HEIGHT: 6, // in px
+    OFFSET: 8, // in px
 };
 
-interface Props {
+export interface WithTooltipProps {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
     isEmojiLarge?: boolean;
@@ -88,7 +71,7 @@ interface Props {
     forcedPlacement?: Placement;
 }
 
-export default function WithTooltip({
+export function WithTooltip({
     children,
     title,
     emoji,
@@ -102,7 +85,7 @@ export default function WithTooltip({
     disabled,
     forcedPlacement,
     id,
-}: Props) {
+}: WithTooltipProps) {
     const [open, setOpen] = useState(false);
 
     const arrowRef = useRef(null);
