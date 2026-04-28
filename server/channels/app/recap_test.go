@@ -17,6 +17,8 @@ import (
 )
 
 func TestCreateRecap(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+
 	th := Setup(t).InitBasic(t)
 
 	// Enable AI Recaps feature flag
