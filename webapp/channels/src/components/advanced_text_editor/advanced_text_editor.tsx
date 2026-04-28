@@ -83,6 +83,7 @@ import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import usePluginItems from './use_plugin_items';
+import usePostProperties from './use_post_properties';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
 import useSubmit from './use_submit';
@@ -352,6 +353,10 @@ const AdvancedTextEditor = ({
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+    const {
+        additionalControl: postPropertiesControl,
+        stagedChips: postPropertiesStagedChips,
+    } = usePostProperties(channelId, rootId, showPreview);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -688,8 +693,9 @@ const AdvancedTextEditor = ({
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
         !isInEditMode && burnOnReadAdditionalControl,
+        !isInEditMode && postPropertiesControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl, postPropertiesControl]);
 
     const getSelectedText = useCallback(() => {
         const input = textboxRef.current?.getInputBox();
@@ -825,6 +831,7 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
+                        {!isInEditMode && postPropertiesStagedChips}
                         <Textbox
                             hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
                             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
