@@ -7,6 +7,10 @@ import {IntlProvider} from 'react-intl';
 
 import type {PropertyField} from '@mattermost/types/properties';
 
+jest.mock('components/admin_console/content_flagging/user_multiselector/user_multiselector', () => ({
+    UserSelector: ({id}: {id: string}) => <div data-testid={id}/>,
+}));
+
 import PropertyValueEditor from './index';
 
 function wrap(ui: React.ReactElement) {
@@ -84,10 +88,21 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
         expect(screen.getByRole('checkbox', {name: 'Bug'})).toBeInTheDocument();
     });
 
-    test('renders a placeholder for unsupported field types', () => {
+    test('routes user fields to the user editor', () => {
         render(wrap(
             <PropertyValueEditor
                 field={makeField({type: 'user', name: 'Assignee'})}
+                value='user-1'
+                onChange={jest.fn()}
+            />,
+        ));
+        expect(screen.getByTestId('user-editor-f1')).toBeInTheDocument();
+    });
+
+    test('renders a placeholder for unsupported field types', () => {
+        render(wrap(
+            <PropertyValueEditor
+                field={makeField({type: 'multiuser', name: 'Reviewers'})}
                 value=''
                 onChange={jest.fn()}
             />,

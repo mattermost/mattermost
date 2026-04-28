@@ -8,6 +8,7 @@ import DateEditor from './date_editor';
 import SelectEditor from './select_editor';
 import TextEditor from './text_editor';
 import type {PropertyValueEditorProps} from './types';
+import UserEditor from './user_editor';
 
 export type {PropertyValueEditorProps} from './types';
 
@@ -31,6 +32,8 @@ export default function PropertyValueEditor(props: PropertyValueEditorProps) {
                 multi={true}
             />
         );
+    case 'user':
+        return <UserEditor {...props}/>;
     default:
         return (
             <span
