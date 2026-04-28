@@ -38,12 +38,11 @@ const { execSync } = require("node:child_process");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
-// Threshold for test-level splitting (aggregated pass time from timing cache).
-// Keep this above sqlstore: its total time can exceed 5 minutes while remaining
-// far below api4/app, and treating sqlstore as "heavy" breaks CI — discovery
-// runs `go test -list` on the GitHub host where TestMain cannot reach postgres
-// on the docker compose network (only api4 and app should need -list splitting).
-const HEAVY_MS = 400000; // 400s (~6.7 min): packages above this get test-level splitting
+const HEAVY_MS = 600000; // 10 min: packages above this get test-level splitting
+// Only api4 (~38 min) and app (~15 min) exceed this threshold.
+// Packages like sqlstore (~3 min) stay whole to preserve test isolation —
+// their integrity tests scan the entire database and break if split across
+// shards where other tests leave data behind.
 
 if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
   console.error("ERROR: SHARD_INDEX and SHARD_TOTAL must be set");

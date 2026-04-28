@@ -199,10 +199,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		if errors.As(err, &appErr) {
 			return nil, appErr
 		}
+
 		var conflictErr *store.ErrConflict
 		if errors.As(err, &conflictErr) {
 			return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.conflict.app_error", nil, "concurrent modification detected; please retry", http.StatusConflict).Wrap(err)
 		}
+
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

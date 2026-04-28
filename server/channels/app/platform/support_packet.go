@@ -166,6 +166,20 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.FileStore.Error = err.Error()
 	}
 	d.FileStore.Driver = ps.FileBackend().DriverName()
+	if d.FileStore.Driver == model.ImageDriverLocal {
+		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
+		if dir == "" {
+			dir = model.FileSettingsDefaultDirectory
+		}
+		di, diskErr := getDiskInfo(dir)
+		if diskErr != nil {
+			rErr = multierror.Append(errors.Wrap(diskErr, "error while getting disk space info"))
+		} else {
+			d.FileStore.FilesystemType = di.FilesystemType
+			d.FileStore.TotalMB = di.TotalMB
+			d.FileStore.AvailableMB = di.AvailableMB
+		}
+	}
 
 	/* Websockets */
 	d.Websocket.Connections = ps.TotalWebsocketConnections()
