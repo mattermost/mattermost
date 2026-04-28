@@ -3310,49 +3310,53 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Note: While we have logic for Channels to selectively update read-date for only outdated channels,
-	// this was not done for threads. It seems like this was because channels need to report/clear
-	// push notifications, but threads do not. As a result, this method call acts on _all threads_, not just out of date ones.
-	// This is, however, a bit of an assumption on my part.
-	// See `MarkChannelsAsViewed` vs. `thread_store.go:MarkAllAsReadByTeam` for what I mean.
-	err = a.Srv().Store().Thread().MarkAllAsReadByTeam(userID, teamID)
-	if err != nil {
-		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.thread.mark_all_channels_and_threads.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetTeamChannelsWithUnreadAndMentions(rctx, teamID, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if len(channelsToView) == 0 {
-		return times, nil
+	// times already contains every channel the user belongs to in this team, including
+	// fully-read ones. We pass the full set to the thread store because a CRT-enabled
+	// user can have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread store's
+	// `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to genuinely
+	// stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if len(channelsToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkTeamChannelsAndThreadsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+
+		for _, channelID := range channelsToClearPushNotifications {
+			a.clearPushNotification(currentSessionID, userID, channelID, "")
 		}
 	}
 
-	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
-		message.Add("channel_times", times)
-		a.Publish(message)
-	}
-
-	for _, channelID := range channelsToClearPushNotifications {
-		a.clearPushNotification(currentSessionID, userID, channelID, "")
-	}
-
 	if isCRTEnabled {
+		// Thread updates can have happened in any team channel (not just channelsToView),
+		// so notify clients to refresh thread state across the entire team.
 		timestamp := model.GetMillis()
-		for _, channelID := range channelsToView {
+		for _, channelID := range allChannelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
