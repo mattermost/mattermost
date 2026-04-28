@@ -4421,11 +4421,10 @@ func TestReadAllInTeam(t *testing.T) {
 	})
 
 	t.Run("Should successfully mark all channels and threads as read for self in team", func(t *testing.T) {
-		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := client.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
-		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id, "")
+		channel2, _, err := client.GetChannel(context.Background(), th.BasicChannel2.Id)
 		require.NoError(t, err)
-		fmt.Printf("ASDFASDF %d\n", channel.LastPostAt)
 
 		post, _, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId: channel.Id,
@@ -4440,13 +4439,12 @@ func TestReadAllInTeam(t *testing.T) {
 		require.NoError(t, err)
 
 		channelResponse, _, err := client.ReadAllInTeam(context.Background(), user.Id, team.Id)
-		fmt.Printf("POSTTIME %d\n", post.CreateAt)
-		fmt.Printf("CHANNEL %+v\n", channel)
-		fmt.Printf("RES %+v\n", channelResponse.LastViewedAtTimes)
-		fmt.Printf("CHANRES %+v\n", channelResponse.LastViewedAtTimes[channel.Id])
 		require.NoError(t, err)
 		require.Equal(t, "OK", channelResponse.Status, "invalid status return")
 		require.NotEmpty(t, channelResponse.LastViewedAtTimes, "should have viewed at times")
+		require.Contains(t, channelResponse.LastViewedAtTimes, channel.Id)
+		require.GreaterOrEqual(t, channelResponse.LastViewedAtTimes[channel.Id], post.CreateAt,
+			"channel last_viewed_at should be at or after the latest post in the channel")
 	})
 
 	t.Run("Should fail marking channels for other user without permission", func(t *testing.T) {
@@ -4461,7 +4459,7 @@ func TestReadAllInTeam(t *testing.T) {
 
 	t.Run("Admin should succeed in marking channels for other user in team", func(t *testing.T) {
 		adminClient := th.SystemAdminClient
-		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id, "")
+		channel, _, err := adminClient.GetChannel(context.Background(), th.BasicChannel.Id)
 		require.NoError(t, err)
 
 		_, _, err = adminClient.CreatePost(context.Background(), &model.Post{
