@@ -147,6 +147,22 @@ func TestEnsureBot(t *testing.T) {
 		assert.Equal(t, "another bot", bot.Description)
 	})
 
+	t.Run("ensure bot should fail if username belongs to a non-bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginId := "pluginId"
+
+		// th.BasicUser is a regular (non-bot) user created by InitBasic.
+		// EnsureBot must return an error — not the human user's ID.
+		botID, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    th.BasicUser.Username,
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Error(t, err)
+		assert.Empty(t, botID)
+	})
+
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
