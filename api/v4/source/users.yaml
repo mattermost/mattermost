@@ -3044,7 +3044,7 @@
                   type: boolean
       responses:
         '200':
-          description: Successfully migrated authentication type to LDAP.
+          description: Successfully migrated authentication type to SAML.
         '400':
           $ref: "#/components/responses/BadRequest"
         '401':
@@ -3408,14 +3408,16 @@
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Draft"
+              $ref: "#/components/schemas/DraftUpsertRequest"
       responses:
         "201":
-          description: Draft upsert successful
+          description: Draft upsert successful. Returns `null` when an empty message deletes the draft.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Draft"
+                allOf:
+                  - $ref: "#/components/schemas/Draft"
+                nullable: true
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

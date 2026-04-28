@@ -114,6 +114,7 @@
         No permission required to connect. Authentication can be performed via standard API auth (cookie/header)
         or by sending an `authentication_challenge` action after connecting.
       operationId: ConnectWebSocket
+      security: []
       parameters:
         - name: connection_id
           in: query

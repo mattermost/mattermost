@@ -1149,8 +1149,9 @@
             application/json:
               schema:
                 type: object
-                items:
-                  $ref: "#/components/schemas/GroupsAssociatedToChannels"
+                properties:
+                  groups:
+                    $ref: "#/components/schemas/GroupsAssociatedToChannels"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

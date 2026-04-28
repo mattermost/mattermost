@@ -473,6 +473,19 @@ components:
           type: string
         metadata:
           $ref: "#/components/schemas/PostMetadata"
+    PostPriority:
+      type: object
+      description: Priority metadata associated with a post or draft.
+      properties:
+        priority:
+          type: string
+          description: The priority label of a post, either empty, important, or urgent.
+        requested_ack:
+          type: boolean
+          description: Whether the post author has requested acknowledgements.
+        persistent_notifications:
+          type: boolean
+          description: Whether persistent notifications are enabled for the post.
     PostInfo:
       type: object
       description: Additional team and channel context metadata for a post.
@@ -534,8 +547,31 @@ components:
         metadata:
           $ref: "#/components/schemas/PostMetadata"
         priority:
+          $ref: "#/components/schemas/PostPriority"
+    DraftUpsertRequest:
+      type: object
+      required:
+        - channel_id
+        - message
+      properties:
+        channel_id:
+          type: string
+        root_id:
+          type: string
+        message:
+          type: string
+          description: Draft message. Set to an empty string to delete the draft.
+        type:
+          type: string
+        props:
           type: object
           additionalProperties: true
+        file_ids:
+          type: array
+          items:
+            type: string
+        priority:
+          $ref: "#/components/schemas/PostPriority"
     NotifyAdminToUpgradeRequest:
       type: object
       properties:
@@ -575,6 +611,17 @@ components:
           $ref: "#/components/schemas/PluginManifest"
         PluginReattachConfig:
           $ref: "#/components/schemas/PluginReattachConfig"
+    InstallMarketplacePluginRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: The ID of the plugin to install.
+        version:
+          type: string
+          description: Optional plugin version. If omitted, the latest compatible version is installed.
     RemoteClusterMsg:
       type: object
       properties:
@@ -859,17 +906,11 @@ components:
           items:
             $ref: "#/components/schemas/Reaction"
         priority:
-          type: object
+          allOf:
+            - $ref: "#/components/schemas/PostPriority"
           description: >
             Post priority set for this post. This field will be null if no
             priority metadata has been set.
-          properties:
-            priority:
-              type: string
-              description: The priority label of a post, could be either empty, important, or urgent.
-            requested_ack:
-              type: boolean
-              description: Whether the post author has requested for acknowledgements or not.
         acknowledgements:
           type: array
           description: >

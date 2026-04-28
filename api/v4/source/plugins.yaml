@@ -333,17 +333,7 @@
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PluginReattachRequest"
-              required:
-                - id
-                - version
-              properties:
-                id:
-                  type: string
-                  description: The ID of the plugin to install.
-                version:
-                  type: string
-                  description: The version of the plugin to install.
+              $ref: "#/components/schemas/InstallMarketplacePluginRequest"
         description: The metadata identifying the plugin to install.
         required: true
       responses:
