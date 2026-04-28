@@ -439,7 +439,7 @@
         ##### Permissions
         Requires `manage_private_channel_members` (private channel) or
         `manage_public_channel_members` (public channel) on the target channel.
-        If this is the group's first linkage into the channel's team context, also
+        If unlinking would leave the group with no remaining linkage in that channel's team context (last/only linkage for that team), also
         requires `invite_user` on the team, or `sysconsole_write_user_management_groups`.
         If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 

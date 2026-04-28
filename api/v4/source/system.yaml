@@ -154,7 +154,14 @@
       description: |
         Invokes manual test helpers used by developers and automated manual test scenarios.
         This endpoint is only registered when `ServiceSettings.EnableTesting` is enabled.
+
+        ##### Permissions
+
+        None. Authentication is not required; this route uses the same handler stack as other unauthenticated API handlers (`APIHandler`).
+
+        __Security note:__ Only enable `EnableTesting` on non-production, developer-oriented deployments.
       operationId: ManualTest
+      security: []
       parameters:
         - name: test
           in: query
@@ -1156,8 +1163,17 @@
                     type: string
                 date_from:
                   type: string
+                  description: >
+                    Inclusive start of the time range. The server parses this using the layout
+                    `YYYY-MM-DD HH:MM:SS.mmm ±HH:MM` (milliseconds optional; timezone offset required),
+                    matching Go reference time `2006-01-02 15:04:05.999 -07:00`.
+                  example: "2024-01-15 14:30:45.123 -05:00"
                 date_to:
                   type: string
+                  description: >
+                    Inclusive end of the time range. Same format as `date_from`
+                    (`YYYY-MM-DD HH:MM:SS.mmm ±HH:MM`, e.g. `2006-01-02 15:04:05.999 -07:00`).
+                  example: "2024-01-15 14:30:45.123 -05:00"
       responses:
         "200":
           description: Log query successful
