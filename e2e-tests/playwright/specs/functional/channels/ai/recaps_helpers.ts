@@ -6,6 +6,19 @@ import type {Channel} from '@mattermost/types/channels';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
+type RecapBridgeSetup = {
+    agent: {
+        id: string;
+        displayName: string;
+        username: string;
+    };
+    service: {
+        id: string;
+        name: string;
+        type: string;
+    };
+};
+
 export async function setupRecapBridge(
     pw: PlaywrightExtended,
     adminClient: Client4,
@@ -16,7 +29,7 @@ export async function setupRecapBridge(
         available?: boolean;
         completions: Array<{completion?: string; error?: string; status_code?: number}>;
     },
-) {
+): Promise<RecapBridgeSetup> {
     await pw.enableAIBridgeTestMode(adminClient, {enableRecaps: true});
     await pw.resetAIBridgeMock(adminClient);
 

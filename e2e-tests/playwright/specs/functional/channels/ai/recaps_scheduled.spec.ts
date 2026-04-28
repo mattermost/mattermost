@@ -3,10 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {
-    createUnreadChannelFixture,
-    setupRecapBridge,
-} from './recaps_helpers';
+import {createUnreadChannelFixture, setupRecapBridge} from './recaps_helpers';
 
 const MONDAY = 1 << 1;
 const WEDNESDAY = 1 << 3;
