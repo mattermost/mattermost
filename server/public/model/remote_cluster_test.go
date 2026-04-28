@@ -6,6 +6,7 @@ package model
 import (
 	"crypto/rand"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -255,5 +256,46 @@ func TestRemoteClusterIsPlugin(t *testing.T) {
 	t.Run("plugin_ SiteURL prefix with empty PluginID returns false", func(t *testing.T) {
 		rc := &RemoteCluster{SiteURL: SiteURLPlugin + "com.example.plugin"}
 		assert.False(t, rc.IsPlugin(), "IsPlugin should only check PluginID, not SiteURL prefix")
+	})
+}
+
+func TestCleanRemoteName(t *testing.T) {
+	cases := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "single space", in: "legacy plugin", want: "legacy-plugin"},
+		{name: "multiple spaces", in: "remote 1 plugin", want: "remote-1-plugin"},
+		{name: "uppercase", in: "Plugin A", want: "plugin-a"},
+		{name: "preserves dot, hyphen, underscore", in: "com.example_plugin-1", want: "com.example_plugin-1"},
+		{name: "trims separators", in: "  ---my remote---  ", want: "my-remote"},
+		{name: "punctuation collapses", in: "plugin@home!", want: "plugin-home"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := CleanRemoteName(tc.in)
+			assert.Equal(t, tc.want, got)
+			assert.True(t, IsValidRemoteName(got), "CleanRemoteName must produce a valid name")
+		})
+	}
+
+	t.Run("empty input falls back to NewId", func(t *testing.T) {
+		got := CleanRemoteName("")
+		assert.True(t, IsValidRemoteName(got))
+		assert.Len(t, got, 26)
+	})
+
+	t.Run("only invalid characters falls back to NewId", func(t *testing.T) {
+		got := CleanRemoteName("@@@ !!! ???")
+		assert.True(t, IsValidRemoteName(got))
+		assert.Len(t, got, 26)
+	})
+
+	t.Run("over-length input is truncated", func(t *testing.T) {
+		in := strings.Repeat("a", RemoteNameMaxLength+10)
+		got := CleanRemoteName(in)
+		assert.True(t, IsValidRemoteName(got))
+		assert.LessOrEqual(t, len(got), RemoteNameMaxLength)
 	})
 }
