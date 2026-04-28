@@ -33,6 +33,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import TagGroup from 'components/widgets/tag/tag_group';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
+import {formatAttributeName} from 'utils/format_attribute_name';
 import {sortUsersAndGroups} from 'utils/utils';
 
 import GroupOption from './group_option';
@@ -87,19 +88,6 @@ export type Props = {
 // Helper function to check if an option is a user
 const isUser = (option: UserProfileValue | GroupValue): option is UserProfileValue => {
     return (option as UserProfile).username !== undefined;
-};
-
-// Convert snake_case or camelCase attribute names to Title Case with spaces
-// (e.g. "user_role" -> "User Role"). Pure function; hoisted out of the
-// component so memoisation downstream stays stable across re-renders.
-// trim() removes the leading space that the camelCase split inserts when the
-// input already starts with an uppercase letter (e.g. "Program" -> " Program").
-const formatAttributeName = (name: string): string => {
-    return name.
-        replace(/_/g, ' ').
-        replace(/([A-Z])/g, ' $1').
-        replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()).
-        trim();
 };
 
 const ChannelInviteModalComponent = (props: Props) => {
