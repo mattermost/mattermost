@@ -100,6 +100,11 @@ test.describe('ABAC Policies - Create Policies', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
+        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         // Use the working createBasicPolicy helper (same as MM-T5784)
         const policyName = `Engineering Policy ${pw.random.id()}`;
         const __jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {

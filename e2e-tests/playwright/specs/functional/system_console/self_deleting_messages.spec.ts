@@ -359,6 +359,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await saveButton.click();
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
 
+        // Re-apply guard: concurrent initSetup() may reset EnableBurnOnRead between UI save and navigation
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: true}});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.EnableBurnOnRead === true;
+        });
+
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
@@ -408,6 +415,13 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await enableToggleFalse.click();
         await saveButton.click();
         await pw.waitUntil(async () => (await saveButton.textContent()) === 'Save');
+
+        // Re-apply guard: concurrent initSetup() may re-enable BoR between UI save and navigation
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: false}});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.EnableBurnOnRead === false;
+        });
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
@@ -489,6 +503,16 @@ test.describe('System Console > Self-Deleting Messages', () => {
         // Wait for it to not be in loading state
         await expect(concealedPlaceholder).not.toHaveClass(/BurnOnReadConcealedPlaceholder--loading/, {timeout: 10000});
         await expect(concealedPlaceholder).toBeEnabled({timeout: 5000});
+
+        // Re-apply guard: TTL is set by the server at reveal time; ensure BurnOnReadDurationSeconds
+        // is still 300 at the moment of reveal — a concurrent initSetup() may have reset it.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                EnableBurnOnRead: true,
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 604800,
+            },
+        });
 
         // # Click to reveal the concealed message
         await concealedPlaceholder.click();

@@ -66,7 +66,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await enableABAC(systemConsolePage.page);
 
         const policyName = `Engineering Access ${pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        const __jobId = await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
             operator: '==',
@@ -76,7 +76,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         });
 
         // Activate policy (EXACT same pattern as MM-T5800)
-        await waitForLatestSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __jobId);
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.waitFor({state: 'visible', timeout: 5000});
         const idMatch = policyName.match(/([a-z0-9]+)$/i);
@@ -92,11 +92,16 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         }
         await searchInput.clear();
 
+        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and sync
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         // ============================================================
         // STEP 2: Verify user is NOT in channel initially
         // ============================================================
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __syncJob1 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob1);
 
         const initialInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
         expect(initialInChannel).toBe(false);
@@ -118,8 +123,8 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Get the Department field to check its value
         await adminClient.getCustomProfileAttributeFields();
 
-        await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page);
+        const __syncJob2 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob2);
 
         // ============================================================
         // VERIFICATION: User should now be auto-added to channel

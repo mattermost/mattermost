@@ -20,6 +20,8 @@ async function isPermissionPoliciesEnabled(adminClient: any): Promise<boolean> {
  */
 
 test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}) => {
+    test.setTimeout(120000);
+
     // # Skip test if no license for ABAC
     await pw.skipIfNoLicense();
 
@@ -83,6 +85,10 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // Re-apply enable guard: a concurrent shard may have disabled ABAC between the
     // save above and this navigation, which would cause a redirect to the license page.
     await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+    });
     await systemConsolePage.page.goto('/admin_console/system_attributes/membership_policies');
     await systemConsolePage.page.waitForLoadState('networkidle');
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).toBeVisible();
@@ -110,10 +116,8 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     await systemConsolePage.page.waitForLoadState('networkidle');
     await expect(systemConsolePage.page.getByRole('button', {name: 'Add policy'})).not.toBeVisible();
 
-    // # Re-enable ABAC for subsequent tests
-    await systemConsolePage.page.goto('/admin_console/system_attributes/attribute_based_access_control');
-    await systemConsolePage.page.waitForLoadState('networkidle');
-    await enableRadio.click();
-    await saveButton.click();
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    // # Re-enable ABAC for subsequent tests via API — avoids the race where a concurrent
+    // shard's initSetup() re-enables ABAC between the disable save and here, leaving the
+    // radio already checked so the UI save button stays disabled.
+    await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: true}});
 });

@@ -38,9 +38,16 @@ export async function setupDemoPlugin(
     await expect
         .poll(
             async () => {
+                // Re-enable on every iteration to fight concurrent initSetup() resets
+                // that clear PluginSettings.PluginStates and disable the plugin.
+                try {
+                    await adminClient.enablePlugin(DEMO_PLUGIN_ID);
+                } catch {
+                    // Plugin already enabled or other transient error — ignore.
+                }
                 return await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
             },
-            {timeout: 90_000},
+            {timeout: 90_000, intervals: [2000, 2000, 2000]},
         )
         .toBe(true);
 }

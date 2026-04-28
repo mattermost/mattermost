@@ -29,14 +29,31 @@ test('should open /dialog date and post submit confirmation after selecting date
         await channelsPage.centerView.postCreate.input.fill('/dialog date');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
-            // 5. Wait up to 15 s for the interactive dialog to open.
-            await expect(dialog).toBeVisible({timeout: 15000});
+            // Use 30 s on every attempt — after a plugin restart the dialog handler may
+            // need a few extra seconds to finish wiring up even after isPluginActive=true.
+            await expect(dialog).toBeVisible({timeout: 30000});
             break; // dialog appeared — proceed
         } catch (err) {
             if (attempt === 1) {
                 throw err; // exhausted retries — let the error surface naturally
             }
-            // attempt 0 timed out — retry the slash command once
+            // Plugin may have been disabled by a concurrent initSetup() — re-enable without
+            // patchConfig to avoid triggering a plugin restart that could introduce noise.
+            try {
+                await adminClient.enablePlugin('com.mattermost.demo-plugin');
+            } catch {
+                // Already enabled or transient error — ignore.
+            }
+            await expect
+                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
+                    timeout: 30_000,
+                    intervals: [2000],
+                })
+                .toBe(true);
+            // Give the plugin a few seconds to finish initializing its command handlers
+            // after the restart — isPluginActive=true means the plugin process is up but
+            // the HTTP handler registration may lag by a couple of seconds.
+            await new Promise((resolve) => setTimeout(resolve, 4000));
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');

@@ -50,6 +50,10 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await adminClient.patchConfig({
         ServiceSettings: {EnableEmailInvitations: true},
     });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ServiceSettings?.EnableEmailInvitations === true;
+    });
 
     // # Open team menu and click 'Invite People'
     await channelsPage.sidebarLeft.teamMenuButton.click();

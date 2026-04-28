@@ -501,6 +501,10 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
             await setAnonymousUrls(adminClient, true);
+            await pw.waitUntil(async () => {
+                const cfg = await adminClient.getConfig();
+                return (cfg as any).PrivacySettings?.UseAnonymousURLs === true;
+            });
             await createChannelFromUI(channelsPage, anonymousChannelDisplayName);
 
             const anonymousChannel = await getChannelByDisplayName(adminClient, team.id, anonymousChannelDisplayName);
@@ -594,6 +598,12 @@ test.describe('Anonymous URLs', () => {
             await channelsPage.toBeVisible();
 
             const originalDisplayName = `Original Channel ${pw.random.id()}`;
+            // Re-apply guard: concurrent initSetup() may reset UseAnonymousURLs before channel creation
+            await setAnonymousUrls(adminClient, true);
+            await pw.waitUntil(async () => {
+                const cfg = await adminClient.getConfig();
+                return (cfg as any).PrivacySettings?.UseAnonymousURLs === true;
+            });
             await createChannelFromUI(channelsPage, originalDisplayName);
 
             const createdChannel = await getChannelByDisplayName(adminClient, team.id, originalDisplayName);

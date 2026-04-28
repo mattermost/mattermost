@@ -88,11 +88,16 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
     const {post, postId} = await postMessage(channelsPage, message);
+    // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {HideFlaggedContent: true},
         },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
     });
 
     // Cancel flagging the message
@@ -221,6 +226,10 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
             AdditionalSettings: {HideFlaggedContent: false},
         },
     });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
 
     // Try to flag already flagged post
     await openPostDotMenu(post, channelsPage);
@@ -285,12 +294,17 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH_ALT, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
-    // Re-apply guard before UI interaction.
+    // Re-apply guard before UI interaction: a concurrent initSetup() may have reset
+    // EnableContentFlagging between the initial patchConfig and here.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {HideFlaggedContent: false},
         },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
     });
 
     // Login as the second user

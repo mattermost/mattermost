@@ -6,6 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => {
+    test.setTimeout(120000);
     // 1. Setup: install and activate the demo plugin
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -47,10 +48,32 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     const lastPost = await channelsPage.centerView.getLastPost();
     await expect(lastPost.container).not.toContainText('ChannelHasBeenCreated');
 
-    // 5. Disable hooks
-    await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
-    await channelsPage.centerView.postCreate.sendMessage();
-    await expect(hookStatus).toHaveText('Disabled');
+    // 5. Disable hooks (retry once if plugin not yet ready)
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(hookStatus).toHaveText('Disabled', {timeout: 15000});
+            break;
+        } catch (err) {
+            if (attempt === 1) {
+                throw err;
+            }
+            // Re-enable without patchConfig to avoid triggering a plugin restart that
+            // posts new "Demo Plugin: Enabled" messages after our disable command.
+            try {
+                await adminClient.enablePlugin('com.mattermost.demo-plugin');
+            } catch {
+                // Already enabled or transient error — ignore.
+            }
+            await expect
+                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
+                    timeout: 30_000,
+                    intervals: [2000],
+                })
+                .toBe(true);
+        }
+    }
 
     // 6. Create first token channel (hooks off)
     const channel1 = pw.random.channel({

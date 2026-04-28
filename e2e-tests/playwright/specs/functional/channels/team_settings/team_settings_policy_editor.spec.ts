@@ -501,6 +501,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+        });
         await ensureDepartmentAttribute(adminClient);
 
         // # Create private channel and set admin's Department attribute
@@ -536,6 +540,8 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // # Save via SaveChangesPanel — wait for button to be enabled (form fully dirty)
         const saveBtn = teamSettings.container.locator('[data-testid="SaveChangesPanel__save-btn"]');
         await expect(saveBtn).toBeEnabled({timeout: 10000});
+        // Re-apply guard: concurrent initSetup() may reset ABAC between setup and save
+        await enableABACConfig(adminClient);
         await saveBtn.click();
 
         // # Confirm in PolicyConfirmationModal
@@ -592,6 +598,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+        });
         await ensureDepartmentAttribute(adminClient);
 
         const channel = await createPrivateChannel(adminClient, team.id);

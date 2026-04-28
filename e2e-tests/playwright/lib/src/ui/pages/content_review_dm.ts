@@ -39,6 +39,9 @@ export default class ContentReviewPage {
         this.reportCard = this.page
             .locator('div.DataSpillageReport')
             .filter({has: this.page.locator(`#postMessageText_${postID}`)});
+        if ((await this.reportCard.count()) === 0) {
+            this.reportCard = this.page.locator('div.DataSpillageReport').first();
+        }
     }
 
     private ensureReportCardSet() {

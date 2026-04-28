@@ -6,6 +6,8 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 test('should send ephemeral post with Update and Delete actions via /ephemeral command', async ({pw}) => {
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -19,16 +21,44 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /ephemeral command
-    await channelsPage.centerView.postCreate.input.fill('/ephemeral');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    // 5. Verify ephemeral post appears with correct content and action buttons
-    // Scope to the specific post to avoid strict mode violation if multiple ephemeral posts are visible
+    // 4. Send /ephemeral command (retry once if the plugin is not yet ready)
     const ephemeralPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'test ephemeral actions'})
         .last();
+    for (let attempt = 0; attempt < 2; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/ephemeral');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            // Use 30 s on every attempt — after a plugin restart the command handler may
+            // need a few extra seconds to finish wiring up even after isPluginActive=true.
+            await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible({timeout: 30000});
+            break;
+        } catch (err) {
+            if (attempt === 1) {
+                throw err;
+            }
+            // Plugin may have been disabled by a concurrent initSetup() — re-enable without
+            // patchConfig to avoid triggering a plugin restart that could introduce noise.
+            try {
+                await adminClient.enablePlugin('com.mattermost.demo-plugin');
+            } catch {
+                // Already enabled or transient error — ignore.
+            }
+            await expect
+                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
+                    timeout: 30_000,
+                    intervals: [2000],
+                })
+                .toBe(true);
+            // Give the plugin a few seconds to finish initializing its command handlers
+            // after the restart — isPluginActive=true means the plugin process is up but
+            // the HTTP handler registration may lag by a couple of seconds.
+            await new Promise((resolve) => setTimeout(resolve, 4000));
+        }
+    }
+
+    // 5. Verify ephemeral post appears with correct content and action buttons
     await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible();
     await expect(ephemeralPost.getByText('test ephemeral actions', {exact: true})).toBeVisible();
     await expect(ephemeralPost.getByRole('button', {name: 'Update', exact: true})).toBeVisible();

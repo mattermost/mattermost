@@ -47,6 +47,13 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     });
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
+    // Re-apply guard: concurrent initSetup() may have reset config between flagPost and login
+    await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
+    });
+
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
         await pw.testBrowser.login(secondUser);
     await verifyAuthorNotification(post.id, secondChannelsPage, secondContentReviewPage, team.name, message, 'Pending');

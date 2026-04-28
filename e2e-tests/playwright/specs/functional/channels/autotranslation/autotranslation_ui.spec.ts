@@ -31,7 +31,7 @@ test.afterAll(async () => {
         // Best-effort cleanup.
     }
 });
-test.fixme(
+test(
     'translated message has indicator; click opens Show Translation modal',
     {
         tag: ['@autotranslation'],
@@ -60,6 +60,32 @@ test.fixme(
         await enableChannelAutotranslation(adminClient, created.id);
         await adminClient.addToChannel(user.id, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
+
+        // Re-apply config immediately before posting so the server translates this message.
+        // A concurrent initSetup() can reset AutoTranslationSettings.Enable to false.
+        await enableAutotranslationConfig(adminClient, {
+            mockBaseUrl: translationUrl,
+            targetLanguages: ['en', 'es'],
+        });
+        // Confirm Enable=true before posting — translation happens at creation time,
+        // so the config must be confirmed before posts are submitted.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+        // Verify the mock translation service is reachable before attempting to use it.
+        try {
+            await fetch(translationUrl, {signal: AbortSignal.timeout(3000)});
+        } catch {
+            test.skip(
+                true,
+                `Mock translation service not reachable at ${translationUrl}. ` +
+                    'Start the service or set TRANSLATION_SERVICE_URL to run this test.',
+            );
+            return;
+        }
+        // Set Spanish source so the mock returns source='es', triggering es→en translation.
+        await setMockSourceLanguage(translationUrl, 'es');
 
         const poster = await pw.random.user('poster');
         const createdPoster = await adminClient.createUser(poster, '', '');
@@ -98,6 +124,22 @@ test.fixme(
         const {channelsPage, page} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
+
+        // Re-apply config + reload to counter concurrent initSetup() resets.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+        // Post-reload re-apply: a concurrent initSetup() may have reset
+        // Enable during the ~500ms reload window.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
 
         // * Wait for post by searching for the Spanish original (mock appends "[translated to en]", no real translation)
         const modalPost = channelsPage.centerView.container
@@ -179,6 +221,26 @@ test(
         // Re-apply config immediately before posting so the server translates this message.
         // A concurrent initSetup() can reset AutoTranslationSettings.Enable to false.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        // Confirm Enable=true before posting — translation happens at creation time,
+        // so the config must be confirmed before posts are submitted.
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+        // Verify the mock translation service is reachable before attempting to use it.
+        // setMockSourceLanguage() swallows connection errors internally, so we probe the
+        // service directly. If it is not running, skip rather than fail — the service is
+        // an external dependency started by CI but not typically present in local runs.
+        try {
+            await fetch(translationUrl, {signal: AbortSignal.timeout(3000)});
+        } catch {
+            test.skip(
+                true,
+                `Mock translation service not reachable at ${translationUrl}. ` +
+                    'Start the service or set TRANSLATION_SERVICE_URL to run this test.',
+            );
+            return;
+        }
         // Set Spanish source so the mock returns source='es', triggering es→en translation.
         await setMockSourceLanguage(translationUrl, 'es');
         // Post Spanish message that's long enough for reliable detection.
@@ -199,9 +261,8 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Re-apply config + reload so the browser reads the latest AutoTranslationSettings
-        // and fetches stored translations via populatePostListTranslations.
-        // pw.waitUntil confirms the API value before reload to minimise the race window.
+        // Pre-reload re-apply: ensure Enable=true before the page loads so the client
+        // fetches posts with translations active.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         await pw.waitUntil(async () => {
             const cfg = await adminClient.getConfig();
@@ -209,6 +270,13 @@ test(
         });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
+        // Post-reload re-apply: a concurrent initSetup() on another shard may have reset
+        // Enable during the ~500ms reload window. Re-confirm before badge check.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
 
         // * Wait for the channel-level autotranslation badge — confirms the feature is active.
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
@@ -278,6 +346,14 @@ test(
             return (cfg as any).AutoTranslationSettings?.Enable === true;
         });
         await channelsPage.page.reload();
+        // Post-reload re-apply BEFORE toBeVisible: firing the WebSocket CONFIG_CHANGED event
+        // during page load (not after) prevents it from interfering with subsequent menu
+        // interactions that open/click immediately after the page settles.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});
