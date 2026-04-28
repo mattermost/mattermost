@@ -2167,7 +2167,7 @@ export default class Client4 {
     patchPropertyField = (groupName: string, objectType: string, fieldId: string, patch: PropertyFieldPatch) => {
         return this.doFetch<PropertyField>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields/${fieldId}`,
-            {method: 'patch', body: JSON.stringify(patch)},
+            {method: 'PATCH', body: JSON.stringify(patch)},
         );
     };
 
@@ -2181,7 +2181,7 @@ export default class Client4 {
     patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: PropertyValuePatchItem[]) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
-            {method: 'patch', body: JSON.stringify(items)},
+            {method: 'PATCH', body: JSON.stringify(items)},
         );
     };
 

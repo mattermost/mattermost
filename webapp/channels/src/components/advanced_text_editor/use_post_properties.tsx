@@ -5,9 +5,9 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
-import {patchPostPropertyValues} from 'mattermost-redux/actions/properties';
+import {createChannelPostPropertyField, patchPostPropertyValues} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPostPropertyFieldsForChannel} from 'mattermost-redux/selectors/entities/properties';
 
@@ -15,6 +15,8 @@ import type {SubmitPostReturnType} from 'actions/views/create_comment';
 
 import type {DispatchFunc, GlobalState} from 'types/store';
 
+import NewPropertyForm from './post_property_picker/new_property_form';
+import type {NewPropertyData} from './post_property_picker/new_property_form';
 import PostPropertyPicker from './post_property_picker/post_property_picker';
 import StagedPropertyChips from './post_property_picker/staged_property_chips';
 import type {StagedPropertyItem} from './post_property_picker/types';
@@ -33,6 +35,7 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
     ));
 
     const [stagedItems, setStagedItems] = useState<StagedPropertyItem[]>([]);
+    const [showNewFieldForm, setShowNewFieldForm] = useState(false);
 
     const stagedFieldIds = useMemo(() => stagedItems.map((i) => i.field_id), [stagedItems]);
 
@@ -59,6 +62,31 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
         setStagedItems([]);
     }, []);
 
+    const handleAddNewClick = useCallback(() => {
+        setShowNewFieldForm(true);
+    }, []);
+
+    const handleCancelNewField = useCallback(() => {
+        setShowNewFieldForm(false);
+    }, []);
+
+    const handleCreateField = useCallback(async (data: NewPropertyData) => {
+        const result = await dispatch(createChannelPostPropertyField(channelId, {
+            name: data.name,
+            type: data.type as FieldType,
+            attrs: data.options ? {options: data.options} : undefined,
+        }));
+
+        if (!result.error && result.data) {
+            setStagedItems((current) => [
+                ...current,
+                {field_id: result.data!.id, value: undefined},
+            ]);
+        }
+
+        setShowNewFieldForm(false);
+    }, [dispatch, channelId]);
+
     const onAfterSubmit = useCallback((response: SubmitPostReturnType) => {
         // The type says created?: boolean but at runtime it's the created Post object.
         const createdPost = (response as unknown as {created?: Post}).created;
@@ -82,10 +110,11 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
                 fields={fields}
                 stagedFieldIds={stagedFieldIds}
                 onToggleStaged={handleToggleStaged}
+                onAddNewClick={handleAddNewClick}
                 disabled={disabled}
             />
         );
-    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, disabled]);
+    }, [integratedBoardsEnabled, rootId, fields, stagedFieldIds, handleToggleStaged, handleAddNewClick, disabled]);
 
     const stagedChips = useMemo(() => {
         if (!integratedBoardsEnabled || rootId || stagedItems.length === 0) {
@@ -101,12 +130,25 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
         );
     }, [integratedBoardsEnabled, rootId, fields, stagedItems, handleRemoveStaged, handleChangeStagedValue]);
 
+    const newFieldForm = useMemo(() => {
+        if (!integratedBoardsEnabled || rootId || !showNewFieldForm) {
+            return undefined;
+        }
+        return (
+            <NewPropertyForm
+                onSave={handleCreateField}
+                onCancel={handleCancelNewField}
+            />
+        );
+    }, [integratedBoardsEnabled, rootId, showNewFieldForm, handleCreateField, handleCancelNewField]);
+
     return {
         stagedItems,
         clearStaged,
         onAfterSubmit,
         additionalControl,
         stagedChips,
+        newFieldForm,
 
         // Exposed for testing staged state setup
         handleToggleStagedForTest: handleToggleStaged,

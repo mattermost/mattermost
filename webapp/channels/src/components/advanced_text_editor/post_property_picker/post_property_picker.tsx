@@ -19,10 +19,11 @@ export type Props = {
     fields: PropertyField[];
     stagedFieldIds: string[];
     onToggleStaged: (fieldId: string) => void;
+    onAddNewClick: () => void;
     disabled: boolean;
 };
 
-function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, disabled}: Props) {
+function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onAddNewClick, disabled}: Props) {
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
 
@@ -108,6 +109,20 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, disabled}: 
                         }
                     />
                 ) : items}
+                <Menu.Separator/>
+                <Menu.Item
+                    key='post-property-picker-add-new'
+                    id='post-property-picker-add-new'
+                    onClick={onAddNewClick}
+                    labels={
+                        <span>
+                            <FormattedMessage
+                                id='post_property_picker.add_new'
+                                defaultMessage='Add new property'
+                            />
+                        </span>
+                    }
+                />
             </Menu.Container>
         </CompassDesignProvider>
     );

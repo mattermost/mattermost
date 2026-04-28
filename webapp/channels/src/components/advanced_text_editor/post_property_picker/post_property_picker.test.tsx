@@ -35,6 +35,7 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
                 fields={[]}
                 stagedFieldIds={[]}
                 onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
                 disabled={false}
             />,
         );
@@ -51,6 +52,7 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
                 fields={[status, priority]}
                 stagedFieldIds={[]}
                 onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
                 disabled={false}
             />,
         );
@@ -68,6 +70,7 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
                 fields={[makeField({id: 'f1', name: 'Status'})]}
                 stagedFieldIds={[]}
                 onToggleStaged={onToggle}
+                onAddNewClick={jest.fn()}
                 disabled={false}
             />,
         );
@@ -84,6 +87,7 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
                 fields={[makeField({id: 'f1', name: 'Status'})]}
                 stagedFieldIds={['f1']}
                 onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
                 disabled={false}
             />,
         );
@@ -100,6 +104,7 @@ describe('components/advanced_text_editor/post_property_picker/PostPropertyPicke
                 fields={[]}
                 stagedFieldIds={[]}
                 onToggleStaged={jest.fn()}
+                onAddNewClick={jest.fn()}
                 disabled={false}
             />,
         );
