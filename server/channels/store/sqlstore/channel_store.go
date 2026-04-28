@@ -2162,11 +2162,6 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 		"Channels.TeamId":       teamID,
 		"ChannelMembers.UserId": userID,
 	})
-	queryString, args, err := query.ToSql()
-
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
-	}
 
 	var channels []struct {
 		Id            string
@@ -2179,8 +2174,7 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 		LastViewedAt  int64
 	}
 
-	err = s.GetReplica().Select(&channels, queryString, args...)
-	if err != nil {
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to find team channels with unreads and mentions data")
 	}
 
