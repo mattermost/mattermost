@@ -61,7 +61,7 @@ const RecapsLink = () => {
                     tabIndex={0}
                 >
                     <span className='icon'>
-                        <CreationOutlineIcon size={18}/>
+                        <CreationOutlineIcon size={14}/>
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
@@ -90,4 +90,3 @@ const RecapsLink = () => {
 };
 
 export default RecapsLink;
-
