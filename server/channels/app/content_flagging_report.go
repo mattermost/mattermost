@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -147,7 +148,7 @@ func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *flagged
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_post_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.post.Id, false, true)
+	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.post, false, true)
 	if appErr != nil {
 		// Missing base attachments are logged, not fatal.
 		rctx.Logger().Warn("Failed to fetch base post file infos for flagged post report", mlog.String("post_id", rc.post.Id), mlog.Err(appErr))
@@ -262,19 +263,19 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.
 		fieldIDToName[f.ID] = name
 	}
 
-	byName := make(map[string]string, len(values))
+	byName := make(map[string]json.RawMessage, len(values))
 	for _, v := range values {
 		name, ok := fieldIDToName[v.FieldID]
 		if !ok {
 			continue
 		}
-		byName[name] = unquoteJSONString(string(v.Value))
+		byName[name] = v.Value
 	}
 
-	out.ReporterUserID = byName[contentFlaggingPropertyNameReportingUserID]
-	out.ReporterReason = byName[contentFlaggingPropertyNameReportingReason]
-	out.ReporterComment = byName[contentFlaggingPropertyNameReportingComment]
-	out.ReportTimestamp = byName[contentFlaggingPropertyNameReportingTime]
+	out.ReporterUserID = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingUserID)
+	out.ReporterReason = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingReason)
+	out.ReporterComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingComment)
+	out.ReportTimestamp = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameReportingTime)
 
 	if cfg := a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent; cfg != nil {
 		out.Hidden = *cfg
@@ -290,13 +291,13 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.
 
 	// Reviewer details: prefer the actor (the one who took the keep/remove action)
 	// when present, otherwise fall back to the assigned reviewer.
-	reviewerID := byName[contentFlaggingPropertyNameActorUserID]
+	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorUserID)
 	if reviewerID == "" {
-		reviewerID = byName[contentFlaggingPropertyNameReviewerUserID]
+		reviewerID = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
 	}
 	out.ReviewerUserID = reviewerID
-	out.ReviewerComment = byName[contentFlaggingPropertyNameActorComment]
-	out.ActionTime = byName[contentFlaggingPropertyNameActionTime]
+	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
+	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
 
 	if reviewerID != "" {
 		if u, uErr := a.GetUser(reviewerID); uErr == nil {
@@ -371,8 +372,36 @@ func writeYAMLEntry(zw *zip.Writer, name string, payload any) error {
 	return err
 }
 
-func unquoteJSONString(s string) string {
-	return strings.Trim(s, `"`)
+// decodePropertyString returns the value for fieldName decoded as a JSON string.
+// Property values are stored as json.RawMessage (e.g. `"hello \"world\""`); a
+// naive Trim of quotes leaves backslash-escapes in place, so we round-trip
+// through json.Unmarshal to get the cleartext value.
+func decodePropertyString(rctx request.CTX, byName map[string]json.RawMessage, fieldName string) string {
+	raw, ok := byName[fieldName]
+	if !ok || len(raw) == 0 {
+		return ""
+	}
+	var s string
+	if err := json.Unmarshal(raw, &s); err != nil {
+		rctx.Logger().Warn("Failed to decode content flagging property string value", mlog.String("field", fieldName), mlog.Err(err))
+		return ""
+	}
+	return s
+}
+
+// decodePropertyInt64 returns the value for fieldName decoded as a JSON number.
+// Some content flagging timestamps are stored as raw JSON numbers (e.g. `12345`).
+func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fieldName string) int64 {
+	raw, ok := byName[fieldName]
+	if !ok || len(raw) == 0 {
+		return 0
+	}
+	var n int64
+	if err := json.Unmarshal(raw, &n); err != nil {
+		rctx.Logger().Warn("Failed to decode content flagging property int value", mlog.String("field", fieldName), mlog.Err(err))
+		return 0
+	}
+	return n
 }
 
 // NotifyReviewersOfFlaggedPostReportGeneration posts a notification reply on each

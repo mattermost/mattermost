@@ -33,12 +33,12 @@ type FlaggedPostReportContentReview struct {
 	ReporterUsername string `yaml:"reporter_username"`
 	ReporterReason   string `yaml:"reporter_reason"`
 	ReporterComment  string `yaml:"reporter_comment"`
-	ReportTimestamp  string `yaml:"report_timestamp"`
+	ReportTimestamp  int64  `yaml:"report_timestamp"`
 	Hidden           bool   `yaml:"hidden"`
 	ReviewerUserID   string `yaml:"reviewer_user_id,omitempty"`
 	ReviewerUsername string `yaml:"reviewer_username,omitempty"`
 	ReviewerComment  string `yaml:"reviewer_comment,omitempty"`
-	ActionTime       string `yaml:"action_time,omitempty"`
+	ActionTime       int64  `yaml:"action_time,omitempty"`
 }
 
 // FlaggedPostReportMetadata is the on-disk shape for report_metadata.yaml.

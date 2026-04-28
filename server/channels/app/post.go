@@ -2247,15 +2247,16 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
 	pchan := make(chan store.StoreResult[*model.Post], 1)
+	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
+
 	go func() {
-		post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
 		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	infos, firstInaccessibleFileTime, err := a.GetFileInfosForPost(rctx, postID, false, includeDeleted)
-	if err != nil {
-		return nil, err
+	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	if len(infos) == 0 && firstInaccessibleFileTime == 0 {
@@ -2284,8 +2285,13 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 }
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
-func (a *App) GetFileInfosForPost(rctx request.CTX, postID string, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
-	fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
+func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
+	//fileInfos, err := a.Srv().Store().FileInfo().GetForPost(postID, fromMaster, includeDeleted, true)
+	//if err != nil {
+	//	return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	//}
+
+	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, includeDeleted, true, fromMaster)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2662,7 +2668,7 @@ func (a *App) GetEditHistoryForPost(postID string) ([]*model.Post, *model.AppErr
 
 func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *model.AppError {
 	for _, post := range editHistoryPosts {
-		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true)
+		fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, true, true, false)
 		if err != nil {
 			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
 		}

@@ -51,9 +51,9 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 	return fileInfos, nil
 }
 
-func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache bool) ([]*model.FileInfo, error) {
+func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFromCache, readFromMaster bool) ([]*model.FileInfo, error) {
 	if !allowFromCache {
-		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache)
+		return s.FileInfoStore.GetByIds(ids, includeDeleted, allowFromCache, readFromMaster)
 	}
 
 	var fileIdsToFetch []string
@@ -71,7 +71,7 @@ func (s LocalCacheFileInfoStore) GetByIds(ids []string, includeDeleted, allowFro
 	}
 
 	if len(fileIdsToFetch) > 0 {
-		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false)
+		fetchedFileInfos, err := s.FileInfoStore.GetByIds(fileIdsToFetch, includeDeleted, false, readFromMaster)
 		if err != nil {
 			return nil, err
 		}
