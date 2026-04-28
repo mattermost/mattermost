@@ -22,6 +22,7 @@ const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('com
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
+const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks/channel_bookmarks')));
 const ChannelTabs = makeAsyncComponent('ChannelTabs', lazy(() => import('components/channel_tabs')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
