@@ -131,7 +131,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
             aria-label={triggerLabel}
         >
             <FormattedMessage
-                id='post_property_picker.add_property_cta'
+                id='post_property_picker.add_property_rhs'
                 defaultMessage='+ Add property'
             />
         </button>
