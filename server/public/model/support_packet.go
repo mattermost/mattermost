@@ -61,9 +61,9 @@ type SupportPacketDiagnostics struct {
 		Status         string `yaml:"file_status"`
 		Error          string `yaml:"erorr,omitempty"`
 		Driver         string `yaml:"file_driver"`
+		FilesystemType string `yaml:"filesystem_type,omitempty"`
 		TotalMB        uint64 `yaml:"total_mb,omitempty"`
 		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
-		FilesystemType string `yaml:"filesystem_type,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {

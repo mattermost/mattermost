@@ -173,11 +173,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		di, diskErr := getDiskInfo(dir)
 		if diskErr != nil {
-			rctx.Logger().Debug("Failed to get disk space info for Support Packet", mlog.Err(diskErr))
+			rErr = multierror.Append(errors.Wrap(err, "error while getting disk space info"))
 		} else {
+			d.FileStore.FilesystemType = di.FilesystemType
 			d.FileStore.TotalMB = di.TotalMB
 			d.FileStore.AvailableMB = di.AvailableMB
-			d.FileStore.FilesystemType = di.FilesystemType
 		}
 	}
 

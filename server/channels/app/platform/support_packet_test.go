@@ -238,13 +238,13 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Empty(t, d.FileStore.Error)
 		assert.Equal(t, "local", d.FileStore.Driver)
 		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
 			assert.Positive(t, d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
 			assert.Positive(t, d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
-			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
 		} else {
+			assert.Empty(t, d.FileStore.FilesystemType)
 			assert.Zero(t, d.FileStore.TotalMB)
 			assert.Zero(t, d.FileStore.AvailableMB)
-			assert.Empty(t, d.FileStore.FilesystemType)
 		}
 
 		/* Websockets */
@@ -299,9 +299,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		assert.Equal(t, "OK", packet.FileStore.Status)
 		assert.Equal(t, "amazons3", packet.FileStore.Driver)
+		assert.Empty(t, packet.FileStore.FilesystemType)
 		assert.Zero(t, packet.FileStore.TotalMB)
 		assert.Zero(t, packet.FileStore.AvailableMB)
-		assert.Empty(t, packet.FileStore.FilesystemType)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {
