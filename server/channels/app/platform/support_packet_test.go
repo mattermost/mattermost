@@ -237,6 +237,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "OK", d.FileStore.Status)
 		assert.Empty(t, d.FileStore.Error)
 		assert.Equal(t, "local", d.FileStore.Driver)
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.NotEmpty(t, d.FileStore.FilesystemType, "FilesystemType should not be empty on supported platforms")
+			assert.Positive(t, d.FileStore.TotalMB, "TotalMB should be positive on supported platforms")
+			assert.Positive(t, d.FileStore.AvailableMB, "AvailableMB should be positive on supported platforms")
+		} else {
+			assert.Empty(t, d.FileStore.FilesystemType)
+			assert.Zero(t, d.FileStore.TotalMB)
+			assert.Zero(t, d.FileStore.AvailableMB)
+		}
 
 		/* Websockets */
 		assert.Zero(t, d.Websocket.Connections)
@@ -271,6 +280,28 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "FAIL", packet.FileStore.Status)
 		assert.Equal(t, "all broken", packet.FileStore.Error)
 		assert.Equal(t, "mock", packet.FileStore.Driver)
+	})
+
+	t.Run("s3 driver omits disk space fields", func(t *testing.T) {
+		orig := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(orig)(th.Service)
+			require.NoError(t, err)
+		})
+
+		fb := &fmocks.FileBackend{}
+		err := SetFileStore(fb)(th.Service)
+		require.NoError(t, err)
+		fb.On("DriverName").Return("amazons3")
+		fb.On("TestConnection").Return(nil)
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, "OK", packet.FileStore.Status)
+		assert.Equal(t, "amazons3", packet.FileStore.Driver)
+		assert.Empty(t, packet.FileStore.FilesystemType)
+		assert.Zero(t, packet.FileStore.TotalMB)
+		assert.Zero(t, packet.FileStore.AvailableMB)
 	})
 
 	t.Run("no LDAP info if LDAP sync is disabled", func(t *testing.T) {

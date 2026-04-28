@@ -3048,10 +3048,6 @@
     "translation": "Impossible de décoder les résultats de recherche"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch est déjà arrêté"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch est désactivé."
   },

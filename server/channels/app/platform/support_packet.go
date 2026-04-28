@@ -103,6 +103,13 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		rErr = multierror.Append(rErr, errors.Wrap(err, "error while getting total memory"))
 	}
 	d.Server.TotalMemoryMB = totalMemoryBytes / 1024 / 1024
+	containerLimits, err := getContainerLimits()
+	if err != nil {
+		rctx.Logger().Debug("Failed to get container limits for Support Packet", mlog.Err(err))
+	} else {
+		d.Server.ContainerCPULimit = containerLimits.CPULimit
+		d.Server.ContainerMemoryLimitMB = containerLimits.MemoryLimitMB
+	}
 	d.Server.Hostname, err = os.Hostname()
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting hostname"))
@@ -159,6 +166,20 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.FileStore.Error = err.Error()
 	}
 	d.FileStore.Driver = ps.FileBackend().DriverName()
+	if d.FileStore.Driver == model.ImageDriverLocal {
+		dir := model.SafeDereference(ps.Config().FileSettings.Directory)
+		if dir == "" {
+			dir = model.FileSettingsDefaultDirectory
+		}
+		di, diskErr := getDiskInfo(dir)
+		if diskErr != nil {
+			rErr = multierror.Append(errors.Wrap(diskErr, "error while getting disk space info"))
+		} else {
+			d.FileStore.FilesystemType = di.FilesystemType
+			d.FileStore.TotalMB = di.TotalMB
+			d.FileStore.AvailableMB = di.AvailableMB
+		}
+	}
 
 	/* Websockets */
 	d.Websocket.Connections = ps.TotalWebsocketConnections()

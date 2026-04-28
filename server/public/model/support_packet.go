@@ -26,20 +26,22 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"license"`
 
 	Server struct {
-		OS                  string    `yaml:"os"`
-		Architecture        string    `yaml:"architecture"`
-		CPUCores            int       `yaml:"cpu_cores"`
-		TotalMemoryMB       uint64    `yaml:"total_memory_mb"`
-		OpenFileDescriptors int64     `yaml:"open_file_descriptors"`
-		MaxFileDescriptors  int64     `yaml:"max_file_descriptors"`
-		Hostname            string    `yaml:"hostname"`
-		ProcessID           int       `yaml:"process_id"`
-		StartedAt           time.Time `yaml:"started_at"`
-		HostStartedAt       time.Time `yaml:"host_started_at,omitempty"`
-		Version             string    `yaml:"version"`
-		BuildHash           string    `yaml:"build_hash"`
-		GoVersion           string    `yaml:"go_version"`
-		InstallationType    string    `yaml:"installation_type"`
+		OS                     string    `yaml:"os"`
+		Architecture           string    `yaml:"architecture"`
+		CPUCores               int       `yaml:"cpu_cores"`
+		TotalMemoryMB          uint64    `yaml:"total_memory_mb"`
+		ContainerCPULimit      float64   `yaml:"container_cpu_limit,omitempty"`
+		ContainerMemoryLimitMB uint64    `yaml:"container_memory_limit_mb,omitempty"`
+		OpenFileDescriptors    int64     `yaml:"open_file_descriptors"`
+		MaxFileDescriptors     int64     `yaml:"max_file_descriptors"`
+		Hostname               string    `yaml:"hostname"`
+		ProcessID              int       `yaml:"process_id"`
+		StartedAt              time.Time `yaml:"started_at"`
+		HostStartedAt          time.Time `yaml:"host_started_at,omitempty"`
+		Version                string    `yaml:"version"`
+		BuildHash              string    `yaml:"build_hash"`
+		GoVersion              string    `yaml:"go_version"`
+		InstallationType       string    `yaml:"installation_type"`
 	} `yaml:"server"`
 
 	Config struct {
@@ -56,9 +58,12 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"database"`
 
 	FileStore struct {
-		Status string `yaml:"file_status"`
-		Error  string `yaml:"erorr,omitempty"`
-		Driver string `yaml:"file_driver"`
+		Status         string `yaml:"file_status"`
+		Error          string `yaml:"erorr,omitempty"`
+		Driver         string `yaml:"file_driver"`
+		FilesystemType string `yaml:"filesystem_type,omitempty"`
+		TotalMB        uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {
