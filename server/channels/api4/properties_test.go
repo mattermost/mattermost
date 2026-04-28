@@ -26,7 +26,7 @@ func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 
 	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
 		Name:    "classification_test",
-		Version: model.PropertyGroupVersionV1,
+		Version: model.PropertyGroupVersionV2,
 	})
 	require.Nil(t, err)
 	require.NotNil(t, group)
