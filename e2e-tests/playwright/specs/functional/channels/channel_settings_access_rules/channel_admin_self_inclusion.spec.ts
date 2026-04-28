@@ -116,7 +116,9 @@ async function createUserWithProgram(
 }
 
 test.describe('Channel Settings → Access Control', () => {
-    test('MM-68538 channel admin can test access rule for multiselect "has any of" with multiple values', async ({pw}) => {
+    test('MM-68538 channel admin can test access rule for multiselect "has any of" with multiple values', async ({
+        pw,
+    }) => {
         await pw.skipIfNoLicense();
 
         const {adminClient, team} = await pw.initSetup();
@@ -180,10 +182,7 @@ test.describe('Channel Settings → Access Control', () => {
         expect(singleValueResult.requester_matches).toBe(true);
 
         // Two-value rule: the regression.
-        const orResult = await aliceClient.validateExpressionAgainstRequester(
-            twoValueOrExpression,
-            channel.id,
-        );
+        const orResult = await aliceClient.validateExpressionAgainstRequester(twoValueOrExpression, channel.id);
         expect(orResult.requester_matches).toBe(true);
 
         // Reverse sanity check: an OR expression that legitimately excludes
