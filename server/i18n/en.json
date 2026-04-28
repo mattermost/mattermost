@@ -7415,10 +7415,6 @@
     "translation": "Failed evaluate access control policy."
   },
   {
-    "id": "app.pdp.access_evaluation.permission_policy.app_error",
-    "translation": "Failed to evaluate permission policy."
-  },
-  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -8119,6 +8115,10 @@
     "translation": "Failed to get recap channels."
   },
   {
+    "id": "app.recap.get_daily_count.app_error",
+    "translation": "Failed to check recap limits."
+  },
+  {
     "id": "app.recap.get_last_viewed.app_error",
     "translation": "Failed to get last viewed timestamp."
   },
@@ -8135,10 +8135,6 @@
     "translation": "Failed to mark recap as read."
   },
   {
-    "id": "app.recap.permission_denied",
-    "translation": "No permission for recap."
-  },
-  {
     "id": "app.recap.max_channels_exceeded.app_error",
     "translation": "Your organization's policy limits recaps to {{.Limit}} channels. You requested {{.Requested}} channels."
   },
@@ -8147,8 +8143,8 @@
     "translation": "Your organization's policy limits you to {{.Limit}} recaps per day. Please try again tomorrow."
   },
   {
-    "id": "app.recap.get_daily_count.app_error",
-    "translation": "Failed to check recap limits."
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap."
   },
   {
     "id": "app.recap.save.app_error",
@@ -8397,16 +8393,8 @@
     "translation": "Unknown Channel"
   },
   {
-    "id": "app.scheduled_recap.all_unreads_not_supported.app_error",
-    "translation": "Scheduled recaps do not support all unread channels."
-  },
-  {
     "id": "app.scheduled_recap.compute_next_run.app_error",
     "translation": "Unable to compute the next scheduled recap run."
-  },
-  {
-    "id": "app.scheduled_recap.count_failed.app_error",
-    "translation": "Failed to check scheduled recap count."
   },
   {
     "id": "app.scheduled_recap.create.app_error",
@@ -12241,6 +12229,10 @@
     "translation": "Invalid scheduled recap channel mode."
   },
   {
+    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
+    "translation": "Scheduled recap custom instructions exceed the maximum length."
+  },
+  {
     "id": "model.scheduled_recap.is_valid.days_of_week.app_error",
     "translation": "Invalid scheduled recap days of week."
   },
@@ -12267,10 +12259,6 @@
   {
     "id": "model.scheduled_recap.is_valid.title_length.app_error",
     "translation": "Scheduled recap title exceeds the maximum length."
-  },
-  {
-    "id": "model.scheduled_recap.is_valid.custom_instructions_length.app_error",
-    "translation": "Scheduled recap custom instructions exceed the maximum length."
   },
   {
     "id": "model.scheduled_recap.is_valid.user_id.app_error",

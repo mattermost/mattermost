@@ -491,6 +491,8 @@ func TestRegenerateRecapLimitEnforcement(t *testing.T) {
 }
 
 func TestProcessRecapChannel(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+
 	t.Run("process empty channel", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
