@@ -3043,10 +3043,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ist bereits gestoppt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} ist deaktiviert."
   },
@@ -10726,10 +10722,6 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Das Passwort des Benutzers konnte nicht aktualisiert werden."
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Nicht in der Lage, bestehende Jobs zu bekommen."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",

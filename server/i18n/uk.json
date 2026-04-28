@@ -3048,10 +3048,6 @@
     "translation": "Не вдалося розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} вже зупинено."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} вимкнено."
   },

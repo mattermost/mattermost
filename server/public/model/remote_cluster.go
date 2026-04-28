@@ -9,7 +9,6 @@ import (
 	"crypto/pbkdf2"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/base32"
 	"encoding/json"
 	"errors"
 	"io"
@@ -27,7 +26,11 @@ const (
 	RemoteNameMaxLength      = 64
 
 	SiteURLPending = "pending_"
-	SiteURLPlugin  = "plugin_"
+
+	// Deprecated: SiteURLPlugin was used as a prefix for plugin-based remote SiteURLs.
+	// New registrations store the plugin-provided SiteURL directly. Use PluginID field
+	// to identify plugin-based remotes.
+	SiteURLPlugin = "plugin_"
 
 	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
 	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
@@ -92,11 +95,7 @@ func (rc *RemoteCluster) Auditable() map[string]any {
 
 func (rc *RemoteCluster) PreSave() {
 	if rc.RemoteId == "" {
-		if rc.PluginID != "" {
-			rc.RemoteId = newIDFromBytes([]byte(rc.PluginID))
-		} else {
-			rc.RemoteId = NewId()
-		}
+		rc.RemoteId = NewId()
 	}
 
 	if rc.DisplayName == "" {
@@ -132,6 +131,10 @@ func (rc *RemoteCluster) IsValid() *AppError {
 
 	if !IsValidId(rc.CreatorId) {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
+	}
+
+	if rc.SiteURL == "" {
+		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.site_url.app_error", nil, "site_url is empty", http.StatusBadRequest)
 	}
 
 	if rc.DefaultTeamId != "" && !IsValidId(rc.DefaultTeamId) {
@@ -177,16 +180,6 @@ type RemoteClusterWithInvite struct {
 	RemoteCluster *RemoteCluster `json:"remote_cluster"`
 	Invite        string         `json:"invite"`
 	Password      string         `json:"password,omitempty"`
-}
-
-func newIDFromBytes(b []byte) string {
-	hash := sha256.New()
-	_, _ = hash.Write(b)
-	buf := hash.Sum(nil)
-
-	encoding := base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
-	id := encoding.EncodeToString(buf)
-	return id[:26]
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
@@ -235,10 +228,7 @@ func (rc *RemoteCluster) IsConfirmed() bool {
 }
 
 func (rc *RemoteCluster) IsPlugin() bool {
-	if rc.PluginID != "" || strings.HasPrefix(rc.SiteURL, SiteURLPlugin) {
-		return true // local plugins are automatically confirmed
-	}
-	return false
+	return rc.PluginID != ""
 }
 
 func (rc *RemoteCluster) GetSiteURL() string {

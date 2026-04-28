@@ -353,7 +353,7 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_analytics: {
                 url: 'reporting/system_analytics',
-                title: defineMessage({id: 'admin.sidebar.siteStatistics', defaultMessage: 'Site Statistics'}),
+                title: defineMessage({id: 'admin.sidebar.systemStatistics', defaultMessage: 'System Statistics'}),
                 searchableStrings: systemAnalyticsSearchableStrings,
                 schema: {
                     id: 'SystemAnalytics',
@@ -6431,6 +6431,15 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.ExperimentalChannelCategorySorting',
                             label: defineMessage({id: 'admin.experimental.channelCategorySorting.title', defaultMessage: 'Channel Category Sorting:'}),
                             help_text: defineMessage({id: 'admin.experimental.channelCategorySorting.desc', defaultMessage: 'When true, channels will be automatically sorted into categories based on their names using a "/" delimiter.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ExperimentalSettings.EnableWatermark',
+                            label: defineMessage({id: 'admin.experimental.enableWatermark.title', defaultMessage: 'Enable Mobile Watermark:'}),
+                            help_text: defineMessage({id: 'admin.experimental.enableWatermark.desc', defaultMessage: 'When true, authenticated mobile sessions will display a watermark overlay showing the username, domain, date (YYYY-MM-DD), and time (HH:mm) for data loss prevention (DLP) purposes.'}),
+                            help_text_markdown: false,
+                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],

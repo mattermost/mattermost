@@ -8,7 +8,6 @@ import (
 	"html"
 	"html/template"
 	"net/url"
-	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,7 +32,7 @@ func (es *Service) GetMessageForNotification(post *model.Post, teamName, siteUrl
 		return es.prepareNotificationMessageForEmail(post.Message, teamName, siteUrl)
 	}
 
-	// extract the filenames from their paths and determine what type of files are attached
+	// normalize the filenames and determine what type of files are attached
 	infos, err := es.store.FileInfo().GetForPost(post.Id, true, false, true)
 	if err != nil {
 		mlog.Warn("Encountered error when getting files for notification message", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -42,12 +41,11 @@ func (es *Service) GetMessageForNotification(post *model.Post, teamName, siteUrl
 	filenames := make([]string, len(infos))
 	onlyImages := true
 	for i, info := range infos {
-		if escaped, err := url.QueryUnescape(filepath.Base(info.Name)); err != nil {
-			// this should never error since filepath was escaped using url.QueryEscape
-			filenames[i] = escaped
-		} else {
-			filenames[i] = info.Name
+		filename := info.Name
+		if unescaped, err := url.QueryUnescape(filename); err == nil {
+			filename = unescaped
 		}
+		filenames[i] = filename
 
 		onlyImages = onlyImages && info.IsImage()
 	}
@@ -55,9 +53,15 @@ func (es *Service) GetMessageForNotification(post *model.Post, teamName, siteUrl
 	props := map[string]any{"Filenames": strings.Join(filenames, ", ")}
 
 	if onlyImages {
-		return translateFunc("api.post.get_message_for_notification.images_sent", len(filenames), props)
+		return string(i18n.TranslateAsHTML(translateFunc, "api.post.get_message_for_notification.images_sent", map[string]any{
+			"Count":     len(filenames),
+			"Filenames": props["Filenames"],
+		}))
 	}
-	return translateFunc("api.post.get_message_for_notification.files_sent", len(filenames), props)
+	return string(i18n.TranslateAsHTML(translateFunc, "api.post.get_message_for_notification.files_sent", map[string]any{
+		"Count":     len(filenames),
+		"Filenames": props["Filenames"],
+	}))
 }
 
 func ProcessMessageAttachments(post *model.Post, siteURL string) []*EmailMessageAttachment {

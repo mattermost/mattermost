@@ -6,6 +6,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -22,7 +23,6 @@ import SwitchChannelProvider from 'components/suggestion/switch_channel_provider
 import {focusElement} from 'utils/a11y_utils';
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {RhsState} from 'types/store/rhs';

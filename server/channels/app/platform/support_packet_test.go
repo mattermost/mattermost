@@ -9,6 +9,7 @@ import (
 	"errors"
 	"os"
 	"path"
+	"runtime"
 	"testing"
 
 	"github.com/goccy/go-yaml"
@@ -206,9 +207,20 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotEmpty(t, d.Server.Hostname)
 		assert.Equal(t, model.CurrentVersion, d.Server.Version)
 		// BuildHash is not present in tests
+		assert.NotEmpty(t, d.Server.GoVersion)
 		assert.Equal(t, "docker", d.Server.InstallationType)
 		assert.Positive(t, d.Server.CPUCores)
 		assert.Positive(t, d.Server.TotalMemoryMB)
+		assert.True(t, d.Server.OpenFileDescriptors == -1 || d.Server.OpenFileDescriptors > 0, "OpenFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.OpenFileDescriptors)
+		assert.True(t, d.Server.MaxFileDescriptors == -1 || d.Server.MaxFileDescriptors > 0, "MaxFileDescriptors should be -1 (unsupported) or positive, got %d", d.Server.MaxFileDescriptors)
+		assert.Positive(t, d.Server.ProcessID)
+		assert.False(t, d.Server.StartedAt.IsZero())
+		if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+			assert.False(t, d.Server.HostStartedAt.IsZero())
+			assert.True(t, !d.Server.HostStartedAt.After(d.Server.StartedAt))
+		} else {
+			assert.True(t, d.Server.HostStartedAt.IsZero(), "HostStartedAt should be zero on unsupported platforms")
+		}
 
 		/* Config */
 		assert.Equal(t, "memory://", d.Config.Source)

@@ -32,7 +32,7 @@ export type FilterOption = {
     // Key value map of filter values with keys matching the keys above
     values: FilterValues;
 
-    // Filter Component type, optional parameter defaults to FilterCheckbox
+    // Filter Component type, optional parameter defaults to FilterList
     type?: React.ElementType;
 }
 
