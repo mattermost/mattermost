@@ -301,6 +301,20 @@ jobs:
             -d "$PAYLOAD" \
             | jq -r '.content[0].text' > /tmp/generated-docs.md
  
+          # Validate the output matches the required structure defined in the
+          # system prompt. Missing sections indicate the model was steered away
+          # from its instructions - a signal of possible prompt injection.
+          if ! grep -qF '=== CAPABILITY SUMMARY ===' /tmp/generated-docs.md; then
+            echo "::error::Output missing CAPABILITY SUMMARY section." \
+              "Possible prompt injection. Aborting."
+            exit 1
+          fi
+          if ! grep -qF '=== DOCUMENTATION DRAFT ===' /tmp/generated-docs.md; then
+            echo "::error::Output missing DOCUMENTATION DRAFT section." \
+              "Possible prompt injection. Aborting."
+            exit 1
+          fi
+ 
       # 7. Write docs file
       - name: Write docs file
         working-directory: docs-repo
@@ -393,13 +407,16 @@ jobs:
             "| **Milestone** | ${MILESTONE_TITLE} |" \
             "<!-- dev-pr: ${SOURCE_REPO}#${PR_NUMBER} -->")
  
+          # Open as a draft so a human must explicitly un-draft before merging.
+          # This is the primary control against auto-committing injected content.
           URL=$(gh pr create \
             --repo mattermost/docs \
             --head "$BRANCH" \
             --base "${{ steps.base-branch.outputs.base }}" \
             --title "docs: ${PR_TITLE}" \
             --body "$BODY" \
-            --milestone "$MILESTONE_NUMBER")
+            --milestone "$MILESTONE_NUMBER" \
+            --draft)
  
           echo "number=$(echo "$URL" | grep -oE '[0-9]+$')" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
@@ -458,7 +475,7 @@ jobs:
           DOCS_LINK="[mattermost/docs#${DOCS_PR_NUMBER}](${DOCS_PR_URL})"
           COMMENT=$(printf '%s\n\n%s\n\n%s' \
             "A documentation draft has been ${ACTION} ${DOCS_LINK}." \
-            "Please review the auto-generated content and update it as needed before the docs PR is merged." \
+            "The docs PR is opened as a **draft**. Please review the AI-generated content, edit as needed, then mark it ready for review before merging." \
             "The Docs/Needed label will be replaced with Docs/Done once the docs PR is merged or closed.")
  
           gh pr comment "$PR_NUMBER" \
