@@ -619,9 +619,10 @@ func TestGenerateRemoteClusterInvite(t *testing.T) {
 func TestGetRemoteCluster(t *testing.T) {
 	mainHelper.Parallel(t)
 	newRC := &model.RemoteCluster{
-		Name:    "remotecluster",
-		SiteURL: "http://example.com",
-		Token:   model.NewId(),
+		Name:        "remotecluster",
+		SiteURL:     "http://example.com",
+		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
 	t.Run("Should not work if the remote cluster service is not enabled", func(t *testing.T) {
@@ -670,6 +671,7 @@ func TestGetRemoteCluster(t *testing.T) {
 		require.Equal(t, rc.RemoteId, fetchedRC.RemoteId)
 		require.Equal(t, th.BasicTeam.Id, fetchedRC.DefaultTeamId)
 		require.Empty(t, fetchedRC.Token)
+		require.Empty(t, fetchedRC.RemoteToken)
 	})
 }
 
@@ -737,6 +739,7 @@ func TestPatchRemoteCluster(t *testing.T) {
 		DisplayName: "initialvalue",
 		SiteURL:     "http://example.com",
 		Token:       model.NewId(),
+		RemoteToken: model.NewId(),
 	}
 
 	rcp := &model.RemoteClusterPatch{DisplayName: model.NewPointer("different value")}
@@ -790,6 +793,8 @@ func TestPatchRemoteCluster(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "patched!", patchedRC.DisplayName)
 		require.Equal(t, newTeamId, patchedRC.DefaultTeamId)
+		require.Empty(t, patchedRC.Token)
+		require.Empty(t, patchedRC.RemoteToken)
 	})
 }
 
