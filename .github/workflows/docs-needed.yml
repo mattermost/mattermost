@@ -123,9 +123,11 @@ jobs:
               exit 0
             fi
  
+            MILESTONE_DATE="${MILESTONE_DUE%%T*}"
             MM_MILESTONE=$(gh api repos/mattermost/mattermost/milestones \
               --paginate \
-              --jq ".[] | select(.due_on == \"$MILESTONE_DUE\") | .title" \
+              | jq -r --arg date "$MILESTONE_DATE" \
+                  '.[] | select(((.due_on // "")[0:10]) == $date) | .title' \
               | head -1)
  
             if [ -z "$MM_MILESTONE" ]; then
