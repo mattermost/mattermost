@@ -61,7 +61,7 @@ const RecapsLink = () => {
                     tabIndex={0}
                 >
                     <span className='icon'>
-                        <CreationOutlineIcon size={14}/>
+                        <CreationOutlineIcon size={18}/>
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
@@ -77,7 +77,7 @@ const RecapsLink = () => {
                                 className='RecapsFailedIcon'
                                 aria-label={formatMessage(failedTooltip)}
                             >
-                                <AlertOutlineIcon size={18}/>
+                                <AlertOutlineIcon size={14}/>
                             </span>
                         </WithTooltip>
                     ) : (
