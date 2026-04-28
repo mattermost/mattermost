@@ -43,6 +43,9 @@ jobs:
       ${{ github.repository }}#${{ github.event.pull_request.number }}
     runs-on: ubuntu-latest
     if: github.event.label.name == 'Docs/Needed'
+    permissions:
+      contents: read
+      pull-requests: write
  
     steps:
       # 0. Guard: milestone is required
@@ -367,7 +370,8 @@ jobs:
           GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
           MILESTONE_TITLE: ${{ steps.vars.outputs.milestone_title }}
         run: |
-          NUM=$(gh api repos/mattermost/docs/milestones \
+          NUM=$(gh api 'repos/mattermost/docs/milestones?state=all' \
+            --paginate \
             --jq ".[] | select(.title == \"$MILESTONE_TITLE\") | .number" \
             | head -1)
  
