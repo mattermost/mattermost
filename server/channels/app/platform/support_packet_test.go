@@ -283,6 +283,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	t.Run("s3 driver omits disk space fields", func(t *testing.T) {
+		orig := th.Service.filestore
+		t.Cleanup(func() {
+			err := SetFileStore(orig)(th.Service)
+			require.NoError(t, err)
+		})
+
 		fb := &fmocks.FileBackend{}
 		err := SetFileStore(fb)(th.Service)
 		require.NoError(t, err)
