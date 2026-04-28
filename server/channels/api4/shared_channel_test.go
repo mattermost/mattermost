@@ -599,6 +599,7 @@ func TestGetSharedChannelInvitationsByRemoteCluster(t *testing.T) {
 	}
 	_, err := th.App.Srv().Store().SharedChannelInvitation().Save(inv1)
 	require.NoError(t, err)
+	time.Sleep(2 * time.Millisecond)
 
 	inv2 := &model.SharedChannelInvitation{
 		ChannelId: ch.Id,
@@ -644,13 +645,13 @@ func TestGetSharedChannelInvitationsByRemoteCluster(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Len(t, page0, 1)
-		require.Equal(t, model.SharedChannelInvitationDirectionReceived, page0[0].Direction)
+		require.Equal(t, inv2.Direction, page0[0].Direction)
 
 		page1, resp, err := th.SystemAdminClient.GetSharedChannelInvitationsByRemote(context.Background(), rc.RemoteId, 1, 1)
 		CheckOKStatus(t, resp)
 		require.NoError(t, err)
 		require.Len(t, page1, 1)
-		require.Equal(t, model.SharedChannelInvitationDirectionSent, page1[0].Direction)
+		require.Equal(t, inv1.Direction, page1[0].Direction)
 	})
 }
 
