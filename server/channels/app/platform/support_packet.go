@@ -5,7 +5,11 @@ package platform
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -19,6 +23,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
 const (
@@ -221,6 +227,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		}
 		d.LDAP.ServerName = severName
 		d.LDAP.ServerVersion = serverVersion
+	} else {
+		d.LDAP.Status = model.StatusDisabled
 	}
 
 	/* SAML */
@@ -231,14 +239,64 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.Backend = *ps.Config().ElasticsearchSettings.Backend
+		d.ElasticSearch.ServerVersion = se.GetFullVersion()
+		d.ElasticSearch.ServerPlugins = se.GetPlugins()
 		if *ps.Config().ElasticsearchSettings.EnableIndexing {
 			appErr := se.TestConfig(rctx, ps.Config())
 			if appErr != nil {
+				d.ElasticSearch.Status = model.StatusFail
 				d.ElasticSearch.Error = appErr.Error()
+			} else {
+				d.ElasticSearch.Status = model.StatusOk
 			}
+		} else {
+			d.ElasticSearch.Status = model.StatusDisabled
 		}
-		d.ElasticSearch.ServerVersion = se.GetFullVersion()
-		d.ElasticSearch.ServerPlugins = se.GetPlugins()
+	} else {
+		d.ElasticSearch.Status = model.StatusDisabled
+	}
+
+	/* Email Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendEmailNotifications) {
+		emailSettings := ps.Config().EmailSettings
+		hostname := utils.GetHostnameFromSiteURL(model.SafeDereference(ps.Config().ServiceSettings.SiteURL))
+		mailCfg := &mail.SMTPConfig{
+			Hostname:                          hostname,
+			ConnectionSecurity:                model.SafeDereference(emailSettings.ConnectionSecurity),
+			SkipServerCertificateVerification: model.SafeDereference(emailSettings.SkipServerCertificateVerification),
+			ServerName:                        model.SafeDereference(emailSettings.SMTPServer),
+			Server:                            model.SafeDereference(emailSettings.SMTPServer),
+			Port:                              model.SafeDereference(emailSettings.SMTPPort),
+			ServerTimeout:                     model.SafeDereference(emailSettings.SMTPServerTimeout),
+			Username:                          model.SafeDereference(emailSettings.SMTPUsername),
+			Password:                          model.SafeDereference(emailSettings.SMTPPassword),
+			EnableSMTPAuth:                    model.SafeDereference(emailSettings.EnableSMTPAuth),
+			SendEmailNotifications:            true,
+			FeedbackName:                      model.SafeDereference(emailSettings.FeedbackName),
+			FeedbackEmail:                     model.SafeDereference(emailSettings.FeedbackEmail),
+			ReplyToAddress:                    model.SafeDereference(emailSettings.ReplyToAddress),
+		}
+		if smtpErr := mail.TestConnection(mailCfg); smtpErr != nil {
+			d.Notifications.Email.Status = model.StatusFail
+			d.Notifications.Email.Error = smtpErr.Error()
+		} else {
+			d.Notifications.Email.Status = model.StatusOk
+		}
+	} else {
+		d.Notifications.Email.Status = model.StatusDisabled
+	}
+
+	/* Push Notifications */
+	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
+		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
+		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+			d.Notifications.Push.Status = model.StatusFail
+			d.Notifications.Push.Error = pushErr.Error()
+		} else {
+			d.Notifications.Push.Status = model.StatusOk
+		}
+	} else {
+		d.Notifications.Push.Status = model.StatusDisabled
 	}
 
 	b, err := yaml.Marshal(&d)
@@ -251,6 +309,29 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+// TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
+func testPushProxyConnection(ctx context.Context, serverURL string) error {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	versionURL, err := url.JoinPath(serverURL, "version")
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, versionURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
+	}
+	return nil
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {
