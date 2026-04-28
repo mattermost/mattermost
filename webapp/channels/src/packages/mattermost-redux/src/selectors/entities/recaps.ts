@@ -75,7 +75,7 @@ export const getUnreadFinishedRecapsBadge = createSelector(
         let hasFailed = false;
         for (const id of allIds) {
             const recap = byId[id];
-            if (!recap || recap.read_at !== 0) {
+            if (!recap || recap.viewed_at !== 0) {
                 continue;
             }
             if (recap.status === RecapStatus.COMPLETED) {

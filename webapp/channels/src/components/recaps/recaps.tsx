@@ -9,7 +9,7 @@ import {Redirect} from 'react-router-dom';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {getRecaps} from 'mattermost-redux/actions/recaps';
+import {getRecaps, markRecapsAsViewed} from 'mattermost-redux/actions/recaps';
 import {getAllRecaps, getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
@@ -50,6 +50,7 @@ const Recaps = () => {
         };
         fetchData();
         dispatch(getAgents());
+        dispatch(markRecapsAsViewed());
     }, [dispatch]);
 
     // Redirect if feature flag is disabled

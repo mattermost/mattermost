@@ -7,7 +7,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getUnreadFinishedRecapsBadge} from './recaps';
 
-function makeRecap(id: string, status: RecapStatus, readAt: number): Recap {
+function makeRecap(id: string, status: RecapStatus, viewedAt: number): Recap {
     return {
         id,
         user_id: 'user1',
@@ -15,7 +15,8 @@ function makeRecap(id: string, status: RecapStatus, readAt: number): Recap {
         create_at: 1,
         update_at: 1,
         delete_at: 0,
-        read_at: readAt,
+        read_at: 0,
+        viewed_at: viewedAt,
         total_message_count: 0,
         status,
         bot_id: 'bot1',
@@ -43,7 +44,7 @@ describe('selectors/entities/recaps', () => {
             expect(getUnreadFinishedRecapsBadge(state)).toEqual({count: 0, hasFailed: false});
         });
 
-        test('counts unread completed recaps', () => {
+        test('counts not-yet-viewed completed recaps', () => {
             const state = makeState([
                 makeRecap('a', RecapStatus.COMPLETED, 0),
                 makeRecap('b', RecapStatus.COMPLETED, 0),
@@ -61,7 +62,7 @@ describe('selectors/entities/recaps', () => {
             expect(getUnreadFinishedRecapsBadge(state)).toEqual({count: 1, hasFailed: false});
         });
 
-        test('includes unread failed recaps and flags hasFailed', () => {
+        test('includes not-yet-viewed failed recaps and flags hasFailed', () => {
             const state = makeState([
                 makeRecap('a', RecapStatus.COMPLETED, 0),
                 makeRecap('b', RecapStatus.FAILED, 0),
@@ -69,7 +70,7 @@ describe('selectors/entities/recaps', () => {
             expect(getUnreadFinishedRecapsBadge(state)).toEqual({count: 2, hasFailed: true});
         });
 
-        test('does not set hasFailed when failed recap has been read', () => {
+        test('does not set hasFailed when failed recap has been viewed', () => {
             const state = makeState([
                 makeRecap('a', RecapStatus.COMPLETED, 0),
                 makeRecap('b', RecapStatus.FAILED, 500),
