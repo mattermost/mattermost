@@ -15,8 +15,9 @@ const (
 	PropertyValueTargetIDMaxRunes   = 255
 	PropertyValueTargetTypeMaxRunes = 255
 
-	PropertyValueTargetTypePost = "post"
-	PropertyValueTargetTypeUser = "user"
+	PropertyValueTargetTypePost    = "post"
+	PropertyValueTargetTypeUser    = "user"
+	PropertyValueTargetTypeChannel = "channel"
 )
 
 type PropertyValue struct {

@@ -62,7 +62,7 @@ type RolesState = {
     all_users: {name: string; display_name: string; permissions: Role['permissions']};
     guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
-class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
+export class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
     constructor(props: Props) {

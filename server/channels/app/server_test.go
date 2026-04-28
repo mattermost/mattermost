@@ -393,7 +393,8 @@ func TestSentry(t *testing.T) {
 	testDir, _ := fileutils.FindDir("tests")
 
 	setSentryDSN := func(t *testing.T, dsn *sentry.Dsn) {
-		os.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_SERVICEENVIRONMENT", model.ServiceEnvironmentTest)
 
 		// Allow Playbooks to startup
 		oldBuildHash := model.BuildHash
@@ -402,7 +403,6 @@ func TestSentry(t *testing.T) {
 		oldSentryDSN := SentryDSN
 		SentryDSN = dsn.String()
 		t.Cleanup(func() {
-			os.Unsetenv("MM_SERVICEENVIRONMENT")
 			model.BuildHash = oldBuildHash
 			SentryDSN = oldSentryDSN
 		})

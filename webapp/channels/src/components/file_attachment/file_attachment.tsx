@@ -403,7 +403,7 @@ export default function FileAttachment(props: Props) {
                 ])}
             >
                 {fileThumbnail}
-                <div className='post-image__details'>
+                <div className={classNames('post-image__details', {compact: compactDisplay})}>
                     {fileDetail}
                     {fileActions}
                     {filenameOverlay}

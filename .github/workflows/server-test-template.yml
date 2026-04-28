@@ -17,6 +17,10 @@ on:
       fullyparallel:
         required: false
         type: boolean
+        default: true
+      allow-failure:
+        required: false
+        type: boolean
         default: false
       enablecoverage:
         required: false
@@ -29,6 +33,14 @@ on:
         required: false
         default: false
         type: boolean
+      elasticsearch-version:
+        required: false
+        type: string
+        default: "9.0.0"
+      test-target:
+        required: false
+        type: string
+        default: "test-server"
       # -- Test sharding inputs (leave defaults for non-sharded callers) --
       shard-index:
         required: false
@@ -38,16 +50,25 @@ on:
         required: false
         type: number
         default: 1
+      runner:
+        description: "GitHub-hosted runner label (default: ubuntu-latest-8-cores)"
+        required: false
+        type: string
+        default: "ubuntu-latest-8-cores"
+      race-enabled:
+        description: "Run tests with Go race detector (-race)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
-    continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
+    runs-on: ${{ inputs.runner }}
+    continue-on-error: ${{ inputs.allow-failure }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
@@ -94,6 +115,7 @@ jobs:
 
       - name: Run docker compose
         env:
+          ELASTICSEARCH_VERSION: ${{ inputs.elasticsearch-version }}
           POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
@@ -153,6 +175,14 @@ jobs:
 
           echo "$ALL_PKGS" > all-packages.txt
 
+          # ── Create go.work for test discovery ──
+          # Without it, `go test -list` in shard-split.js resolves
+          # github.com/mattermost/mattermost/server/public against the published
+          # module version from server/go.mod, which lags HEAD and causes build
+          # failures when heavy packages reference new symbols in ./public.
+          go work init
+          go work use . ./public
+
           # ── Run shard solver ──
           node scripts/shard-split.js
 
@@ -162,37 +192,19 @@ jobs:
         env:
           BUILD_IMAGE: ${{ steps.build.outputs.BUILD_IMAGE }}
         run: |
-          if [[ ${{ github.ref_name }} == 'master' && ${{ inputs.fullyparallel }} != true ]]; then
+          if [[ "${{ inputs.race-enabled }}" == "true" ]]; then
             export RACE_MODE="-race"
           fi
 
-          MAKE_ARGS="test-server${RACE_MODE} BUILD_NUMBER=${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
-          DOCKER_CMD="make ${MAKE_ARGS}"
+          TEST_TARGET="${{ inputs.test-target }}${RACE_MODE}"
+          BUILD_NUMBER="${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+          DOCKER_CMD="make ${TEST_TARGET}"
 
-          # When sharding is active, use the multi-run wrapper script
+          # When sharding is active, use the multi-run wrapper script.
+          # run-shard-tests.sh detects heavy runs itself and falls back to
+          # light-only mode when shard-heavy-runs.txt is absent or empty.
           if [[ "${{ inputs.shard-total }}" -gt 1 && -f server/shard-te-packages.txt ]]; then
-            SHARD_TE=$(cat server/shard-te-packages.txt)
-            SHARD_EE=$(cat server/shard-ee-packages.txt)
-            HEAVY_RUNS=""
-            if [[ -f server/shard-heavy-runs.txt && -s server/shard-heavy-runs.txt ]]; then
-              HEAVY_RUNS=$(cat server/shard-heavy-runs.txt)
-            fi
-
-            if [[ -z "$HEAVY_RUNS" ]]; then
-              # No heavy packages — single run via Makefile with package filter.
-              # Read packages from files at runtime to avoid interpolating
-              # file-system-derived paths into a generated shell script.
-              cat > server/run-shard-tests.sh <<SHARD_EOF
-          #!/bin/bash
-          exec make ${MAKE_ARGS} \\
-            TE_PACKAGES="\$(cat shard-te-packages.txt)" \\
-            EE_PACKAGES="\$(cat shard-ee-packages.txt)"
-          SHARD_EOF
-            else
-              # Use the multi-run wrapper script
-              cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
-            fi
-
+            cp server/scripts/run-shard-tests.sh server/run-shard-tests.sh
             chmod +x server/run-shard-tests.sh
             DOCKER_CMD="/mattermost/server/run-shard-tests.sh"
           fi
@@ -207,6 +219,8 @@ jobs:
             --env ENABLE_COVERAGE="${{ inputs.enablecoverage }}" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
             --env RACE_MODE \
+            --env TEST_TARGET \
+            --env BUILD_NUMBER \
             -v $PWD:/mattermost \
             -w /mattermost/server \
             $BUILD_IMAGE \
@@ -218,6 +232,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
           files: server/cover.out
+          flags: server
 
       - name: Stop docker compose
         run: |

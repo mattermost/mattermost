@@ -1,206 +1,167 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ConfigurationBar should match snapshot, expired 1`] = `
-<Connect(AnnouncementBar)
-  handleClose={[Function]}
-  message={
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
     <div
-      className="announcement-bar__configuration"
+      class="announcement-bar__text"
     >
-      <React.Fragment>
-        <img
-          className="advisor-icon"
-          src=""
-        />
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="{licenseSku} license is expired and some features may be disabled."
-          id="announcement_bar.error.license_expired"
-          values={
-            Object {
-              "licenseSku": "Enterprise",
-            }
-          }
-        />
-      </React.Fragment>
-      <RenewalLink
-        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
-      />
+      <span>
+        <div
+          class="announcement-bar__configuration"
+        >
+          <img
+            class="advisor-icon"
+            src=""
+          />
+          Enterprise license is expired and some features may be disabled.
+          <button
+            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+          >
+            Contact sales
+          </button>
+        </div>
+      </span>
     </div>
-  }
-  showCloseButton={true}
-  tooltipMsg={
-    <React.Fragment>
-      <img
-        className="advisor-icon"
-        src=""
-      />
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="{licenseSku} license is expired and some features may be disabled."
-        id="announcement_bar.error.license_expired"
-        values={
-          Object {
-            "licenseSku": "Enterprise",
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  type="critical"
-/>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
-exports[`components/ConfigurationBar should match snapshot, expired, cloud license, show nothing 1`] = `""`;
+exports[`components/ConfigurationBar should match snapshot, expired, cloud license, show nothing 1`] = `<div />`;
 
 exports[`components/ConfigurationBar should match snapshot, expired, in grace period 1`] = `
-<Connect(AnnouncementBar)
-  handleClose={[Function]}
-  message={
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
     <div
-      className="announcement-bar__configuration"
+      class="announcement-bar__text"
     >
-      <React.Fragment>
-        <img
-          className="advisor-icon"
-          src=""
-        />
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="{licenseSku} license is expired and some features may be disabled."
-          id="announcement_bar.error.license_expired"
-          values={
-            Object {
-              "licenseSku": "Enterprise",
-            }
-          }
-        />
-      </React.Fragment>
-      <RenewalLink
-        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
-      />
+      <span>
+        <div
+          class="announcement-bar__configuration"
+        >
+          <img
+            class="advisor-icon"
+            src=""
+          />
+          Enterprise license is expired and some features may be disabled.
+          <button
+            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense"
+          >
+            Contact sales
+          </button>
+        </div>
+      </span>
     </div>
-  }
-  showCloseButton={true}
-  tooltipMsg={
-    <React.Fragment>
-      <img
-        className="advisor-icon"
-        src=""
-      />
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="{licenseSku} license is expired and some features may be disabled."
-        id="announcement_bar.error.license_expired"
-        values={
-          Object {
-            "licenseSku": "Enterprise",
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  type="critical"
-/>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/ConfigurationBar should match snapshot, expired, regular user 1`] = `
-<Connect(AnnouncementBar)
-  message={
-    <React.Fragment>
-      <img
-        className="advisor-icon"
-        src=""
-      />
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="{licenseSku} license is expired and some features may be disabled. Please contact your System Administrator for details."
-        id="announcement_bar.error.past_grace"
-        values={
-          Object {
-            "licenseSku": "Enterprise",
-          }
-        }
-      />
-    </React.Fragment>
-  }
-  type="critical"
-/>
-`;
-
-exports[`components/ConfigurationBar should match snapshot, expiring, cloud license, show nothing 1`] = `""`;
-
-exports[`components/ConfigurationBar should match snapshot, expiring, trial license 1`] = `
-<Connect(AnnouncementBar)
-  handleClose={[Function]}
-  message={
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
     <div
-      className="announcement-bar__configuration"
+      class="announcement-bar__text"
     >
-      <React.Fragment>
+      <span>
         <img
-          className="advisor-icon"
+          class="advisor-icon"
           src=""
         />
-        This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
-      </React.Fragment>
-      <PurchaseLink
-        buttonTextElement={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purchase a License Now"
-            id="announcement_bar.error.purchase_a_license_now"
-          />
-        }
-        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
-      />
+        Enterprise license is expired and some features may be disabled. Please contact your System Administrator for details.
+      </span>
     </div>
-  }
-  showCloseButton={true}
-  tooltipMsg={
-    <React.Fragment>
-      <img
-        className="advisor-icon"
-        src=""
-      />
-      This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
-    </React.Fragment>
-  }
-  type="critical"
-/>
+  </div>
+</div>
+`;
+
+exports[`components/ConfigurationBar should match snapshot, expiring, cloud license, show nothing 1`] = `<div />`;
+
+exports[`components/ConfigurationBar should match snapshot, expiring, trial license 1`] = `
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
+    <div
+      class="announcement-bar__text"
+    >
+      <span>
+        <div
+          class="announcement-bar__configuration"
+        >
+          <img
+            class="advisor-icon"
+            src=""
+          />
+          This is the last day of your free trial. Purchase a license now to continue using Mattermost Professional and Enterprise features.
+          <button
+            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+          >
+            Purchase a License Now
+          </button>
+        </div>
+      </span>
+    </div>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
 exports[`components/ConfigurationBar should match snapshot, expiring, trial license, mobile viewport 1`] = `
-<Connect(AnnouncementBar)
-  handleClose={[Function]}
-  message={
+<div>
+  <div
+    class="_StyledDiv-BZhus eMNHXM announcement-bar announcement-bar-critical"
+  >
     <div
-      className="announcement-bar__configuration"
+      class="announcement-bar__text"
     >
-      <React.Fragment>
-        <img
-          className="advisor-icon"
-          src=""
-        />
-        This is the last day of your free trial.
-      </React.Fragment>
-      <PurchaseLink
-        buttonTextElement={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Purchase a License Now"
-            id="announcement_bar.error.purchase_a_license_now"
+      <span>
+        <div
+          class="announcement-bar__configuration"
+        >
+          <img
+            class="advisor-icon"
+            src=""
           />
-        }
-        className="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
-      />
+          This is the last day of your free trial.
+          <button
+            class="btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow"
+          >
+            Purchase a License Now
+          </button>
+        </div>
+      </span>
     </div>
-  }
-  showCloseButton={true}
-  tooltipMsg={
-    <React.Fragment>
-      <img
-        className="advisor-icon"
-        src=""
-      />
-      This is the last day of your free trial.
-    </React.Fragment>
-  }
-  type="critical"
-/>
+    <a
+      class="announcement-bar__close"
+      href="#"
+    >
+      ×
+    </a>
+  </div>
+</div>
 `;
 
-exports[`components/ConfigurationBar should match snapshot, show nothing 1`] = `""`;
+exports[`components/ConfigurationBar should match snapshot, show nothing 1`] = `<div />`;

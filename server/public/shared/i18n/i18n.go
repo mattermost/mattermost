@@ -314,6 +314,12 @@ func escapeForHTML(arg any) any {
 		return template.HTMLEscapeString(typedArg)
 	case *string:
 		return template.HTMLEscapeString(*typedArg)
+	case int:
+		return typedArg
+	case int64:
+		return typedArg
+	case float64:
+		return typedArg
 	case map[string]any:
 		safeArg := make(map[string]any, len(typedArg))
 		for key, value := range typedArg {

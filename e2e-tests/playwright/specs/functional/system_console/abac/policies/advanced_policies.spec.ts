@@ -117,7 +117,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await enableABAC(systemConsolePage.page);
 
         // Create policy with just Department (Text) first to verify users have attributes
-        const policyName = `Multi-Attr Policy ${await pw.random.id()}`;
+        const policyName = `Multi-Attr Policy ${pw.random.id()}`;
 
         // Start with just Text attribute to debug
         // User 1 and 2 have Department=Engineering, User 3 has Department=Sales
@@ -292,7 +292,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel1 = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesUser.id, channel1.id); // Sales user in channel initially
 
-        const policy1Name = `IsNot Policy ${await pw.random.id()}`;
+        const policy1Name = `IsNot Policy ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy1Name,
             celExpression: 'user.attributes.Department != "Sales"',
@@ -345,7 +345,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel2 = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesUser.id, channel2.id); // Sales user in channel initially
 
-        const policy2Name = `In Policy ${await pw.random.id()}`;
+        const policy2Name = `In Policy ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy2Name,
             celExpression: 'user.attributes.Department in ["Engineering", "DevOps"]',
@@ -396,7 +396,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel3 = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesUser.id, channel3.id);
 
-        const policy3Name = `StartsWith Policy ${await pw.random.id()}`;
+        const policy3Name = `StartsWith Policy ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy3Name,
             celExpression: 'user.attributes.Department.startsWith("Eng")',
@@ -447,7 +447,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel4 = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesUser.id, channel4.id);
 
-        const policy4Name = `EndsWith Policy ${await pw.random.id()}`;
+        const policy4Name = `EndsWith Policy ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy4Name,
             celExpression: 'user.attributes.Department.endsWith("ing")',
@@ -498,7 +498,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel5 = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesUser.id, channel5.id);
 
-        const policy5Name = `Contains Policy ${await pw.random.id()}`;
+        const policy5Name = `Contains Policy ${pw.random.id()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policy5Name,
             celExpression: 'user.attributes.Department.contains("gineer")',
@@ -632,7 +632,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
 
         // # Create policy with complex CEL expression using || and ()
         // Expression: Department == "Engineering" OR (Department == "Sales" AND Location == "Remote")
-        const policyName = `Complex Policy ${await pw.random.id()}`;
+        const policyName = `Complex Policy ${pw.random.id()}`;
         const complexExpression =
             'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
 

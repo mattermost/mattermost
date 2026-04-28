@@ -2879,7 +2879,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      Attribute-based access control
+                      Dynamic attribute-based access controls
                     </div>
                     <div
                       class="item"
@@ -2887,7 +2887,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      Channel warning banners
+                      Data spillage handling
                     </div>
                     <div
                       class="item"
@@ -2895,7 +2895,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      AD/LDAP group sync
+                      Burn-on-read messages
                     </div>
                     <div
                       class="item"
@@ -2903,7 +2903,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      Advanced workflows with Playbooks
+                      Mobile biometrics & advanced security
                     </div>
                     <div
                       class="item"
@@ -2911,7 +2911,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      High availability
+                      Automatic channel translations
                     </div>
                     <div
                       class="item"
@@ -2919,7 +2919,7 @@ See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. S
                       <i
                         class="fa fa-lock"
                       />
-                      Advanced compliance
+                      Channel banners
                     </div>
                     <div
                       class="item"

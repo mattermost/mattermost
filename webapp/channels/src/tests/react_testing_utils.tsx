@@ -201,6 +201,29 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
 };
 
 /**
+ * After `render` / `renderWithContext`, runs an async `act` boundary so updates from mount effects
+ * (e.g. promise chains) can commit. Does not wrap the render call itself.
+ *
+ * @param microtaskRounds How many times to `await Promise.resolve()` inside `act`, yielding to the
+ * microtask queue between each. Increase above the default when mocked thunks resolve in sequence
+ * (e.g. effect + multiple `await`s) so `setState` runs inside `act` and React does not warn.
+ * @default 1
+ */
+export function runPostRenderAct(microtaskRounds: number = 1) {
+    const rounds = Math.max(1, microtaskRounds);
+    return act(async () => {
+        const drainMicrotasks = async (remaining: number): Promise<void> => {
+            if (remaining <= 0) {
+                return;
+            }
+            await Promise.resolve();
+            await drainMicrotasks(remaining - 1);
+        };
+        await drainMicrotasks(rounds);
+    });
+}
+
+/**
  * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
  *
  * This should only be used in those cases.

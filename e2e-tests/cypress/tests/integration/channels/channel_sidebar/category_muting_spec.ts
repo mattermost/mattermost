@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @channel_sidebar
 
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
-
 import {clickCategoryMenuItem} from './helpers';
 
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
+
+
 describe('Category muting', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then((({team, user}) => {
@@ -106,12 +107,13 @@ describe('Category muting', () => {
                 scheme_id: '',
                 update_at: 0,
                 last_root_post_at: 0,
-            })).then((channel: Cypress.Channel) => {
+            })).then((channel: unknown) => {
+                const ch = channel as Cypress.Channel;
                 // # And then invite us to it
-                cy.wrap(client.addToChannel(testUser.id, channel.id));
+                cy.wrap(client.addToChannel(testUser.id, ch.id));
 
                 // * Verify that the test channel appears in the sidebar and is unmuted
-                cy.get(`#sidebarItem_${channel.name}`).should('be.visible').should('not.have.class', 'muted');
+                cy.get(`#sidebarItem_${ch.name}`).should('be.visible').should('not.have.class', 'muted');
             });
         });
     });

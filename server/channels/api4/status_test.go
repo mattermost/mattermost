@@ -54,7 +54,6 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
-		t.Skip("https://mattermost.atlassian.net/browse/MM-63533")
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
@@ -65,10 +64,12 @@ func TestGetUserStatus(t *testing.T) {
 		userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "dnd", userStatus.Status)
-		time.Sleep(3 * time.Second)
-		userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
-		require.NoError(t, err)
-		assert.Equal(t, "online", userStatus.Status)
+		// Poll for status restore instead of sleeping a fixed duration (MM-63533).
+		// The recurring task runs every 1s but can lag under CI load.
+		require.Eventually(t, func() bool {
+			userStatus, _, err = client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
+			return err == nil && userStatus.Status == "online"
+		}, 15*time.Second, 500*time.Millisecond, "DND status was not restored to online within timeout")
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {

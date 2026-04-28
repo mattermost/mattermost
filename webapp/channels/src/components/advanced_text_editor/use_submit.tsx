@@ -119,6 +119,8 @@ const useSubmit = (
         return haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS);
     });
 
+    const editingPostRefocusId = useSelector((state: GlobalState) => state.views.posts.editingPost.refocusId);
+
     const showPostDeletedModal = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.POST_DELETED_MODAL,
@@ -236,6 +238,11 @@ const useSubmit = (
         }
 
         if (isInEditMode) {
+            // Refocus the main textbox before unsetting edit mode
+            if (editingPostRefocusId) {
+                const element = document.getElementById(editingPostRefocusId);
+                element?.focus();
+            }
             dispatch(unsetEditingPost());
         }
 
@@ -258,6 +265,7 @@ const useSubmit = (
         channelId,
         isInEditMode,
         handleFileChange,
+        editingPostRefocusId,
     ]);
 
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {

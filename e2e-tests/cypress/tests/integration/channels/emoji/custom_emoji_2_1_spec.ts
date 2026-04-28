@@ -9,15 +9,16 @@
 
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getCustomEmoji, verifyLastPostedEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
-    let otherUser;
-    let townsquareLink;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let otherUser: Cypress.UserProfile;
+    let townsquareLink: string;
 
     const largeEmojiFile = 'gif-image-file.gif';
     const largeEmojiFileResized = 'gif-image-file-resized.gif';

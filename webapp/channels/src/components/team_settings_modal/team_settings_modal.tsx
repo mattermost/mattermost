@@ -8,8 +8,10 @@ import {useSelector} from 'react-redux';
 import {GenericModal} from '@mattermost/components';
 
 import {Permissions} from 'mattermost-redux/constants';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
+import {isChannelAccessControlEnabled} from 'selectors/general';
 
 import TeamSettings from 'components/team_settings';
 
@@ -42,6 +44,14 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
     const canInviteUsers = useSelector((state: GlobalState) =>
         haveITeamPermission(state, teamId, Permissions.INVITE_USER),
     );
+    const abacEnabled = useSelector(isChannelAccessControlEnabled);
+    const isSystemAdmin = useSelector((state: GlobalState) =>
+        haveISystemPermission(state, {permission: Permissions.MANAGE_SYSTEM}),
+    );
+    const hasTeamAccessRulesPermission = useSelector((state: GlobalState) =>
+        haveITeamPermission(state, teamId, Permissions.MANAGE_TEAM_ACCESS_RULES),
+    );
+    const canManageTeamAccessRules = isSystemAdmin || hasTeamAccessRulesPermission;
 
     useEffect(() => {
         setShow(isOpen);
@@ -108,6 +118,13 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
             icon: 'icon icon-account-multiple-outline',
             iconTitle: formatMessage({id: 'generic_icons.member', defaultMessage: 'Member Icon'}),
             display: canInviteUsers,
+        },
+        {
+            name: 'access_policies',
+            uiName: formatMessage({id: 'team_settings_modal.accessPoliciesTab', defaultMessage: 'Membership Policies'}),
+            icon: 'icon icon-shield-outline',
+            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+            display: abacEnabled && canManageTeamAccessRules,
         },
     ];
 

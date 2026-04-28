@@ -78,7 +78,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                         rel='noopener noreferrer'
                     >
                         <AttachmentIcon className='icon'/>
-                        {trimmedFilename}
+                        <span className='post-image__filename'>{trimmedFilename}</span>
                     </a>
                 </WithTooltip>
             );

@@ -14,11 +14,10 @@
 
 // Group: @channels @enterprise @ldap @saml @keycloak
 
-import {LdapUser} from 'tests/support/ldap_server_commands';
-
-import {getAdminAccount} from '../../../support/env';
-import {getRandomId} from '../../../utils';
-import {getKeycloakServerSettings} from '../../../utils/config';
+import {LdapUser} from '@/support/ldap_server_commands';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
+import {getKeycloakServerSettings} from '@/utils/config';
 
 describe('AD / LDAP', () => {
     let samlLdapUser: LdapUser;
@@ -47,7 +46,7 @@ describe('AD / LDAP', () => {
             cy.apiUploadSAMLIDPCert('keycloak.crt');
 
             // # Create Keycloak user and login for the first time
-            cy.keycloakCreateUsers([samlLdapUser]);
+            cy.keycloakCreateUsers([samlLdapUser] as LdapUser[]);
             cy.doKeycloakLogin(samlLdapUser);
 
             // # Wait for the UI to be ready which indicates SAML registration is complete

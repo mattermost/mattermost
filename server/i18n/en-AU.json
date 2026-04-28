@@ -3108,10 +3108,6 @@
     "translation": "{{.Backend}} is disabled."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is already stopped."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Failed to parse {{.Backend}} server version."
   },
@@ -4490,10 +4486,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise licence has been disabled."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Your Enterprise Edition licence has expired and some features may be disabled. Please renew your licence now."
   },
   {
     "id": "api.templates.questions_footer.title",
@@ -10032,10 +10024,6 @@
     "translation": "Unable to get Custom Profile Attribute field"
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Unable to create Custom Profile Attribute field"
-  },
-  {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
     "translation": "Custom Profile Attributes field limit reached"
   },
@@ -10738,10 +10726,6 @@
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Unable to get existing jobs."
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",

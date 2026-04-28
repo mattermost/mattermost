@@ -169,13 +169,12 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      * Common logic for processing form values - used by both submit and refresh
      */
     private processFormValues = (currentValues: Record<string, any>): void => {
-        // Normalize current values to extract primitive values from select objects
-        const normalizedCurrentValues = extractPrimitiveValues(currentValues);
-
-        // Accumulate values: merge current with existing accumulated values
+        // Normalize current values to extract primitive values from select objects.
+        // clearEmptyFields=true ensures cleared fields emit '' or [] so they
+        // overwrite any previously accumulated value for that key.
         this.accumulatedValues = {
-            ...this.accumulatedValues, // Previous steps' values (including other pages)
-            ...normalizedCurrentValues, // Current form normalized values
+            ...this.accumulatedValues,
+            ...extractPrimitiveValues(currentValues, true),
         };
     };
 
@@ -533,8 +532,15 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
             const currentValues = call.values || {};
             this.processFormValues(currentValues);
 
-            // For refresh, send all accumulated normalized values
-            const refreshPayload = this.accumulatedValues;
+            // For refresh, use a shallow copy so that adding selected_field
+            // does not permanently contaminate this.accumulatedValues
+            const refreshPayload = {...this.accumulatedValues};
+
+            // Include the changed field name in the submission so the plugin
+            // knows which field triggered the refresh
+            if (call.selected_field) {
+                refreshPayload.selected_field = call.selected_field;
+            }
 
             const refreshSubmission: DialogSubmission = {
                 url: this.props.sourceUrl,

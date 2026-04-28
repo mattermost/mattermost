@@ -47,7 +47,7 @@ const useUploadFiles = (
     }, [focusTextbox]);
 
     const getFileUploadTarget = useCallback(() => {
-        return textboxRef.current?.getInputBox();
+        return (textboxRef.current?.getInputBox() as HTMLInputElement | undefined) ?? null;
     }, [textboxRef]);
 
     const handleUploadProgress = useCallback((filePreviewInfo: FilePreviewInfo) => {

@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-elasticsearch test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -8,10 +8,6 @@ else
 	PLATFORM := $(shell uname)
 endif
 
-# Detect Apple Silicon and set a flag.
-ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
-  ARM_BASED_MAC = true
-endif
 
 define LICENSE_HEADER
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
@@ -121,6 +117,7 @@ GO ?= go
 
 ifeq ($(FIPS_ENABLED),true)
 	BUILD_TAGS += requirefips
+	MMCTL_BUILD_TAGS += requirefips
 endif
 
 DELVE ?= dlv
@@ -162,16 +159,16 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.6.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.6.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.0-rc5
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.1
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
@@ -183,7 +180,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.0%2Bc4449ac-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4%2B5855fe1-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -224,10 +221,6 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-ifeq ($(ARM_BASED_MAC),true)
-  $(info Apple Silicon detected, applying elasticsearch override)
-  DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
-endif
 
 # Support for pgvector postgres image
 MM_USE_PGVECTOR ?= false
@@ -503,6 +496,15 @@ test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests
 	@echo Running only EE tests
 	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
+ES_PACKAGES=$(shell $(GO) list ./enterprise/elasticsearch/...)
+
+test-server-elasticsearch: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-elasticsearch: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-elasticsearch: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-server-elasticsearch: check-prereqs-enterprise start-docker gotestsum ## Runs Elasticsearch tests.
+	@echo Running only Elasticsearch tests
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(ES_PACKAGES)" -- $(GOFLAGS) -timeout=20m
+
 test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
 test-server-quick: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
@@ -602,6 +604,30 @@ endif
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+
+run-server-faketime: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server with FAKETIME.
+ifndef FAKETIME
+	$(error FAKETIME is not set. Usage: make run-server-faketime FAKETIME="+30d")
+endif
+	@if [ "$$(uname)" = "Darwin" ]; then \
+		LIBFAKETIME="$$(brew --prefix libfaketime 2>/dev/null)/lib/faketime/libfaketime.1.dylib"; \
+	else \
+		for p in /usr/lib/x86_64-linux-gnu/faketime /usr/lib/aarch64-linux-gnu/faketime /usr/lib/faketime /usr/lib64/faketime; do \
+			if [ -f "$$p/libfaketime.so.1" ]; then LIBFAKETIME="$$p/libfaketime.so.1"; break; fi; \
+		done; \
+	fi; \
+	[ -f "$$LIBFAKETIME" ] || { echo "Error: libfaketime not found. Install it with your package manager."; exit 1; }; \
+	echo "Building mattermost..."; \
+	$(GO) build $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' -o $(GOBIN)/mattermost-faketime $(PLATFORM_FILES); \
+	echo "Running mattermost with FAKETIME=$(FAKETIME) (libfaketime: $$LIBFAKETIME)"; \
+	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files; \
+	if [ "$$(uname)" = "Darwin" ]; then \
+		DYLD_INSERT_LIBRARIES="$$LIBFAKETIME" DYLD_FORCE_FLAT_NAMESPACE=1 FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
+	else \
+		LD_PRELOAD="$$LIBFAKETIME" FAKETIME="$(FAKETIME)" FAKETIME_NO_CACHE=1 \
+			$(GOBIN)/mattermost-faketime $(RUN_IN_BACKGROUND) \
+	fi
 
 run-server-pgvector: ## Starts the server with pgvector PostgreSQL image.
 	@MM_USE_PGVECTOR=true $(MAKE) run-server
@@ -805,7 +831,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 vet: setup-go-work ## Run mattermost go vet specific checks
-	$(GO) install github.com/mattermost/mattermost-govet/v2@b9756c1328ecab43db9b0a892eaa6d4d0a7227b1
+	cd ../tools/mattermost-govet && $(GO) install .
 	$(GO) vet -vettool=$(GOBIN)/mattermost-govet \
 		-structuredLogging \
 		-inconsistentReceiverName \
@@ -831,7 +857,7 @@ vet-api: export GO := $(GO)
 vet-api: export GOBIN := $(GOBIN)
 vet-api: export ROOT := $(ROOT)
 vet-api: ## Run mattermost go vet to verify api4 documentation, currently not passing
-	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
+	cd ../tools/mattermost-govet && $(GO) install .
 	make -C ../api build
 	./scripts/vet-api-check.sh
 

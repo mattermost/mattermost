@@ -16,10 +16,10 @@ import (
 )
 
 func TestCreateRecap(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable AI Recaps feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	t.Run("create recap with valid channels", func(t *testing.T) {
 		channel2 := th.CreateChannel(t, th.BasicTeam)
@@ -158,10 +158,10 @@ func TestCreateRecap(t *testing.T) {
 }
 
 func TestGetRecap(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable AI Recaps feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	t.Run("get recap by owner", func(t *testing.T) {
 		recap := &model.Recap{
@@ -230,10 +230,10 @@ func TestGetRecap(t *testing.T) {
 }
 
 func TestGetRecapsForUser(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable AI Recaps feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	t.Run("get recaps for user", func(t *testing.T) {
 		// Create multiple recaps for the user
@@ -297,10 +297,10 @@ func TestGetRecapsForUser(t *testing.T) {
 }
 
 func TestMarkRecapAsRead(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
 	th := Setup(t).InitBasic(t)
+
+	// Enable AI Recaps feature flag
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	t.Run("mark recap as read by owner", func(t *testing.T) {
 		recap := &model.Recap{
@@ -401,11 +401,11 @@ func TestRegenerateRecapLimitEnforcement(t *testing.T) {
 }
 
 func TestProcessRecapChannel(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
-
 	t.Run("process empty channel", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
+
+		// Enable AI Recaps feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 		// Ensure channel has no posts (it shouldn't in init)
 		channel := th.CreateChannel(t, th.BasicTeam)
@@ -447,6 +447,10 @@ func TestProcessRecapChannel(t *testing.T) {
 		}
 
 		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		// Enable AI Recaps feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
 		channel := th.CreateChannel(t, th.BasicTeam)
 		post := th.CreatePost(t, channel)
 
@@ -489,6 +493,10 @@ func TestProcessRecapChannel(t *testing.T) {
 		}
 
 		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		// Enable AI Recaps feature flag
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
 		channel := th.CreateChannel(t, th.BasicTeam)
 		th.CreatePost(t, channel)
 

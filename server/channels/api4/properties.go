@@ -17,15 +17,30 @@ import (
 const maxPropertyValuePatchItems = 50
 
 func (api *API) InitProperties() {
+	api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
+	api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
 	if api.srv.Config().FeatureFlags.IntegratedBoards {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(createPropertyField)).Methods(http.MethodPost)
-		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(patchPropertyField)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
 
-		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
 	}
+}
+
+// getV2Group resolves c.Params.GroupName to a PSAv2 property group.
+// On any error (not found, or not a v2 group) it sets c.Err and returns nil.
+func getV2Group(c *Context, callerName string) *model.PropertyGroup {
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+	if !group.IsPSAv2() {
+		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
+		return nil
+	}
+	return group
 }
 
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -34,10 +49,8 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("createPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "createPropertyField")
+	if c.Err != nil {
 		return
 	}
 
@@ -60,7 +73,14 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check scope access for creation
+	// Template creation is always sysadmin-only, regardless of target_type.
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate &&
+		!c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Check scope access for creation based on target_type
 	switch field.TargetType {
 	case "channel":
 		if field.TargetID == "" {
@@ -94,27 +114,29 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Trim whitespace from name
 	field.Name = strings.TrimSpace(field.Name)
 
-	// Check if user is admin
-	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-
 	// Set permissions based on admin status.
 	// Permissions are not accepted from the request body; they're set by the server.
-	memberLevel := model.PermissionLevelMember
+	// Templates default to sysadmin since they define the schema linked fields inherit.
+	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	defaultLevel := model.PermissionLevelMember
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		defaultLevel = model.PermissionLevelSysadmin
+	}
 	if !isAdmin {
-		// Non-admin: force all permissions to member level
-		field.PermissionField = &memberLevel
-		field.PermissionValues = &memberLevel
-		field.PermissionOptions = &memberLevel
+		// Non-admin: force all permissions to the default level
+		field.PermissionField = &defaultLevel
+		field.PermissionValues = &defaultLevel
+		field.PermissionOptions = &defaultLevel
 	} else {
-		// Admin with nil fields: set defaults to member level
+		// Admin with nil fields: set defaults
 		if field.PermissionField == nil {
-			field.PermissionField = &memberLevel
+			field.PermissionField = &defaultLevel
 		}
 		if field.PermissionValues == nil {
-			field.PermissionValues = &memberLevel
+			field.PermissionValues = &defaultLevel
 		}
 		if field.PermissionOptions == nil {
-			field.PermissionOptions = &memberLevel
+			field.PermissionOptions = &defaultLevel
 		}
 	}
 
@@ -148,10 +170,8 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("getPropertyFields", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "getPropertyFields")
+	if c.Err != nil {
 		return
 	}
 
@@ -238,10 +258,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "patchPropertyField")
+	if c.Err != nil {
 		return
 	}
 	groupID := group.ID
@@ -278,8 +296,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This API only supports PSAv2 fields (those with an ObjectType)
-	if existingField.IsPSAv1() {
+	// FIXME: IsPSAv1 currently includes template fields (ObjectType="template"), but
+	// templates are valid PSAv2 objects and must be patchable. Once the FIXME in
+	// model.PropertyField.IsPSAv1 is resolved, this extra condition can be removed.
+	if existingField.IsPSAv1() && existingField.ObjectType == "" {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -299,6 +319,31 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	if existingField.Protected {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.update.protected_via_api.app_error", nil, "", http.StatusForbidden)
 		return
+	}
+
+	// Linked field restrictions
+	if existingField.LinkedFieldID != nil && *existingField.LinkedFieldID != "" {
+		if patch.Type != nil {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_type_change.app_error", nil, "cannot modify type of a linked field", http.StatusBadRequest)
+			return
+		}
+		if patch.Attrs != nil {
+			if _, hasOpts := (*patch.Attrs)[model.PropertyFieldAttributeOptions]; hasOpts {
+				c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_options_change.app_error", nil, "cannot modify options of a linked field", http.StatusBadRequest)
+				return
+			}
+		}
+		// LinkedFieldID patch validation: only allow unlink (empty string) or same value (no-op)
+		if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" && *patch.LinkedFieldID != *existingField.LinkedFieldID {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.linked_field_change.app_error", nil, "cannot change link target; unlink first then create a new linked field", http.StatusBadRequest)
+			return
+		}
+	} else {
+		// Field is not linked — reject attempts to set a new LinkedFieldID
+		if patch.LinkedFieldID != nil && *patch.LinkedFieldID != "" {
+			c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.cannot_link_existing.app_error", nil, "linked_field_id can only be set at creation time", http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Detect if this is an options-only update
@@ -350,10 +395,8 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("deletePropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "deletePropertyField")
+	if c.Err != nil {
 		return
 	}
 	groupID := group.ID
@@ -403,15 +446,23 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("getPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("getPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
+	if c.Err != nil {
+		return
+	}
+
+	group := getV2Group(c, "getPropertyValues")
+	if c.Err != nil {
 		return
 	}
 
@@ -461,23 +512,31 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireGroupName().RequireObjectType().RequireTargetId()
+	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
 		return
 	}
+
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeTemplate {
+		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return
+	}
+
+	c.RequireTargetId()
+	if c.Err != nil {
+		return
+	}
+
+	group := getV2Group(c, "patchPropertyValues")
+	if c.Err != nil {
+		return
+	}
+	groupID := group.ID
 
 	// Check target access based on object type
 	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, true) {
 		return
 	}
-
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		return
-	}
-	groupID := group.ID
 
 	var items []model.PropertyValuePatchItem
 	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
@@ -635,6 +694,11 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				return false
 			}
 		}
+	case model.PropertyFieldObjectTypeTemplate:
+		// Templates don't have value targets — this should not be reached
+		// if value endpoints properly reject template object type
+		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+		return false
 	default:
 		c.Err = model.NewAppError("hasTargetAccess", "api.property_value.invalid_object_type.app_error", nil, "", http.StatusBadRequest)
 		return false
@@ -646,7 +710,7 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 // Returns true if the only change is to attrs.options.
 func isOptionsOnlyPatch(patch *model.PropertyFieldPatch) bool {
 	// If any field property (besides attrs) is being updated, it's not options-only
-	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil {
+	if patch.Name != nil || patch.Type != nil || patch.TargetID != nil || patch.TargetType != nil || patch.LinkedFieldID != nil {
 		return false
 	}
 

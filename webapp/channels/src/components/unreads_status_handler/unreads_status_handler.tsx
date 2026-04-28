@@ -5,6 +5,7 @@ import React from 'react';
 import {injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
@@ -29,7 +30,6 @@ import faviconUnread64x64 from 'images/favicon/favicon-unread-64x64.png';
 import faviconUnread96x96 from 'images/favicon/favicon-unread-96x96.png';
 import {Constants} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
-import * as UserAgent from 'utils/user_agent';
 
 enum BadgeStatus {
     Mention = 'Mention',

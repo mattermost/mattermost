@@ -99,7 +99,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 	})
 
 	esImpl := th.App.SearchEngine().ElasticsearchEngine
-	appErr := esImpl.Start()
+	appErr := esImpl.Start(context.Background())
 	if appErr != nil && appErr.Id != "ent.elasticsearch.start.already_started.app_error" {
 		require.Fail(t, "failed to start elasticsearch", appErr)
 	}

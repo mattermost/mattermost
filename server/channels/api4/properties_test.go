@@ -22,7 +22,7 @@ func TestCreatePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register a property group for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -369,6 +369,22 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_create", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), v1Group.Name, "post", field)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyFields(t *testing.T) {
@@ -378,11 +394,11 @@ func TestGetPropertyFields(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -529,6 +545,16 @@ func TestGetPropertyFields(t *testing.T) {
 			require.NotEqual(t, createdOtherField.ID, f.ID, "Field from other group should not be returned")
 		}
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_get_fields", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), v1Group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyFieldsScopeAccess(t *testing.T) {
@@ -537,7 +563,7 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_scope")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_scope", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -647,7 +673,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_filter")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_filter", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -775,11 +801,11 @@ func TestPatchPropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1298,26 +1324,17 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
-	t.Run("PSAv1 field should not be patchable", func(t *testing.T) {
-		// Create a PSAv1 field (empty ObjectType) directly via the service
-		v1Field := &model.PropertyField{
-			Name:       model.NewId(),
-			Type:       model.PropertyFieldTypeText,
-			GroupID:    group.ID,
-			ObjectType: "",
-			TargetType: "system",
-			TargetID:   model.NewId(),
-		}
-		createdV1Field, appErr := th.App.CreatePropertyField(th.Context, v1Field, true, "")
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
 
-		th.LoginBasic(t)
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdV1Field.ID, patch)
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), v1Group.Name, "post", model.NewId(), patch)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 
@@ -1328,11 +1345,11 @@ func TestDeletePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_delete", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_delete_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1488,6 +1505,16 @@ func TestDeletePropertyField(t *testing.T) {
 			return false
 		}, 5*time.Second, 100*time.Millisecond)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_delete_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), v1Group.Name, "post", model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestIsOptionsOnlyPatch(t *testing.T) {
@@ -1549,7 +1576,7 @@ func TestGetPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_get", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1696,6 +1723,16 @@ func TestGetPropertyValues(t *testing.T) {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_get_values", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), v1Group.Name, "post", th.BasicPost.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestPatchPropertyValues(t *testing.T) {
@@ -1704,7 +1741,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_patch", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1884,7 +1921,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	t.Run("field from different group should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch_other")
+		otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_patch_other", Version: model.PropertyGroupVersionV2})
 		require.Nil(t, err)
 
 		otherField := &model.PropertyField{
@@ -2094,6 +2131,20 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_values", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"test"`)},
+		}
+
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), v1Group.Name, "post", th.BasicPost.Id, items)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
@@ -2102,7 +2153,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_get_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2167,7 +2218,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_patch_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2230,7 +2281,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_get_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2265,7 +2316,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
 	require.NoError(t, err)
 
 	t.Run("public channel - member can read", func(t *testing.T) {
@@ -2349,7 +2400,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_patch_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2374,7 +2425,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 	// Create a non-member user
 	nonMember := th.CreateUser(t)
 	nonMemberClient := th.CreateClient()
-	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, "Pa$$word11")
+	_, _, err := nonMemberClient.Login(context.Background(), nonMember.Email, nonMember.Password)
 	require.NoError(t, err)
 
 	t.Run("public channel - member with manage permission can write", func(t *testing.T) {
@@ -2486,7 +2537,7 @@ func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_team_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_team_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	t.Run("team-scoped field broadcast has TeamId set and ChannelId empty", func(t *testing.T) {
@@ -2537,7 +2588,7 @@ func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_channel_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_channel_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2591,7 +2642,7 @@ func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2645,7 +2696,10 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_psav1_optout")
+	// PSAv1 fields must live in a v1 group; the marker v2 field uses a separate v2 group.
+	psav1Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v1", Version: model.PropertyGroupVersionV1})
+	require.Nil(t, err)
+	v2Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v2", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	// Create a PSAv1-style field: no ObjectType, meaning it predates
@@ -2653,7 +2707,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 	psav1Field := &model.PropertyField{
 		Name:       model.NewId(),
 		Type:       model.PropertyFieldTypeText,
-		GroupID:    group.ID,
+		GroupID:    psav1Group.ID,
 		TargetType: "system",
 	}
 	createdField, appErr := th.App.CreatePropertyField(th.Context, psav1Field, false, "")
@@ -2672,7 +2726,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 			{
 				TargetID:   th.BasicPost.Id,
 				TargetType: "post",
-				GroupID:    group.ID,
+				GroupID:    psav1Group.ID,
 				FieldID:    createdField.ID,
 				Value:      json.RawMessage(`"psav1-value"`),
 				CreatedBy:  th.BasicUser.Id,
@@ -2690,7 +2744,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		markerField := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
-			GroupID:           group.ID,
+			GroupID:           v2Group.ID,
 			ObjectType:        "post",
 			TargetType:        "channel",
 			TargetID:          th.BasicChannel.Id,
@@ -2724,7 +2778,7 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_multi_val_payload")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_multi_val_payload", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2790,5 +2844,383 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 			}
 			return false
 		}, 5*time.Second, 100*time.Millisecond)
+	})
+}
+func TestLinkedProperties(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_linked_properties", Version: model.PropertyGroupVersionV2})
+	require.Nil(t, err)
+
+	sysadminLevel := model.PermissionLevelSysadmin
+	memberLevel := model.PermissionLevelMember
+
+	t.Run("create template field requires sysadmin", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "template", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.NotNil(t, createdField.PermissionField)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionField)
+		require.NotNil(t, createdField.PermissionValues)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionValues)
+		require.NotNil(t, createdField.PermissionOptions)
+		require.Equal(t, model.PermissionLevelSysadmin, *createdField.PermissionOptions)
+	})
+
+	t.Run("create template field as non-admin fails", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), group.Name, "template", field)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create linked field with valid source", func(t *testing.T) {
+		// Create a template field as the source
+		sourceField := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: "system",
+			Attrs: model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "Option A"},
+					{"id": model.NewId(), "name": "Option B"},
+				},
+			},
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		field := &model.PropertyField{
+			Name:          model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			TargetType:    "system",
+			LinkedFieldID: &sourceID,
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "user", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		require.Equal(t, createdSource.Type, createdField.Type)
+		require.NotNil(t, createdField.Attrs)
+		require.NotNil(t, createdField.Attrs["options"])
+	})
+
+	t.Run("patch linked field rejects type change", func(t *testing.T) {
+		// Create source + linked field via App
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		newType := model.PropertyFieldTypeText
+		patch := &model.PropertyFieldPatch{Type: &newType}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch linked field rejects options change", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				"options": []map[string]any{
+					{"id": model.NewId(), "name": "New Option"},
+				},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch linked field allows name change", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		newName := model.NewId()
+		patch := &model.PropertyFieldPatch{Name: &newName}
+
+		updatedField, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, newName, updatedField.Name)
+	})
+
+	t.Run("patch unlink clears LinkedFieldID", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		emptyID := ""
+		patch := &model.PropertyFieldPatch{LinkedFieldID: &emptyID}
+
+		updatedField, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdLinked.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Nil(t, updatedField.LinkedFieldID)
+	})
+
+	t.Run("patch existing field rejects setting LinkedFieldID", func(t *testing.T) {
+		// Create a regular (non-linked) field
+		regularField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeText,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		createdRegular, appErr := th.App.CreatePropertyField(th.Context, regularField, false, "")
+		require.Nil(t, appErr)
+
+		someID := model.NewId()
+		patch := &model.PropertyFieldPatch{LinkedFieldID: &someID}
+
+		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "user", createdRegular.ID, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("delete source with dependents returns 409", func(t *testing.T) {
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		sourceID := createdSource.ID
+		linkedField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        "user",
+			TargetType:        "system",
+			LinkedFieldID:     &sourceID,
+			PermissionField:   &memberLevel,
+			PermissionValues:  &memberLevel,
+			PermissionOptions: &memberLevel,
+		}
+		_, appErr = th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+
+		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), group.Name, "template", createdSource.ID)
+		require.Error(t, err)
+		require.Equal(t, http.StatusConflict, resp.StatusCode)
+	})
+
+	t.Run("get values for template returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), group.Name, "template", model.NewId(), model.PropertyValueSearch{PerPage: 10})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch values for template returns 400", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"val"`)},
+		}
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), group.Name, "template", model.NewId(), items)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("patch source field options propagates to linked fields", func(t *testing.T) {
+		// Create a template (source) with one option
+		optA := map[string]any{"id": model.NewId(), "name": "PropTestA"}
+		sourceField := &model.PropertyField{
+			Name:              model.NewId(),
+			Type:              model.PropertyFieldTypeSelect,
+			GroupID:           group.ID,
+			ObjectType:        model.PropertyFieldObjectTypeTemplate,
+			TargetType:        "system",
+			PermissionField:   &sysadminLevel,
+			PermissionValues:  &sysadminLevel,
+			PermissionOptions: &sysadminLevel,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA},
+			},
+		}
+		createdSource, appErr := th.App.CreatePropertyField(th.Context, sourceField, false, "")
+		require.Nil(t, appErr)
+
+		// Create two linked fields and keep their IDs
+		sourceID := createdSource.ID
+		var linkedIDs []string
+		for range 2 {
+			linked := &model.PropertyField{
+				Name:              "PropLinked-" + model.NewId(),
+				Type:              model.PropertyFieldTypeSelect,
+				GroupID:           group.ID,
+				ObjectType:        "user",
+				TargetType:        "system",
+				LinkedFieldID:     &sourceID,
+				PermissionField:   &memberLevel,
+				PermissionValues:  &memberLevel,
+				PermissionOptions: &memberLevel,
+			}
+			createdLinked, lErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+			require.Nil(t, lErr)
+			linkedIDs = append(linkedIDs, createdLinked.ID)
+		}
+
+		// Patch the source field's options via the API — add a second option
+		optB := map[string]any{"id": model.NewId(), "name": "PropTestB"}
+		patch := &model.PropertyFieldPatch{
+			Attrs: &model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{optA, optB},
+			},
+		}
+		updatedSource, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), group.Name, "template", createdSource.ID, patch)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		// Source should have 2 options now
+		sourceOpts := updatedSource.Attrs[model.PropertyFieldAttributeOptions].([]any)
+		require.Len(t, sourceOpts, 2)
+
+		// Fetch each linked field and verify propagation
+		for _, linkedID := range linkedIDs {
+			lf, lfErr := th.App.GetPropertyField(th.Context, group.ID, linkedID)
+			require.Nil(t, lfErr)
+			opts := lf.Attrs[model.PropertyFieldAttributeOptions].([]any)
+			require.Len(t, opts, 2, "linked field %s should have 2 options after propagation", linkedID)
+		}
 	})
 }

@@ -867,7 +867,7 @@ func TestGetFile(t *testing.T) {
 		CheckOKStatus(t, response)
 
 		reviewerClient := th.CreateClient()
-		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, "Pa$$word11")
+		_, response, err = reviewerClient.Login(context.Background(), reviewer.Email, reviewer.Password)
 		require.NoError(t, err)
 		CheckOKStatus(t, response)
 

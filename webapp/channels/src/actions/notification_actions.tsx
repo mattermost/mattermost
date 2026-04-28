@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp, isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
@@ -31,8 +32,8 @@ import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {DesktopNotificationSounds, ding} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
+import {getFocusedPopoutInfo} from 'utils/popouts/focus';
 import {cjkrPattern} from 'utils/text_formatting';
-import {isDesktopApp, isMobileApp} from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {ActionFuncAsync, GlobalState} from 'types/store';
@@ -165,7 +166,7 @@ export function sendDesktopNotification(post: Post, msgProps: NewPostMessageProp
         const result = dispatch(notifyMe(argsAfterHooks.title, argsAfterHooks.body, channel.id, teamId, argsAfterHooks.silent, argsAfterHooks.soundName, argsAfterHooks.url));
 
         //Don't add extra sounds on native desktop clients
-        if (desktopSoundEnabled && !isDesktopApp() && !isMobileApp()) {
+        if (desktopSoundEnabled && !isDesktopApp() && !isMobile()) {
             ding(soundName);
         }
 
@@ -397,6 +398,7 @@ function shouldSkipNotification(
     // the window itself is not active
     const activeChannel = getCurrentChannel(state);
     const channelId = channel ? channel.id : null;
+    const focusedPopout = getFocusedPopoutInfo();
 
     if (state.views.browser.focused) {
         if (isCrtReply) {
@@ -405,6 +407,13 @@ function shouldSkipNotification(
             }
         } else if (activeChannel && activeChannel.id === channelId) {
             return {status: 'not_sent', reason: 'channel_is_open', data: activeChannel?.id};
+        }
+    } else if (focusedPopout) {
+        if (isCrtReply && focusedPopout.threadId === post.root_id) {
+            return {status: 'not_sent', reason: 'thread_is_open', data: post.root_id};
+        }
+        if (!isCrtReply && !focusedPopout.threadId && focusedPopout.channelId === channelId) {
+            return {status: 'not_sent', reason: 'channel_is_open', data: channelId};
         }
     }
 

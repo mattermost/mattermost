@@ -97,7 +97,7 @@ export type State = {
     groupChannels: GroupChannel[];
 };
 
-class GroupDetails extends React.PureComponent<Props, State> {
+export class GroupDetails extends React.PureComponent<Props, State> {
     static defaultProps: Partial<Props> = {
         groupID: '',
         members: [],

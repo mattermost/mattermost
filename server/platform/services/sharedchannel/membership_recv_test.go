@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -72,7 +71,7 @@ func TestOnReceiveMembershipChanges_ChannelIdMismatch(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err) // function returns nil even on individual failures
 }
 
@@ -104,7 +103,7 @@ func TestProcessMemberAdd_RejectsLocalUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err) // function returns nil even on individual failures
 
 	mockApp.AssertNotCalled(t, "AddUserToChannel", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -139,7 +138,7 @@ func TestProcessMemberAdd_RejectsOtherRemoteUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err)
 
 	mockApp.AssertNotCalled(t, "AddUserToChannel", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -176,7 +175,7 @@ func TestProcessMemberAdd_AllowsOwnRemoteUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err)
 
 	mockApp.AssertCalled(t, "AddUserToChannel", mockTypeReqContext, mockTypeUser, mockTypeChannel, true)
@@ -210,7 +209,7 @@ func TestProcessMemberRemove_RejectsLocalUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err)
 
 	mockApp.AssertNotCalled(t, "RemoveUserFromChannel", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -245,7 +244,7 @@ func TestProcessMemberRemove_RejectsOtherRemoteUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err)
 
 	mockApp.AssertNotCalled(t, "RemoveUserFromChannel", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
@@ -282,13 +281,13 @@ func TestProcessMemberRemove_AllowsOwnRemoteUser(t *testing.T) {
 		},
 	}
 
-	err := scs.onReceiveMembershipChanges(syncMsg, rc, nil)
+	err := scs.onReceiveMembershipChanges(syncMsg, rc)
 	require.NoError(t, err)
 
 	mockApp.AssertCalled(t, "RemoveUserFromChannel", mockTypeReqContext, userId, "", channel)
 }
 
-func TestProcessMemberAdd_RejectsLocalUser_ErrorMessage(t *testing.T) {
+func TestProcessMemberAdd_SkipsLocalUser(t *testing.T) {
 	scs, _, _, _, _, _, mockUserStore := setupMembershipTest(t)
 
 	channelId := model.NewId()
@@ -312,12 +311,10 @@ func TestProcessMemberAdd_RejectsLocalUser_ErrorMessage(t *testing.T) {
 	}
 
 	err := scs.processMemberAdd(change, channel, rc, syncMsg)
-	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
-	assert.Contains(t, err.Error(), "membership add sync failed")
+	require.NoError(t, err, "local users should be silently skipped")
 }
 
-func TestProcessMemberRemove_RejectsLocalUser_ErrorMessage(t *testing.T) {
+func TestProcessMemberRemove_SkipsLocalUser(t *testing.T) {
 	scs, _, _, _, _, mockChannelStore, mockUserStore := setupMembershipTest(t)
 
 	channelId := model.NewId()
@@ -339,9 +336,7 @@ func TestProcessMemberRemove_RejectsLocalUser_ErrorMessage(t *testing.T) {
 	}
 
 	err := scs.processMemberRemove(change, rc)
-	require.Error(t, err)
-	assert.ErrorIs(t, err, ErrRemoteIDMismatch)
-	assert.Contains(t, err.Error(), "membership remove sync failed")
+	require.NoError(t, err, "local users should be silently skipped")
 }
 
 func TestProcessMemberAdd_IdempotentForExistingMember(t *testing.T) {

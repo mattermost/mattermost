@@ -1,37 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import {MenuItemActionImpl} from './menu_item_action';
 
 describe('components/MenuItemAction', () => {
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MenuItemActionImpl
                 onClick={jest.fn()}
                 text='Whatever'
             />,
         );
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <Fragment>
-              <button
-                className="style--none"
-                onClick={[MockFunction]}
-              >
-                <span
-                  className="MenuItem__primary-text"
-                >
-                  Whatever
-                </span>
-              </button>
-            </Fragment>
-        `);
+        expect(container).toMatchSnapshot();
     });
     test('should match snapshot with extra text', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <MenuItemActionImpl
                 onClick={jest.fn()}
                 text='Whatever'
@@ -39,24 +27,6 @@ describe('components/MenuItemAction', () => {
             />,
         );
 
-        expect(wrapper).toMatchInlineSnapshot(`
-            <Fragment>
-              <button
-                className="style--none MenuItem__with-help"
-                onClick={[MockFunction]}
-              >
-                <span
-                  className="MenuItem__primary-text"
-                >
-                  Whatever
-                </span>
-                <span
-                  className="MenuItem__help-text"
-                >
-                  Extra Text
-                </span>
-              </button>
-            </Fragment>
-        `);
+        expect(container).toMatchSnapshot();
     });
 });

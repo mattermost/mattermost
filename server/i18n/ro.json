@@ -3044,10 +3044,6 @@
     "translation": "Nu a reuşit să decodeze rezultatele cautării"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch este deja oprit."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch este dezactivat."
   },
@@ -5218,10 +5214,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Licența Mattermost Enterprise a fost dezactivată."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Licența dvs. Enterprise Edition a expirat și este posibil ca unele funcții să fie dezactivate. Vă rugăm să vă reînnoiți licența acum."
   },
   {
     "id": "api.templates.invite_guest_subject",

@@ -99,7 +99,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 
 	u, err := url.Parse(task.rc.SiteURL)
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Invalid siteURL while sending message to remote",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),
@@ -112,7 +112,7 @@ func (rcs *Service) sendMsg(task sendMsgTask) {
 	respJSON, err := rcs.sendFrameToRemote(SendTimeout, task.rc, frame, u.String())
 
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send message failed",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Remote Cluster send message failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("msgId", task.msg.Id),
 			mlog.Err(err),

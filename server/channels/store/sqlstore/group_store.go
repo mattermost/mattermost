@@ -166,11 +166,6 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.G
 		return nil, err
 	}
 
-	usersInsertQuery, usersInsertArgs, err := s.buildInsertGroupUsersQuery(g.Id, g.UserIds)
-	if err != nil {
-		return nil, err
-	}
-
 	txn, err := s.GetMaster().Beginx()
 	if err != nil {
 		return nil, err
@@ -185,7 +180,7 @@ func (s *SqlGroupStore) CreateWithUserIds(g *model.GroupWithUserIds) (_ *model.G
 		return nil, errors.Wrap(err, "failed to save Group")
 	}
 	// Insert the Group Members
-	if _, err = executePossiblyEmptyQuery(txn, usersInsertQuery, usersInsertArgs...); err != nil {
+	if err = s.insertGroupUsers(txn, g.Id, g.UserIds); err != nil {
 		return nil, err
 	}
 
@@ -249,17 +244,32 @@ func (s *SqlGroupStore) checkUsersExist(userIDs []string) error {
 	return nil
 }
 
-func (s *SqlGroupStore) buildInsertGroupUsersQuery(groupId string, userIds []string) (query string, args []any, err error) {
-	if len(userIds) > 0 {
+func groupMemberSliceColumns() []string {
+	return []string{"GroupId", "UserId", "CreateAt", "DeleteAt"}
+}
+
+func groupMemberToSlice(m *model.GroupMember) []any {
+	return []any{m.GroupId, m.UserId, m.CreateAt, m.DeleteAt}
+}
+
+func (s *SqlGroupStore) insertGroupUsers(txn *sqlxTxWrapper, groupId string, userIds []string) error {
+	if len(userIds) == 0 {
+		return nil
+	}
+	createAt := model.GetMillis()
+	chunks := chunkSlice(userIds, len(groupMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
 		builder := s.getQueryBuilder().
 			Insert("GroupMembers").
-			Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
-		for _, userId := range userIds {
-			builder = builder.Values(groupId, userId, model.GetMillis(), 0)
+			Columns(groupMemberSliceColumns()...)
+		for _, userId := range chunk {
+			builder = builder.Values(groupId, userId, createAt, 0)
 		}
-		query, args, err = builder.ToSql()
+		if _, err := txn.ExecBuilder(builder); err != nil {
+			return errors.Wrap(err, "failed to insert GroupMembers")
+		}
 	}
-	return
+	return nil
 }
 
 func (s *SqlGroupStore) Get(groupId string) (*model.Group, error) {
@@ -663,12 +673,9 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 }
 
 func (s *SqlGroupStore) UpsertMember(groupID string, userID string) (*model.GroupMember, error) {
-	members, query, err := s.buildUpsertMembersQuery(groupID, []string{userID})
+	members, err := s.UpsertMembers(groupID, []string{userID})
 	if err != nil {
 		return nil, err
-	}
-	if _, err = s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to save GroupMember")
 	}
 	return members[0], nil
 }
@@ -1907,52 +1914,67 @@ func (s *SqlGroupStore) countTableWithSelectAndWhere(selectStr, tableName string
 	return count, nil
 }
 
-func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {
-	members, query, err := s.buildUpsertMembersQuery(groupID, userIDs)
-	if err != nil {
+func (s *SqlGroupStore) UpsertMembers(groupID string, userIDs []string) (_ []*model.GroupMember, err error) {
+	var retrievedGroup model.Group
+	if err = s.GetReplica().GetBuilder(&retrievedGroup, s.userGroupsSelectQuery.Where(sq.Eq{"UserGroups.Id": groupID})); err != nil {
+		return nil, errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
+	}
+
+	if err = s.checkUsersExist(userIDs); err != nil {
 		return nil, err
 	}
 
-	if _, err = s.GetMaster().ExecBuilder(query); err != nil {
-		return nil, errors.Wrap(err, "failed to save GroupMember")
-	}
-
-	return members, err
-}
-
-func (s *SqlGroupStore) buildUpsertMembersQuery(groupID string, userIDs []string) (members []*model.GroupMember, builder sq.InsertBuilder, err error) {
-	var retrievedGroup model.Group
-	// Check Group exists
-	if err = s.GetReplica().GetBuilder(&retrievedGroup, s.userGroupsSelectQuery.Where(sq.Eq{"UserGroups.Id": groupID})); err != nil {
-		err = errors.Wrapf(err, "failed to get UserGroup with groupId=%s", groupID)
-		return
-	}
-
-	// Check Users exist
-	if err = s.checkUsersExist(userIDs); err != nil {
-		return
-	}
-
-	builder = s.getQueryBuilder().
-		Insert("GroupMembers").
-		Columns("GroupId", "UserId", "CreateAt", "DeleteAt")
-
-	members = make([]*model.GroupMember, 0, len(userIDs))
+	members := make([]*model.GroupMember, 0, len(userIDs))
 	createAt := model.GetMillis()
 	for _, userId := range userIDs {
-		member := &model.GroupMember{
+		members = append(members, &model.GroupMember{
 			GroupId:  groupID,
 			UserId:   userId,
 			CreateAt: createAt,
 			DeleteAt: 0,
-		}
-		builder = builder.Values(member.GroupId, member.UserId, member.CreateAt, member.DeleteAt)
-		members = append(members, member)
+		})
 	}
 
-	builder = builder.SuffixExpr(sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0))
+	upsertSuffix := sq.Expr("ON CONFLICT (groupid, userid) DO UPDATE SET CreateAt = ?, DeleteAt = ?", createAt, 0)
 
-	return
+	// Single member: skip transaction overhead.
+	if len(members) == 1 {
+		builder := s.getQueryBuilder().
+			Insert("GroupMembers").
+			Columns(groupMemberSliceColumns()...).
+			Values(groupMemberToSlice(members[0])...).
+			SuffixExpr(upsertSuffix)
+		if _, err = s.GetMaster().ExecBuilder(builder); err != nil {
+			return nil, errors.Wrap(err, "failed to save GroupMember")
+		}
+		return members, nil
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	chunks := chunkSlice(members, len(groupMemberSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		builder := s.getQueryBuilder().
+			Insert("GroupMembers").
+			Columns(groupMemberSliceColumns()...)
+		for _, m := range chunk {
+			builder = builder.Values(groupMemberToSlice(m)...)
+		}
+		builder = builder.SuffixExpr(upsertSuffix)
+		if _, err = transaction.ExecBuilder(builder); err != nil {
+			return nil, errors.Wrap(err, "failed to save GroupMember")
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return members, nil
 }
 
 func (s *SqlGroupStore) DeleteMembers(groupID string, userIDs []string) ([]*model.GroupMember, error) {

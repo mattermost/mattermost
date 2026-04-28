@@ -9,13 +9,14 @@
 
 // Group: @channels @toast
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     scrollDown,
     scrollUp,
     scrollUpAndPostAMessage,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('toasts', () => {
     let otherUser;

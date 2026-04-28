@@ -794,12 +794,15 @@ func (fs SqlFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, 
 }
 
 func (fs SqlFileInfoStore) RefreshFileStats() error {
+	ctx, cancel := fs.analyticsContext()
+	defer cancel()
+
 	// CONCURRENTLY is not used deliberately because as per Postgres docs,
 	// not using CONCURRENTLY takes less resources and completes faster
 	// at the expense of locking the mat view. Since viewing admin console
 	// is not a very frequent activity, we accept the tradeoff to let the
 	// refresh happen as fast as possible.
-	if _, err := fs.GetMaster().Exec("REFRESH MATERIALIZED VIEW file_stats"); err != nil {
+	if _, err := fs.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW file_stats"); err != nil {
 		return errors.Wrap(err, "error refreshing materialized view file_stats")
 	}
 

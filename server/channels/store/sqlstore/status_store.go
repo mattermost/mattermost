@@ -21,6 +21,14 @@ type SqlStatusStore struct {
 	statusSelectQuery sq.SelectBuilder
 }
 
+func statusSliceColumns() []string {
+	return []string{"UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus"}
+}
+
+func statusToSlice(st *model.Status) []any {
+	return []any{st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus}
+}
+
 func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 	s := SqlStatusStore{
 		SqlStore: sqlStore,
@@ -43,8 +51,8 @@ func newSqlStatusStore(sqlStore *SqlStore) store.StatusStore {
 func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	query := s.getQueryBuilder().
 		Insert("Status").
-		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus").
-		Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+		Columns(statusSliceColumns()...).
+		Values(statusToSlice(st)...)
 
 	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
 
@@ -55,7 +63,7 @@ func (s SqlStatusStore) SaveOrUpdate(st *model.Status) error {
 	return nil
 }
 
-func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) error {
+func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) (retErr error) {
 	if len(statuses) == 0 {
 		return nil
 	}
@@ -67,20 +75,33 @@ func (s SqlStatusStore) SaveOrUpdateMany(statuses map[string]*model.Status) erro
 		}
 	}
 
-	query := s.getQueryBuilder().
-		Insert("Status").
-		Columns("UserId", "Status", "Manual", "LastActivityAt", "DNDEndTime", "PrevStatus")
-
-	// Add values for each unique status
+	statusList := make([]*model.Status, 0, len(statuses))
 	for _, st := range statuses {
-		query = query.Values(st.UserId, st.Status, st.Manual, st.LastActivityAt, st.DNDEndTime, st.PrevStatus)
+		statusList = append(statusList, st)
 	}
 
-	// Handle upsert for PostgreSQL
-	query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &retErr)
 
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrap(err, "failed to upsert multiple Status records")
+	chunks := chunkSlice(statusList, len(statusSliceColumns()), s.SqlStore.getMaxInsertParams())
+	for _, chunk := range chunks {
+		query := s.getQueryBuilder().
+			Insert("Status").
+			Columns(statusSliceColumns()...)
+		for _, st := range chunk {
+			query = query.Values(statusToSlice(st)...)
+		}
+		query = query.SuffixExpr(sq.Expr("ON CONFLICT (userid) DO UPDATE SET Status = EXCLUDED.Status, Manual = EXCLUDED.Manual, LastActivityAt = EXCLUDED.LastActivityAt, DNDEndTime = EXCLUDED.DNDEndTime, PrevStatus = EXCLUDED.PrevStatus"))
+		if _, err := transaction.ExecBuilder(query); err != nil {
+			return errors.Wrap(err, "failed to upsert multiple Status records")
+		}
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil

@@ -15,7 +15,9 @@
  */
 
 import {createPrivateChannel} from '../elasticsearch_autocomplete/helpers';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Guest Account - Guest User Experience', () => {
     let guestUser: Cypress.UserProfile;
@@ -58,7 +60,7 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         // # Create Private Channel
-        createPrivateChannel(testTeam.id, guestUser).then((channel) => {
+        createPrivateChannel(testTeam.id, guestUser as any).then((channel) => {
             privateChannel = channel;
 
             cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
@@ -88,7 +90,7 @@ describe('Guest Account - Guest User Experience', () => {
     });
 });
 
-function demoteGuestUser(guestUser) {
+function demoteGuestUser(guestUser: Cypress.UserProfile) {
     // # Demote user as guest user before each test
     cy.apiAdminLogin();
     cy.apiGetUserByEmail(guestUser.email).then(({user}) => {

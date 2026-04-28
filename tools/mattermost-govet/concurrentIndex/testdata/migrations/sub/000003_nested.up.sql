@@ -1,0 +1,2 @@
+DROP INDEX idx_nested;
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_nested_ok ON t (c);

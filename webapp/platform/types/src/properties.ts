@@ -132,3 +132,10 @@ export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
     byName: { [name: string]: PropertyGroup };
 };
+
+export type PropertyValuesUpdated<T> = {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: Array<PropertyValue<T>>;
+};

@@ -22,8 +22,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -72,6 +74,8 @@ func (pas *PropertyAccessService) isCallerPlugin(callerID string) bool {
 // to the callerID and the protected attribute is allowed.
 // When the caller is not a plugin, source_plugin_id and protected are rejected
 // to prevent unauthorized field ownership claims.
+// When linking to a source template, security attributes are validated and
+// inherited from the source.
 func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *model.PropertyField) (*model.PropertyField, error) {
 	if pas.isCallerPlugin(callerID) {
 		// Caller is a plugin — auto-set source_plugin_id
@@ -89,7 +93,14 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 		}
 	}
 
-	// Validate access mode
+	// If linking to a source, validate and inherit security attributes
+	if field.LinkedFieldID != nil && *field.LinkedFieldID != "" {
+		if err := pas.validateAndInheritLinkedFieldSecurity(callerID, field); err != nil {
+			return nil, fmt.Errorf("CreatePropertyField: %w", err)
+		}
+	}
+
+	// Validate access mode (after inheritance so protected flag is correct)
 	if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
@@ -99,6 +110,55 @@ func (pas *PropertyAccessService) CreatePropertyField(callerID string, field *mo
 		return nil, fmt.Errorf("CreatePropertyField: %w", err)
 	}
 	return result, nil
+}
+
+// validateAndInheritLinkedFieldSecurity enforces that linked fields inherit the
+// source template's security posture. If the source is protected, only the
+// source plugin may create linked fields. The linked field's access_mode must
+// match the source's — divergence is rejected to avoid a false sense of
+// security (callers can always inspect the template directly).
+// Inherits: Attrs[protected], Attrs[source_plugin_id], Attrs[access_mode].
+func (pas *PropertyAccessService) validateAndInheritLinkedFieldSecurity(callerID string, field *model.PropertyField) error {
+	source, err := pas.propertyService.getPropertyFieldFromMaster("", *field.LinkedFieldID)
+	if err != nil {
+		if store.IsErrNotFound(err) {
+			return model.NewAppError(
+				"CreatePropertyField",
+				"app.property_field.create.linked_source_not_found.app_error",
+				nil,
+				fmt.Sprintf("linked source field %q not found", *field.LinkedFieldID),
+				http.StatusBadRequest,
+			)
+		}
+		return fmt.Errorf("failed to get linked source field %q: %w", *field.LinkedFieldID, err)
+	}
+
+	if source.Attrs == nil || !model.IsPropertyFieldProtected(source) {
+		return nil
+	}
+
+	sourcePluginID := pas.getSourcePluginID(source)
+	if sourcePluginID == "" || callerID != sourcePluginID {
+		return model.NewAppError(
+			"CreatePropertyField",
+			"app.property_field.create.linked_source_protected.app_error",
+			nil,
+			"only the source plugin can create linked fields from a protected template",
+			http.StatusForbidden,
+		)
+	}
+
+	if field.Attrs == nil {
+		field.Attrs = make(model.StringInterface)
+	}
+
+	field.Attrs[model.PropertyAttrsProtected] = true
+	field.Attrs[model.PropertyAttrsSourcePluginID] = sourcePluginID
+	if v, ok := source.Attrs[model.PropertyAttrsAccessMode]; ok {
+		field.Attrs[model.PropertyAttrsAccessMode] = v
+	}
+
+	return nil
 }
 
 // GetPropertyField retrieves a property field by group and field ID.
@@ -203,9 +263,9 @@ func (pas *PropertyAccessService) UpdatePropertyField(callerID string, groupID s
 
 // UpdatePropertyFields updates multiple property fields.
 // Checks write access for all fields atomically before updating any.
-func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, []*model.PropertyField, error) {
 	if len(fields) == 0 {
-		return fields, nil
+		return fields, nil, nil
 	}
 
 	// Get field IDs
@@ -217,7 +277,7 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 	// Fetch existing fields
 	existingFields, existsErr := pas.propertyService.getPropertyFields(groupID, fieldIDs)
 	if existsErr != nil {
-		return nil, fmt.Errorf("UpdatePropertyFields: %w", existsErr)
+		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", existsErr)
 	}
 
 	// Build map for easy lookup
@@ -230,36 +290,36 @@ func (pas *PropertyAccessService) UpdatePropertyFields(callerID string, groupID 
 	for _, field := range fields {
 		existingField, exists := existingFieldMap[field.ID]
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", field.ID)
+			return nil, nil, fmt.Errorf("field %s not found", field.ID)
 		}
 
 		// Check write access
 		if err := pas.checkFieldWriteAccess(existingField, callerID); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Ensure source_plugin_id hasn't changed
 		if err := pas.ensureSourcePluginIDUnchanged(existingField, field); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Validate protected field update
 		if err := pas.validateProtectedFieldUpdate(field, callerID); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 
 		// Validate access mode
 		if err := model.ValidatePropertyFieldAccessMode(field); err != nil {
-			return nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
+			return nil, nil, fmt.Errorf("UpdatePropertyFields: field %s: %w", field.ID, err)
 		}
 	}
 
 	// All checks passed - proceed with update
-	result, err := pas.propertyService.updatePropertyFields(groupID, fields)
+	requested, propagated, err := pas.propertyService.updatePropertyFields(groupID, fields)
 	if err != nil {
-		return nil, fmt.Errorf("UpdatePropertyFields: %w", err)
+		return nil, nil, fmt.Errorf("UpdatePropertyFields: %w", err)
 	}
-	return result, nil
+	return requested, propagated, nil
 }
 
 // DeletePropertyField deletes a property field and all its values.

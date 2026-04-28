@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/shared",
-  "version": "11.6.0",
+  "version": "11.7.0",
   "description": "Shared components and utilities for use by the Mattermost web app and its plugins",
   "keywords": [
     "mattermost"
@@ -9,8 +9,7 @@
   "license": "MIT",
   "files": [
     "build/webpack-web-app-externals.cjs",
-    "dist",
-    "src"
+    "dist"
   ],
   "main": "dist/main.js",
   "module": "dist/module.js",
@@ -53,6 +52,7 @@
     "directory": "webapp/platform/shared"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.26.6",
     "classnames": "^2.3.1"
   },
   "devDependencies": {
@@ -83,7 +83,7 @@
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
-    "@mattermost/types": "11.6.0",
+    "@mattermost/types": "11.7.0",
     "@testing-library/react": "^16",
     "react": ">=17",
     "react-intl": ">=7",
@@ -104,7 +104,7 @@
     "check:stylelint": "stylelint \"**/*.{css,scss}\"",
     "check-types": "tsc -b",
     "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix && stylelint \"**/*.{css,scss}\" --fix",
-    "run": "parcel watch",
+    "run": "parcel watch --watch-dir .",
     "test": "jest",
     "test-ci": "jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
     "clean": "rm -rf dist node_modules *.tsbuildinfo .parcel-cache"

@@ -3048,10 +3048,6 @@
     "translation": "Не вдалося розшифрувати результати пошуку"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} вже зупинено."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} вимкнено."
   },
@@ -5222,10 +5218,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Ліцензію Mattermost Enterprise вимкнено."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Термін дії вашої ліцензії на Enterprise версію закінчився, і деякі функції можуть бути вимкнені. Будь ласка, поновіть ліцензію."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -10066,10 +10058,6 @@
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
     "translation": "Не вдалось зареєструвати групу властивостей \"Атрибути користувацького профілю\""
-  },
-  {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Неможливо створити поле \"Атрибут користувацького профілю\""
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",

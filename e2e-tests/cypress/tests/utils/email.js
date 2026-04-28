@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 export function getEmailUrl() {
-    const smtpUrl = Cypress.env('smtpUrl') || 'http://localhost:9001';
+    const smtpUrl = Cypress.expose('smtpUrl') || 'http://localhost:9001';
 
     return `${smtpUrl}/api/v1/mailbox`;
 }

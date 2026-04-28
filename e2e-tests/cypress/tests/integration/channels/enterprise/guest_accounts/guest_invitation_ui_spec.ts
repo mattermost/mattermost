@@ -14,13 +14,14 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import {getRandomId} from '../../../../utils';
-
 import {
     changeGuestFeatureSettings,
     invitePeople,
     verifyInvitationSuccess,
 } from './helpers';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;

@@ -2,15 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as useShowAdminLimitReachedHook from 'components/common/hooks/useShowAdminLimitReached';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import CloudEffectsWrapper from './';
@@ -78,11 +76,9 @@ function nonAdminUser(state: DeepPartial<GlobalState>) {
 describe('CloudEffectsWrapper', () => {
     it('short circuits if not cloud', () => {
         const initialState = adminUser(nonCloudLicense({}));
-        const store = mockStore(initialState);
-        mountWithIntl(
-            <Provider store={store}>
-                <CloudEffectsWrapper/>
-            </Provider>,
+        renderWithContext(
+            <CloudEffectsWrapper/>,
+            initialState,
         );
         const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
         expect(spy).not.toHaveBeenCalled();
@@ -90,11 +86,9 @@ describe('CloudEffectsWrapper', () => {
 
     it('short circuits if user not logged in', () => {
         const initialState = stubUsers(cloudLicense({}));
-        const store = mockStore(initialState);
-        mountWithIntl(
-            <Provider store={store}>
-                <CloudEffectsWrapper/>
-            </Provider>,
+        renderWithContext(
+            <CloudEffectsWrapper/>,
+            initialState,
         );
         const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
         expect(spy).not.toHaveBeenCalled();
@@ -102,11 +96,9 @@ describe('CloudEffectsWrapper', () => {
 
     it('short circuits if user is not admin', () => {
         const initialState = nonAdminUser(cloudLicense({}));
-        const store = mockStore(initialState);
-        mountWithIntl(
-            <Provider store={store}>
-                <CloudEffectsWrapper/>
-            </Provider>,
+        renderWithContext(
+            <CloudEffectsWrapper/>,
+            initialState,
         );
         const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default');
         expect(spy).not.toHaveBeenCalled();
@@ -114,12 +106,10 @@ describe('CloudEffectsWrapper', () => {
 
     it('calls effects if user is admin of a cloud instance', () => {
         const initialState = adminUser(cloudLicense({}));
-        const store = mockStore(initialState);
         const spy = jest.spyOn(useShowAdminLimitReachedHook, 'default').mockImplementation(jest.fn());
-        mountWithIntl(
-            <Provider store={store}>
-                <CloudEffectsWrapper/>
-            </Provider>,
+        renderWithContext(
+            <CloudEffectsWrapper/>,
+            initialState,
         );
         expect(spy).toHaveBeenCalledTimes(1);
     });

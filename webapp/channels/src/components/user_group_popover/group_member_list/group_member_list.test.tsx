@@ -9,7 +9,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {General} from 'mattermost-redux/constants';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
-import {renderWithContext, act, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupMemberList from './group_member_list';
@@ -89,32 +89,26 @@ describe('component/user_group_popover/group_member_list', () => {
         },
     };
 
-    test('should match snapshot', async () => {
-        let baseElement: HTMLElement;
-        await act(async () => {
-            ({baseElement} = renderWithContext(
-                <GroupMemberList
-                    {...baseProps}
-                />,
-                initialState as any,
-            ));
-        });
+    test('should match snapshot', () => {
+        const {baseElement} = renderWithContext(
+            <GroupMemberList
+                {...baseProps}
+            />,
+            initialState as any,
+        );
 
-        expect(baseElement!).toMatchSnapshot();
+        expect(baseElement).toMatchSnapshot();
     });
 
     test('should open dms', async () => {
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <GroupMemberList
-                    {...baseProps}
-                />,
-                initialState as any,
-            ));
-        });
+        const {container} = renderWithContext(
+            <GroupMemberList
+                {...baseProps}
+            />,
+            initialState as any,
+        );
 
-        const dmButton = container!.querySelector('.group-member-list_dm-button');
+        const dmButton = container.querySelector('.group-member-list_dm-button');
         if (dmButton) {
             await userEvent.click(dmButton);
         }
@@ -122,17 +116,14 @@ describe('component/user_group_popover/group_member_list', () => {
     });
 
     test('should show user overlay and hide', async () => {
-        let container: HTMLElement;
-        await act(async () => {
-            ({container} = renderWithContext(
-                <GroupMemberList
-                    {...baseProps}
-                />,
-                initialState as any,
-            ));
-        });
+        const {container} = renderWithContext(
+            <GroupMemberList
+                {...baseProps}
+            />,
+            initialState as any,
+        );
 
-        const listItem = container!.querySelector('.group-member-list_item');
+        const listItem = container.querySelector('.group-member-list_item');
         if (listItem) {
             await userEvent.click(listItem);
         }
