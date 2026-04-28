@@ -347,6 +347,7 @@ test.describe('System Console - Classification markings', () => {
             // # Seed a field and banner config via API (skip the UI save step)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [
                     {id: 'nato-unclassified', name: 'NATO UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'nato-restricted', name: 'NATO RESTRICTED', color: '#FFD700', rank: 2},
@@ -400,6 +401,7 @@ test.describe('System Console - Classification markings', () => {
             // # Seed two levels and a banner pointing at the first one
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [
                     {id: 'lvl-unclassified', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'lvl-confidential', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
