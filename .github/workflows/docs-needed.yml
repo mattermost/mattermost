@@ -257,13 +257,19 @@ jobs:
           escape_xml < /tmp/pr-body.txt > /tmp/pr-body-safe.txt
           escape_xml < /tmp/pr-diff.txt > /tmp/pr-diff-safe.txt
  
+          # Escape user-controlled metadata fields for the prompt.
+          # PR title is set by the PR author; milestone title is set by
+          # maintainers but escaped here for defence-in-depth.
+          PR_TITLE_SAFE=$(printf '%s' "$PR_TITLE" | escape_xml)
+          MILESTONE_SAFE=$(printf '%s' "$MILESTONE_TITLE" | escape_xml)
+ 
           PR_URL="https://github.com/${SOURCE_REPO}/pull/${PR_NUMBER}"
           {
             echo "<pr_metadata>"
             echo "PR URL: ${PR_URL}"
-            echo "PR Title: ${PR_TITLE}"
+            echo "PR Title: ${PR_TITLE_SAFE}"
             echo "Source Repository: ${SOURCE_REPO}"
-            echo "milestone.title: ${MILESTONE_TITLE}"
+            echo "milestone.title: ${MILESTONE_SAFE}"
             echo "</pr_metadata>"
             echo ""
             echo "<pr_description>"
@@ -307,8 +313,14 @@ jobs:
         run: |
           mkdir -p "$(dirname "$DOCS_FILE")"
  
+          # Sanitize PR title for the Markdown heading to prevent XSS if the
+          # docs are rendered as HTML (e.g. < > become &lt; &gt;).
+          PR_TITLE_SAFE=$(printf '%s' "$PR_TITLE" | \
+            python3 -c \
+              'import sys,html;print(html.escape(sys.stdin.read(),quote=False),end="")')
+ 
           {
-            printf '# %s\n\n' "$PR_TITLE"
+            printf '# %s\n\n' "$PR_TITLE_SAFE"
             printf '> **Status:** Draft - auto-generated. Requires editorial review.\n'
             printf '> **Source:** [%s#%s](https://github.com/%s/pull/%s)\n' \
               "$SOURCE_REPO" "$PR_NUMBER" "$SOURCE_REPO" "$PR_NUMBER"
