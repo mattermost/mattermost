@@ -363,6 +363,22 @@ func (s *SqlRecapStore) countForUserSinceWithExecutor(executor sqlxExecutor, use
 	return count, nil
 }
 
+func (s *SqlRecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
+	query := s.getQueryBuilder().
+		Select("COALESCE(SUM(TotalMessageCount), 0)").
+		From("Recaps").
+		Where(sq.Eq{"UserId": userId}).
+		Where(sq.GtOrEq{"CreateAt": since}).
+		Where(sq.NotEq{"Status": model.RecapStatusSkipped})
+
+	var total int64
+	err := s.GetReplica().GetBuilder(&total, query)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to sum recap message count for user since timestamp")
+	}
+	return total, nil
+}
+
 // GetLastCompletedManualRecap returns the most recent completed manual recap for user.
 // Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including
 // soft-deleted recaps because deleting a recap should not bypass cooldown.

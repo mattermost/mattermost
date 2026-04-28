@@ -41,6 +41,11 @@ type AIRecapSummaryResponse struct {
 	ActionItems []string `json:"action_items"`
 }
 
+type RecapProcessingOptions struct {
+	TimePeriod         string
+	CustomInstructions string
+}
+
 // RecapChannelResult represents the result of processing a single channel for a recap
 type RecapChannelResult struct {
 	ChannelID    string

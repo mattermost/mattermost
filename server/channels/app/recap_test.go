@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -155,6 +156,52 @@ func TestCreateRecap(t *testing.T) {
 		require.Nil(t, recap)
 		assert.Equal(t, "app.recap.max_recaps_reached.app_error", err.Id)
 	})
+}
+
+func TestCreateRecapMasterToggleDisabledBlocksCreation(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = true
+		cfg.AIRecapSettings.Enable = model.NewPointer(false)
+		cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(true)
+		cfg.AIRecapSettings.DefaultLimits.MaxRecapsPerDay = model.NewPointer(1)
+		cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
+		cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(60)
+	})
+
+	existingRecap := &model.Recap{
+		Id:                model.NewId(),
+		UserId:            th.BasicUser.Id,
+		Title:             "Existing Today",
+		CreateAt:          model.GetMillis(),
+		UpdateAt:          model.GetMillis(),
+		TotalMessageCount: 1,
+		Status:            model.RecapStatusCompleted,
+		BotID:             "test-agent-id",
+	}
+	_, saveErr := th.App.Srv().Store().Recap().SaveRecap(existingRecap)
+	require.NoError(t, saveErr)
+
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	recap, appErr := th.App.CreateRecap(ctx, "Blocked Recap", []string{th.BasicChannel.Id}, "test-agent-id")
+	require.NotNil(t, appErr)
+	require.Nil(t, recap)
+	assert.Equal(t, "api.recap.disabled.app_error", appErr.Id)
+}
+
+func TestCreateRecapFeatureFlagDisabledBlocksCreation(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = false
+		cfg.AIRecapSettings.Enable = model.NewPointer(true)
+	})
+
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	recap, appErr := th.App.CreateRecap(ctx, "Blocked Recap", []string{th.BasicChannel.Id}, "test-agent-id")
+	require.NotNil(t, appErr)
+	require.Nil(t, recap)
+	assert.Equal(t, "api.recap.disabled.app_error", appErr.Id)
 }
 
 func TestGetRecap(t *testing.T) {
@@ -362,6 +409,7 @@ func TestRegenerateRecapLimitEnforcement(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(true)
 			cfg.AIRecapSettings.DefaultLimits.MaxRecapsPerDay = model.NewPointer(1)
+			cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(false)
 		})
 
 		recap := &model.Recap{
@@ -397,6 +445,48 @@ func TestRegenerateRecapLimitEnforcement(t *testing.T) {
 		require.NotNil(t, appErr)
 		require.Nil(t, regenerated)
 		assert.Equal(t, "app.recap.max_recaps_reached.app_error", appErr.Id)
+	})
+
+	t.Run("regenerate recap blocked by cooldown", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(false)
+			cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
+			cfg.AIRecapSettings.DefaultLimits.CooldownMinutes = model.NewPointer(60)
+		})
+
+		recap := &model.Recap{
+			Id:                model.NewId(),
+			UserId:            th.BasicUser.Id,
+			Title:             "Cooldown Existing Recap",
+			CreateAt:          model.GetMillis(),
+			UpdateAt:          model.GetMillis(),
+			DeleteAt:          0,
+			ReadAt:            0,
+			TotalMessageCount: 10,
+			Status:            model.RecapStatusCompleted,
+			BotID:             "test-agent-id",
+		}
+		_, err := th.App.Srv().Store().Recap().SaveRecap(recap)
+		require.NoError(t, err)
+
+		recapChannel := &model.RecapChannel{
+			Id:            model.NewId(),
+			RecapId:       recap.Id,
+			ChannelId:     th.BasicChannel.Id,
+			ChannelName:   th.BasicChannel.DisplayName,
+			Highlights:    []string{"highlight"},
+			ActionItems:   []string{"action"},
+			SourcePostIds: []string{model.NewId()},
+			CreateAt:      model.GetMillis(),
+		}
+		err = th.App.Srv().Store().Recap().SaveRecapChannel(recapChannel)
+		require.NoError(t, err)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		regenerated, appErr := th.App.RegenerateRecap(ctx, th.BasicUser.Id, recap)
+		require.NotNil(t, appErr)
+		require.Nil(t, regenerated)
+		assert.Equal(t, "app.recap.cooldown_active.app_error", appErr.Id)
 	})
 }
 
@@ -527,6 +617,85 @@ func TestProcessRecapChannel(t *testing.T) {
 		assert.Empty(t, recapChannels[0].ActionItems)
 		assert.Len(t, recapChannels[0].SourcePostIds, 1)
 	})
+
+	t.Run("max posts per day prevents additional post processing", func(t *testing.T) {
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				require.Fail(t, "bridge should not be called when post usage is exhausted")
+				return "", nil
+			},
+		}
+
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableAIRecaps = true
+			cfg.AIRecapSettings.EnforcePostsPerDay = model.NewPointer(true)
+			cfg.AIRecapSettings.DefaultLimits.MaxPostsPerDay = model.NewPointer(1)
+		})
+
+		existingRecap := &model.Recap{
+			Id:                model.NewId(),
+			UserId:            th.BasicUser.Id,
+			Title:             "Existing usage",
+			CreateAt:          model.GetMillis(),
+			UpdateAt:          model.GetMillis(),
+			TotalMessageCount: 1,
+			Status:            model.RecapStatusCompleted,
+			BotID:             "test-agent",
+		}
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(existingRecap)
+		require.NoError(t, storeErr)
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.CreatePost(t, channel)
+
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr = th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Limited recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		result, err := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+		assert.True(t, result.Success)
+		assert.Equal(t, 0, result.MessageCount)
+		assert.Empty(t, bridge.completeCalls)
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		require.Len(t, recapChannels, 1)
+		assert.Empty(t, recapChannels[0].SourcePostIds)
+	})
+}
+
+func TestRecapFetchStartAt(t *testing.T) {
+	now := time.Date(2026, time.April, 28, 12, 0, 0, 0, time.UTC)
+	lastViewedAt := now.Add(-2 * time.Hour).UnixMilli()
+
+	startAt, allowFallback := recapFetchStartAt("", lastViewedAt, now)
+	assert.Equal(t, lastViewedAt, startAt)
+	assert.True(t, allowFallback)
+
+	startAt, allowFallback = recapFetchStartAt(model.TimePeriodSinceLastRead, lastViewedAt, now)
+	assert.Equal(t, lastViewedAt, startAt)
+	assert.True(t, allowFallback)
+
+	startAt, allowFallback = recapFetchStartAt(model.TimePeriodLast24h, lastViewedAt, now)
+	assert.Equal(t, now.Add(-24*time.Hour).UnixMilli(), startAt)
+	assert.False(t, allowFallback)
+
+	startAt, allowFallback = recapFetchStartAt(model.TimePeriodLastWeek, lastViewedAt, now)
+	assert.Equal(t, now.Add(-7*24*time.Hour).UnixMilli(), startAt)
+	assert.False(t, allowFallback)
 }
 
 func TestFetchAndTruncatePostsForRecap(t *testing.T) {

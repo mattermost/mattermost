@@ -39,7 +39,8 @@ func newSqlScheduledRecapStore(sqlStore *SqlStore) store.ScheduledRecapStore {
 }
 
 // toMap converts a ScheduledRecap to a map for INSERT/UPDATE operations.
-// ChannelIds is serialized as JSON.
+// ChannelIds is stored as JSON text so MySQL and Postgres use the same schema
+// while preserving the model's JSON-array API shape.
 func (s *SqlScheduledRecapStore) toMap(sr *model.ScheduledRecap) map[string]any {
 	channelIdsJSON, _ := json.Marshal(sr.ChannelIds)
 	return map[string]any{
@@ -273,6 +274,7 @@ func (s *SqlScheduledRecapStore) GetForUser(userId string, page, perPage int) ([
 }
 
 // GetDueBefore retrieves enabled, non-deleted ScheduledRecaps that are due before the given timestamp.
+// It reads from master so the scheduler does not enqueue from replica-lagged NextRunAt values.
 // Results are ordered by NextRunAt ASC to process oldest first.
 func (s *SqlScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*model.ScheduledRecap, error) {
 	var dbRecaps []dbScheduledRecap
@@ -283,7 +285,7 @@ func (s *SqlScheduledRecapStore) GetDueBefore(timestamp int64, limit int) ([]*mo
 		OrderBy("NextRunAt ASC").
 		Limit(uint64(limit))
 
-	if err := s.GetReplica().SelectBuilder(&dbRecaps, query); err != nil {
+	if err := s.GetMaster().SelectBuilder(&dbRecaps, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get due ScheduledRecaps before timestamp=%d", timestamp)
 	}
 

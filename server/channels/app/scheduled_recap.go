@@ -19,8 +19,13 @@ import (
 // It sets the user ID from the session, validates the recap configuration,
 // computes the initial NextRunAt, and saves to the store.
 func (a *App) CreateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap) (*model.ScheduledRecap, *model.AppError) {
+	if appErr := a.requireAIRecapsEnabled("CreateScheduledRecap"); appErr != nil {
+		return nil, appErr
+	}
+
 	// Set user ID from session
 	recap.UserId = rctx.Session().UserId
+	recap.Enabled = true
 
 	// Prepare for save (generates ID, timestamps)
 	recap.PreSave()
@@ -116,6 +121,26 @@ func (a *App) GetScheduledRecapsForUser(rctx request.CTX, page, perPage int) ([]
 // UpdateScheduledRecap updates an existing scheduled recap.
 // If the recap is enabled, it recomputes NextRunAt.
 func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap) (*model.ScheduledRecap, *model.AppError) {
+	existingRecap, getErr := a.Srv().Store().ScheduledRecap().Get(recap.Id)
+	if getErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(getErr, &nfErr) {
+			return nil, model.NewAppError("UpdateScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusNotFound).Wrap(getErr)
+		}
+		return nil, model.NewAppError("UpdateScheduledRecap", "app.scheduled_recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+	}
+
+	sessionUserID := rctx.Session().UserId
+	if existingRecap.UserId != sessionUserID {
+		return nil, model.NewAppError("UpdateScheduledRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
+	}
+
+	recap.UserId = existingRecap.UserId
+	recap.CreateAt = existingRecap.CreateAt
+	recap.LastRunAt = existingRecap.LastRunAt
+	recap.RunCount = existingRecap.RunCount
+	recap.Enabled = existingRecap.Enabled
+
 	// Prepare for update (sets UpdateAt)
 	recap.PreUpdate()
 
@@ -124,7 +149,6 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 		return nil, err
 	}
 
-	sessionUserID := rctx.Session().UserId
 	if appErr := a.validateRecapChannelPermissions(rctx, sessionUserID, recap.ChannelIds, "UpdateScheduledRecap"); appErr != nil {
 		return nil, appErr
 	}
@@ -166,16 +190,14 @@ func (a *App) UpdateScheduledRecap(rctx request.CTX, recap *model.ScheduledRecap
 // NOTE: This method does NOT use CreateRecap because that method relies on
 // rctx.Session().UserId which is not available in a job worker context.
 func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap) (*model.Recap, *model.AppError) {
-	var channelIDs []string
-
-	if sr.ChannelMode == model.ChannelModeSpecific {
-		channelIDs = sr.ChannelIds
-	} else {
-		return nil, model.NewAppError("CreateRecapFromSchedule",
-			"app.scheduled_recap.all_unreads_not_supported.app_error",
-			nil, "", http.StatusBadRequest)
+	if appErr := a.requireAIRecapsEnabled("CreateRecapFromSchedule"); appErr != nil {
+		return nil, appErr
 	}
 
+	channelIDs, resolveErr := a.resolveScheduledRecapChannelIDs(sr)
+	if resolveErr != nil {
+		return nil, resolveErr
+	}
 	if len(channelIDs) == 0 {
 		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.no_channels.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -200,6 +222,9 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 	limits, limitsErr := a.GetEffectiveLimits(sr.UserId)
 	if limitsErr != nil {
 		return nil, limitsErr
+	}
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
+		return nil, recapMaxChannelsExceededError("CreateRecapFromSchedule", limits.MaxChannelsPerRecap, len(channelIDs))
 	}
 
 	var (
@@ -229,10 +254,12 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 
 	// Create recap job to trigger processing
 	jobData := map[string]string{
-		"recap_id":    savedRecap.Id,
-		"user_id":     sr.UserId,
-		"channel_ids": strings.Join(channelIDs, ","),
-		"agent_id":    sr.AgentId,
+		"recap_id":            savedRecap.Id,
+		"user_id":             sr.UserId,
+		"channel_ids":         strings.Join(channelIDs, ","),
+		"agent_id":            sr.AgentId,
+		"time_period":         sr.TimePeriod,
+		"custom_instructions": sr.CustomInstructions,
 	}
 
 	_, jobErr := a.CreateJob(rctx, &model.Job{
@@ -250,6 +277,26 @@ func (a *App) CreateRecapFromSchedule(rctx request.CTX, sr *model.ScheduledRecap
 	}
 
 	return savedRecap, nil
+}
+
+func (a *App) resolveScheduledRecapChannelIDs(sr *model.ScheduledRecap) ([]string, *model.AppError) {
+	if sr.ChannelMode == model.ChannelModeSpecific {
+		return sr.ChannelIds, nil
+	}
+
+	unreads, err := a.Srv().Store().Team().GetChannelUnreadsForAllTeams("", sr.UserId)
+	if err != nil {
+		return nil, model.NewAppError("CreateRecapFromSchedule", "app.scheduled_recap.get_unreads.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	channelIDs := make([]string, 0, len(unreads))
+	for _, unread := range unreads {
+		if unread.MsgCount > 0 || unread.MsgCountRoot > 0 {
+			channelIDs = append(channelIDs, unread.ChannelId)
+		}
+	}
+
+	return channelIDs, nil
 }
 
 // DeleteScheduledRecap performs a soft delete of a scheduled recap.

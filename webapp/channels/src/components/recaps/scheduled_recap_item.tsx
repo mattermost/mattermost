@@ -9,6 +9,7 @@ import {DotsHorizontalIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@matte
 import type {ScheduledRecap} from '@mattermost/types/recaps';
 
 import {pauseScheduledRecap, resumeScheduledRecap, deleteScheduledRecap} from 'mattermost-redux/actions/recaps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
@@ -47,9 +48,9 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
             const action = scheduledRecap.enabled ?
                 pauseScheduledRecap(scheduledRecap.id) :
                 resumeScheduledRecap(scheduledRecap.id);
-            const result = await dispatch(action) as unknown as {error?: unknown};
-            if (!result?.error) {
-                // TODO: Show toast "Schedule paused" / "Schedule resumed"
+            const result = await dispatch(action) as ActionResult<ScheduledRecap>;
+            if (result.error) {
+                return;
             }
         } finally {
             setIsToggling(false);
@@ -57,13 +58,11 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
     }, [dispatch, scheduledRecap.id, scheduledRecap.enabled, isToggling]);
 
     const handleDelete = useCallback(async () => {
-        const result = await dispatch(deleteScheduledRecap(scheduledRecap.id)) as unknown as {error?: unknown};
+        const result = await dispatch(deleteScheduledRecap(scheduledRecap.id)) as ActionResult;
         if (result?.error) {
             return;
         }
         setShowDeleteConfirm(false);
-
-        // TODO: Show toast "Schedule deleted"
     }, [dispatch, scheduledRecap.id]);
 
     const handleEdit = useCallback(() => {
@@ -94,14 +93,12 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                 </div>
 
                 <div className='scheduled-recap-item-actions'>
-                    {/* Run stats - visible on hover */}
                     <div className={`scheduled-recap-run-stats ${isHovered ? 'visible' : ''}`}>
                         <span className='run-stat'>{lastRunText}</span>
                         <span className='metadata-separator'>{'·'}</span>
                         <span className='run-stat'>{runCountText}</span>
                     </div>
 
-                    {/* Active/Paused toggle */}
                     <div className='scheduled-recap-toggle'>
                         <Toggle
                             id={`toggle-${scheduledRecap.id}`}
@@ -117,7 +114,6 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                         />
                     </div>
 
-                    {/* Kebab menu */}
                     <Menu.Container
                         menuButton={{
                             id: buttonId,
@@ -153,7 +149,6 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                 </div>
             </div>
 
-            {/* Delete confirmation modal */}
             <ConfirmModal
                 show={showDeleteConfirm}
                 title={formatMessage({id: 'recaps.scheduled.delete.title', defaultMessage: 'Delete scheduled recap?'})}

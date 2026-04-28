@@ -80,6 +80,7 @@ func createScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("agent_id")
 		return
 	}
+	recap.Enabled = true
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
@@ -187,6 +188,9 @@ func updateScheduledRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Preserve fields that shouldn't be changed via update
 	recap.UserId = existingRecap.UserId
 	recap.CreateAt = existingRecap.CreateAt
+	recap.LastRunAt = existingRecap.LastRunAt
+	recap.RunCount = existingRecap.RunCount
+	recap.Enabled = existingRecap.Enabled
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateScheduledRecap, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)

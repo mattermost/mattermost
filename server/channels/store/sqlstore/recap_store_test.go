@@ -208,6 +208,10 @@ func TestRecapStore(t *testing.T) {
 			count, err := ss.Recap().CountForUserSince(userId, since)
 			require.NoError(t, err)
 			assert.Equal(t, int64(1), count)
+
+			totalMessages, err := ss.Recap().SumTotalMessageCountForUserSince(userId, since)
+			require.NoError(t, err)
+			assert.Equal(t, int64(10), totalMessages)
 		})
 
 		t.Run("SaveRecapIfUnderDailyLimit", func(t *testing.T) {

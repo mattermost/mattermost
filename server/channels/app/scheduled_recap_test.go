@@ -282,6 +282,208 @@ func TestScheduledRecap_CreateBlockedWhenOverLimit(t *testing.T) {
 	assert.Equal(t, "Updated Title", updatedRecap.Title)
 }
 
+func TestScheduledRecapCreateAndUpdateState(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+
+	recap := &model.ScheduledRecap{
+		Title:       "Default Enabled Recap",
+		DaysOfWeek:  model.EveryDay,
+		TimeOfDay:   "09:00",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+	}
+
+	createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+	require.Nil(t, createErr)
+	require.NotNil(t, createdRecap)
+	assert.True(t, createdRecap.Enabled)
+
+	lastRunAt := model.GetMillis()
+	nextRunAt := lastRunAt + int64(time.Hour/time.Millisecond)
+	require.NoError(t, th.App.Srv().Store().ScheduledRecap().MarkExecuted(createdRecap.Id, lastRunAt, nextRunAt))
+
+	staleUpdate := &model.ScheduledRecap{
+		Id:          createdRecap.Id,
+		Title:       "Updated Without State Fields",
+		DaysOfWeek:  model.Monday,
+		TimeOfDay:   "10:00",
+		TimePeriod:  model.TimePeriodLastWeek,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+	}
+
+	updatedRecap, updateErr := th.App.UpdateScheduledRecap(ctx, staleUpdate)
+	require.Nil(t, updateErr)
+	require.NotNil(t, updatedRecap)
+	assert.Equal(t, "Updated Without State Fields", updatedRecap.Title)
+	assert.True(t, updatedRecap.Enabled)
+	assert.Equal(t, lastRunAt, updatedRecap.LastRunAt)
+	assert.Equal(t, 1, updatedRecap.RunCount)
+}
+
+func TestCreateRecapFromScheduleAllUnreads(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(false)
+		cfg.AIRecapSettings.EnforceChannelsPerRecap = model.NewPointer(true)
+		cfg.AIRecapSettings.DefaultLimits.MaxChannelsPerRecap = model.NewPointer(10)
+	})
+
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
+	post := &model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "unread for scheduled recap",
+		CreateAt:  model.GetMillis(),
+	}
+	_, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	scheduledRecap := &model.ScheduledRecap{
+		Id:                 model.NewId(),
+		UserId:             th.BasicUser.Id,
+		Title:              "All Unreads",
+		DaysOfWeek:         model.EveryDay,
+		TimeOfDay:          "09:00",
+		TimePeriod:         model.TimePeriodLastWeek,
+		ChannelMode:        model.ChannelModeAllUnreads,
+		CustomInstructions: "Focus on launch risks",
+		AgentId:            "test-agent",
+		Timezone:           "America/New_York",
+		IsRecurring:        true,
+		Enabled:            true,
+		CreateAt:           model.GetMillis(),
+		UpdateAt:           model.GetMillis(),
+	}
+
+	recap, createErr := th.App.CreateRecapFromSchedule(th.Context, scheduledRecap)
+	require.Nil(t, createErr)
+	require.NotNil(t, recap)
+	assert.Equal(t, scheduledRecap.Id, recap.ScheduledRecapId)
+	assert.Equal(t, th.BasicUser.Id, recap.UserId)
+
+	jobs, err := th.App.Srv().Store().Job().GetAllByTypeAndStatus(th.Context, model.JobTypeRecap, model.JobStatusPending)
+	require.NoError(t, err)
+
+	var recapJob *model.Job
+	for _, job := range jobs {
+		if job.Data["recap_id"] == recap.Id {
+			recapJob = job
+			break
+		}
+	}
+	require.NotNil(t, recapJob)
+	assert.Equal(t, model.TimePeriodLastWeek, recapJob.Data["time_period"])
+	assert.Equal(t, "Focus on launch risks", recapJob.Data["custom_instructions"])
+}
+
+func TestCreateScheduledRecapMasterToggleDisabled(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = true
+		cfg.AIRecapSettings.Enable = model.NewPointer(false)
+	})
+
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	recap := &model.ScheduledRecap{
+		Title:       "Disabled Recap",
+		DaysOfWeek:  model.EveryDay,
+		TimeOfDay:   "09:00",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+	}
+
+	createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+	require.NotNil(t, createErr)
+	require.Nil(t, createdRecap)
+	assert.Equal(t, "api.recap.disabled.app_error", createErr.Id)
+
+	scheduledRecap := &model.ScheduledRecap{
+		Id:          model.NewId(),
+		UserId:      th.BasicUser.Id,
+		Title:       "Disabled Execution",
+		DaysOfWeek:  model.EveryDay,
+		TimeOfDay:   "09:00",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+		Enabled:     true,
+	}
+	createdFromSchedule, appErr := th.App.CreateRecapFromSchedule(th.Context, scheduledRecap)
+	require.NotNil(t, appErr)
+	require.Nil(t, createdFromSchedule)
+	assert.Equal(t, "api.recap.disabled.app_error", appErr.Id)
+}
+
+func TestCreateScheduledRecapFeatureFlagDisabled(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = false
+		cfg.AIRecapSettings.Enable = model.NewPointer(true)
+	})
+
+	ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+	recap := &model.ScheduledRecap{
+		Title:       "Disabled Recap",
+		DaysOfWeek:  model.EveryDay,
+		TimeOfDay:   "09:00",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+	}
+
+	createdRecap, createErr := th.App.CreateScheduledRecap(ctx, recap)
+	require.NotNil(t, createErr)
+	require.Nil(t, createdRecap)
+	assert.Equal(t, "api.recap.disabled.app_error", createErr.Id)
+
+	scheduledRecap := &model.ScheduledRecap{
+		Id:          model.NewId(),
+		UserId:      th.BasicUser.Id,
+		Title:       "Disabled Execution",
+		DaysOfWeek:  model.EveryDay,
+		TimeOfDay:   "09:00",
+		TimePeriod:  model.TimePeriodLast24h,
+		ChannelMode: model.ChannelModeSpecific,
+		ChannelIds:  []string{th.BasicChannel.Id},
+		AgentId:     "test-agent",
+		Timezone:    "America/New_York",
+		IsRecurring: true,
+		Enabled:     true,
+	}
+	createdFromSchedule, appErr := th.App.CreateRecapFromSchedule(th.Context, scheduledRecap)
+	require.NotNil(t, appErr)
+	require.Nil(t, createdFromSchedule)
+	assert.Equal(t, "api.recap.disabled.app_error", appErr.Id)
+}
+
 func TestScheduledRecapChannelValidationAndDeduplication(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")

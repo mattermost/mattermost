@@ -5656,6 +5656,22 @@ func (s *TimerLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 	return result, err
 }
 
+func (s *TimerLayerJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.SaveOnceByTypeAndData(job, data)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.SaveOnceByTypeAndData", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 	start := time.Now()
 
@@ -8737,6 +8753,22 @@ func (s *TimerLayerRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, si
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.SaveRecapIfUnderDailyLimit", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.SumTotalMessageCountForUserSince(userId, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.SumTotalMessageCountForUserSince", success, elapsed)
 	}
 	return result, err
 }

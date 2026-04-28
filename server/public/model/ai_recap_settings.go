@@ -134,6 +134,16 @@ func (s *AIRecapSettings) SetDefaults() {
 	}
 }
 
+// IsEnabled reports whether the admin AI Recaps master toggle is enabled.
+func (s *AIRecapSettings) IsEnabled() bool {
+	return s == nil || s.Enable == nil || *s.Enable
+}
+
+// AIRecapsEnabled reports whether AI Recaps are enabled by both feature flag and admin config.
+func (o *Config) AIRecapsEnabled() bool {
+	return o != nil && o.FeatureFlags.EnableAIRecaps && o.AIRecapSettings.IsEnabled()
+}
+
 // IsValid validates the AIRecapSettings
 func (s *AIRecapSettings) IsValid() *AppError {
 	if s.DefaultLimits != nil {

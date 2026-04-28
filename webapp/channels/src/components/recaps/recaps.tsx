@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Redirect, useHistory, useLocation} from 'react-router-dom';
@@ -10,7 +10,7 @@ import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
-import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps, getRecapLimitStatus} from 'mattermost-redux/selectors/entities/recaps';
+import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
@@ -18,7 +18,6 @@ import {openModal} from 'actions/views/modals';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import CreateRecapModal from 'components/create_recap_modal';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {useQuery} from 'utils/http_utils';
@@ -39,7 +38,7 @@ const isValidTab = (tab: string | null): tab is TabName => {
 };
 
 const Recaps = () => {
-    const {formatMessage, formatTime} = useIntl();
+    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const history = useHistory();
     const location = useLocation();
@@ -71,7 +70,6 @@ const Recaps = () => {
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
     const scheduledRecaps = useSelector(getAllScheduledRecaps);
-    const limitStatus = useSelector(getRecapLimitStatus);
 
     // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
     useEffect(() => {
@@ -86,47 +84,6 @@ const Recaps = () => {
         dispatch(getAgents());
         dispatch(fetchRecapLimitStatus());
     }, [dispatch]);
-
-    // Calculate if creation is blocked
-    const isCreationBlocked = useMemo(() => {
-        if (!limitStatus) {
-            return false;
-        }
-
-        // Blocked by cooldown (for manual recaps)
-        if (limitStatus.cooldown.is_active) {
-            return true;
-        }
-
-        // Blocked by daily limit
-        const {daily} = limitStatus;
-        if (daily.limit !== -1 && daily.used >= daily.limit) {
-            return true;
-        }
-
-        return false;
-    }, [limitStatus]);
-
-    // Tooltip for blocked state
-    const blockedTooltip = useMemo(() => {
-        if (!limitStatus || !isCreationBlocked) {
-            return '';
-        }
-
-        if (limitStatus.cooldown.is_active) {
-            const time = new Date(limitStatus.cooldown.available_at);
-            return formatMessage(
-                {id: 'recaps.addRecap.cooldownTooltip', defaultMessage: 'Available again at {time}'},
-                {time: formatTime(time, {hour: 'numeric', minute: '2-digit'})},
-            );
-        }
-
-        const resetTime = new Date(limitStatus.daily.reset_at);
-        return formatMessage(
-            {id: 'recaps.addRecap.limitReachedTooltip', defaultMessage: 'Daily limit reached. Resets at {time}'},
-            {time: formatTime(resetTime, {hour: 'numeric', minute: '2-digit'})},
-        );
-    }, [limitStatus, isCreationBlocked, formatMessage, formatTime]);
 
     // Redirect if feature flag is disabled
     if (enableAIRecaps !== 'true') {
@@ -191,34 +148,15 @@ const Recaps = () => {
                         </button>
                     </div>
                 </div>
-                {isCreationBlocked ? (
-                    <WithTooltip
-                        id='recap-add-blocked-tooltip'
-                        title={blockedTooltip}
-                        forcedPlacement='bottom'
-                    >
-                        <span className='recap-add-button-wrapper'>
-                            <button
-                                className='btn btn-tertiary recap-add-button'
-                                disabled={true}
-                                aria-disabled={true}
-                            >
-                                <PlusIcon size={12}/>
-                                {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                            </button>
-                        </span>
-                    </WithTooltip>
-                ) : (
-                    <button
-                        className='btn btn-tertiary recap-add-button'
-                        onClick={handleAddRecap}
-                        disabled={!agentsBridgeEnabled.available}
-                        title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                    >
-                        <PlusIcon size={12}/>
-                        {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                    </button>
-                )}
+                <button
+                    className='btn btn-tertiary recap-add-button'
+                    onClick={handleAddRecap}
+                    disabled={!agentsBridgeEnabled.available}
+                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                >
+                    <PlusIcon size={12}/>
+                    {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
+                </button>
             </div>
 
             <div className='recaps-content'>
@@ -227,7 +165,7 @@ const Recaps = () => {
                         scheduledRecaps={scheduledRecaps}
                         onEdit={handleEditScheduledRecap}
                         onCreateClick={handleAddRecap}
-                        createDisabled={!agentsBridgeEnabled.available || isCreationBlocked}
+                        createDisabled={!agentsBridgeEnabled.available}
                     />
                 ) : (
                     <RecapsList recaps={displayedRecaps}/>

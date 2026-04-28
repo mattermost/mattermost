@@ -23,7 +23,7 @@ func (api *API) InitRecap() {
 }
 
 func requireRecapsEnabled(c *Context) {
-	if !c.App.Config().FeatureFlags.EnableAIRecaps {
+	if !c.App.AIRecapsEnabled() {
 		c.Err = model.NewAppError("requireRecapsEnabled", "api.recap.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

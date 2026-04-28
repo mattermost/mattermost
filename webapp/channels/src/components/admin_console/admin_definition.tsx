@@ -3619,15 +3619,15 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'bool',
                                     key: 'AIRecapSettings.Enable',
-                                    label: defineMessage({id: 'admin.recaps.enable.title', defaultMessage: 'Enable AI Recap Limits:'}),
-                                    help_text: defineMessage({id: 'admin.recaps.enable.desc', defaultMessage: 'When enabled, enforces the configured limits on AI recap usage across the system.'}),
+                                    label: defineMessage({id: 'admin.recaps.enable.title', defaultMessage: 'Enable AI Recaps:'}),
+                                    help_text: defineMessage({id: 'admin.recaps.enable.desc', defaultMessage: 'When enabled, users can create and schedule AI recaps subject to the configured limits.'}),
                                     isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
                                 },
                             ],
                         },
                         {
                             key: 'AIRecapSettings.QuotaLimits',
-                            title: 'Quota Limits',
+                            title: defineMessage({id: 'admin.recaps.sections.quota.title', defaultMessage: 'Quota Limits'}),
                             description: defineMessage({id: 'admin.recaps.sections.quota.description', defaultMessage: 'Control how many recaps users can create.'}),
                             settings: [
                                 {
@@ -3638,7 +3638,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxScheduledRecaps.desc', defaultMessage: 'Maximum number of scheduled recaps a user can have active at once.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                                 {
@@ -3649,7 +3649,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxRecapsPerDay.desc', defaultMessage: 'Maximum number of recaps a user can generate per day. Resets at midnight in the user\'s timezone.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                                 {
@@ -3660,14 +3660,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxPostsPerDay.desc', defaultMessage: 'Maximum total posts that can be processed for recaps per user per day.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                             ],
                         },
                         {
                             key: 'AIRecapSettings.ContentLimits',
-                            title: 'Content Limits',
+                            title: defineMessage({id: 'admin.recaps.sections.content.title', defaultMessage: 'Content Limits'}),
                             description: defineMessage({id: 'admin.recaps.sections.content.description', defaultMessage: 'Control how much content can be included in each recap.'}),
                             settings: [
                                 {
@@ -3678,7 +3678,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxChannelsPerRecap.desc', defaultMessage: 'Maximum number of channels that can be included in a single recap.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                                 {
@@ -3689,7 +3689,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxPostsPerRecap.desc', defaultMessage: 'Maximum number of posts to include when generating a recap.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                                 {
@@ -3700,14 +3700,14 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.recaps.maxTokensPerRecap.desc', defaultMessage: 'Maximum estimated token count for LLM context when generating a recap.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                 },
                             ],
                         },
                         {
                             key: 'AIRecapSettings.TimeLimits',
-                            title: 'Time Limits',
+                            title: defineMessage({id: 'admin.recaps.sections.time.title', defaultMessage: 'Time Limits'}),
                             description: defineMessage({id: 'admin.recaps.sections.time.description', defaultMessage: 'Control timing between recap requests.'}),
                             settings: [
                                 {
@@ -3718,7 +3718,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     placeholder: defineMessage({id: 'admin.recaps.cooldownMinutes.placeholder', defaultMessage: 'E.g.: "60"'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.AI_RECAPS)),
-                                        it.configIsFalse('AIRecapSettings', 'Enable'),
+                                        it.stateIsFalse('AIRecapSettings.Enable'),
                                     ),
                                     validate: validators.minValue(0, defineMessage({id: 'admin.recaps.cooldownMinutes.minValue', defaultMessage: 'Cooldown must be 0 or greater'})),
                                 },

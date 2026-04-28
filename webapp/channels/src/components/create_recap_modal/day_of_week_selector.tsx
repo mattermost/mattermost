@@ -12,18 +12,18 @@ const {Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday} = DaysOfW
 type DayInfo = {
     bit: number;
     labelKey: string;
-    shortLabel: string;
+    defaultShortLabel: string;
 };
 
 // Order: Monday first (more intuitive for work schedules)
 const DAYS: DayInfo[] = [
-    {bit: Monday, labelKey: 'recaps.days.monday', shortLabel: 'M'},
-    {bit: Tuesday, labelKey: 'recaps.days.tuesday', shortLabel: 'T'},
-    {bit: Wednesday, labelKey: 'recaps.days.wednesday', shortLabel: 'W'},
-    {bit: Thursday, labelKey: 'recaps.days.thursday', shortLabel: 'Th'},
-    {bit: Friday, labelKey: 'recaps.days.friday', shortLabel: 'F'},
-    {bit: Saturday, labelKey: 'recaps.days.saturday', shortLabel: 'Sa'},
-    {bit: Sunday, labelKey: 'recaps.days.sunday', shortLabel: 'Su'},
+    {bit: Monday, labelKey: 'recaps.days.monday', defaultShortLabel: 'M'},
+    {bit: Tuesday, labelKey: 'recaps.days.tuesday', defaultShortLabel: 'T'},
+    {bit: Wednesday, labelKey: 'recaps.days.wednesday', defaultShortLabel: 'W'},
+    {bit: Thursday, labelKey: 'recaps.days.thursday', defaultShortLabel: 'Th'},
+    {bit: Friday, labelKey: 'recaps.days.friday', defaultShortLabel: 'F'},
+    {bit: Saturday, labelKey: 'recaps.days.saturday', defaultShortLabel: 'Sa'},
+    {bit: Sunday, labelKey: 'recaps.days.sunday', defaultShortLabel: 'Su'},
 ];
 
 type Props = {
@@ -62,9 +62,9 @@ const DayOfWeekSelector = ({value, onChange, disabled, error}: Props) => {
                     onClick={() => toggleDay(day.bit)}
                     disabled={disabled}
                     aria-pressed={isDaySelected(day.bit)}
-                    aria-label={formatMessage({id: day.labelKey, defaultMessage: day.shortLabel})}
+                    aria-label={formatMessage({id: day.labelKey, defaultMessage: day.defaultShortLabel})}
                 >
-                    {day.shortLabel}
+                    {formatMessage({id: day.labelKey, defaultMessage: day.defaultShortLabel})}
                 </button>
             ))}
         </div>

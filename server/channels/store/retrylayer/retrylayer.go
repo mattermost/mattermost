@@ -7000,6 +7000,27 @@ func (s *RetryLayerJobStore) SaveOnce(job *model.Job) (*model.Job, error) {
 
 }
 
+func (s *RetryLayerJobStore) SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.SaveOnceByTypeAndData(job, data)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) UpdateOptimistically(job *model.Job, currentStatus string) (bool, error) {
 
 	tries := 0
@@ -10962,6 +10983,27 @@ func (s *RetryLayerRecapStore) SaveRecapIfUnderDailyLimit(recap *model.Recap, si
 	tries := 0
 	for {
 		result, err := s.RecapStore.SaveRecapIfUnderDailyLimit(recap, since, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRecapStore) SumTotalMessageCountForUserSince(userId string, since int64) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.RecapStore.SumTotalMessageCountForUserSince(userId, since)
 		if err == nil {
 			return result, nil
 		}

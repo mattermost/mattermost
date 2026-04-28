@@ -46,6 +46,19 @@ class CreateRecapModal {
         await expect(this.container).not.toBeVisible({timeout: duration.ten_sec});
     }
 
+    async createSchedule() {
+        await this.container.getByRole('button', {name: 'Create schedule'}).click();
+        await expect(this.container).not.toBeVisible({timeout: duration.ten_sec});
+    }
+
+    async enableRunOnce() {
+        const runOnce = this.container.locator('#run-once-toggle');
+        await expect(runOnce).toBeVisible();
+        if ((await runOnce.getAttribute('aria-pressed')) !== 'true') {
+            await runOnce.click();
+        }
+    }
+
     async expectChannelSelectorVisible() {
         await expect(this.channelSearchInput).toBeVisible();
     }
@@ -73,6 +86,15 @@ class CreateRecapModal {
         for (const channelName of channelNames) {
             await expect(this.container.locator('.summary-channel-item').filter({hasText: channelName})).toBeVisible();
         }
+    }
+
+    async expectScheduleConfigurationVisible() {
+        await expect(this.container.getByText('On which days should your recap run?')).toBeVisible();
+        await expect(this.container.getByRole('button', {name: 'Create schedule'})).toBeVisible();
+    }
+
+    async selectScheduleDay(dayLabel: string) {
+        await this.container.getByRole('button', {name: dayLabel, exact: true}).click();
     }
 
     async selectAgent(agentName: string) {
@@ -189,10 +211,66 @@ class RecapItem {
     }
 }
 
+class ScheduledRecapItem {
+    readonly menuButton: Locator;
+    readonly schedulePattern: Locator;
+    readonly toggleButton: Locator;
+
+    constructor(
+        private readonly page: Page,
+        readonly container: Locator,
+    ) {
+        this.menuButton = container.getByRole('button', {name: /Options for /});
+        this.schedulePattern = container.locator('.schedule-pattern');
+        this.toggleButton = container.locator('.scheduled-recap-toggle button');
+    }
+
+    async toBeVisible() {
+        await expect(this.container).toBeVisible();
+    }
+
+    async expectText(text: string | RegExp) {
+        await expect(this.container).toContainText(text);
+    }
+
+    async expectSchedulePattern(text: string | RegExp) {
+        await expect(this.schedulePattern).toBeVisible();
+        await expect(this.schedulePattern).toContainText(text);
+    }
+
+    async expectActive() {
+        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(this.toggleButton).toHaveAccessibleName('Active - click to pause');
+    }
+
+    async expectPaused() {
+        await expect(this.toggleButton).toHaveAttribute('aria-pressed', 'false');
+        await expect(this.toggleButton).toHaveAccessibleName('Paused - click to resume');
+    }
+
+    async pause() {
+        await this.expectActive();
+        await this.toggleButton.click();
+        await this.expectPaused();
+    }
+
+    async resume() {
+        await this.expectPaused();
+        await this.toggleButton.click();
+        await this.expectActive();
+    }
+
+    async openMenuAction(actionName: string) {
+        await this.menuButton.click();
+        await this.page.getByRole('menuitem', {name: actionName}).click();
+    }
+}
+
 export default class RecapsPage {
     readonly heading: Locator;
     readonly unreadTab: Locator;
     readonly readTab: Locator;
+    readonly scheduledTab: Locator;
     readonly addRecapButton: Locator;
     readonly createRecapModal: CreateRecapModal;
 
@@ -200,6 +278,7 @@ export default class RecapsPage {
         this.heading = page.getByRole('heading', {name: 'Recaps'});
         this.unreadTab = page.getByRole('button', {name: 'Unread', exact: true});
         this.readTab = page.getByRole('button', {name: 'Read', exact: true});
+        this.scheduledTab = page.getByRole('button', {name: 'Scheduled', exact: true});
         this.addRecapButton = page.getByRole('button', {name: 'Add a recap'});
         this.createRecapModal = new CreateRecapModal(page);
     }
@@ -235,6 +314,11 @@ export default class RecapsPage {
     async switchToRead() {
         await this.readTab.click();
         await expect(this.readTab).toHaveClass(/active/);
+    }
+
+    async switchToScheduled() {
+        await this.scheduledTab.click();
+        await expect(this.scheduledTab).toHaveClass(/active/);
     }
 
     async expectSetupPlaceholder() {
@@ -276,7 +360,23 @@ export default class RecapsPage {
         );
     }
 
+    getScheduledRecap(title: string) {
+        return new ScheduledRecapItem(
+            this.page,
+            this.page
+                .locator('.scheduled-recap-item')
+                .filter({
+                    has: this.page.getByRole('heading', {name: title, exact: true}),
+                })
+                .first(),
+        );
+    }
+
     async expectRecapNotVisible(title: string) {
+        await expect(this.page.getByRole('heading', {name: title, exact: true})).not.toBeVisible();
+    }
+
+    async expectScheduledRecapNotVisible(title: string) {
         await expect(this.page.getByRole('heading', {name: title, exact: true})).not.toBeVisible();
     }
 }

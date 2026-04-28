@@ -27,7 +27,7 @@ type Scheduler struct {
 // MakeScheduler creates a new scheduler for scheduled recaps.
 func MakeScheduler(jobServer *jobs.JobServer, storeInstance store.Store) *Scheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		return cfg.FeatureFlags.EnableAIRecaps
+		return cfg.AIRecapsEnabled()
 	}
 	return &Scheduler{
 		PeriodicScheduler: jobs.NewPeriodicScheduler(
@@ -58,18 +58,29 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, cfg *model.Config, pendingJobs
 
 	for _, sr := range dueRecaps {
 		jobData := model.StringMap{
-			"scheduled_recap_id": sr.Id,
-			"user_id":            sr.UserId,
-			"channel_ids":        strings.Join(sr.ChannelIds, ","),
-			"agent_id":           sr.AgentId,
+			"scheduled_recap_id":  sr.Id,
+			"user_id":             sr.UserId,
+			"channel_ids":         strings.Join(sr.ChannelIds, ","),
+			"agent_id":            sr.AgentId,
+			"time_period":         sr.TimePeriod,
+			"custom_instructions": sr.CustomInstructions,
 		}
 
-		_, jobErr := s.jobServer.CreateJobOnce(rctx, model.JobTypeScheduledRecap, jobData)
+		job, jobErr := s.jobServer.CreateJobOnceByTypeAndData(
+			rctx,
+			model.JobTypeScheduledRecap,
+			jobData,
+			map[string]string{"scheduled_recap_id": sr.Id},
+		)
 		if jobErr != nil {
-			// Job might already exist - this is OK (deduplication)
-			mlog.Debug("Scheduled recap job creation skipped",
+			mlog.Warn("Scheduled recap job creation failed",
 				mlog.String("scheduled_recap_id", sr.Id),
 				mlog.Err(jobErr))
+			continue
+		}
+		if job == nil {
+			mlog.Debug("Scheduled recap job already queued",
+				mlog.String("scheduled_recap_id", sr.Id))
 		}
 	}
 

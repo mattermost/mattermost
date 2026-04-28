@@ -11,9 +11,9 @@ import (
 )
 
 func TestGetEffectiveLimitsDefaults(t *testing.T) {
-	mainHelper.Parallel(t)
-
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Ensure defaults are set (they should be by default)
 	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
@@ -35,9 +35,9 @@ func TestGetEffectiveLimitsDefaults(t *testing.T) {
 }
 
 func TestGetEffectiveLimitsWithDisabledToggle(t *testing.T) {
-	mainHelper.Parallel(t)
-
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Disable the EnforceRecapsPerDay toggle
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -61,9 +61,9 @@ func TestGetEffectiveLimitsWithDisabledToggle(t *testing.T) {
 }
 
 func TestGetEffectiveLimitsWithCustomDefaults(t *testing.T) {
-	mainHelper.Parallel(t)
-
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Set custom default limits
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -89,9 +89,9 @@ func TestGetEffectiveLimitsWithCustomDefaults(t *testing.T) {
 }
 
 func TestGetEffectiveLimitsAllTogglesDisabled(t *testing.T) {
-	mainHelper.Parallel(t)
-
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Disable all enforcement toggles
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -118,10 +118,47 @@ func TestGetEffectiveLimitsAllTogglesDisabled(t *testing.T) {
 	require.Equal(t, -1, limits.CooldownMinutes, "CooldownMinutes should be unlimited")
 }
 
-func TestGetEffectiveLimitsUnlimitedConfigValue(t *testing.T) {
-	mainHelper.Parallel(t)
-
+func TestGetEffectiveLimitsMasterToggleDisabled(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
 	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = true
+		cfg.AIRecapSettings.Enable = model.NewPointer(false)
+		cfg.AIRecapSettings.EnforceRecapsPerDay = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforceScheduledRecaps = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforceChannelsPerRecap = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforcePostsPerRecap = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforceTokensPerRecap = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforcePostsPerDay = model.NewPointer(true)
+		cfg.AIRecapSettings.EnforceCooldown = model.NewPointer(true)
+	})
+
+	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	require.NotNil(t, appErr)
+	require.Nil(t, limits)
+	require.Equal(t, "api.recap.disabled.app_error", appErr.Id)
+}
+
+func TestGetEffectiveLimitsFeatureFlagDisabled(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "false")
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.FeatureFlags.EnableAIRecaps = false
+		cfg.AIRecapSettings.Enable = model.NewPointer(true)
+	})
+
+	limits, appErr := th.App.GetEffectiveLimits("any-user-id")
+	require.NotNil(t, appErr)
+	require.Nil(t, limits)
+	require.Equal(t, "api.recap.disabled.app_error", appErr.Id)
+}
+
+func TestGetEffectiveLimitsUnlimitedConfigValue(t *testing.T) {
+	t.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	th := Setup(t).InitBasic(t)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
 
 	// Set MaxRecapsPerDay to unlimited (-1) in config
 	th.App.UpdateConfig(func(cfg *model.Config) {

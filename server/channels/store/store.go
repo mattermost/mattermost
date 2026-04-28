@@ -811,6 +811,9 @@ type JobStore interface {
 	// If this method is called concurrently with another job of the same type,
 	// then nil, nil is returned.
 	SaveOnce(job *model.Job) (*model.Job, error)
+	// SaveOnceByTypeAndData will only insert the job when there is no pending or
+	// in-progress job with the same type matching the data filter.
+	SaveOnceByTypeAndData(job *model.Job, data map[string]string) (*model.Job, error)
 	UpdateOptimistically(job *model.Job, currentStatus string) (bool, error)
 	UpdateStatus(id string, status string) (*model.Job, error)
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (*model.Job, error)
@@ -1344,6 +1347,11 @@ type RecapStore interface {
 	// Excludes skipped recaps, but includes soft-deleted recaps because they still
 	// consumed AI usage.
 	CountForUserSince(userId string, since int64) (int64, error)
+
+	// SumTotalMessageCountForUserSince returns the total number of posts processed
+	// by recaps created by user since given timestamp. Excludes skipped recaps, but
+	// includes soft-deleted recaps because they still consumed AI usage.
+	SumTotalMessageCountForUserSince(userId string, since int64) (int64, error)
 
 	// GetLastCompletedManualRecap returns the most recent completed manual recap for user.
 	// Manual recap = ScheduledRecapId is empty. Used for cooldown checking, including

@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -28,6 +29,17 @@ func (a *App) getStartOfUserDayMillis(userID string) (int64, *model.AppError) {
 	}
 
 	return startOfDay.UnixMilli(), nil
+}
+
+func (a *App) AIRecapsEnabled() bool {
+	return a.Config().AIRecapsEnabled()
+}
+
+func (a *App) requireAIRecapsEnabled(where string) *model.AppError {
+	if !a.AIRecapsEnabled() {
+		return model.NewAppError(where, "api.recap.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	return nil
 }
 
 // GetRecapLimitStatus returns the current user's limit status for UI display
@@ -81,6 +93,10 @@ func (a *App) GetRecapLimitStatus(userID string) (*model.RecapLimitStatus, error
 
 // GetEffectiveLimits returns the resolved recap limits for a given user.
 func (a *App) GetEffectiveLimits(userID string) (*model.EffectiveRecapLimits, *model.AppError) {
+	if appErr := a.requireAIRecapsEnabled("GetEffectiveLimits"); appErr != nil {
+		return nil, appErr
+	}
+
 	config := a.Config()
 	settings := &config.AIRecapSettings
 

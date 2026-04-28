@@ -39,7 +39,7 @@ type Props = {
 type RecapType = 'selected' | 'all_unreads';
 
 const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
-    const {formatMessage} = useIntl();
+    const {formatMessage, formatTime} = useIntl();
     const dispatch = useDispatch();
     const history = useHistory();
     const teamUrl = useSelector(getCurrentRelativeTeamUrl);
@@ -76,28 +76,30 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
     // Edit mode detection
     const isEditMode = Boolean(editScheduledRecap);
 
-    // Determine if action should be blocked
-    const isBlocked = useMemo(() => {
-        if (!limitStatus) {
-            return false;
+    const manualLimitBlockMessage = useMemo(() => {
+        if (!limitStatus || !runOnce) {
+            return '';
         }
 
-        // For "run once" (manual recap): check cooldown and daily limit
-        if (runOnce) {
-            if (limitStatus.cooldown.is_active) {
-                return true;
-            }
-            const {daily} = limitStatus;
-            if (daily.limit !== -1 && daily.used >= daily.limit) {
-                return true;
-            }
+        if (limitStatus.cooldown.is_active) {
+            return formatMessage(
+                {id: 'recaps.addRecap.cooldownTooltip', defaultMessage: 'Available again at {time}'},
+                {time: formatTime(new Date(limitStatus.cooldown.available_at), {hour: 'numeric', minute: '2-digit'})},
+            );
         }
 
-        // For scheduled: check max scheduled recaps (not implemented in status yet - future enhancement)
-        // Current behavior: don't block scheduled creation from UI, let API reject if over limit
+        const {daily} = limitStatus;
+        if (daily.limit !== -1 && daily.used >= daily.limit) {
+            return formatMessage(
+                {id: 'recaps.addRecap.limitReachedTooltip', defaultMessage: 'Daily limit reached. Resets at {time}'},
+                {time: formatTime(new Date(daily.reset_at), {hour: 'numeric', minute: '2-digit'})},
+            );
+        }
 
-        return false;
-    }, [limitStatus, runOnce]);
+        return '';
+    }, [formatMessage, formatTime, limitStatus, runOnce]);
+
+    const isBlocked = manualLimitBlockMessage.length > 0;
 
     // Fetch AI agents on mount
     useEffect(() => {
@@ -182,6 +184,11 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             return;
         }
 
+        if (runOnce && isBlocked) {
+            setError(manualLimitBlockMessage);
+            return;
+        }
+
         // For scheduled recaps (not run once), validate schedule fields
         if (!runOnce) {
             if (daysOfWeek === 0) {
@@ -255,6 +262,8 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         userTimezone,
         recapName,
         recapType,
+        isBlocked,
+        manualLimitBlockMessage,
         dispatch,
         onExited,
         history,
@@ -440,6 +449,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     className='GenericModal__button btn btn-primary'
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
+                    title={currentStep === 3 && runOnce && manualLimitBlockMessage ? manualLimitBlockMessage : undefined}
                 >
                     {confirmButtonText}
                     {currentStep < 3 && <ChevronRightIcon size={16}/>}
@@ -447,6 +457,8 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             </div>
         </div>
     );
+
+    const displayedError = error || (currentStep === 3 && runOnce ? manualLimitBlockMessage : null);
 
     return (
         <GenericModal
@@ -460,10 +472,10 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             footerContent={footerContent}
         >
             <div className='create-recap-modal-body'>
-                {error && (
+                {displayedError && (
                     <div className='create-recap-modal-error'>
                         <i className='icon icon-alert-circle-outline'/>
-                        <span>{error}</span>
+                        <span>{displayedError}</span>
                     </div>
                 )}
                 {renderStep()}

@@ -38,6 +38,14 @@ func createTestScheduledRecap(userId string) *model.ScheduledRecap {
 	}
 }
 
+func scheduledRecapIDs(recaps []*model.ScheduledRecap) []string {
+	ids := make([]string, 0, len(recaps))
+	for _, recap := range recaps {
+		ids = append(ids, recap.Id)
+	}
+	return ids
+}
+
 func TestScheduledRecapStore(t *testing.T) {
 	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		t.Run("SaveAndGet", func(t *testing.T) {
@@ -267,6 +275,27 @@ func TestScheduledRecapStore(t *testing.T) {
 			assert.False(t, ids[futureSR.Id], "future recap should NOT be returned")
 			assert.False(t, ids[disabledSR.Id], "disabled recap should NOT be returned")
 			assert.False(t, ids[deletedSR.Id], "deleted recap should NOT be returned")
+		})
+
+		t.Run("GetDueBeforeReflectsMarkExecuted", func(t *testing.T) {
+			userId := model.NewId()
+			now := model.GetMillis()
+
+			sr := createTestScheduledRecap(userId)
+			sr.NextRunAt = now - 3600000
+			_, err := ss.ScheduledRecap().Save(sr)
+			require.NoError(t, err)
+
+			dueRecaps, err := ss.ScheduledRecap().GetDueBefore(now, 10)
+			require.NoError(t, err)
+			require.Contains(t, scheduledRecapIDs(dueRecaps), sr.Id)
+
+			err = ss.ScheduledRecap().MarkExecuted(sr.Id, now, now+3600000)
+			require.NoError(t, err)
+
+			dueRecaps, err = ss.ScheduledRecap().GetDueBefore(now, 10)
+			require.NoError(t, err)
+			require.NotContains(t, scheduledRecapIDs(dueRecaps), sr.Id)
 		})
 
 		t.Run("UpdateNextRunAt", func(t *testing.T) {
