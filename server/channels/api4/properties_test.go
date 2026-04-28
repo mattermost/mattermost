@@ -24,7 +24,10 @@ func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
 		cfg.FeatureFlags.ClassificationMarkings = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "classification_test")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "classification_test",
+		Version: model.PropertyGroupVersionV1,
+	})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
