@@ -23,9 +23,14 @@ const POST_OBJECT_TYPE = 'post';
 const CHANNEL_TARGET_TYPE = 'channel';
 
 const loadedChannelPostFields = new Set<string>();
+const loadedPostValues = new Set<string>();
 
 export function resetLoadedChannelPostFields() {
     loadedChannelPostFields.clear();
+}
+
+export function resetLoadedPostValues() {
+    loadedPostValues.clear();
 }
 
 function dispatchReceivedFields(dispatch: any, fields: PropertyField[], groupName?: string) {
@@ -81,6 +86,11 @@ export function loadChannelPostPropertyFields(channelId: string): ActionFuncAsyn
 
 export function loadPostPropertyValues(postId: string): ActionFuncAsync<Array<PropertyValue<unknown>>> {
     return async (dispatch, getState) => {
+        if (loadedPostValues.has(postId)) {
+            return {data: []};
+        }
+        loadedPostValues.add(postId);
+
         let values: Array<PropertyValue<unknown>>;
         try {
             values = await Client4.getPropertyValues<unknown>(
@@ -89,6 +99,7 @@ export function loadPostPropertyValues(postId: string): ActionFuncAsync<Array<Pr
                 postId,
             );
         } catch (error) {
+            loadedPostValues.delete(postId);
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};

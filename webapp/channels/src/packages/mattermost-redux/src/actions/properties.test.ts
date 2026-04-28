@@ -59,6 +59,7 @@ describe('Actions.properties', () => {
     afterEach(() => {
         nock.cleanAll();
         Actions.resetLoadedChannelPostFields();
+        Actions.resetLoadedPostValues();
     });
 
     describe('loadChannelPostPropertyFields', () => {
@@ -149,6 +150,21 @@ describe('Actions.properties', () => {
             const result = await store.dispatch(Actions.loadPostPropertyValues(postId));
             expect(result.data).toEqual([value]);
             expect(store.getState().entities.properties.values.byTargetId[postId][value.field_id]).toEqual(value);
+        });
+    });
+
+    describe('loadPostPropertyValues dedup', () => {
+        it('skips a second fetch for the same post', async () => {
+            const store = configureStore();
+            const value = mockValue();
+
+            nock(Client4.getBaseRoute()).
+                get(`/properties/groups/${ChannelPostPropertyGroupName}/post/values/${postId}`).
+                reply(200, [value]);
+
+            await store.dispatch(Actions.loadPostPropertyValues(postId));
+            const second = await store.dispatch(Actions.loadPostPropertyValues(postId));
+            expect(second.data).toEqual([]);
         });
     });
 

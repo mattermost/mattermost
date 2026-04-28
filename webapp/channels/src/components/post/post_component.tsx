@@ -23,6 +23,7 @@ import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
+import PostPropertyChips from 'components/post_property_chips';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import BurnOnReadBadge from 'components/post_view/burn_on_read_badge';
@@ -896,6 +897,12 @@ function PostComponent(props: Props) {
                                 />
                             )}
                             <div className='post__body-reactions-acks'>
+                                {post.id && post.channel_id && (
+                                    <PostPropertyChips
+                                        postId={post.id}
+                                        channelId={post.channel_id}
+                                    />
+                                )}
                                 {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
                                     <PostAcknowledgements
                                         authorId={post.user_id}
