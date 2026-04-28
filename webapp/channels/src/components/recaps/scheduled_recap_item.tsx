@@ -48,10 +48,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
             const action = scheduledRecap.enabled ?
                 pauseScheduledRecap(scheduledRecap.id) :
                 resumeScheduledRecap(scheduledRecap.id);
-            const result = await dispatch(action) as ActionResult<ScheduledRecap>;
-            if (result.error) {
-                return;
-            }
+            await dispatch(action);
         } finally {
             setIsToggling(false);
         }

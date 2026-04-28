@@ -3,6 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
+
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export async function setupRecapBridge(
