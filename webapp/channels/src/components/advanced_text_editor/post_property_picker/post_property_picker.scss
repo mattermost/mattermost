@@ -44,8 +44,8 @@
     .post-property-picker__add-new-icon {
         display: inline-flex;
         align-items: center;
-        margin-inline-end: 8px;
         color: var(--button-bg);
+        margin-inline-end: 8px;
     }
 }
 
@@ -61,8 +61,8 @@
 
 .post-property-picker__trigger {
     display: inline-flex;
-    align-items: center;
     height: 28px;
+    align-items: center;
     padding: 0 12px 0 8px;
     border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
     border-radius: 14px;
@@ -76,16 +76,16 @@
     transition: background-color 0.12s ease, border-color 0.12s ease;
 
     &:hover:not(:disabled) {
-        background: rgba(var(--button-bg-rgb), 0.08);
         border-color: var(--button-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
     }
 
     &:focus-visible,
     &.post-property-picker__trigger--active {
-        outline: none;
-        background: rgba(var(--button-bg-rgb), 0.08);
         border-style: solid;
         border-color: var(--button-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        outline: none;
     }
 
     &:disabled {
@@ -99,8 +99,8 @@
 }
 
 .post-property-picker__add-new-row {
-    list-style: none;
     padding: 0;
+    list-style: none;
 }
 
 .post-property-picker__add-new-btn {
@@ -124,23 +124,23 @@
 }
 
 .post-property-picker__form-wrapper {
-    list-style: none;
     min-width: 280px;
     max-width: 320px;
     padding: 0;
+    list-style: none;
 
     .new-property-form {
-        overflow-y: auto;
         max-height: 60vh;
         padding: 8px 12px;
+        overflow-y: auto;
     }
 
     .new-property-form__actions {
         position: sticky;
         bottom: 0;
         padding-top: 8px;
-        margin-top: 4px;
         border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 4px;
         background: var(--center-channel-bg);
     }
 }

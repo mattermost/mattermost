@@ -5,8 +5,8 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {GenericModal} from '@mattermost/components';
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {GenericModal} from '@mattermost/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
 import {

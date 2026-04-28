@@ -11,8 +11,8 @@
 
 .staged-property-chip {
     display: inline-flex;
-    align-items: stretch;
     overflow: hidden;
+    align-items: stretch;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 14px;
     background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -24,8 +24,8 @@
 
 .staged-property-chip__trigger {
     display: inline-flex;
-    align-items: center;
     height: 26px;
+    align-items: center;
     padding: 0 8px;
     border: none;
     background: transparent;

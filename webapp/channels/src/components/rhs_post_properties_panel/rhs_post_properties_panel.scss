@@ -24,10 +24,10 @@
 
 .rhs-post-properties-panel__row {
     display: grid;
+    min-height: 28px;
     align-items: center;
     column-gap: 12px;
     grid-template-columns: minmax(120px, 35%) 1fr;
-    min-height: 28px;
 }
 
 .rhs-post-properties-panel__row-label {
@@ -58,8 +58,8 @@
 
 .rhs-post-properties-panel__row-value {
     display: flex;
-    align-items: center;
     min-width: 0;
+    align-items: center;
 }
 
 .rhs-post-properties-panel__row-trigger {

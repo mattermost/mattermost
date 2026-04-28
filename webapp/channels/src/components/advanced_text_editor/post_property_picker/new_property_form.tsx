@@ -61,14 +61,14 @@ export default function NewPropertyForm({onSave, onCancel}: Props) {
     const handleSave = useCallback(async () => {
         let valid = true;
 
-        if (!name.trim()) {
+        if (name.trim()) {
+            setNameError('');
+        } else {
             setNameError(formatMessage({
                 id: 'new_property_form.name_required',
                 defaultMessage: 'Name is required',
             }));
             valid = false;
-        } else {
-            setNameError('');
         }
 
         if (needsOptions && options.length === 0) {

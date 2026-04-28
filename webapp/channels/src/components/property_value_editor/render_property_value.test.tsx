@@ -67,6 +67,7 @@ describe('components/property_value_editor/renderPropertyValue', () => {
         const pill = container.querySelector('.property-pill') as HTMLElement | null;
         expect(pill).not.toBeNull();
         expect(pill?.textContent).toBe('Open');
+
         // jsdom normalizes hex to rgb
         expect(pill?.style.backgroundColor).toBe('rgb(255, 0, 170)');
     });
@@ -124,6 +125,7 @@ describe('components/property_value_editor/renderPropertyValue', () => {
         renderWithContext(
             <span data-testid='wrap'>{renderPropertyValue(field, 'unknown-user')}</span>,
         );
+
         // we render the raw user id when unknown
         expect(screen.getByTestId('wrap')).toHaveTextContent('unknown-user');
     });

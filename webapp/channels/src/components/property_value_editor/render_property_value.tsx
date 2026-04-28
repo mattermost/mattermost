@@ -7,8 +7,8 @@ import {useSelector} from 'react-redux';
 
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
-import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import Avatar from 'components/widgets/users/avatar/avatar';
@@ -16,10 +16,6 @@ import Avatar from 'components/widgets/users/avatar/avatar';
 import {imageURLForUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-
-type RenderContext = {
-    compact?: boolean;
-};
 
 function getOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? [];
@@ -74,7 +70,6 @@ function UserValue({userId}: {userId: string}) {
 export function renderPropertyValue(
     field: PropertyField,
     value: unknown,
-    _ctx: RenderContext = {},
 ): React.ReactElement | null {
     if (isEmpty(value)) {
         return null;
