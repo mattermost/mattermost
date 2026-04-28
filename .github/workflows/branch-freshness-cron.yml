@@ -1,0 +1,28 @@
+name: Branch Freshness Cron
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: read
+
+jobs:
+  recheck-open-prs:
+    runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - name: Re-evaluate freshness for open PRs targeting master
+        run: bash .github/scripts/branch-freshness-recheck.sh
