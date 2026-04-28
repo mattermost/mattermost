@@ -13603,6 +13603,22 @@ func (s *TimerLayerUserStore) UpdateFailedPasswordAttempts(userID string, attemp
 	return err
 }
 
+func (s *TimerLayerUserStore) TryIncrementFailedPasswordAttempts(userID string, maxAttempts int) (bool, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.TryIncrementFailedPasswordAttempts(userID, maxAttempts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.TryIncrementFailedPasswordAttempts", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) UpdateLastLogin(userID string, lastLogin int64) error {
 	start := time.Now()
 
