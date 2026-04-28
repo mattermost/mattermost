@@ -372,6 +372,13 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	appErr = verifySchemeAdminAssignmentPermission(c, syncableType, syncableID, patch)
+	if appErr != nil {
+		appErr.Where = "Api4.linkGroupSyncable"
+		c.Err = appErr
+		return
+	}
+
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    c.Params.GroupId,
 		SyncableId: syncableID,
@@ -555,6 +562,13 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	appErr = verifySchemeAdminAssignmentPermission(c, syncableType, syncableID, patch)
+	if appErr != nil {
+		appErr.Where = "Api4.patchGroupSyncable"
+		c.Err = appErr
+		return
+	}
+
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil {
 		c.Err = appErr
@@ -699,6 +713,43 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 
 		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission); !ok {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+		}
+	}
+
+	return nil
+}
+
+// verifySchemeAdminAssignmentPermission must be called whenever an incoming
+// GroupSyncablePatch attempts to set SchemeAdmin to true. It enforces that
+// the caller has the role-management permission for the syncable type
+// (manage_team_roles / manage_channel_roles), or the sysconsole groups
+// write permission as an override. Returns nil if no elevation is being
+// requested (patch == nil or SchemeAdmin == nil or *SchemeAdmin == false).
+//
+// This is the MM-68547 mitigation: linking/patching a group syncable and
+// granting team/channel admin via that syncable are two distinct privileged
+// actions and must be authorized independently. verifyLinkUnlinkPermission
+// gates the link itself on PermissionInviteUser / manage_*_channel_members,
+// which are granted to plain team/channel members; without this additional
+// check, any team or channel member could elevate the entire group to
+// team-admin or channel-admin by setting scheme_admin: true.
+func verifySchemeAdminAssignmentPermission(c *Context, syncableType model.GroupSyncableType, syncableID string, patch *model.GroupSyncablePatch) *model.AppError {
+	if patch == nil || patch.SchemeAdmin == nil || !*patch.SchemeAdmin {
+		return nil
+	}
+
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleWriteUserManagementGroups) {
+		return nil
+	}
+
+	switch syncableType {
+	case model.GroupSyncableTypeTeam:
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeamRoles) {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeamRoles})
+		}
+	case model.GroupSyncableTypeChannel:
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageChannelRoles); !ok {
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageChannelRoles})
 		}
 	}
 
