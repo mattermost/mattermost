@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
@@ -299,7 +301,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 func testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, serverURL, nil)
+	versionURL, err := url.JoinPath(serverURL, "version")
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, versionURL, nil)
 	if err != nil {
 		return err
 	}
@@ -308,6 +314,9 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 		return err
 	}
 	resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
+	}
 	return nil
 }
 

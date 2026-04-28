@@ -528,6 +528,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("push notifications reachable", func(t *testing.T) {
 		pushServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, "/version", r.URL.Path)
 			w.WriteHeader(http.StatusOK)
 		}))
 		defer pushServer.Close()
