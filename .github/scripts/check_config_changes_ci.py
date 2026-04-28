@@ -161,7 +161,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # Groups:   (path, handler_function, HTTP_METHOD)
 _HANDLE_RE = re.compile(
     r'\.Handle\("([^"]*)"'           # path
-    r',\s*\w+\.\w+\(([^)]+)\)\)'    # wrapper(handler...))
+    r',\s*\w+\.\w+\((\w+)\)\)'      # wrapper(handlerFunc))
     r'\.Methods\((?:http\.Method)?(\w+)\)'  # .Methods(GET / http.MethodGet)
 )
  
@@ -187,7 +187,7 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     added_eps:   list[str] = []
     removed_eps: list[str] = []
  
-    for _, patch in api4_patches.items():
+    for fname, patch in api4_patches.items():
         added_lines, removed_lines = lines_by_sign(patch)
  
         for line in added_lines:
@@ -344,11 +344,7 @@ def inject_note(body: str, note: str) -> str:
 # ── GitHub API ─────────────────────────────────────────────────────────────────
  
 def get_pr_body() -> str:
-    r = requests.get(
-        f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
-        headers=HEADERS,
-        timeout=15,
-    )
+    r = requests.get(f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}", headers=HEADERS)
     r.raise_for_status()
     return r.json().get("body") or ""
  
@@ -358,7 +354,6 @@ def update_pr_body(new_body: str) -> None:
         f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
         headers=HEADERS,
         json={"body": new_body},
-        timeout=15,
     )
     r.raise_for_status()
  
@@ -399,16 +394,12 @@ def main():
             print(f"  –  {r.label}: no changes")
  
     note = build_pr_note(results)
+    if not note:
+        print("\nℹ️  No notable changes found across all checkers.")
+        return
+ 
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
-
-    if not note:
-        if MARKER_OPEN in (body or ""):
-            update_pr_body(strip_old_note(body))
-            print("✅ Removed stale config-change-checker note from PR description.")
-        else:
-            print("\nℹ️  No notable changes found across all checkers.")
-        return
  
     if already_up_to_date(body):
         print("ℹ️  PR description is already up to date for this commit.")
@@ -426,8 +417,8 @@ if __name__ == "__main__":
         print(f"❌ git diff failed:\n{e.stderr}", file=sys.stderr)
         sys.exit(1)
     except requests.HTTPError as e:
-        print(f"❌ GitHub API error: {e.response.status_code}\n{e.response.text}", file=sys.stderr)
-        sys.exit(1)
-    except requests.RequestException as e:
-        print(f"❌ GitHub request failed: {e}", file=sys.stderr)
+        # Avoid dumping the full response body (can be large / noisy).
+        # status + reason gives enough context for debugging (e.g. "403 Forbidden").
+        reason = e.response.reason or "unknown"
+        print(f"❌ GitHub API error: {e.response.status_code} {reason}", file=sys.stderr)
         sys.exit(1)
