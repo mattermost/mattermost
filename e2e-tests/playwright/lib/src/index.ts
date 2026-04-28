@@ -67,8 +67,6 @@ export {
 
 export {TestArgs, ScreenshotOptions} from './types';
 
-export {getAdminClient} from './server';
-
 export {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
@@ -85,6 +83,7 @@ export {
     hasCustomPermissionsSchemesLicense,
     licenseTier,
 } from './license_helpers';
+
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,

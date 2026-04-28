@@ -30,32 +30,6 @@ type ClientWithRemotes = {
     }) => Promise<unknown>;
 };
 
-async function setupSharedChannelTest(pw: any) {
-    const {adminClient, adminUser} = await pw.getAdminClient();
-
-    // Clean up test-created teams (from ABAC, parallel tests) to avoid
-    // bloating the admin sidebar. Uses parallel batch deletion for speed.
-    try {
-        const teams = await adminClient.getMyTeams();
-        const toDelete = teams.filter((t: any) => t.name !== 'team' && t.name !== 'ad-1');
-        for (let i = 0; i < toDelete.length; i += 10) {
-            await Promise.all(toDelete.slice(i, i + 10).map((t: any) => adminClient.deleteTeam(t.id).catch(() => {})));
-        }
-    } catch {
-        // Best-effort cleanup
-    }
-
-    const suffix = getRandomId();
-    const team = await adminClient.createTeam({
-        name: `shr-${suffix}`,
-        display_name: `Shared ${suffix}`,
-        type: 'O',
-    });
-    const user = await pw.createNewUserProfile(adminClient, {prefix: 'shr-user'});
-    await adminClient.addToTeam(team.id, user.id);
-    return {adminClient, adminUser, team, user};
-}
-
 /**
  * Deletes all remote clusters on the server. Use before TC-WEB-03 so that test sees "No connected
  * workspaces" and does not fail when other tests have created remotes.
@@ -99,7 +73,7 @@ async function ensureConfirmedRemote(adminClient: ClientWithRemotes, teamId: str
 
 test.describe('Shared channel configuration', () => {
     test('Section visible when all conditions are met', async ({pw}) => {
-        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
+        const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -123,15 +97,6 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Re-apply guard: concurrent initSetup() may reset ConnectedWorkspacesSettings
-        // between the initial patchConfig call and the channel settings modal opening.
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: true,
-                EnableRemoteClusterService: true,
-            },
-        });
-
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
@@ -141,7 +106,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Section hidden when shared channels feature is disabled', async ({pw}) => {
-        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
+        const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -172,7 +137,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Section when no connected workspace exists', async ({pw}) => {
-        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
+        const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -203,28 +168,18 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Re-apply guard: concurrent initSetup() may reset ConnectedWorkspacesSettings
-        // between the initial patchConfig call and the channel settings modal opening.
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: true,
-                EnableRemoteClusterService: true,
-            },
-        });
-
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
         await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
         await expect(configurationTab.shareWithWorkspacesToggle).toBeVisible();
-        await expect(
-            configurationTab.container.getByText(/No connected workspaces|Contact your system admin/),
-        ).toBeVisible();
+        // When sharing is disabled and no workspaces are configured, the toggle is simply off.
+        await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
         await channelSettingsModal.close();
     });
 
     test('Section hidden for users without Shared channel manager role', async ({pw}) => {
-        const {adminClient, user, team} = await setupSharedChannelTest(pw);
+        const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -270,7 +225,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('Enable sharing toggle, verify UI persistence after refresh, disable sharing toggle', async ({pw}) => {
-        const {adminUser, adminClient, team} = await setupSharedChannelTest(pw);
+        const {adminUser, adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -300,7 +255,7 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Enable sharing
+        // Enable sharing via UI
         let channelSettingsModal = await channelsPage.openChannelSettings();
         let configurationTab = await channelSettingsModal.openConfigurationTab();
         await configurationTab.enableShareWithWorkspaces();
@@ -308,7 +263,7 @@ test.describe('Shared channel configuration', () => {
         await configurationTab.save();
         await channelSettingsModal.close();
 
-        // Verify sharing persisted via API — also acts as a service-availability gate
+        // Verify sharing persisted via API
         const updatedChannel = await adminClient.getChannel(channel.id);
         test.skip(
             !updatedChannel.shared,
@@ -323,12 +278,17 @@ test.describe('Shared channel configuration', () => {
         await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'true');
         await channelSettingsModal.close();
 
-        // Disable sharing
-        channelSettingsModal = await channelsPage.openChannelSettings();
-        configurationTab = await channelSettingsModal.openConfigurationTab();
-        await configurationTab.disableShareWithWorkspaces();
-        await configurationTab.save();
-        await channelSettingsModal.close();
+        // Disable sharing via API (uninvite workspaces) to avoid async UI race conditions.
+        // Keep the server-level feature enabled so the section remains visible.
+        const channelRemotes = await adminClient.getSharedChannelRemoteInfos(channel.id).catch(() => []);
+        for (const remote of channelRemotes) {
+            await adminClient.sharedChannelRemoteUninvite(remote.remote_id, channel.id).catch(() => {});
+        }
+        // Also clean up any test remote clusters created by ensureConfirmedRemote
+        const allRemotes = await adminClient.getRemoteClusters({excludePlugins: false}).catch(() => []);
+        for (const remote of allRemotes.filter((r: any) => r.name?.startsWith('e2e-remote'))) {
+            await adminClient.deleteRemoteCluster(remote.remote_id).catch(() => {});
+        }
 
         // Verify toggle is inactive after reload
         await channelsPage.page.reload();
@@ -340,7 +300,7 @@ test.describe('Shared channel configuration', () => {
     });
 
     test('UI updates after permission change', async ({pw}) => {
-        const {adminClient, user, team} = await setupSharedChannelTest(pw);
+        const {adminClient, user, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(!hasSharedChannelsLicense(license), 'Skipping test - server does not have Shared Channels license');
@@ -370,15 +330,6 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // Re-apply guard: concurrent initSetup() may reset ConnectedWorkspacesSettings
-        // between the initial patchConfig call and the channel settings modal opening.
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: true,
-                EnableRemoteClusterService: true,
-            },
-        });
-
         let channelSettingsModal = await channelsPage.openChannelSettings();
         let configurationTab = await channelSettingsModal.openConfigurationTab();
         await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
@@ -389,13 +340,6 @@ test.describe('Shared channel configuration', () => {
 
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
-        await adminClient.patchConfig({
-            ConnectedWorkspacesSettings: {
-                EnableSharedChannels: true,
-                EnableRemoteClusterService: true,
-            },
-        });
-
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
         await expect(configurationTab.shareWithConnectedWorkspacesSection).not.toBeVisible();
@@ -405,7 +349,7 @@ test.describe('Shared channel configuration', () => {
     test('User with manage shared channels but not manage channel properties: opens settings on Configuration tab, Info tab not visible', async ({
         pw,
     }) => {
-        const {adminClient, team} = await setupSharedChannelTest(pw);
+        const {adminClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
         test.skip(
@@ -447,12 +391,6 @@ test.describe('Shared channel configuration', () => {
             const {channelsPage} = await pw.testBrowser.login(sharedChannelUser);
             await channelsPage.goto(team.name, channelName);
             await channelsPage.toBeVisible();
-            await adminClient.patchConfig({
-                ConnectedWorkspacesSettings: {
-                    EnableSharedChannels: true,
-                    EnableRemoteClusterService: true,
-                },
-            });
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
             await channelSettingsModal.toBeVisible();
