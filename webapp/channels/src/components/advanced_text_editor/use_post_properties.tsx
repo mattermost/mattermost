@@ -43,6 +43,12 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
         setStagedItems((current) => current.filter((i) => i.field_id !== fieldId));
     }, []);
 
+    const handleChangeStagedValue = useCallback((fieldId: string, value: unknown) => {
+        setStagedItems((current) => current.map(
+            (i) => (i.field_id === fieldId ? {...i, value} : i),
+        ));
+    }, []);
+
     const clearStaged = useCallback(() => {
         setStagedItems([]);
     }, []);
@@ -71,9 +77,10 @@ const usePostProperties = (channelId: string, rootId: string, disabled: boolean)
                 fields={fields}
                 stagedItems={stagedItems}
                 onRemove={handleRemoveStaged}
+                onChangeValue={handleChangeStagedValue}
             />
         );
-    }, [integratedBoardsEnabled, rootId, fields, stagedItems, handleRemoveStaged]);
+    }, [integratedBoardsEnabled, rootId, fields, stagedItems, handleRemoveStaged, handleChangeStagedValue]);
 
     return {
         stagedItems,

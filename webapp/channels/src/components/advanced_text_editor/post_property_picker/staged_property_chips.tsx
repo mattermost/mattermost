@@ -7,40 +7,28 @@ import {useIntl} from 'react-intl';
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import PropertyValueEditor from 'components/property_value_editor';
+
 import type {StagedPropertyItem} from './types';
 
 export type Props = {
     fields: PropertyField[];
     stagedItems: StagedPropertyItem[];
     onRemove: (fieldId: string) => void;
+    onChangeValue?: (fieldId: string, value: unknown) => void;
 };
 
-function isFilled(raw: unknown): boolean {
-    if (raw === null || raw === undefined) {
-        return false;
-    }
-    if (typeof raw === 'string') {
-        return raw.length > 0;
-    }
-    if (Array.isArray(raw)) {
-        return raw.length > 0;
-    }
-    return true;
-}
-
-function formatValue(raw: unknown): string {
-    if (Array.isArray(raw)) {
-        return raw.map((v) => String(v)).join(', ');
-    }
-    if (typeof raw === 'string' || typeof raw === 'number' || typeof raw === 'boolean') {
-        return String(raw);
-    }
-    return JSON.stringify(raw);
-}
-
-function StagedChip({field, value, onRemove}: {field: PropertyField; value: unknown; onRemove: (id: string) => void}) {
+function StagedChip({field, value, onRemove, onChangeValue}: {
+    field: PropertyField;
+    value: unknown;
+    onRemove: (id: string) => void;
+    onChangeValue?: (fieldId: string, value: unknown) => void;
+}) {
     const {formatMessage} = useIntl();
     const handleRemove = useCallback(() => onRemove(field.id), [field.id, onRemove]);
+    const handleChange = useCallback((next: unknown) => {
+        onChangeValue?.(field.id, next);
+    }, [field.id, onChangeValue]);
 
     const removeLabel = formatMessage(
         {id: 'post_property_picker.remove', defaultMessage: 'Remove {name}'},
@@ -53,8 +41,12 @@ function StagedChip({field, value, onRemove}: {field: PropertyField; value: unkn
             data-property-field-id={field.id}
         >
             <span className='staged-property-chip__name'>{field.name}</span>
-            {isFilled(value) && (
-                <span className='staged-property-chip__value'>{formatValue(value)}</span>
+            {onChangeValue && (
+                <PropertyValueEditor
+                    field={field}
+                    value={value}
+                    onChange={handleChange}
+                />
             )}
             <button
                 type='button'
@@ -68,7 +60,7 @@ function StagedChip({field, value, onRemove}: {field: PropertyField; value: unkn
     );
 }
 
-export default function StagedPropertyChips({fields, stagedItems, onRemove}: Props) {
+export default function StagedPropertyChips({fields, stagedItems, onRemove, onChangeValue}: Props) {
     const fieldsById = new Map(fields.map((f) => [f.id, f]));
 
     const visibleItems = stagedItems.
@@ -87,6 +79,7 @@ export default function StagedPropertyChips({fields, stagedItems, onRemove}: Pro
                     field={field}
                     value={value}
                     onRemove={onRemove}
+                    onChangeValue={onChangeValue}
                 />
             ))}
         </div>
