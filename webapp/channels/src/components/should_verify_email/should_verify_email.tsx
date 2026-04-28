@@ -9,7 +9,7 @@ import {useLocation, useHistory} from 'react-router-dom';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';
 
-import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
+import EmailInboxSVG from 'components/common/svg_images_components/email_inbox_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 
@@ -61,7 +61,7 @@ const ShouldVerifyEmail = () => {
                 <ColumnLayout
                     title={formatMessage({id: 'email_verify.almost', defaultMessage: 'You’re almost done!'})}
                     message={formatMessage({id: 'email_verify.notVerifiedBody', defaultMessage: 'Please verify your email address. Check your inbox for an email.'})}
-                    SVGElement={<ManWithMailboxSVG width={284}/>}
+                    SVGElement={<EmailInboxSVG width={284}/>}
                     extraContent={(
                         <div className='should-verify-body-content-extra'>
                             <div className='should-verify-body-content-buttons'>

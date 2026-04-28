@@ -59,6 +59,7 @@ export type State = {
     loading: boolean;
     submitting: string | null;
     form: AppForm;
+    isInteracting: boolean;
 }
 
 // Helper function to validate date format and warn if datetime format is used
@@ -163,8 +164,8 @@ const createSanitizedField = (field: AppField): AppField => {
         }
     }
 
-    // Sanitize date values for date/datetime fields
-    if (field.type === AppFieldTypes.DATE || field.type === AppFieldTypes.DATETIME) {
+    // Sanitize date values for date fields only — datetime fields need the full pattern preserved
+    if (field.type === AppFieldTypes.DATE) {
         if (field.min_date) {
             sanitized.min_date = getSafeDateValue(field.min_date);
         }
@@ -211,9 +212,20 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
-                const defaultMoment = minutesMod === 0 ?
+                let defaultMoment = minutesMod === 0 ?
                     currentTime.clone().seconds(0).milliseconds(0) :
                     currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
+
+                // Clamp default to min_date/max_date bounds
+                const minMoment = field.min_date ? stringToMoment(field.min_date, timezone) : null;
+                const maxMoment = field.max_date ? stringToMoment(field.max_date, timezone) : null;
+                if (minMoment && defaultMoment.isBefore(minMoment)) {
+                    defaultMoment = minMoment.clone();
+                }
+                if (maxMoment && defaultMoment.isAfter(maxMoment)) {
+                    defaultMoment = maxMoment.clone();
+                }
+
                 defaultValue = momentToString(defaultMoment, true);
             }
 
@@ -225,6 +237,12 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
 };
 
 export class AppsForm extends React.PureComponent<Props, State> {
+    // Cache sanitized fields to preserve object identity across renders.
+    // Without this, createSanitizedField() returns a new object every render,
+    // causing AppsFormSelectField to remount its AsyncSelect (via refreshNonce),
+    // which re-triggers dynamic select lookups on every keystroke in any field.
+    private sanitizedFieldCache = new Map<AppField, AppField>();
+
     constructor(props: Props) {
         super(props);
 
@@ -239,6 +257,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             fieldErrors: {},
             submitting: null,
             form,
+            isInteracting: false,
         };
     }
 
@@ -246,7 +265,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
         if (nextProps.form !== prevState.form) {
             const values = {
                 ...prevState.values,
-                ...initFormValues(nextProps.form),
+                ...initFormValues(nextProps.form, nextProps.timezone),
             };
 
             return {
@@ -256,6 +275,14 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return null;
+    }
+
+    componentDidUpdate(prevProps: Props) {
+        // Clear sanitized field cache when the form changes (e.g., refresh or multistep)
+        // so stale entries don't accumulate.
+        if (prevProps.form !== this.props.form) {
+            this.sanitizedFieldCache.clear();
+        }
     }
 
     updateErrors = (elements: DialogElement[], fieldErrors?: {[x: string]: string}, formError?: string): boolean => {
@@ -517,6 +544,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
         this.setState({values});
     };
 
+    setIsInteracting = (isInteracting: boolean) => {
+        this.setState({isInteracting});
+    };
+
     hasDateTimeFields = (): boolean => {
         const {fields} = this.props.form;
         return fields ? fields.some((field) =>
@@ -530,9 +561,8 @@ export class AppsForm extends React.PureComponent<Props, State> {
         const bodyClass = loading ? 'apps-form-modal-body-loading' : 'apps-form-modal-body-loaded';
         const bodyClassNames = 'apps-form-modal-body-common ' + bodyClass;
 
-        // Apply same pattern as DND modal for date/datetime fields
+        const dialogClassName = 'a11y__modal about-modal';
         const hasDateTimeFields = this.hasDateTimeFields();
-        const dialogClassName = hasDateTimeFields ? 'a11y__modal about-modal modal-overflow' : 'a11y__modal about-modal';
 
         return (
             <Modal
@@ -641,8 +671,13 @@ export class AppsForm extends React.PureComponent<Props, State> {
         }
 
         return fields.filter((f) => f.name !== form.submit_buttons).map((originalField, index) => {
-            // Use sanitized field for safe usage in components
-            const field = createSanitizedField(originalField);
+            // Use cached sanitized field to preserve object identity across renders.
+            // This prevents AsyncSelect remounts that trigger spurious lookup calls.
+            let field = this.sanitizedFieldCache.get(originalField);
+            if (!field) {
+                field = createSanitizedField(originalField);
+                this.sanitizedFieldCache.set(originalField, field);
+            }
 
             return (
                 <AppsFormField
@@ -654,6 +689,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     value={this.state.values[field.name]}
                     performLookup={this.performLookup}
                     onChange={this.onChange}
+                    setIsInteracting={this.setIsInteracting}
                     listComponent={isEmbedded ? SuggestionList : ModalSuggestionList}
                 />
             );
@@ -667,7 +703,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
             <>
                 {header && (
                     <AppsFormHeader
-                        id='appsModalHeader'
                         value={header}
                     />
                 )}
@@ -763,6 +798,8 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
+        min_date: f.min_date,
+        max_date: f.max_date,
     })) as DialogElement[];
 }
 

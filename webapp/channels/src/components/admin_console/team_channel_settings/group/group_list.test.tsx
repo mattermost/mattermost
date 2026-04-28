@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Group} from '@mattermost/types/groups';
 
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import GroupList from './group_list';
 
 describe('admin_console/team_channel_settings/group/GroupList', () => {
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const testGroups: Group[] = [TestHelper.getGroupMock({
             id: '123',
             display_name: 'DN',
@@ -22,25 +22,30 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(testGroups),
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <GroupList
                 data={testGroups}
-                groups={[]}
-                onGroupRemoved={jest.fn()}
-                isModeSync={false}
-                totalGroups={0}
+                groups={testGroups}
                 onPageChangedCallback={jest.fn()}
                 total={testGroups.length}
+                totalGroups={testGroups.length}
                 actions={actions}
                 removeGroup={jest.fn()}
+                onGroupRemoved={jest.fn()}
                 type='team'
                 setNewGroupRole={jest.fn()}
-            />);
+                isModeSync={false}
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with paging', () => {
+    test('should match snapshot with paging', async () => {
         const testGroups: Group[] = [];
         for (let i = 0; i < 30; i++) {
             testGroups.push(TestHelper.getGroupMock({
@@ -53,21 +58,26 @@ describe('admin_console/team_channel_settings/group/GroupList', () => {
             getData: jest.fn().mockResolvedValue(Promise.resolve(testGroups)),
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <GroupList
                 data={testGroups}
-                groups={[]}
-                onGroupRemoved={jest.fn()}
-                isModeSync={false}
-                totalGroups={0}
+                groups={testGroups}
                 onPageChangedCallback={jest.fn()}
                 total={30}
+                totalGroups={30}
                 actions={actions}
                 type='team'
                 removeGroup={jest.fn()}
+                onGroupRemoved={jest.fn()}
                 setNewGroupRole={jest.fn()}
-            />);
+                isModeSync={false}
+            />,
+        );
 
-        expect(wrapper).toMatchSnapshot();
+        await waitFor(() => {
+            expect(actions.getData).toHaveBeenCalled();
+        });
+
+        expect(container).toMatchSnapshot();
     });
 });

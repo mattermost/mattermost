@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import type {ReactComponentLike} from 'prop-types';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
@@ -12,15 +11,9 @@ import WithTooltip from 'components/with_tooltip';
 export type Props = {
 
     /**
-     * Whether to delay updating the value of the textbox from props. Should only be used
-     * on textboxes that to properly compose CJK characters as the user types.
-     */
-    delayInputUpdate?: boolean;
-
-    /**
      * An optional React component that will be used instead of an HTML input when rendering
      */
-    inputComponent?: ReactComponentLike;
+    inputComponent?: React.ElementType;
 
     /**
      * The string value displayed in this input
@@ -93,7 +86,6 @@ const defaultClearableTooltipText = (
 // A component that can be used to make controlled inputs that function properly in certain
 // environments (ie. IE11) where typing quickly would sometimes miss inputs
 export const QuickInput = React.memo(({
-    delayInputUpdate = false,
     value = '',
     clearable = false,
     autoFocus,
@@ -122,23 +114,11 @@ export const QuickInput = React.memo(({
     }, []);
 
     useEffect(() => {
-        const updateInputFromProps = () => {
-            if (!inputRef.current || inputRef.current.value === value) {
-                return;
-            }
-
-            inputRef.current.value = value;
-        };
-
-        if (delayInputUpdate) {
-            requestAnimationFrame(updateInputFromProps);
-        } else {
-            updateInputFromProps();
+        if (!inputRef.current || inputRef.current.value === value) {
+            return;
         }
 
-        /* eslint-disable-next-line react-hooks/exhaustive-deps --
-         * This 'useEffect' should run only when 'value' prop changes.
-         **/
+        inputRef.current.value = value;
     }, [value]);
 
     const setInputRef = useCallback((input: HTMLInputElement) => {

@@ -1,185 +1,267 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`MfaSection rendering should render nothing when MFA is not available 1`] = `""`;
+exports[`MfaSection rendering should render nothing when MFA is not available 1`] = `<div />`;
 
 exports[`MfaSection rendering when section is collapsed and MFA is active 1`] = `
-<SettingItemMin
-  describe={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Active"
-      id="user.settings.security.active"
-    />
-  }
-  section="mfa"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="mfaTitle"
+      >
+        Multi-factor Authentication
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="mfaTitle mfaEdit"
+        class="color--link style--none section-min__edit"
+        id="mfaEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="mfaDesc"
+    >
+      Active
+    </div>
+  </div>
+</div>
 `;
 
 exports[`MfaSection rendering when section is collapsed and MFA is not active 1`] = `
-<SettingItemMin
-  describe={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Inactive"
-      id="user.settings.security.inactive"
-    />
-  }
-  section="mfa"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+<div>
+  <div
+    class="section-min"
+  >
+    <div
+      class="section-min__header"
+    >
+      <h4
+        class="section-min__title"
+        id="mfaTitle"
+      >
+        Multi-factor Authentication
+      </h4>
+      <button
+        aria-expanded="false"
+        aria-labelledby="mfaTitle mfaEdit"
+        class="color--link style--none section-min__edit"
+        id="mfaEdit"
+      >
+        <i
+          aria-hidden="true"
+          class="icon-pencil-outline"
+          title="Edit Icon"
+        />
+        Edit
+      </button>
+    </div>
+    <div
+      class="section-min__describe"
+      id="mfaDesc"
+    >
+      Inactive
+    </div>
+  </div>
+</div>
 `;
 
 exports[`MfaSection rendering when section is expanded and MFA is active and enforced 1`] = `
-<Memo(SettingItemMax)
-  extraInfo={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately."
-      id="user.settings.mfa.requiredHelp"
-    />
-  }
-  inputs={
-    <div
-      className="pt-2"
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
     >
-      <a
-        className="btn btn-primary"
-        href="#"
-        onClick={[Function]}
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Reset MFA on Account"
-          id="user.settings.mfa.reset"
-        />
-      </a>
-      <br />
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Reset MFA on Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Multi-factor authentication is required on this server. Resetting is only recommended when you need to switch code generation to a new mobile device. You will be required to set it up again immediately.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  }
-  serverError={null}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+  </section>
+</div>
 `;
 
 exports[`MfaSection rendering when section is expanded and MFA is active but not enforced 1`] = `
-<Memo(SettingItemMax)
-  extraInfo={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account."
-      id="user.settings.mfa.removeHelp"
-    />
-  }
-  inputs={
-    <div
-      className="pt-2"
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
     >
-      <a
-        className="btn btn-primary"
-        href="#"
-        onClick={[Function]}
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Remove MFA from Account"
-          id="user.settings.mfa.remove"
-        />
-      </a>
-      <br />
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Remove MFA from Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Removing multi-factor authentication means you will no longer require a phone-based passcode to sign-in to your account.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  }
-  serverError={null}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+  </section>
+</div>
 `;
 
 exports[`MfaSection rendering when section is expanded and MFA is not active 1`] = `
-<Memo(SettingItemMax)
-  extraInfo={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
-      id="user.settings.mfa.addHelp"
-    />
-  }
-  inputs={
-    <div
-      className="pt-2"
+<div>
+  <section
+    class="section-max form-horizontal "
+  >
+    <h4
+      class="col-sm-12 section-title"
+      id="settingTitle"
     >
-      <a
-        className="btn btn-primary"
-        href="#"
-        onClick={[Function]}
+      Multi-factor Authentication
+    </h4>
+    <div
+      class="sectionContent col-sm-10 col-sm-offset-2"
+    >
+      <div
+        class="setting-list"
+        tabindex="-1"
       >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add MFA to Account"
-          id="user.settings.mfa.add"
-        />
-      </a>
-      <br />
+        <div
+          class="setting-list-item"
+        >
+          <div
+            class="pt-2"
+          >
+            <a
+              class="btn btn-primary a11y--active a11y--focused"
+              href="#"
+            >
+              Add MFA to Account
+            </a>
+            <br />
+          </div>
+          <div
+            class="setting-list__hint"
+            id="extraInfo"
+          >
+            Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in.
+          </div>
+        </div>
+        <div
+          class="setting-list-item"
+        >
+          <hr />
+          <div
+            role="alert"
+          />
+          <button
+            class="btn btn-tertiary"
+            data-testid="cancelButton"
+            id="cancelSetting"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  }
-  serverError={null}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+  </section>
+</div>
 `;
 
 exports[`MfaSection rendering when section is expanded with a server error 1`] = `
-<Memo(SettingItemMax)
-  extraInfo={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Adding multi-factor authentication will make your account more secure by requiring a code from your mobile phone each time you sign in."
-      id="user.settings.mfa.addHelp"
-    />
-  }
-  inputs={
-    <div
-      className="pt-2"
-    >
-      <a
-        className="btn btn-primary"
-        href="#"
-        onClick={[Function]}
-      >
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add MFA to Account"
-          id="user.settings.mfa.add"
-        />
-      </a>
-      <br />
-    </div>
-  }
-  serverError="An error has occurred"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Multi-factor Authentication"
-      id="user.settings.mfa.title"
-    />
-  }
-  updateSection={[MockFunction]}
-/>
+<span
+  id="serverError"
+>
+  An error has occurred
+</span>
 `;

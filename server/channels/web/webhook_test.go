@@ -30,10 +30,11 @@ func TestIncomingWebhook(t *testing.T) {
 
 	url := apiClient.URL + "/hooks/" + hook.Id
 
-	tooLongText := ""
+	var tooLongTextBuilder strings.Builder
 	for range 8200 {
-		tooLongText += "a"
+		tooLongTextBuilder.WriteString("a")
 	}
+	tooLongText := tooLongTextBuilder.String()
 
 	t.Run("WebhookBasics", func(t *testing.T) {
 		payload := "payload={\"text\": \"test text\"}"

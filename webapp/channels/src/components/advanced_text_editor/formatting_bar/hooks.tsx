@@ -3,66 +3,105 @@
 
 import type {Instance} from '@popperjs/core';
 import debounce from 'lodash/debounce';
-import type React from 'react';
 import {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
-type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
+export const LayoutModes = {
+    Wide: 'wide',
+    Normal: 'normal',
+    Narrow: 'narrow',
+    Min: 'min',
+} as const;
 
-const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
-    const [wideMode, setWideMode] = useState<WideMode>('wide');
+type LayoutMode = typeof LayoutModes[keyof typeof LayoutModes];
+
+type Threshold = [minWidth: number, mode: LayoutMode];
+
+// Ordered descending — first match (width >= threshold) wins, fallback is 'min'.
+const THRESHOLDS_CENTER: Threshold[] = [
+    [641, LayoutModes.Wide],
+    [424, LayoutModes.Normal],
+    [310, LayoutModes.Narrow],
+];
+
+const THRESHOLDS_RHS: Threshold[] = [
+    [521, LayoutModes.Wide],
+    [380, LayoutModes.Normal],
+    [280, LayoutModes.Narrow],
+];
+
+const DEBOUNCE_DELAY = 10;
+
+function resolveLayoutMode(width: number, thresholds: Threshold[]): LayoutMode {
+    for (const [minWidth, mode] of thresholds) {
+        if (width >= minWidth) {
+            return mode;
+        }
+    }
+    return LayoutModes.Min;
+}
+
+function isRHSLocation(location: string): boolean {
+    return location.toLowerCase().includes('rhs');
+}
+
+const useResponsiveFormattingBar = (element: HTMLDivElement | null, isRHS: boolean): LayoutMode => {
+    const [layoutMode, setLayoutMode] = useState<LayoutMode>(LayoutModes.Wide);
+
     const handleResize = useMemo(() => debounce(() => {
-        if (ref.current?.clientWidth == null) {
+        if (!element) {
             return;
         }
-        if (ref.current.clientWidth > 640) {
-            setWideMode('wide');
-        }
-        if (ref.current.clientWidth >= 424 && ref.current.clientWidth <= 640) {
-            setWideMode('normal');
-        }
-        if (ref.current.clientWidth < 424) {
-            setWideMode('narrow');
-        }
-
-        if (ref.current.clientWidth < 310) {
-            setWideMode('min');
-        }
-    }, 10), [ref]);
+        const thresholds = isRHS ? THRESHOLDS_RHS : THRESHOLDS_CENTER;
+        setLayoutMode(resolveLayoutMode(element.clientWidth, thresholds));
+    }, DEBOUNCE_DELAY), [element, isRHS]);
 
     useLayoutEffect(() => {
-        if (!ref.current) {
+        if (!element) {
             return () => {};
         }
 
-        let sizeObserver: ResizeObserver | null = new ResizeObserver(handleResize);
-
-        sizeObserver.observe(ref.current);
+        const sizeObserver = new ResizeObserver(handleResize);
+        sizeObserver.observe(element);
 
         return () => {
-            sizeObserver!.disconnect();
-            sizeObserver = null;
+            handleResize.cancel();
+            sizeObserver.disconnect();
         };
-    }, [handleResize, ref]);
+    }, [handleResize, element]);
 
-    return wideMode;
+    return layoutMode;
 };
 
-const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
-    wide: 9,
-    normal: 5,
-    narrow: 3,
-    min: 1,
+// Base icon counts for each mode (no additional controls)
+const CONTROLS_COUNT_BASE: Record<LayoutMode, number> = {
+    [LayoutModes.Wide]: 9,
+    [LayoutModes.Normal]: 5,
+    [LayoutModes.Narrow]: 2,
+    [LayoutModes.Min]: 1,
 };
 
-export function splitFormattingBarControls(wideMode: WideMode) {
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+// All available formatting controls in priority order
+const ALL_CONTROLS: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
 
-    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
+// Wide layout always shows all icons — there is enough room regardless of additional controls.
+// Center channel: reduction starts from the 2nd additional control (1 extra always fits).
+// RHS: reduction starts from the 1st additional control (tighter space).
+function getVisibleControlsCount(layoutMode: LayoutMode, additionalControlsCount: number, isRHS: boolean): number {
+    const base = CONTROLS_COUNT_BASE[layoutMode];
+    if (layoutMode === LayoutModes.Wide) {
+        return base;
+    }
+    const reduction = isRHS ? additionalControlsCount : Math.max(0, additionalControlsCount - 1);
+    return Math.max(0, base - reduction);
+}
 
-    const controls = allControls.slice(0, controlsLength);
-    const hiddenControls = allControls.slice(controlsLength);
+export function splitFormattingBarControls(layoutMode: LayoutMode, additionalControlsCount: number = 0, isRHS: boolean = false) {
+    const visibleControlsCount = getVisibleControlsCount(layoutMode, additionalControlsCount, isRHS);
+
+    const controls = ALL_CONTROLS.slice(0, visibleControlsCount);
+    const hiddenControls = ALL_CONTROLS.slice(visibleControlsCount);
 
     return {
         controls,
@@ -71,35 +110,36 @@ export function splitFormattingBarControls(wideMode: WideMode) {
 }
 
 export const useFormattingBarControls = (
-    formattingBarRef: React.RefObject<HTMLDivElement>,
+    additionalControlsCount: number = 0,
+    location: string = '',
 ): {
-    controls: MarkdownMode[];
-    hiddenControls: MarkdownMode[];
-    wideMode: WideMode;
-} => {
-    const wideMode = useResponsiveFormattingBar(formattingBarRef);
+        formattingBarRef: (node: HTMLDivElement | null) => void;
+        controls: MarkdownMode[];
+        hiddenControls: MarkdownMode[];
+        layoutMode: LayoutMode;
+    } => {
+    const [element, setElement] = useState<HTMLDivElement | null>(null);
 
-    const {controls, hiddenControls} = splitFormattingBarControls(wideMode);
+    const isRHS = useMemo(() => isRHSLocation(location), [location]);
+    const layoutMode = useResponsiveFormattingBar(element, isRHS);
+
+    const {controls, hiddenControls} = useMemo(() => {
+        return splitFormattingBarControls(layoutMode, additionalControlsCount, isRHS);
+    }, [layoutMode, additionalControlsCount, isRHS]);
 
     return {
+        formattingBarRef: setElement,
         controls,
         hiddenControls,
-        wideMode,
+        layoutMode,
     };
 };
 
 export const useUpdateOnVisibilityChange = (update: Instance['update'] | null, isVisible: boolean) => {
-    const updateComponent = async () => {
-        if (!update) {
-            return;
-        }
-        await update();
-    };
-
     useEffect(() => {
-        if (!isVisible) {
+        if (!isVisible || !update) {
             return;
         }
-        updateComponent();
-    }, [isVisible]);
+        update();
+    }, [isVisible, update]);
 };

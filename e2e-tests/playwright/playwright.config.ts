@@ -40,7 +40,7 @@ export default defineConfig({
         },
         screenshot: 'only-on-failure',
         timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        trace: 'off',
+        trace: 'retain-on-failure-and-retries',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
     },
@@ -75,6 +75,7 @@ export default defineConfig({
         },
     ],
     reporter: [
+        ...(testConfig.isCI ? [['blob', {outputDir: './results/blob-report'}] as const] : []),
         ['html', {open: 'never', outputFolder: './results/reporter'}],
         ['json', {outputFile: './results/reporter/results.json'}],
         ['junit', {outputFile: './results/reporter/results.xml'}],

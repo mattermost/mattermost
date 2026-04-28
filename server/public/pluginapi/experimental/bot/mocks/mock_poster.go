@@ -55,7 +55,7 @@ func (mr *MockPosterMockRecorder) DM(arg0, arg1 interface{}, arg2 ...interface{}
 }
 
 // DMWithAttachments mocks base method.
-func (m *MockPoster) DMWithAttachments(arg0 string, arg1 ...*model.SlackAttachment) (string, error) {
+func (m *MockPoster) DMWithAttachments(arg0 string, arg1 ...*model.MessageAttachment) (string, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {

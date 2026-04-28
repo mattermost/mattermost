@@ -141,7 +141,7 @@
         "IosMinVersion": ""
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
+        "MinimumLength": 14,
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
@@ -292,6 +292,7 @@
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
         "QueryTimeout": 60,
+        "AnalyticsQueryTimeout": 300,
         "MaxPageSize": 500,
         "LoginFieldName": "",
         "LoginButtonColor": "#0000",

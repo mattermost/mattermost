@@ -1,714 +1,1183 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_role_permissions should match snapshot 1`] = `
-<AdminPanel
-  id="SystemRolePermissions"
-  subtitle={
-    Object {
-      "defaultMessage": "Level of access to the system console.",
-      "id": "admin.permissions.system_role_permissions.description",
-    }
-  }
-  title={
-    Object {
-      "defaultMessage": "Privileges",
-      "id": "admin.permissions.system_role_permissions.title",
-    }
-  }
->
+<div>
   <div
-    className="SystemRolePermissions"
+    class="AdminPanel clearfix "
+    id="SystemRolePermissions"
   >
-    <SystemRolePermission
-      key="about"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "about",
-          "subsections": Array [
-            Object {
-              "name": "about_edition_and_license",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="reporting"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "reporting",
-          "subsections": Array [
-            Object {
-              "name": "reporting_site_statistics",
-            },
-            Object {
-              "name": "reporting_team_statistics",
-            },
-            Object {
-              "name": "reporting_server_logs",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="user_management"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "user_management",
-          "subsections": Array [
-            Object {
-              "hasDescription": true,
-              "name": "user_management_users",
-            },
-            Object {
-              "name": "user_management_groups",
-            },
-            Object {
-              "name": "user_management_teams",
-            },
-            Object {
-              "name": "user_management_channels",
-            },
-            Object {
-              "name": "user_management_permissions",
-            },
-            Object {
-              "disabled": true,
-              "hasDescription": true,
-              "name": "user_management_system_roles",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="environment"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "environment",
-          "subsections": Array [
-            Object {
-              "name": "environment_web_server",
-            },
-            Object {
-              "name": "environment_database",
-            },
-            Object {
-              "name": "environment_elasticsearch",
-            },
-            Object {
-              "name": "environment_file_storage",
-            },
-            Object {
-              "name": "environment_image_proxy",
-            },
-            Object {
-              "name": "environment_smtp",
-            },
-            Object {
-              "name": "environment_push_notification_server",
-            },
-            Object {
-              "name": "environment_high_availability",
-            },
-            Object {
-              "name": "environment_rate_limiting",
-            },
-            Object {
-              "name": "environment_logging",
-            },
-            Object {
-              "name": "environment_session_lengths",
-            },
-            Object {
-              "name": "environment_performance_monitoring",
-            },
-            Object {
-              "name": "environment_developer",
-            },
-            Object {
-              "name": "environment_mobile_security",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="site"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "site",
-          "subsections": Array [
-            Object {
-              "name": "site_customization",
-            },
-            Object {
-              "name": "site_localization",
-            },
-            Object {
-              "name": "site_users_and_teams",
-            },
-            Object {
-              "name": "site_notifications",
-            },
-            Object {
-              "name": "site_announcement_banner",
-            },
-            Object {
-              "name": "site_emoji",
-            },
-            Object {
-              "name": "site_posts",
-            },
-            Object {
-              "name": "site_file_sharing_and_downloads",
-            },
-            Object {
-              "name": "site_public_links",
-            },
-            Object {
-              "name": "site_notices",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="authentication"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "authentication",
-          "subsections": Array [
-            Object {
-              "name": "authentication_signup",
-            },
-            Object {
-              "name": "authentication_email",
-            },
-            Object {
-              "name": "authentication_password",
-            },
-            Object {
-              "name": "authentication_mfa",
-            },
-            Object {
-              "name": "authentication_ldap",
-            },
-            Object {
-              "name": "authentication_saml",
-            },
-            Object {
-              "name": "authentication_openid",
-            },
-            Object {
-              "name": "authentication_guest_access",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="plugins"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "plugins",
-          "subsections": Array [],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="integrations"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "integrations",
-          "subsections": Array [
-            Object {
-              "name": "integrations_integration_management",
-            },
-            Object {
-              "name": "integrations_bot_accounts",
-            },
-            Object {
-              "name": "integrations_gif",
-            },
-            Object {
-              "name": "integrations_cors",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="compliance"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "compliance",
-          "subsections": Array [
-            Object {
-              "name": "compliance_data_retention_policy",
-            },
-            Object {
-              "name": "compliance_compliance_export",
-            },
-            Object {
-              "name": "compliance_compliance_monitoring",
-            },
-            Object {
-              "name": "compliance_custom_terms_of_service",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="experimental"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "experimental",
-          "subsections": Array [
-            Object {
-              "name": "experimental_features",
-            },
-            Object {
-              "name": "experimental_feature_flags",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Privileges
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Level of access to the system console.
+        </div>
+      </div>
+    </div>
+    <div
+      class="SystemRolePermissions"
+    >
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_about"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              About
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              The ability to install or upgrade your servers enterprise licensing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 1 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownabout"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_reporting"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Reporting
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site statistics, team statistics and server logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 3 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownreporting"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_user_management"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              User Management
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review users, groups, teams, channels, permissions and system roles.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 6 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownuser_management"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_environment"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Environment
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review server environment configuration such as URLs, database and performance.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 14 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownenvironment"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_site"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Site Configuration
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site specific configurations such as site name, notification defaults and file sharing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 10 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownsite"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_authentication"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Authentication
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the configuration around how users can signup and access Mattermost.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 8 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownauthentication"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_plugins"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Plugins
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review installed plugins and their configuration.
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownplugins"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  Can edit
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_integrations"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Integrations
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review integration configurations such as webhooks, bots and cross-origin requests.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownintegrations"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_compliance"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Compliance
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review compliance settings such as retention, exports and activity logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdowncompliance"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_experimental"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Experimental
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the settings of experimental features
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 2 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownexperimental"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+    </div>
   </div>
-</AdminPanel>
+</div>
 `;
 
 exports[`admin_console/system_role_permissions should match snapshot with isLicensedForCloud = true 1`] = `
-<AdminPanel
-  id="SystemRolePermissions"
-  subtitle={
-    Object {
-      "defaultMessage": "Level of access to the system console.",
-      "id": "admin.permissions.system_role_permissions.description",
-    }
-  }
-  title={
-    Object {
-      "defaultMessage": "Privileges",
-      "id": "admin.permissions.system_role_permissions.title",
-    }
-  }
->
+<div>
   <div
-    className="SystemRolePermissions"
+    class="AdminPanel clearfix "
+    id="SystemRolePermissions"
   >
-    <SystemRolePermission
-      key="reporting"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "reporting",
-          "subsections": Array [
-            Object {
-              "name": "reporting_site_statistics",
-            },
-            Object {
-              "name": "reporting_team_statistics",
-            },
-            Object {
-              "name": "reporting_server_logs",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="user_management"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "user_management",
-          "subsections": Array [
-            Object {
-              "hasDescription": true,
-              "name": "user_management_users",
-            },
-            Object {
-              "name": "user_management_groups",
-            },
-            Object {
-              "name": "user_management_teams",
-            },
-            Object {
-              "name": "user_management_channels",
-            },
-            Object {
-              "name": "user_management_permissions",
-            },
-            Object {
-              "disabled": true,
-              "hasDescription": true,
-              "name": "user_management_system_roles",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="site"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "site",
-          "subsections": Array [
-            Object {
-              "name": "site_customization",
-            },
-            Object {
-              "name": "site_localization",
-            },
-            Object {
-              "name": "site_users_and_teams",
-            },
-            Object {
-              "name": "site_notifications",
-            },
-            Object {
-              "name": "site_announcement_banner",
-            },
-            Object {
-              "name": "site_emoji",
-            },
-            Object {
-              "name": "site_posts",
-            },
-            Object {
-              "name": "site_file_sharing_and_downloads",
-            },
-            Object {
-              "name": "site_public_links",
-            },
-            Object {
-              "name": "site_notices",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="authentication"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "authentication",
-          "subsections": Array [
-            Object {
-              "name": "authentication_signup",
-            },
-            Object {
-              "name": "authentication_email",
-            },
-            Object {
-              "name": "authentication_password",
-            },
-            Object {
-              "name": "authentication_mfa",
-            },
-            Object {
-              "name": "authentication_ldap",
-            },
-            Object {
-              "name": "authentication_saml",
-            },
-            Object {
-              "name": "authentication_openid",
-            },
-            Object {
-              "name": "authentication_guest_access",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="plugins"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "plugins",
-          "subsections": Array [],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="integrations"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "integrations",
-          "subsections": Array [
-            Object {
-              "name": "integrations_integration_management",
-            },
-            Object {
-              "name": "integrations_bot_accounts",
-            },
-            Object {
-              "name": "integrations_gif",
-            },
-            Object {
-              "name": "integrations_cors",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="compliance"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "compliance",
-          "subsections": Array [
-            Object {
-              "name": "compliance_data_retention_policy",
-            },
-            Object {
-              "name": "compliance_compliance_export",
-            },
-            Object {
-              "name": "compliance_compliance_monitoring",
-            },
-            Object {
-              "name": "compliance_custom_terms_of_service",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
-    <SystemRolePermission
-      key="experimental"
-      permissionsMap={Object {}}
-      permissionsToUpdate={
-        Object {
-          "environment": "read",
-          "plugins": "write",
-          "site": "write",
-        }
-      }
-      section={
-        Object {
-          "hasDescription": true,
-          "name": "experimental",
-          "subsections": Array [
-            Object {
-              "name": "experimental_features",
-            },
-            Object {
-              "name": "experimental_feature_flags",
-            },
-          ],
-        }
-      }
-      setSectionVisible={[Function]}
-      updatePermissions={[MockFunction]}
-      visibleSections={Object {}}
-    />
+    <div
+      class="header"
+    >
+      <div>
+        <h3>
+          Privileges
+        </h3>
+        <div
+          class="mt-2"
+        >
+          Level of access to the system console.
+        </div>
+      </div>
+    </div>
+    <div
+      class="SystemRolePermissions"
+    >
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_reporting"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Reporting
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site statistics, team statistics and server logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 3 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownreporting"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_user_management"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              User Management
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review users, groups, teams, channels, permissions and system roles.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 6 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownuser_management"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_site"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Site Configuration
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review site specific configurations such as site name, notification defaults and file sharing.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 10 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownsite"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_authentication"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Authentication
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the configuration around how users can signup and access Mattermost.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 8 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownauthentication"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_plugins"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Plugins
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review installed plugins and their configuration.
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownplugins"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  Can edit
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_integrations"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Integrations
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review integration configurations such as webhooks, bots and cross-origin requests.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownintegrations"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_compliance"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Compliance
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review compliance settings such as retention, exports and activity logs.
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 4 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdowncompliance"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+      <div
+        class="PermissionRow"
+      >
+        <div
+          class="PermissionSection"
+          data-testid="permission_section_experimental"
+        >
+          <div
+            class="PermissionSectionText"
+          >
+            <div
+              class="PermissionSectionText_title"
+            >
+              Experimental
+            </div>
+            <div
+              class="PermissionSection_description"
+            >
+              Review the settings of experimental features
+            </div>
+            <div
+              class="PermissionSubsectionsToggle"
+            >
+              <button
+                class="dropdown-toggle theme color--link style--none"
+              >
+                Show 2 subsections
+                <i
+                  class="Icon icon-chevron-down"
+                />
+              </button>
+            </div>
+          </div>
+          <div
+            class="PermissionSectionDropdown"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <button
+                aria-expanded="true"
+                class="PermissionSectionDropdownButton dropdown-toggle theme"
+                id="systemRolePermissionDropdownexperimental"
+                type="button"
+              >
+                <div
+                  class="PermissionSectionDropdownButton_text"
+                >
+                  No access
+                </div>
+                <div
+                  class="PermissionSectionDropdownButton_icon"
+                >
+                  <i
+                    class="fa fa-angle-down"
+                    title="Dropdown Icon"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div />
+      </div>
+    </div>
   </div>
-</AdminPanel>
+</div>
 `;

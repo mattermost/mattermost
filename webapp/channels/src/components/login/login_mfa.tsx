@@ -5,7 +5,7 @@ import React, {type ReactNode, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
-import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
+import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
 import Input, {SIZE} from 'components/widgets/inputs/input/input';
@@ -60,7 +60,7 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
                         inputSize={SIZE.LARGE}
                         value={token}
                         onChange={handleInputOnChange}
-                        placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'Enter MFA Token'})}
+                        placeholder={formatMessage({id: 'login_mfa.token', defaultMessage: 'MFA Token'})}
                         autoFocus={true}
                         disabled={saving}
                     />

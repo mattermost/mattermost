@@ -1,15 +1,50 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarBaseChannel from 'components/sidebar/sidebar_channel/sidebar_base_channel/sidebar_base_channel';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+
+jest.mock('components/tours/onboarding_tour', () => ({
+    ChannelsAndDirectMessagesTour: () => null,
+}));
+
+jest.mock('components/sidebar/sidebar_channel/sidebar_channel_link', () => {
+    const React = require('react');
+
+    return ({label, channelLeaveHandler}: {label: string; channelLeaveHandler?: (callback: () => void) => void}) => {
+        const [isOpen, setIsOpen] = React.useState(false);
+
+        return (
+            <div>
+                <button
+                    aria-label='Channel options'
+                    onClick={() => setIsOpen(true)}
+                >
+                    {'Options'}
+                </button>
+                {isOpen && (
+                    <div
+                        role='menu'
+                        aria-label='Edit channel menu'
+                    >
+                        <button
+                            role='menuitem'
+                            onClick={() => channelLeaveHandler?.(() => {})}
+                        >
+                            {'Leave Channel'}
+                        </button>
+                    </div>
+                )}
+                <div>{label}</div>
+            </div>
+        );
+    };
+});
 
 describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     const baseProps = {
@@ -38,11 +73,11 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarBaseChannel {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when shared channel', () => {
@@ -54,11 +89,11 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when private channel', () => {
@@ -70,11 +105,11 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when shared private channel', () => {
@@ -87,11 +122,11 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarBaseChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('expect leaveChannel to be called when leave public channel ', async () => {
@@ -112,14 +147,12 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         };
 
         renderWithContext(<SidebarBaseChannel {...props}/>);
+        const user = userEvent.setup();
 
-        const optionsBtn = screen.getByRole('button');
-        expect(optionsBtn.classList).toContain('SidebarMenu_menuButton');
+        const optionsBtn = screen.getByRole('button', {name: /channel options/i});
 
-        await userEvent.click(optionsBtn); // open options
-        const leaveOption: HTMLElement = screen.getByText('Leave Channel').parentElement!;
-
-        await userEvent.click(leaveOption);
+        await user.click(optionsBtn); // open options
+        await user.click(screen.getByRole('menuitem', {name: 'Leave Channel'}));
         await waitFor(() => {
             expect(mockfn).toHaveBeenCalledTimes(1);
         });
@@ -142,14 +175,12 @@ describe('components/sidebar/sidebar_channel/sidebar_base_channel', () => {
         };
 
         renderWithContext(<SidebarBaseChannel {...props}/>);
+        const user = userEvent.setup();
 
-        const optionsBtn = screen.getByRole('button');
-        expect(optionsBtn.classList).toContain('SidebarMenu_menuButton');
+        const optionsBtn = screen.getByRole('button', {name: /channel options/i});
 
-        await userEvent.click(optionsBtn); // open options
-        const leaveOption: HTMLElement = screen.getByText('Leave Channel').parentElement!;
-
-        await userEvent.click(leaveOption);
+        await user.click(optionsBtn); // open options
+        await user.click(screen.getByRole('menuitem', {name: 'Leave Channel'}));
         await waitFor(() => {
             expect(mockfn).toHaveBeenCalledTimes(1);
         });

@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const messages = defineMessages({
-    title: {id: 'admin.feature_flags.title', defaultMessage: 'Features Flags'},
+    title: {id: 'admin.feature_flags.title', defaultMessage: 'Feature Flags'},
 });
 
 const FeatureFlags: React.FC<Props> = (props: Props) => {
@@ -30,22 +30,22 @@ const FeatureFlags: React.FC<Props> = (props: Props) => {
     }
 
     return (
-        <div className='wrapper--admin'>
+        <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
-                <div className='admin-logs-content admin-console__content'>
+                <div className='admin-console__content'>
                     <div className={'banner info'}>
                         <div className='banner__content'>
                             <FormattedMessage
                                 id='admin.feature_flags.introBanner'
-                                defaultMessage={'Feature flag values displayed here show the status of features enabled on this server. The values here are used only for troubleshooting by the Mattermost support team.'}
+                                defaultMessage={'The following feature flag values show the status of features enabled on this instance. The values are used for debugging purposes by the Mattermost support team.'}
                             />
                         </div>
                     </div>
                     <div className='job-table__panel'>
-                        <div className='job-table__table'>
+                        <div className='job-table__table job-table__table--full-height'>
                             <table
                                 className='table'
                             >

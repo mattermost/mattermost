@@ -185,6 +185,90 @@
                 $ref: "#/components/schemas/StatusOK"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /api/v4/system/e2e/ai_bridge:
+    put:
+      tags:
+        - system
+      summary: Configure AI bridge E2E test helper
+      description: >
+        Configure the in-memory AI bridge test helper used by end-to-end tests to
+        mock agent availability, agent/service listings, queued completion
+        responses, and test-only AI feature flag overrides.
+
+        This endpoint is only available when `EnableTesting` is enabled.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: SetAIBridgeTestHelper
+      requestBody:
+        description: AI bridge E2E helper configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIBridgeTestHelperConfig"
+      responses:
+        "200":
+          description: AI bridge test helper configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIBridgeTestHelperState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    get:
+      tags:
+        - system
+      summary: Get AI bridge E2E test helper state
+      description: >
+        Retrieve the current in-memory AI bridge test helper state used for end-to-end tests.
+
+        This endpoint is only available when `EnableTesting` is enabled.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: GetAIBridgeTestHelper
+      responses:
+        "200":
+          description: AI bridge test helper state retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIBridgeTestHelperState"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+    delete:
+      tags:
+        - system
+      summary: Reset AI bridge E2E test helper
+      description: >
+        Reset the in-memory AI bridge test helper state used for end-to-end tests.
+
+        This endpoint is only available when `EnableTesting` is enabled.
+
+        ##### Permissions
+
+        Must have `manage_system` permission.
+      operationId: DeleteAIBridgeTestHelper
+      responses:
+        "200":
+          description: AI bridge test helper was reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/database/recycle:
     post:
       tags:

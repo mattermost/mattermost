@@ -1,0 +1,47 @@
+name: Tools CI
+on:
+  push:
+    branches:
+      - master
+      - release-*
+  pull_request:
+    paths:
+      - "tools/mattermost-govet/**"
+      - ".github/workflows/tools-ci.yml"
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check-style:
+    name: check-style (mattermost-govet)
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: tools/mattermost-govet
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: tools/mattermost-govet/go.mod
+      - name: Run check-style
+        run: make check-style
+
+  test:
+    name: Test (mattermost-govet)
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: tools/mattermost-govet
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Go
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: tools/mattermost-govet/go.mod
+      - name: Run tests
+        run: make test

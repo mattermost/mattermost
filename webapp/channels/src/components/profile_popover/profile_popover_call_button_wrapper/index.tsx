@@ -102,7 +102,7 @@ const CallButton = ({
         defaultMessage: 'Call with {user} is ongoing',
     }, {user: fullname || username},
     ) : formatMessage({
-        id: 'webapp.mattermost.feature.start_call',
+        id: 'user_profile.call.start',
         defaultMessage: 'Start Call',
     });
     const callButton = (

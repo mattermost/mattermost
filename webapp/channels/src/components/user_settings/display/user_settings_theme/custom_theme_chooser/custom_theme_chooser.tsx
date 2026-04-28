@@ -419,7 +419,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                 >
                     <FormattedMessage
                         id='user.settings.custom_theme.copyPaste'
-                        defaultMessage='Copy to share or paste theme colors here:'
+                        defaultMessage='Copy and paste to share theme colors:'
                     />
                 </label>
                 <textarea

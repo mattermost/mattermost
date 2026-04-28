@@ -16,6 +16,15 @@ const config = {
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
     setupFilesAfterEnv: ['<rootDir>/setup_jest.ts'],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+        '/.rollup.cache/',
+        '/dist/',
+    ],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
 };
 
 module.exports = config;

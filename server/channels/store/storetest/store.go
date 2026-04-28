@@ -71,6 +71,10 @@ type Store struct {
 	AttributesStore                 mocks.AttributesStore
 	AutoTranslationStore            mocks.AutoTranslationStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	RecapStore                      mocks.RecapStore
+	ReadReceiptStore                mocks.ReadReceiptStore
+	TemporaryPostStore              mocks.TemporaryPostStore
+	ViewStore                       mocks.ViewStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -167,7 +171,18 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
-
+func (s *Store) Recap() store.RecapStore {
+	return &s.RecapStore
+}
+func (s *Store) ReadReceipt() store.ReadReceiptStore {
+	return &s.ReadReceiptStore
+}
+func (s *Store) TemporaryPost() store.TemporaryPostStore {
+	return &s.TemporaryPostStore
+}
+func (s *Store) View() store.ViewStore {
+	return &s.ViewStore
+}
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -220,5 +235,9 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AttributesStore,
 		&s.AutoTranslationStore,
 		&s.ContentFlaggingStore,
+		&s.RecapStore,
+		&s.ReadReceiptStore,
+		&s.TemporaryPostStore,
+		&s.ViewStore,
 	)
 }

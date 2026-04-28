@@ -179,9 +179,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         <FormattedMessage
                             id='channelView.noSharedTeam'
                             defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
-                            values={{
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
                         />
                         <button
                             className='btn btn-primary channel-archived__close-btn'
@@ -222,8 +219,8 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     id={DropOverlayIdCenterChannel}
                 />
                 <ChannelHeader/>
-                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <ChannelBanner channelId={this.props.channelId}/>
+                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}

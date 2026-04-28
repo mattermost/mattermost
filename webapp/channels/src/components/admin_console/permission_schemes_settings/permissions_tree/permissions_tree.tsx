@@ -238,6 +238,16 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 integrationsGroup.permissions.push(outgoingWebhookGroup);
             }
         }
+        const manageAgentsGroup = {
+            id: 'manage_agents_group',
+            permissions: [
+                Permissions.MANAGE_OWN_AGENT,
+                Permissions.MANAGE_OTHERS_AGENT,
+            ],
+        };
+        if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_agents_group')) {
+            integrationsGroup.permissions.push(manageAgentsGroup);
+        }
         if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
         }
@@ -320,8 +330,11 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
         if (isMinimumEnterpriseAdvancedLicense(license)) {
             publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_BANNER);
+            publicChannelsGroup.permissions.push(Permissions.MANAGE_PUBLIC_CHANNEL_AUTO_TRANSLATION);
             privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_BANNER);
+            privateChannelsGroup.permissions.push(Permissions.MANAGE_PRIVATE_CHANNEL_AUTO_TRANSLATION);
             privateChannelsGroup.permissions.push(Permissions.MANAGE_CHANNEL_ACCESS_RULES);
+            teamsGroup.permissions.push(Permissions.MANAGE_TEAM_ACCESS_RULES);
         }
 
         this.groups = this.groups.filter((group) => {

@@ -209,7 +209,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		_, err := NewDatabaseStore("")
 		require.Error(t, err)
 
-		_, err = NewDatabaseStore("mysql")
+		_, err = NewDatabaseStore("postgres")
 		require.Error(t, err)
 	})
 
@@ -1054,17 +1054,10 @@ func TestDatabaseStoreString(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	if *mainHelper.GetSQLSettings().DriverName == "postgres" {
-		maskedDSN := ds.String()
-		assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	} else {
-		maskedDSN := ds.String()
-		assert.False(t, strings.HasPrefix(maskedDSN, "mysql://"))
-		assert.False(t, strings.Contains(maskedDSN, "mmuser"))
-		assert.False(t, strings.Contains(maskedDSN, "mostest"))
-	}
+	maskedDSN := ds.String()
+	assert.True(t, strings.HasPrefix(maskedDSN, "postgres://"))
+	assert.False(t, strings.Contains(maskedDSN, "mmuser"))
+	assert.False(t, strings.Contains(maskedDSN, "mostest"))
 }
 
 func TestCleanUp(t *testing.T) {

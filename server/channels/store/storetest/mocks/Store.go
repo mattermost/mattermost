@@ -966,6 +966,46 @@ func (_m *Store) Reaction() store.ReactionStore {
 	return r0
 }
 
+// ReadReceipt provides a mock function with no fields
+func (_m *Store) ReadReceipt() store.ReadReceiptStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadReceipt")
+	}
+
+	var r0 store.ReadReceiptStore
+	if rf, ok := ret.Get(0).(func() store.ReadReceiptStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ReadReceiptStore)
+		}
+	}
+
+	return r0
+}
+
+// Recap provides a mock function with no fields
+func (_m *Store) Recap() store.RecapStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Recap")
+	}
+
+	var r0 store.RecapStore
+	if rf, ok := ret.Get(0).(func() store.RecapStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RecapStore)
+		}
+	}
+
+	return r0
+}
+
 // RecycleDBConnections provides a mock function with given fields: d
 func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)
@@ -1207,6 +1247,26 @@ func (_m *Store) Team() store.TeamStore {
 	return r0
 }
 
+// TemporaryPost provides a mock function with no fields
+func (_m *Store) TemporaryPost() store.TemporaryPostStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TemporaryPost")
+	}
+
+	var r0 store.TemporaryPostStore
+	if rf, ok := ret.Get(0).(func() store.TemporaryPostStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TemporaryPostStore)
+		}
+	}
+
+	return r0
+}
+
 // TermsOfService provides a mock function with no fields
 func (_m *Store) TermsOfService() store.TermsOfServiceStore {
 	ret := _m.Called()
@@ -1400,6 +1460,26 @@ func (_m *Store) UserTermsOfService() store.UserTermsOfServiceStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.UserTermsOfServiceStore)
+		}
+	}
+
+	return r0
+}
+
+// View provides a mock function with no fields
+func (_m *Store) View() store.ViewStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for View")
+	}
+
+	var r0 store.ViewStore
+	if rf, ok := ret.Get(0).(func() store.ViewStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ViewStore)
 		}
 	}
 

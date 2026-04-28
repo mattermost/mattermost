@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
-import React, {type ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React from 'react';
 
 import AbstractOAuthApp from 'components/integrations/abstract_oauth_app';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('components/permissions_gates/system_permission_gate', () => ({children}: {children: React.ReactNode}) => <>{children}</>);
 
 describe('components/integrations/AbstractOAuthApp', () => {
     const header = {id: 'Header', defaultMessage: 'Header'};
@@ -37,6 +38,10 @@ describe('components/integrations/AbstractOAuthApp', () => {
 
     const team = TestHelper.getTeamMock({name: 'test', id: initialApp.id});
 
+    beforeEach(() => {
+        action.mockClear();
+    });
+
     const baseProps = {
         team,
         header,
@@ -49,218 +54,209 @@ describe('components/integrations/AbstractOAuthApp', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractOAuthApp {...baseProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, displays client error', () => {
+    test('should match snapshot, displays client error', async () => {
         const newServerError = 'serverError';
         const props = {...baseProps, serverError: newServerError};
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.find('#callbackUrls').simulate('change', {target: {value: ''}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        const callbackUrlsInput = screen.getByRole('textbox', {name: 'Callback URLs (One Per Line)'});
+        await userEvent.clear(callbackUrlsInput);
 
-        expect(action).not.toHaveBeenCalled();
-        expect(wrapper).toMatchSnapshot();
+        const submitButton = screen.getByRole('button', {name: 'Footer'});
+        await userEvent.click(submitButton);
+
+        expect(props.action).not.toHaveBeenCalled();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call action function', () => {
+    test('should call action function', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.find('#name').simulate('change', {target: {value: 'name'}});
-        wrapper.find('.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
+        const nameInput = screen.getByRole('textbox', {name: 'Display Name'});
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'name');
+
+        const submitButton = screen.getByRole('button', {name: 'Footer'});
+        await userEvent.click(submitButton);
 
         expect(action).toHaveBeenCalled();
     });
 
-    test('should have correct state when updateName is called', () => {
+    test('should have correct state when updateName is called', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
-            <AbstractOAuthApp {...props}/>,
-        );
-        const evt = {preventDefault: jest.fn(), target: {value: 'new name'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateName(evt);
-        expect(wrapper.state('name')).toEqual('new name');
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another name'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateName(evt2);
-        expect(wrapper.state('name')).toEqual('another name');
-    });
-
-    test('should have correct state when updateTrusted is called', () => {
-        const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'false'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateTrusted(evt);
-        expect(wrapper.state('is_trusted')).toEqual(false);
+        const nameInput = screen.getByRole('textbox', {name: 'Display Name'});
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'new name');
+        expect(nameInput).toHaveValue('new name');
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'true'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateTrusted(evt2);
-        expect(wrapper.state('is_trusted')).toEqual(true);
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'another name');
+        expect(nameInput).toHaveValue('another name');
     });
 
-    test('should have correct state when updateDescription is called', () => {
+    test('should have correct state when updateTrusted is called', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
+        const {container} = renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'new description'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateDescription(evt);
-        expect(wrapper.state('description')).toEqual('new description');
+        // Use name attribute to target is_trusted radio buttons specifically
+        const trustedNoRadio = container.querySelector('input[name="is_trusted"][value="false"]') as HTMLInputElement;
+        const trustedYesRadio = container.querySelector('input[name="is_trusted"][value="true"]') as HTMLInputElement;
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another description'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateDescription(evt2);
-        expect(wrapper.state('description')).toEqual('another description');
+        await userEvent.click(trustedNoRadio);
+        expect(trustedNoRadio).toBeChecked();
+
+        await userEvent.click(trustedYesRadio);
+        expect(trustedYesRadio).toBeChecked();
     });
 
-    test('should have correct state when updateHomepage is called', () => {
+    test('should have correct state when updateDescription is called', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const evt = {preventDefault: jest.fn(), target: {value: 'new homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateHomepage(evt);
-        expect(wrapper.state('homepage')).toEqual('new homepage');
+        const descriptionInput = screen.getByRole('textbox', {name: 'Description'});
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'new description');
+        expect(descriptionInput).toHaveValue('new description');
 
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'another homepage'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateHomepage(evt2);
-        expect(wrapper.state('homepage')).toEqual('another homepage');
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'another description');
+        expect(descriptionInput).toHaveValue('another description');
     });
 
-    test('should have correct state when updateIconUrl is called', () => {
+    test('should have correct state when updateHomepage is called', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        wrapper.setState({has_icon: true});
-        const evt = {preventDefault: jest.fn(), target: {value: 'https://test.com/new_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateIconUrl(evt);
-        expect(wrapper.state('icon_url')).toEqual('https://test.com/new_icon_url');
-        expect(wrapper.state('has_icon')).toEqual(false);
+        const homepageInput = screen.getByRole('textbox', {name: 'Homepage'});
+        await userEvent.clear(homepageInput);
+        await userEvent.type(homepageInput, 'new homepage');
+        expect(homepageInput).toHaveValue('new homepage');
 
-        wrapper.setState({has_icon: true});
-        const evt2 = {preventDefault: jest.fn(), target: {value: 'https://test.com/another_icon_url'}} as unknown as ChangeEvent<HTMLInputElement>;
-        wrapper.instance().updateIconUrl(evt2);
-        expect(wrapper.state('icon_url')).toEqual('https://test.com/another_icon_url');
-        expect(wrapper.state('has_icon')).toEqual(false);
+        await userEvent.clear(homepageInput);
+        await userEvent.type(homepageInput, 'another homepage');
+        expect(homepageInput).toHaveValue('another homepage');
     });
 
-    test('should have correct state when handleSubmit is called', () => {
+    test('should have correct state when updateIconUrl is called', async () => {
         const props = {...baseProps, action};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const newState = {saving: false, name: 'name', description: 'description', homepage: 'homepage'};
-        const evt = {preventDefault: jest.fn()} as any;
-        wrapper.setState({saving: true});
-        wrapper.instance().handleSubmit(evt);
-        expect(evt.preventDefault).toHaveBeenCalled();
+        const iconUrlInput = screen.getByRole('textbox', {name: 'Icon URL'});
+        await userEvent.clear(iconUrlInput);
+        await userEvent.type(iconUrlInput, 'https://test.com/new_icon_url');
+        expect(iconUrlInput).toHaveValue('https://test.com/new_icon_url');
 
-        wrapper.setState(newState);
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(wrapper.state('clientError')).toEqual('');
-
-        wrapper.setState({...newState, name: ''});
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(false);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='Name for the OAuth 2.0 application is required.'
-                id='add_oauth_app.nameRequired'
-            />,
-        );
-
-        wrapper.setState({...newState, description: ''});
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(false);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='Description for the OAuth 2.0 application is required.'
-                id='add_oauth_app.descriptionRequired'
-            />,
-        );
-
-        wrapper.setState({...newState, homepage: ''});
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(false);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='Homepage for the OAuth 2.0 application is required.'
-                id='add_oauth_app.homepageRequired'
-            />,
-        );
+        await userEvent.clear(iconUrlInput);
+        await userEvent.type(iconUrlInput, 'https://test.com/another_icon_url');
+        expect(iconUrlInput).toHaveValue('https://test.com/another_icon_url');
     });
 
-    test('should not require description and homepage for dynamically registered apps', () => {
+    test('should have correct state when handleSubmit is called', async () => {
+        const props = {...baseProps, action};
+        renderWithContext(
+            <AbstractOAuthApp {...props}/>,
+        );
+
+        const nameInput = screen.getByRole('textbox', {name: 'Display Name'});
+        const descriptionInput = screen.getByRole('textbox', {name: 'Description'});
+        const homepageInput = screen.getByRole('textbox', {name: 'Homepage'});
+        const submitButton = screen.getByRole('button', {name: 'Footer'});
+
+        // Clear name to trigger name required error
+        await userEvent.clear(nameInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('Name for the OAuth 2.0 application is required.')).toBeInTheDocument();
+
+        // Set name, clear description to trigger description required error
+        await userEvent.type(nameInput, 'name');
+        await userEvent.clear(descriptionInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('Description for the OAuth 2.0 application is required.')).toBeInTheDocument();
+
+        // Set description, clear homepage to trigger homepage required error
+        await userEvent.type(descriptionInput, 'description');
+        await userEvent.clear(homepageInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('Homepage for the OAuth 2.0 application is required.')).toBeInTheDocument();
+    });
+
+    test('should not require description and homepage for dynamically registered apps', async () => {
         const dynamicApp = {
             ...initialApp,
             is_dynamically_registered: true,
         };
         const props = {...baseProps, action, initialApp: dynamicApp};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
-        const evt = {preventDefault: jest.fn()} as any;
+        const nameInput = screen.getByRole('textbox', {name: 'Display Name'});
+        const descriptionInput = screen.getByRole('textbox', {name: 'Description'});
+        const homepageInput = screen.getByRole('textbox', {name: 'Homepage'});
+        const submitButton = screen.getByRole('button', {name: 'Footer'});
 
-        wrapper.setState(newState);
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(true);
-        expect(wrapper.state('clientError')).toEqual('');
-        expect(action).toHaveBeenCalled();
+        // Set name, clear description and homepage
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'name');
+        await userEvent.clear(descriptionInput);
+        await userEvent.clear(homepageInput);
+
+        await userEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(action).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('should still require description and homepage for regular OAuth apps', () => {
+    test('should still require description and homepage for regular OAuth apps', async () => {
         const regularApp = {
             ...initialApp,
             is_dynamically_registered: false,
         };
         const props = {...baseProps, action, initialApp: regularApp};
-        const wrapper = shallow<AbstractOAuthApp>(
+        renderWithContext(
             <AbstractOAuthApp {...props}/>,
         );
 
-        const newState = {saving: false, name: 'name', description: '', homepage: '', callbackUrls: 'https://test.com/callback'};
-        const evt = {preventDefault: jest.fn()} as any;
+        const nameInput = screen.getByRole('textbox', {name: 'Display Name'});
+        const descriptionInput = screen.getByRole('textbox', {name: 'Description'});
+        const homepageInput = screen.getByRole('textbox', {name: 'Homepage'});
+        const submitButton = screen.getByRole('button', {name: 'Footer'});
 
-        wrapper.setState({...newState, description: ''});
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(false);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='Description for the OAuth 2.0 application is required.'
-                id='add_oauth_app.descriptionRequired'
-            />,
-        );
+        // Set name, clear description
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'name');
+        await userEvent.clear(descriptionInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('Description for the OAuth 2.0 application is required.')).toBeInTheDocument();
 
-        wrapper.setState({...newState, description: 'test', homepage: ''});
-        wrapper.instance().handleSubmit(evt);
-        expect(wrapper.state('saving')).toEqual(false);
-        expect(wrapper.state('clientError')).toEqual(
-            <FormattedMessage
-                defaultMessage='Homepage for the OAuth 2.0 application is required.'
-                id='add_oauth_app.homepageRequired'
-            />,
-        );
+        // Set description, clear homepage
+        await userEvent.type(descriptionInput, 'test');
+        await userEvent.clear(homepageInput);
+        await userEvent.click(submitButton);
+        expect(screen.getByText('Homepage for the OAuth 2.0 application is required.')).toBeInTheDocument();
     });
 });

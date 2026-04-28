@@ -11,17 +11,12 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import WithTooltip from 'components/with_tooltip';
 
-import {Locations} from 'utils/constants';
-
 import EmojiItem from './recent_reactions_emoji_item';
-
-type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
 
 type Props = {
     channelId?: string;
     postId: string;
     teamId: string;
-    location?: LocationTypes;
     locale: string;
     emojis: Emoji[];
     size: number;
@@ -31,13 +26,8 @@ type Props = {
     };
 }
 
-type State = {
-    location: LocationTypes;
-}
-
-export default class PostRecentReactions extends React.PureComponent<Props, State> {
+export default class PostRecentReactions extends React.PureComponent<Props> {
     public static defaultProps: Partial<Props> = {
-        location: Locations.CENTER as 'CENTER',
         size: 3,
     };
 

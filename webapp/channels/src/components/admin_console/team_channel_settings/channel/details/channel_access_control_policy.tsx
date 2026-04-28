@@ -77,7 +77,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
                                 <td className='policy-name'>{policy.name}</td>
                                 <td className='text-right'>
                                     <Link
-                                        to={'/admin_console/system_attributes/attribute_based_access_control/edit_policy/' + policy.id}
+                                        to={'/admin_console/system_attributes/membership_policies/edit_policy/' + policy.id}
                                         className='policy-edit-icon'
                                         aria-label={intl.formatMessage({
                                             id: 'admin.channel_settings.channel_detail.go_to_policy.aria_label',
@@ -135,7 +135,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
     return (
         <AdminPanelWithButton
             id='channel_access_control_with_policy'
-            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access Policy'})}
+            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following access policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
             onButtonClick={() => {

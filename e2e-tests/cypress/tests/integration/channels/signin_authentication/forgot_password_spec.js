@@ -12,9 +12,10 @@
 
 import {
     getPasswordResetEmailTemplate,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Signin/Authentication', () => {
     let testUser;
@@ -34,7 +35,7 @@ describe('Signin/Authentication', () => {
     });
 
     it('MM-T407 - Sign In Forgot password - Email address has account on server', () => {
-        const newPassword = 'newpasswd';
+        const newPassword = newTestPassword();
 
         // # Visit town-square
         cy.visit(`/${teamName.name}/channels/town-square`);
@@ -91,7 +92,7 @@ describe('Signin/Authentication', () => {
             cy.url().should('contain', '/login?extra=password_change');
 
             // * Should show that the password is updated successfully
-            cy.get('.AlertBanner.success').should('be.visible').and('have.text', ' Password updated successfully');
+            cy.get('.AlertBanner.success').should('be.visible').and('have.text', 'Password updated successfully');
 
             // # Type email and new password, then click login button
             cy.get('#input_loginId').should('be.visible').type(testUser.username);

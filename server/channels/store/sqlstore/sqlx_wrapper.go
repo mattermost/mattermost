@@ -17,7 +17,6 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 	sq "github.com/mattermost/squirrel"
@@ -63,9 +62,7 @@ type sqlxExecutor interface {
 	SelectBuilder(dest any, builder Builder) error
 }
 
-// namedParamRegex is used to capture all named parameters and convert them
-// to lowercase. This is necessary to be able to use a single query for both
-// Postgres and MySQL.
+// namedParamRegex is used to capture all named parameters and convert them to lowercase.
 // This will also lowercase any constant strings containing a :, but sqlx
 // will fail the query, so it won't be checked in inadvertently.
 var namedParamRegex = regexp.MustCompile(`:\w+`)
@@ -134,9 +131,7 @@ func (w *sqlxDBWrapper) GetBuilder(dest any, builder Builder) error {
 }
 
 func (w *sqlxDBWrapper) NamedExec(query string, arg any) (sql.Result, error) {
-	if w.DB.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -192,9 +187,7 @@ func (w *sqlxDBWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 }
 
 func (w *sqlxDBWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	if w.DB.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -348,9 +341,7 @@ func (w *sqlxTxWrapper) ExecRaw(query string, args ...any) (sql.Result, error) {
 }
 
 func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
-	if w.Tx.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 
@@ -364,9 +355,7 @@ func (w *sqlxTxWrapper) NamedExec(query string, arg any) (sql.Result, error) {
 }
 
 func (w *sqlxTxWrapper) NamedQuery(query string, arg any) (*sqlx.Rows, error) {
-	if w.Tx.DriverName() == model.DatabaseDriverPostgres {
-		query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
-	}
+	query = namedParamRegex.ReplaceAllStringFunc(query, strings.ToLower)
 	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
 	defer cancel()
 

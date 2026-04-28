@@ -240,6 +240,9 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
         case 'total_file_size':
             key = Stats.TOTAL_FILE_SIZE;
             break;
+        case 'single_channel_guest_count':
+            key = Stats.SINGLE_CHANNEL_GUESTS;
+            break;
         }
 
         if (key) {

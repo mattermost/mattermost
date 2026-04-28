@@ -13,31 +13,32 @@ import type {ActionFuncAsync} from 'types/store';
 /**
  * Reveals a Burn-on-Read post for the current user.
  * This action calls the backend API to mark the post as read and returns the full post content
- * along with the expiration timestamp.
  *
  * @param postId - The ID of the Burn-on-Read post to reveal
- * @returns Action result with post data and expiration timestamp, or error
+ * @returns Action result with revealed post, or error
  */
-export function revealBurnOnReadPost(postId: string): ActionFuncAsync<{post: Post; expire_at: number}> {
+export function revealBurnOnReadPost(postId: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
-        let result;
+        let revealedPost: Post;
 
         try {
-            result = await Client4.revealBurnOnReadPost(postId);
+            revealedPost = await Client4.revealBurnOnReadPost(postId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
 
+        const expireAt = revealedPost.metadata?.expire_at;
+
         dispatch({
             type: PostTypes.REVEAL_BURN_ON_READ_SUCCESS,
             data: {
-                post: result.post,
-                expireAt: result.expire_at,
+                post: revealedPost,
+                expireAt: expireAt || 0,
             },
         });
 
-        return {data: result};
+        return {data: revealedPost};
     };
 }

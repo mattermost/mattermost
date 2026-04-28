@@ -1,27 +1,34 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/MenuItemToggleModalRedux should match snapshot with extra text 1`] = `
-<Fragment>
-  <ToggleModalButton
-    className="MenuItem__with-help"
-    dialogProps={
-      Object {
-        "test": "test",
-      }
-    }
-    dialogType={[MockFunction]}
-    modalId="test"
+exports[`components/MenuItemToggleModalRedux should match snapshot 1`] = `
+<div>
+  <button
+    class="style--none "
   >
     <span
-      className="MenuItem__primary-text"
+      class="MenuItem__primary-text"
+    >
+      Whatever
+    </span>
+  </button>
+</div>
+`;
+
+exports[`components/MenuItemToggleModalRedux should match snapshot with extra text 1`] = `
+<div>
+  <button
+    class="style--none MenuItem__with-help"
+  >
+    <span
+      class="MenuItem__primary-text"
     >
       Whatever
     </span>
     <span
-      className="MenuItem__help-text"
+      class="MenuItem__help-text"
     >
       Extra text
     </span>
-  </ToggleModalButton>
-</Fragment>
+  </button>
+</div>
 `;

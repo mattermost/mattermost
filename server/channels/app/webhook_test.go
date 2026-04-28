@@ -308,14 +308,14 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", "",
 		model.StringInterface{
-			model.PostPropsAttachments: []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.MessageAttachment{
 				{
 					Text: "text",
 				},
 			},
 			model.PostPropsWebhookDisplayName: hook.DisplayName,
 		},
-		model.PostTypeSlackAttachment,
+		model.PostTypeMessageAttachment,
 		"", nil)
 	require.Nil(t, appErr)
 
@@ -328,25 +328,25 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	expectedText := "`<>|<>|`"
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
 	expectedText = "< | \n|\n>"
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -368,13 +368,13 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
  test | 3 +++
  1 file changed, 3 insertions(+)`
 	post, appErr = th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, expectedText, "user", "http://iconurl", "", model.StringInterface{
-		model.PostPropsAttachments: []*model.SlackAttachment{
+		model.PostPropsAttachments: []*model.MessageAttachment{
 			{
 				Text: "text",
 			},
 		},
 		model.PostPropsWebhookDisplayName: hook.DisplayName,
-	}, model.PostTypeSlackAttachment, "", nil)
+	}, model.PostTypeMessageAttachment, "", nil)
 	require.Nil(t, appErr)
 	assert.Equal(t, expectedText, post.Message)
 
@@ -535,7 +535,7 @@ func TestCreateWebhookPostWithPriority(t *testing.T) {
 	for _, conditions := range testConditions {
 		post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "foo @"+th.BasicUser.Username, "user", "http://iconurl", "",
 			model.StringInterface{model.PostPropsWebhookDisplayName: hook.DisplayName},
-			model.PostTypeSlackAttachment,
+			model.PostTypeMessageAttachment,
 			"",
 			&conditions,
 		)
@@ -611,7 +611,7 @@ func TestSplitWebhookPost(t *testing.T) {
 			Post: &model.Post{
 				Message: strings.Repeat("本", maxPostSize*3/2),
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Text: strings.Repeat("本", 1000),
 						},
@@ -631,7 +631,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				{
 					Message: strings.Repeat("本", maxPostSize/2),
 					Props: map[string]any{
-						model.PostPropsAttachments: []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", 1000),
 							},
@@ -643,7 +643,7 @@ func TestSplitWebhookPost(t *testing.T) {
 				},
 				{
 					Props: map[string]any{
-						model.PostPropsAttachments: []*model.SlackAttachment{
+						model.PostPropsAttachments: []*model.MessageAttachment{
 							{
 								Text: strings.Repeat("本", model.PostPropsMaxUserRunes-1000),
 							},
@@ -682,9 +682,9 @@ func TestSplitWebhookPost(t *testing.T) {
 func makePost(message int, attachments []int) *model.Post {
 	var props model.StringInterface
 	if len(attachments) > 0 {
-		sa := make([]*model.SlackAttachment, 0, len(attachments))
+		sa := make([]*model.MessageAttachment, 0, len(attachments))
 		for _, a := range attachments {
-			attach := &model.SlackAttachment{
+			attach := &model.MessageAttachment{
 				Text: strings.Repeat("那", a),
 			}
 			sa = append(sa, attach)

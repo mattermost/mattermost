@@ -1,677 +1,624 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
-<Memo(MenuGroup)>
-  <div
-    onClick={[Function]}
-  >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_read_about_edition_and_license",
-          "sysconsole_read_billing",
-          "sysconsole_read_reporting_site_statistics",
-          "sysconsole_read_reporting_team_statistics",
-          "sysconsole_read_reporting_server_logs",
-          "sysconsole_read_user_management_users",
-          "sysconsole_read_user_management_groups",
-          "sysconsole_read_user_management_teams",
-          "sysconsole_read_user_management_channels",
-          "sysconsole_read_user_management_permissions",
-          "sysconsole_read_site_customization",
-          "sysconsole_read_site_localization",
-          "sysconsole_read_site_users_and_teams",
-          "sysconsole_read_site_notifications",
-          "sysconsole_read_site_announcement_banner",
-          "sysconsole_read_site_emoji",
-          "sysconsole_read_site_posts",
-          "sysconsole_read_site_file_sharing_and_downloads",
-          "sysconsole_read_site_public_links",
-          "sysconsole_read_site_notices",
-          "sysconsole_read_environment_web_server",
-          "sysconsole_read_environment_database",
-          "sysconsole_read_environment_elasticsearch",
-          "sysconsole_read_environment_file_storage",
-          "sysconsole_read_environment_image_proxy",
-          "sysconsole_read_environment_smtp",
-          "sysconsole_read_environment_push_notification_server",
-          "sysconsole_read_environment_high_availability",
-          "sysconsole_read_environment_rate_limiting",
-          "sysconsole_read_environment_logging",
-          "sysconsole_read_environment_session_lengths",
-          "sysconsole_read_environment_performance_monitoring",
-          "sysconsole_read_environment_developer",
-          "sysconsole_read_environment_mobile_security",
-          "sysconsole_read_authentication_signup",
-          "sysconsole_read_authentication_email",
-          "sysconsole_read_authentication_password",
-          "sysconsole_read_authentication_mfa",
-          "sysconsole_read_authentication_ldap",
-          "sysconsole_read_authentication_saml",
-          "sysconsole_read_authentication_openid",
-          "sysconsole_read_authentication_guest_access",
-          "sysconsole_read_plugins",
-          "sysconsole_read_integrations_integration_management",
-          "sysconsole_read_integrations_bot_accounts",
-          "sysconsole_read_integrations_gif",
-          "sysconsole_read_integrations_cors",
-          "sysconsole_read_compliance_data_retention_policy",
-          "sysconsole_read_compliance_compliance_export",
-          "sysconsole_read_compliance_compliance_monitoring",
-          "sysconsole_read_compliance_custom_terms_of_service",
-          "sysconsole_read_experimental_features",
-          "sysconsole_read_experimental_feature_flags",
-          "sysconsole_read_experimental_bleve",
-          "sysconsole_read_products_boards",
-        ]
-      }
+<div>
+  <li
+    class="MenuGroup menu-divider"
+    role="separator"
+  />
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="systemConsole"
+      role="menuitem"
     >
-      <MenuItemLink
-        icon={
-          <ApplicationCogIcon
-            size={18}
-          />
-        }
-        id="systemConsole"
-        show={true}
-        text={
-          <React.Fragment>
+      <a
+        class=""
+        href="/admin_console"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.7 18.6V17.6L22.8 16.8C22.9 16.7 23 16.6 22.9 16.5L21.9 14.8C21.9 14.7 21.7 14.7 21.6 14.7L20.4 15.2C20.1 15 19.8 14.8 19.5 14.7L19.3 13.4C19.3 13.3 19.2 13.2 19.1 13.2H17.1C16.9 13.2 16.8 13.3 16.8 13.4L16.6 14.7C16.3 14.9 16.1 15 15.8 15.2L14.6 14.7C14.5 14.7 14.4 14.7 14.3 14.8L13.3 16.5C13.3 16.6 13.3 16.7 13.4 16.8L14.5 17.6V18.6L13.4 19.4C13.3 19.5 13.2 19.6 13.3 19.7L14.3 21.4C14.4 21.5 14.5 21.5 14.6 21.5L15.8 21C16 21.2 16.3 21.4 16.6 21.5L16.8 22.8C16.9 22.9 17 23 17.1 23H19.1C19.2 23 19.3 22.9 19.3 22.8L19.5 21.5C19.8 21.3 20 21.2 20.3 21L21.5 21.4C21.6 21.4 21.7 21.4 21.8 21.3L22.8 19.6C22.9 19.5 22.9 19.4 22.8 19.4L21.7 18.6M18 19.5C17.2 19.5 16.5 18.8 16.5 18S17.2 16.5 18 16.5 19.5 17.2 19.5 18 18.8 19.5 18 19.5M11.29 20H5C3.89 20 3 19.1 3 18V6C3 4.89 3.9 4 5 4H19C20.11 4 21 4.9 21 6V11.68C20.38 11.39 19.71 11.18 19 11.08V8H5V18H11C11 18.7 11.11 19.37 11.29 20Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
             System Console
-          </React.Fragment>
-        }
-        to="/admin_console"
-      />
-    </Memo(SystemPermissionGate)>
-    <MenuItemLink
-      icon={
-        <WebhookIncomingIcon
-          size={18}
-        />
-      }
-      id="integrations"
-      show={false}
-      text="Integrations"
-      to="//integrations"
-    />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "backButtonAction": [Function],
-        }
-      }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "render": [Function],
-        }
-      }
-      disabled={false}
-      icon={
-        <AccountMultipleOutlineIcon
-          size={18}
-        />
-      }
-      id="userGroups"
-      modalId="user_groups"
-      show={false}
-      sibling={false}
-      text="User Groups"
-    />
-    <Memo(TeamPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_plugins",
-        ]
-      }
-      teamId=""
-    >
-      <MenuItemToggleModalRedux
-        dialogType={[Function]}
-        icon={
-          <ViewGridPlusOutlineIcon
-            size={18}
-          />
-        }
-        id="marketplaceModal"
-        modalId="plugin_marketplace"
-        show={false}
-        text="App Marketplace"
-      />
-    </Memo(TeamPermissionGate)>
-    <MenuItemExternalLink
-      icon={
-        <DownloadOutlineIcon
-          size={18}
-        />
-      }
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="nativeAppLink"
-      show={true}
-      text="Download Apps"
-      url="test–link"
-    />
-    <MenuItemToggleModalRedux
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      icon={
-        <InformationOutlineIcon
-          size={18}
-        />
-      }
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="about"
-      modalId="about"
-      show={true}
-      text="About "
-    />
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
   </div>
-</Memo(MenuGroup)>
+</div>
 `;
 
 exports[`components/global/product_switcher_menu should match snapshot with most of the thing enabled 1`] = `
-<Memo(MenuGroup)>
-  <div
-    onClick={[Function]}
-  >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_read_about_edition_and_license",
-          "sysconsole_read_billing",
-          "sysconsole_read_reporting_site_statistics",
-          "sysconsole_read_reporting_team_statistics",
-          "sysconsole_read_reporting_server_logs",
-          "sysconsole_read_user_management_users",
-          "sysconsole_read_user_management_groups",
-          "sysconsole_read_user_management_teams",
-          "sysconsole_read_user_management_channels",
-          "sysconsole_read_user_management_permissions",
-          "sysconsole_read_site_customization",
-          "sysconsole_read_site_localization",
-          "sysconsole_read_site_users_and_teams",
-          "sysconsole_read_site_notifications",
-          "sysconsole_read_site_announcement_banner",
-          "sysconsole_read_site_emoji",
-          "sysconsole_read_site_posts",
-          "sysconsole_read_site_file_sharing_and_downloads",
-          "sysconsole_read_site_public_links",
-          "sysconsole_read_site_notices",
-          "sysconsole_read_environment_web_server",
-          "sysconsole_read_environment_database",
-          "sysconsole_read_environment_elasticsearch",
-          "sysconsole_read_environment_file_storage",
-          "sysconsole_read_environment_image_proxy",
-          "sysconsole_read_environment_smtp",
-          "sysconsole_read_environment_push_notification_server",
-          "sysconsole_read_environment_high_availability",
-          "sysconsole_read_environment_rate_limiting",
-          "sysconsole_read_environment_logging",
-          "sysconsole_read_environment_session_lengths",
-          "sysconsole_read_environment_performance_monitoring",
-          "sysconsole_read_environment_developer",
-          "sysconsole_read_environment_mobile_security",
-          "sysconsole_read_authentication_signup",
-          "sysconsole_read_authentication_email",
-          "sysconsole_read_authentication_password",
-          "sysconsole_read_authentication_mfa",
-          "sysconsole_read_authentication_ldap",
-          "sysconsole_read_authentication_saml",
-          "sysconsole_read_authentication_openid",
-          "sysconsole_read_authentication_guest_access",
-          "sysconsole_read_plugins",
-          "sysconsole_read_integrations_integration_management",
-          "sysconsole_read_integrations_bot_accounts",
-          "sysconsole_read_integrations_gif",
-          "sysconsole_read_integrations_cors",
-          "sysconsole_read_compliance_data_retention_policy",
-          "sysconsole_read_compliance_compliance_export",
-          "sysconsole_read_compliance_compliance_monitoring",
-          "sysconsole_read_compliance_custom_terms_of_service",
-          "sysconsole_read_experimental_features",
-          "sysconsole_read_experimental_feature_flags",
-          "sysconsole_read_experimental_bleve",
-          "sysconsole_read_products_boards",
-        ]
-      }
+<div>
+  <li
+    class="MenuGroup menu-divider"
+    role="separator"
+  />
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="systemConsole"
+      role="menuitem"
     >
-      <MenuItemLink
-        icon={
-          <ApplicationCogIcon
-            size={18}
-          />
-        }
-        id="systemConsole"
-        show={true}
-        text={
-          <React.Fragment>
+      <a
+        class=""
+        href="/admin_console"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.7 18.6V17.6L22.8 16.8C22.9 16.7 23 16.6 22.9 16.5L21.9 14.8C21.9 14.7 21.7 14.7 21.6 14.7L20.4 15.2C20.1 15 19.8 14.8 19.5 14.7L19.3 13.4C19.3 13.3 19.2 13.2 19.1 13.2H17.1C16.9 13.2 16.8 13.3 16.8 13.4L16.6 14.7C16.3 14.9 16.1 15 15.8 15.2L14.6 14.7C14.5 14.7 14.4 14.7 14.3 14.8L13.3 16.5C13.3 16.6 13.3 16.7 13.4 16.8L14.5 17.6V18.6L13.4 19.4C13.3 19.5 13.2 19.6 13.3 19.7L14.3 21.4C14.4 21.5 14.5 21.5 14.6 21.5L15.8 21C16 21.2 16.3 21.4 16.6 21.5L16.8 22.8C16.9 22.9 17 23 17.1 23H19.1C19.2 23 19.3 22.9 19.3 22.8L19.5 21.5C19.8 21.3 20 21.2 20.3 21L21.5 21.4C21.6 21.4 21.7 21.4 21.8 21.3L22.8 19.6C22.9 19.5 22.9 19.4 22.8 19.4L21.7 18.6M18 19.5C17.2 19.5 16.5 18.8 16.5 18S17.2 16.5 18 16.5 19.5 17.2 19.5 18 18.8 19.5 18 19.5M11.29 20H5C3.89 20 3 19.1 3 18V6C3 4.89 3.9 4 5 4H19C20.11 4 21 4.9 21 6V11.68C20.38 11.39 19.71 11.18 19 11.08V8H5V18H11C11 18.7 11.11 19.37 11.29 20Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
             System Console
-          </React.Fragment>
-        }
-        to="/admin_console"
-      />
-    </Memo(SystemPermissionGate)>
-    <MenuItemLink
-      icon={
-        <WebhookIncomingIcon
-          size={18}
-        />
-      }
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="integrations"
-      show={true}
-      text="Integrations"
-      to="//integrations"
-    />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "backButtonAction": [Function],
-        }
-      }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "render": [Function],
-        }
-      }
-      disabled={false}
-      icon={
-        <AccountMultipleOutlineIcon
-          size={18}
-        />
-      }
-      id="userGroups"
-      modalId="user_groups"
-      show={false}
-      sibling={false}
-      text="User Groups"
-    />
-    <Memo(TeamPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_plugins",
-        ]
-      }
-      teamId=""
+      role="menuitem"
     >
-      <MenuItemToggleModalRedux
-        dialogType={[Function]}
-        icon={
-          <ViewGridPlusOutlineIcon
-            size={18}
-          />
-        }
-        id="marketplaceModal"
-        modalId="plugin_marketplace"
-        show={true}
-        text="App Marketplace"
-      />
-    </Memo(TeamPermissionGate)>
-    <MenuItemExternalLink
-      icon={
-        <DownloadOutlineIcon
-          size={18}
-        />
-      }
+      <a
+        class=""
+        href="//integrations"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15.3,11.1l-1.4-2.6c0.3-0.3,0.4-0.7,0.5-1.1c0-1-0.8-1.9-1.8-2c-1,0-2,0.8-2,1.8s0.8,1.9,1.9,2h0.2l1.3,2.5C14.3,11.4,14.8,11.3,15.3,11.1z M9.7,8.6C9,7,9.7,5.2,11.2,4.5c1.6-0.7,3.4,0.1,4,1.7c0.4,0.9,0.3,1.9-0.1,2.7l1.2,0.7
+	c0.7-1.2,0.8-2.7,0.2-4.1c-1-2.3-3.7-3.5-6-2.5S7.1,6.7,8.1,9c0.2,0.6,0.7,1.2,1.1,1.6l-2.3,3.8c-0.4-0.1-0.8,0-1.2,0.2
+	c-0.9,0.5-1.3,1.6-0.8,2.6c0.5,0.9,1.7,1.3,2.6,0.8c0.9-0.5,1.3-1.6,0.8-2.5c0-0.1-0.1-0.1-0.1-0.2l3.1-5L11,10.1
+	C10.4,9.8,9.9,9.3,9.7,8.6z M11.1,15.6H9.8v1c-0.1,0.5-0.2,1-0.6,1.4c-1,1.4-2.9,1.8-4.3,0.8s-1.7-2.9-0.7-4.3
+	c0.6-0.8,1.4-1.3,2.4-1.4v-1.4c-1.4,0.1-2.7,0.7-3.6,2c-1.4,2.1-1,5,1.1,6.4c2.1,1.5,4.9,1,6.4-1.1c0.3-0.5,0.5-1,0.6-1.5
+	c-0.1-0.3-0.1-0.6-0.1-1C11,16.2,11,15.9,11.1,15.6z M16,15.5v-2l-3,3l3,3v-2h4v-2H16z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Integrations
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="marketplaceModal"
+      role="menuitem"
+    >
+      <button
+        aria-label="App Marketplace"
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 21H11V13H3M5 15H9V19H5M3 11H11V3H3M5 5H9V9H5M13 3V11H21V3M19 9H15V5H19M18 16H21V18H18V21H16V18H13V16H16V13H18Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            App Marketplace
+          </div>
+        </span>
+      </button>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="nativeAppLink"
-      show={true}
-      text="Download Apps"
-      url="test–link"
-    />
-    <MenuItemToggleModalRedux
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      icon={
-        <InformationOutlineIcon
-          size={18}
-        />
-      }
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="about"
-      modalId="about"
-      show={true}
-      text="About "
-    />
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
   </div>
-</Memo(MenuGroup)>
+</div>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with EnableCustomGroups config 1`] = `
-<MenuItemToggleModalRedux
-  dialogProps={
-    Object {
-      "backButtonAction": [Function],
-    }
-  }
-  dialogType={
-    Object {
-      "$$typeof": Symbol(react.forward_ref),
-      "WrappedComponent": Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": [Function],
-      },
-      "render": [Function],
-    }
-  }
-  disabled={false}
-  icon={
-    <AccountMultipleOutlineIcon
-      size={18}
-    />
-  }
+<li
+  class="MenuItem MenuItem--with-icon"
   id="userGroups"
-  modalId="user_groups"
-  show={true}
-  sibling={false}
-  text="User Groups"
-/>
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none "
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+</li>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with cloud free 1`] = `
-<MenuItemToggleModalRedux
-  dialogProps={
-    Object {
-      "backButtonAction": [Function],
-    }
-  }
-  dialogType={
-    Object {
-      "$$typeof": Symbol(react.forward_ref),
-      "WrappedComponent": Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": [Function],
-      },
-      "render": [Function],
-    }
-  }
-  disabled={true}
-  icon={
-    <AccountMultipleOutlineIcon
-      size={18}
-    />
-  }
+<li
+  class="MenuItem MenuItem--with-icon"
   id="userGroups"
-  modalId="user_groups"
-  show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={true}
-      feature="mattermost.feature.custom_user_groups"
-      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
-      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited user groups"
-      titleAdminPreTrial="Try unlimited user groups with a free trial"
-      titleEndUser="User groups available in paid plans"
-      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
-    />
-  }
-  text="User Groups"
-/>
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none MenuItem__with-sibling disabled"
+    disabled=""
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+  <div
+    data-testid="RestrictedIndicator"
+  />
+</li>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with cloud free trial 1`] = `
-<MenuItemToggleModalRedux
-  dialogProps={
-    Object {
-      "backButtonAction": [Function],
-    }
-  }
-  dialogType={
-    Object {
-      "$$typeof": Symbol(react.forward_ref),
-      "WrappedComponent": Object {
-        "$$typeof": Symbol(react.memo),
-        "compare": null,
-        "type": [Function],
-      },
-      "render": [Function],
-    }
-  }
-  disabled={false}
-  icon={
-    <AccountMultipleOutlineIcon
-      size={18}
-    />
-  }
+<li
+  class="MenuItem MenuItem--with-icon"
   id="userGroups"
-  modalId="user_groups"
-  show={true}
-  sibling={
-    <RestrictedIndicator
-      blocked={false}
-      feature="mattermost.feature.custom_user_groups"
-      messageAdminPostTrial="User groups are a way to organize users and apply actions to all users within that group. Upgrade to the Professional plan to create unlimited user groups."
-      messageAdminPreTrial="Create unlimited user groups with one of our paid plans. Get the full experience of Enterprise when you start a free, 30 day trial."
-      messageEndUser="User groups are a way to organize users and apply actions to all users within that group."
-      minimumPlanRequiredForFeature="professional"
-      titleAdminPostTrial="Upgrade to create unlimited user groups"
-      titleAdminPreTrial="Try unlimited user groups with a free trial"
-      titleEndUser="User groups available in paid plans"
-      tooltipMessage="During your trial you are able to create user groups. These user groups will be archived after your trial."
-    />
-  }
-  text="User Groups"
-/>
+  role="menuitem"
+>
+  <button
+    aria-label="User Groups"
+    class="style--none MenuItem__with-sibling"
+  >
+    <span
+      class="MenuItem__primary-text"
+    >
+      <span
+        class="icon"
+      >
+        <svg
+          fill="currentColor"
+          height="18"
+          version="1.1"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16.3,16.2l-2.5-1.5c1-1.4,1.6-3.3,1.6-5.2C15.4,6.2,13.2,4,10,4S4.6,6.2,4.6,9.5c0,1.9,0.6,3.8,1.6,5.2l-2.5,1.5c-1,0.5-1.7,1.6-1.7,2.7C2,20.6,3.4,22,5,22h10c1.7,0,3-1.4,3-3.1C18,17.8,17.3,16.7,16.3,16.2z M6.6,9.5C6.6,7.1,8.1,6,10,6
+	s3.4,1.1,3.4,3.5c0,1.5-0.5,3.1-1.4,4.2c-0.5,0.7-1.2,1.1-2.1,1.1c-0.9,0-1.5-0.4-2.1-1.1C7.1,12.6,6.6,11,6.6,9.5z M15,20H5
+	c-0.6,0-1-0.5-1-1.1c0-0.1,0-0.2,0-0.3c0.1-0.2,0.2-0.4,0.3-0.5c0.1,0,0.2-0.1,0.3-0.1l3.1-1.9c0.7,0.4,1.4,0.6,2.3,0.6
+	s1.6-0.2,2.3-0.6l3.1,1.9c0.4,0.2,0.6,0.5,0.6,1S15.5,20,15,20z M18.9,13.1c0.3-1.2,0.5-2.4,0.5-3.6c0-0.4,0-3.1-1.9-5.5
+	C16.7,3,15,2,14,2c-0.7,0-1.3,0.1-1.8,0.3c1.3,0.4,2.5,1.1,3.4,2c1,1.1,1.6,2.5,1.8,4.1c0,0.4,0.1,0.7,0.1,1.1
+	c0,1.6-0.3,3.1-0.9,4.5l0.8,0.5c0.5,0.3,1,0.7,1.4,1.1c0.5,0.6,0.9,1.2,1.1,2c0.1,0.5,0.2,0.9,0.2,1.4c0,0.3,0,0.6-0.1,0.9
+	c1-0.3,1.7-1.1,2-2.1c0.1-0.3,0.1-0.5,0.1-0.8C22,15.8,21.1,14,18.9,13.1z"
+          />
+        </svg>
+      </span>
+      <div
+        class="text"
+      >
+        User Groups
+      </div>
+    </span>
+  </button>
+  <div
+    data-testid="RestrictedIndicator"
+  />
+</li>
 `;
 
 exports[`components/global/product_switcher_menu should show integrations should show integrations modal 1`] = `
-<Fragment>
+<div>
   <li
-    className="MenuGroup menu-divider"
-    onClick={[Function]}
+    class="MenuGroup menu-divider"
     role="separator"
   />
-  <div
-    onClick={[Function]}
-  >
-    <MenuCloudTrial
-      id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
-    <Memo(SystemPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_read_about_edition_and_license",
-          "sysconsole_read_billing",
-          "sysconsole_read_reporting_site_statistics",
-          "sysconsole_read_reporting_team_statistics",
-          "sysconsole_read_reporting_server_logs",
-          "sysconsole_read_user_management_users",
-          "sysconsole_read_user_management_groups",
-          "sysconsole_read_user_management_teams",
-          "sysconsole_read_user_management_channels",
-          "sysconsole_read_user_management_permissions",
-          "sysconsole_read_site_customization",
-          "sysconsole_read_site_localization",
-          "sysconsole_read_site_users_and_teams",
-          "sysconsole_read_site_notifications",
-          "sysconsole_read_site_announcement_banner",
-          "sysconsole_read_site_emoji",
-          "sysconsole_read_site_posts",
-          "sysconsole_read_site_file_sharing_and_downloads",
-          "sysconsole_read_site_public_links",
-          "sysconsole_read_site_notices",
-          "sysconsole_read_environment_web_server",
-          "sysconsole_read_environment_database",
-          "sysconsole_read_environment_elasticsearch",
-          "sysconsole_read_environment_file_storage",
-          "sysconsole_read_environment_image_proxy",
-          "sysconsole_read_environment_smtp",
-          "sysconsole_read_environment_push_notification_server",
-          "sysconsole_read_environment_high_availability",
-          "sysconsole_read_environment_rate_limiting",
-          "sysconsole_read_environment_logging",
-          "sysconsole_read_environment_session_lengths",
-          "sysconsole_read_environment_performance_monitoring",
-          "sysconsole_read_environment_developer",
-          "sysconsole_read_environment_mobile_security",
-          "sysconsole_read_authentication_signup",
-          "sysconsole_read_authentication_email",
-          "sysconsole_read_authentication_password",
-          "sysconsole_read_authentication_mfa",
-          "sysconsole_read_authentication_ldap",
-          "sysconsole_read_authentication_saml",
-          "sysconsole_read_authentication_openid",
-          "sysconsole_read_authentication_guest_access",
-          "sysconsole_read_plugins",
-          "sysconsole_read_integrations_integration_management",
-          "sysconsole_read_integrations_bot_accounts",
-          "sysconsole_read_integrations_gif",
-          "sysconsole_read_integrations_cors",
-          "sysconsole_read_compliance_data_retention_policy",
-          "sysconsole_read_compliance_compliance_export",
-          "sysconsole_read_compliance_compliance_monitoring",
-          "sysconsole_read_compliance_custom_terms_of_service",
-          "sysconsole_read_experimental_features",
-          "sysconsole_read_experimental_feature_flags",
-          "sysconsole_read_experimental_bleve",
-          "sysconsole_read_products_boards",
-        ]
-      }
+  <div>
+    <li
+      class="MenuItem MenuItem--with-icon"
+      id="systemConsole"
+      role="menuitem"
     >
-      <MenuItemLink
-        icon={
-          <ApplicationCogIcon
-            size={18}
-          />
-        }
-        id="systemConsole"
-        show={true}
-        text={
-          <React.Fragment>
+      <a
+        class=""
+        href="/admin_console"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21.7 18.6V17.6L22.8 16.8C22.9 16.7 23 16.6 22.9 16.5L21.9 14.8C21.9 14.7 21.7 14.7 21.6 14.7L20.4 15.2C20.1 15 19.8 14.8 19.5 14.7L19.3 13.4C19.3 13.3 19.2 13.2 19.1 13.2H17.1C16.9 13.2 16.8 13.3 16.8 13.4L16.6 14.7C16.3 14.9 16.1 15 15.8 15.2L14.6 14.7C14.5 14.7 14.4 14.7 14.3 14.8L13.3 16.5C13.3 16.6 13.3 16.7 13.4 16.8L14.5 17.6V18.6L13.4 19.4C13.3 19.5 13.2 19.6 13.3 19.7L14.3 21.4C14.4 21.5 14.5 21.5 14.6 21.5L15.8 21C16 21.2 16.3 21.4 16.6 21.5L16.8 22.8C16.9 22.9 17 23 17.1 23H19.1C19.2 23 19.3 22.9 19.3 22.8L19.5 21.5C19.8 21.3 20 21.2 20.3 21L21.5 21.4C21.6 21.4 21.7 21.4 21.8 21.3L22.8 19.6C22.9 19.5 22.9 19.4 22.8 19.4L21.7 18.6M18 19.5C17.2 19.5 16.5 18.8 16.5 18S17.2 16.5 18 16.5 19.5 17.2 19.5 18 18.8 19.5 18 19.5M11.29 20H5C3.89 20 3 19.1 3 18V6C3 4.89 3.9 4 5 4H19C20.11 4 21 4.9 21 6V11.68C20.38 11.39 19.71 11.18 19 11.08V8H5V18H11C11 18.7 11.11 19.37 11.29 20Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
             System Console
-          </React.Fragment>
-        }
-        to="/admin_console"
-      />
-    </Memo(SystemPermissionGate)>
-    <MenuItemLink
-      icon={
-        <WebhookIncomingIcon
-          size={18}
-        />
-      }
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="integrations"
-      show={true}
-      text="Integrations"
-      to="//integrations"
-    />
-    <MenuItemToggleModalRedux
-      dialogProps={
-        Object {
-          "backButtonAction": [Function],
-        }
-      }
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.forward_ref),
-          "WrappedComponent": Object {
-            "$$typeof": Symbol(react.memo),
-            "compare": null,
-            "type": [Function],
-          },
-          "render": [Function],
-        }
-      }
-      disabled={false}
-      icon={
-        <AccountMultipleOutlineIcon
-          size={18}
-        />
-      }
-      id="userGroups"
-      modalId="user_groups"
-      show={false}
-      sibling={false}
-      text="User Groups"
-    />
-    <Memo(TeamPermissionGate)
-      permissions={
-        Array [
-          "sysconsole_write_plugins",
-        ]
-      }
-      teamId=""
+      role="menuitem"
     >
-      <MenuItemToggleModalRedux
-        dialogType={[Function]}
-        icon={
-          <ViewGridPlusOutlineIcon
-            size={18}
-          />
-        }
-        id="marketplaceModal"
-        modalId="plugin_marketplace"
-        show={false}
-        text="App Marketplace"
-      />
-    </Memo(TeamPermissionGate)>
-    <MenuItemExternalLink
-      icon={
-        <DownloadOutlineIcon
-          size={18}
-        />
-      }
+      <a
+        class=""
+        href="/test-team/integrations"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15.3,11.1l-1.4-2.6c0.3-0.3,0.4-0.7,0.5-1.1c0-1-0.8-1.9-1.8-2c-1,0-2,0.8-2,1.8s0.8,1.9,1.9,2h0.2l1.3,2.5C14.3,11.4,14.8,11.3,15.3,11.1z M9.7,8.6C9,7,9.7,5.2,11.2,4.5c1.6-0.7,3.4,0.1,4,1.7c0.4,0.9,0.3,1.9-0.1,2.7l1.2,0.7
+	c0.7-1.2,0.8-2.7,0.2-4.1c-1-2.3-3.7-3.5-6-2.5S7.1,6.7,8.1,9c0.2,0.6,0.7,1.2,1.1,1.6l-2.3,3.8c-0.4-0.1-0.8,0-1.2,0.2
+	c-0.9,0.5-1.3,1.6-0.8,2.6c0.5,0.9,1.7,1.3,2.6,0.8c0.9-0.5,1.3-1.6,0.8-2.5c0-0.1-0.1-0.1-0.1-0.2l3.1-5L11,10.1
+	C10.4,9.8,9.9,9.3,9.7,8.6z M11.1,15.6H9.8v1c-0.1,0.5-0.2,1-0.6,1.4c-1,1.4-2.9,1.8-4.3,0.8s-1.7-2.9-0.7-4.3
+	c0.6-0.8,1.4-1.3,2.4-1.4v-1.4c-1.4,0.1-2.7,0.7-3.6,2c-1.4,2.1-1,5,1.1,6.4c2.1,1.5,4.9,1,6.4-1.1c0.3-0.5,0.5-1,0.6-1.5
+	c-0.1-0.3-0.1-0.6-0.1-1C11,16.2,11,15.9,11.1,15.6z M16,15.5v-2l-3,3l3,3v-2h4v-2H16z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Integrations
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="nativeAppLink"
-      show={true}
-      text="Download Apps"
-      url="test–link"
-    />
-    <MenuItemToggleModalRedux
-      dialogType={
-        Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
-        }
-      }
-      icon={
-        <InformationOutlineIcon
-          size={18}
-        />
-      }
+      role="menuitem"
+    >
+      <a
+        href="test–link"
+        location="menu_item_external_link"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19,18H5v2h14V18z M11,2h2v10.2l4.5-4.5l1.4,1.4L12,16L5.1,9.1l1.4-1.4l4.5,4.5V2z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            Download Apps
+          </div>
+        </span>
+      </a>
+    </li>
+    <li
+      class="MenuItem MenuItem--with-icon"
       id="about"
-      modalId="about"
-      show={true}
-      text="About "
-    />
+      role="menuitem"
+    >
+      <button
+        aria-label="About "
+        class="style--none "
+      >
+        <span
+          class="MenuItem__primary-text"
+        >
+          <span
+            class="icon"
+          >
+            <svg
+              fill="currentColor"
+              height="18"
+              version="1.1"
+              viewBox="0 0 24 24"
+              width="18"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+              />
+            </svg>
+          </span>
+          <div
+            class="text"
+          >
+            About 
+          </div>
+        </span>
+      </button>
+    </li>
   </div>
-</Fragment>
+</div>
 `;

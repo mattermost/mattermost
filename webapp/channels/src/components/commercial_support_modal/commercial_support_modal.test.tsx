@@ -1,14 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
 import CommercialSupportModal from 'components/commercial_support_modal/commercial_support_modal';
 
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
+
+jest.mock('react-bootstrap', () => {
+    const Modal = ({children, show}: {children: React.ReactNode; show: boolean}) => (show ? <div>{children}</div> : null);
+    Modal.Header = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    Modal.Body = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    Modal.Title = ({children}: {children: React.ReactNode}) => <div>{children}</div>;
+    return {Modal};
+});
+
+jest.mock('components/alert_banner', () => (props: {message: React.ReactNode}) => (
+    <div>{props.message}</div>
+));
+
+jest.mock('components/external_link', () => ({children, href}: {children: React.ReactNode; href: string}) => (
+    <a href={href}>{children}</a>
+));
+
+jest.mock('components/widgets/loading/loading_spinner', () => () => <div>{'Loading...'}</div>);
 
 describe('components/CommercialSupportModal', () => {
     beforeAll(() => {
@@ -37,8 +55,8 @@ describe('components/CommercialSupportModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<CommercialSupportModal {...baseProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<CommercialSupportModal {...baseProps}/>);
+        expect(container).toMatchSnapshot();
     });
 
     test('should show error message when download fails', async () => {
@@ -56,20 +74,17 @@ describe('components/CommercialSupportModal', () => {
             }),
         );
 
-        const wrapper = shallow<CommercialSupportModal>(<CommercialSupportModal {...baseProps}/>);
+        renderWithContext(<CommercialSupportModal {...baseProps}/>);
 
-        // Trigger download
-        const instance = wrapper.instance();
-        await instance.downloadSupportPacket();
-        wrapper.update();
+        const user = userEvent.setup();
+        const downloadLink = screen.getByText('Download Support Packet').closest('a');
+        if (!downloadLink) {
+            throw new Error('Download Support Packet link not found');
+        }
+        await user.click(downloadLink);
 
         // Verify error message is shown
-        const errorDiv = wrapper.find('.CommercialSupportModal__error');
-        expect(errorDiv.exists()).toBe(true);
-        expect(errorDiv.find('.error-text').text()).toBe(`${errorMessage}: ${detailedError}`);
-
-        // Verify loading state is reset
-        expect(wrapper.state('loading')).toBe(false);
+        expect(await screen.findByText(`${errorMessage}: ${detailedError}`)).toBeInTheDocument();
     });
 
     test('should clear error when starting new download', async () => {
@@ -82,16 +97,30 @@ describe('components/CommercialSupportModal', () => {
             }),
         );
 
-        const wrapper = shallow<CommercialSupportModal>(<CommercialSupportModal {...baseProps}/>);
+        const ref = React.createRef<CommercialSupportModal>();
+        renderWithContext(
+            <CommercialSupportModal
+                {...baseProps}
+                ref={ref}
+            />,
+        );
 
-        // Set initial error state
-        wrapper.setState({error: 'Previous error'});
+        act(() => {
+            ref.current?.setState({error: 'Previous error'});
+        });
+        expect(screen.getByText('Previous error')).toBeInTheDocument();
 
         // Start download
-        const instance = wrapper.instance();
-        await instance.downloadSupportPacket();
+        const user = userEvent.setup();
+        const downloadLink = screen.getByText('Download Support Packet').closest('a');
+        if (!downloadLink) {
+            throw new Error('Download Support Packet link not found');
+        }
+        await user.click(downloadLink);
 
         // Verify error is cleared
-        expect(wrapper.state('error')).toBeUndefined();
+        await waitFor(() => {
+            expect(screen.queryByText('Previous error')).not.toBeInTheDocument();
+        });
     });
 });

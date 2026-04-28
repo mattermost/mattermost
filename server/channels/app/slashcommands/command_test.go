@@ -64,6 +64,21 @@ func TestMoveCommand(t *testing.T) {
 	retrievedCommand, err = th.App.GetCommand(command.Id)
 	assert.Nil(t, err)
 	assert.EqualValues(t, targetTeam.Id, retrievedCommand.TeamId)
+
+	// Move a command to a team where the trigger already exists should fail.
+	command2 := &model.Command{}
+	command2.CreatorId = model.NewId()
+	command2.Method = model.CommandMethodPost
+	command2.TeamId = sourceTeam.Id
+	command2.URL = "http://nowhere.com/"
+	command2.Trigger = "trigger1"
+
+	command2, err = th.App.CreateCommand(command2)
+	assert.Nil(t, err)
+
+	moveErr := th.App.MoveCommand(targetTeam, command2)
+	assert.NotNil(t, moveErr)
+	assert.Equal(t, "api.command.duplicate_trigger.app_error", moveErr.Id)
 }
 
 func TestCreateCommandPost(t *testing.T) {
@@ -244,7 +259,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, "true", post.GetProp(model.PostPropsFromWebhook))
 
 	// Test Slack attachments text conversion.
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},
@@ -270,7 +285,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command.Trigger = "code"
 	resp.ChannelId = ""
 	resp.Text = "<test.com|test website>"
-	resp.Attachments = []*model.SlackAttachment{
+	resp.Attachments = []*model.MessageAttachment{
 		{
 			Text: "<!here>",
 		},

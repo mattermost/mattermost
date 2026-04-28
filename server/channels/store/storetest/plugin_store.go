@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1262,7 +1261,6 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 
 			keys = append(keys, key)
 		}
-		sort.Strings(keys)
 
 		keys1, err := ss.Plugin().List(pluginID, 0, 100)
 		require.NoError(t, err)
@@ -1273,9 +1271,7 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, keys2, 50)
 
 		actualKeys := append(keys1, keys2...)
-		sort.Strings(actualKeys)
-
-		assert.Equal(t, keys, actualKeys)
+		assert.ElementsMatch(t, keys, actualKeys)
 	})
 
 	t.Run("multiple keys, some expiring", func(t *testing.T) {
@@ -1312,7 +1308,6 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 				keys = append(keys, key)
 			}
 		}
-		sort.Strings(keys)
 
 		keys1, err := ss.Plugin().List(pluginID, 0, 100)
 		require.NoError(t, err)
@@ -1323,9 +1318,7 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, keys2, 35)
 
 		actualKeys := append(keys1, keys2...)
-		sort.Strings(actualKeys)
-
-		assert.Equal(t, keys, actualKeys)
+		assert.ElementsMatch(t, keys, actualKeys)
 	})
 
 	t.Run("offsets and limits", func(t *testing.T) {
@@ -1335,21 +1328,16 @@ func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 		// Ignore the pluginID setup by setupKVs
 		pluginID := model.NewId()
 
-		var keys []string
 		for range 150 {
-			key := model.NewId()
 			kv := &model.PluginKeyValue{
 				PluginId: pluginID,
-				Key:      key,
+				Key:      model.NewId(),
 				Value:    []byte(model.NewId()),
 				ExpireAt: 0,
 			}
 			_, err := ss.Plugin().SaveOrUpdate(kv)
 			require.NoError(t, err)
-
-			keys = append(keys, key)
 		}
-		sort.Strings(keys)
 
 		t.Run("default limit", func(t *testing.T) {
 			keys1, err := ss.Plugin().List(pluginID, 0, 0)

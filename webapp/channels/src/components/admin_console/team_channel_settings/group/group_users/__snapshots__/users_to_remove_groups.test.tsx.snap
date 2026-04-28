@@ -1,49 +1,35 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups should match snapshot with 0 groups 1`] = `
-<div
-  className="UsersToRemoveGroups"
->
-  <MemoizedFormattedMessage
-    defaultMessage="{amount, number} {amount, plural, one {Group} other {Groups}}"
-    id="team_channel_settings.group.group_user_row.numberOfGroups"
-    values={
-      Object {
-        "amount": 0,
-      }
-    }
-  />
+<div>
+  <div
+    class="UsersToRemoveGroups"
+  >
+    0 Groups
+  </div>
 </div>
 `;
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups should match snapshot with 1 group 1`] = `
-<div
-  className="UsersToRemoveGroups"
->
-  group1
+<div>
+  <div
+    class="UsersToRemoveGroups"
+  >
+    group1
+  </div>
 </div>
 `;
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups should match snapshot with 3 groups 1`] = `
-<div
-  className="UsersToRemoveGroups"
->
-  <WithTooltip
-    title="group1, group2, group3"
+<div>
+  <div
+    class="UsersToRemoveGroups"
   >
     <a
       href="#"
     >
-      <MemoizedFormattedMessage
-        defaultMessage="{amount, number} {amount, plural, one {Group} other {Groups}}"
-        id="team_channel_settings.group.group_user_row.numberOfGroups"
-        values={
-          Object {
-            "amount": 3,
-          }
-        }
-      />
+      3 Groups
     </a>
-  </WithTooltip>
+  </div>
 </div>
 `;

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {WebSocketTypes} from 'mattermost-redux/action_types';
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
-import {General, WebsocketEvents} from 'mattermost-redux/constants';
+import {General} from 'mattermost-redux/constants';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
@@ -39,8 +40,8 @@ describe('handleUserTypingEvent', () => {
 
         store.dispatch(userStartedTyping(userId, channelId, rootId, Date.now()));
 
-        expect(store.getActions().find((action) => action.type === WebsocketEvents.TYPING)).toMatchObject({
-            type: WebsocketEvents.TYPING,
+        expect(store.getActions().find((action) => action.type === WebSocketTypes.TYPING)).toMatchObject({
+            type: WebSocketTypes.TYPING,
             data: {
                 id: channelId + rootId,
                 userId,

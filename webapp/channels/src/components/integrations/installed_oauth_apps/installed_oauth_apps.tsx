@@ -184,7 +184,13 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
                 emptyTextSearch={
                     <FormattedMessage
                         id='installed_oauth_apps.emptySearch'
-                        defaultMessage='No OAuth 2.0 Applications match {searchTerm}'
+
+                        // searchTerm injected internally
+                        // eslint-disable-next-line formatjs/enforce-placeholders
+                        defaultMessage='No OAuth 2.0 Applications match <strong>{searchTerm}</strong>'
+                        values={{
+                            strong: (chunks) => <strong>{chunks}</strong>,
+                        }}
                     />
                 }
                 searchPlaceholder={localizeMessage({id: 'installed_oauth_apps.search', defaultMessage: 'Search OAuth 2.0 Applications'})}

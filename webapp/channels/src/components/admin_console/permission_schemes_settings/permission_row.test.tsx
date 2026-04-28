@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {Button} from 'react-bootstrap';
 
 import PermissionRow from 'components/admin_console/permission_schemes_settings/permission_row';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/permission_schemes_settings/permission_row', () => {
     const defaultProps = {
@@ -20,40 +21,41 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
     };
 
     test('should match snapshot on editable and not inherited', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionRow {...defaultProps}/>,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot on editable and inherited', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionRow
                 {...defaultProps}
-                inherited={{name: 'test'}}
+                inherited={{name: 'all_users'}}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot on read only and not inherited', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot on read only and not inherited', () => {
-        const wrapper = shallow(
+    test('should match snapshot on read only and inherited', () => {
+        const {container} = renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
+                inherited={{name: 'all_users'}}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with additional values', () => {
@@ -67,37 +69,37 @@ describe('components/admin_console/permission_schemes_settings/permission_row', 
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 additionalValues={ADDITIONAL_VALUES}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call onChange function on click', () => {
+    test('should call onChange function on click', async () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 onChange={onChange}
             />,
         );
-        wrapper.find('div').first().simulate('click');
+        await userEvent.click(screen.getByTestId('uniqId-checkbox').closest('.permission-row')!);
         expect(onChange).toHaveBeenCalledWith('id');
     });
 
-    test('shouldn\'t call onChange function on click when is read-only', () => {
+    test('shouldn\'t call onChange function on click when is read-only', async () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        renderWithContext(
             <PermissionRow
                 {...defaultProps}
                 readOnly={true}
                 onChange={onChange}
             />,
         );
-        wrapper.find('div').first().simulate('click');
+        await userEvent.click(screen.getByTestId('uniqId-checkbox').closest('.permission-row')!);
         expect(onChange).not.toHaveBeenCalled();
     });
 });

@@ -1,1449 +1,1088 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
-<div
-  className="backstage-content row"
->
-  <BackstageHeader>
-    <Link
-      to="/test/integrations/commands"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Slash Commands"
-        id="installed_command.header"
-      />
-    </Link>
-    <MemoizedFormattedMessage
-      defaultMessage="Header"
-      id="Header"
-    />
-  </BackstageHeader>
+<div>
   <div
-    className="backstage-form"
+    class="backstage-content row"
   >
-    <form
-      className="form-horizontal"
-      onSubmit={[Function]}
+    <div
+      class="backstage-header"
     >
-      <div
-        className="form-group"
+      <h1>
+        <a
+          href="/test/integrations/commands"
+        >
+          Slash Commands
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
       >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="displayName"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Title"
-            id="add_command.displayName"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <input
-            className="form-control"
-            id="displayName"
-            maxLength={64}
-            onChange={[Function]}
-            type="text"
-            value="display_name"
-          />
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
           <div
-            className="form__help"
+            class="col-md-5 col-sm-8"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a title, of up to 64 characters, for the slash command settings page."
-              id="add_command.displayName.help"
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="display_name"
             />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="description"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Description"
-            id="add_command.description"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <input
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            type="text"
-            value="description"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Describe your slash command."
-              id="add_command.description.help"
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="trigger"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Command Trigger Word"
-            id="add_command.trigger"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="trigger"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
-            type="text"
-            value="trigger"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character."
-              id="add_command.trigger.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Examples: client, employee, patient, weather"
-              id="add_command.trigger.helpExamples"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Reserved: {link}"
-              id="add_command.trigger.helpReserved"
-              values={
-                Object {
-                  "link": <ForwardRef
-                    href="https://mattermost.com/pl/custom-slash-commands"
-                    location="abstract_command"
-                  >
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="See built-in slash commands"
-                      id="add_command.trigger.helpReservedLinkText"
-                    />
-                  </ForwardRef>,
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="url"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request URL"
-            id="add_command.url"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <OAuthConnectionAudienceInput
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
-            value="https://google.com/command"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
-              id="add_command.url.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
-              id="add_command.outgoing_oauth_connections.help_text"
-              values={
-                Object {
-                  "link": [Function],
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="method"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request Method"
-            id="add_command.method"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <select
-            className="form-control"
-            id="method"
-            onChange={[Function]}
-            value="G"
-          >
-            <option
-              value="P"
+            <div
+              class="form__help"
             >
-              POST
-            </option>
-            <option
-              value="G"
+              Specify a title, of up to 64 characters, for the slash command settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              type="text"
+              value="description"
+            />
+            <div
+              class="form__help"
             >
-              GET
-            </option>
-          </select>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application."
-              id="add_command.method.help"
-            />
+              Describe your slash command.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="username"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Username"
-            id="add_command.username"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="username"
-            maxLength={64}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
-            type="text"
-            value="username"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="trigger"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
-              id="add_command.username.help"
+            Command Trigger Word
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="trigger"
+              maxlength="128"
+              placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+              type="text"
+              value="trigger"
             />
+            <div
+              class="form__help"
+            >
+              Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character.
+            </div>
+            <div
+              class="form__help"
+            >
+              Examples: client, employee, patient, weather
+            </div>
+            <div
+              class="form__help"
+            >
+              Reserved: 
+              <a
+                href="https://mattermost.com/pl/custom-slash-commands?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_command&uid=&sid=&edition=team&server_version="
+                location="abstract_command"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                See built-in slash commands
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="iconUrl"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Icon"
-            id="add_command.iconUrl"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="iconUrl"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
-            type="text"
-            value="https://google.com/icon"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="url"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used."
-              id="add_command.iconUrl.help"
+            Request URL
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              autocomplete="off"
+              class="form-control"
+              id="url"
+              maxlength="1024"
+              placeholder="Must start with http:// or https://"
+              value="https://google.com/command"
             />
+            <div
+              class="form__help"
+            >
+              Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.
+            </div>
+            <div
+              class="form__help"
+            >
+              You can connect commands to 
+              <a
+                href="https://mattermost.com/pl/outgoing-oauth-connections"
+              >
+                outgoing OAuth connections
+              </a>
+              .
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocomplete"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete"
-            id="add_command.autocomplete"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8 checkbox"
+          class="form-group"
         >
-          <input
-            checked={true}
-            id="autocomplete"
-            onChange={[Function]}
-            type="checkbox"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="method"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Show your slash command on the autocomplete list when someone types \\"/\\" in the input box."
-              id="add_command.autocomplete.help"
-            />
+            Request Method
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="method"
+            >
+              <option
+                value="P"
+              >
+                POST
+              </option>
+              <option
+                value="G"
+              >
+                GET
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteHint"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Hint"
-            id="add_command.autocompleteHint"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="autocompleteHint"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_hint"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="username"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list."
-              id="add_command.autocompleteHint.help"
+            Response Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="64"
+              placeholder="Username"
+              type="text"
+              value="username"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteDescription"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Description"
-            id="add_command.autocompleteDescription"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_desc"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="iconUrl"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Describe your slash command for the autocomplete list."
-              id="add_command.autocompleteDescription.help"
+            Response Icon
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconUrl"
+              maxlength="1024"
+              placeholder="https://www.example.com/myicon.png"
+              type="text"
+              value="https://google.com/icon"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="backstage-form__footer"
-      >
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              null,
-            ]
-          }
-          type="backstage"
-        />
-        <Link
-          className="btn btn-tertiary"
-          to="/test/integrations/commands"
+        <div
+          class="form-group"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="add_command.cancel"
-          />
-        </Link>
-        <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
-          onClick={[Function]}
-          spinning={false}
-          spinningText={
-            Object {
-              "defaultMessage": "Loading",
-              "id": "Loading",
-            }
-          }
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
-        <div>
-          renderExtra
+          <label
+            class="control-label col-sm-4"
+            for="autocomplete"
+          >
+            Autocomplete
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              checked=""
+              id="autocomplete"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Show your slash command on the autocomplete list when someone types "/" in the input box.
+            </div>
+          </div>
         </div>
-      </div>
-    </form>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteHint"
+          >
+            Autocomplete Hint
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="autocompleteHint"
+              maxlength="1024"
+              placeholder="Example: [Patient Name]"
+              type="text"
+              value="auto_complete_hint"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteDescription"
+          >
+            Autocomplete Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              placeholder="Example: \\"Returns search results for patient records\\""
+              type="text"
+              value="auto_complete_desc"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Describe your slash command for the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/test/integrations/commands"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveCommand"
+            type="submit"
+          >
+            Footer
+          </button>
+          <div>
+            renderExtra
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/AbstractCommand should match snapshot when header/footer/loading is a string 1`] = `
-<div
-  className="backstage-content row"
->
-  <BackstageHeader>
-    <Link
-      to="/test/integrations/commands"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Slash Commands"
-        id="installed_command.header"
-      />
-    </Link>
-    <span>
-      Header as string
-    </span>
-  </BackstageHeader>
+<div>
   <div
-    className="backstage-form"
+    class="backstage-content row"
   >
-    <form
-      className="form-horizontal"
-      onSubmit={[Function]}
+    <div
+      class="backstage-header"
     >
-      <div
-        className="form-group"
+      <h1>
+        <a
+          href="/test/integrations/commands"
+        >
+          Slash Commands
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        <span>
+          Header as string
+        </span>
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
       >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="displayName"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Title"
-            id="add_command.displayName"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <input
-            className="form-control"
-            id="displayName"
-            maxLength={64}
-            onChange={[Function]}
-            type="text"
-            value="display_name"
-          />
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
           <div
-            className="form__help"
+            class="col-md-5 col-sm-8"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a title, of up to 64 characters, for the slash command settings page."
-              id="add_command.displayName.help"
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="display_name"
             />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="description"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Description"
-            id="add_command.description"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <input
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            type="text"
-            value="description"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Describe your slash command."
-              id="add_command.description.help"
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="trigger"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Command Trigger Word"
-            id="add_command.trigger"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="trigger"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
-            type="text"
-            value="trigger"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character."
-              id="add_command.trigger.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Examples: client, employee, patient, weather"
-              id="add_command.trigger.helpExamples"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Reserved: {link}"
-              id="add_command.trigger.helpReserved"
-              values={
-                Object {
-                  "link": <ForwardRef
-                    href="https://mattermost.com/pl/custom-slash-commands"
-                    location="abstract_command"
-                  >
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="See built-in slash commands"
-                      id="add_command.trigger.helpReservedLinkText"
-                    />
-                  </ForwardRef>,
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="url"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request URL"
-            id="add_command.url"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <OAuthConnectionAudienceInput
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
-            value="https://google.com/command"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
-              id="add_command.url.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
-              id="add_command.outgoing_oauth_connections.help_text"
-              values={
-                Object {
-                  "link": [Function],
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="method"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request Method"
-            id="add_command.method"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <select
-            className="form-control"
-            id="method"
-            onChange={[Function]}
-            value="G"
-          >
-            <option
-              value="P"
+            <div
+              class="form__help"
             >
-              POST
-            </option>
-            <option
-              value="G"
+              Specify a title, of up to 64 characters, for the slash command settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              type="text"
+              value="description"
+            />
+            <div
+              class="form__help"
             >
-              GET
-            </option>
-          </select>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application."
-              id="add_command.method.help"
-            />
+              Describe your slash command.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="username"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Username"
-            id="add_command.username"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="username"
-            maxLength={64}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
-            type="text"
-            value="username"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="trigger"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
-              id="add_command.username.help"
+            Command Trigger Word
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="trigger"
+              maxlength="128"
+              placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+              type="text"
+              value="trigger"
             />
+            <div
+              class="form__help"
+            >
+              Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character.
+            </div>
+            <div
+              class="form__help"
+            >
+              Examples: client, employee, patient, weather
+            </div>
+            <div
+              class="form__help"
+            >
+              Reserved: 
+              <a
+                href="https://mattermost.com/pl/custom-slash-commands?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_command&uid=&sid=&edition=team&server_version="
+                location="abstract_command"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                See built-in slash commands
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="iconUrl"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Icon"
-            id="add_command.iconUrl"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="iconUrl"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
-            type="text"
-            value="https://google.com/icon"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="url"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used."
-              id="add_command.iconUrl.help"
+            Request URL
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              autocomplete="off"
+              class="form-control"
+              id="url"
+              maxlength="1024"
+              placeholder="Must start with http:// or https://"
+              value="https://google.com/command"
             />
+            <div
+              class="form__help"
+            >
+              Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.
+            </div>
+            <div
+              class="form__help"
+            >
+              You can connect commands to 
+              <a
+                href="https://mattermost.com/pl/outgoing-oauth-connections"
+              >
+                outgoing OAuth connections
+              </a>
+              .
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocomplete"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete"
-            id="add_command.autocomplete"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8 checkbox"
+          class="form-group"
         >
-          <input
-            checked={true}
-            id="autocomplete"
-            onChange={[Function]}
-            type="checkbox"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="method"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Show your slash command on the autocomplete list when someone types \\"/\\" in the input box."
-              id="add_command.autocomplete.help"
-            />
+            Request Method
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="method"
+            >
+              <option
+                value="P"
+              >
+                POST
+              </option>
+              <option
+                value="G"
+              >
+                GET
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteHint"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Hint"
-            id="add_command.autocompleteHint"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="autocompleteHint"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_hint"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="username"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list."
-              id="add_command.autocompleteHint.help"
+            Response Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="64"
+              placeholder="Username"
+              type="text"
+              value="username"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteDescription"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Description"
-            id="add_command.autocompleteDescription"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_desc"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="iconUrl"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Describe your slash command for the autocomplete list."
-              id="add_command.autocompleteDescription.help"
+            Response Icon
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconUrl"
+              maxlength="1024"
+              placeholder="https://www.example.com/myicon.png"
+              type="text"
+              value="https://google.com/icon"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="backstage-form__footer"
-      >
-        <Memo(FormError)
-          errors={
-            Array [
-              "",
-              null,
-            ]
-          }
-          type="backstage"
-        />
-        <Link
-          className="btn btn-tertiary"
-          to="/test/integrations/commands"
+        <div
+          class="form-group"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="add_command.cancel"
-          />
-        </Link>
-        <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
-          onClick={[Function]}
-          spinning={false}
-          spinningText="Loading as string"
-          type="submit"
-        >
-          <span>
-            Footer as string
-          </span>
-        </Memo(SpinnerButton)>
-        <div>
-          renderExtra
+          <label
+            class="control-label col-sm-4"
+            for="autocomplete"
+          >
+            Autocomplete
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              checked=""
+              id="autocomplete"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Show your slash command on the autocomplete list when someone types "/" in the input box.
+            </div>
+          </div>
         </div>
-      </div>
-    </form>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteHint"
+          >
+            Autocomplete Hint
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="autocompleteHint"
+              maxlength="1024"
+              placeholder="Example: [Patient Name]"
+              type="text"
+              value="auto_complete_hint"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteDescription"
+          >
+            Autocomplete Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              placeholder="Example: \\"Returns search results for patient records\\""
+              type="text"
+              value="auto_complete_desc"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Describe your slash command for the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <a
+            class="btn btn-tertiary"
+            href="/test/integrations/commands"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveCommand"
+            type="submit"
+          >
+            <span>
+              Footer as string
+            </span>
+          </button>
+          <div>
+            renderExtra
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 `;
 
 exports[`components/integrations/AbstractCommand should match snapshot, displays client error 1`] = `
-<div
-  className="backstage-content row"
->
-  <BackstageHeader>
-    <Link
-      to="/test/integrations/commands"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Slash Commands"
-        id="installed_command.header"
-      />
-    </Link>
-    <MemoizedFormattedMessage
-      defaultMessage="Header"
-      id="Header"
-    />
-  </BackstageHeader>
+<div>
   <div
-    className="backstage-form"
+    class="backstage-content row"
   >
-    <form
-      className="form-horizontal"
-      onSubmit={[Function]}
+    <div
+      class="backstage-header"
     >
-      <div
-        className="form-group"
+      <h1>
+        <a
+          href="/test/integrations/commands"
+        >
+          Slash Commands
+        </a>
+        <span
+          class="backstage-header__divider"
+        >
+          <i
+            class="fa fa-angle-right"
+            title="Breadcrumb Icon"
+          />
+        </span>
+        Header
+      </h1>
+    </div>
+    <div
+      class="backstage-form"
+    >
+      <form
+        class="form-horizontal"
       >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="displayName"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Title"
-            id="add_command.displayName"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <input
-            className="form-control"
-            id="displayName"
-            maxLength={64}
-            onChange={[Function]}
-            type="text"
-            value="display_name"
-          />
+          <label
+            class="control-label col-sm-4"
+            for="displayName"
+          >
+            Title
+          </label>
           <div
-            className="form__help"
+            class="col-md-5 col-sm-8"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a title, of up to 64 characters, for the slash command settings page."
-              id="add_command.displayName.help"
+            <input
+              class="form-control"
+              id="displayName"
+              maxlength="64"
+              type="text"
+              value="display_name"
             />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="description"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Description"
-            id="add_command.description"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <input
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            type="text"
-            value="description"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Describe your slash command."
-              id="add_command.description.help"
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="trigger"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Command Trigger Word"
-            id="add_command.trigger"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="trigger"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
-            type="text"
-            value=""
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character."
-              id="add_command.trigger.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Examples: client, employee, patient, weather"
-              id="add_command.trigger.helpExamples"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Reserved: {link}"
-              id="add_command.trigger.helpReserved"
-              values={
-                Object {
-                  "link": <ForwardRef
-                    href="https://mattermost.com/pl/custom-slash-commands"
-                    location="abstract_command"
-                  >
-                    <Memo(MemoizedFormattedMessage)
-                      defaultMessage="See built-in slash commands"
-                      id="add_command.trigger.helpReservedLinkText"
-                    />
-                  </ForwardRef>,
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="url"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request URL"
-            id="add_command.url"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <OAuthConnectionAudienceInput
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
-            value="https://google.com/command"
-          />
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
-              id="add_command.url.help"
-            />
-          </div>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
-              id="add_command.outgoing_oauth_connections.help_text"
-              values={
-                Object {
-                  "link": [Function],
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="method"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Request Method"
-            id="add_command.method"
-          />
-        </label>
-        <div
-          className="col-md-5 col-sm-8"
-        >
-          <select
-            className="form-control"
-            id="method"
-            onChange={[Function]}
-            value="G"
-          >
-            <option
-              value="P"
+            <div
+              class="form__help"
             >
-              POST
-            </option>
-            <option
-              value="G"
+              Specify a title, of up to 64 characters, for the slash command settings page.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="description"
+          >
+            Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              type="text"
+              value="description"
+            />
+            <div
+              class="form__help"
             >
-              GET
-            </option>
-          </select>
-          <div
-            className="form__help"
-          >
-            <MemoizedFormattedMessage
-              defaultMessage="Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application."
-              id="add_command.method.help"
-            />
+              Describe your slash command.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="username"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Username"
-            id="add_command.username"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="username"
-            maxLength={64}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
-            type="text"
-            value="username"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="trigger"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
-              id="add_command.username.help"
+            Command Trigger Word
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="trigger"
+              maxlength="128"
+              placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+              type="text"
+              value=""
             />
+            <div
+              class="form__help"
+            >
+              Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character.
+            </div>
+            <div
+              class="form__help"
+            >
+              Examples: client, employee, patient, weather
+            </div>
+            <div
+              class="form__help"
+            >
+              Reserved: 
+              <a
+                href="https://mattermost.com/pl/custom-slash-commands?utm_source=mattermost&utm_medium=in-product&utm_content=abstract_command&uid=&sid=&edition=team&server_version="
+                location="abstract_command"
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                See built-in slash commands
+              </a>
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="iconUrl"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Response Icon"
-            id="add_command.iconUrl"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="iconUrl"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
-            type="text"
-            value="https://google.com/icon"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="url"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used."
-              id="add_command.iconUrl.help"
+            Request URL
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              autocomplete="off"
+              class="form-control"
+              id="url"
+              maxlength="1024"
+              placeholder="Must start with http:// or https://"
+              value="https://google.com/command"
             />
+            <div
+              class="form__help"
+            >
+              Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.
+            </div>
+            <div
+              class="form__help"
+            >
+              You can connect commands to 
+              <a
+                href="https://mattermost.com/pl/outgoing-oauth-connections"
+              >
+                outgoing OAuth connections
+              </a>
+              .
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocomplete"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete"
-            id="add_command.autocomplete"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8 checkbox"
+          class="form-group"
         >
-          <input
-            checked={true}
-            id="autocomplete"
-            onChange={[Function]}
-            type="checkbox"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="method"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Show your slash command on the autocomplete list when someone types \\"/\\" in the input box."
-              id="add_command.autocomplete.help"
-            />
+            Request Method
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <select
+              class="form-control"
+              id="method"
+            >
+              <option
+                value="P"
+              >
+                POST
+              </option>
+              <option
+                value="G"
+              >
+                GET
+              </option>
+            </select>
+            <div
+              class="form__help"
+            >
+              Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteHint"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Hint"
-            id="add_command.autocompleteHint"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="autocompleteHint"
-            maxLength={1024}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_hint"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="username"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list."
-              id="add_command.autocompleteHint.help"
+            Response Username
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="username"
+              maxlength="64"
+              placeholder="Username"
+              type="text"
+              value="username"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols "-", "_", and ".". If left blank, your Mattermost username is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-          htmlFor="autocompleteDescription"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Autocomplete Description"
-            id="add_command.autocompleteDescription"
-          />
-        </label>
         <div
-          className="col-md-5 col-sm-8"
+          class="form-group"
         >
-          <LocalizedPlaceholderInput
-            className="form-control"
-            id="description"
-            maxLength={128}
-            onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
-            type="text"
-            value="auto_complete_desc"
-          />
-          <div
-            className="form__help"
+          <label
+            class="control-label col-sm-4"
+            for="iconUrl"
           >
-            <MemoizedFormattedMessage
-              defaultMessage="(Optional) Describe your slash command for the autocomplete list."
-              id="add_command.autocompleteDescription.help"
+            Response Icon
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="iconUrl"
+              maxlength="1024"
+              placeholder="https://www.example.com/myicon.png"
+              type="text"
+              value="https://google.com/icon"
             />
+            <div
+              class="form__help"
+            >
+              (Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used.
+            </div>
           </div>
         </div>
-      </div>
-      <div
-        className="backstage-form__footer"
-      >
-        <Memo(FormError)
-          errors={
-            Array [
-              "server error",
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="A trigger word is required"
-                id="add_command.triggerRequired"
-              />,
-            ]
-          }
-          type="backstage"
-        />
-        <Link
-          className="btn btn-tertiary"
-          to="/test/integrations/commands"
+        <div
+          class="form-group"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Cancel"
-            id="add_command.cancel"
-          />
-        </Link>
-        <Memo(SpinnerButton)
-          className="btn btn-primary"
-          id="saveCommand"
-          onClick={[Function]}
-          spinning={false}
-          spinningText={
-            Object {
-              "defaultMessage": "Loading",
-              "id": "Loading",
-            }
-          }
-          type="submit"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Footer"
-            id="Footer"
-          />
-        </Memo(SpinnerButton)>
-        <div>
-          renderExtra
+          <label
+            class="control-label col-sm-4"
+            for="autocomplete"
+          >
+            Autocomplete
+          </label>
+          <div
+            class="col-md-5 col-sm-8 checkbox"
+          >
+            <input
+              checked=""
+              id="autocomplete"
+              type="checkbox"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Show your slash command on the autocomplete list when someone types "/" in the input box.
+            </div>
+          </div>
         </div>
-      </div>
-    </form>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteHint"
+          >
+            Autocomplete Hint
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="autocompleteHint"
+              maxlength="1024"
+              placeholder="Example: [Patient Name]"
+              type="text"
+              value="auto_complete_hint"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="form-group"
+        >
+          <label
+            class="control-label col-sm-4"
+            for="autocompleteDescription"
+          >
+            Autocomplete Description
+          </label>
+          <div
+            class="col-md-5 col-sm-8"
+          >
+            <input
+              class="form-control"
+              id="description"
+              maxlength="128"
+              placeholder="Example: \\"Returns search results for patient records\\""
+              type="text"
+              value="auto_complete_desc"
+            />
+            <div
+              class="form__help"
+            >
+              (Optional) Describe your slash command for the autocomplete list.
+            </div>
+          </div>
+        </div>
+        <div
+          class="backstage-form__footer"
+        >
+          <div
+            class="pull-left has-error"
+          >
+            <label
+              class="control-label"
+            >
+              A trigger word is required
+            </label>
+          </div>
+          <a
+            class="btn btn-tertiary"
+            href="/test/integrations/commands"
+          >
+            Cancel
+          </a>
+          <button
+            class="btn btn-primary"
+            id="saveCommand"
+            type="submit"
+          >
+            Footer
+          </button>
+          <div>
+            renderExtra
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 `;

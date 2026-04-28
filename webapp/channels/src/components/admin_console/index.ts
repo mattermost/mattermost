@@ -12,7 +12,6 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {General} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/admin';
 import {getConfig as getGeneralConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -51,7 +50,6 @@ function mapStateToProps(state: GlobalState) {
         consoleAccess,
         cloud: state.entities.cloud,
         team,
-        currentTheme: getTheme(state),
     };
 }
 

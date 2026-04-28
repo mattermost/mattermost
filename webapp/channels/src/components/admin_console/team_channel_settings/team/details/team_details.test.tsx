@@ -1,12 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamDetails from './team_details';
+
+jest.mock('./team_members/index', () => {
+    return () => <div>{'TeamMembers'}</div>;
+});
+
+jest.mock('./team_profile', () => ({
+    TeamProfile: () => <div>{'TeamProfile'}</div>,
+}));
 
 describe('admin_console/team_channel_settings/team/TeamDetails', () => {
     const groups = [TestHelper.getGroupMock({
@@ -50,12 +58,12 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <TeamDetails
                 {...baseProps}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with isLocalArchived true', () => {
@@ -66,11 +74,11 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
                 delete_at: 16465313,
             },
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <TeamDetails
                 {...props}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

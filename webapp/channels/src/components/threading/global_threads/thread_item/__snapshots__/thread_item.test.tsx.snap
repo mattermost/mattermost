@@ -1,452 +1,242 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/threading/global_threads/thread_item should report total number of replies 1`] = `
-<Fragment>
-  <div
-    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    aria-label="Thread by Someone"
-    className="ThreadItem"
-    id=""
-    onClick={[Function]}
-    onKeyDown={[Function]}
-    role="link"
-    tabIndex={0}
-  >
+<body>
+  <div>
     <div
-      className="thread-item-header"
+      aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      aria-label="Thread by Someone"
+      class="ThreadItem"
+      id=""
+      role="link"
+      tabindex="0"
     >
       <div
-        className="ThreadItem__author"
+        class="thread-item-header"
       >
-        Someone
+        <div
+          class="ThreadItem__author"
+        >
+          Someone
+        </div>
+        <div
+          class="ThreadItem__tags"
+        >
+          <button
+            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              Team name
+            </span>
+          </button>
+        </div>
+        <span>
+          timestamp
+        </span>
       </div>
       <div
-        className="ThreadItem__tags"
+        class="menu-anchor alt-visible"
       >
-        <Memo(Tag)
-          onClick={[Function]}
-          text="Team name"
+        <div
+          class="thread-menu"
         />
       </div>
-      <MockTimestamp
-        className="alt-hidden"
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </div>
-    <div
-      className="menu-anchor alt-visible"
-    >
-      <MockThreadMenu
-        hasUnreads={false}
-        isFollowing={true}
-        threadId="1y8hpek81byspd4enyk9mp1ncw"
-        unreadTimestamp={1611786714912}
+      <div
+        class="preview"
+        dir="auto"
       >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
+        <span>
+          test msg
+        </span>
+      </div>
+      <div
+        class="activity"
+      >
+        <div
+          class="avatars"
         >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
-          >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+          avatars
+        </div>
+        9 replies
+      </div>
+      <span
+        class="sr-only"
+        id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      >
+        Last reply 
+        <span>
+          timestamp
+        </span>
+      </span>
     </div>
-    <div
-      className="preview"
-      dir="auto"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-    >
-      <MockMarkdown
-        imageProps={
-          Object {
-            "onImageHeightChanged": [Function],
-            "onImageLoaded": [Function],
-          }
-        }
-        mentionKeys={Array []}
-        message="test msg"
-        options={
-          Object {
-            "atMentions": true,
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </div>
-    <div
-      className="activity"
-    >
-      <MockAvatars
-        size="xs"
-        userIds={
-          Array [
-            "mt5td9mdriyapmwuh5pc84dmhr",
-            "ij61jet1bbdk8fhhxitywdj4ih",
-            "7n4ach3i53bbmj84dfmu5b7c1c",
-          ]
-        }
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
-        id="threading.numReplies"
-        values={
-          Object {
-            "totalReplies": 9,
-          }
-        }
-      />
-    </div>
-    <span
-      className="sr-only"
-      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Last reply "
-        id="threading.threadItem.timestamp"
-      />
-      <MockTimestamp
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </span>
   </div>
-</Fragment>
+</body>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread mentions 1`] = `
-<Fragment>
-  <div
-    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    aria-label="Thread by Someone"
-    className="ThreadItem has-unreads"
-    id=""
-    onClick={[Function]}
-    onKeyDown={[Function]}
-    role="link"
-    tabIndex={0}
-  >
+<body>
+  <div>
     <div
-      className="thread-item-header"
+      aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      aria-label="Thread by Someone"
+      class="ThreadItem has-unreads"
+      id=""
+      role="link"
+      tabindex="0"
     >
       <div
-        className="indicator"
+        class="thread-item-header"
       >
         <div
-          className="dot-mentions"
+          class="indicator"
         >
-          2
+          <div
+            class="dot-mentions"
+          >
+            2
+          </div>
         </div>
+        <div
+          class="ThreadItem__author"
+        >
+          Someone
+        </div>
+        <div
+          class="ThreadItem__tags"
+        >
+          <button
+            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              Team name
+            </span>
+          </button>
+        </div>
+        <span>
+          timestamp
+        </span>
       </div>
       <div
-        className="ThreadItem__author"
+        class="menu-anchor alt-visible"
       >
-        Someone
-      </div>
-      <div
-        className="ThreadItem__tags"
-      >
-        <Memo(Tag)
-          onClick={[Function]}
-          text="Team name"
+        <div
+          class="thread-menu"
         />
       </div>
-      <MockTimestamp
-        className="alt-hidden"
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </div>
-    <div
-      className="menu-anchor alt-visible"
-    >
-      <MockThreadMenu
-        hasUnreads={true}
-        isFollowing={true}
-        threadId="1y8hpek81byspd4enyk9mp1ncw"
-        unreadTimestamp={1611786714912}
+      <div
+        class="preview"
+        dir="auto"
       >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
+        <span>
+          test msg
+        </span>
+      </div>
+      <div
+        class="activity"
+      >
+        <div
+          class="avatars"
         >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
-          >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+          avatars
+        </div>
+        5 new replies
+      </div>
+      <span
+        class="sr-only"
+        id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      >
+        Last reply 
+        <span>
+          timestamp
+        </span>
+      </span>
     </div>
-    <div
-      className="preview"
-      dir="auto"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-    >
-      <MockMarkdown
-        imageProps={
-          Object {
-            "onImageHeightChanged": [Function],
-            "onImageLoaded": [Function],
-          }
-        }
-        mentionKeys={Array []}
-        message="test msg"
-        options={
-          Object {
-            "atMentions": true,
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </div>
-    <div
-      className="activity"
-    >
-      <MockAvatars
-        size="xs"
-        userIds={
-          Array [
-            "mt5td9mdriyapmwuh5pc84dmhr",
-            "ij61jet1bbdk8fhhxitywdj4ih",
-            "7n4ach3i53bbmj84dfmu5b7c1c",
-          ]
-        }
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="{newReplies, plural, =1 {# new reply} other {# new replies}}"
-        id="threading.numNewReplies"
-        values={
-          Object {
-            "newReplies": 5,
-          }
-        }
-      />
-    </div>
-    <span
-      className="sr-only"
-      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Last reply "
-        id="threading.threadItem.timestamp"
-      />
-      <MockTimestamp
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </span>
   </div>
-</Fragment>
+</body>
 `;
 
 exports[`components/threading/global_threads/thread_item should report unread messages 1`] = `
-<Fragment>
-  <div
-    aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    aria-label="Thread by Someone"
-    className="ThreadItem has-unreads"
-    id=""
-    onClick={[Function]}
-    onKeyDown={[Function]}
-    role="link"
-    tabIndex={0}
-  >
+<body>
+  <div>
     <div
-      className="thread-item-header"
+      aria-describedby="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      aria-label="Thread by Someone"
+      class="ThreadItem has-unreads"
+      id=""
+      role="link"
+      tabindex="0"
     >
       <div
-        className="indicator"
+        class="thread-item-header"
       >
         <div
-          className="dot-unreads"
-        />
-      </div>
-      <div
-        className="ThreadItem__author"
-      >
-        Someone
-      </div>
-      <div
-        className="ThreadItem__tags"
-      >
-        <Memo(Tag)
-          onClick={[Function]}
-          text="Team name"
-        />
-      </div>
-      <MockTimestamp
-        className="alt-hidden"
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </div>
-    <div
-      className="menu-anchor alt-visible"
-    >
-      <MockThreadMenu
-        hasUnreads={true}
-        isFollowing={true}
-        threadId="1y8hpek81byspd4enyk9mp1ncw"
-        unreadTimestamp={1611786714912}
-      >
-        <WithTooltip
-          title={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Actions"
-              id="threading.threadItem.menu"
-            />
-          }
+          class="indicator"
         >
-          <Memo(Button)
-            aria-label="Actions"
-            className="Button___icon"
-            marginTop={true}
+          <div
+            class="dot-unreads"
+          />
+        </div>
+        <div
+          class="ThreadItem__author"
+        >
+          Someone
+        </div>
+        <div
+          class="ThreadItem__tags"
+        >
+          <button
+            class="TagWrapper-kezsCu ftZQnc Tag Tag--xs"
           >
-            <DotsVerticalIcon
-              size={18}
-            />
-          </Memo(Button)>
-        </WithTooltip>
-      </MockThreadMenu>
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              Team name
+            </span>
+          </button>
+        </div>
+        <span>
+          timestamp
+        </span>
+      </div>
+      <div
+        class="menu-anchor alt-visible"
+      >
+        <div
+          class="thread-menu"
+        />
+      </div>
+      <div
+        class="preview"
+        dir="auto"
+      >
+        <span>
+          test msg
+        </span>
+      </div>
+      <div
+        class="activity"
+      >
+        <div
+          class="avatars"
+        >
+          avatars
+        </div>
+        2 new replies
+      </div>
+      <span
+        class="sr-only"
+        id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
+      >
+        Last reply 
+        <span>
+          timestamp
+        </span>
+      </span>
     </div>
-    <div
-      className="preview"
-      dir="auto"
-      onClick={[Function]}
-      onKeyDown={[Function]}
-    >
-      <MockMarkdown
-        imageProps={
-          Object {
-            "onImageHeightChanged": [Function],
-            "onImageLoaded": [Function],
-          }
-        }
-        mentionKeys={Array []}
-        message="test msg"
-        options={
-          Object {
-            "atMentions": true,
-            "mentionHighlight": false,
-            "singleline": true,
-          }
-        }
-      />
-    </div>
-    <div
-      className="activity"
-    >
-      <MockAvatars
-        size="xs"
-        userIds={
-          Array [
-            "mt5td9mdriyapmwuh5pc84dmhr",
-            "ij61jet1bbdk8fhhxitywdj4ih",
-            "7n4ach3i53bbmj84dfmu5b7c1c",
-          ]
-        }
-      />
-      <MemoizedFormattedMessage
-        defaultMessage="{newReplies, plural, =1 {# new reply} other {# new replies}}"
-        id="threading.numNewReplies"
-        values={
-          Object {
-            "newReplies": 2,
-          }
-        }
-      />
-    </div>
-    <span
-      className="sr-only"
-      id="ThreadItem__timestamp_1y8hpek81byspd4enyk9mp1ncw"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Last reply "
-        id="threading.threadItem.timestamp"
-      />
-      <MockTimestamp
-        day="numeric"
-        units={
-          Array [
-            "now",
-            "minute",
-            "hour",
-            "day",
-            "week",
-          ]
-        }
-        useTime={false}
-      />
-    </span>
   </div>
-</Fragment>
+</body>
 `;

@@ -99,7 +99,7 @@ func TestElasticsearchAggregation(t *testing.T) {
 	})
 
 	esImpl := th.App.SearchEngine().ElasticsearchEngine
-	appErr := esImpl.Start()
+	appErr := esImpl.Start(context.Background())
 	if appErr != nil && appErr.Id != "ent.elasticsearch.start.already_started.app_error" {
 		require.Fail(t, "failed to start elasticsearch", appErr)
 	}
@@ -206,7 +206,7 @@ func indexPost(t *testing.T, th *api4.TestHelper, esImpl *OpensearchInterfaceImp
 		createTime.Add(-1*24*time.Hour),
 		model.GetMillisForTime(createTime),
 	)
-	searchPost, err := common.ESPostFromPost(post, "teamID")
+	searchPost, err := common.ESPostFromPost(post, "teamID", "O")
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(context.Background(),
 		time.Duration(*esImpl.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)

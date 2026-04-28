@@ -1,17 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import RenewalLicenseCard from './renew_license_card';
 
-const initialState = {
+const initialState: DeepPartial<GlobalState> = {
     views: {
         announcementBar: {
             announcementBarState: {
@@ -42,22 +42,7 @@ const initialState = {
     },
 };
 
-const actImmediate = (wrapper: ReactWrapper) =>
-    act(
-        () =>
-            new Promise<void>((resolve) => {
-                setImmediate(() => {
-                    wrapper.update();
-                    resolve();
-                });
-            }),
-    );
-
 describe('components/RenewalLicenseCard', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
     const props = {
         license: {
             id: 'license_id',
@@ -69,14 +54,11 @@ describe('components/RenewalLicenseCard', () => {
         isDisabled: false,
     };
 
-    test('should show Contact sales button', async () => {
-        const store = mockStore(initialState);
-        const wrapper = mountWithIntl(<Provider store={store}><RenewalLicenseCard {...props}/></Provider>);
+    test('should show Contact sales button', () => {
+        renderWithContext(<RenewalLicenseCard {...props}/>, initialState);
 
-        // wait for the promise to resolve and component to update
-        await actImmediate(wrapper);
-
-        expect(wrapper.find('button').length).toEqual(1);
-        expect(wrapper.find('button').at(0).text().includes('Contact Sales')).toBe(true);
+        const buttons = screen.getAllByRole('button');
+        expect(buttons).toHaveLength(1);
+        expect(screen.getByText('Contact Sales')).toBeInTheDocument();
     });
 });

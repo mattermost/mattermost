@@ -17,13 +17,10 @@ import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
     team: Team;
-    hasChanges: boolean;
-    hasChangeTabError: boolean;
-    setHasChanges: (hasChanges: boolean) => void;
-    setHasChangeTabError: (hasChangesError: boolean) => void;
-    setJustSaved: (justSaved: boolean) => void;
-    closeModal: () => void;
-    collapseModal: () => void;
+    areThereUnsavedChanges: boolean;
+    showTabSwitchError: boolean;
+    setAreThereUnsavedChanges: (unsaved: boolean) => void;
+    setShowTabSwitchError: (error: boolean) => void;
 };
 
 function mapStateToProps(state: GlobalState) {

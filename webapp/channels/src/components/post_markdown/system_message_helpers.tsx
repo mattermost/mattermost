@@ -78,7 +78,7 @@ function renderLeaveChannelMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.leave.left'
-            defaultMessage='{username} has left the channel.'
+            defaultMessage='{username} left the channel.'
             values={{username}}
         />
     );
@@ -164,7 +164,7 @@ function renderAddToTeamMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.team.add_member.added'
-            defaultMessage='{addedUsername} added to the team by {username}.'
+            defaultMessage='{addedUsername} added to the team by {username}'
             values={{
                 username,
                 addedUsername,
@@ -344,7 +344,7 @@ function renderChannelDeletedMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.delete_channel.archived'
-            defaultMessage='{username} has archived the channel.'
+            defaultMessage='{username} archived the channel.'
             values={{username}}
         />
     );
@@ -360,7 +360,32 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     return (
         <FormattedMessage
             id='api.channel.restore_channel.unarchived'
-            defaultMessage='{username} has unarchived the channel.'
+            defaultMessage='{username} unarchived the channel.'
+            values={{username}}
+        />
+    );
+}
+
+function renderAutoTranslationChangeMessage(post: Post): ReactNode {
+    if (!post.props.username) {
+        return null;
+    }
+
+    const username = renderUsername(post.props.username);
+    const enabled = post.props.enabled;
+    if (enabled) {
+        return (
+            <FormattedMessage
+                id='api.channel.auto_translation_change.message.enabled'
+                defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
+                values={{username}}
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='api.channel.auto_translation_change.message.disabled'
+            defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
             values={{username}}
         />
     );
@@ -390,6 +415,7 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.CHANNEL_DELETED]: renderChannelDeletedMessage,
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
+    [Posts.POST_TYPES.AUTO_TRANSLATION_CHANGE]: renderAutoTranslationChangeMessage,
 };
 
 export type AddMemberProps = {

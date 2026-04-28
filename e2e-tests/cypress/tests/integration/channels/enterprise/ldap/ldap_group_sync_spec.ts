@@ -7,7 +7,6 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @ldap
 
 import {Channel} from '@mattermost/types/channels';
@@ -15,7 +14,7 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {AdminConfig} from '@mattermost/types/config';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 function setLDAPTestSettings(config: AdminConfig) {
     return {

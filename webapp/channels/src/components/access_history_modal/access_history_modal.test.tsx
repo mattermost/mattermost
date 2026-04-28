@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import AccessHistoryModal from 'components/access_history_modal/access_history_modal';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 jest.mock('components/audit_table', () => {
     return jest.fn().mockImplementation(() => {
@@ -85,7 +84,7 @@ describe('components/AccessHistoryModal', () => {
         );
 
         await waitFor(() => screen.getByText('Access History'));
-        fireEvent.click(screen.getByLabelText('Close'));
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(onHide).toHaveBeenCalledTimes(1);
     });

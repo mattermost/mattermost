@@ -4,10 +4,11 @@
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
+import {isMac} from '@mattermost/shared/utils/user_agent';
+
 import {ShortcutSequence, ShortcutKeyVariant, KEY_SEPARATOR} from 'components/shortcut_sequence';
 
 import {isMessageDescriptor} from 'utils/i18n';
-import {isMac} from 'utils/user_agent';
 
 import {type KeyboardShortcutDescriptor} from './keyboard_shortcuts';
 

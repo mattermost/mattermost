@@ -6,7 +6,7 @@
 // See reference: https://support.smartbear.com/tm4j-cloud/api-docs/
 
 const axios = require('axios');
-const chalk = require('chalk');
+const chalk = require('chalk').default;
 
 const {getAllTests} = require('./report');
 

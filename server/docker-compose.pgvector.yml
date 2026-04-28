@@ -3,6 +3,6 @@
 services:
   postgres:
     # Override the postgres image to use pgvector
-    image: "pgvector/pgvector:pg13"
+    image: "pgvector/pgvector:pg14"
     # All other settings are inherited from the base service
 

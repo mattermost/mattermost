@@ -3627,6 +3627,10 @@ func testGetGroupsByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Use a unique prefix for display names to avoid collisions with groups
+	// created by other parallel subtests sharing the same database.
+	uid := model.NewId()[:8]
+
 	// Create Team1
 	team1 := &model.Team{
 		DisplayName:      "Team1",
@@ -3657,7 +3661,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create Groups 1 and 2
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewPointer(model.NewId()),
-		DisplayName:    "group-1",
+		DisplayName:    uid + "-group-1",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
@@ -3665,8 +3669,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-2"),
-		DisplayName:    "group-2",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-2"),
+		DisplayName:    uid + "-group-2",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
@@ -3674,8 +3678,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	deletedGroup, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-deleted"),
-		DisplayName:    "group-deleted",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-deleted"),
+		DisplayName:    uid + "-group-deleted",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
@@ -3730,8 +3734,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-3"),
-		DisplayName:    "group-3",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-3"),
+		DisplayName:    uid + "-group-3",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
@@ -3843,7 +3847,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	user2.DeleteAt = 1
 	u2Update, _ := ss.User().Update(rctx, user2, true)
 
-	group2NameSubstring := "group-2"
+	group2NameSubstring := uid + "-group-2"
 
 	endCreateTime := u2Update.New.UpdateAt + 1
 
@@ -3927,12 +3931,15 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching display name",
-			Opts:    model.GroupSearchOpts{Q: "rouP-3"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP-3"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
 				for _, g := range groups {
-					if !strings.Contains(strings.ToLower(g.DisplayName), "roup-3") {
+					if !strings.Contains(strings.ToLower(g.DisplayName), uid+"-group-3") {
 						return false
 					}
 				}
@@ -3942,12 +3949,15 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching multiple display names",
-			Opts:    model.GroupSearchOpts{Q: "groUp"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) < 2 {
+					return false
+				}
 				for _, g := range groups {
-					if !strings.Contains(strings.ToLower(g.DisplayName), "group") {
+					if !strings.Contains(strings.ToLower(g.DisplayName), uid+"-group") {
 						return false
 					}
 				}
@@ -4193,7 +4203,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Include archived groups",
-			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: "group-deleted"},
+			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: uid + "-group-deleted"},
 			Page:    0,
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
@@ -4203,7 +4213,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Only return archived groups",
-			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: "group-1"},
+			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: uid + "-group-1"},
 			Page:    0,
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {

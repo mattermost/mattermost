@@ -262,9 +262,10 @@ const ChannelInviteModalComponent = (props: Props) => {
                 perPage,
                 cursorId,
             );
-            setAbacFilteredUsers(profiles);
-            return {data: profiles};
+            setAbacFilteredUsers(profiles || []);
+            return {data: profiles || []};
         } catch (error) {
+            setAbacFilteredUsers([]);
             return {error};
         }
     }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);

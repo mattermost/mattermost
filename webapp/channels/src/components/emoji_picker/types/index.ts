@@ -18,6 +18,7 @@ export type Category = {
 };
 
 export type Categories = Record<EmojiCategory, Category>;
+export type ListedCategories = Omit<Categories, 'recent' | 'searchResults'> & Partial<Pick<Categories, 'recent'>>;
 
 export type CategoryOrEmojiRow = CategoryHeaderRow | EmojiRow;
 

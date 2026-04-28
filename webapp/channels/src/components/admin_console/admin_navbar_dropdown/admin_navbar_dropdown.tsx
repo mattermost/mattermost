@@ -107,7 +107,7 @@ class AdminNavbarDropdown extends React.PureComponent<Props> {
                 <Menu.Group>
                     <Menu.ItemExternalLink
                         url={adminGuideLink}
-                        text={formatMessage({id: 'admin.nav.administratorsGuide', defaultMessage: 'Administrator Guide'})}
+                        text={formatMessage({id: 'admin.nav.administratorsGuide', defaultMessage: "Administrator's Guide"})}
                     />
                     <Menu.ItemExternalLink
                         url={'https://forum.mattermost.com/t/how-to-use-the-troubleshooting-forum/150'}

@@ -109,6 +109,7 @@ export type PluginStatusRedux = {
 
 export type ClientPluginManifest = {
     id: string;
+    name: string;
     min_server_version?: string;
     version: string;
     webapp: {

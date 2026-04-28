@@ -1,160 +1,192 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
-<Modal
-  animation={true}
-  autoFocus={true}
-  backdrop={true}
-  bsClass="modal"
-  dialogClassName="a11y__modal more-modal more-direct-channels"
-  dialogComponentClass={[Function]}
-  enforceFocus={true}
-  id="addGroupsToTeamModal"
-  keyboard={true}
-  manager={
-    ModalManager {
-      "add": [Function],
-      "containers": Array [],
-      "data": Array [],
-      "handleContainerOverflow": true,
-      "hideSiblingNodes": true,
-      "isTopModal": [Function],
-      "modals": Array [],
-      "remove": [Function],
-    }
-  }
-  onExited={[Function]}
-  onHide={[Function]}
-  renderBackdrop={[Function]}
-  restoreFocus={true}
-  show={true}
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
 >
-  <ModalHeader
-    bsClass="modal-header"
-    closeButton={true}
-    closeLabel="Close"
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="dialog"
   >
-    <ModalTitle
-      bsClass="modal-title"
-      componentClass="h1"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Add New Groups to {teamName} Team"
-        id="add_groups_to_team.title"
-        values={
-          Object {
-            "teamName": <strong>
-              foo
-            </strong>,
-          }
-        }
-      />
-    </ModalTitle>
-  </ModalHeader>
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
-  >
-    <MultiSelect
-      ariaLabelRenderer={[Function]}
-      buttonSubmitLoadingText={
-        Object {
-          "defaultMessage": "Adding...",
-          "id": "multiselect.adding",
-        }
-      }
-      buttonSubmitText={
-        Object {
-          "defaultMessage": "Add",
-          "id": "multiselect.add",
-        }
-      }
-      focusOnLoad={true}
-      handleAdd={[Function]}
-      handleDelete={[Function]}
-      handleInput={[Function]}
-      handlePageChange={[Function]}
-      handleSubmit={[Function]}
-      intl={
-        Object {
-          "$t": [Function],
-          "defaultFormats": Object {},
-          "defaultLocale": "en",
-          "defaultRichTextElements": undefined,
-          "fallbackOnEmptyString": true,
-          "formatDate": [Function],
-          "formatDateTimeRange": [Function],
-          "formatDateToParts": [Function],
-          "formatDisplayName": [Function],
-          "formatList": [Function],
-          "formatListToParts": [Function],
-          "formatMessage": [Function],
-          "formatNumber": [Function],
-          "formatNumberToParts": [Function],
-          "formatPlural": [Function],
-          "formatRelativeTime": [Function],
-          "formatTime": [Function],
-          "formatTimeToParts": [Function],
-          "formats": Object {},
-          "formatters": Object {
-            "getDateTimeFormat": [Function],
-            "getDisplayNames": [Function],
-            "getListFormat": [Function],
-            "getMessageFormat": [Function],
-            "getNumberFormat": [Function],
-            "getPluralRules": [Function],
-            "getRelativeTimeFormat": [Function],
-          },
-          "locale": "en",
-          "messages": Object {},
-          "onError": [Function],
-          "onWarn": [Function],
-          "textComponent": "span",
-          "timeZone": "Etc/UTC",
-        }
-      }
-      key="addGroupsToTeamKey"
-      loading={true}
-      maxValues={10}
-      numRemainingText={
-        <div
-          id="numGroupsRemaining"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. "
-            id="multiselect.numGroupsRemaining"
-            values={
-              Object {
-                "num": 10,
-              }
-            }
-          />
-        </div>
-      }
-      optionRenderer={[Function]}
-      options={Array []}
-      perPage={50}
-      placeholderText={
-        Object {
-          "defaultMessage": "Search and add groups",
-          "id": "multiselect.addGroupsPlaceholder",
-        }
-      }
-      required={false}
-      saveButtonPosition="top"
-      saving={false}
-      savingEnabled={true}
-      selectedItemRef={
-        Object {
-          "current": null,
-        }
-      }
-      valueRenderer={[Function]}
-      valueWithImage={false}
-      values={Array []}
+    <div
+      class="fade modal-backdrop in"
     />
-  </ModalBody>
-</Modal>
+    <div
+      class="fade in modal"
+      id="addGroupsToTeamModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="a11y__modal more-modal more-direct-channels modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="modal-header"
+          >
+            <button
+              aria-label="Close"
+              class="close"
+              type="button"
+            >
+              <span
+                aria-hidden="true"
+              >
+                ×
+              </span>
+              <span
+                class="sr-only"
+              >
+                Close
+              </span>
+            </button>
+            <h1
+              class="modal-title"
+            >
+              Add New Groups to 
+              <strong>
+                foo
+              </strong>
+               Team
+            </h1>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <div
+              class="filtered-user-list"
+            >
+              <div
+                class="filter-row"
+              >
+                <div
+                  class="multi-select__container react-select"
+                >
+                  <div
+                    class="css-1dedlln"
+                    id="selectItems"
+                  >
+                    <span
+                      class="css-1f43avz-a11yText-A11yText"
+                      id="react-select-2-live-region"
+                    />
+                    <span
+                      aria-atomic="false"
+                      aria-live="polite"
+                      aria-relevant="additions text"
+                      class="css-1f43avz-a11yText-A11yText"
+                      role="log"
+                    />
+                    <div
+                      class="react-select-auto react-select__control css-13cymwt-control"
+                    >
+                      <div
+                        class="react-select-auto react-select__value-container react-select-auto react-select__value-container--is-multi css-hlgwow"
+                      >
+                        <div
+                          class="react-select-auto react-select__placeholder css-1jqq78o-placeholder"
+                          id="react-select-2-placeholder"
+                        >
+                          Search and add groups
+                        </div>
+                        <div
+                          class="react-select-auto react-select__input-container css-19bb58m"
+                          data-value=""
+                        >
+                          <input
+                            aria-activedescendant=""
+                            aria-autocomplete="list"
+                            aria-describedby="react-select-2-placeholder"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-invalid="false"
+                            aria-label="Search and add groups"
+                            autocapitalize="none"
+                            autocomplete="off"
+                            autocorrect="off"
+                            class="react-select-auto react-select__input"
+                            id="react-select-2-input"
+                            role="combobox"
+                            spellcheck="false"
+                            style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                            tabindex="0"
+                            type="text"
+                            value=""
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    class="btn btn-primary "
+                    data-testid="saveSetting"
+                    id="saveItems"
+                    type="submit"
+                  >
+                    <span>
+                      Add
+                    </span>
+                  </button>
+                </div>
+                <div
+                  class="multi-select__help"
+                  id="multiSelectHelpMemberInfo"
+                >
+                  <div
+                    id="numGroupsRemaining"
+                  >
+                    Use ↑↓ to browse, ↵ to select. You can add 10 more groups. 
+                  </div>
+                </div>
+              </div>
+              <div
+                aria-live="polite"
+                class="multi-select__wrapper"
+              >
+                <div
+                  aria-hidden="true"
+                >
+                  <div
+                    class="loading-screen"
+                    style="position: absolute;"
+                  >
+                    <div
+                      class="loading__content"
+                    >
+                      <p>
+                        Loading
+                      </p>
+                      <div
+                        class="round round-1"
+                      />
+                      <div
+                        class="round round-2"
+                      />
+                      <div
+                        class="round round-3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                class="multi-select__help"
+                id="multiSelectMessageNote"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/AddGroupsToTeamModal should match when renderOption is called 1`] = `

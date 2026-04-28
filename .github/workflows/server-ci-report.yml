@@ -1,10 +1,11 @@
+# Server CI Report can be triggered by any branch, but always runs on the default branch.
+# That means changes to this file won't reflect in a pull request but must first be merged.
 name: Server CI Report
 
 on:
   workflow_run:
     workflows:
-      - "Server CI PR"
-      - "Server CI Master"
+      - Server CI
     types:
       - completed
 
@@ -15,23 +16,23 @@ jobs:
       REPORT_MATRIX: ${{ steps.report.outputs.REPORT_MATRIX }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
           pattern: "*-test-logs"
           path: reports
-      
+
       - name: report/validate-and-prepare-data
         id: validate
         run: |
           # Create validated data file
           > /tmp/validated-tests.json
-          
+
           find "reports" -type f -name "test-name" | while read -r test_file; do
             folder=$(basename "$(dirname "$test_file")")
             test_name_raw=$(cat "$test_file" | tr -d '\n\r')
-            
+
             # Validate test name: allow alphanumeric, spaces, hyphens, underscores, parentheses, and dots
             if [[ "$test_name_raw" =~ ^[a-zA-Z0-9\ \(\)_.-]+$ ]] && [[ ${#test_name_raw} -le 100 ]]; then
               # Use jq to safely escape the test name as JSON
@@ -41,7 +42,7 @@ jobs:
               echo "Warning: Skipping invalid test name in $test_file: '$test_name_raw'" >&2
             fi
           done
-          
+
           # Verify we have at least some valid tests
           if [[ ! -s /tmp/validated-tests.json ]]; then
             echo "Error: No valid test names found" >&2
@@ -54,11 +55,11 @@ jobs:
           # Convert validated JSON objects to matrix format
           jq -s '{ "test": . }' /tmp/validated-tests.json | tee /tmp/report-matrix
           echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
-      
+
   publish-report:
     runs-on: ubuntu-22.04
     name: Publish Report ${{ matrix.test.name }}
-    needs: 
+    needs:
       - generate-report-matrix
     permissions:
       pull-requests: write
@@ -68,14 +69,14 @@ jobs:
       matrix: ${{ fromJson(needs.generate-report-matrix.outputs.REPORT_MATRIX) }}
     steps:
       - name: report/download-artifacts-from-PR-workflow
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
           name: ${{ matrix.test.artifact }}
           path: ${{ matrix.test.artifact }}
       - name: report/fetch-pr-number
-        if: github.event.workflow_run.name == 'Server CI PR'
+        if: github.event.workflow_run.event == 'pull_request'
         id: incoming-pr
         env:
           ARTIFACT: "${{ matrix.test.artifact }}"
@@ -94,7 +95,7 @@ jobs:
           fi
       - name: Publish test report
         id: report
-        uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+        uses: mikepenz/action-junit-report@49b2ca06f62aa7ef83ae6769a2179271e160d8e4 # v6.3.1
         with:
           report_paths: ${{ matrix.test.artifact }}/report.xml
           check_name: ${{ matrix.test.name }} (Results)
@@ -107,8 +108,8 @@ jobs:
           check_annotations: true
 
       - name: Report retried tests (pull request)
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
-        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.name == 'Server CI PR' }}
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        if: ${{ steps.report.outputs.flaky_summary != '<table><tr><th>Test</th><th>Retries</th></tr></table>' && github.event.workflow_run.event == 'pull_request' }}
         env:
           TEST_NAME: "${{ matrix.test.name }}"
           FLAKY_SUMMARY: "${{ steps.report.outputs.flaky_summary }}"

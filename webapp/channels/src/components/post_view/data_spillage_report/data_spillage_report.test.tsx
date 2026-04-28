@@ -96,6 +96,17 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
                     [reportedPostTeam.id]: reportedPostTeam,
                 },
             },
+            contentFlagging: {
+                flaggedPosts: {
+                    [reportedPost.id]: reportedPost,
+                },
+                channels: {
+                    [reportedPostChannel.id]: reportedPostChannel,
+                },
+                teams: {
+                    [reportedPostTeam.id]: reportedPostTeam,
+                },
+            },
         },
     };
 
@@ -261,7 +272,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
             target_type: 'post',
             group_id: 'ey36rkw3bjybb8gtrdkn3hmeqa',
             field_id: contentFlaggingFields.reporting_reason.id,
-            value: 'Sensitive data',
+            value: 'Classification mismatch',
             create_at: 1756790533487,
             update_at: 1756790533487,
             delete_at: 0,
@@ -354,7 +365,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         // validate title
         const title = screen.queryByTestId('property-card-title');
         expect(title).toBeVisible();
-        expect(title).toHaveTextContent('@reporting_user flagged a message for review');
+        expect(title).toHaveTextContent('@reporting_user submitted a message for review');
 
         expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
 
@@ -364,7 +375,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         expect(statusFieldValue).toHaveTextContent('Pending');
 
         const reasonFieldValue = screen.queryAllByTestId('select-property')[1];
-        expect(reasonFieldValue).toHaveTextContent('Sensitive data');
+        expect(reasonFieldValue).toHaveTextContent('Classification mismatch');
 
         const postPreview = screen.queryByTestId('post-preview-property');
         expect(postPreview).toBeVisible();

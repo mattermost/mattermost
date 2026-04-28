@@ -3,7 +3,7 @@
 exports[`components/admin_console/server_logs/Logs should display the logs correctly after loading 1`] = `
 <div>
   <div
-    class="wrapper--admin"
+    class="wrapper--fixed"
   >
     <div
       class="admin-console__header"

@@ -102,10 +102,6 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
         currentTeam,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should open team menu when clicked', async () => {
         renderWithContext(
             <SidebarTeamMenu {...baseProps}/>,

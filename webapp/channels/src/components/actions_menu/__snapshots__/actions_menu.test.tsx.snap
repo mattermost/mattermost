@@ -1,103 +1,156 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace disabled or user not having SYSCONSOLE_WRITE_PLUGINS - should not show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    popupId="center_actions_dropdown_post_id_1"
-  />
-  <Menu
-    ariaLabel="Post extra options"
-    listId="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="Some text"
-    />
-    <Pluggable
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-  </Menu>
-</MenuWrapper>
+    <button
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="actions"
+      class="post-menu__item post-menu__item--active"
+      id="center_actions_button_post_id_1"
+      type="button"
+    >
+      <i
+        class="icon icon-apps"
+      />
+    </button>
+    <div
+      aria-label="Post extra options"
+      class="a11y__popup Menu"
+    >
+      <ul
+        class="Menu__content dropdown-menu openLeft"
+        id="center_actions_dropdown_post_id_1"
+        role="menu"
+      >
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Some text
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled and user has SYSCONSOLE_WRITE_PLUGINS - should show actions and app marketplace 1`] = `
-<MenuWrapper
-  animationComponent={[Function]}
-  className=""
-  onToggle={[Function]}
-  open={true}
->
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    popupId="center_actions_dropdown_post_id_1"
-  />
-  <Menu
-    ariaLabel="Post extra options"
-    listId="center_actions_dropdown_post_id_1"
-    openLeft={true}
-    openUp={false}
+<div>
+  <div
+    class="MenuWrapper  MenuWrapper--open"
   >
-    <MenuItemAction
-      key="the_component_id_pluginmenuitem"
-      onClick={[Function]}
-      show={true}
-      text="Some text"
-    />
-    <Pluggable
-      key="post_id_1pluggable"
-      pluggableName="PostDropdownMenuItem"
-      postId="post_id_1"
-    />
-    <li
-      className="MenuItem__divider"
-      id="divider_post_post_id_1_marketplace"
-      role="menuitem"
-    />
-    <MenuItemAction
-      icon={
-        <ActionsMenuIcon
-          name="icon-view-grid-plus-outline"
+    <button
+      aria-controls="center_actions_dropdown_post_id_1"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="actions"
+      class="post-menu__item post-menu__item--active"
+      id="center_actions_button_post_id_1"
+      type="button"
+    >
+      <i
+        class="icon icon-apps"
+      />
+    </button>
+    <div
+      aria-label="Post extra options"
+      class="a11y__popup Menu"
+    >
+      <ul
+        class="Menu__content dropdown-menu openLeft"
+        id="center_actions_dropdown_post_id_1"
+        role="menu"
+      >
+        <li
+          class="MenuItem"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="undefined-button"
+            id="undefined-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              Some text
+            </span>
+          </button>
+        </li>
+        <li
+          class="MenuItem__divider"
+          id="divider_post_post_id_1_marketplace"
+          role="menuitem"
         />
-      }
-      id="marketplace_icon_post_id_1"
-      key="marketplace_post_id_1"
-      onClick={[Function]}
-      show={true}
-      text="App Marketplace"
-    />
-  </Menu>
-</MenuWrapper>
+        <li
+          class="MenuItem MenuItem--with-icon"
+          id="marketplace_icon_post_id_1"
+          role="menuitem"
+        >
+          <button
+            class="style--none"
+            data-testid="marketplace_icon_post_id_1-button"
+            id="marketplace_icon_post_id_1-button"
+          >
+            <span
+              class="MenuItem__primary-text"
+            >
+              <span
+                class="icon"
+              >
+                <span
+                  aria-hidden="true"
+                  class="icon-view-grid-plus-outline MenuItem__compass-icon"
+                />
+              </span>
+              <div
+                class="text"
+              >
+                App Marketplace
+              </div>
+            </span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
 `;
 
-exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `""`;
+exports[`components/actions_menu/ActionsMenu no actions - end user - menu should not be visible to end user 1`] = `<div />`;
 
 exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should show visit marketplace 1`] = `
-<Fragment>
-  <ActionsMenuButton
-    buttonId="center_actions_button_post_id_1"
-    isMenuOpen={true}
-    onClick={[Function]}
-    popupId="center_actions_dropdown_post_id_1"
+<div>
+  <button
+    aria-controls="center_actions_dropdown_post_id_1"
+    aria-expanded="true"
+    aria-haspopup="true"
+    aria-label="actions"
+    class="post-menu__item post-menu__item--active"
+    id="center_actions_button_post_id_1"
+    type="button"
+  >
+    <i
+      class="icon icon-apps"
+    />
+  </button>
+  <div
+    data-testid="mock-popover"
   />
-  <ActionsMenuEmptyPopover
-    anchorElement={null}
-    isOpen={true}
-    onOpenMarketplace={[Function]}
-    onToggle={[MockFunction]}
-  />
-</Fragment>
+</div>
 `;

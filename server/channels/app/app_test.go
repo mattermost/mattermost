@@ -5,7 +5,6 @@ package app
 
 import (
 	"fmt"
-	"sort"
 	"sync/atomic"
 	"testing"
 
@@ -63,9 +62,9 @@ func TestUnitUpdateConfig(t *testing.T) {
 
 	require.False(t, th.App.IsConfigReadOnly())
 
-	var called int32
+	var called atomic.Int32
 	th.App.AddConfigListener(func(old, current *model.Config) {
-		atomic.AddInt32(&called, 1)
+		called.Add(1)
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "http://foo.com", *current.ServiceSettings.SiteURL)
 	})
@@ -75,7 +74,7 @@ func TestUnitUpdateConfig(t *testing.T) {
 	})
 
 	// callback should be called once
-	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
+	assert.Equal(t, int32(1), called.Load())
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
@@ -149,6 +148,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionManagePublicChannelBanner.Id,
 			model.PermissionManagePrivateChannelBanner.Id,
 			model.PermissionManageChannelAccessRules.Id,
+			model.PermissionManagePublicChannelAutoTranslation.Id,
+			model.PermissionManagePrivateChannelAutoTranslation.Id,
 		},
 		"team_user": {
 			model.PermissionListTeamChannels.Id,
@@ -173,6 +174,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionManageTeam.Id,
 			model.PermissionImportTeam.Id,
 			model.PermissionManageTeamRoles.Id,
+			model.PermissionManageTeamAccessRules.Id,
 			model.PermissionManageChannelRoles.Id,
 			model.PermissionManageOwnIncomingWebhooks.Id,
 			model.PermissionManageOthersIncomingWebhooks.Id,
@@ -209,6 +211,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionDeleteCustomGroup.Id,
 			model.PermissionRestoreCustomGroup.Id,
 			model.PermissionManageCustomGroupMembers.Id,
+			model.PermissionManageOwnAgent.Id,
 		},
 		"system_post_all": {
 			model.PermissionCreatePost.Id,
@@ -256,7 +259,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
 
 	expectedSystemAdmin := allPermissionIDs
-	sort.Strings(expectedSystemAdmin)
 
 	th.ResetEmojisMigration(t)
 	err := th.App.DoEmojisPermissionsMigration()
@@ -278,15 +280,13 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PermissionCreateEmojis.Id,
 		model.PermissionDeleteEmojis.Id,
 		model.PermissionViewMembers.Id,
+		model.PermissionManageOwnAgent.Id,
 	}
-	sort.Strings(expected3)
-	sort.Strings(role3.Permissions)
-	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemUserRoleId))
+	assert.ElementsMatch(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemUserRoleId))
 
 	systemAdmin2, systemAdminErr2 := th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	assert.Nil(t, systemAdminErr2)
-	sort.Strings(systemAdmin2.Permissions)
-	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemAdminRoleId))
+	assert.ElementsMatch(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SystemAdminRoleId))
 }
 
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {

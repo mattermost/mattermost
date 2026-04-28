@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
 import type {Subscription, PreviewModalContentData} from '@mattermost/types/cloud';
 import type {TeamType} from '@mattermost/types/teams';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import CloudPreviewModal from './cloud_preview_modal_controller';
 import {modalContent} from './preview_modal_content_data';
@@ -258,13 +257,13 @@ describe('CloudPreviewModal', () => {
 
         // Click close button
         const closeButton = screen.getByText('Close');
-        fireEvent.click(closeButton);
+        await userEvent.click(closeButton);
 
         // Check that dispatch was called (savePreferences action)
         expect(dummyDispatch).toHaveBeenCalled();
     });
 
-    it('should reset preference and reopen modal when FAB is clicked', () => {
+    it('should reset preference and reopen modal when FAB is clicked', async () => {
         const dummyDispatch = jest.fn();
         useDispatchMock.mockReturnValue(dummyDispatch);
 
@@ -280,7 +279,7 @@ describe('CloudPreviewModal', () => {
         // Click the FAB button
         const button = fabButton.querySelector('button');
         expect(button).toBeInTheDocument();
-        fireEvent.click(button!);
+        await userEvent.click(button!);
 
         // Check that dispatch was called to reset the preference
         expect(dummyDispatch).toHaveBeenCalled();

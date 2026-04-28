@@ -55,9 +55,6 @@ export default class ContentReviewPage {
     }
 
     async waitForPageLoaded() {
-        await this.page.waitForResponse(
-            (res) => res.url().includes('as_content_reviewer=true') && res.status() === 200,
-        );
         await this.page.waitForTimeout(1000);
         await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
         this.ensureReportCardSet();
@@ -129,10 +126,6 @@ export default class ContentReviewPage {
     }
 
     async waitForRHSVisible() {
-        await this.page.waitForResponse(
-            (res) => res.url().includes('as_content_reviewer=true') && res.status() === 200,
-        );
-
         const gotIt = this.page.getByRole('button', {name: 'Got it'});
         if (await gotIt.isVisible()) {
             await gotIt.click();

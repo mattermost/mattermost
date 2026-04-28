@@ -142,14 +142,16 @@ export type IntegrationsState = {
     commands: IDMappedObjects<Command>;
     dialogArguments?: DialogArgs;
     dialogTriggerId: string;
-    dialog?: {
-        url: string;
-        dialog: Dialog;
-        trigger_id: string;
-    };
+    dialog?: OpenDialogRequest;
 };
 
-type Dialog = {
+export type OpenDialogRequest = {
+    trigger_id: string;
+    url: string;
+    dialog: Dialog;
+}
+
+export type Dialog = {
     callback_id?: string;
     elements?: DialogElement[];
     title: string;
@@ -194,6 +196,15 @@ export type DialogElement = {
         value: any;
     }>;
     refresh?: boolean;
+
+    // Date/datetime configuration
+    datetime_config?: {
+        time_interval?: number;
+        location_timezone?: string;
+        allow_manual_time_entry?: boolean;
+    };
+
+    // Simple date/datetime configuration (fallback when datetime_config not provided)
     min_date?: string;
     max_date?: string;
     time_interval?: number;

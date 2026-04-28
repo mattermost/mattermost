@@ -78,6 +78,9 @@ type PostAction struct {
 	// The text on the button, or in the select placeholder.
 	Name string `json:"name,omitempty"`
 
+	// Tooltip text displayed on hover.
+	Tooltip string `json:"tooltip,omitempty"`
+
 	// If the action is disabled.
 	Disabled bool `json:"disabled,omitempty"`
 
@@ -335,6 +338,16 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
+// DialogDateTimeConfig groups date/datetime specific configuration
+type DialogDateTimeConfig struct {
+	// TimeInterval: Minutes between time options in dropdown (default: 60)
+	TimeInterval int `json:"time_interval,omitempty"`
+	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
+	LocationTimezone string `json:"location_timezone,omitempty"`
+	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -351,7 +364,11 @@ type DialogElement struct {
 	Options       []*PostActionOptions `json:"options"`
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
-	// Date/datetime field specific properties
+
+	// Date/datetime field configuration
+	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+
+	// Simple date/datetime configuration (fallback when datetime_config not provided)
 	MinDate      string `json:"min_date,omitempty"`
 	MaxDate      string `json:"max_date,omitempty"`
 	TimeInterval int    `json:"time_interval,omitempty"`
@@ -660,16 +677,16 @@ func (e *DialogElement) IsValid() error {
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
-		// Validate time_interval for datetime fields
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MaxDate))
+		// Validate time_interval for datetime fields (0 means omitted — treated as default)
 		timeInterval := e.TimeInterval
-		if timeInterval == 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval of 0 will be reset to default, %d minutes", DefaultTimeIntervalMinutes))
-		} else if timeInterval < 1 || timeInterval > 1440 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
-		} else if 1440%timeInterval != 0 {
-			multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+		if timeInterval != 0 {
+			if timeInterval < 1 || timeInterval > 1440 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
+			} else if 1440%timeInterval != 0 {
+				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be a divisor of 1440 (24 hours * 60 minutes) to create valid time intervals, got %d", timeInterval))
+			}
 		}
 
 	default:
@@ -717,14 +734,15 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m, +2H, +30M, +90S
+// Case-sensitive: d=days, w=weeks, m=months, H=hours, M=minutes, S=seconds
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
-	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	lastChar := value[len(value)-1]
+	if !strings.ContainsRune("dwmHMS", rune(lastChar)) {
 		return false
 	}
 
@@ -777,6 +795,18 @@ func validateDateTimeFormat(dateTimeStr string) error {
 	return fmt.Errorf("invalid datetime format: %q, expected ISO format (YYYY-MM-DDTHH:MM:SSZ) or relative format", dateTimeStr)
 }
 
+func validateDateOrDateTimeFormat(value string) error {
+	dateErr := validateDateFormat(value)
+	if dateErr == nil {
+		return nil
+	}
+	dateTimeErr := validateDateTimeFormat(value)
+	if dateTimeErr == nil {
+		return nil
+	}
+	return fmt.Errorf("invalid date or datetime format: %q, expected ISO date (YYYY-MM-DD), datetime (YYYY-MM-DDTHH:MM:SSZ), or relative format", value)
+}
+
 func checkMaxLength(fieldName string, field string, maxLength int) error {
 	// DisplayName and Name are required fields
 	if fieldName == "DisplayName" || fieldName == "Name" {
@@ -819,7 +849,7 @@ func (o *Post) GenerateActionIds() {
 	if o.GetProp(PostPropsAttachments) != nil {
 		o.AddProp(PostPropsAttachments, o.Attachments())
 	}
-	if attachments, ok := o.GetProp(PostPropsAttachments).([]*SlackAttachment); ok {
+	if attachments, ok := o.GetProp(PostPropsAttachments).([]*MessageAttachment); ok {
 		for _, attachment := range attachments {
 			for _, action := range attachment.Actions {
 				if action != nil && action.Id == "" {

@@ -97,7 +97,7 @@ function DraftsLink() {
         return (
             <FormattedMessage
                 id='drafts.tooltipText'
-                defaultMessage=''
+                defaultMessage='{draftCount, plural, =0 {} =1 {1 Draft} other {{draftCount} Drafts}} <br></br> {scheduledPostCount, plural, =0 {} other {{scheduledPostCount} Scheduled}}'
                 values={{
                     draftCount,
                     scheduledPostCount: teamScheduledPostCount,

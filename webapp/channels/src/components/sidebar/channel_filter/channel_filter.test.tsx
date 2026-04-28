@@ -4,9 +4,8 @@
 import React from 'react';
 
 import ChannelFilterIntl from 'components/sidebar/channel_filter/channel_filter';
-import type {ChannelFilter as ChannelFilterClass} from 'components/sidebar/channel_filter/channel_filter';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, fireEvent} from 'tests/react_testing_utils';
 
 describe('components/sidebar/channel_filter', () => {
     const baseProps = {
@@ -18,11 +17,11 @@ describe('components/sidebar/channel_filter', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelFilterIntl {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot if the unread filter is enabled', () => {
@@ -31,19 +30,19 @@ describe('components/sidebar/channel_filter', () => {
             unreadFilterEnabled: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelFilterIntl {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should enable the unread filter on toggle when it is disabled', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelFilterIntl {...baseProps}/>,
         );
-        const instance = wrapper.instance() as ChannelFilterClass;
-        instance.toggleUnreadFilter();
+        const filterButton = container.querySelector('.SidebarFilters_filterButton')!;
+        fireEvent.click(filterButton);
 
         expect(baseProps.actions.setUnreadFilterEnabled).toHaveBeenCalledWith(true);
     });
@@ -54,11 +53,11 @@ describe('components/sidebar/channel_filter', () => {
             unreadFilterEnabled: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <ChannelFilterIntl {...props}/>,
         );
-        const instance = wrapper.instance() as ChannelFilterClass;
-        instance.toggleUnreadFilter();
+        const filterButton = container.querySelector('.SidebarFilters_filterButton')!;
+        fireEvent.click(filterButton);
 
         expect(baseProps.actions.setUnreadFilterEnabled).toHaveBeenCalledWith(false);
     });

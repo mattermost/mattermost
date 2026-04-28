@@ -6,6 +6,7 @@ package model
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -15,13 +16,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/pkg/errors"
-
 	"golang.org/x/text/language"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
-	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
 )
 
 const (
@@ -71,6 +69,14 @@ const (
 
 	UserAuthServiceMagicLink = "magic_link"
 )
+
+// ErrPasswordTooLong is returned when the password exceeds
+// UserPasswordMaxLength bytes.
+var ErrPasswordTooLong = fmt.Errorf("password too long; maximum length in bytes: %d", UserPasswordMaxLength)
+
+type UserPasswordHasher interface {
+	Hash(password string) (string, error)
+}
 
 //msgp:tuple User
 
@@ -464,7 +470,7 @@ func NormalizeEmail(email string) string {
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
-func (u *User) PreSave() *AppError {
+func (u *User) PreSave(hasher UserPasswordHasher) *AppError {
 	if u.Id == "" {
 		u.Id = NewId()
 	}
@@ -511,13 +517,13 @@ func (u *User) PreSave() *AppError {
 	}
 
 	if u.Password != "" {
-		hashed, err := hashers.Hash(u.Password)
-		if errors.Is(err, hashers.ErrPasswordTooLong) {
+		hashed, err := hasher.Hash(u.Password)
+		if errors.Is(err, ErrPasswordTooLong) {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_too_long.app_error",
 				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
 		} else if err != nil {
 			return NewAppError("User.PreSave", "model.user.pre_save.password_hash.app_error",
-				nil, "user_id="+u.Id, http.StatusBadRequest).Wrap(err)
+				nil, "user_id="+u.Id, http.StatusInternalServerError).Wrap(err)
 		}
 		u.Password = hashed
 	}

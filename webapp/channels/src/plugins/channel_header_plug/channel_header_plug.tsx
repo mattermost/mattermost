@@ -29,6 +29,9 @@ type CustomMenuProps = {
     children?: React.ReactNode;
     onClose: () => void;
     rootCloseEvent?: 'click' | 'mousedown';
+
+    //  A bsRole prop is required by React Bootstrap's Dropdown
+    // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
 }
 
@@ -67,6 +70,9 @@ type CustomToggleProps = {
     children?: React.ReactNode;
     dropdownOpen?: boolean;
     onClick?: (e: React.MouseEvent) => void;
+
+    //  A bsRole prop is required by React Bootstrap's Dropdown
+    // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
 }
 

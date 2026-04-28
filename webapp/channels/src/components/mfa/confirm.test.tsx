@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
 import Confirm from 'components/mfa/confirm';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 jest.mock('actions/global_actions', () => ({
@@ -23,13 +22,14 @@ describe('components/mfa/components/Confirm', () => {
     });
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<Confirm/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<Confirm/>);
+        expect(container).toMatchSnapshot();
     });
 
-    test('should submit on form submit', () => {
-        const wrapper = mountWithIntl(<Confirm/>);
-        wrapper.find('form').simulate('submit');
+    test('should submit on form submit', async () => {
+        renderWithContext(<Confirm/>);
+
+        await userEvent.click(screen.getByRole('button', {name: 'Okay'}));
 
         expect(redirectUserToDefaultTeam).toHaveBeenCalled();
     });
@@ -42,7 +42,7 @@ describe('components/mfa/components/Confirm', () => {
             map[event] = callback;
         });
 
-        mountWithIntl(<Confirm/>);
+        renderWithContext(<Confirm/>);
 
         const event = {
             preventDefault: jest.fn(),

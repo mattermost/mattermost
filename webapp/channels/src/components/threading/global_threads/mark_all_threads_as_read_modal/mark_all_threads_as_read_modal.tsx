@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-
-import './mark_all_threads_as_read_modal.scss';
 
 export type MarkAllThreadsAsReadModalProps = {
     onConfirm: () => void;
@@ -18,36 +16,41 @@ function MarkAllThreadsAsReadModal({
     onCancel,
 }: MarkAllThreadsAsReadModalProps) {
     const {formatMessage} = useIntl();
+    const [show, setShow] = useState(true);
+
+    const handleConfirm = useCallback(() => {
+        onConfirm();
+        setShow(false);
+    }, [onConfirm]);
+
+    const handleCancel = useCallback(() => {
+        onCancel();
+        setShow(false);
+    }, [onCancel]);
 
     return (
         <GenericModal
-            className='mark-all-threads-as-read'
             id='mark-all-threads-as-read-modal'
-            compassDesign={true}
+            className='MarkAllThreadsAsReadModal'
             modalHeaderText={formatMessage({
                 id: 'mark_all_threads_as_read_modal.title',
-                defaultMessage: 'Mark all your threads as read?',
+                defaultMessage: 'Mark all your threads as read',
             })}
+            show={show}
+            onExited={onCancel}
+            onHide={handleCancel}
+            handleCancel={handleCancel}
+            handleConfirm={handleConfirm}
             confirmButtonText={formatMessage({
                 id: 'mark_all_threads_as_read_modal.confirm',
                 defaultMessage: 'Mark all as read',
             })}
-            cancelButtonText={formatMessage({
-                id: 'mark_all_threads_as_read_modal.cancel',
-                defaultMessage: 'Cancel',
-            })}
-            onExited={onCancel}
-            handleCancel={onCancel}
-            handleConfirm={onConfirm}
+            compassDesign={true}
         >
-            <div className='mark_all_threads_as_read_modal__body'>
-                <span>
-                    {formatMessage({
-                        id: 'mark_all_threads_as_read_modal.description',
-                        defaultMessage: 'This will clear the unread state and mention badges on all your threads. Are you sure?',
-                    })}
-                </span>
-            </div>
+            {formatMessage({
+                id: 'mark_all_threads_as_read_modal.description',
+                defaultMessage: 'All your threads will be marked as read, with unread and mention badges cleared. Do you want to continue?',
+            })}
         </GenericModal>
     );
 }

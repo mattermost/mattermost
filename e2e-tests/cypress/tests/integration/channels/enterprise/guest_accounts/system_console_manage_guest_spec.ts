@@ -14,9 +14,9 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getRandomId} from '../../../../utils';
-import {getAdminAccount} from '../../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {getRandomId} from '@/utils';
 
 describe('Guest Account - Verify Manage Guest Users', () => {
     const admin = getAdminAccount();
@@ -85,9 +85,9 @@ describe('Guest Account - Verify Manage Guest Users', () => {
 
         // * Update email of Guest User
         const email = `temp-${getRandomId()}@mattermost.com`;
-        cy.findByTestId('resetEmailModal').should('be.visible').within(() => {
-            cy.findByTestId('resetEmailForm').should('be.visible').get('input').type(email);
-            cy.findByTestId('resetEmailButton').click();
+        cy.get('#resetEmailModal').should('be.visible').within(() => {
+            cy.get('input[type="email"]').type(email);
+            cy.get('button.btn-primary.confirm').click();
         });
 
         // * Verify if Guest's email was updated

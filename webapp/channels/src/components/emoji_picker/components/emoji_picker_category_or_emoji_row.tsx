@@ -1,25 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo} from 'react';
+import React, {memo, useContext} from 'react';
 import {areEqual} from 'react-window';
 import type {ListChildComponentProps} from 'react-window';
 
-import type {CustomEmoji, Emoji, SystemEmoji} from '@mattermost/types/emojis';
-
 import EmojiPickerCategorySection from 'components/emoji_picker/components/emoji_picker_category_row';
 import EmojiPickerItem from 'components/emoji_picker/components/emoji_picker_item';
-import type {CategoryOrEmojiRow, EmojiCursor} from 'components/emoji_picker/types';
+import type {CategoryOrEmojiRow} from 'components/emoji_picker/types';
 import {isCategoryHeaderRow} from 'components/emoji_picker/utils';
 
-interface Props extends ListChildComponentProps<CategoryOrEmojiRow[]> {
-    cursorRowIndex: number;
-    cursorEmojiId: SystemEmoji['unified'] | CustomEmoji['id'];
-    onEmojiClick: (emoji: Emoji) => void;
-    onEmojiMouseOver: (cursor: EmojiCursor) => void;
-}
+import {EmojiPickerContext} from './emoji_picker_context';
 
-function EmojiPickerCategoryOrEmojiRow({index, style, data, cursorRowIndex, cursorEmojiId, onEmojiClick, onEmojiMouseOver}: Props) {
+interface Props extends ListChildComponentProps<CategoryOrEmojiRow[]> {}
+
+function EmojiPickerCategoryOrEmojiRow({index, style, data}: Props) {
+    const {cursorRowIndex, cursorEmojiId, onEmojiClick, onEmojiMouseOver} = useContext(EmojiPickerContext);
+
     const row = data[index];
 
     if (isCategoryHeaderRow(row)) {

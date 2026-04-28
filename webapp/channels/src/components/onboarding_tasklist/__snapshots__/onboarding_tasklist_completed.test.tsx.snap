@@ -1,89 +1,81 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/onboarding_tasklist/onboarding_tasklist_completed.tsx should match snapshot 1`] = `
-<Fragment>
-  <CSSTransition
-    classNames="fade"
-    in={true}
-    timeout={150}
+<div>
+  <div
+    class="CompletedWrapper-byXeYZ caqIuy"
   >
-    <CompletedWrapper>
-      <img
-        alt="completed tasks image"
-        src=""
-      />
-      <h2>
-        <MemoizedFormattedMessage
-          defaultMessage="Well done. You’ve completed all of the tasks!"
-          id="onboardingTask.checklist.completed_title"
-        />
-      </h2>
-      <span
-        className="completed-subtitle"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="We hope Mattermost is more familiar now."
-          id="onboardingTask.checklist.completed_subtitle"
-        />
+    <img
+      alt="completed tasks image"
+      src=""
+    />
+    <h2>
+      Well done. You’ve completed all of the tasks!
+    </h2>
+    <span
+      class="completed-subtitle"
+    >
+      We hope Mattermost is more familiar now.
+    </span>
+    <span
+      class="start-trial-text"
+    >
+      Interested in our higher-security features?
+       
+      <br />
+      Start your free Enterprise trial now!
+    </span>
+    <a
+      class="btn btn-secondary"
+      id="start_trial_btn"
+    >
+      Start trial
+    </a>
+    <button
+      class="no-thanks-link style-link"
+    >
+      No, thanks
+    </button>
+    <div
+      class="download-apps"
+    >
+      <span>
+        Now that you’re all set up, 
+        <a
+          href="https://mattermost.com/download?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version=#desktop"
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          download our apps.
+        </a>
       </span>
-      <span
-        className="start-trial-text"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Interested in our higher-security features?"
-          id="onboardingTask.checklist.higher_security_features"
-        />
-         
-        <br />
-        <MemoizedFormattedMessage
-          defaultMessage="Start your free Enterprise trial now!"
-          id="onboardingTask.checklist.start_enterprise_now"
-        />
+    </div>
+    <div
+      class="disclaimer"
+    >
+      <span>
+        By clicking “Start trial”, I agree to the 
+        <a
+          href="https://mattermost.com/pl/software-and-services-license-agreement?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version="
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Mattermost Software Evaluation Agreement
+        </a>
+        , 
+        <a
+          href="https://mattermost.com/pl/privacy-policy/?utm_source=mattermost&utm_medium=in-product&utm_content=onboarding_tasklist_completed&uid=&sid=&edition=team&server_version="
+          location="onboarding_tasklist_completed"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          privacy policy
+        </a>
+         and receiving product emails.
       </span>
-      <StartTrialBtn
-        onClick={[MockFunction]}
-      />
-      <button
-        className="no-thanks-link style-link"
-        onClick={[MockFunction]}
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="No, thanks"
-          id="onboardingTask.checklist.no_thanks"
-        />
-      </button>
-      <div
-        className="download-apps"
-      >
-        <span>
-          <MemoizedFormattedMessage
-            defaultMessage="Now that you’re all set up, <link>download our apps.</link>!"
-            id="onboardingTask.checklist.downloads"
-            values={
-              Object {
-                "link": [Function],
-              }
-            }
-          />
-        </span>
-      </div>
-      <div
-        className="disclaimer"
-      >
-        <span>
-          <MemoizedFormattedMessage
-            defaultMessage="By clicking “Start trial”, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>privacy policy</linkPrivacy> and receiving product emails."
-            id="onboardingTask.checklist.disclaimer"
-            values={
-              Object {
-                "linkEvaluation": [Function],
-                "linkPrivacy": [Function],
-              }
-            }
-          />
-        </span>
-      </div>
-    </CompletedWrapper>
-  </CSSTransition>
-</Fragment>
+    </div>
+  </div>
+</div>
 `;

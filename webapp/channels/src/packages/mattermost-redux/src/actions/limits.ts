@@ -26,10 +26,10 @@ export function getServerLimits(): ActionFuncAsync<ServerLimits> {
             activeUserCount: response?.data?.activeUserCount ?? 0,
             maxUsersLimit: response?.data?.maxUsersLimit ?? 0,
             maxUsersHardLimit: response?.data?.maxUsersHardLimit ?? 0,
-
-            // Post history limit fields from server response
             lastAccessiblePostTime: response?.data?.lastAccessiblePostTime ?? 0,
             postHistoryLimit: response?.data?.postHistoryLimit ?? 0,
+            singleChannelGuestCount: response?.data?.singleChannelGuestCount ?? 0,
+            singleChannelGuestLimit: response?.data?.singleChannelGuestLimit ?? 0,
         };
 
         dispatch({type: LimitsTypes.RECEIVED_APP_LIMITS, data});

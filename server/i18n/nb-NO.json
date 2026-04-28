@@ -599,5 +599,13 @@
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
     "translation": "{{.Service}} SSO via OAuth 2.0 er ikke tilgjengelig på denne serveren."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Grensen for henting av kanaler er ikke gyldig."
+  },
+  {
+    "id": "api.admin.add_certificate.parseform.app_error",
+    "translation": "Feil ved analyse av multiform forespørsel"
   }
 ]

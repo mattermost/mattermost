@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 import ActionBar from './action_bar';
@@ -42,7 +42,7 @@ describe('channel_members_rhs/action_bar', () => {
         expect(screen.getByText(`${testProps.membersCount} members`)).toBeInTheDocument();
     });
 
-    test('should display Add button', () => {
+    test('should display Add button', async () => {
         const testProps: Props = {...actionBarDefaultProps};
 
         renderWithContext(
@@ -52,7 +52,7 @@ describe('channel_members_rhs/action_bar', () => {
         );
 
         expect(screen.getByText('Add')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Add'));
+        await userEvent.click(screen.getByText('Add'));
         expect(testProps.actions.inviteMembers).toHaveBeenCalled();
     });
 
@@ -68,7 +68,7 @@ describe('channel_members_rhs/action_bar', () => {
         expect(screen.queryByText('Add')).not.toBeInTheDocument();
     });
 
-    test('should display Manage', () => {
+    test('should display Manage', async () => {
         const testProps: Props = {...actionBarDefaultProps};
 
         renderWithContext(
@@ -78,11 +78,11 @@ describe('channel_members_rhs/action_bar', () => {
         );
 
         expect(screen.getByText('Manage')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Manage'));
+        await userEvent.click(screen.getByText('Manage'));
         expect(testProps.actions.startEditing).toHaveBeenCalled();
     });
 
-    test('should display Done', () => {
+    test('should display Done', async () => {
         const testProps: Props = {
             ...actionBarDefaultProps,
             editing: true,
@@ -95,7 +95,7 @@ describe('channel_members_rhs/action_bar', () => {
         );
 
         expect(screen.getByText('Done')).toBeInTheDocument();
-        fireEvent.click(screen.getByText('Done'));
+        await userEvent.click(screen.getByText('Done'));
         expect(testProps.actions.stopEditing).toHaveBeenCalled();
     });
 

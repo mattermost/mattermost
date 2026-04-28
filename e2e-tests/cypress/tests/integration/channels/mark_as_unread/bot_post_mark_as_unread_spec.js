@@ -9,9 +9,10 @@
 
 // Group: @channels @mark_as_unread
 
-import {beUnread} from '../../../support/assertions';
-
 import {markAsUnreadFromPost, verifyPostNextToNewMessageSeparator} from './helpers';
+
+import {beUnread} from '@/support/assertions';
+
 
 describe('Bot post unread message', () => {
     let newChannel;

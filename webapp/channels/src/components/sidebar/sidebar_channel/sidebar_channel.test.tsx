@@ -1,12 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelType} from '@mattermost/types/channels';
 
 import SidebarChannel from 'components/sidebar/sidebar_channel/sidebar_channel';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+jest.mock('components/tours/onboarding_tour', () => ({
+    ChannelsAndDirectMessagesTour: () => null,
+}));
+
+jest.mock('components/sidebar/sidebar_channel/sidebar_direct_channel', () => () => <div>{'Direct Channel'}</div>);
+jest.mock('components/sidebar/sidebar_channel/sidebar_group_channel', () => () => <div>{'Group Channel'}</div>);
 
 describe('components/sidebar/sidebar_channel', () => {
     const baseProps = {
@@ -46,11 +54,11 @@ describe('components/sidebar/sidebar_channel', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when collapsed', () => {
@@ -59,11 +67,11 @@ describe('components/sidebar/sidebar_channel', () => {
             isCategoryCollapsed: true,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when unread', () => {
@@ -73,11 +81,11 @@ describe('components/sidebar/sidebar_channel', () => {
             unreadMentions: 1,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when active', () => {
@@ -86,11 +94,11 @@ describe('components/sidebar/sidebar_channel', () => {
             isCurrentChannel: true,
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when DM channel', () => {
@@ -102,11 +110,11 @@ describe('components/sidebar/sidebar_channel', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when GM channel', () => {
@@ -118,11 +126,11 @@ describe('components/sidebar/sidebar_channel', () => {
             },
         };
 
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not be collapsed when there are unread messages', () => {
@@ -132,11 +140,11 @@ describe('components/sidebar/sidebar_channel', () => {
             isUnread: true,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper.find('.expanded')).toHaveLength(1);
+        expect(screen.getByRole('listitem')).toHaveClass('expanded');
     });
 
     test('should not be collapsed if channel is current channel', () => {
@@ -146,10 +154,10 @@ describe('components/sidebar/sidebar_channel', () => {
             isCurrentChannel: true,
         };
 
-        const wrapper = shallow(
+        renderWithContext(
             <SidebarChannel {...props}/>,
         );
 
-        expect(wrapper.find('.expanded')).toHaveLength(1);
+        expect(screen.getByRole('listitem')).toHaveClass('expanded');
     });
 });

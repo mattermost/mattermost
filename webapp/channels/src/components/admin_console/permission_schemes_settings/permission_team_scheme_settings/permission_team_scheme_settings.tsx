@@ -588,7 +588,6 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                         modalID={ModalIdentifiers.ADD_TEAMS_TO_SCHEME}
                         onModalDismissed={this.closeAddTeam}
                         onTeamsSelected={this.addTeams}
-                        currentSchemeId={this.props.schemeId}
                         alreadySelected={teams.map((team) => team.id)}
                     />
                 }

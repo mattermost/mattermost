@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import * as Utils from 'utils/utils';
@@ -19,134 +19,143 @@ type Props = {
     error?: string;
 }
 
-type State = {
-    fileName: null|string;
-    fileSelected: boolean;
-    serverError?: string;
-    uploading: boolean;
-}
+const FileUploadSetting = ({
+    id,
+    error: errorFromProps,
+    label,
+    helpText,
+    disabled,
+    fileType,
+    uploadingText,
+    onSubmit,
+}: Props) => {
+    const [fileNameFromState, setFileNameFromState] = useState<string | null>(null);
 
-export default class FileUploadSetting extends React.PureComponent<Props, State> {
-    fileInputRef = React.createRef<HTMLInputElement>();
+    const [isUploading, setIsUploading] = useState(false);
+    const [isFileSelected, setIsFileSelected] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Helps prevent setting state after component is unmounted, for usage when this component is wrapped by a custom setting
-    isMounted = false;
+    const isMounted = useRef(false);
 
-    constructor(props: Props) {
-        super(props);
+    useEffect(() => {
+        isMounted.current = true;
 
-        this.state = {
-            fileName: null,
-            serverError: props.error,
-            uploading: false,
-            fileSelected: false,
+        return () => {
+            isMounted.current = false;
         };
-    }
+    }, []);
 
-    componentDidMount() {
-        this.isMounted = true;
-    }
+    const handleChooseClick = useCallback(() => {
+        fileInputRef.current?.click();
+    }, []);
 
-    componentWillUnmount() {
-        this.isMounted = false;
-    }
-
-    handleChooseClick = () => {
-        this.fileInputRef.current?.click();
-    };
-
-    handleChange = () => {
-        const files = this.fileInputRef.current?.files;
+    const handleChange = useCallback(() => {
+        const files = fileInputRef.current?.files;
         if (files && files.length > 0) {
-            this.setState({fileSelected: true, fileName: files[0].name});
+            setIsFileSelected(true);
+            setFileNameFromState(files[0].name);
         }
-    };
+    }, []);
 
-    handleSubmit = (e: React.MouseEvent) => {
+    const handleSubmit = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
 
-        this.setState({uploading: true});
-        const file = this.fileInputRef.current?.files?.[0];
+        setIsUploading(true);
+        const file = fileInputRef.current?.files?.[0];
         if (file) {
-            this.props.onSubmit(this.props.id, file, (error) => {
-                if (this.isMounted) {
-                    this.setState({uploading: false});
-                    if (error && this.fileInputRef.current) {
-                        Utils.clearFileInput(this.fileInputRef.current);
+            onSubmit(id, file, (error) => {
+                if (isMounted.current) {
+                    setIsUploading(false);
+
+                    if (error && fileInputRef.current) {
+                        Utils.clearFileInput(fileInputRef.current);
                     }
                 }
             });
         }
-    };
+    }, [id, onSubmit]);
 
-    render() {
-        let serverError;
-        if (this.state.serverError) {
-            serverError = <div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div>;
-        }
-
-        let fileName;
-        if (this.state.fileName) {
-            fileName = this.state.fileName;
-        } else {
-            fileName = (
-                <FormattedMessage
-                    id='admin.file_upload.noFile'
-                    defaultMessage='No file uploaded'
-                />
-            );
-        }
-
-        return (
-            <Setting
-                label={this.props.label}
-                helpText={this.props.helpText}
-                inputId={this.props.id}
-            >
-                <div>
-                    <div className='file__upload'>
-                        <button
-                            type='button'
-                            className='btn btn-tertiary'
-                            disabled={this.props.disabled}
-                            onClick={this.handleChooseClick}
-                        >
-                            <FormattedMessage
-                                id='admin.file_upload.chooseFile'
-                                defaultMessage='Choose File'
-                            />
-                        </button>
-                        <input
-                            ref={this.fileInputRef}
-                            type='file'
-                            disabled={this.props.disabled}
-                            accept={this.props.fileType}
-                            onChange={this.handleChange}
-                        />
-                    </div>
-                    <button
-                        type='button'
-                        className='btn btn-primary'
-                        disabled={!this.state.fileSelected}
-                        onClick={this.handleSubmit}
-                    >
-                        {this.state.uploading && (
-                            <>
-                                <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
-                                {this.props.uploadingText}
-                            </>)}
-                        {!this.state.uploading &&
-                            <FormattedMessage
-                                id='admin.file_upload.uploadFile'
-                                defaultMessage='Upload'
-                            />}
-                    </button>
-                    <div className='help-text m-0'>
-                        {fileName}
-                    </div>
-                    {serverError}
-                </div>
-            </Setting>
+    let serverError;
+    if (errorFromProps) {
+        serverError = (
+            <div className='form-group has-error'>
+                <label className='control-label'>
+                    {errorFromProps}
+                </label>
+            </div>
         );
     }
-}
+
+    let fileName;
+    if (fileNameFromState) {
+        fileName = fileNameFromState;
+    } else {
+        fileName = (
+            <FormattedMessage
+                id='admin.file_upload.noFile'
+                defaultMessage='No file uploaded'
+            />
+        );
+    }
+
+    return (
+        <Setting
+            label={label}
+            helpText={helpText}
+            inputId={id}
+        >
+            <div>
+                <div className='file__upload'>
+                    <button
+                        type='button'
+                        className='btn btn-tertiary'
+                        disabled={disabled}
+                        onClick={handleChooseClick}
+                    >
+                        <FormattedMessage
+                            id='admin.file_upload.chooseFile'
+                            defaultMessage='Choose File'
+                        />
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type='file'
+                        disabled={disabled}
+                        accept={fileType}
+                        onChange={handleChange}
+                    />
+                </div>
+                <button
+                    type='button'
+                    className='btn btn-primary'
+                    disabled={!isFileSelected}
+                    onClick={handleSubmit}
+                >
+                    {
+                        isUploading && (
+                            <>
+                                <span className='glyphicon glyphicon-refresh glyphicon-refresh-animate'/>
+                                {uploadingText}
+                            </>
+                        )
+                    }
+                    {
+                        !isUploading &&
+                        <FormattedMessage
+                            id='admin.file_upload.uploadFile'
+                            defaultMessage='Upload'
+                        />
+                    }
+                </button>
+                <div className='help-text m-0'>
+                    {fileName}
+                </div>
+                {serverError}
+            </div>
+        </Setting>
+    );
+};
+
+export default memo(FileUploadSetting);

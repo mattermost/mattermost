@@ -215,11 +215,11 @@ func (s sqlRemoteClusterStore) GetAll(offset, limit int, filter model.RemoteClus
 		OrderBy("rc.DisplayName, rc.Name")
 
 	if filter.InChannel != "" {
-		query = query.Where("rc.RemoteId IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.InChannel)
+		query = query.Where("rc.RemoteId IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ? AND scr.DeleteAt = 0)", filter.InChannel)
 	}
 
 	if filter.NotInChannel != "" {
-		query = query.Where("rc.RemoteId NOT IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ?)", filter.NotInChannel)
+		query = query.Where("rc.RemoteId NOT IN (SELECT scr.RemoteId FROM SharedChannelRemotes scr WHERE scr.ChannelId = ? AND scr.DeleteAt = 0)", filter.NotInChannel)
 	}
 
 	if filter.ExcludeOffline {

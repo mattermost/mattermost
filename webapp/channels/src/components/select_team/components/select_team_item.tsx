@@ -79,7 +79,7 @@ const SelectTeamItem = ({
                 {!team.allow_open_invite &&
                     <i
                         className='fa fa-lock light'
-                        title={intl.formatMessage({id: 'select_team.private.icon', defaultMessage: 'Private team'})}
+                        title={intl.formatMessage({id: 'select_team.private.icon', defaultMessage: 'Private Team'})}
                     />}
                 {canJoin && icon}
             </a>

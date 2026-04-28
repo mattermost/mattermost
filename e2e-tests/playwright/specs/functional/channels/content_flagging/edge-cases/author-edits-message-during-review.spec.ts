@@ -29,7 +29,7 @@ test("Verify Post message is updated for the reviewer, if author updates the pos
     const message = `Post by @${user.username}, is flagged once`;
 
     const {post} = await createPost(adminClient, userClient, team, user, message);
-    await adminClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
     let updatedMessage = `${message} - Edited during review`;
     await userClient.updatePost({

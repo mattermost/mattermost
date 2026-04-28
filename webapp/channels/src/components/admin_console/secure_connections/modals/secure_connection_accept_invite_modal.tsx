@@ -17,8 +17,6 @@ import TeamSelector from '../team_selector';
 import {isErrorState, isPendingState, useTeamOptions} from '../utils';
 
 type Props = {
-    creating?: boolean;
-    password?: string;
     onConfirm: (accept: PartialExcept<RemoteClusterAcceptInvite, 'display_name' | 'default_team_id' | 'invite' | 'password'>) => Promise<RemoteCluster>;
     onCancel?: () => void;
     onExited: () => void;

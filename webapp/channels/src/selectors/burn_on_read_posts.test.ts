@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Post} from '@mattermost/types/posts';
+
 import {PostTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -33,10 +35,7 @@ describe('burn_on_read_posts selectors', () => {
                         create_at: 1234567890,
                         update_at: 1234567890,
                         delete_at: 0,
-                        props: {
-                            revealed: false,
-                        },
-                    },
+                    } as Post,
                     borPost2: {
                         id: 'borPost2',
                         type: PostTypes.BURN_ON_READ,
@@ -46,11 +45,10 @@ describe('burn_on_read_posts selectors', () => {
                         create_at: 1234567890,
                         update_at: 1234567890,
                         delete_at: 0,
-                        props: {
-                            revealed: true,
+                        metadata: {
                             expire_at: 9999999999999,
                         },
-                    },
+                    } as Post,
                     normalPost: {
                         id: 'normalPost',
                         type: '',
@@ -60,7 +58,7 @@ describe('burn_on_read_posts selectors', () => {
                         create_at: 1234567890,
                         update_at: 1234567890,
                         delete_at: 0,
-                    },
+                    } as Post,
                 },
             },
             users: {
@@ -149,7 +147,7 @@ describe('burn_on_read_posts selectors', () => {
             expect(shouldDisplayConcealedPlaceholder(mockState as GlobalState, 'normalPost')).toBe(false);
         });
 
-        it('should return false when feature flag is disabled', () => {
+        it('should return true even when feature flag is disabled (existing posts should work)', () => {
             const stateWithFeatureDisabled = {
                 ...mockState,
                 entities: {
@@ -165,8 +163,9 @@ describe('burn_on_read_posts selectors', () => {
                 },
             };
 
-            // Even though user2 is recipient and hasn't revealed borPost1, should return false because feature is disabled
-            expect(shouldDisplayConcealedPlaceholder(stateWithFeatureDisabled as GlobalState, 'borPost1')).toBe(false);
+            // user2 is recipient and hasn't revealed borPost1, should return true EVEN with feature disabled
+            // Feature flag only controls NEW message creation, not display of existing BoR posts
+            expect(shouldDisplayConcealedPlaceholder(stateWithFeatureDisabled as GlobalState, 'borPost1')).toBe(true);
         });
     });
 

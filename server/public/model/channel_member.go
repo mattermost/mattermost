@@ -52,21 +52,22 @@ type ChannelUnreadAt struct {
 }
 
 type ChannelMember struct {
-	ChannelId          string    `json:"channel_id"`
-	UserId             string    `json:"user_id"`
-	Roles              string    `json:"roles"`
-	LastViewedAt       int64     `json:"last_viewed_at"`
-	MsgCount           int64     `json:"msg_count"`
-	MentionCount       int64     `json:"mention_count"`
-	MentionCountRoot   int64     `json:"mention_count_root"`
-	UrgentMentionCount int64     `json:"urgent_mention_count"`
-	MsgCountRoot       int64     `json:"msg_count_root"`
-	NotifyProps        StringMap `json:"notify_props"`
-	LastUpdateAt       int64     `json:"last_update_at"`
-	SchemeGuest        bool      `json:"scheme_guest"`
-	SchemeUser         bool      `json:"scheme_user"`
-	SchemeAdmin        bool      `json:"scheme_admin"`
-	ExplicitRoles      string    `json:"explicit_roles"`
+	ChannelId               string    `json:"channel_id"`
+	UserId                  string    `json:"user_id"`
+	Roles                   string    `json:"roles"`
+	LastViewedAt            int64     `json:"last_viewed_at"`
+	MsgCount                int64     `json:"msg_count"`
+	MentionCount            int64     `json:"mention_count"`
+	MentionCountRoot        int64     `json:"mention_count_root"`
+	UrgentMentionCount      int64     `json:"urgent_mention_count"`
+	MsgCountRoot            int64     `json:"msg_count_root"`
+	NotifyProps             StringMap `json:"notify_props"`
+	LastUpdateAt            int64     `json:"last_update_at"`
+	SchemeGuest             bool      `json:"scheme_guest"`
+	SchemeUser              bool      `json:"scheme_user"`
+	SchemeAdmin             bool      `json:"scheme_admin"`
+	ExplicitRoles           string    `json:"explicit_roles"`
+	AutoTranslationDisabled bool      `json:"autotranslation_disabled"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {
@@ -252,4 +253,45 @@ func GetDefaultChannelNotifyProps() StringMap {
 type ChannelMemberIdentifier struct {
 	ChannelId string `json:"channel_id"`
 	UserId    string `json:"user_id"`
+}
+
+// SetChannelMembersRequest is the request body for the bulk set channel members endpoint.
+type SetChannelMembersRequest struct {
+	// Members is the complete desired membership list. Users in this list
+	// (and in ChannelAdmins) will be the final set of channel members.
+	Members []string `json:"members"`
+	// ChannelAdmins is an optional list of user IDs that should have the
+	// channel admin role. Users in this list are automatically included in
+	// the desired membership (they do not need to also appear in Members).
+	// When nil, existing admin roles are preserved for members who remain
+	// in the channel. When non-nil (including empty slice), admin roles
+	// are set declaratively: listed users become admins, all others lose
+	// the admin role.
+	ChannelAdmins *[]string `json:"channel_admins"`
+}
+
+// SetChannelMembersResponse is one batch of results from a bulk set channel members operation.
+// Multiple responses may be streamed as NDJSON lines.
+type SetChannelMembersResponse struct {
+	Added    []string                 `json:"added"`
+	Removed  []string                 `json:"removed"`
+	Promoted []string                 `json:"promoted,omitempty"`
+	Demoted  []string                 `json:"demoted,omitempty"`
+	Errors   []SetChannelMembersError `json:"errors,omitempty"`
+}
+
+func (o *SetChannelMembersResponse) Auditable() map[string]any {
+	return map[string]any{
+		"added":    o.Added,
+		"removed":  o.Removed,
+		"promoted": o.Promoted,
+		"demoted":  o.Demoted,
+		"errors":   o.Errors,
+	}
+}
+
+type SetChannelMembersError struct {
+	UserID string `json:"user_id"`
+	ID     string `json:"id"`
+	Error  string `json:"error"`
 }

@@ -1,19 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import RequestButton from 'components/admin_console/request_button/request_button';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/admin_console/request_button/request_button.jsx', () => {
     test('should match snapshot', () => {
         const emptyFunction = jest.fn();
 
-        const wrapper = shallow<RequestButton>(
+        const {container} = renderWithContext(
             <RequestButton
                 requestAction={emptyFunction}
                 helpText={
@@ -30,14 +29,14 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
                 }
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
-    test('should call saveConfig and request actions when saveNeeded is true', () => {
+    test('should call saveConfig and request actions when saveNeeded is true', async () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -57,17 +56,17 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper.find('button').first().simulate('click');
+        await userEvent.click(screen.getByRole('button'));
 
         expect(requestActionSuccess.mock.calls.length).toBe(1);
         expect(saveConfigActionSuccess.mock.calls.length).toBe(0);
     });
 
-    test('should call only request action when saveNeeded is false', () => {
+    test('should call only request action when saveNeeded is false', async () => {
         const requestActionSuccess = jest.fn((success) => success());
         const saveConfigActionSuccess = jest.fn((success) => success());
 
-        const wrapper = mountWithIntl(
+        renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -87,17 +86,17 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper.find('button').first().simulate('click');
+        await userEvent.click(screen.getByRole('button'));
 
         expect(requestActionSuccess.mock.calls.length).toBe(1);
         expect(saveConfigActionSuccess.mock.calls.length).toBe(1);
     });
 
-    test('should match snapshot with successMessage', () => {
+    test('should match snapshot with successMessage', async () => {
         const requestActionSuccess = jest.fn((success) => success());
 
         // Success & showSuccessMessage=true
-        const wrapper1 = mountWithIntl(
+        const {container: container1} = renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -120,11 +119,11 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper1.find('button').first().simulate('click');
-        expect(wrapper1).toMatchSnapshot();
+        await userEvent.click(screen.getAllByRole('button')[0]);
+        expect(container1).toMatchSnapshot();
 
         // Success & showSuccessMessage=false
-        const wrapper2 = mountWithIntl(
+        const {container: container2} = renderWithContext(
             <RequestButton
                 requestAction={requestActionSuccess}
                 helpText={
@@ -147,19 +146,19 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper2.find('button').first().simulate('click');
+        await userEvent.click(screen.getAllByRole('button')[1]);
 
-        expect(wrapper2).toMatchSnapshot();
+        expect(container2).toMatchSnapshot();
     });
 
-    test('should match snapshot with request error', () => {
+    test('should match snapshot with request error', async () => {
         const requestActionFailure = jest.fn((success, error) => error({
             message: '__message__',
             detailed_error: '__detailed_error__',
         }));
 
         // Error & includeDetailedError=true
-        const wrapper1 = mountWithIntl(
+        const {container: container1} = renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={
@@ -182,11 +181,11 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper1.find('button').first().simulate('click');
-        expect(wrapper1).toMatchSnapshot();
+        await userEvent.click(screen.getAllByRole('button')[0]);
+        expect(container1).toMatchSnapshot();
 
         // Error & includeDetailedError=false
-        const wrapper2 = mountWithIntl(
+        const {container: container2} = renderWithContext(
             <RequestButton
                 requestAction={requestActionFailure}
                 helpText={
@@ -208,8 +207,8 @@ describe('components/admin_console/request_button/request_button.jsx', () => {
             />,
         );
 
-        wrapper2.find('button').first().simulate('click');
+        await userEvent.click(screen.getAllByRole('button')[1]);
 
-        expect(wrapper2).toMatchSnapshot();
+        expect(container2).toMatchSnapshot();
     });
 });

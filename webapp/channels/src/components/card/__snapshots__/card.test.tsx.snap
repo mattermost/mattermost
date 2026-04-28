@@ -1,159 +1,116 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/card/card should match snapshot 1`] = `
-<Card
-  expanded={false}
->
+<div>
   <div
-    className="Card"
+    class="Card"
   >
-    <CardHeader
-      expanded={false}
-      key=".0"
+    <div
+      class="Card__header"
     >
-      <div
-        className="Card__header"
-      >
-        Header Test
-      </div>
-    </CardHeader>
-    <CardBody
-      expanded={false}
-      key=".1"
+      Header Test
+    </div>
+    <div
+      class="Card__body expanding"
     >
-      <div
-        className="Card__body expanding"
-        onTransitionEnd={[Function]}
-        style={
-          Object {
-            "height": "",
-          }
-        }
-      >
-        Body Test
-      </div>
-    </CardBody>
+      Body Test
+    </div>
   </div>
-</Card>
+</div>
 `;
 
 exports[`components/card/card should match snapshot when expanded 1`] = `
-<Card
-  expanded={true}
->
+<div>
   <div
-    className="Card expanded"
+    class="Card expanded"
   >
-    <CardHeader
-      expanded={true}
-      key=".0"
+    <div
+      class="Card__header expanded"
     >
-      <div
-        className="Card__header expanded"
-      >
-        Header Test
-        <hr
-          className="Card__hr"
-        />
-      </div>
-    </CardHeader>
-    <CardBody
-      expanded={true}
-      key=".1"
+      Header Test
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
     >
-      <div
-        className="Card__body expanded expanding"
-        onTransitionEnd={[Function]}
-        style={
-          Object {
-            "height": 0,
-          }
-        }
-      >
-        Body Test
-      </div>
-    </CardBody>
+      Body Test
+    </div>
   </div>
-</Card>
+</div>
 `;
 
 exports[`components/card/card should match snapshot when using header content and a button 1`] = `
-<div
-  className="Card console expanded"
->
-  <CardHeader
-    expanded={true}
-    key=".0"
+<div>
+  <div
+    class="Card console expanded"
   >
-    <TitleAndButtonCardHeader
-      body={
-        <div>
-          Hello!
+    <div
+      class="Card__header expanded"
+    >
+      <div>
+        <div
+          class="text-top"
+        >
+          Custom retention policies
         </div>
-      }
-      buttonText={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Add policy"
-          id="admin.data_retention.customPolicies.addPolicy"
-        />
-      }
-      onClick={[Function]}
-      subtitle={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Customize how long specific teams and channels will keep messages."
-          id="admin.data_retention.customPolicies.subTitle"
-        />
-      }
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Custom retention policies"
-          id="admin.data_retention.customPolicies.title"
-        />
-      }
-    />
-  </CardHeader>
-  <CardBody
-    expanded={true}
-    key=".1"
-  >
-    Body Test
-  </CardBody>
+        <div
+          class="text-bottom"
+        >
+          Customize how long specific teams and channels will keep messages.
+        </div>
+      </div>
+      <button
+        class="btn btn-primary"
+      >
+        Add policy
+      </button>
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
+    >
+      Body Test
+    </div>
+  </div>
 </div>
 `;
 
 exports[`components/card/card should match snapshot when using header content and no button 1`] = `
-<div
-  className="Card console expanded"
->
-  <CardHeader
-    expanded={true}
-    key=".0"
+<div>
+  <div
+    class="Card console expanded"
   >
-    <TitleAndButtonCardHeader
-      body={
-        <div>
-          Hello!
+    <div
+      class="Card__header expanded"
+    >
+      <div>
+        <div
+          class="text-top"
+        >
+          Custom retention policies
         </div>
-      }
-      subtitle={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Customize how long specific teams and channels will keep messages."
-          id="admin.data_retention.customPolicies.subTitle"
-        />
-      }
-      title={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Custom retention policies"
-          id="admin.data_retention.customPolicies.title"
-        />
-      }
-    />
-  </CardHeader>
-  <CardBody
-    expanded={true}
-    key=".1"
-  >
-    Body Test
-  </CardBody>
+        <div
+          class="text-bottom"
+        >
+          Customize how long specific teams and channels will keep messages.
+        </div>
+      </div>
+      <hr
+        class="Card__hr"
+      />
+    </div>
+    <div
+      class="Card__body expanded expanding"
+      style="height: 0px;"
+    >
+      Body Test
+    </div>
+  </div>
 </div>
 `;

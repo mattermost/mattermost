@@ -87,13 +87,11 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: loki
-  promtail:
-    container_name: mattermost-promtail
-    ports:
-      - "3180:3180"
+  otel-collector:
+    container_name: mattermost-otel-collector
     extends:
         file: build/docker-compose.common.yml
-        service: promtail
+        service: otel-collector
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
@@ -109,8 +107,8 @@ services:
       - prometheus
       - grafana
       - loki
-      - promtail
-    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 prometheus:9090 grafana:3000 loki:3100 promtail:3180
+      - otel-collector
+    command: postgres:5432 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 opensearch:9201 prometheus:9090 grafana:3000 loki:3100 otel-collector:13133
 
   leader:
     build:

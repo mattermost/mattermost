@@ -1,522 +1,756 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/team_channel_settings/group/GroupList should match snapshot 1`] = `
-<AbstractList
-  actions={
-    Object {
-      "getData": [MockFunction],
-    }
-  }
-  data={
-    Array [
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN",
-        "has_syncables": false,
-        "id": "123",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-    ]
-  }
-  emptyListText={
-    Object {
-      "defaultMessage": "No groups specified yet",
-      "id": "admin.team_channel_settings.group_list.no-groups",
-    }
-  }
-  groups={Array []}
-  header={<Header />}
-  noPadding={false}
-  onGroupRemoved={[MockFunction]}
-  onPageChangedCallback={[MockFunction]}
-  renderRow={[Function]}
-  total={1}
-  totalGroups={0}
-/>
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--header"
+    >
+      <div
+        class="group-name group-name-adjusted"
+      >
+        Group Name
+      </div>
+      <div
+        class="group-content"
+      >
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Member Count
+        </div>
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Roles
+        </div>
+        <div
+          class="group-actions"
+        />
+      </div>
+    </div>
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DNMembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="groups-list--footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 1 of 1
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next disabled"
+        data-testid="page-link-next"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
 `;
 
 exports[`admin_console/team_channel_settings/group/GroupList should match snapshot with paging 1`] = `
-<AbstractList
-  actions={
-    Object {
-      "getData": [MockFunction],
-    }
-  }
-  data={
-    Array [
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN0",
-        "has_syncables": false,
-        "id": "id0",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN1",
-        "has_syncables": false,
-        "id": "id1",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN2",
-        "has_syncables": false,
-        "id": "id2",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN3",
-        "has_syncables": false,
-        "id": "id3",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN4",
-        "has_syncables": false,
-        "id": "id4",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN5",
-        "has_syncables": false,
-        "id": "id5",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN6",
-        "has_syncables": false,
-        "id": "id6",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN7",
-        "has_syncables": false,
-        "id": "id7",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN8",
-        "has_syncables": false,
-        "id": "id8",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN9",
-        "has_syncables": false,
-        "id": "id9",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN10",
-        "has_syncables": false,
-        "id": "id10",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN11",
-        "has_syncables": false,
-        "id": "id11",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN12",
-        "has_syncables": false,
-        "id": "id12",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN13",
-        "has_syncables": false,
-        "id": "id13",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN14",
-        "has_syncables": false,
-        "id": "id14",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN15",
-        "has_syncables": false,
-        "id": "id15",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN16",
-        "has_syncables": false,
-        "id": "id16",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN17",
-        "has_syncables": false,
-        "id": "id17",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN18",
-        "has_syncables": false,
-        "id": "id18",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN19",
-        "has_syncables": false,
-        "id": "id19",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN20",
-        "has_syncables": false,
-        "id": "id20",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN21",
-        "has_syncables": false,
-        "id": "id21",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN22",
-        "has_syncables": false,
-        "id": "id22",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN23",
-        "has_syncables": false,
-        "id": "id23",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN24",
-        "has_syncables": false,
-        "id": "id24",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN25",
-        "has_syncables": false,
-        "id": "id25",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN26",
-        "has_syncables": false,
-        "id": "id26",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN27",
-        "has_syncables": false,
-        "id": "id27",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN28",
-        "has_syncables": false,
-        "id": "id28",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-      Object {
-        "allow_reference": true,
-        "create_at": 1,
-        "delete_at": 0,
-        "description": "",
-        "display_name": "DN29",
-        "has_syncables": false,
-        "id": "id29",
-        "member_count": 3,
-        "name": "group_name",
-        "remote_id": "",
-        "scheme_admin": false,
-        "source": "",
-        "update_at": 1,
-      },
-    ]
-  }
-  emptyListText={
-    Object {
-      "defaultMessage": "No groups specified yet",
-      "id": "admin.team_channel_settings.group_list.no-groups",
-    }
-  }
-  groups={Array []}
-  header={<Header />}
-  noPadding={false}
-  onGroupRemoved={[MockFunction]}
-  onPageChangedCallback={[MockFunction]}
-  renderRow={[Function]}
-  total={30}
-  totalGroups={0}
-/>
+<div>
+  <div
+    class="groups-list groups-list-no-padding"
+  >
+    <div
+      class="groups-list--header"
+    >
+      <div
+        class="group-name group-name-adjusted"
+      >
+        Group Name
+      </div>
+      <div
+        class="group-content"
+      >
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Member Count
+        </div>
+        <div
+          class="group-description group-description-adjusted"
+        >
+          Roles
+        </div>
+        <div
+          class="group-actions"
+        />
+      </div>
+    </div>
+    <div
+      class="groups-list--body"
+      id="groups-list--body"
+    >
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN0
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN0MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN1
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN1MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN2
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN2MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN3
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN3MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN4
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN4MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN5
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN5MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN6
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN6MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN7
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN7MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN8
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN8MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+      <div
+        class="group"
+        id="group"
+      >
+        <div
+          class="group-row"
+          id="group-row"
+        >
+          <span
+            class="group-name row-content"
+          >
+            DN9
+          </span>
+          <span
+            class="group-description row-content"
+          >
+            <button
+              class="style--none color--link"
+              id="DN9MembersToggle"
+            >
+              3 members
+            </button>
+          </span>
+          <div
+            class="group-description row-content roles"
+          >
+            <div
+              class="MenuWrapper "
+            >
+              <div>
+                <a
+                  data-testid="current-role"
+                >
+                  <span>
+                    Member
+                  </span>
+                  <span
+                    class="caret"
+                  />
+                </a>
+              </div>
+            </div>
+          </div>
+          <span
+            class="group-actions"
+            id="group-actions"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Remove
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="groups-list--footer"
+    >
+      <div
+        class="counter"
+      >
+        1 - 10 of 30
+      </div>
+      <button
+        class="btn btn-tertiary prev disabled"
+        disabled=""
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-left"
+          title="Previous Icon"
+        />
+      </button>
+      <button
+        class="btn btn-tertiary next "
+        data-testid="page-link-next"
+        type="button"
+      >
+        <i
+          class="icon icon-chevron-right"
+          title="Next Icon"
+        />
+      </button>
+    </div>
+  </div>
+</div>
 `;

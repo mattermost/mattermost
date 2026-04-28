@@ -1,9 +1,231 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot on loading 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot on loading 1`] = `
+<div>
+  <div
+    class="loading-screen"
+    style="position: relative;"
+  >
+    <div
+      class="loading__content"
+    >
+      <p>
+        Loading
+      </p>
+      <div
+        class="round round-1"
+      />
+      <div
+        class="round round-2"
+      />
+      <div
+        class="round round-3"
+      />
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot, on accept terms 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot, on accept terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            disabled=""
+            id="acceptTerms"
+            type="submit"
+          >
+            <span
+              class="LoadingSpinner"
+              data-testid="loadingSpinner"
+              id="loadingSpinner"
+            >
+              <span
+                class="fa fa-spinner fa-fw fa-pulse spinner"
+                title="Loading Icon"
+              />
+            </span>
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            disabled=""
+            id="rejectTerms"
+            type="reset"
+          >
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`components/terms_of_service/TermsOfService should match snapshot, on reject terms 1`] = `<LoadingScreen />`;
+exports[`components/terms_of_service/TermsOfService should match snapshot, on reject terms 1`] = `
+<div>
+  <div
+    class="signup-page-container"
+  >
+    <div
+      class="signup-header"
+    >
+      <a
+        href="#"
+      >
+        <i
+          class="fa fa-1x fa-angle-left"
+          title="Logout Icon"
+        />
+        Logout
+      </a>
+    </div>
+    <div
+      class="signup-team__container terms-of-service__container"
+    >
+      <div
+        class="terms-of-service__markdown terms-of-service__height--fill"
+      >
+        <div
+          class="medium-center"
+          data-testid="termsOfService"
+        >
+          <p>
+            tos_text
+          </p>
+        </div>
+      </div>
+      <div
+        class="terms-of-service__footer medium-center"
+      >
+        <div
+          class="terms-of-service__button-group"
+        >
+          <button
+            class="btn btn-primary"
+            disabled=""
+            id="acceptTerms"
+            type="submit"
+          >
+            I Agree
+          </button>
+          <button
+            class="btn-quaternary btn btn-default"
+            disabled=""
+            id="rejectTerms"
+            type="reset"
+          >
+            <span
+              class="LoadingSpinner"
+              data-testid="loadingSpinner"
+              id="loadingSpinner"
+            >
+              <span
+                class="fa fa-spinner fa-fw fa-pulse spinner"
+                title="Loading Icon"
+              />
+            </span>
+            I Disagree
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -1,7 +1,7 @@
 package pluginapi
 
 import (
-	"github.com/blang/semver/v4"
+	"github.com/Masterminds/semver/v3"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/pkg/errors"
 )
@@ -73,7 +73,7 @@ func ensureServerVersion(api plugin.API, required string) error {
 	currentVersion := semver.MustParse(serverVersion)
 	requiredVersion := semver.MustParse(required)
 
-	if currentVersion.LT(requiredVersion) {
+	if currentVersion.LessThan(requiredVersion) {
 		return errors.Errorf("incompatible server version for plugin, minimum required version: %s, current version: %s", required, serverVersion)
 	}
 

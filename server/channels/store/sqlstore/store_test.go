@@ -198,7 +198,9 @@ func initStores(logger mlog.LoggerIFace, parallelism int) {
 	for _, st := range storeTypes {
 		eg.Go(func() error {
 			var err error
-			st.SqlStore, err = New(*st.SqlSettings, logger, nil)
+			st.SqlStore, err = New(*st.SqlSettings, logger, nil, WithFeatureFlags(func() *model.FeatureFlags {
+				return &model.FeatureFlags{CJKSearch: true}
+			}))
 			if err != nil {
 				return err
 			}
@@ -763,28 +765,24 @@ func TestVersionString(t *testing.T) {
 
 	versions := []struct {
 		input  int
-		driver string
 		output string
 	}{
 		{
 			input:  100000,
-			driver: model.DatabaseDriverPostgres,
 			output: "10.0",
 		},
 		{
 			input:  90603,
-			driver: model.DatabaseDriverPostgres,
 			output: "9.603",
 		},
 		{
 			input:  120005,
-			driver: model.DatabaseDriverPostgres,
 			output: "12.5",
 		},
 	}
 
 	for _, v := range versions {
-		out := versionString(v.input, v.driver)
+		out := versionString(v.input)
 		assert.Equal(t, v.output, out)
 	}
 }
@@ -819,6 +817,15 @@ func TestReplicaLagQuery(t *testing.T) {
 				QueryTimeLag:     model.NewPointer(query),
 			}}
 
+			// Disable connection pool cleanup goroutines to prevent DATA RACE
+			// with testify's reflect-based argument diffing. When sql.DB's
+			// connectionCleaner goroutine is active, it writes to internal
+			// fields while testify's mock.Called() → Arguments.Diff() reads
+			// them via fmt.Sprintf("%v", *sql.DB). Setting lifetime/idle to 0
+			// prevents the cleaner goroutine from starting at all.
+			settings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
+			settings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
+
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("SetReplicaLagAbsolute", tableName, float64(1))
 			mockMetrics.On("SetReplicaLagTime", tableName, float64(1))
@@ -839,12 +846,12 @@ func TestReplicaLagQuery(t *testing.T) {
 			err = store.migrate(migrationsDirectionUp, false, true)
 			require.NoError(t, err)
 
-			defer store.Close()
-
 			err = store.ReplicaLagAbs()
 			require.NoError(t, err)
 			err = store.ReplicaLagTime()
 			require.NoError(t, err)
+
+			store.Close()
 			mockMetrics.AssertExpectations(t)
 		})
 	}
@@ -875,6 +882,10 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 				QueryTimeLag:     model.NewPointer("SELECT 1"),
 			}}
 
+			// Disable connection pool cleanup goroutines (see TestReplicaLagQuery).
+			settings.ConnMaxLifetimeMilliseconds = model.NewPointer(0)
+			settings.ConnMaxIdleTimeMilliseconds = model.NewPointer(0)
+
 			mockMetrics := &mocks.MetricsInterface{}
 			mockMetrics.On("RegisterDBCollector", mock.AnythingOfType("*sql.DB"), "master")
 
@@ -889,10 +900,11 @@ func TestInvalidReplicaLagDataSource(t *testing.T) {
 			}
 
 			require.NoError(t, store.initConnection())
-			defer store.Close()
 
 			// Verify no replica lag handles were added despite having ReplicaLagSettings
 			assert.Equal(t, 0, len(store.replicaLagHandles))
+
+			store.Close()
 		})
 	}
 }
