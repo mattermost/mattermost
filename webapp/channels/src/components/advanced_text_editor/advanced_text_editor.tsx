@@ -356,7 +356,12 @@ const AdvancedTextEditor = ({
     const {
         additionalControl: postPropertiesControl,
         stagedChips: postPropertiesStagedChips,
+        onAfterSubmit: propertiesAfterSubmit,
     } = usePostProperties(channelId, rootId, showPreview);
+    const composedAfterSubmit = useCallback((response: SubmitPostReturnType) => {
+        afterSubmit?.(response);
+        propertiesAfterSubmit(response);
+    }, [afterSubmit, propertiesAfterSubmit]);
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -370,7 +375,7 @@ const AdvancedTextEditor = ({
         handleDraftChange,
         prioritySubmitCheck,
         undefined,
-        afterSubmit,
+        composedAfterSubmit,
         undefined,
         isInEditMode,
         postId,
