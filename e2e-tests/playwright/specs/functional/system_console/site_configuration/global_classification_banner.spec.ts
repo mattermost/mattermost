@@ -84,6 +84,7 @@ test.describe('Global Classification Banner', () => {
             // Set up classification levels but keep the global banner disabled
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [
                     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {name: 'SECRET', color: '#C8102E', rank: 2},
@@ -148,6 +149,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [
                     {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {name: 'SECRET', color: '#C8102E', rank: 2},
@@ -184,6 +186,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'TOP SECRET', color: '#FCE83A', rank: 1}],
                 {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom'},
             );
@@ -222,6 +225,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'CONFIDENTIAL', color: '#FFD700', rank: 1}],
                 {levelName: 'CONFIDENTIAL', enabled: true, placement: 'top'},
             );
@@ -251,6 +255,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'RESTRICTED', color: '#FF8C00', rank: 1}],
                 {levelName: 'RESTRICTED', enabled: true, placement: 'top'},
             );
@@ -286,11 +291,16 @@ test.describe('Global Classification Banner', () => {
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            await setupClassificationFieldWithGlobalBanner(adminClient, [{name: 'SECRET', color: '#C8102E', rank: 1}], {
-                levelName: 'SECRET',
-                enabled: true,
-                placement: 'top',
-            });
+            await setupClassificationFieldWithGlobalBanner(
+                adminClient,
+                adminUser.id,
+                [{name: 'SECRET', color: '#C8102E', rank: 1}],
+                {
+                    levelName: 'SECRET',
+                    enabled: true,
+                    placement: 'top',
+                },
+            );
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
@@ -328,6 +338,7 @@ test.describe('Global Classification Banner', () => {
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'TOP SECRET', color: '#FF0000', rank: 1}],
                 {levelName: 'TOP SECRET', enabled: true, placement: 'top_and_bottom'},
             );
@@ -370,6 +381,7 @@ test.describe('Global Classification Banner', () => {
             // Light background (#FFFFFF) — text should be dark (#000000)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'UNCLASSIFIED', color: '#FFFFFF', rank: 1}],
                 {levelName: 'UNCLASSIFIED', enabled: true, placement: 'top'},
             );
@@ -385,6 +397,7 @@ test.describe('Global Classification Banner', () => {
             // Dark background (#000000) — text should be white (#FFFFFF)
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
+                adminUser.id,
                 [{name: 'TOP SECRET', color: '#000000', rank: 1}],
                 {levelName: 'TOP SECRET', enabled: true, placement: 'top'},
             );

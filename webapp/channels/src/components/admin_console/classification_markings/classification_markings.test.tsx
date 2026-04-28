@@ -3,13 +3,14 @@
 
 import React from 'react';
 
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import ClassificationMarkings from './classification_markings';
+import * as Utils from './utils';
 import {
     detectPreset,
     optionsToLevels,
@@ -18,11 +19,19 @@ import {
     fetchClassificationField,
     GROUP_NAME,
     OBJECT_TYPE,
+    LINKED_OBJECT_TYPE,
+    SYSTEM_FIELD_TARGET_ID,
     TARGET_TYPE,
     FIELD_NAME,
+    LINKED_FIELD_NAME,
+    DISPLAY_BANNER_TOP,
+    DISPLAY_BANNER_BOTTOM,
 } from './utils';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
+
+const MOCK_USER_ID = 'current_user_id_12345678';
+const BASE_STATE = {entities: {users: {currentUserId: MOCK_USER_ID}}};
 
 jest.mock('mattermost-redux/client');
 
@@ -42,6 +51,42 @@ function makePropertyField(overrides: Partial<PropertyField> = {}): PropertyFiel
         created_by: 'user1',
         updated_by: 'user1',
         ...overrides,
+    };
+}
+
+function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField {
+    return {
+        id: 'linked_field1',
+        group_id: GROUP_NAME,
+        name: LINKED_FIELD_NAME,
+        type: 'select',
+        attrs: {actions: []},
+        target_id: SYSTEM_FIELD_TARGET_ID,
+        target_type: TARGET_TYPE,
+        object_type: LINKED_OBJECT_TYPE,
+        linked_field_id: 'field1',
+        create_at: 2000,
+        update_at: 2000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
+        ...overrides,
+    };
+}
+
+function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
+    return {
+        id: 'value1',
+        target_id: MOCK_USER_ID,
+        target_type: LINKED_OBJECT_TYPE,
+        group_id: GROUP_NAME,
+        field_id: fieldId,
+        value: optionId,
+        create_at: 3000,
+        update_at: 3000,
+        delete_at: 0,
+        created_by: 'user1',
+        updated_by: 'user1',
     };
 }
 
@@ -168,28 +213,6 @@ describe('processClassificationField', () => {
         expect(result.presetId).toBe('us');
         expect(result.levels).toHaveLength(usPreset.levels.length);
         expect(result.levels[0].name).toBe('UNCLASSIFIED');
-        expect(result.globalBanner).toEqual({enabled: false, placement: 'top', level_name: ''});
-    });
-
-    test('should extract global_banner from field attrs', () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'x', name: 'SECRET', color: '#C8102E', rank: 1}],
-                global_banner: {enabled: true, placement: 'top_and_bottom', level_name: 'SECRET'},
-            },
-        });
-
-        const result = processClassificationField(field);
-        expect(result.globalBanner).toEqual({enabled: true, placement: 'top_and_bottom', level_name: 'SECRET'});
-    });
-
-    test('should return default globalBanner when attrs has no global_banner', () => {
-        const field = makePropertyField({
-            attrs: {options: [{id: 'x', name: 'CUSTOM_LEVEL', color: '#123456', rank: 1}]},
-        });
-
-        const result = processClassificationField(field);
-        expect(result.globalBanner).toEqual({enabled: false, placement: 'top', level_name: ''});
     });
 
     test('should return custom preset for non-matching options', () => {
@@ -211,7 +234,6 @@ describe('processClassificationField', () => {
         const result = processClassificationField(field);
         expect(result.presetId).toBe(PRESET_CUSTOM);
         expect(result.levels).toEqual([]);
-        expect(result.globalBanner).toEqual({enabled: false, placement: 'top', level_name: ''});
     });
 });
 
@@ -296,7 +318,7 @@ describe('ClassificationMarkings component', () => {
     test('should show loading screen initially', () => {
         jest.spyOn(Client4, 'getPropertyFields').mockReturnValue(new Promise(() => {}));
 
-        const {container} = renderWithContext(<ClassificationMarkings/>, {});
+        const {container} = renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         expect(screen.getByText('Classification Markings')).toBeInTheDocument();
         expect(container.querySelector('.loading-screen')).toBeInTheDocument();
@@ -307,7 +329,7 @@ describe('ClassificationMarkings component', () => {
         (error as unknown as Record<string, number>).status_code = 500;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText(/Failed to load classification markings/);
         expect(screen.getByText(/Network error/)).toBeInTheDocument();
@@ -316,7 +338,7 @@ describe('ClassificationMarkings component', () => {
     test('should show informational notice when loaded', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -329,7 +351,7 @@ describe('ClassificationMarkings component', () => {
     test('should render disabled state when no existing field', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -351,9 +373,11 @@ describe('ClassificationMarkings component', () => {
                 })),
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]). // template field call
+            mockResolvedValueOnce([]); // linked field call (none found)
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('Classification preset');
 
@@ -366,7 +390,7 @@ describe('ClassificationMarkings component', () => {
     test('should show preset and levels sections when enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -383,7 +407,7 @@ describe('ClassificationMarkings component', () => {
     test('should detect hasChanges when toggling enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -400,7 +424,7 @@ describe('ClassificationMarkings component', () => {
     test('should validate empty levels when saving while enabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -422,7 +446,7 @@ describe('ClassificationMarkings component', () => {
         (error as unknown as Record<string, number>).status_code = 404;
         jest.spyOn(Client4, 'getPropertyFields').mockRejectedValueOnce(error);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
 
         await screen.findByText('True');
         expect(screen.queryByText(/Failed to load/)).not.toBeInTheDocument();
@@ -436,9 +460,11 @@ describe('ClassificationMarkings component', () => {
                 ],
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
@@ -460,16 +486,26 @@ describe('ClassificationMarkings component', () => {
                 ],
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-        jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(makePropertyField({
+        const patchedTemplate = makePropertyField({
             attrs: {
                 options: [
                     {id: 'lvl1', name: 'SECRET', color: '#1a2b3c', rank: 1},
                 ],
             },
-        }));
+        });
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        // Use an existing linked field so persistLevels uses patchPropertyField
+        // (not createPropertyField) for the linked field, keeping all mocks fully consumed.
+        const linkedField = makeLinkedField({attrs: {actions: []}});
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]). // template field
+            mockResolvedValueOnce([linkedField]); // linked field (existing, no banner actions)
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(patchedTemplate). // patch template
+            mockResolvedValueOnce(linkedField); // patch linked
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
@@ -482,24 +518,27 @@ describe('ClassificationMarkings component', () => {
         const saveButton = await screen.findByText('Save');
         await user.click(saveButton);
 
-        expect(Client4.patchPropertyField).toHaveBeenCalledWith(
-            GROUP_NAME,
-            OBJECT_TYPE,
-            'field1',
-            expect.objectContaining({
-                attrs: expect.objectContaining({
-                    options: expect.arrayContaining([
-                        expect.objectContaining({color: '#1a2b3c'}),
-                    ]),
+        await waitFor(() => {
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                GROUP_NAME,
+                OBJECT_TYPE,
+                'field1',
+                expect.objectContaining({
+                    attrs: expect.objectContaining({
+                        options: expect.arrayContaining([
+                            expect.objectContaining({color: '#1a2b3c'}),
+                        ]),
+                    }),
                 }),
-            }),
-        );
+            );
+        });
+        await act(async () => {}); // flush remaining async state updates
     });
 
     test('should pass disabled prop to disable controls', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings disabled={true}/>, {});
+        renderWithContext(<ClassificationMarkings disabled={true}/>, BASE_STATE);
 
         await screen.findByText('True');
 
@@ -516,7 +555,7 @@ describe('GlobalClassificationIndicators section', () => {
     test('should not show Global Classification Indicators when classification is disabled', async () => {
         jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('True');
 
         expect(screen.queryByText('Global Classification Indicators')).not.toBeInTheDocument();
@@ -526,29 +565,37 @@ describe('GlobalClassificationIndicators section', () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
         expect(screen.getByText('Configure the global classification banner')).toBeInTheDocument();
         expect(screen.getByText('Global Classification Banner')).toBeInTheDocument();
     });
 
-    test('should read initial banner state from property field attrs', async () => {
+    test('should read initial banner state from linked field actions and system property value', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top_and_bottom', level_name: 'UNCLASSIFIED'},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]},
+        });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]). // template field
+            mockResolvedValueOnce([linked]); // linked field
+
+        jest.spyOn(Client4, 'getPropertyValues').
+            mockResolvedValueOnce([sysValue]); // system value
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Banner visibility');
 
-        // The "top_and_bottom" radio (False side of the placement boolean) should be selected
-        expect(screen.getByTestId('globalBannerPlacementtrue')).not.toBeChecked();
+        // top_and_bottom placement: the "false" radio (top_and_bottom side) should be selected
         expect(screen.getByTestId('globalBannerPlacementfalse')).toBeChecked();
 
         expect(screen.getByText('UNCLASSIFIED')).toBeInTheDocument();
@@ -556,14 +603,21 @@ describe('GlobalClassificationIndicators section', () => {
 
     test('should show placement and level controls when global banner is enabled', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP]},
+        });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+
+        jest.spyOn(Client4, 'getPropertyValues').
+            mockResolvedValueOnce([sysValue]);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Banner visibility');
 
         expect(screen.getByText('Top only')).toBeInTheDocument();
@@ -575,14 +629,16 @@ describe('GlobalClassificationIndicators section', () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([]);
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Global Classification Indicators');
 
         const user = userEvent.setup();
 
-        // Enable the global banner (use the testId to target the banner toggle specifically)
+        // Enable the global banner without selecting a level
         await act(async () => {
             await user.click(screen.getByTestId('globalBannerEnabledtrue'));
         });
@@ -594,48 +650,28 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText(/A global classification level must be selected/);
     });
 
-    test('should validate that the referenced level still exists when banner enabled in field attrs', async () => {
-        // Banner references "GONE" which is not in the field options.
+    test('should validate that the referenced level still exists when it was renamed', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_name: 'GONE'},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>, {});
-        await screen.findByText('Global Classification Indicators');
-
-        const user = userEvent.setup();
-
-        // Flip placement to create a real change so Save becomes active.
-        await act(async () => {
-            await user.click(screen.getByTestId('globalBannerPlacementfalse'));
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP]},
         });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        await act(async () => {
-            await user.click(screen.getByText('Save'));
-        });
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
 
-        await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
-    });
+        jest.spyOn(Client4, 'getPropertyValues').
+            mockResolvedValueOnce([sysValue]);
 
-    test('should surface validation when renaming the level used by the banner', async () => {
-        const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'},
-            },
-        });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-
-        renderWithContext(<ClassificationMarkings/>, {});
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
 
-        // Rename the only level: the banner's level_name no longer matches anything.
+        // Rename the level: the banner's level_name no longer matches anything.
         const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
         await user.clear(nameInput);
         await user.type(nameInput, 'DECLASSIFIED');
@@ -646,31 +682,40 @@ describe('GlobalClassificationIndicators section', () => {
             await screen.findByText(/The previously selected level no longer exists/),
         ).toBeInTheDocument();
 
-        // And save should also be blocked with the same validation error.
+        // Save should also be blocked with the same validation error.
         await act(async () => {
             await user.click(screen.getByText('Save'));
         });
         await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
     });
 
-    test('should surface validation when deleting the level used by the banner', async () => {
+    test('should validate that the referenced level still exists when it was deleted', async () => {
         const field = makePropertyField({
             attrs: {
                 options: [
                     {id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
                     {id: 'lvl2', name: 'CONFIDENTIAL', color: '#FFD700', rank: 2},
                 ],
-                global_banner: {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'},
             },
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP]},
+        });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+
+        jest.spyOn(Client4, 'getPropertyValues').
+            mockResolvedValueOnce([sysValue]);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
 
-        // Delete lvl1 (first row's delete button).
+        // Delete the first level (UNCLASSIFIED) which is referenced by the banner.
         const deleteButtons = screen.getAllByRole('button', {name: /Delete level/i});
         await act(async () => {
             await user.click(deleteButtons[0]);
@@ -683,79 +728,110 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
     });
 
-    test('should save global_banner in field attrs when the banner changes', async () => {
+    test('should patch linked field with actions and upsert system value when banner changes', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-        const mockPatch = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(
-            makePropertyField({
-                attrs: {
-                    options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#112233', rank: 1}],
-                    global_banner: {enabled: true, placement: 'top_and_bottom', level_name: 'UNCLASSIFIED'},
-                },
-            }),
-        );
+        const linked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP]},
+        });
+        const sysValue = makeSystemValue('linked_field1', 'lvl1');
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        const patchedTemplate = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#112233', rank: 1}]},
+        });
+        const patchedLinked = makeLinkedField({
+            attrs: {actions: [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]},
+        });
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+
+        jest.spyOn(Client4, 'getPropertyValues').
+            mockResolvedValueOnce([sysValue]);
+
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(patchedTemplate). // patch template field
+            mockResolvedValueOnce(patchedLinked); // patch linked field
+
+        // Spy at utility level to avoid auto-mock limitations for patchPropertyValues.
+        const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue(undefined);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
 
-        // Change the level color and the banner placement.
+        // Change the level color.
         const colorInput = screen.getByTestId('color-inputColorValue');
         await user.clear(colorInput);
         await user.type(colorInput, '#112233');
         await user.tab();
 
+        // Change banner placement to top_and_bottom.
         await user.click(screen.getByTestId('globalBannerPlacementfalse'));
 
         const saveButton = await screen.findByText('Save');
         await user.click(saveButton);
 
         await waitFor(() => {
-            expect(mockPatch).toHaveBeenCalled();
-        });
+            // Template field patched without global_banner in attrs.
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                GROUP_NAME,
+                OBJECT_TYPE,
+                'field1',
+                expect.objectContaining({
+                    attrs: expect.objectContaining({options: expect.any(Array)}),
+                }),
+            );
+            expect(Client4.patchPropertyField).not.toHaveBeenCalledWith(
+                expect.anything(),
+                OBJECT_TYPE,
+                expect.anything(),
+                expect.objectContaining({
+                    attrs: expect.objectContaining({global_banner: expect.anything()}),
+                }),
+            );
 
-        // patchPropertyField must include global_banner in attrs alongside options.
-        expect(mockPatch).toHaveBeenCalledWith(
-            'custom_profile_attributes',
-            OBJECT_TYPE,
-            'field1',
-            expect.objectContaining({
-                attrs: expect.objectContaining({
-                    options: expect.any(Array),
-                    global_banner: expect.objectContaining({
-                        enabled: true,
-                        placement: 'top_and_bottom',
-                        level_name: 'UNCLASSIFIED',
+            // Linked field patched with updated actions (top_and_bottom).
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                GROUP_NAME,
+                LINKED_OBJECT_TYPE,
+                'linked_field1',
+                expect.objectContaining({
+                    attrs: expect.objectContaining({
+                        actions: [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM],
                     }),
                 }),
-            }),
-        );
+            );
+
+            // System value upserted with the resolved option ID.
+            expect(saveUpsertSpy).toHaveBeenCalledWith('linked_field1', 'lvl1', MOCK_USER_ID);
+        });
+        await act(async () => {}); // flush pending React state updates
     });
 
-    test('should include global_banner in patchPropertyField when only levels change', async () => {
+    test('should patch template and linked field when only levels change', async () => {
         const field = makePropertyField({
-            attrs: {
-                options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}],
-                global_banner: {enabled: false, placement: 'top', level_name: ''},
-            },
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
-        jest.spyOn(Client4, 'getPropertyFields').mockResolvedValueOnce([field]);
-        const mockPatch = jest.spyOn(Client4, 'patchPropertyField').mockResolvedValueOnce(
-            makePropertyField({
-                attrs: {
-                    options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}],
-                    global_banner: {enabled: false, placement: 'top', level_name: ''},
-                },
-            }),
-        );
+        const linked = makeLinkedField({attrs: {actions: []}});
 
-        renderWithContext(<ClassificationMarkings/>, {});
+        const patchedTemplate = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'MODIFIED', color: '#007A33', rank: 1}]},
+        });
+        const patchedLinked = makeLinkedField({attrs: {actions: []}});
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+
+        jest.spyOn(Client4, 'patchPropertyField').
+            mockResolvedValueOnce(patchedTemplate).
+            mockResolvedValueOnce(patchedLinked);
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
@@ -768,19 +844,78 @@ describe('GlobalClassificationIndicators section', () => {
         await user.click(saveButton);
 
         await waitFor(() => {
-            expect(mockPatch).toHaveBeenCalled();
+            // Template field saved without global_banner.
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                GROUP_NAME,
+                OBJECT_TYPE,
+                'field1',
+                expect.not.objectContaining({
+                    attrs: expect.objectContaining({global_banner: expect.anything()}),
+                }),
+            );
+
+            // Linked field patched with empty actions (banner disabled).
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith(
+                GROUP_NAME,
+                LINKED_OBJECT_TYPE,
+                'linked_field1',
+                expect.objectContaining({
+                    attrs: expect.objectContaining({actions: []}),
+                }),
+            );
+        });
+        await act(async () => {});
+    });
+
+    test('should delete linked field before template when classification is disabled', async () => {
+        const field = makePropertyField({
+            attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
+        });
+        const linked = makeLinkedField({attrs: {actions: []}});
+
+        jest.spyOn(Client4, 'getPropertyFields').
+            mockResolvedValueOnce([field]).
+            mockResolvedValueOnce([linked]);
+
+        const deleteOrder: string[] = [];
+        const deleteFieldSpy = jest.spyOn(Client4, 'deletePropertyField');
+        deleteFieldSpy.mockImplementation(async (_group, objectType, _id) => {
+            deleteOrder.push(objectType === LINKED_OBJECT_TYPE ? `linked:${_id}` : `template:${_id}`);
+            return {status: 'OK'};
         });
 
-        // Banner (unchanged) is still persisted along with the new levels.
-        expect(mockPatch).toHaveBeenCalledWith(
-            'custom_profile_attributes',
-            OBJECT_TYPE,
-            'field1',
-            expect.objectContaining({
-                attrs: expect.objectContaining({
-                    global_banner: expect.objectContaining({enabled: false}),
-                }),
-            }),
-        );
+        // Suppress "not configured to support act" warnings triggered by the
+        // large number of batched setState calls when classification is fully
+        // disabled and the form resets.
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+        await screen.findByText('Global Classification Indicators');
+
+        const user = userEvent.setup();
+
+        await act(async () => {
+            await user.click(screen.getByTestId('classificationEnabledfalse'));
+        });
+
+        await act(async () => {
+            await user.click(screen.getByText('Save'));
+        });
+
+        await waitFor(() => {
+            expect(deleteOrder).toHaveLength(2);
+        });
+        await act(async () => {});
+
+        expect(deleteOrder[0]).toBe('linked:linked_field1');
+        expect(deleteOrder[1]).toBe('template:field1');
+
+        console.error = origError;
     });
 });

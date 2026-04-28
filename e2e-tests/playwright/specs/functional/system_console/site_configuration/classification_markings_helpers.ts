@@ -6,9 +6,14 @@ import type {Client4} from '@mattermost/client';
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'custom_profile_attributes';
-const PROPERTY_OBJECT = 'template'; // template field is the schema source of truth (Linked Properties)
+const OBJECT_TYPE = 'template';
+const LINKED_OBJECT_TYPE = 'user'; // workaround until system object type lands (#36250)
 const TARGET_TYPE = 'system';
+const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
+const LINKED_CLASSIFICATION_FIELD_NAME = 'system_classification';
+const DISPLAY_BANNER_TOP = 'display_banner_top';
+const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
 export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/classification_markings';
 
@@ -19,7 +24,6 @@ export const CLASSIFICATION_MARKINGS_ADMIN_PATH = '/admin_console/site_config/cl
  */
 export async function setClassificationMarkingsFeatureFlag(adminClient: Client4, enabled: boolean) {
     const config = await adminClient.getConfig();
-    // Full config round-trip; FeatureFlags is a wide record on the client type.
     await adminClient.updateConfig({
         ...config,
         FeatureFlags: {
@@ -30,15 +34,32 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
 }
 
 /**
- * Removes the system classification property field if present (clean slate for E2E).
- * This also implicitly clears any global banner config since it lives in the field's attrs.
+ * Removes the classification property field and its linked system field if present
+ * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
  */
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
     try {
-        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, PROPERTY_OBJECT, TARGET_TYPE);
+        // Delete the linked system field first (deletion protection requires this order).
+        const linkedFields = await adminClient.getPropertyFields(
+            PROPERTY_GROUP,
+            LINKED_OBJECT_TYPE,
+            TARGET_TYPE,
+            SYSTEM_FIELD_TARGET_ID,
+        );
+        const linkedField = linkedFields.find(
+            (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
+        );
+        if (linkedField?.id) {
+            await adminClient.deletePropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, linkedField.id);
+        }
+    } catch {
+        // Linked field may not exist; ignore.
+    }
+    try {
+        const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE);
         const field = fields.find((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0);
         if (field?.id) {
-            await adminClient.deletePropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, field.id);
+            await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id);
         }
     } catch {
         // Property routes may be unavailable when the feature flag is off; ignore.
@@ -46,7 +67,7 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
 }
 
 export type SetupGlobalBannerOptions = {
-    /** Level name to store in attrs.global_banner.level_name */
+    /** Level name that the global banner should display */
     levelName: string;
     enabled?: boolean;
     placement?: 'top' | 'top_and_bottom';
@@ -54,27 +75,16 @@ export type SetupGlobalBannerOptions = {
 
 /**
  * Creates (or recreates) the classification property field with the provided levels.
- * Global banner config is stored in attrs.global_banner alongside the level options.
+ * The template field stores classification levels (attrs.options) only.
  */
 export async function setupClassificationField(
     adminClient: Client4,
     levels: Array<{id?: string; name: string; color: string; rank: number}>,
-    globalBanner?: SetupGlobalBannerOptions,
 ) {
-    // Ensure a clean slate first
+    // Ensure a clean slate first.
     await deleteClassificationMarkingsFieldIfExists(adminClient);
 
-    const bannerAttrs = globalBanner
-        ? {
-              global_banner: {
-                  enabled: globalBanner.enabled ?? true,
-                  placement: globalBanner.placement ?? 'top',
-                  level_name: globalBanner.levelName,
-              },
-          }
-        : {};
-
-    return adminClient.createPropertyField(PROPERTY_GROUP, PROPERTY_OBJECT, {
+    return adminClient.createPropertyField(PROPERTY_GROUP, OBJECT_TYPE, {
         name: CLASSIFICATION_FIELD_NAME,
         type: 'select',
         target_type: TARGET_TYPE,
@@ -82,7 +92,6 @@ export async function setupClassificationField(
         attrs: {
             options: levels.map((l) => ({id: l.id ?? '', name: l.name, color: l.color, rank: l.rank})),
             managed: 'admin',
-            ...bannerAttrs,
         },
         permission_field: 'sysadmin',
         permission_values: 'sysadmin',
@@ -91,14 +100,67 @@ export async function setupClassificationField(
 }
 
 /**
- * Convenience helper: create the classification field and seed the global banner config
- * via attrs.global_banner so tests start with a fully-configured banner pointing at an
- * existing level.
+ * Creates the classification template field, the linked system classification field
+ * (with attrs.actions encoding banner placement), and upserts the system property value
+ * (the option ID of the selected classification level) — the full three-layer setup.
+ *
+ * Data model:
+ *   Template field  → attrs.options (levels)
+ *   Linked field    → attrs.actions (display_banner_top / display_banner_bottom)
+ *   Property value  → value = option_id (UUID from template attrs.options)
  */
 export async function setupClassificationFieldWithGlobalBanner(
     adminClient: Client4,
+    adminUserId: string,
     levels: Array<{id?: string; name: string; color: string; rank: number}>,
     bannerOpts: SetupGlobalBannerOptions,
 ) {
-    return setupClassificationField(adminClient, levels, bannerOpts);
+    // 1. Create the template field (levels only).
+    const templateField = await setupClassificationField(adminClient, levels);
+
+    // Resolve the option ID for the requested level name.
+    const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
+    const matchedOption = options.find((o) => o.name === bannerOpts.levelName);
+    const optionId = matchedOption?.id ?? '';
+
+    // Build the actions array from the banner options.
+    const enabled = bannerOpts.enabled ?? true;
+    const actions: string[] = [];
+    if (enabled) {
+        actions.push(DISPLAY_BANNER_TOP);
+        if (bannerOpts.placement === 'top_and_bottom') {
+            actions.push(DISPLAY_BANNER_BOTTOM);
+        }
+    }
+
+    // 2. Create the linked system classification field.
+    // type, options, and permissions are inherited from the source template by the server.
+    const linkedField = await adminClient.createPropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, {
+        name: LINKED_CLASSIFICATION_FIELD_NAME,
+        type: 'select',
+        target_type: TARGET_TYPE,
+        target_id: SYSTEM_FIELD_TARGET_ID,
+        linked_field_id: templateField.id,
+        attrs: {actions},
+    } as Parameters<Client4['createPropertyField']>[2]);
+
+    // 3. Upsert the system property value with the selected option ID.
+    if (enabled && optionId) {
+        // Use the raw fetch since patchPropertyValues may not yet be in the compiled
+        // @mattermost/client package. Once the package is rebuilt this can use adminClient.patchPropertyValues.
+        await (
+            adminClient as unknown as {
+                patchPropertyValues: (
+                    group: string,
+                    objectType: string,
+                    targetId: string,
+                    items: unknown[],
+                ) => Promise<unknown>;
+            }
+        ).patchPropertyValues(PROPERTY_GROUP, LINKED_OBJECT_TYPE, adminUserId, [
+            {field_id: linkedField.id, value: optionId},
+        ]);
+    }
+
+    return {templateField, linkedField};
 }

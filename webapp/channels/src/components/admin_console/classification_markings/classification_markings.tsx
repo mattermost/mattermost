@@ -3,11 +3,13 @@
 
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
 
@@ -30,7 +32,24 @@ import {
 import ClassificationLevelsTable from './components/classification_levels_table';
 import GlobalClassificationIndicators from './components/global_classification_indicators';
 import type {GlobalBannerConfig} from './utils';
-import {DEFAULT_GLOBAL_BANNER, fetchClassificationField, processClassificationField, saveCreateField, saveDeleteField, savePatchField} from './utils';
+import {
+    DEFAULT_GLOBAL_BANNER,
+    DISPLAY_BANNER_TOP,
+    actionsToGlobalBanner,
+    fetchClassificationField,
+    fetchLinkedClassificationField,
+    fetchSystemClassificationValue,
+    findOptionById,
+    findOptionIdByName,
+    processClassificationField,
+    saveCreateField,
+    saveCreateLinkedField,
+    saveDeleteField,
+    saveDeleteLinkedField,
+    savePatchField,
+    savePatchLinkedField,
+    saveUpsertSystemValue,
+} from './utils';
 import {classificationPresetDropdownStyles} from './utils/preset_dropdown_styles';
 import type {ClassificationLevel} from './utils/presets';
 import {PRESET_CUSTOM, presets} from './utils/presets';
@@ -71,12 +90,14 @@ type Props = {
 export default function ClassificationMarkings({disabled}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const currentUserId = useSelector(getCurrentUserId);
 
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string>();
     const [existingField, setExistingField] = useState<PropertyField | null>(null);
+    const [existingLinkedField, setExistingLinkedField] = useState<PropertyField | null>(null);
 
     const [enabled, setEnabled] = useState(false);
     const [presetId, setPresetId] = useState<string>(PRESET_CUSTOM);
@@ -122,14 +143,32 @@ export default function ClassificationMarkings({disabled}: Props) {
                 const field = await fetchClassificationField();
                 if (field) {
                     const result = processClassificationField(field);
+
+                    // Load the linked system classification field and its property value
+                    const linkedField = await fetchLinkedClassificationField();
+                    let banner: GlobalBannerConfig = {...DEFAULT_GLOBAL_BANNER};
+                    if (linkedField) {
+                        const actions = (linkedField.attrs?.actions as string[]) ?? [];
+                        let levelName = '';
+                        if (actions.includes(DISPLAY_BANNER_TOP)) {
+                            const optionId = await fetchSystemClassificationValue(linkedField.id, currentUserId);
+                            if (optionId) {
+                                const options = (field.attrs?.options as PropertyFieldOption[]) ?? [];
+                                levelName = findOptionById(options, optionId)?.name ?? '';
+                            }
+                        }
+                        banner = actionsToGlobalBanner(actions, levelName);
+                    }
+
                     setExistingField(field);
+                    setExistingLinkedField(linkedField ?? null);
                     setEnabled(true);
                     setInitialEnabled(true);
                     setLevels(result.levels);
                     setInitialLevels(result.levels);
                     setPresetId(result.presetId);
-                    setGlobalBanner(result.globalBanner);
-                    setInitialGlobalBanner(result.globalBanner);
+                    setGlobalBanner(banner);
+                    setInitialGlobalBanner(banner);
                 }
             } catch (err: unknown) {
                 const isNotFound = (err as ClientError).status_code === 404;
@@ -267,18 +306,41 @@ export default function ClassificationMarkings({disabled}: Props) {
         const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
 
         if (enabled && !initialEnabled) {
-            const created = await saveCreateField(levels, effectiveBanner);
+            // First time enabling classification:
+            // 1. Create the template field (levels only)
+            const created = await saveCreateField(levels);
             const result = processClassificationField(created);
+
+            // 2. Create the linked system classification field (with actions for placement)
+            const linkedCreated = await saveCreateLinkedField(created.id, effectiveBanner);
+
+            // 3. Upsert the property value if the banner is enabled with a level
+            if (effectiveBanner.enabled && effectiveBanner.level_name) {
+                const options = (created.attrs?.options as PropertyFieldOption[]) ?? [];
+                const optionId = findOptionIdByName(options, effectiveBanner.level_name);
+                if (optionId) {
+                    await saveUpsertSystemValue(linkedCreated.id, optionId, currentUserId);
+                }
+            }
+
             setExistingField(created);
+            setExistingLinkedField(linkedCreated);
             setLevels(result.levels);
             setInitialLevels(result.levels);
             setPresetId(result.presetId);
-            setGlobalBanner(result.globalBanner);
-            setInitialGlobalBanner(result.globalBanner);
+            setGlobalBanner(effectiveBanner);
+            setInitialGlobalBanner(effectiveBanner);
             setInitialEnabled(true);
         } else if (!enabled && initialEnabled && existingField) {
+            // Disabling classification:
+            // Linked field MUST be deleted before the template (deletion protection).
+            if (existingLinkedField) {
+                await saveDeleteLinkedField(existingLinkedField.id);
+            }
             await saveDeleteField(existingField.id);
+
             setExistingField(null);
+            setExistingLinkedField(null);
             setInitialEnabled(false);
             setInitialLevels([]);
             setLevels([]);
@@ -286,15 +348,36 @@ export default function ClassificationMarkings({disabled}: Props) {
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         } else if (enabled && initialEnabled && existingField) {
-            const patched = await savePatchField(existingField.id, levels, effectiveBanner);
+            // Updating existing classification:
+            // 1. Patch the template field (levels only)
+            const patched = await savePatchField(existingField.id, levels);
             const result = processClassificationField(patched);
+
+            // 2. Create or patch the linked system field (update actions for placement)
+            let linkedField: PropertyField;
+            if (existingLinkedField) {
+                linkedField = await savePatchLinkedField(existingLinkedField.id, effectiveBanner);
+            } else {
+                linkedField = await saveCreateLinkedField(patched.id, effectiveBanner);
+            }
+
+            // 3. Upsert the system property value with the selected option ID
+            if (effectiveBanner.enabled && effectiveBanner.level_name) {
+                const options = (patched.attrs?.options as PropertyFieldOption[]) ?? [];
+                const optionId = findOptionIdByName(options, effectiveBanner.level_name);
+                if (optionId) {
+                    await saveUpsertSystemValue(linkedField.id, optionId, currentUserId);
+                }
+            }
+
             setExistingField(patched);
+            setExistingLinkedField(linkedField);
             setLevels(result.levels);
             setInitialLevels(result.levels);
-            setGlobalBanner(result.globalBanner);
-            setInitialGlobalBanner(result.globalBanner);
+            setGlobalBanner(effectiveBanner);
+            setInitialGlobalBanner(effectiveBanner);
         }
-    }, [enabled, initialEnabled, existingField, levels, globalBanner]);
+    }, [enabled, initialEnabled, existingField, existingLinkedField, levels, globalBanner, currentUserId]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);

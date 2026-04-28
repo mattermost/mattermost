@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -15,10 +15,21 @@ export const GROUP_NAME = 'custom_profile_attributes';
 export const OBJECT_TYPE = 'template';
 export const TARGET_TYPE = 'system';
 
-// TARGET_ID is intentionally empty for system-scoped fields — the target is the whole system,
-// not a specific entity. The Client4 helper skips the target_id query param when it's empty.
+// TARGET_ID is intentionally empty for system-scoped template fields.
 export const TARGET_ID = '';
 export const FIELD_NAME = 'classification';
+export const LINKED_FIELD_NAME = 'system_classification';
+
+// Workaround: system object type not yet supported (#36250). Use 'user' until then.
+// hasTargetAccess for 'user' type allows any target_id when the caller has manage_system.
+export const LINKED_OBJECT_TYPE = 'user';
+
+// The field definition uses target_type 'system' which requires target_id '' on the field itself.
+export const SYSTEM_FIELD_TARGET_ID = '';
+
+// Actions stored on the linked field's attrs.actions to control banner display.
+export const DISPLAY_BANNER_TOP = 'display_banner_top';
+export const DISPLAY_BANNER_BOTTOM = 'display_banner_bottom';
 
 export type GlobalBannerPlacement = 'top' | 'top_and_bottom';
 
@@ -34,25 +45,49 @@ export const DEFAULT_GLOBAL_BANNER: GlobalBannerConfig = {
     level_name: '',
 };
 
-export function normalizePlacement(value: string | undefined): GlobalBannerPlacement {
-    return value === 'top_and_bottom' ? 'top_and_bottom' : 'top';
+// --- Placement ↔ actions conversion ---
+
+/**
+ * Converts banner UI config to the actions array stored on the linked field's attrs.actions.
+ * Returns empty array when the banner is disabled.
+ */
+export function placementToActions(config: GlobalBannerConfig): string[] {
+    if (!config.enabled) {
+        return [];
+    }
+    if (config.placement === 'top_and_bottom') {
+        return [DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM];
+    }
+    return [DISPLAY_BANNER_TOP];
 }
 
 /**
- * Reads the global_banner config stored inside a PropertyField's attrs.
- * Returns defaults when the field has no global_banner attrs set yet.
+ * Reconstructs GlobalBannerConfig from the linked field's attrs.actions and a resolved level name.
  */
-export function readGlobalBannerFromField(field: PropertyField): GlobalBannerConfig {
-    const raw = field.attrs?.global_banner as Record<string, unknown> | undefined;
-    if (!raw) {
+export function actionsToGlobalBanner(actions: string[], levelName: string): GlobalBannerConfig {
+    const hasTop = actions.includes(DISPLAY_BANNER_TOP);
+    if (!hasTop) {
         return {...DEFAULT_GLOBAL_BANNER};
     }
+    const hasBottom = actions.includes(DISPLAY_BANNER_BOTTOM);
     return {
-        enabled: Boolean(raw.enabled),
-        placement: normalizePlacement(raw.placement as string | undefined),
-        level_name: (raw.level_name as string) ?? '',
+        enabled: true,
+        placement: hasBottom ? 'top_and_bottom' : 'top',
+        level_name: levelName,
     };
 }
+
+// --- Option ID ↔ level name helpers ---
+
+export function findOptionIdByName(options: PropertyFieldOption[], name: string): string | undefined {
+    return options.find((o) => o.name === name)?.id;
+}
+
+export function findOptionById(options: PropertyFieldOption[], id: string): PropertyFieldOption | undefined {
+    return options.find((o) => o.id === id);
+}
+
+// --- Classification level helpers ---
 
 export function detectPreset(levels: ClassificationLevel[]): string {
     for (const preset of presets) {
@@ -88,6 +123,15 @@ export function levelsToOptions(levels: ClassificationLevel[]): Array<{id: strin
     }));
 }
 
+export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string} {
+    const options = (field.attrs?.options as PropertyFieldOption[]) || [];
+    const levels = optionsToLevels(options);
+    const presetId = detectPreset(levels);
+    return {levels, presetId};
+}
+
+// --- Template field API ---
+
 export async function fetchClassificationField(): Promise<PropertyField | undefined> {
     const maxItems = 500;
     let fetched = 0;
@@ -110,15 +154,7 @@ export async function fetchClassificationField(): Promise<PropertyField | undefi
     return undefined;
 }
 
-export function processClassificationField(field: PropertyField): {levels: ClassificationLevel[]; presetId: string; globalBanner: GlobalBannerConfig} {
-    const options = (field.attrs?.options as PropertyFieldOption[]) || [];
-    const levels = optionsToLevels(options);
-    const presetId = detectPreset(levels);
-    const globalBanner = readGlobalBannerFromField(field);
-    return {levels, presetId, globalBanner};
-}
-
-export async function saveCreateField(levels: ClassificationLevel[], globalBanner: GlobalBannerConfig): Promise<PropertyField> {
+export async function saveCreateField(levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.createPropertyField(GROUP_NAME, OBJECT_TYPE, {
         name: FIELD_NAME,
@@ -128,11 +164,6 @@ export async function saveCreateField(levels: ClassificationLevel[], globalBanne
         attrs: {
             options,
             managed: 'admin',
-            global_banner: {
-                enabled: globalBanner.enabled,
-                placement: globalBanner.placement,
-                level_name: globalBanner.level_name,
-            },
         },
         permission_field: 'sysadmin',
         permission_values: 'sysadmin',
@@ -144,17 +175,86 @@ export async function saveDeleteField(fieldId: string): Promise<void> {
     await Client4.deletePropertyField(GROUP_NAME, OBJECT_TYPE, fieldId);
 }
 
-export async function savePatchField(fieldId: string, levels: ClassificationLevel[], globalBanner: GlobalBannerConfig): Promise<PropertyField> {
+export async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, fieldId, {
         attrs: {
             options,
             managed: 'admin',
-            global_banner: {
-                enabled: globalBanner.enabled,
-                placement: globalBanner.placement,
-                level_name: globalBanner.level_name,
-            },
         },
     } as Partial<PropertyField>);
+}
+
+// --- Linked system classification field API ---
+
+export async function fetchLinkedClassificationField(): Promise<PropertyField | undefined> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID, {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
+        const found = fields.find((f: PropertyField) => f.name === LINKED_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
+        if (found || fields.length === 0) {
+            return found;
+        }
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return undefined;
+}
+
+export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
+    // type, options, and permission levels are inherited from the source template
+    // automatically by the server (PR #35808). We only need to provide identity
+    // fields and our custom attrs.actions for banner placement.
+    return Client4.createPropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, {
+        name: LINKED_FIELD_NAME,
+        type: 'select' as PropertyField['type'],
+        target_type: TARGET_TYPE,
+        target_id: SYSTEM_FIELD_TARGET_ID,
+        linked_field_id: templateFieldId,
+        attrs: {
+            actions: placementToActions(config),
+        },
+    });
+}
+
+export async function savePatchLinkedField(linkedFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
+    return Client4.patchPropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, linkedFieldId, {
+        attrs: {
+            actions: placementToActions(config),
+        },
+    } as Partial<PropertyField>);
+}
+
+export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
+    await Client4.deletePropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, fieldId);
+}
+
+// --- System classification property value API ---
+
+/**
+ * Fetches the currently stored option ID for the system classification level.
+ * TODO: Migrate to system-scoped value
+ */
+export async function fetchSystemClassificationValue(linkedFieldId: string, targetUserId: string): Promise<string | undefined> {
+    const values = await Client4.getPropertyValues<string>(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId);
+    const match = (values as Array<PropertyValue<string>>).find((v) => v.field_id === linkedFieldId);
+    return match?.value;
+}
+
+/**
+ * Upserts the system classification property value to the given option ID.
+ * The value is attached to the admin user's ID as target.
+ */
+export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string, targetUserId: string): Promise<void> {
+    await Client4.patchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId, [
+        {field_id: linkedFieldId, value: optionId},
+    ]);
 }

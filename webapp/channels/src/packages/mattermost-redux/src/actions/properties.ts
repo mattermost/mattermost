@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField} from '@mattermost/types/properties';
+import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -41,5 +41,22 @@ export function fetchPropertyFields(groupName: string, objectType: string, targe
         });
 
         return {data: fields};
+    };
+}
+
+/**
+ * Fetches all property values for a given group, object type, and target ID,
+ * then stores them in the Redux property values state.
+ */
+export function fetchPropertyValues<T = unknown>(groupName: string, objectType: string, targetId: string): ActionFuncAsync<Array<PropertyValue<T>>> {
+    return async (dispatch) => {
+        const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
+
+        dispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
+
+        return {data: values};
     };
 }

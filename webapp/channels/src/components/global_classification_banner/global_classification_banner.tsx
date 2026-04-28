@@ -4,14 +4,28 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, fetchPropertyValues} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
-import {GROUP_NAME, FIELD_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, readGlobalBannerFromField} from 'components/admin_console/classification_markings/utils';
+import {
+    DISPLAY_BANNER_BOTTOM,
+    DISPLAY_BANNER_TOP,
+    FIELD_NAME,
+    GROUP_NAME,
+    LINKED_FIELD_NAME,
+    LINKED_OBJECT_TYPE,
+    OBJECT_TYPE,
+    SYSTEM_FIELD_TARGET_ID,
+    TARGET_ID,
+    TARGET_TYPE,
+    findOptionById,
+} from 'components/admin_console/classification_markings/utils';
 
 import './global_classification_banner.scss';
 
@@ -31,35 +45,72 @@ function selectClassificationTemplateField(state: GlobalState): PropertyField | 
     );
 }
 
+function selectLinkedSystemField(state: GlobalState): PropertyField | undefined {
+    const byId = state.entities.properties?.fields?.byId;
+    if (!byId) {
+        return undefined;
+    }
+
+    // The linked system field has the workaround object_type and a linked_field_id set.
+    return Object.values(byId).find(
+        (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
+    );
+}
+
 export default function GlobalClassificationBanner({position}: Props) {
     const dispatch = useDispatch();
     const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
-    const classificationField = useSelector(selectClassificationTemplateField);
+    const currentUserId = useSelector(getCurrentUserId);
+    const templateField = useSelector(selectClassificationTemplateField);
+    const linkedField = useSelector(selectLinkedSystemField);
+    const systemValue = useSelector((state: GlobalState) => {
+        if (!linkedField || !currentUserId) {
+            return undefined;
+        }
+        return getPropertyValueForTargetField(state, currentUserId, linkedField.id) as PropertyValue<string> | undefined;
+    });
     const bannerRef = useRef<HTMLDivElement>(null);
 
-    // Bootstrap: fetch the classification field once when the feature is enabled and
-    // the field is not yet in the store. WebSocket events keep it up to date after that.
+    // Bootstrap: fetch template fields, the linked system field, and system property values.
+    // WebSocket events (property_field_created/updated and property_values_updated) keep
+    // the store current after the initial load.
     useEffect(() => {
-        if (featureEnabled && !classificationField) {
+        if (!featureEnabled || !currentUserId) {
+            return;
+        }
+        if (!templateField) {
             dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
         }
-    }, [featureEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    const bannerConfig = classificationField ? readGlobalBannerFromField(classificationField) : undefined;
-    const bannerEnabled = bannerConfig?.enabled ?? false;
-    const placement = bannerConfig?.placement ?? 'top';
-    const levelName = bannerConfig?.level_name ?? '';
-
-    const color = useMemo(() => {
-        if (!levelName || !classificationField) {
-            return '';
+        if (!linkedField) {
+            dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
         }
-        const options = classificationField.attrs?.options as PropertyFieldOption[] | undefined;
-        return options?.find((o) => o.name === levelName)?.color ?? '';
-    }, [classificationField, levelName]);
+        if (!systemValue && linkedField) {
+            dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, currentUserId));
+        }
+    }, [featureEnabled, currentUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const shouldRender = featureEnabled && bannerEnabled && Boolean(levelName) && (position === 'top' || placement === 'top_and_bottom');
+    // Display conditions are encoded in the linked field's attrs.actions.
+    const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];
+    const shouldRenderTop = actions.includes(DISPLAY_BANNER_TOP);
+    const shouldRenderBottom = actions.includes(DISPLAY_BANNER_BOTTOM);
+
+    // The level is identified by the option ID stored in the property value.
+    const optionId = systemValue?.value ?? '';
+    const levelOption = useMemo((): PropertyFieldOption | undefined => {
+        if (!optionId || !templateField) {
+            return undefined;
+        }
+        const options = templateField.attrs?.options as PropertyFieldOption[] | undefined;
+        return findOptionById(options ?? [], optionId);
+    }, [templateField, optionId]);
+
+    const levelName = levelOption?.name ?? '';
+    const color = levelOption?.color ?? '';
     const textColor = useMemo(() => (color ? getContrastingSimpleColor(color) : ''), [color]);
+
+    const shouldRender = featureEnabled && Boolean(levelName) && (
+        position === 'top' ? shouldRenderTop : shouldRenderBottom
+    );
 
     useEffect(() => {
         if (position !== 'bottom' || !shouldRender) {
