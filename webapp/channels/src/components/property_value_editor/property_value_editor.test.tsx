@@ -54,10 +54,40 @@ describe('components/property_value_editor/PropertyValueEditor', () => {
         expect((screen.getByLabelText('Due') as HTMLInputElement).type).toBe('date');
     });
 
+    test('routes select fields to a single-select combobox', () => {
+        render(wrap(
+            <PropertyValueEditor
+                field={makeField({
+                    type: 'select',
+                    name: 'Status',
+                    attrs: {options: [{id: 'o1', name: 'Open'}]},
+                })}
+                value=''
+                onChange={jest.fn()}
+            />,
+        ));
+        expect(screen.getByRole('combobox')).toBeInTheDocument();
+    });
+
+    test('routes multiselect fields to checkboxes', () => {
+        render(wrap(
+            <PropertyValueEditor
+                field={makeField({
+                    type: 'multiselect',
+                    name: 'Tags',
+                    attrs: {options: [{id: 'o1', name: 'Bug'}]},
+                })}
+                value={[]}
+                onChange={jest.fn()}
+            />,
+        ));
+        expect(screen.getByRole('checkbox', {name: 'Bug'})).toBeInTheDocument();
+    });
+
     test('renders a placeholder for unsupported field types', () => {
         render(wrap(
             <PropertyValueEditor
-                field={makeField({type: 'select', name: 'Status'})}
+                field={makeField({type: 'user', name: 'Assignee'})}
                 value=''
                 onChange={jest.fn()}
             />,

@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import DateEditor from './date_editor';
+import SelectEditor from './select_editor';
 import TextEditor from './text_editor';
 import type {PropertyValueEditorProps} from './types';
 
@@ -16,6 +17,20 @@ export default function PropertyValueEditor(props: PropertyValueEditorProps) {
         return <TextEditor {...props}/>;
     case 'date':
         return <DateEditor {...props}/>;
+    case 'select':
+        return (
+            <SelectEditor
+                {...props}
+                multi={false}
+            />
+        );
+    case 'multiselect':
+        return (
+            <SelectEditor
+                {...props}
+                multi={true}
+            />
+        );
     default:
         return (
             <span
