@@ -4,14 +4,14 @@
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import usePreference from 'components/common/hooks/usePreference';
+import {ShortcutKeys} from 'components/shortcut_key';
 import {ShortcutSequence, ShortcutKeyVariant} from 'components/shortcut_sequence';
-import {ShortcutKeys} from 'components/with_tooltip';
-
-import * as UserAgent from 'utils/user_agent';
 
 import FeatureToast from '../feature_toast';
 
@@ -49,7 +49,7 @@ export default function MarkAllAsReadToast() {
             values={{
                 shortcut: (
                     <ShortcutSequence
-                        keys={[ShortcutKeys.shift, ShortcutKeys.esc]}
+                        keys={[ShortcutKeys.shift, ShortcutKeys.escape]}
                         variant={ShortcutKeyVariant.InlineContent}
                     />
                 ),

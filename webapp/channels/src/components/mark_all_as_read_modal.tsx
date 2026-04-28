@@ -7,8 +7,9 @@ import {FormattedMessage} from 'react-intl';
 import {GenericModal} from '@mattermost/components';
 
 import './mark_all_as_read_modal.scss';
+import {ShortcutKeys} from 'components/shortcut_key';
+
 import {ShortcutSequence, ShortcutKeyVariant} from './shortcut_sequence';
-import {ShortcutKeys} from './with_tooltip';
 
 export type Props = {
     onConfirm: (dontAskAgain: boolean) => void;
@@ -47,7 +48,7 @@ export default function MarkAllAsReadModal({
             values={{
                 shortcut: (
                     <ShortcutSequence
-                        keys={[ShortcutKeys.shift, ShortcutKeys.esc]}
+                        keys={[ShortcutKeys.shift, ShortcutKeys.escape]}
                         variant={ShortcutKeyVariant.InlineContent}
                     />
                 ),
