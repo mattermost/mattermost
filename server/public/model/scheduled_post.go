@@ -70,7 +70,6 @@ func (s *ScheduledPost) BaseIsValid() *AppError {
 
 	switch s.RepeatType {
 	case ScheduledPostRepeatTypeNone, ScheduledPostRepeatTypeWeekly:
-		// valid
 	default:
 		return NewAppError("ScheduledPost.IsValid", "model.scheduled_post.is_valid.repeat_type.app_error", nil, "id="+s.Id+", repeat_type="+s.RepeatType, http.StatusBadRequest)
 	}

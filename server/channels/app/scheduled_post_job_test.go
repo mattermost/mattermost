@@ -92,6 +92,63 @@ func TestProcessScheduledPosts(t *testing.T) {
 		assert.InDelta(t, scheduledAt+weekMs, updated.ScheduledAt, float64(60*1000))
 	})
 
+	t.Run("advances multiple weekly recurring scheduled posts", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+
+		scheduledAt := model.GetMillis() + 1000
+		firstScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "first weekly recurring scheduled post",
+			},
+			ScheduledAt:    scheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		firstCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(firstScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, firstCreated)
+
+		secondScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "second weekly recurring scheduled post",
+			},
+			ScheduledAt:    scheduledAt,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		secondCreated, err := th.Server.Store().ScheduledPost().CreateScheduledPost(secondScheduledPost)
+		require.NoError(t, err)
+		require.NotNil(t, secondCreated)
+
+		time.Sleep(1 * time.Second)
+
+		th.App.ProcessScheduledPosts(th.Context)
+
+		firstUpdated, err := th.Server.Store().ScheduledPost().Get(firstCreated.Id)
+		require.NoError(t, err)
+		require.NotNil(t, firstUpdated)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, firstUpdated.RepeatType)
+		assert.Empty(t, firstUpdated.ErrorCode)
+		assert.Zero(t, firstUpdated.ProcessedAt)
+		assert.Greater(t, firstUpdated.ScheduledAt, scheduledAt)
+
+		secondUpdated, err := th.Server.Store().ScheduledPost().Get(secondCreated.Id)
+		require.NoError(t, err)
+		require.NotNil(t, secondUpdated)
+		assert.Equal(t, model.ScheduledPostRepeatTypeWeekly, secondUpdated.RepeatType)
+		assert.Empty(t, secondUpdated.ErrorCode)
+		assert.Zero(t, secondUpdated.ProcessedAt)
+		assert.Greater(t, secondUpdated.ScheduledAt, scheduledAt)
+	})
+
 	t.Run("advances overdue weekly recurring scheduled post older than one day", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 

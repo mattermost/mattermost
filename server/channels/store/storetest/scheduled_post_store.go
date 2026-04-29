@@ -19,6 +19,7 @@ func TestScheduledPostStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("GetPendingScheduledPosts", func(t *testing.T) { testGetScheduledPosts(t, rctx, ss, s) })
 	t.Run("PermanentlyDeleteScheduledPosts", func(t *testing.T) { testPermanentlyDeleteScheduledPosts(t, rctx, ss, s) })
 	t.Run("UpdatedScheduledPost", func(t *testing.T) { testUpdatedScheduledPost(t, rctx, ss, s) })
+	t.Run("UpdateRecurringScheduledPosts", func(t *testing.T) { testUpdateRecurringScheduledPosts(t, rctx, ss, s) })
 	t.Run("UpdateOldScheduledPosts", func(t *testing.T) { testUpdateOldScheduledPosts(t, rctx, ss, s) })
 	t.Run("PermanentDeleteByUser", func(t *testing.T) { testPermanentDeleteScheduledPostsByUser(t, rctx, ss, s) })
 }
@@ -420,6 +421,92 @@ func testUpdatedScheduledPost(t *testing.T, rctx request.CTX, ss store.Store, s 
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, now, updatedScheduledPost.ProcessedAt)
 		assert.Equal(t, model.ScheduledPostErrorUnknownError, updatedScheduledPost.ErrorCode)
+	})
+}
+
+func testUpdateRecurringScheduledPosts(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		Type:        model.ChannelTypeOpen,
+		Name:        "recurring_channel",
+		DisplayName: "Recurring Channel",
+	}
+
+	createdChannel, err := ss.Channel().Save(rctx, channel, 1000)
+	require.NoError(t, err)
+
+	defer func() {
+		_ = ss.Channel().PermanentDelete(rctx, createdChannel.Id)
+	}()
+
+	t.Run("should update recurring scheduled posts in bulk", func(t *testing.T) {
+		userId := model.NewId()
+		firstScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "first recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 100000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		firstCreated, err := ss.ScheduledPost().CreateScheduledPost(firstScheduledPost)
+		require.NoError(t, err)
+		require.NotEmpty(t, firstCreated.Id)
+
+		secondScheduledPost := &model.ScheduledPost{
+			Draft: model.Draft{
+				CreateAt:  model.GetMillis(),
+				UserId:    userId,
+				ChannelId: createdChannel.Id,
+				Message:   "second recurring scheduled post",
+			},
+			ScheduledAt:    model.GetMillis() + 200000,
+			RepeatType:     model.ScheduledPostRepeatTypeWeekly,
+			RepeatTimezone: "UTC",
+		}
+		secondCreated, err := ss.ScheduledPost().CreateScheduledPost(secondScheduledPost)
+		require.NoError(t, err)
+		require.NotEmpty(t, secondCreated.Id)
+
+		defer func() {
+			_ = ss.ScheduledPost().PermanentlyDeleteScheduledPosts([]string{firstCreated.Id, secondCreated.Id})
+		}()
+
+		firstNextAt := firstCreated.ScheduledAt + int64(7*24*time.Hour/time.Millisecond)
+		secondNextAt := secondCreated.ScheduledAt + int64(14*24*time.Hour/time.Millisecond)
+		firstCreated.ScheduledAt = firstNextAt
+		firstCreated.ErrorCode = ""
+		firstCreated.ProcessedAt = 0
+		secondCreated.ScheduledAt = secondNextAt
+		secondCreated.ErrorCode = ""
+		secondCreated.ProcessedAt = 0
+
+		err = ss.ScheduledPost().UpdateRecurringScheduledPosts([]*model.ScheduledPost{firstCreated, secondCreated})
+		require.NoError(t, err)
+
+		updatedFirst, err := ss.ScheduledPost().Get(firstCreated.Id)
+		require.NoError(t, err)
+		require.NotNil(t, updatedFirst)
+		assert.Equal(t, firstNextAt, updatedFirst.ScheduledAt)
+		assert.Empty(t, updatedFirst.ErrorCode)
+		assert.Zero(t, updatedFirst.ProcessedAt)
+		assert.GreaterOrEqual(t, updatedFirst.UpdateAt, firstCreated.UpdateAt)
+
+		updatedSecond, err := ss.ScheduledPost().Get(secondCreated.Id)
+		require.NoError(t, err)
+		require.NotNil(t, updatedSecond)
+		assert.Equal(t, secondNextAt, updatedSecond.ScheduledAt)
+		assert.Empty(t, updatedSecond.ErrorCode)
+		assert.Zero(t, updatedSecond.ProcessedAt)
+		assert.GreaterOrEqual(t, updatedSecond.UpdateAt, secondCreated.UpdateAt)
+	})
+
+	t.Run("should not fail for empty input", func(t *testing.T) {
+		err := ss.ScheduledPost().UpdateRecurringScheduledPosts(nil)
+		require.NoError(t, err)
 	})
 }
 

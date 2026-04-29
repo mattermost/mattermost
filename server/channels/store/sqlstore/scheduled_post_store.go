@@ -169,13 +169,10 @@ func (s *SqlScheduledPostStore) GetPendingScheduledPosts(beforeTime, afterTime i
 		Select(s.columnsForRead("")...).
 		From("ScheduledPosts").
 		Where(sq.Eq{"ErrorCode": ""}).
+		Where(pendingCursor).
 		Where(sq.Or{
+			sq.Eq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
 			sq.And{
-				pendingCursor,
-				sq.Eq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
-			},
-			sq.And{
-				pendingCursor,
 				sq.NotEq{"RepeatType": model.ScheduledPostRepeatTypeWeekly},
 				sq.GtOrEq{"ScheduledAt": afterTime},
 			},
@@ -245,6 +242,48 @@ func (s *SqlScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.Schedu
 	if err != nil {
 		mlog.Error("SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post", mlog.String("scheduled_post_id", scheduledPost.Id), mlog.Err(err))
 		return errors.Wrap(err, "SqlScheduledPostStore.UpdatedScheduledPost failed to update scheduled post")
+	}
+
+	return nil
+}
+
+func (s *SqlScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
+	if len(scheduledPosts) == 0 {
+		return nil
+	}
+
+	updateAt := model.GetMillis()
+	scheduledAtCase := sq.Case("Id")
+	errorCodeCase := sq.Case("Id")
+	processedAtCase := sq.Case("Id")
+	ids := make([]string, len(scheduledPosts))
+
+	for i, scheduledPost := range scheduledPosts {
+		scheduledPost.UpdateAt = updateAt
+		ids[i] = scheduledPost.Id
+		whenID := sq.Expr("?", scheduledPost.Id)
+		scheduledAtCase = scheduledAtCase.When(whenID, sq.Expr("?::bigint", scheduledPost.ScheduledAt))
+		errorCodeCase = errorCodeCase.When(whenID, sq.Expr("?", scheduledPost.ErrorCode))
+		processedAtCase = processedAtCase.When(whenID, sq.Expr("?::bigint", scheduledPost.ProcessedAt))
+	}
+
+	builder := s.getQueryBuilder().
+		Update("ScheduledPosts").
+		Set("ScheduledAt", scheduledAtCase).
+		Set("ErrorCode", errorCodeCase).
+		Set("ProcessedAt", processedAtCase).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{"Id": ids})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts", mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to generate SQL from updating scheduled posts")
+	}
+
+	if _, err := s.GetMaster().Exec(query, args...); err != nil {
+		mlog.Error("SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts", mlog.Int("scheduled_post_count", len(scheduledPosts)), mlog.Err(err))
+		return errors.Wrap(err, "SqlScheduledPostStore.UpdateRecurringScheduledPosts failed to update scheduled posts")
 	}
 
 	return nil

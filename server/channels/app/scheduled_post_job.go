@@ -207,8 +207,6 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		return scheduledPost, appErr
 	}
 
-	// WebSocket delete vs recurring update is handled in handleSuccessfulScheduledPosts
-
 	return scheduledPost, nil
 }
 
@@ -344,31 +342,35 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulScheduledPosts []*model.ScheduledPost) error {
 	var toDelete []string
 	var deletedScheduledPosts []*model.ScheduledPost
+	var recurringScheduledPosts []*model.ScheduledPost
+	now := model.GetMillis()
 
 	for _, sp := range successfulScheduledPosts {
-		if sp == nil {
-			continue
-		}
 		if sp.RepeatType == model.ScheduledPostRepeatTypeWeekly && sp.RepeatTimezone != "" {
-			now := model.GetMillis()
-			nextAt := model.AdvanceWeeklyScheduledNextOccurrence(sp.ScheduledAt, sp.RepeatTimezone, now)
-			sp.ScheduledAt = nextAt
+			sp.ScheduledAt = model.AdvanceWeeklyScheduledNextOccurrence(sp.ScheduledAt, sp.RepeatTimezone, now)
 			sp.ErrorCode = ""
 			sp.ProcessedAt = 0
-			if err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(sp); err != nil {
-				rctx.Logger().Error(
-					"App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled post",
-					mlog.String("scheduled_post_id", sp.Id),
-					mlog.Err(err),
-				)
-				return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled post")
-			}
-			a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, sp, "")
+			recurringScheduledPosts = append(recurringScheduledPosts, sp)
 			continue
 		}
 
 		toDelete = append(toDelete, sp.Id)
 		deletedScheduledPosts = append(deletedScheduledPosts, sp)
+	}
+
+	if len(recurringScheduledPosts) > 0 {
+		if err := a.Srv().Store().ScheduledPost().UpdateRecurringScheduledPosts(recurringScheduledPosts); err != nil {
+			rctx.Logger().Error(
+				"App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled posts",
+				mlog.Int("recurring_scheduled_post_count", len(recurringScheduledPosts)),
+				mlog.Err(err),
+			)
+			return errors.Wrap(err, "App.handleSuccessfulScheduledPosts: failed to advance recurring scheduled posts")
+		}
+
+		for _, sp := range recurringScheduledPosts {
+			a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostUpdated, sp, "")
+		}
 	}
 
 	if len(toDelete) > 0 {
@@ -394,10 +396,6 @@ func (a *App) handleSuccessfulScheduledPosts(rctx request.CTX, successfulSchedul
 
 func (a *App) handleFailedScheduledPosts(rctx request.CTX, failedScheduledPosts []*model.ScheduledPost) {
 	for _, failedScheduledPost := range failedScheduledPosts {
-		if failedScheduledPost == nil {
-			continue
-		}
-
 		failedScheduledPost.ProcessedAt = model.GetMillis()
 		err := a.Srv().Store().ScheduledPost().UpdatedScheduledPost(failedScheduledPost)
 		if err != nil {

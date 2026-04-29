@@ -9563,6 +9563,22 @@ func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model
 	return err
 }
 
+func (s *TimerLayerScheduledPostStore) UpdateRecurringScheduledPosts(scheduledPosts []*model.ScheduledPost) error {
+	start := time.Now()
+
+	err := s.ScheduledPostStore.UpdateRecurringScheduledPosts(scheduledPosts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateRecurringScheduledPosts", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerSchemeStore) CountByScope(scope string) (int64, error) {
 	start := time.Now()
 
