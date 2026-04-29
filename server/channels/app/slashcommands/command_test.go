@@ -257,6 +257,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(th.Context, command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Nil(t, post.GetProp(model.PostPropsOverrideIconURL))
+	assert.NotContains(t, post.GetProps(), model.PostPropsOverrideIconURL)
 
 	resp.IconURL = "Response icon url"
 
