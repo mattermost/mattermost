@@ -62,7 +62,7 @@ describe('Message Draft Persistance', () => {
         cy.get(`#sidebarItem_${testChannel.name}`).click();
 
         // * Ensure the post textbox was cleared
-        cy.uiGetPostTextBox().should('be.empty');
+        cy.uiGetPostTextBox().uiExpectComposerEmpty();
 
         // * Ensure Off-Topic has the draft icon
         verifyDraftIcon('off-topic', true);
@@ -72,7 +72,7 @@ describe('Message Draft Persistance', () => {
         cy.wait(500).reload();
 
         // * Ensure the post textbox is still empty
-        cy.uiGetPostTextBox().should('be.empty');
+        cy.uiGetPostTextBox().uiExpectComposerEmpty();
 
         // * Ensure Off-Topic still has the draft icon
         cy.get('#sidebarItem_off-topic').

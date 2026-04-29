@@ -273,7 +273,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#edit_textbox').should('be.visible');
 
         // * Verify that edit box have value of previous regular message
-        cy.get('#edit_textbox').should('have.text', message);
+        cy.get('#edit_textbox').uiExpectComposerText(message);
     });
 
     it('MM-T1270 UP - Edit message with attachment but no text', () => {

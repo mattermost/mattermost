@@ -129,7 +129,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         editable: !disabled,
         editorProps: {
             attributes: {
-                ...(id ? {id} : {}),
+                ...(id ? {id, 'data-testid': id} : {}),
                 'data-channel-id': channelId,
             },
             handlePaste: (_view, event) => {

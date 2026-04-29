@@ -13,7 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Verify Accessibility Support in different input fields', () => {
     let testTeam: Team;
@@ -117,13 +117,14 @@ describe('Verify Accessibility Support in different input fields', () => {
         verifySearchAutocomplete(0);
     });
 
-    it.skip('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
+    it('MM-T1455 Verify Accessibility Support in Message Autocomplete', () => {
         // # Adding at least one other user in the channel
         cy.apiCreateUser().then(({user}) => {
             cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                 cy.apiAddUserToChannel(testChannel.id, user.id).then(() => {
-                    // * Verify Accessibility support in post input field
-                    cy.uiGetPostTextBox().should('exist').clear().focus();
+                    // * Verify Accessibility support in post input field. The WYSIWYG editor
+                    // exposes its placeholder via `data-placeholder` (rendered through CSS).
+                    cy.uiGetPostTextBox().should('have.attr', 'data-placeholder', `Write to ${testChannel.display_name}`).clear().focus();
 
                     // # Ensure User list is cached once in UI
                     cy.uiGetPostTextBox().type('@').wait(TIMEOUTS.ONE_SEC);
@@ -166,12 +167,17 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
     });
 
-    it.skip('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
+    it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
-            // * Verify Accessibility Support in Main Post input
-            cy.uiGetPostTextBox().should('exist').clear().focus().type('test');
+            // * Verify Accessibility Support in Main Post input. The WYSIWYG
+            // editor exposes its placeholder via `data-placeholder` and
+            // ProseMirror sets role="textbox".
+            cy.uiGetPostTextBox().
+                should('have.attr', 'data-placeholder', `Write to ${testChannel.display_name}`).
+                and('have.attr', 'role', 'textbox').
+                clear().focus().type('test');
 
-            // # Set a11y focus on the bold button
+            // # Set a11y focus on the bold button (no preview button in WYSIWYG mode)
             cy.get('#FormattingControl_bold').focus();
 
             // * Verify if the focus is on the bold button
@@ -218,7 +224,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.findByTestId('SendMessageButton').should('be.focused');
     });
 
-    it.skip('MM-T1490 Verify Accessibility Support in RHS Input', () => {
+    it('MM-T1490 Verify Accessibility Support in RHS Input', () => {
         // # Wait till page is loaded
         cy.uiGetPostTextBox().clear();
 
@@ -231,10 +237,15 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
 
         cy.get('#rhsContainer').within(() => {
-            // * Verify Accessibility Support in RHS input
-            cy.uiGetReplyTextBox().should('exist').focus().type('test');
+            // * Verify Accessibility Support in RHS input. The WYSIWYG editor
+            // exposes its placeholder via `data-placeholder` and ProseMirror
+            // sets role="textbox".
+            cy.uiGetReplyTextBox().
+                should('have.attr', 'data-placeholder', 'Reply to this thread...').
+                and('have.attr', 'role', 'textbox').
+                focus().type('test');
 
-            // # Set a11y focus on the bold button
+            // # Set a11y focus on the bold button (no preview button in WYSIWYG mode)
             cy.get('#FormattingControl_bold').focus();
 
             // * Verify if the focus is on the bold button
@@ -273,7 +284,7 @@ describe('Verify Accessibility Support in different input fields', () => {
     });
 });
 
-function verifySearchAutocomplete(index) {
+function verifySearchAutocomplete(index: number) {
     cy.get('#searchBox').find('.suggestion-list__item').eq(index).should('be.visible').
         and('have.class', 'suggestion--selected').
         invoke('attr', 'id').then((suggestionId) => {
@@ -281,9 +292,11 @@ function verifySearchAutocomplete(index) {
         });
 }
 
-function verifyMessageAutocomplete(index) {
-    cy.get('#suggestionList').find('.suggestion-list__item').eq(index).should('exist').and('have.class', 'suggestion--selected');
+function verifyMessageAutocomplete(index: number) {
+    cy.get('#suggestionList').find('.suggestion-list__item').eq(index).should('be.visible').and('have.class', 'suggestion--selected');
     cy.get('#suggestionList').find('.suggestion-list__item').eq(index).invoke('attr', 'id').then((selectedId) => {
         cy.wrap(selectedId).should('not.equal', '');
+
+        cy.uiGetPostTextBox().should('have.attr', 'aria-activedescendant', selectedId);
     });
 }

@@ -44,7 +44,7 @@ describe('Edit Message', () => {
         cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('#edit_textbox').should('have.text', 'Hello World! @');
+        cy.get('#edit_textbox').uiExpectComposerText('Hello World! @');
 
         // * Assert user autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');
@@ -59,7 +59,7 @@ describe('Edit Message', () => {
         cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('#edit_textbox').should('have.text', 'Hello World! @ ~');
+        cy.get('#edit_textbox').uiExpectComposerText('Hello World! @ ~');
 
         // * Assert channel autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');

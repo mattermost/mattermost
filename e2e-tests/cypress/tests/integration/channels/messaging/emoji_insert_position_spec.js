@@ -18,8 +18,8 @@ describe('Messaging', () => {
     });
 
     it('MM-T95 Selecting an emoji from emoji picker should insert it at the cursor position', () => {
-        // # Clear any existing text and write some text in the send box.
-        cy.uiGetPostTextBox().clear().type('HelloWorld!');
+        // # Write some text in the send box.
+        cy.uiGetPostTextBox().type('HelloWorld!');
 
         // # Move the cursor to the middle of the text.
         cy.uiGetPostTextBox().type('{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow}');
@@ -30,11 +30,8 @@ describe('Messaging', () => {
         // # Select the grinning emoji from the emoji picker.
         cy.clickEmojiInEmojiPicker('grinning');
 
-        // * The emoji should be inserted where the cursor is at the time of selection.
-        cy.uiGetPostTextBox().should(($el) => {
-            const text = $el[0].textContent;
-            expect(text).to.match(/Hello.*\uD83D\uDE00.*World!/);
-        });
+        // * The emoji should be inserted as a Unicode character where the cursor is at the time of selection.
+        cy.uiGetPostTextBox().uiExpectComposerText('Hello\uD83D\uDE00World!');
         cy.uiGetPostTextBox().type('{enter}');
 
         // * The emoji should be displayed in the post at the position inserted.

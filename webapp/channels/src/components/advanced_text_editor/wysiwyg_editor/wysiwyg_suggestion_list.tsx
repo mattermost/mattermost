@@ -21,6 +21,7 @@ import store from 'stores/redux_store';
 
 import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
+import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import type {SuggestionResults} from 'components/suggestion/suggestion_results';
@@ -97,6 +98,11 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
     const providers = useMemo(() => {
         const dispatch = store.dispatch;
         return [
+            new CommandProvider({
+                teamId: currentTeamId,
+                channelId,
+                rootId,
+            }),
             new AtMentionProvider({
                 currentUserId,
                 channelId,
@@ -113,7 +119,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
             ),
             new EmoticonProvider(),
         ];
-    }, [currentUserId, channelId, currentTeamId, autocompleteGroups, priorityProfiles, defaultAgent, delayChannelAutocomplete]);
+    }, [currentUserId, channelId, rootId, currentTeamId, autocompleteGroups, priorityProfiles, defaultAgent, delayChannelAutocomplete]);
 
     const handleReceivedSuggestions = useCallback((suggestions: any) => {
         const normalized = normalizeResultsFromProvider(suggestions);

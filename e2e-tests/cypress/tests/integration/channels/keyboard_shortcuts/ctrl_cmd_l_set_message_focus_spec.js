@@ -27,7 +27,7 @@ describe('Keyboard Shortcuts', () => {
             cy.findByText('Reply').click();
 
             // * Confirm that reply text box has focus
-            cy.uiGetReplyTextBox().should('be.focused');
+            cy.uiGetReplyTextBox().uiExpectComposerFocused();
 
             // * Confirm the RHS is shown
             cy.get('#rhsCloseButton').should('exist');
@@ -36,7 +36,7 @@ describe('Keyboard Shortcuts', () => {
             cy.get('body').cmdOrCtrlShortcut('{shift}L');
 
             // * Confirm the message box has focus
-            cy.uiGetPostTextBox().should('be.focused');
+            cy.uiGetPostTextBox().uiExpectComposerFocused();
         });
     });
 
@@ -52,6 +52,6 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').cmdOrCtrlShortcut('{shift}L');
 
         // * Confirm the message box has focus
-        cy.uiGetPostTextBox().should('be.focused');
+        cy.uiGetPostTextBox().uiExpectComposerFocused();
     });
 });

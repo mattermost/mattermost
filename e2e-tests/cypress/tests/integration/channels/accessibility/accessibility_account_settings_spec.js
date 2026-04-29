@@ -59,6 +59,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         ],
         advanced: [
             {key: 'advancedCtrlSend', label: `Send Messages on ${isMac() ? '⌘+ENTER' : 'CTRL+ENTER'}`, type: 'radio'},
+            {key: 'wysiwygEditor', label: 'WYSIWYG Editor (Beta)', type: 'radio'},
             {key: 'formatting', label: 'Enable Post Formatting', type: 'radio'},
             {key: 'joinLeave', label: 'Enable Join/Leave Messages', type: 'radio'},
         ],

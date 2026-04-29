@@ -14,8 +14,8 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {newTestPassword} from '../../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {newTestPassword} from '@/utils';
 
 function demoteGuestUser(guestUser: Cypress.UserProfile) {
     // # Demote user as guest user before each test
@@ -204,7 +204,7 @@ describe('Guest Account - Guest User Experience', () => {
                 cy.findByText('Back').should('be.visible').click();
 
                 // * Verify if user is redirected to a valid channel
-                cy.get('#post_textbox').should('be.visible');
+                cy.findByTestId('post_textbox').should('be.visible');
             });
         });
     });

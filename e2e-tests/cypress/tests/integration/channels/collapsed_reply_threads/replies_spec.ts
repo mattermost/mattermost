@@ -13,9 +13,9 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-import {PostMessageResp} from 'tests/support/task_commands';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {PostMessageResp} from '@/support/task_commands';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
     let testTeam: Team;
@@ -145,8 +145,7 @@ describe('Collapsed Reply Threads', () => {
         cy.uiGetPostThreadFooter(postForAvatar.id).find('.Avatars').find('button').first().click();
 
         // * Profile popover should be visible and close on ESC
-        cy.get('div.user-profile-popover').first().should('be.visible');
-        cy.get('body').type('{esc}');
+        cy.get('div.user-profile-popover').first().should('be.visible').find('button.btn-primary.btn-sm').type('{esc}');
 
         // # Visit global threads
         cy.uiClickSidebarItem('threads');
@@ -217,15 +216,7 @@ describe('Collapsed Reply Threads', () => {
 
             // # Paste a multiline string in the RHS textbox.
             const text = 'word '.repeat(2000);
-            cy.get('#rhsContainer').find('#reply_textbox').clear().then((el) => {
-                const isContentEditable = el[0].getAttribute('contenteditable') === 'true';
-                if (isContentEditable) {
-                    el[0].textContent = text;
-                    el[0].dispatchEvent(new Event('input', {bubbles: true}));
-                } else {
-                    cy.wrap(el).invoke('val', text).trigger('input');
-                }
-            });
+            cy.get('#rhsContainer').findByTestId('reply_textbox').clear().invoke('val', text).trigger('input');
 
             // * RHS should open and the editor should be visible and focused
             cy.get('#rhsContainer').findByTestId('SendMessageButton').scrollIntoView().should('be.visible');
