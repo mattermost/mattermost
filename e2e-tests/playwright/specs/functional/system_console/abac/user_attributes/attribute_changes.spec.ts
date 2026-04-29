@@ -71,7 +71,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `Engineering Access ${await pw.random.id()}`;
+        const policyName = `Engineering Access ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -219,7 +219,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policyName = `Engineering Manual Add ${await pw.random.id()}`;
+        const policyName = `Engineering Manual Add ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
             attribute: 'Department',
@@ -309,7 +309,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
-        const policy1Name = `Engineering Access NoAutoAdd ${await pw.random.id()}`;
+        const policy1Name = `Engineering Access NoAutoAdd ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy1Name,
             attribute: 'Department',
@@ -387,7 +387,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         await navigateToABACPage(systemConsolePage.page);
 
-        const policy2Name = `Engineering Access WithAutoAdd ${await pw.random.id()}`;
+        const policy2Name = `Engineering Access WithAutoAdd ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policy2Name,
             attribute: 'Department',

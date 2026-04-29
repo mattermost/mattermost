@@ -88,7 +88,16 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         <div
           class="DataGrid_empty"
         >
-          No policies found
+          <div
+            class="PolicyList__no-results"
+          >
+            No policies found
+            <span
+              class="PolicyList__no-results-hint"
+            >
+              Add a new policy to get started
+            </span>
+          </div>
         </div>
       </div>
     </div>

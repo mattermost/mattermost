@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @permissions
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const deleteExistingTeamOverrideSchemes = () => {
     cy.apiGetSchemes('team').then(({schemes}) => {
@@ -20,7 +20,7 @@ const deleteExistingTeamOverrideSchemes = () => {
     });
 };
 
-const createTeamOverrideSchemeWithPermission = (name, team, permissionId, permissionValue) => {
+const createTeamOverrideSchemeWithPermission = (name: string, team: Cypress.Team, permissionId: string, permissionValue: boolean) => {
     cy.apiAdminLogin();
 
     // # Go to `User Management / Permissions` section
@@ -56,10 +56,10 @@ const createTeamOverrideSchemeWithPermission = (name, team, permissionId, permis
 };
 
 describe('Team Permissions', () => {
-    let testTeam;
-    let testUser;
-    let testPrivateCh;
-    let otherUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
+    let testPrivateCh: Cypress.Channel;
+    let otherUser: Cypress.UserProfile;
     const schemeName = 'schemetest';
     before(() => {
         cy.apiRequireLicense();

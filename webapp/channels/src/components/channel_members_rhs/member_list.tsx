@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useEffect, useRef, useState} from 'react';
+import React, {memo, useEffect, useMemo, useRef, useState} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {VariableSizeList} from 'react-window';
-import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import Member from './member';
+import MemberListItem from './member_list_item';
+import type {ItemData} from './member_list_item';
 
 export interface ChannelMember {
     user: UserProfile;
@@ -92,44 +92,20 @@ const MemberList = ({
         return 48;
     };
 
-    const Item = ({index, style}: ListChildComponentProps) => {
-        if (isItemLoaded(index)) {
-            switch (members[index].type) {
-            case ListItemType.Member:
-                // eslint-disable-next-line no-case-declarations
-                const member = members[index].data as ChannelMember;
-                return (
-                    <div
-                        style={style}
-                        key={member.user.id}
-                    >
-                        <Member
-                            channel={channel}
-                            index={index}
-                            totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
-                            member={member}
-                            editing={editing}
-                            actions={{openDirectMessage, fetchRemoteClusterInfo}}
-                        />
-                    </div>
-                );
-            case ListItemType.Separator:
-            case ListItemType.FirstSeparator:
-                return (
-                    <div
-                        key={index}
-                        style={style}
-                    >
-                        {members[index].data as JSX.Element}
-                    </div>
-                );
-            default:
-                return null;
-            }
-        }
+    const totalMemberCount = useMemo(
+        () => members.filter((l) => l.type === ListItemType.Member).length,
+        [members],
+    );
 
-        return null;
-    };
+    const itemData: ItemData = useMemo(() => ({
+        members,
+        hasNextPage,
+        channel,
+        editing,
+        totalMemberCount,
+        openDirectMessage,
+        fetchRemoteClusterInfo,
+    }), [members, hasNextPage, channel, editing, totalMemberCount, openDirectMessage, fetchRemoteClusterInfo]);
 
     if (members.length === 0) {
         return null;
@@ -153,12 +129,12 @@ const MemberList = ({
                                 ref(list);
                                 variableSizeListRef.current = list;
                             }}
-
+                            itemData={itemData}
                             itemSize={getItemSize}
                             height={height}
                             width={width}
                         >
-                            {Item}
+                            {MemberListItem}
                         </VariableSizeList>
                     )}
                 </InfiniteLoader>

@@ -4,8 +4,11 @@
 package app
 
 import (
+	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -15,6 +18,16 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// isNotFoundError returns true if the error represents a not-found condition,
+// checking both sql.ErrNoRows and store.ErrNotFound.
+func isNotFoundError(err error) bool {
+	if errors.Is(err, sql.ErrNoRows) {
+		return true
+	}
+	var nfErr *store.ErrNotFound
+	return errors.As(err, &nfErr)
+}
 
 func (a *App) getSharedChannelsService(ensureIsActive bool) (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
@@ -153,13 +166,10 @@ func (a *App) HasRemote(channelID string, remoteID string) (bool, error) {
 func (a *App) GetRemoteClusterForUser(remoteID string, userID string, includeDeleted bool) (*model.RemoteCluster, *model.AppError) {
 	rc, err := a.Srv().Store().SharedChannel().GetRemoteForUser(remoteID, userID, includeDeleted)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if isNotFoundError(err) {
 			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetRemoteClusterForUser", "api.context.remote_id_invalid.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return rc, nil
 }
@@ -219,6 +229,186 @@ func (a *App) SyncSharedChannel(channelID string) error {
 	}
 
 	syncService.NotifyChannelChanged(channelID)
+	return nil
+}
+
+// Plugin inbound sync APIs
+
+// ReceiveSharedChannelSyncMsg processes an inbound sync message from a plugin remote.
+// The pluginID is server-injected (from api.id) for ownership validation; remoteID
+// is the caller-supplied remote identifier returned by RegisterPluginForSharedChannels.
+func (a *App) ReceiveSharedChannelSyncMsg(rctx request.CTX, pluginID, remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	if msg == nil {
+		return model.SyncResponse{}, fmt.Errorf("SyncMsg must not be nil")
+	}
+
+	scService, err := a.getSharedChannelsService(true)
+	if err != nil {
+		return model.SyncResponse{}, err
+	}
+
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+	if err != nil {
+		if isNotFoundError(err) {
+			return model.SyncResponse{}, fmt.Errorf("remote %s not found: %w", remoteID, err)
+		}
+		return model.SyncResponse{}, fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return model.SyncResponse{}, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
+	return scService.ProcessSyncMessage(rctx, msg, rc)
+}
+
+// ReceiveSharedChannelAttachmentSyncMsg receives a file attachment from a plugin remote.
+// The server constructs the file path, the plugin provides the FileInfo metadata and
+// raw file bytes, but does not control where the file is stored.
+// The pluginID is server-injected for ownership validation; remoteID is caller-supplied.
+func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	if fi == nil {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.file_info_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if data == nil {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.data_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if fi.CreatorId == "" {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.creator_id_required.app_error", nil, "", http.StatusBadRequest)
+	}
+	if fi.Name == "" {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.shared_channel.attachment.filename_required.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := a.getSharedChannelsService(true); err != nil {
+		return nil, err
+	}
+
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+	if err != nil {
+		if isNotFoundError(err) {
+			return nil, fmt.Errorf("remote %s not found: %w", remoteID, err)
+		}
+		return nil, fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return nil, fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
+	// Validate channel is shared with this remote
+	exists, err := a.Srv().Store().SharedChannel().HasRemote(channelID, rc.RemoteId)
+	if err != nil {
+		return nil, fmt.Errorf("error checking channel share state: %w", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("channel %s is not shared with remote %s", channelID, rc.RemoteId)
+	}
+
+	// Validate the file creator belongs to this remote
+	creator, creatorErr := a.Srv().Store().User().Get(rctx.Context(), fi.CreatorId)
+	if creatorErr != nil {
+		if isNotFoundError(creatorErr) {
+			return nil, fmt.Errorf("creator %s not found: %w", fi.CreatorId, creatorErr)
+		}
+		return nil, fmt.Errorf("error looking up creator %s: %w", fi.CreatorId, creatorErr)
+	}
+	if creator.GetRemoteID() != rc.RemoteId {
+		return nil, fmt.Errorf("creator %s does not belong to remote %s", fi.CreatorId, rc.RemoteId)
+	}
+
+	// Validate file attachments are enabled and size is within limits
+	if !*a.Config().FileSettings.EnableFileAttachments {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+	if a.Config().FileSettings.MaxFileSize != nil && fi.Size > *a.Config().FileSettings.MaxFileSize {
+		return nil, model.NewAppError("ReceiveSharedChannelAttachmentSyncMsg",
+			"api.upload.create.upload_too_large.app_error",
+			map[string]any{"channelId": channelID}, "", http.StatusRequestEntityTooLarge)
+	}
+
+	// Create an upload session — this constructs the file path server-side
+	us := &model.UploadSession{
+		Id:        model.NewId(),
+		Type:      model.UploadTypeAttachment,
+		UserId:    fi.CreatorId,
+		ChannelId: channelID,
+		Filename:  fi.Name,
+		FileSize:  fi.Size,
+		RemoteId:  rc.RemoteId,
+	}
+
+	us, appErr := a.CreateUploadSession(rctx, us)
+	if appErr != nil {
+		return nil, fmt.Errorf("error creating upload session: %w", appErr)
+	}
+
+	// Upload the file data through the standard upload path
+	saved, appErr := a.UploadData(rctx, us, data)
+	if appErr != nil {
+		return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
+	}
+
+	// Save a SharedChannelAttachment record for cursor tracking
+	sca := &model.SharedChannelAttachment{
+		FileId:   saved.Id,
+		RemoteId: rc.RemoteId,
+	}
+	if _, err := a.Srv().Store().SharedChannel().UpsertAttachment(sca); err != nil {
+		rctx.Logger().Warn("Error saving shared channel attachment record",
+			mlog.String("file_id", saved.Id),
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.Err(err),
+		)
+	}
+
+	return saved, nil
+}
+
+// ReceiveSharedChannelProfileImageSyncMsg receives a profile image from a plugin remote.
+// The pluginID is server-injected for ownership validation; remoteID is caller-supplied.
+func (a *App) ReceiveSharedChannelProfileImageSyncMsg(rctx request.CTX, pluginID, remoteID, userID string, image []byte) error {
+	if _, err := a.getSharedChannelsService(true); err != nil {
+		return err
+	}
+
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
+	if err != nil {
+		if isNotFoundError(err) {
+			return fmt.Errorf("remote %s not found: %w", remoteID, err)
+		}
+		return fmt.Errorf("error looking up remote %s: %w", remoteID, err)
+	}
+	if rc.PluginID != pluginID {
+		return fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
+	// Validate user exists and belongs to this remote
+	user, userErr := a.Srv().Store().User().Get(rctx.Context(), userID)
+	if userErr != nil {
+		if isNotFoundError(userErr) {
+			return fmt.Errorf("user %s not found: %w", userID, userErr)
+		}
+		return fmt.Errorf("error looking up user %s: %w", userID, userErr)
+	}
+	if user.GetRemoteID() != rc.RemoteId {
+		return fmt.Errorf("user %s does not belong to remote %s", userID, rc.RemoteId)
+	}
+
+	// Validate image size
+	if a.Config().FileSettings.MaxFileSize != nil && int64(len(image)) > *a.Config().FileSettings.MaxFileSize {
+		return model.NewAppError("ReceiveSharedChannelProfileImageSyncMsg",
+			"api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+	}
+
+	// Save profile image
+	if appErr := a.SetProfileImageFromFile(rctx, userID, bytes.NewReader(image)); appErr != nil {
+		return fmt.Errorf("error setting profile image: %w", appErr)
+	}
+
 	return nil
 }
 

@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @keyboard_shortcuts
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Keyboard Shortcuts', () => {
     let testUser;

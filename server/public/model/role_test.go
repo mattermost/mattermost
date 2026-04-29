@@ -341,3 +341,46 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 		}), "manage_oauth should not remain deprecated")
 	})
 }
+
+func TestManageAgentPermissionsDefinition(t *testing.T) {
+	assert.Equal(t, "manage_own_agent", PermissionManageOwnAgent.Id)
+	assert.Equal(t, "authentication.permissions.manage_own_agent.name", PermissionManageOwnAgent.Name)
+	assert.Equal(t, "authentication.permissions.manage_own_agent.description", PermissionManageOwnAgent.Description)
+	assert.Equal(t, PermissionScopeSystem, PermissionManageOwnAgent.Scope,
+		"manage_own_agent should have system scope")
+	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
+		return p.Id == PermissionManageOwnAgent.Id
+	}), "manage_own_agent should be in AllPermissions")
+
+	assert.Equal(t, "manage_others_agent", PermissionManageOthersAgent.Id)
+	assert.Equal(t, "authentication.permissions.manage_others_agent.name", PermissionManageOthersAgent.Name)
+	assert.Equal(t, "authentication.permissions.manage_others_agent.description", PermissionManageOthersAgent.Description)
+	assert.Equal(t, PermissionScopeSystem, PermissionManageOthersAgent.Scope,
+		"manage_others_agent should have system scope")
+	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
+		return p.Id == PermissionManageOthersAgent.Id
+	}), "manage_others_agent should be in AllPermissions")
+}
+
+func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	for _, tc := range []struct {
+		roleId       string
+		expectOwn    bool
+		expectOthers bool
+	}{
+		{SystemAdminRoleId, true, true},
+		{SystemUserRoleId, true, false},
+		{SystemGuestRoleId, false, false},
+	} {
+		t.Run(tc.roleId, func(t *testing.T) {
+			role, ok := roles[tc.roleId]
+			require.True(t, ok, "%s role should exist", tc.roleId)
+			assert.Equal(t, tc.expectOwn, slices.Contains(role.Permissions, PermissionManageOwnAgent.Id),
+				"%s manage_own_agent permission presence", tc.roleId)
+			assert.Equal(t, tc.expectOthers, slices.Contains(role.Permissions, PermissionManageOthersAgent.Id),
+				"%s manage_others_agent permission presence", tc.roleId)
+		})
+	}
+}

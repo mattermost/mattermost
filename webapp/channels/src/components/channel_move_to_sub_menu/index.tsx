@@ -17,20 +17,23 @@ import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
+import {getCategoryInTeamWithChannel, isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
-import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
+import {getNonManagedCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
+import WithTooltip from 'components/with_tooltip';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+
+import './channel_move_to_sub_menu.scss';
 
 type Props = {
     channel: Channel;
@@ -45,9 +48,15 @@ const ChannelMoveToSubMenu = (props: Props) => {
     const allChannels = useSelector(getAllChannels);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
 
+    const isInManagedCategory = useSelector((state: GlobalState) => {
+        if (multiSelectedChannelIds.includes(props.channel.id)) {
+            return multiSelectedChannelIds.some((id) => isChannelInManagedCategory(state, id));
+        }
+        return isChannelInManagedCategory(state, props.channel.id);
+    });
     const currentTeam = useSelector(getCurrentTeam);
     const categories = useSelector((state: GlobalState) => {
-        return currentTeam ? getCategoriesForCurrentTeam(state) : undefined;
+        return currentTeam ? getNonManagedCategoriesForCurrentTeam(state) : undefined;
     });
     const currentCategory = useSelector((state: GlobalState) => {
         return currentTeam ? getCategoryInTeamWithChannel(state, currentTeam?.id || '', props.channel.id) : undefined;
@@ -171,6 +180,34 @@ const ChannelMoveToSubMenu = (props: Props) => {
 
     if (!categories) {
         return null;
+    }
+
+    if (isInManagedCategory) {
+        return (
+            <WithTooltip
+                title={
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.moveTo.disabled'
+                        defaultMessage="Channels in managed categories can't be moved from here. Edit the Channel Settings to change its category."
+                    />
+                }
+            >
+                <div className='ChannelMoveToSubMenu__disabledContainer'>
+                    <Menu.Item
+                        id={`moveTo-${props.channel.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='sidebar_left.sidebar_channel_menu.moveTo'
+                                defaultMessage='Move to...'
+                            />
+                        }
+                        leadingElement={props.inHeaderDropdown ? null : <FolderMoveOutlineIcon size={18}/>}
+                        trailingElements={<ChevronRightIcon size={16}/>}
+                        disabled={true}
+                    />
+                </div>
+            </WithTooltip>
+        );
     }
 
     return (

@@ -24,6 +24,7 @@ export type PropertyField = {
     target_id: string;
     target_type: string;
     object_type: string;
+    linked_field_id?: string;
     create_at: number;
     update_at: number;
     delete_at: number;
@@ -67,6 +68,7 @@ export type PropertyFieldOption = {
     id: string;
     name: string;
     color?: string;
+    rank?: number;
 }
 
 export type UserPropertyField = PropertyField & {
@@ -131,4 +133,11 @@ export type PropertyValuesState = {
 export type PropertyGroupsState = {
     byId: IDMappedObjects<PropertyGroup>;
     byName: { [name: string]: PropertyGroup };
+};
+
+export type PropertyValuesUpdated<T> = {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: Array<PropertyValue<T>>;
 };

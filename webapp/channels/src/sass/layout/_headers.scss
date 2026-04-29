@@ -74,6 +74,11 @@
             }
         }
 
+        &:disabled {
+            cursor: default;
+            opacity: 0.32;
+        }
+
         &.inactive {
             .icon {
                 color: functions.v(center-channel-color);

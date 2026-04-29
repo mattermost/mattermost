@@ -9,9 +9,10 @@
 
 // Group: @channels @mark_as_unread
 
-import {beRead, beUnread} from '../../../support/assertions';
-
 import {verifyPostNextToNewMessageSeparator, verifyTopSpaceForNewMessage, verifyBottomSpaceForNewMessage, switchToChannel, showCursor, notShowCursor} from './helpers';
+
+import {beRead, beUnread} from '@/support/assertions';
+
 
 describe('Mark as Unread', () => {
     let testUser;

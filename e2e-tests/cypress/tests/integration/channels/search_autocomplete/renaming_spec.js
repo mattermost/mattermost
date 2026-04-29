@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @autocomplete
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {withTimestamp, createEmail} from '../enterprise/elasticsearch_autocomplete/helpers';
-import {newTestPassword} from '../../../utils';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {newTestPassword} from '@/utils';
 
 describe('Autocomplete without Elasticsearch - Renaming', () => {
     const timestamp = Date.now();

@@ -9,10 +9,9 @@
         "module": "ESNext",
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "downlevelIteration": true,
-        "baseUrl": "src",
+        "rootDir": "src",
         "paths": {
-            "@/*": ["*"]
+            "@/*": ["./src/*"]
         }
     },
     "include": ["src"],

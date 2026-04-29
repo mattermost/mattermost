@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console @compliance_export
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
-
 import {verifyExportedMessagesCount, gotoTeamAndPostImage} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Compliance Export', () => {
     let teamName;

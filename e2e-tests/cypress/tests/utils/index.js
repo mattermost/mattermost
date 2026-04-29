@@ -44,7 +44,7 @@ export function getMessageMenusPayload({dataSource, options, prefix = Date.now()
         }
     }
 
-    const callbackUrl = Cypress.env().webhookBaseUrl + '/message_menus';
+    const callbackUrl = Cypress.expose().webhookBaseUrl + '/message_menus';
     data.attachments[0].actions[0].integration.url = callbackUrl;
 
     return data;

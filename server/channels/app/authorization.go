@@ -624,3 +624,52 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 	}
 	return false
 }
+
+// HasPermissionToFileAction evaluates whether the user is allowed to perform the
+// given file action (e.g. upload_file_attachment, download_file_attachment) on
+// a channel, based on ABAC permission policies.
+// Returns true if allowed (or if ABAC is not active), false if denied.
+func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return true
+	}
+
+	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return true
+	}
+
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return true
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
+	if appErr != nil {
+		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
+			mlog.String("user_id", userID),
+			mlog.String("action", action),
+			mlog.Err(appErr),
+		)
+		return false
+	}
+
+	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		Subject: *subject,
+		Resource: model.Resource{
+			Type: model.AccessControlPolicyTypeChannel,
+			ID:   channelID,
+		},
+		Action: action,
+	})
+	if evalErr != nil {
+		rctx.Logger().Debug("ABAC file action evaluation failed, denying by default",
+			mlog.String("user_id", userID),
+			mlog.String("action", action),
+			mlog.String("channel_id", channelID),
+			mlog.Err(evalErr),
+		)
+		return false
+	}
+
+	return decision.Decision
+}

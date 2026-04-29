@@ -21,7 +21,6 @@ import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
-import {isInternetExplorer, isEdge} from 'utils/user_agent';
 
 const ProductNoticesModal = makeAsyncComponent('ProductNoticesModal', lazy(() => import('components/product_notices_modal')));
 const ResetStatusModal = makeAsyncComponent('ResetStatusModal', lazy(() => import('components/reset_status_modal')));
@@ -39,12 +38,11 @@ export default function ChannelController(props: Props) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const isMsBrowser = isInternetExplorer() || isEdge();
         const {navigator} = window;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
-        document.body.classList.add(...getClassnamesForBody(platform, isMsBrowser));
+        document.body.classList.add(...getClassnamesForBody(platform));
 
         return () => {
             document.body.classList.remove(...BODY_CLASS_FOR_CHANNEL);
@@ -93,7 +91,7 @@ export default function ChannelController(props: Props) {
     );
 }
 
-export function getClassnamesForBody(platform: Window['navigator']['platform'], isMsBrowser = false) {
+export function getClassnamesForBody(platform: Window['navigator']['platform']) {
     const bodyClass = [...BODY_CLASS_FOR_CHANNEL];
 
     // OS Detection
@@ -101,11 +99,6 @@ export function getClassnamesForBody(platform: Window['navigator']['platform'], 
         bodyClass.push('os--windows');
     } else if (platform === 'MacIntel' || platform === 'MacPPC') {
         bodyClass.push('os--mac');
-    }
-
-    // IE Detection
-    if (isMsBrowser) {
-        bodyClass.push('browser--ie');
     }
 
     return bodyClass;

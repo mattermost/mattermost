@@ -83,6 +83,7 @@ export type PostMetadata = {
     translations?: Record<string, PostTranslation>;
     expire_at?: number;
     recipients?: string[];
+    redacted_file_count?: number;
 };
 
 export type Post = {

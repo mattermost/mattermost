@@ -1,11 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChainableT} from 'tests/types';
+import {ChainableT} from '@/types';
+
+interface MockWebSocket {
+    wrappedSocket: WebSocket | null;
+    onopen: ((ev: Event) => void) | null;
+    onmessage: ((ev: MessageEvent) => void) | null;
+    onerror: ((ev: Event) => void) | null;
+    onclose: ((ev: CloseEvent) => void) | null;
+    send(data: string | ArrayBuffer): void;
+    close(): void;
+    connect(): void;
+}
 
 declare global {
     interface Window {
-        mockWebsockets: any[];
+        mockWebsockets: MockWebSocket[];
     }
 }
 
@@ -15,13 +26,13 @@ function delayRequestToRoutes(routes: string[] = [], delay = 0) {
 
 Cypress.Commands.add('delayRequestToRoutes', delayRequestToRoutes);
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const addDelay = (win, routes: string[], delay: number) => {
+const addDelay = (win: Cypress.AUTWindow, routes: string[], delay: number) => {
     const fetch = win.fetch;
-    cy.stub(win, 'fetch').callsFake((...args) => {
+    cy.stub(win, 'fetch').callsFake((...args: [RequestInfo | URL, RequestInit?]) => {
         for (let i = 0; i < routes.length; i++) {
-            if (args[0].includes(routes[i])) {
+            if (String(args[0]).includes(routes[i])) {
                 return wait(delay).then(() => fetch(...args));
             }
         }
@@ -40,16 +51,16 @@ function mockWebsockets() {
 // Wrap websocket to be able to connect and close connections on demand
 Cypress.Commands.add('mockWebsockets', mockWebsockets);
 
-const mockWebsocketsFn = (win) => {
+const mockWebsocketsFn = (win: Cypress.AUTWindow) => {
     const RealWebSocket = WebSocket;
-    cy.stub(win, 'WebSocket').callsFake((...args) => {
-        const mockWebSocket = {
-            wrappedSocket: null,
-            onopen: null,
-            onmessage: null,
-            onerror: null,
-            onclose: null,
-            send(data) {
+    cy.stub(win, 'WebSocket').callsFake((...args: ConstructorParameters<typeof WebSocket>) => {
+        const mockWebSocket: MockWebSocket = {
+            wrappedSocket: null as WebSocket | null,
+            onopen: null as ((ev: Event) => void) | null,
+            onmessage: null as ((ev: MessageEvent) => void) | null,
+            onerror: null as ((ev: Event) => void) | null,
+            onclose: null as ((ev: CloseEvent) => void) | null,
+            send(data: string | ArrayBuffer) {
                 if (this.wrappedSocket) {
                     this.wrappedSocket.send(data);
                 } else if (this.onerror) {

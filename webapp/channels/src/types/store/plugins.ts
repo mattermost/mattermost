@@ -23,6 +23,7 @@ import type {NewPostMessageProps} from 'actions/new_post';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 export type PluginSiteStatsHandler = () => Promise<Record<string, PluginAnalyticsRow>>;
 
@@ -46,6 +47,7 @@ export type PluginsState = {
         PostDropdownMenuItem: PostDropdownMenuItemComponent[];
         PostAction: PostActionComponent[];
         PostEditorAction: PostEditorActionComponent[];
+        AIActionMenuItem: AIActionMenuItemComponent[];
         CodeBlockAction: CodeBlockActionComponent[];
         NewMessagesSeparatorAction: NewMessagesSeparatorActionComponent[];
         FilePreview: FilePreviewComponent[];
@@ -433,6 +435,22 @@ export type LinkTooltipComponent = PluginComponent & {
 
 export type PostEditorActionComponent = PluginComponent & {
     component: React.ComponentType;
+};
+
+export type AIActionMenuItemProps = {
+    draft: PostDraft;
+    getSelectedText: () => {start: number; end: number};
+    updateText: (message: string) => void;
+    channelId: string;
+    isRHS: boolean;
+};
+
+export type AIActionMenuItemComponent = PluginComponent & {
+    component?: React.ComponentType<AIActionMenuItemProps>;
+    action?: (props: AIActionMenuItemProps) => void;
+    icon: React.ReactNode;
+    text: React.ReactNode;
+    sortOrder: number;
 };
 
 export type CodeBlockActionComponent = PluginComponent & {

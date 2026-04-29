@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {isMobile} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
@@ -42,7 +43,6 @@ import * as Keyboard from 'utils/keyboard';
 import {formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
 import {allAtMentions} from 'utils/text_formatting';
-import {isMobile} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 

@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console @authentication @mfa
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Authentication', () => {
     beforeEach(() => {

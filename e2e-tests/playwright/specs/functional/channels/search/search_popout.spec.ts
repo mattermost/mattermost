@@ -15,7 +15,7 @@ test('MM-65630-1 Search results should show popout button that opens results in 
     );
     await adminClient.addToChannel(user.id, channel.id);
 
-    const uniqueText = `popout-search-test-${await pw.random.id()}`;
+    const uniqueText = `popout-search-test-${pw.random.id()}`;
     await adminClient.createPost({
         channel_id: channel.id,
         message: uniqueText,
@@ -64,7 +64,7 @@ test('MM-65630-2 Recent mentions popout should open with the right results', asy
     );
     await adminClient.addToChannel(user.id, channel.id);
 
-    const mentionText = `hey @${user.username} check this mention-${await pw.random.id()}`;
+    const mentionText = `hey @${user.username} check this mention-${pw.random.id()}`;
     await adminClient.createPost({
         channel_id: channel.id,
         message: mentionText,
@@ -111,7 +111,7 @@ test('MM-65630-3 Saved messages popout should open with the right results', asyn
     );
     await adminClient.addToChannel(user.id, channel.id);
 
-    const savedText = `saved-message-test-${await pw.random.id()}`;
+    const savedText = `saved-message-test-${pw.random.id()}`;
     const post = await adminClient.createPost({
         channel_id: channel.id,
         message: savedText,
@@ -167,7 +167,7 @@ test('MM-65630-4 Search popout should not show popout button in the popout windo
     );
     await adminClient.addToChannel(user.id, channel.id);
 
-    const uniqueText = `no-button-test-${await pw.random.id()}`;
+    const uniqueText = `no-button-test-${pw.random.id()}`;
     await adminClient.createPost({
         channel_id: channel.id,
         message: uniqueText,

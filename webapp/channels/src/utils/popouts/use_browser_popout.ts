@@ -4,7 +4,7 @@
 import {useEffect} from 'react';
 import {useHistory} from 'react-router-dom';
 
-import {isDesktopApp} from 'utils/user_agent';
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 
 import {NAVIGATE_CHANNEL, CLOSE_CHANNEL} from './browser_popouts';
 

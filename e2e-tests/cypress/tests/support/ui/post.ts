@@ -75,7 +75,7 @@ function editLastPostWithNewMessage(message: string) {
 }
 Cypress.Commands.add('editLastPostWithNewMessage', editLastPostWithNewMessage);
 
-export function verifySavedPost(postId, message) {
+export function verifySavedPost(postId: string, message: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).
@@ -136,7 +136,7 @@ export function verifySavedPost(postId, message) {
     cy.get('#searchResultsCloseButton').should('be.visible').click();
 }
 
-export function verifyUnsavedPost(postId) {
+export function verifyUnsavedPost(postId: string) {
     // * Check that the center save icon has been updated correctly
     cy.get(`#post_${postId}`).trigger('mouseover', {force: true});
     cy.get(`#CENTER_flagIcon_${postId}`).

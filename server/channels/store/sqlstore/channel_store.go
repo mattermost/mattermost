@@ -3091,7 +3091,10 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 	return channels, nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
+// buildAutocompleteInTeamQuery constructs the base channel autocomplete query scoped to a team
+// and the calling user's visibility (membership-gated for private channels and guests).
+// Callers can apply additional filters before executing via performSearch.
+func (s SqlChannelStore) buildAutocompleteInTeamQuery(teamID, userID, term string, includeDeleted, isGuest bool) sq.SelectBuilder {
 	query := s.getQueryBuilder().Select(channelSliceColumns(true, "c")...).
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).
@@ -3101,28 +3104,43 @@ func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, te
 		query = query.Where(sq.Eq{"c.DeleteAt": 0})
 	}
 
+	memberSubQuery := sq.Select("ChannelId").From("ChannelMembers").Where(sq.Eq{"UserId": userID})
 	if isGuest {
-		query = query.Where(sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
-			From("ChannelMembers").
-			Where(sq.Eq{"UserId": userID})))
+		query = query.Where(sq.Expr("c.Id IN (?)", memberSubQuery))
 	} else {
 		query = query.Where(sq.Or{
 			sq.NotEq{"c.Type": model.ChannelTypePrivate},
 			sq.And{
 				sq.Eq{"c.Type": model.ChannelTypePrivate},
-				sq.Expr("c.Id IN (?)", sq.Select("ChannelId").
-					From("ChannelMembers").
-					Where(sq.Eq{"UserId": userID})),
+				sq.Expr("c.Id IN (?)", memberSubQuery),
 			},
 		})
 	}
 
-	searchClause := s.searchClause(term)
-	if searchClause != nil {
+	if searchClause := s.searchClause(term); searchClause != nil {
 		query = query.Where(searchClause)
 	}
 
-	query = orderByDisplayNameMatch(query, term)
+	return orderByDisplayNameMatch(query, term)
+}
+
+func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
+	return s.performSearch(s.buildAutocompleteInTeamQuery(teamID, userID, term, includeDeleted, isGuest), term)
+}
+
+func (s SqlChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest, privateOnly, excludeGroupConstrained bool) (model.ChannelList, error) {
+	query := s.buildAutocompleteInTeamQuery(teamID, userID, term, includeDeleted, isGuest)
+
+	if privateOnly {
+		// Membership check already in base query; narrow further to private type only.
+		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
+		// Shared channels (Shared = true) are ineligible for team-scoped access-control
+		query = query.Where(sq.Or{sq.Eq{"c.Shared": nil}, sq.Eq{"c.Shared": false}})
+	}
+
+	if excludeGroupConstrained {
+		query = query.Where(sq.Or{sq.Eq{"c.GroupConstrained": false}, sq.Eq{"c.GroupConstrained": nil}})
+	}
 
 	return s.performSearch(query, term)
 }

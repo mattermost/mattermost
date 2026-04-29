@@ -7,12 +7,7 @@ let keywords: string[];
 const highlightWithoutNotificationClass = 'non-notification-highlight';
 
 test.beforeEach(async ({pw}) => {
-    keywords = [
-        `AB${await pw.random.id()}`,
-        `CD${await pw.random.id()}`,
-        `EF${await pw.random.id()}`,
-        `Highlight me ${await pw.random.id()}`,
-    ];
+    keywords = [`AB${pw.random.id()}`, `CD${pw.random.id()}`, `EF${pw.random.id()}`, `Highlight me ${pw.random.id()}`];
 });
 
 test('MM-T5465-1 Should add the keyword when enter, comma or tab is pressed on the textbox', async ({pw}) => {

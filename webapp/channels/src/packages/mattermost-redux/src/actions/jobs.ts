@@ -41,7 +41,7 @@ export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
     });
 }
 
-export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
+export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE, teamId?: string) {
     return bindClientFunc({
         clientFunc: Client4.getJobsByType,
         onSuccess: [JobTypes.RECEIVED_JOBS, JobTypes.RECEIVED_JOBS_BY_TYPE],
@@ -49,6 +49,7 @@ export function getJobsByType(type: JobType, page = 0, perPage: number = General
             type,
             page,
             perPage,
+            teamId,
         ],
     });
 }

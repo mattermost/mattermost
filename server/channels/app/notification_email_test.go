@@ -6,7 +6,9 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"html/template"
+	"net/url"
 	"regexp"
 	"testing"
 	"time"
@@ -744,6 +746,106 @@ func TestGetNotificationEmailEscapingChars(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.NotContains(t, body, message)
+}
+
+func TestGetNotificationEmailBodyFullNotificationFileOnlyPostEscapesFilenameHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	dangerousFilename := "<b>owned</b>.txt"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{{
+		Id:        "test-file-id",
+		PostId:    post.Id,
+		Name:      dangerousFilename,
+		Extension: "txt",
+		MimeType:  "text/plain",
+	}}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	require.Contains(t, body, html.EscapeString(dangerousFilename))
+	require.NotContains(t, body, dangerousFilename)
+}
+
+func TestGetNotificationEmailBodyFullNotificationImageOnlyPostNormalizesAndEscapesFilenamesHTML(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupWithStoreMock(t)
+
+	recipient := buildTestUser("test-recipient-id", "recipient", "Recipient User", true)
+	rawDangerousFilename := "<img src=x onerror=alert(1)>.png"
+	encodedDangerousFilename := url.QueryEscape(rawDangerousFilename)
+	secondFilename := "photo & notes.png"
+	post := &model.Post{
+		Id:      "test-post-id",
+		Message: "",
+		FileIds: []string{"test-file-id-1", "test-file-id-2"},
+	}
+	channel := &model.Channel{
+		Id:          "test-channel-id",
+		Name:        "testchannel",
+		DisplayName: "ChannelName",
+		Type:        model.ChannelTypeOpen,
+	}
+	sender := buildTestUser("test-sender-id", "sender", "sender", true)
+	team := buildTestTeam("test-team-id", "testteam", "testteam")
+
+	storeMock := th.App.Srv().Store().(*mocks.Store)
+	fileInfoStoreMock := mocks.FileInfoStore{}
+	fileInfoStoreMock.On("GetForPost", post.Id, true, false, true).Return([]*model.FileInfo{
+		{
+			Id:        "test-file-id-1",
+			PostId:    post.Id,
+			Name:      encodedDangerousFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+		{
+			Id:        "test-file-id-2",
+			PostId:    post.Id,
+			Name:      secondFilename,
+			Extension: "png",
+			MimeType:  "image/png",
+		},
+	}, nil)
+	storeMock.On("FileInfo").Return(&fileInfoStoreMock)
+
+	setupPreferenceMocks(th, recipient.Id, true)
+	th.App.Srv().EmailService.SetStore(storeMock)
+
+	notification := buildTestPostNotification(post, channel, sender)
+	emailNotification := th.App.buildEmailNotification(th.Context, notification, recipient, team)
+	body, err := th.App.getNotificationEmailBodyFromEmailNotification(th.Context, recipient, emailNotification, post, "")
+	require.NoError(t, err)
+
+	expectedFilenames := fmt.Sprintf("%s, %s", html.EscapeString(rawDangerousFilename), html.EscapeString(secondFilename))
+	require.Contains(t, body, "2 images sent:")
+	require.Contains(t, body, expectedFilenames)
+	require.NotContains(t, body, rawDangerousFilename)
+	require.NotContains(t, body, encodedDangerousFilename)
 }
 
 func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {

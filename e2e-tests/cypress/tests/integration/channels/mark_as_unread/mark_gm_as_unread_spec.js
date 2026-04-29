@@ -10,9 +10,10 @@
 // Stage: @prod
 // Group: @channels @mark_as_unread
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {verifyPostNextToNewMessageSeparator} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Mark as Unread', () => {
     let testUser;

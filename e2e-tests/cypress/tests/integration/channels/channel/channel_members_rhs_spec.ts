@@ -323,7 +323,7 @@ describe('Channel members RHS', () => {
     });
 });
 
-function ensureChannelMembersRHSExists(testChannel) {
+function ensureChannelMembersRHSExists(testChannel: Cypress.Channel) {
     cy.get('#rhsContainer').then((rhsContainer) => {
         cy.wrap(rhsContainer).findByText('Members').should('be.visible');
         cy.wrap(rhsContainer).findByText(testChannel.display_name).should('be.visible');
