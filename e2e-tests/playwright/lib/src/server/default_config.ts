@@ -821,7 +821,7 @@ const defaultServerConfig: AdminConfig = {
         EnableUserManagedAttributes: true,
     },
     ContentFlaggingSettings: {
-        EnableContentFlagging: false,
+        EnableContentFlagging: true,
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -848,7 +848,7 @@ const defaultServerConfig: AdminConfig = {
             CommonReviewers: true,
             CommonReviewerIds: [],
             TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
+            SystemAdminsAsReviewers: true,
             TeamAdminsAsReviewers: true,
         },
     },
