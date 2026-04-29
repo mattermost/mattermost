@@ -3267,7 +3267,7 @@ func TestSystemObjectType(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_system_object_type")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_system_object_type", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	t.Run("non-admin cannot create a system field", func(t *testing.T) {
