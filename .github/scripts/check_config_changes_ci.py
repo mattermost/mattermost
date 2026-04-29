@@ -146,29 +146,49 @@ def file_at(ref: str, path: str) -> str:
 
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
 
+_CONFIG_PATH    = "server/public/model/config.go"
+_TYPE_STRUCT_RE = re.compile(r"^type\s+(\w+)\s+struct\s*\{")
+_FIELD_RE       = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
+
+
+def _scan_struct_fields(text: str) -> set[tuple[str, str]]:
+    """
+    Return {(struct_name, field_name), ...} for every top-level exported
+    field in `text`. Uses a brace-depth stack so identically-named fields
+    in different structs are kept distinct (avoids the "moved field"
+    dedup collapsing unrelated changes).
+    """
+    fields: set[tuple[str, str]] = set()
+    stack: list[tuple[str, int]] = []  # (struct_name, depth_at_declaration)
+    depth = 0
+
+    for line in text.splitlines():
+        line_start_depth = depth
+
+        m = _TYPE_STRUCT_RE.match(line)
+        if m:
+            stack.append((m.group(1), line_start_depth))
+        elif stack and (fm := _FIELD_RE.match(line)):
+            fields.add((stack[-1][0], fm.group(1)))
+
+        depth += line.count("{") - line.count("}")
+        while stack and depth <= stack[-1][1]:
+            stack.pop()
+
+    return fields
+
+
 def check_config(patches: dict[str, str]) -> CheckResult:
     """Detect exported Go struct field additions/removals in config.go."""
     result = CheckResult(label="`config.json` Field Changes")
-    patch = patches.get("server/public/model/config.go", "")
-    if not patch:
+    if _CONFIG_PATH not in patches:
         return result
 
-    # Exported field: starts with a tab, then an uppercase letter, then a type
-    field_re = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
-    added, removed = lines_by_sign(patch)
+    before = _scan_struct_fields(file_at(BASE_SHA, _CONFIG_PATH))
+    after  = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
 
-    result.additions = [
-        f"`{m.group(1)}`" for line in added
-        if (m := field_re.match(line))
-    ]
-    result.removals = [
-        f"`{m.group(1)}`" for line in removed
-        if (m := field_re.match(line))
-    ]
-    # Deduplicate (a field moved within the file can appear as both add+remove)
-    seen_both = set(result.additions) & set(result.removals)
-    result.additions = [x for x in dict.fromkeys(result.additions) if x not in seen_both]
-    result.removals  = [x for x in dict.fromkeys(result.removals)  if x not in seen_both]
+    result.additions = [f"`{s}.{n}`" for s, n in sorted(after  - before)]
+    result.removals  = [f"`{s}.{n}`" for s, n in sorted(before - after)]
     return result
 
 
