@@ -58,9 +58,18 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// System-object fields attach to the system itself; canonicalize the
 	// target fields so clients can't submit inconsistent combinations.
+	// Permissions are likewise pinned to sysadmin: a system field's
+	// TargetType is "system", which makes member-level scope checks resolve
+	// to "any authenticated user" (see hasPropertyFieldScopeAccess), so
+	// honouring a member-level permission on a system field would expose
+	// the field's definition, options, and values to every logged-in user.
 	if field.ObjectType == model.PropertyFieldObjectTypeSystem {
 		field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 		field.TargetID = ""
+		sysadmin := model.PermissionLevelSysadmin
+		field.PermissionField = &sysadmin
+		field.PermissionValues = &sysadmin
+		field.PermissionOptions = &sysadmin
 	}
 
 	// Reject protected field creation via API
@@ -629,14 +638,20 @@ func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	// Template fields are definition-only and cannot hold values. The
-	// legacy handler rejects `object_type=template` at the URL level, but
-	// callers can still reference a template field via its ID in the body
-	// of any other PATCH (including the dedicated system route), so catch
-	// that here before we attempt an upsert.
+	// Each field's ObjectType must match the route's objectType. Without
+	// this, a caller could reference a field of one type via another
+	// type's route (e.g. a system field via the user-values route),
+	// bypassing the route-level access checks and persisting values whose
+	// TargetType disagrees with field.ObjectType. Templates are always
+	// rejected because objectType is never "template" on these routes;
+	// keep a dedicated error for that case so the cause is clear.
 	for _, f := range fields {
 		if f.ObjectType == model.PropertyFieldObjectTypeTemplate {
 			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.template_no_values.app_error", nil, "template fields cannot have values", http.StatusBadRequest)
+			return
+		}
+		if f.ObjectType != objectType {
+			c.Err = model.NewAppError("patchPropertyValues", "api.property_value.field_object_type_mismatch.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
 	}

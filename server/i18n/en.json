@@ -3219,6 +3219,10 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
+    "id": "api.property_value.field_object_type_mismatch.app_error",
+    "translation": "One or more property fields do not match the route's object type."
+  },
+  {
     "id": "api.property_value.invalid_group_name.app_error",
     "translation": "The provided group name is not valid or does not exist."
   },
