@@ -130,46 +130,118 @@ def lines_by_sign(patch: str) -> tuple[list[str], list[str]]:
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
  
 def check_config(patches: dict[str, str]) -> CheckResult:
-    """Detect exported Go struct field additions/removals in config.go."""
+    """
+    Detect exported Go struct field additions/removals in config.go.
+ 
+    Deduplication is keyed by StructName.FieldName so that a field with the
+    same name in two different structs (one added, one removed) is not
+    incorrectly cancelled out.
+    """
     result = CheckResult(label="`config.json` Field Changes")
     patch = patches.get("server/public/model/config.go", "")
     if not patch:
         return result
  
-    # Exported field: starts with a tab, then an uppercase letter, then a type
-    field_re = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
-    added, removed = lines_by_sign(patch)
+    struct_re = re.compile(r"^\s*type\s+(\w+)\s+struct\s*\{")
+    field_re  = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
  
-    result.additions = [
-        f"`{m.group(1)}`" for line in added
-        if (m := field_re.match(line))
-    ]
-    result.removals = [
-        f"`{m.group(1)}`" for line in removed
-        if (m := field_re.match(line))
-    ]
-    # Deduplicate (a field moved within the file can appear as both add+remove)
-    seen_both = set(result.additions) & set(result.removals)
-    result.additions = [x for x in dict.fromkeys(result.additions) if x not in seen_both]
-    result.removals  = [x for x in dict.fromkeys(result.removals)  if x not in seen_both]
+    additions: list[str] = []   # "StructName.FieldName"
+    removals:  list[str] = []
+    current_struct = "Unknown"
+ 
+    for line in patch.splitlines():
+        # Skip diff file-header lines
+        if line.startswith(("+++", "---", "diff ", "@@")):
+            continue
+ 
+        # Strip the diff sign to get the raw Go source line
+        if line.startswith(("+", "-", " ")):
+            content = line[1:]
+        else:
+            continue
+ 
+        # Track the enclosing struct from ALL lines (context, added, removed)
+        sm = struct_re.match(content)
+        if sm:
+            current_struct = sm.group(1)
+ 
+        # Record field changes only from added/removed lines
+        fm = field_re.match(content)
+        if fm:
+            qualified = f"{current_struct}.{fm.group(1)}"
+            if line.startswith("+"):
+                additions.append(qualified)
+            elif line.startswith("-"):
+                removals.append(qualified)
+ 
+    # Deduplicate: cancel out only when the same StructName.FieldName appears
+    # on both sides (e.g. a field moved/reordered within the file).
+    seen_both = set(additions) & set(removals)
+    additions = [x for x in dict.fromkeys(additions) if x not in seen_both]
+    removals  = [x for x in dict.fromkeys(removals)  if x not in seen_both]
+ 
+    result.additions = [f"`{x}`" for x in additions]
+    result.removals  = [f"`{x}`" for x in removals]
     return result
  
  
 # ── Checker 2 — api4/ ─────────────────────────────────────────────────────────
  
-# Matches:  .Handle("/path", api.APISessionRequired(handlerFunc)).Methods(http.MethodGet)
-# Groups:   (path, handler_function, HTTP_METHOD)
+# Matches the common single-line pattern:
+#   .Handle("/path", api.SomeWrapper(handlerFunc)).Methods(http.MethodGet)
+# Group 1: path   Group 2: handler func   Group 3: raw Methods(...) content
 _HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'           # path
-    r',\s*\w+\.\w+\((\w+)\)\)'      # wrapper(handlerFunc))
-    r'\.Methods\((?:http\.Method)?(\w+)\)'  # .Methods(GET / http.MethodGet)
+    r'\.Handle\("([^"]*)"'          # path
+    r',\s*\w+\.\w+\((\w+)\)\)'     # wrapper(handlerFunc))
+    r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
+ 
+# Strips the "http.Method" prefix from a method token, e.g. "http.MethodGet" → "GET"
+_METHOD_PREFIX = re.compile(r'(?:http\.Method)?(\w+)')
+ 
+ 
+def _parse_methods(raw: str) -> list[str]:
+    """Return a list of HTTP method strings from the raw .Methods(...) content."""
+    return [
+        m.group(1).upper()
+        for token in raw.split(",")
+        if (m := _METHOD_PREFIX.search(token.strip()))
+    ]
  
  
 def _format_endpoint(path: str, handler: str, method: str) -> str:
-    method = method.upper()
-    path   = path or "/"
-    return f"`{method} {path}` (`{handler}`)"
+    return f"`{method.upper()} {path or '/'}` (`{handler}`)"
+ 
+ 
+def _sign_runs(patch: str, sign: str) -> list[str]:
+    """
+    Return a list of joined strings, where each string is a run of consecutive
+    lines starting with `sign`.  Joining handles multi-line Handle() calls so
+    the regex can match even when the call is split across several diff lines.
+    """
+    runs: list[str] = []
+    current: list[str] = []
+    for line in patch.splitlines():
+        if line.startswith(sign) and not line.startswith(sign * 3):
+            current.append(line[1:].strip())
+        else:
+            if current:
+                runs.append(" ".join(current))
+                current = []
+    if current:
+        runs.append(" ".join(current))
+    return runs
+ 
+ 
+def _extract_endpoints(patch: str, sign: str) -> list[str]:
+    """Extract all Handle() endpoint registrations from diff lines of `sign`."""
+    endpoints: list[str] = []
+    for run in _sign_runs(patch, sign):
+        for m in _HANDLE_RE.finditer(run):
+            path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
+            for method in _parse_methods(methods_raw):
+                endpoints.append(_format_endpoint(path, handler, method))
+    return endpoints
  
  
 def check_api(patches: dict[str, str]) -> CheckResult:
@@ -188,17 +260,8 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     removed_eps: list[str] = []
  
     for fname, patch in api4_patches.items():
-        added_lines, removed_lines = lines_by_sign(patch)
- 
-        for line in added_lines:
-            m = _HANDLE_RE.search(line)
-            if m:
-                added_eps.append(_format_endpoint(*m.groups()))
- 
-        for line in removed_lines:
-            m = _HANDLE_RE.search(line)
-            if m:
-                removed_eps.append(_format_endpoint(*m.groups()))
+        added_eps.extend(_extract_endpoints(patch, "+"))
+        removed_eps.extend(_extract_endpoints(patch, "-"))
  
     # New files in api4/ suggest a new route group was added
     new_files = [
@@ -283,50 +346,79 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
  
 # ── PR description helpers ─────────────────────────────────────────────────────
  
-# Plain-text markers used inside (or alongside) the release-note fence.
-# These must be plain text — HTML comments render as literal inside code fences.
-MARKER_OPEN  = "[auto-detected:"
-MARKER_CLOSE = "[/auto-detected]"
+# Matches lines that were auto-generated by this script so they can be stripped
+# before re-injecting a fresh set on subsequent commits.
+_AUTO_LINE_RE = re.compile(
+    r"^(Added|Removed) `[^`]+`.*(configuration setting|API endpoint|audit log event)\."
+    r"|^Go runtime updated from \S+ to \S+\."
+    r"|^🆕 New API file:"
+    r"|^🗑️  Removed API file:"
+)
  
  
-def _plain_text_note(results: list[CheckResult]) -> str:
-    """
-    Produce a plain-text summary for insertion inside a ```release-note block.
-    Markdown (bold, headers) does not render inside code fences.
-    """
+def _format_lines(result: CheckResult) -> list[str]:
+    """Produce natural-language lines for one checker result."""
     lines = []
-    for r in results:
-        if not r.has_findings():
-            continue
-        lines.append(r.label)
-        if r.additions:
-            lines.append("  Added:   " + ", ".join(r.additions))
-        if r.removals:
-            lines.append("  Removed: " + ", ".join(r.removals))
-        for c in r.changes:
-            lines.append("  " + c)
-    return "\n".join(lines)
+ 
+    if "`config.json`" in result.label:
+        for item in result.additions:
+            lines.append(f"Added {item} configuration setting.")
+        for item in result.removals:
+            lines.append(f"Removed {item} configuration setting.")
+ 
+    elif "API Changes" in result.label:
+        for item in result.additions:
+            lines.append(f"Added {item} API endpoint.")
+        for item in result.removals:
+            lines.append(f"Removed {item} API endpoint.")
+        lines.extend(result.changes)  # new/deleted file entries
+ 
+    elif "Audit" in result.label:
+        for item in result.additions:
+            lines.append(f"Added {item} audit log event.")
+        for item in result.removals:
+            lines.append(f"Removed {item} audit log event.")
+ 
+    elif "Go Runtime" in result.label:
+        for c in result.changes:
+            # c arrives as "Go updated: `1.21` → `1.22`" — rewrite it
+            m = re.search(r"`([^`]+)`\s*→\s*`([^`]+)`", c)
+            if m:
+                lines.append(f"Go runtime updated from {m.group(1)} to {m.group(2)}.")
+            else:
+                lines.append(c)
+ 
+    return lines
  
  
 def build_pr_note(results: list[CheckResult]) -> str:
-    """Wrap the plain-text summary in idempotency markers keyed to HEAD SHA."""
-    text = _plain_text_note(results)
-    if not text:
-        return ""
-    return f"{MARKER_OPEN}{HEAD_SHA[:8]}]\n{text}\n{MARKER_CLOSE}"
- 
- 
-def already_up_to_date(body: str) -> bool:
-    return f"{MARKER_OPEN}{HEAD_SHA[:8]}]" in (body or "")
+    """Assemble all findings into a clean plain-text block."""
+    lines = []
+    for r in results:
+        if r.has_findings():
+            lines.extend(_format_lines(r))
+    return "\n".join(lines)
  
  
 def strip_old_note(body: str) -> str:
-    """Remove any previously injected auto-detected block from the PR body."""
+    """
+    Remove previously auto-generated lines from inside the ```release-note block.
+    Lines are identified by pattern rather than markers, so no visible annotations
+    need to appear in the PR description.
+    """
+    def _clean_fence(m: re.Match) -> str:
+        open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
+        cleaned_lines = [
+            line for line in content.split("\n")
+            if not _AUTO_LINE_RE.match(line.strip())
+        ]
+        return open_tag + "\n".join(cleaned_lines) + close_tag
+ 
     return re.sub(
-        rf"{re.escape(MARKER_OPEN)}.*?{re.escape(MARKER_CLOSE)}",
-        "",
+        r"(```release-note)(.*?)(```)",
+        _clean_fence,
         body or "",
-        flags=re.DOTALL,
+        flags=re.DOTALL | re.IGNORECASE,
     ).rstrip()
  
  
@@ -334,12 +426,14 @@ def inject_note(body: str, note: str) -> str:
     """
     Insert `note` using this priority order:
  
-    1. INSIDE an existing ```release-note block, before its closing ```
+    1. INSIDE the ```release-note block, before its closing ```
        (Mattermost convention — keeps everything in one place for reviewers)
     2. After a recognised release-notes section header (## Release Notes, etc.)
     3. Fallback: append a new ## Release Notes section at the end
     """
     body = strip_old_note(body)
+    if not note:
+        return body
  
     # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence
     release_note_block = re.search(
@@ -348,9 +442,8 @@ def inject_note(body: str, note: str) -> str:
         flags=re.DOTALL | re.IGNORECASE,
     )
     if release_note_block:
-        # Insert before the closing ``` so the note appears inside the block
         closing_start = release_note_block.start(3)
-        return body[:closing_start] + "\n" + note + "\n" + body[closing_start:]
+        return body[:closing_start] + note + "\n" + body[closing_start:]
  
     # 2. Markdown section headers
     for header in ["## Release Notes", "## Changelog", "## What Changed", "## What's Changed"]:
@@ -421,11 +514,6 @@ def main():
  
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
- 
-    if already_up_to_date(body):
-        print("ℹ️  PR description is already up to date for this commit.")
-        return
- 
     new_body = inject_note(body, note)
     update_pr_body(new_body)
     print(f"✅ PR #{PR_NUMBER} description updated.")
