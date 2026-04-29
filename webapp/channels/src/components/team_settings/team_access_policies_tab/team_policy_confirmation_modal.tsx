@@ -41,7 +41,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
         body = (
             <FormattedMessage
                 id='team_settings.policy_editor.confirmation.body_public'
-                defaultMessage='This policy will be applied to <b>{count} assigned {count, plural, one {public channel} other {public channels}}</b>. Matching users will see these channels as recommendations, and will be auto-added when auto-add is enabled. No existing members will be removed.'
+                defaultMessage='This policy will be applied to <b>{count} assigned {count, plural, one {public channel} other {public channels}}</b>. Matching users will see {count, plural, one {this channel} other {these channels}} as recommendations, and will be auto-added when auto-add is enabled. No existing members will be removed.'
                 values={{
                     count: channelsAffected,
                     b: (chunks: React.ReactNode) => <strong>{chunks}</strong>,

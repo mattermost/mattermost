@@ -616,6 +616,10 @@
     "translation": "Policy enforced channels cannot be updated."
   },
   {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "This channel has an attribute-based membership policy applied. Remove the policy before converting between public and private."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}."
   },

@@ -203,6 +203,27 @@ export default function TeamPolicyEditor({
         return ((channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length) > 0;
     }, [channelsCount, channelChanges]);
 
+    // True iff the policy will be applied to at least one private channel after
+    // pending changes are committed. Public-channel ABAC is advisory and cannot
+    // lock anyone out, so the self-inclusion guard only matters when a private
+    // channel is in scope.
+    const hasPrivateChannelInScope = useCallback(() => {
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.PRIVATE_CHANNEL) {
+                return true;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.PRIVATE_CHANNEL) {
+                return true;
+            }
+        }
+        return false;
+    }, [savedChannelTypes, channelChanges]);
+
     const validateForm = useCallback(async () => {
         if (policyName.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.name_required', defaultMessage: 'Please add a name to the policy'}));
@@ -225,8 +246,11 @@ export default function TeamPolicyEditor({
             return false;
         }
 
-        // Validate self-inclusion: delegated admin must satisfy the policy's rules
-        if (expression.trim()) {
+        // Validate self-inclusion: delegated admin must satisfy the policy's rules.
+        // Skipped when the policy applies only to public channels — those are
+        // advisory under ABAC and can't kick anyone out, so a non-matching admin
+        // is never at risk of locking themselves out.
+        if (expression.trim() && hasPrivateChannelInScope()) {
             try {
                 const result = await abacActions.validateExpressionAgainstRequester(expression);
                 if (!result.data?.requester_matches) {
@@ -242,7 +266,7 @@ export default function TeamPolicyEditor({
         }
 
         return true;
-    }, [policyName, expression, hasChannels, formatMessage, abacActions]);
+    }, [policyName, expression, hasChannels, hasPrivateChannelInScope, formatMessage, abacActions]);
 
     const handleSave = useCallback(async () => {
         if (!await validateForm()) {
@@ -470,7 +494,12 @@ export default function TeamPolicyEditor({
                     actions={abacActions}
                     teamId={teamId}
                     isSystemAdmin={false}
-                    validateExpressionAgainstRequester={abacActions.validateExpressionAgainstRequester}
+
+                    // Suppress the live "you would be excluded" banner when
+                    // the policy applies only to public channels — there's
+                    // nothing to be excluded from in advisory mode, so the
+                    // warning is misleading.
+                    validateExpressionAgainstRequester={hasPrivateChannelInScope() ? abacActions.validateExpressionAgainstRequester : undefined}
                 />
             </div>
 

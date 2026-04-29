@@ -695,5 +695,10 @@ describe('components/BrowseChannels', () => {
 
         await user.click(screen.getByLabelText('Channel type filter'));
         expect(screen.queryByText('Recommended channels')).not.toBeInTheDocument();
+
+        // The recommendation fetch is also gated server-side on
+        // `accessControlEnabled`. Lock that in so a future refactor doesn't
+        // start fetching unconditionally and silently waste a round-trip.
+        expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
     });
 });

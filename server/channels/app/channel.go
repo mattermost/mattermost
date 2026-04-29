@@ -729,12 +729,27 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	ok, appErr := a.ChannelAccessControlled(rctx, channel.Id)
+	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if ok && channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
-		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	if enforced {
+		if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
+			return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+		}
+
+		// Block public ↔ private conversion while an ABAC policy is attached.
+		// Public-channel and private-channel ABAC have asymmetric semantics
+		// (advisory recommend/auto-add vs hard-gate with member removal); a
+		// silent type flip would change what the existing policy actually
+		// does to members. The admin must remove the policy first and
+		// re-apply it after the conversion if they still want it.
+		current, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+		if getErr == nil && current.Type != channel.Type {
+			return nil, model.NewAppError("UpdateChannel",
+				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
+				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+		}
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -4267,6 +4282,17 @@ func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, team
 		if len(batch) == 0 {
 			break
 		}
+
+		// Truncate to the remaining cap so the final candidate count never
+		// exceeds the documented bound. The loop condition only gates entry
+		// to a new iteration; without this, a final page worth of channels
+		// could push len past the cap by up to (pageSize - 1).
+		remaining := recommendedPublicChannelsScanCap - len(candidates)
+		if len(batch) > remaining {
+			candidates = append(candidates, batch[:remaining]...)
+			break
+		}
+
 		candidates = append(candidates, batch...)
 		if len(batch) < recommendedPublicChannelsScanPageSize {
 			break

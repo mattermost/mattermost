@@ -124,7 +124,13 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		// publishChannelPolicyEnforcedUpdate is expected to invalidate the
 		// channel cache and reload the channel for the WS payload.
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
-		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
+		// Channel().Get is now hit twice during a successful save:
+		//   1. ValidateChannelEligibilityForAccessControl loads the channel
+		//      to enforce the default / DM / GM / group-constrained / shared
+		//      eligibility rules before SavePolicy.
+		//   2. publishChannelPolicyEnforcedUpdate reloads it after save to
+		//      build the WS payload.
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Twice()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl
@@ -796,6 +802,76 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 
 		_, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
 		require.Error(t, err, "policy should be removed via the store-level fallback when acs reports NotImplemented")
+	})
+}
+
+func TestUpdateChannelBlocksTypeConversionWhenPolicyEnforced(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// ABAC + license required for ChannelAccessControlled to report `enforced=true`.
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+	})
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().ch.AccessControl
+	th.App.Srv().ch.AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().ch.AccessControl = originalACS })
+	mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).Return((*model.AppError)(nil)).Maybe()
+
+	stampPolicy := func(t *testing.T, channelID string) {
+		t.Helper()
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Active:   true,
+			Rules:    []model.AccessControlPolicyRule{{Actions: []string{"membership"}, Expression: "true"}},
+		})
+		require.NoError(t, err)
+		// Channel().Get is cached; PolicyEnforced is computed at fetch time
+		// from the AccessControlPolicies table, so an existing cached entry
+		// would still report `false`. Invalidate so the next Get re-computes.
+		th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+	}
+
+	t.Run("private → public is rejected when ABAC policy is attached", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(th.Context, ch) })
+		stampPolicy(t, ch.Id)
+
+		patch := *ch
+		patch.Type = model.ChannelTypeOpen
+		_, appErr := th.App.UpdateChannel(th.Context, &patch)
+		require.NotNil(t, appErr, "type conversion must be blocked while a policy is attached")
+		require.Equal(t, "api.channel.update_channel.policy_enforced_type_conversion.app_error", appErr.Id)
+	})
+
+	t.Run("public → private is rejected when ABAC policy is attached", func(t *testing.T) {
+		ch := th.CreateChannel(t, th.BasicTeam)
+		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(th.Context, ch) })
+		stampPolicy(t, ch.Id)
+
+		patch := *ch
+		patch.Type = model.ChannelTypePrivate
+		_, appErr := th.App.UpdateChannel(th.Context, &patch)
+		require.NotNil(t, appErr, "type conversion must be blocked in either direction")
+		require.Equal(t, "api.channel.update_channel.policy_enforced_type_conversion.app_error", appErr.Id)
+	})
+
+	t.Run("non-type updates still succeed on policy-enforced channels", func(t *testing.T) {
+		ch := th.CreatePrivateChannel(t, th.BasicTeam)
+		t.Cleanup(func() { _ = th.App.PermanentDeleteChannel(th.Context, ch) })
+		stampPolicy(t, ch.Id)
+
+		patch := *ch
+		patch.Header = "updated header"
+		_, appErr := th.App.UpdateChannel(th.Context, &patch)
+		require.Nil(t, appErr, "non-type updates should pass through; the gate is type-conversion only")
 	})
 }
 

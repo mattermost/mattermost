@@ -250,8 +250,9 @@ describe('channel_members_rhs/channel_members_rhs', () => {
 
         expect(screen.getByText('This channel has recommended members based on user attributes')).toBeInTheDocument();
 
-        // Attribute tags should also be rendered alongside the advisory copy.
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+        // Each tag is rendered as "Attribute: value" — same shape as the
+        // private-channel test above; only the banner copy differs.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 });

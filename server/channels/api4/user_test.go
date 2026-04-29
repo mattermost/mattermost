@@ -3598,10 +3598,16 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 	// QueryUsersForResource is the ABAC path; whenever it is hit, we return
 	// only user1 — that's the signal the dispatcher routed to the filtered
 	// branch. user2 only ever appears via the unfiltered store path.
+	//
+	// The third argument is pinned to the actual action constant
+	// (`AccessControlPolicyActionMembership`) so the mock matches the real
+	// call site in App.GetUsersNotInAbacChannel — using `"*"` here would
+	// silently never match and the whole test would PASS by accident on the
+	// fall-through path.
 	mockACS.On("QueryUsersForResource",
 		mock.Anything,
 		mock.AnythingOfType("string"),
-		"*",
+		model.AccessControlPolicyActionMembership,
 		mock.Anything,
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
 

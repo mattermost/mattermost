@@ -948,9 +948,19 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		// filter when the caller explicitly asks via abac_match_only=true so callers
 		// like the invite modal can fetch all team members and annotate the matching
 		// subset without the list being narrowed for them.
+		//
+		// Surface ChannelAccessControlled errors instead of silently swallowing
+		// them — a transient store / license read failure here would otherwise
+		// fall through to the unfiltered path and could expose users a hard-gated
+		// private channel was configured to hide.
 		abacMatchOnly, _ := strconv.ParseBool(r.URL.Query().Get("abac_match_only"))
 		useAbacFilter := false
-		if enforced, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); enforced {
+		enforced, enforcedErr := c.App.ChannelAccessControlled(c.AppContext, notInChannelId)
+		if enforcedErr != nil {
+			c.Err = enforcedErr
+			return
+		}
+		if enforced {
 			ch, chErr := c.App.GetChannel(c.AppContext, notInChannelId)
 			if chErr != nil {
 				c.Err = chErr

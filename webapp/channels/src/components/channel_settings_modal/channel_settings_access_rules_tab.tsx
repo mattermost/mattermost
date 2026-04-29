@@ -244,6 +244,15 @@ function ChannelSettingsAccessRulesTab({
             return true; // No expression, skip validation
         }
 
+        // Public-channel ABAC is advisory: rules can recommend / auto-add members
+        // but never remove anyone. A non-matching admin cannot lock themselves
+        // out of a public channel, so the self-inclusion check has no purpose
+        // here and just blocks legitimate admin workflows (e.g. configuring a
+        // policy intended for a department the admin doesn't belong to).
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            return true;
+        }
+
         if (!currentUser?.id) {
             setFormError(formatMessage({
                 id: 'channel_settings.access_rules.error.no_current_user',
@@ -273,7 +282,7 @@ function ChannelSettingsAccessRulesTab({
             return false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser?.id]);
+    }, [currentUser?.id, channel.type]);
 
     // Check if rules are becoming less restrictive by comparing user matches
     const isBecomingLessRestrictive = useCallback(async (oldExpression: string, newExpression: string): Promise<boolean> => {
@@ -714,7 +723,13 @@ function ChannelSettingsAccessRulesTab({
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                         isSystemAdmin={isSystemAdmin}
-                        validateExpressionAgainstRequester={actions.validateExpressionAgainstRequester}
+
+                        // Suppress the live "you would be excluded" banner on
+                        // public channels — public-channel ABAC is advisory and
+                        // can never lock the admin out, so the warning is
+                        // misleading. The save-time guard is also skipped in
+                        // validateSelfExclusion above.
+                        validateExpressionAgainstRequester={channel.type === Constants.OPEN_CHANNEL ? undefined : actions.validateExpressionAgainstRequester}
                     />
                 </div>
             )}

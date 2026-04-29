@@ -107,6 +107,13 @@ const ChannelInviteModalComponent = (props: Props) => {
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
 
+    // Monotonic token for fetchRecommendedUserIds — incremented every time we
+    // start a fresh fetch (or the channel changes). The pagination loop reads
+    // its captured token before each step and aborts/skips state writes when
+    // it sees a newer token, so a stale response from a prior channel can't
+    // overwrite recommendations for the current one.
+    const recommendedUserIdsRequestId = useRef<number>(0);
+
     // Public channels with a policy are advisory — the invite list is not
     // filtered and matching users are merely surfaced as a recommendation.
     // Private channels with a policy remain a hard gate.
@@ -338,6 +345,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     // tag-rendering set bounded for very large teams.
     const fetchRecommendedUserIds = useCallback(async () => {
         const RECOMMENDED_HARD_CAP = 1000;
+        const requestId = ++recommendedUserIdsRequestId.current;
         try {
             const ids = new Set<string>();
             let cursorId = '';
@@ -351,6 +359,12 @@ const ChannelInviteModalComponent = (props: Props) => {
                     USERS_PER_PAGE,
                     cursorId,
                 );
+
+                // A newer fetch (or channel switch) bumped the token; bail
+                // before doing more work or writing stale results to state.
+                if (recommendedUserIdsRequestId.current !== requestId) {
+                    return;
+                }
                 if (!profiles || profiles.length === 0) {
                     break;
                 }
@@ -362,9 +376,13 @@ const ChannelInviteModalComponent = (props: Props) => {
                 }
                 cursorId = profiles[profiles.length - 1].id;
             }
-            setRecommendedUserIds(ids);
+            if (recommendedUserIdsRequestId.current === requestId) {
+                setRecommendedUserIds(ids);
+            }
         } catch {
-            setRecommendedUserIds(new Set());
+            if (recommendedUserIdsRequestId.current === requestId) {
+                setRecommendedUserIds(new Set());
+            }
         }
     }, [props.channel.team_id, props.channel.id, props.channel.group_constrained]);
 
@@ -623,6 +641,16 @@ const ChannelInviteModalComponent = (props: Props) => {
         props.actions.getTeamStats(props.channel.team_id);
         props.actions.loadStatusesForProfilesList(props.profilesNotInCurrentChannel);
         props.actions.loadStatusesForProfilesList(props.profilesInCurrentChannel);
+
+        // Bump the request token on dep change / unmount so any in-flight
+        // fetchRecommendedUserIds (queued from a prior channel) sees a newer
+        // token and discards its results before they reach setState. Covers
+        // the cases the in-fetch token alone can't: switching from public to
+        // private (no new fetch is started, but the old one is still running)
+        // and modal unmount.
+        return () => {
+            recommendedUserIdsRequestId.current++;
+        };
     }, [
         props.channel.id,
         props.channel.team_id,

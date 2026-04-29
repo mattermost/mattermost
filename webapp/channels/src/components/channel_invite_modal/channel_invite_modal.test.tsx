@@ -546,29 +546,35 @@ describe('components/channel_invite_modal', () => {
             fetchAttributes: jest.fn(),
         });
 
-        const channelWithPolicy = {
-            ...channel,
-            policy_enforced: true,
-        };
+        try {
+            const channelWithPolicy = {
+                ...channel,
+                policy_enforced: true,
+            };
 
-        const props = {
-            ...baseProps,
-            channel: channelWithPolicy,
-        };
+            const props = {
+                ...baseProps,
+                channel: channelWithPolicy,
+            };
 
-        renderWithContext(
-            <ChannelInviteModal {...props}/>,
-        );
+            renderWithContext(
+                <ChannelInviteModal {...props}/>,
+            );
 
-        // Modal renders in a portal, so query from document instead of container
-        expect(document.querySelector('.AlertBanner')).not.toBeNull();
+            // Modal renders in a portal, so query from document instead of container
+            expect(document.querySelector('.AlertBanner')).not.toBeNull();
 
-        // Check that no tags are shown (loading state)
-        expect(screen.queryByText('tag1')).not.toBeInTheDocument();
-        expect(screen.queryByText('tag2')).not.toBeInTheDocument();
-
-        if (previousImpl) {
-            useAccessControlAttributesMock.mockImplementation(previousImpl);
+            // Check that no tags are shown (loading state)
+            expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+            expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+        } finally {
+            // try/finally so a mid-test assertion failure can't leak the
+            // mocked impl into the next test's render — the override
+            // intentionally returns loading=true, which would mask the real
+            // hook everywhere else in the suite.
+            if (previousImpl) {
+                useAccessControlAttributesMock.mockImplementation(previousImpl);
+            }
         }
     });
 
@@ -583,29 +589,34 @@ describe('components/channel_invite_modal', () => {
             fetchAttributes: jest.fn(),
         });
 
-        const channelWithPolicy = {
-            ...channel,
-            policy_enforced: true,
-        };
+        try {
+            const channelWithPolicy = {
+                ...channel,
+                policy_enforced: true,
+            };
 
-        const props = {
-            ...baseProps,
-            channel: channelWithPolicy,
-        };
+            const props = {
+                ...baseProps,
+                channel: channelWithPolicy,
+            };
 
-        renderWithContext(
-            <ChannelInviteModal {...props}/>,
-        );
+            renderWithContext(
+                <ChannelInviteModal {...props}/>,
+            );
 
-        // Modal renders in a portal, so query from document instead of container
-        expect(document.querySelector('.AlertBanner')).not.toBeNull();
+            // Modal renders in a portal, so query from document instead of container
+            expect(document.querySelector('.AlertBanner')).not.toBeNull();
 
-        // Check that no tags are shown (error state)
-        expect(screen.queryByText('tag1')).not.toBeInTheDocument();
-        expect(screen.queryByText('tag2')).not.toBeInTheDocument();
-
-        if (previousImpl) {
-            useAccessControlAttributesMock.mockImplementation(previousImpl);
+            // Check that no tags are shown (error state)
+            expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+            expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+        } finally {
+            // try/finally for the same reason as the loading-state test
+            // above — a mid-test assertion failure must not leak the mocked
+            // hook into subsequent renders.
+            if (previousImpl) {
+                useAccessControlAttributesMock.mockImplementation(previousImpl);
+            }
         }
     });
 
@@ -944,11 +955,19 @@ describe('components/channel_invite_modal', () => {
         });
 
         // Both users are still visible (advisory, not filtered).
-        expect(getUserSpan('user-1')).toBeInTheDocument();
-        expect(getUserSpan('user-2')).toBeInTheDocument();
+        const user1Span = getUserSpan('user-1');
+        const user2Span = getUserSpan('user-2');
+        expect(user1Span).toBeInTheDocument();
+        expect(user2Span).toBeInTheDocument();
 
         // The matching user (user-2) gets the Recommended tag.
         expect(screen.getByText('Recommended')).toBeInTheDocument();
+
+        // ...and is sorted to the top of the option list. compareDocumentPosition
+        // returns DOCUMENT_POSITION_FOLLOWING (4) when the second arg is later
+        // in the DOM than the first — so user-2 preceding user-1 yields 4.
+        // eslint-disable-next-line no-bitwise
+        expect(user2Span.compareDocumentPosition(user1Span) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
         // The recommended-users endpoint was queried with an empty cursor
         // for the first page; pagination terminates after a short batch.

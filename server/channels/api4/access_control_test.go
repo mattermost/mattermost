@@ -1180,17 +1180,38 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 	t.Run("team admin body TeamIds forced to authorized team", func(t *testing.T) {
 		setupLicenseAndABAC(t)
 
-		policy := newSamplePolicy()
-		savedPolicy, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		parentPolicy := newSamplePolicy()
+		savedParent, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 		require.NoError(t, err)
 		defer func() {
-			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedPolicy.ID)
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedParent.ID)
 		}()
 
-		// Create a second team with a private channel
+		// Two teams, each with one private channel. The BasicTeam channel is
+		// linked to the parent policy so it shows up in the search; the
+		// otherTeam channel is unrelated. The override-correctness test then
+		// proves both that the BasicTeam channel IS returned (the search
+		// isn't trivially empty) and that the otherTeam channel is NOT
+		// returned even though the request body asked for it explicitly.
+		basicTeamChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+		basicTeamChild := &model.AccessControlPolicy{
+			ID:       basicTeamChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Imports:  []string{savedParent.ID},
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "user.attributes.team == 'engineering'", Actions: []string{"membership"}},
+			},
+		}
+		_, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, basicTeamChild)
+		require.NoError(t, err)
+		defer func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, basicTeamChannel.Id)
+		}()
+
 		otherTeam := th.CreateTeam(t)
 		otherChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, otherTeam.Id)
-		_ = otherChannel
 
 		th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
 		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
@@ -1200,19 +1221,26 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 
 		// Attempt to search with body TeamIds pointing to a different team.
 		// The authZ is against BasicTeam (via team_id query param), but the
-		// body tries to query otherTeam's channels. The fix should force
+		// body tries to query otherTeam's channels. The handler should force
 		// TeamIds to BasicTeam.Id regardless of what the body says.
 		channelsResp, resp, err := th.Client.SearchChannelsForAccessControlPolicyForTeam(
-			context.Background(), savedPolicy.ID, th.BasicTeam.Id,
+			context.Background(), savedParent.ID, th.BasicTeam.Id,
 			model.ChannelSearch{TeamIds: []string{otherTeam.Id}})
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, channelsResp)
 
-		// None of the returned channels should belong to the other team
+		channelsByID := make(map[string]*model.ChannelWithTeamData, len(channelsResp.Channels))
+		for _, ch := range channelsResp.Channels {
+			channelsByID[ch.Id] = ch
+		}
+		require.Contains(t, channelsByID, basicTeamChannel.Id,
+			"BasicTeam channel must surface — proves the search is exercised, not just trivially empty")
+		require.NotContains(t, channelsByID, otherChannel.Id,
+			"otherTeam channel must NOT surface even though body asked for it — proves the team_id query param overrides body TeamIds")
 		for _, ch := range channelsResp.Channels {
 			require.Equal(t, th.BasicTeam.Id, ch.TeamId,
-				"team admin should only see channels from the authorized team, got channel %s from team %s", ch.Id, ch.TeamId)
+				"team admin must only see channels from the authorized team, got channel %s from team %s", ch.Id, ch.TeamId)
 		}
 	})
 

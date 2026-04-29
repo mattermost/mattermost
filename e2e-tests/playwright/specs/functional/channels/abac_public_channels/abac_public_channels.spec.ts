@@ -125,6 +125,18 @@ test.describe('ABAC - Public channels', () => {
             ledger,
         );
 
+        // * Auto-add OFF contract: the matching user must NOT have been silently
+        //   joined to the channel. Verified server-side before any UI flow so a
+        //   regression that auto-adds them would fail here, regardless of UI
+        //   behavior. The Browse-Channels assertion below proves the channel
+        //   *appears as a recommendation* — but only this membership check
+        //   distinguishes "recommended (advisory)" from "auto-added".
+        const preMembers = await adminClient.getChannelMembers(publicChannel.id);
+        expect(
+            preMembers.map((m: any) => m.user_id),
+            'matching user must not be auto-joined when auto-add is OFF (advisory recommendation only)',
+        ).not.toContain(matchingUser.id);
+
         const {page} = await pw.testBrowser.login(matchingUser);
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name);

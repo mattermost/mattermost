@@ -40,6 +40,19 @@ export enum Filter {
 
 export type FilterType = keyof typeof Filter;
 
+// Resolve the initial filter, defending against callers that ask for
+// `Recommended` when ABAC isn't enabled — the dropdown would hide that menu
+// item server-side, leaving the UI stuck on a filter the user can't toggle off.
+function resolveInitialFilter(initialFilter: FilterType | undefined, accessControlEnabled: boolean): FilterType {
+    if (!initialFilter) {
+        return Filter.All;
+    }
+    if (initialFilter === Filter.Recommended && !accessControlEnabled) {
+        return Filter.All;
+    }
+    return initialFilter;
+}
+
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[]>>;
@@ -97,7 +110,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
-            filter: props.initialFilter ?? Filter.All,
+            filter: resolveInitialFilter(props.initialFilter, props.accessControlEnabled),
             search: false,
             searchedChannels: [],
             serverError: null,
@@ -128,13 +141,24 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         }
 
         Promise.all(promises).then((results) => {
-            const channelIDsForMemberCount = results.flatMap((result) => {
-                return result.data ? result.data.map((channel) => channel.id) : [];
-            },
-            );
-            this.props.privateChannels.forEach((channel) => channelIDsForMemberCount.push(channel.id));
-            if (channelIDsForMemberCount.length > 0) {
-                this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+            // Dedupe across the result lists + privateChannels: a recommended
+            // channel is also a public channel, so the same id can show up in
+            // both `getChannels` and `getRecommendedChannelsForUser` results.
+            // getChannelsMemberCount tolerates dupes but issuing them is
+            // wasted work and noisy.
+            const ids = new Set<string>();
+            for (const result of results) {
+                if (result.data) {
+                    for (const channel of result.data) {
+                        ids.add(channel.id);
+                    }
+                }
+            }
+            for (const channel of this.props.privateChannels) {
+                ids.add(channel.id);
+            }
+            if (ids.size > 0) {
+                this.props.actions.getChannelsMemberCount(Array.from(ids));
             }
         });
         this.loadComplete();
