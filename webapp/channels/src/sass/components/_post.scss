@@ -619,7 +619,9 @@
         }
 
         .post__content {
+            display: flex;
             align-items: flex-end;
+            column-gap: 8px;
         }
 
         .post__main {
@@ -642,12 +644,15 @@
         }
 
         &.post--chat-bubble-me {
+            padding-right: 0.25em;
+
             .post__content {
-                justify-content: flex-end;
+                flex-direction: row-reverse;
+                justify-content: flex-start;
             }
 
             .post__img {
-                order: 2;
+                margin-right: 0;
             }
 
             .post__main {
