@@ -15,7 +15,7 @@ import (
 func TestSyncLocking(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup("test_sync_lock")
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_sync_lock", Version: model.PropertyGroupVersionV1})
 	require.NoError(t, err)
 
 	hook := NewAccessControlHook(th.service, nil, group.ID)

@@ -271,8 +271,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.ProtectedAttributesPropertyGroupName},
-		{Name: model.ContentFlaggingGroupName},
+		{Name: model.ProtectedAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
+		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}

@@ -416,7 +416,7 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 	})
 
 	t.Run("access control NOT enforced for unmanaged group", func(t *testing.T) {
-		unmanagedGroup, err := th.service.RegisterPropertyGroup("unmanaged-scoping-test")
+		unmanagedGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unmanaged_scoping_test", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create a protected field in an unmanaged group
@@ -473,7 +473,7 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 	})
 
 	t.Run("read filtering NOT applied for unmanaged group", func(t *testing.T) {
-		unmanagedGroup, err := th.service.RegisterPropertyGroup("unmanaged-read-test")
+		unmanagedGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unmanaged_read_test", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		// Create a source-only field in an unmanaged group

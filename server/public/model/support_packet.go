@@ -58,9 +58,12 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"database"`
 
 	FileStore struct {
-		Status string `yaml:"file_status"`
-		Error  string `yaml:"erorr,omitempty"`
-		Driver string `yaml:"file_driver"`
+		Status         string `yaml:"file_status"`
+		Error          string `yaml:"erorr,omitempty"`
+		Driver         string `yaml:"file_driver"`
+		FilesystemType string `yaml:"filesystem_type,omitempty"`
+		TotalMB        uint64 `yaml:"total_mb,omitempty"`
+		AvailableMB    uint64 `yaml:"available_mb,omitempty"`
 	} `yaml:"file_store"`
 
 	Websocket struct {
@@ -71,6 +74,17 @@ type SupportPacketDiagnostics struct {
 		ID            string `yaml:"id"`
 		NumberOfNodes int    `yaml:"number_of_nodes"`
 	} `yaml:"cluster"`
+
+	Notifications struct {
+		Email struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"email,omitempty"`
+		Push struct {
+			Status string `yaml:"status"`
+			Error  string `yaml:"error,omitempty"`
+		} `yaml:"push,omitempty"`
+	} `yaml:"notifications,omitempty"`
 
 	LDAP struct {
 		Status        string `yaml:"status,omitempty"`
@@ -84,6 +98,7 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"saml"`
 
 	ElasticSearch struct {
+		Status        string   `yaml:"status,omitempty"`
 		Backend       string   `yaml:"backend,omitempty"`
 		ServerVersion string   `yaml:"server_version,omitempty"`
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`

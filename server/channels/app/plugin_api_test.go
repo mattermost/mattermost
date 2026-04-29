@@ -3410,30 +3410,34 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
+
 		// Create 20 property fields
-		groupID := model.NewId()
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
 				UpdateAt: model.GetMillis(),
 			}
 
-			created, err := api.CreatePropertyField(field)
+			var created *model.PropertyField
+			created, err = api.CreatePropertyField(field)
 			require.NoError(t, err)
 			createdFields = append(createdFields, created)
 		}
 
 		// Delete one field
-		err := api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
 
 		// Should now be able to create another field
 		newField := &model.PropertyField{
-			GroupID:  groupID,
+			GroupID:  group.ID,
 			Name:     "new_field",
 			Type:     model.PropertyFieldTypeText,
 			CreateAt: model.GetMillis(),
@@ -3450,12 +3454,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		// Register a property group first so the version check can look it up
+		group, err := api.RegisterPropertyGroup("testgroup" + model.NewId())
+		require.NoError(t, err)
 
 		// Create and delete 5 fields
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("deleted_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3465,14 +3471,14 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 			created, err := api.CreatePropertyField(field)
 			require.NoError(t, err)
 
-			err = api.DeletePropertyField(groupID, created.ID)
+			err = api.DeletePropertyField(group.ID, created.ID)
 			require.NoError(t, err)
 		}
 
 		// Should be able to create multiple active fields
 		for i := 1; i <= 20; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("active_field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3502,7 +3508,6 @@ func TestPluginAPICreatePropertyField(t *testing.T) {
 		created, err := api.CreatePropertyField(field)
 		require.Error(t, err) // Should fail due to invalid GroupID
 		assert.Nil(t, created)
-		assert.Contains(t, err.Error(), "group_id")
 
 		// Test with nil field - should fail gracefully
 		created, err = api.CreatePropertyField(nil)
@@ -3520,13 +3525,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3539,18 +3545,18 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count active fields
-		count, err := api.CountPropertyFields(groupID, false)
+		count, err := api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count should now be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -3560,13 +3566,14 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		groupID := model.NewId()
+		group, groupErr := api.RegisterPropertyGroup(model.NewId())
+		require.NoError(t, groupErr)
 
 		// Create 5 fields
 		var createdFields []*model.PropertyField
 		for i := 1; i <= 5; i++ {
 			field := &model.PropertyField{
-				GroupID:  groupID,
+				GroupID:  group.ID,
 				Name:     fmt.Sprintf("field_%d", i),
 				Type:     model.PropertyFieldTypeText,
 				CreateAt: model.GetMillis(),
@@ -3579,23 +3586,23 @@ func TestPluginAPICountPropertyFields(t *testing.T) {
 		}
 
 		// Count all fields
-		count, err := api.CountPropertyFields(groupID, true)
+		count, err := api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Delete 2 fields
-		err = api.DeletePropertyField(groupID, createdFields[0].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[0].ID)
 		require.NoError(t, err)
-		err = api.DeletePropertyField(groupID, createdFields[1].ID)
+		err = api.DeletePropertyField(group.ID, createdFields[1].ID)
 		require.NoError(t, err)
 
 		// Count all should still be 5
-		count, err = api.CountPropertyFields(groupID, true)
+		count, err = api.CountPropertyFields(group.ID, true)
 		require.NoError(t, err)
 		assert.Equal(t, int64(5), count)
 
 		// Count active should be 3
-		count, err = api.CountPropertyFields(groupID, false)
+		count, err = api.CountPropertyFields(group.ID, false)
 		require.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})

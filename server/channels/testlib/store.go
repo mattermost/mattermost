@@ -140,17 +140,44 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
 
-	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
-	protectedAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ProtectedAttributesPropertyGroupName}
-	propertyGroupStore.On("Register", model.ProtectedAttributesPropertyGroupName).Return(protectedAttributesGroup, nil)
+	groupsByName := map[string]*model.PropertyGroup{}
+
+	protectedAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ProtectedAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2}
+	contentFlaggingGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1}
+	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
+	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
+
+	groupsByName[protectedAttributesGroup.Name] = protectedAttributesGroup
+	groupsByName[contentFlaggingGroup.Name] = contentFlaggingGroup
+	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
+	groupsByName[boardsGroup.Name] = boardsGroup
+
+	propertyGroupStore.On("Register", mock.AnythingOfType("*model.PropertyGroup")).Return(
+		func(group *model.PropertyGroup) *model.PropertyGroup {
+			if existing, ok := groupsByName[group.Name]; ok {
+				return existing
+			}
+
+			version := group.Version
+			if version == 0 {
+				version = model.PropertyGroupVersionV1
+			}
+
+			created := &model.PropertyGroup{
+				ID:      model.NewId(),
+				Name:    group.Name,
+				Version: version,
+			}
+			groupsByName[group.Name] = created
+			return created
+		},
+		func(group *model.PropertyGroup) error {
+			return nil
+		},
+	)
 	propertyGroupStore.On("Get", model.ProtectedAttributesPropertyGroupName).Return(protectedAttributesGroup, nil)
-
-	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName}
-	propertyGroupStore.On("Register", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
+	propertyGroupStore.On("Get", model.ContentFlaggingGroupName).Return(contentFlaggingGroup, nil)
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
-
-	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName}
-	propertyGroupStore.On("Register", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
