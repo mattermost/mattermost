@@ -655,6 +655,8 @@ func patchRemoteCluster(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	updatedRC.Sanitize()
+
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedRC)
 
