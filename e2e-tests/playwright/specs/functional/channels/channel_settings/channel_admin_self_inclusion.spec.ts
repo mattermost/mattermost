@@ -132,7 +132,7 @@ async function createChannelAccessRule(
 
 async function openAccessControlSettings(channelsPage: ChannelsPage) {
     const channelSettings = await channelsPage.openChannelSettings();
-    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Access Control/i});
+    const accessControlTab = channelSettings.container.getByRole('tab', {name: /Membership Policy/i});
     await expect(accessControlTab).toBeVisible({timeout: 10000});
     await accessControlTab.click();
 
@@ -155,7 +155,7 @@ async function testAccessRuleAndVerifyUser(page: Page, username: string) {
     await expect(modal.getByText(`@${username}`)).toBeVisible({timeout: 10000});
 }
 
-test.describe('Channel Settings → Access Control', () => {
+test.describe('Channel Settings → Membership Policy', () => {
     test('MM-68538 channel admin can test access rule for multiselect "has any of" with multiple values', async ({
         pw,
     }) => {
@@ -163,7 +163,7 @@ test.describe('Channel Settings → Access Control', () => {
 
         const {adminClient, team} = await pw.initSetup();
 
-        // Enable ABAC + user-managed attributes so the Access Control tab and
+        // Enable ABAC + user-managed attributes so the Membership Policy tab and
         // the test access rule flow are available.
         await adminClient.patchConfig({
             AccessControlSettings: {
@@ -201,7 +201,7 @@ test.describe('Channel Settings → Access Control', () => {
 
         await createChannelAccessRule(adminClient, channel, aliceExcludingExpression);
 
-        // Alice can open Channel Settings → Access Control as channel admin
+        // Alice can open Channel Settings → Membership Policy as channel admin
         // and test the existing rule through the same UI users exercise.
         const {page} = await pw.testBrowser.login(alice);
         const channelsPage = new ChannelsPage(page);

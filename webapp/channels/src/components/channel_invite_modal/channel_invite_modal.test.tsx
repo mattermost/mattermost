@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelType} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -56,6 +56,8 @@ jest.mock('utils/utils', () => {
 jest.mock('mattermost-redux/client', () => ({
     Client4: {
         getProfilesNotInChannel: jest.fn(),
+        getProfilesMatchingChannelPolicy: jest.fn().mockResolvedValue([]),
+        searchUsers: jest.fn().mockResolvedValue([]),
         getProfilePictureUrl: jest.fn(() => 'mock-url'),
         getUsersRoute: jest.fn(() => '/api/v4/users'),
         getTeamsRoute: jest.fn(() => '/api/v4/teams'),
@@ -144,6 +146,8 @@ describe('components/channel_invite_modal', () => {
         // Reset Client4 mocks before each test
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockClear();
+        Client4.getProfilesMatchingChannelPolicy.mockClear();
+        Client4.searchUsers.mockClear();
         Client4.getProfilePictureUrl.mockClear();
         Client4.getUsersRoute.mockClear();
         Client4.getTeamsRoute.mockClear();
@@ -153,6 +157,10 @@ describe('components/channel_invite_modal', () => {
 
         // Set default return values
         Client4.getProfilesNotInChannel.mockResolvedValue([]);
+
+        // Reset to default empty resolution so per-test overrides don't leak.
+        Client4.getProfilesMatchingChannelPolicy.mockResolvedValue([]);
+        Client4.searchUsers.mockResolvedValue([]);
         Client4.getProfilePictureUrl.mockReturnValue('mock-url');
         Client4.getUsersRoute.mockReturnValue('/api/v4/users');
         Client4.getTeamsRoute.mockReturnValue('/api/v4/teams');
@@ -527,69 +535,92 @@ describe('components/channel_invite_modal', () => {
     });
 
     test('should show loading state for access attributes', () => {
-        // Mock the useAccessControlAttributes hook to return loading state
+        // Mock the useAccessControlAttributes hook to return loading state.
+        // Use mockReturnValue (persistent) rather than mockReturnValueOnce so
+        // the mock survives the re-renders triggered by fetchRecommendedUserIds
+        // on public policy channels.
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
-        useAccessControlAttributesMock.mockReturnValueOnce({
+        const previousImpl = useAccessControlAttributesMock.getMockImplementation();
+        useAccessControlAttributesMock.mockReturnValue({
             structuredAttributes: [],
             loading: true,
             error: null,
             fetchAttributes: jest.fn(),
         });
 
-        const channelWithPolicy = {
-            ...channel,
-            policy_enforced: true,
-        };
+        try {
+            const channelWithPolicy = {
+                ...channel,
+                policy_enforced: true,
+            };
 
-        const props = {
-            ...baseProps,
-            channel: channelWithPolicy,
-        };
+            const props = {
+                ...baseProps,
+                channel: channelWithPolicy,
+            };
 
-        renderWithContext(
-            <ChannelInviteModal {...props}/>,
-        );
+            renderWithContext(
+                <ChannelInviteModal {...props}/>,
+            );
 
-        // Modal renders in a portal, so query from document instead of container
-        expect(document.querySelector('.AlertBanner')).not.toBeNull();
+            // Modal renders in a portal, so query from document instead of container
+            expect(document.querySelector('.AlertBanner')).not.toBeNull();
 
-        // Check that no tags are shown (loading state)
-        expect(screen.queryByText('tag1')).not.toBeInTheDocument();
-        expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+            // Check that no tags are shown (loading state)
+            expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+            expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+        } finally {
+            // try/finally so a mid-test assertion failure can't leak the
+            // mocked impl into the next test's render — the override
+            // intentionally returns loading=true, which would mask the real
+            // hook everywhere else in the suite.
+            if (previousImpl) {
+                useAccessControlAttributesMock.mockImplementation(previousImpl);
+            }
+        }
     });
 
     test('should handle error state for access attributes', () => {
-        // Mock the useAccessControlAttributes hook to return error state
         const useAccessControlAttributesModule = require('components/common/hooks/useAccessControlAttributes');
         const useAccessControlAttributesMock = useAccessControlAttributesModule.default;
-        useAccessControlAttributesMock.mockReturnValueOnce({
+        const previousImpl = useAccessControlAttributesMock.getMockImplementation();
+        useAccessControlAttributesMock.mockReturnValue({
             structuredAttributes: [],
             loading: false,
             error: 'Failed to load attributes',
             fetchAttributes: jest.fn(),
         });
 
-        const channelWithPolicy = {
-            ...channel,
-            policy_enforced: true,
-        };
+        try {
+            const channelWithPolicy = {
+                ...channel,
+                policy_enforced: true,
+            };
 
-        const props = {
-            ...baseProps,
-            channel: channelWithPolicy,
-        };
+            const props = {
+                ...baseProps,
+                channel: channelWithPolicy,
+            };
 
-        renderWithContext(
-            <ChannelInviteModal {...props}/>,
-        );
+            renderWithContext(
+                <ChannelInviteModal {...props}/>,
+            );
 
-        // Modal renders in a portal, so query from document instead of container
-        expect(document.querySelector('.AlertBanner')).not.toBeNull();
+            // Modal renders in a portal, so query from document instead of container
+            expect(document.querySelector('.AlertBanner')).not.toBeNull();
 
-        // Check that no tags are shown (error state)
-        expect(screen.queryByText('tag1')).not.toBeInTheDocument();
-        expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+            // Check that no tags are shown (error state)
+            expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+            expect(screen.queryByText('tag2')).not.toBeInTheDocument();
+        } finally {
+            // try/finally for the same reason as the loading-state test
+            // above — a mid-test assertion failure must not leak the mocked
+            // hook into subsequent renders.
+            if (previousImpl) {
+                useAccessControlAttributesMock.mockImplementation(previousImpl);
+            }
+        }
     });
 
     // the multiselect returns several elements with the same text, usiing a custom function to get the correct one specifing the tagName
@@ -598,12 +629,14 @@ describe('components/channel_invite_modal', () => {
             element?.tagName === 'SPAN' && text.trim() === user,
         ) as HTMLElement;
 
-    test('should not include DM users when ABAC is enabled', async () => {
+    test('should not include DM users when ABAC is enabled on a private channel', async () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
-        const channelWithPolicy = {...channel, policy_enforced: true};
+        // Private channels hard-gate the member list; DM users must be suppressed.
+        const channelWithPolicy = {...channel, type: 'P' as ChannelType, policy_enforced: true};
         const props = {
             ...baseProps,
             channel: channelWithPolicy,
@@ -621,9 +654,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        // Wait for the search to complete
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // now only one visible <span> should match "user-1"
@@ -693,9 +725,11 @@ describe('components/channel_invite_modal', () => {
         expect(getProfilesNotInChannelMock).not.toHaveBeenCalled();
     });
 
-    test('should hide the invite as guest link when channel has policy_enforced', () => {
+    test('should hide the invite as guest link on a private channel with policy_enforced', () => {
+        // Private + policy_enforced is a hard gate — guest invites are blocked.
         const channelWithPolicy = {
             ...channel,
+            type: 'P' as ChannelType,
             policy_enforced: true,
         };
 
@@ -712,6 +746,28 @@ describe('components/channel_invite_modal', () => {
 
         // Check that the invite as guest link is not shown when policy is enforced
         expect(screen.queryByText('Invite as a Guest')).not.toBeInTheDocument();
+    });
+
+    test('should show the invite as guest link on a public channel with policy_enforced (advisory)', () => {
+        // Public + policy_enforced is advisory — guest invites remain available.
+        const channelWithPolicy = {
+            ...channel,
+            type: 'O' as ChannelType,
+            policy_enforced: true,
+        };
+
+        const props = {
+            ...baseProps,
+            channel: channelWithPolicy,
+            canInviteGuests: true,
+            emailInvitationsEnabled: true,
+        };
+
+        renderWithContext(
+            <ChannelInviteModal {...props}/>,
+        );
+
+        expect(screen.queryByText('Invite as a Guest')).toBeInTheDocument();
     });
 
     test('should NOT filter out groups when  NOT ABAC is enforced', async () => {
@@ -757,10 +813,11 @@ describe('components/channel_invite_modal', () => {
         expect(getUserSpan('Developers')).toBeInTheDocument();
     });
 
-    test('should filter out groups when ABAC is enforced', async () => {
+    test('should filter out groups when ABAC is enforced on a private channel', async () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
         const mockGroups = [
             {
@@ -780,8 +837,10 @@ describe('components/channel_invite_modal', () => {
             },
         ];
 
+        // Private + policy_enforced suppresses groups (hard gate).
         const channelWithPolicy = {
             ...channel,
+            type: 'P' as ChannelType,
             policy_enforced: true,
         };
 
@@ -802,9 +861,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        // Wait for the search to complete
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // Should only show users, not groups when ABAC is enforced
@@ -814,14 +872,14 @@ describe('components/channel_invite_modal', () => {
         expect(screen.queryByText('Developers')).toBeNull();
     });
 
-    test('should force fresh API call when ABAC is enforced', async () => {
-        // For ABAC channels, we use Client4 directly, not the Redux action
+    test('should force fresh API call when ABAC is enforced on a private channel', async () => {
+        // For hard-gated (private) ABAC channels we bypass Redux and call Client4 directly.
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([]);
 
         const props = {
             ...baseProps,
-            channel: {...channel, policy_enforced: true},
+            channel: {...channel, type: 'P' as ChannelType, policy_enforced: true},
         };
 
         renderWithContext(<ChannelInviteModal {...props}/>);
@@ -831,7 +889,6 @@ describe('components/channel_invite_modal', () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
         });
 
-        // For ABAC channels, we should call Client4 directly, not the Redux action
         expect(Client4.getProfilesNotInChannel).toHaveBeenCalledWith(
             props.channel.team_id,
             props.channel.id,
@@ -842,14 +899,16 @@ describe('components/channel_invite_modal', () => {
         );
     });
 
-    test('should ignore contaminated Redux data when ABAC is enforced', async () => {
-        // Mock Client4 to return only user-1 for ABAC channels (ignoring contaminated Redux data)
+    test('should ignore contaminated Redux data when ABAC is enforced on a private channel', async () => {
+        // Private + policy_enforced uses a dedicated fetch to get only matching users,
+        // ignoring Redux-backed sources that may include users from other parts of the app.
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
         const props = {
             ...baseProps,
-            channel: {...channel, policy_enforced: true},
+            channel: {...channel, type: 'P' as ChannelType, policy_enforced: true},
             profilesNotInCurrentChannel: [users[0]], // Clean ABAC data
             profilesFromRecentDMs: [users[1]], // Contaminated data
             includeUsers: {[users[1].id]: users[1]}, // Contaminated data
@@ -857,7 +916,6 @@ describe('components/channel_invite_modal', () => {
 
         renderWithContext(<ChannelInviteModal {...props}/>);
 
-        // Wait for the API call to complete and state to update
         await act(async () => {
             await new Promise((resolve) => setTimeout(resolve, 0));
         });
@@ -865,13 +923,64 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        // Wait for the search to complete
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // Should only show clean ABAC data
         expect(getUserSpan('user-1')).toBeInTheDocument();
         expect(screen.queryByText('user-2')).toBeNull();
+    });
+
+    test('public channel with policy_enforced marks matching users as Recommended and sorts them first', async () => {
+        // Advisory (public) policy: the invite list is the normal team list, but
+        // users returned by the recommended-users endpoint get a "Recommended"
+        // tag and are boosted to the top of the options.
+        const {Client4} = require('mattermost-redux/client');
+        Client4.getProfilesMatchingChannelPolicy.mockResolvedValue([users[1]]);
+
+        const props = {
+            ...baseProps,
+            channel: {...channel, type: 'O' as ChannelType, policy_enforced: true},
+            profilesNotInCurrentChannel: [users[0], users[1]],
+        };
+
+        renderWithContext(<ChannelInviteModal {...props}/>);
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const input = screen.getByRole('combobox', {name: /search for people/i});
+        await userEvent.type(input, 'user');
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        // Both users are still visible (advisory, not filtered).
+        const user1Span = getUserSpan('user-1');
+        const user2Span = getUserSpan('user-2');
+        expect(user1Span).toBeInTheDocument();
+        expect(user2Span).toBeInTheDocument();
+
+        // The matching user (user-2) gets the Recommended tag.
+        expect(screen.getByText('Recommended')).toBeInTheDocument();
+
+        // ...and is sorted to the top of the option list. compareDocumentPosition
+        // returns DOCUMENT_POSITION_FOLLOWING (4) when the second arg is later
+        // in the DOM than the first — so user-2 preceding user-1 yields 4.
+        // eslint-disable-next-line no-bitwise
+        expect(user2Span.compareDocumentPosition(user1Span) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+        // The recommended-users endpoint was queried with an empty cursor
+        // for the first page; pagination terminates after a short batch.
+        expect(Client4.getProfilesMatchingChannelPolicy).toHaveBeenCalledWith(
+            props.channel.team_id,
+            props.channel.id,
+            props.channel.group_constrained,
+            50,
+            '',
+        );
     });
 });

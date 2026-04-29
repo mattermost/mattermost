@@ -43,6 +43,7 @@ interface Props extends WrappedComponentProps {
     rememberHideJoinedChannelsChecked: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
+    showRecommendedFilter?: boolean;
 }
 
 type State = {
@@ -310,6 +311,14 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     defaultMessage={'No public channels'}
                 />
             );
+        case Filter.Recommended:
+            return (
+                <FormattedMessage
+                    id={'more_channels.noRecommended'}
+                    tagName='strong'
+                    defaultMessage={'No recommended channels'}
+                />
+            );
         default:
             return (
                 <FormattedMessage
@@ -341,6 +350,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.show_private_channels'
                     defaultMessage='Channel Type: Private'
+                />
+            );
+        case Filter.Recommended:
+            return (
+                <FormattedMessage
+                    id='more_channels.show_recommended_channels'
+                    defaultMessage='Recommended channels'
                 />
             );
         default:
@@ -485,6 +501,26 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 aria-label={this.props.intl.formatMessage({id: 'suggestion.private', defaultMessage: 'Private channels'})}
             />,
         ];
+
+        if (this.props.showRecommendedFilter) {
+            channelDropdownItems.push(
+                <Menu.Separator key='channelsMoreDropdownRecommendedSeparator'/>,
+                <Menu.Item
+                    key='channelsMoreDropdownRecommended'
+                    id='channelsMoreDropdownRecommended'
+                    onClick={() => this.filterChange(Filter.Recommended)}
+                    leadingElement={<GlobeCheckedIcon size={16}/>}
+                    labels={
+                        <FormattedMessage
+                            id='suggestion.recommended'
+                            defaultMessage='Recommended channels'
+                        />
+                    }
+                    trailingElements={this.props.filter === Filter.Recommended ? checkIcon : null}
+                    aria-label={this.props.intl.formatMessage({id: 'suggestion.recommended', defaultMessage: 'Recommended channels'})}
+                />,
+            );
+        }
 
         channelDropdownItems.push(
             <Menu.Separator key='channelsMoreDropdownSeparator'/>,
