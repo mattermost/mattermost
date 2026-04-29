@@ -310,6 +310,9 @@ function PostComponent(props: Props) {
 
     const getClassName = () => {
         const isMeMessage = checkIsMeMessage(post);
+        const isCurrentUserPost = props.currentUserId === post.user_id;
+        const isCenterChannelBubblePost = props.location === Locations.CENTER && !isSystemMessage && !isMeMessage;
+
         const hovered =
             hover || fileDropdownOpened || dropdownOpened || a11yActive || props.isPostBeingEdited;
         return classNames('a11y__section post', {
@@ -318,8 +321,10 @@ function PostComponent(props: Props) {
             'other--root': !hasSameRoot(props) && !isSystemMessage,
             'post--bot': PostUtils.isFromBot(post),
             'post--editing': props.isPostBeingEdited,
-            'current--user': props.currentUserId === post.user_id && !isSystemMessage,
+            'current--user': isCurrentUserPost && !isSystemMessage,
             'post--system': isSystemMessage || isMeMessage,
+            'post--chat-bubble': isCenterChannelBubblePost,
+            'post--chat-bubble-me': isCenterChannelBubblePost && isCurrentUserPost,
             'post--root': props.hasReplies && !(post.root_id && post.root_id.length > 0),
             'post--comment': (post.root_id && post.root_id.length > 0 && !props.isCollapsedThreadsEnabled) || (props.location === Locations.RHS_COMMENT),
             'post--compact': props.compactDisplay,
@@ -346,13 +351,17 @@ function PostComponent(props: Props) {
     }, [togglePostMenu]);
 
     const handleMouseOver = useCallback((e: MouseEvent<HTMLDivElement>) => {
-        setHover(true);
+        //setHover(true);
         setAlt(e.altKey);
     }, []);
 
     const handleMouseLeave = useCallback(() => {
-        setHover(false);
+        //setHover(false);
         setAlt(false);
+    }, []);
+
+    const handleRightClick = useCallback(() => {
+        return;
     }, []);
 
     const handleCardClick = (post?: Post) => {
@@ -740,6 +749,7 @@ function PostComponent(props: Props) {
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
+                onContextMenu={handleRightClick}
                 autotranslated={props.isChannelAutotranslated}
             >
                 {props.isChannelAutotranslated && isTranslating && (
@@ -794,7 +804,7 @@ function PostComponent(props: Props) {
                     <div className='post__img'>
                         {profilePic}
                     </div>
-                    <div>
+                    <div className='post__main'>
                         <div
                             className='post__header'
                             ref={postHeaderRef}
