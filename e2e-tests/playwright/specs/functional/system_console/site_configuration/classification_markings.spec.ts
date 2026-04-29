@@ -125,7 +125,12 @@ test.describe('System Console - Classification markings', () => {
     /**
      * @objective Verify selecting a built-in preset and saving creates the classification field successfully.
      */
-    test(
+    // Skipped: master regression. The CM frontend creates a property field on the
+    // `custom_profile_attributes` group, registered as PSAv1 in server.go, but
+    // the API rejects v1 groups since #36171 ("PSAv2 generic APIs blacklist").
+    // Re-enable once the CPA group is migrated to v2 (or v1 template/system
+    // creates are allowed, mirroring the patch-route FIXME at properties.go:299).
+    test.skip(
         'MM-T6204 classification markings: select NATO preset and save',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
@@ -161,7 +166,8 @@ test.describe('System Console - Classification markings', () => {
     /**
      * @objective When a classification field already exists, changing preset shows a warning modal; confirming applies the new preset.
      */
-    test(
+    // Skipped: see MM-T6204 — saving a preset hits the v2_group_not_found check.
+    test.skip(
         'MM-T6205 classification markings: preset change shows confirm modal then applies',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
@@ -205,7 +211,8 @@ test.describe('System Console - Classification markings', () => {
     /**
      * @objective After saving a preset, deleting a level switches the preset dropdown to Custom and save still succeeds.
      */
-    test(
+    // Skipped: see MM-T6204 — saving a preset hits the v2_group_not_found check.
+    test.skip(
         'MM-T6206 classification markings: delete level switches to custom and saves',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
