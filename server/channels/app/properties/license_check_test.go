@@ -15,7 +15,7 @@ import (
 func TestLicenseCheckHook(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_license_check", Version: model.PropertyGroupVersionV1})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_license_check", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	var currentLicense *model.License
@@ -82,7 +82,7 @@ func TestLicenseCheckHook(t *testing.T) {
 
 	t.Run("allows operations on unmanaged groups without license", func(t *testing.T) {
 		currentLicense = nil
-		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_no_license_needed", Version: model.PropertyGroupVersionV1})
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_no_license_needed", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
 
 		field := &model.PropertyField{
@@ -139,7 +139,7 @@ func TestLicenseCheckHook(t *testing.T) {
 
 	t.Run("allows field counts without license on unmanaged group", func(t *testing.T) {
 		currentLicense = nil
-		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "count_no_license_needed", Version: model.PropertyGroupVersionV1})
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "count_no_license_needed", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
 		for _, c := range countCalls {
 			require.NoError(t, c.call(otherGroup.ID), c.name)

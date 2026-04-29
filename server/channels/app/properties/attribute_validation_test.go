@@ -16,7 +16,7 @@ import (
 func TestAttributeValidationHook(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validation", Version: model.PropertyGroupVersionV1})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_attr_validation", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	hook := NewAttributeValidationHook(th.service, nil, group.ID)
@@ -94,7 +94,7 @@ func TestAttributeValidationHook(t *testing.T) {
 	})
 
 	t.Run("skips validation for unmanaged groups", func(t *testing.T) {
-		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV1})
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_group", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
 
 		field := &model.PropertyField{
@@ -688,7 +688,7 @@ func TestAttributeValidationHook(t *testing.T) {
 func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_managed_auth", Version: model.PropertyGroupVersionV1})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_managed_auth", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	adminUserID := model.NewId()
@@ -799,7 +799,7 @@ func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 	})
 
 	t.Run("managed check skipped for unmanaged groups", func(t *testing.T) {
-		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_managed", Version: model.PropertyGroupVersionV1})
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_other_managed", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
 
 		rctx := RequestContextWithCallerID(th.Context, regularUserID)

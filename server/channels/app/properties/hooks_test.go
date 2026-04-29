@@ -133,7 +133,7 @@ func TestHookRegistration(t *testing.T) {
 func TestPreHookBlocking(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 	t.Run("pre-hook error blocks CreatePropertyField", func(t *testing.T) {
 		hook := &testHook{
@@ -191,7 +191,7 @@ func TestPreHookBlocking(t *testing.T) {
 func TestPreHookInputModification(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 	t.Run("pre-hook modifies field before creation", func(t *testing.T) {
 		hook := &testHook{
@@ -219,7 +219,7 @@ func TestPreHookInputModification(t *testing.T) {
 func TestPostHookFiltering(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 	t.Run("post-hook returning nil field without error surfaces errNilHookResult", func(t *testing.T) {
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -279,7 +279,7 @@ func TestPostHookFiltering(t *testing.T) {
 func TestMultipleHooksChaining(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 	t.Run("multiple pre-hooks chain modifications in order", func(t *testing.T) {
 		order := []string{}
@@ -398,7 +398,8 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "protected-managed-" + model.NewId(),
 			Type:       model.PropertyFieldTypeText,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, err := th.service.CreatePropertyField(rctxPlugin1, field)
 		require.NoError(t, err)
@@ -446,7 +447,8 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 			GroupID:    th.CPAGroupID,
 			Name:       "source-only-managed-" + model.NewId(),
 			Type:       model.PropertyFieldTypeSelect,
-			TargetType: "user",
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyAttrsAccessMode: model.PropertyAccessModeSourceOnly,
 				model.PropertyAttrsProtected:  true,
@@ -505,7 +507,7 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	rctx := th.Context
-	groupID := model.NewId()
+	groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 	t.Run("pre-hook error blocks batch UpdatePropertyFields", func(t *testing.T) {
 		hook := &testHook{

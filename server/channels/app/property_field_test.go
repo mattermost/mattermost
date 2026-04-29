@@ -676,9 +676,11 @@ func TestGetPropertyField(t *testing.T) {
 
 	t.Run("should get an existing field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Field to Get",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Field to Get",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)
@@ -703,14 +705,18 @@ func TestGetPropertyFields(t *testing.T) {
 
 	t.Run("should get multiple fields", func(t *testing.T) {
 		field1 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Multi Get Field 1",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Multi Get Field 1",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		field2 := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Multi Get Field 2",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Multi Get Field 2",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 
 		created1, appErr := th.App.CreatePropertyField(th.Context, field1, false, "")
@@ -732,9 +738,11 @@ func TestSearchPropertyFields(t *testing.T) {
 
 	t.Run("should search for fields", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: groupID,
-			Name:    "Searchable Field",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    groupID,
+			Name:       "Searchable Field",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
 		_, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
 		require.Nil(t, appErr)

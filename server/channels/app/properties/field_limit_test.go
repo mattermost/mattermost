@@ -14,7 +14,7 @@ import (
 func TestFieldLimitHook(t *testing.T) {
 	th := Setup(t)
 
-	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_field_limit", Version: model.PropertyGroupVersionV1})
+	group, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_field_limit", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	hook := NewFieldLimitHook(th.service)
@@ -66,7 +66,7 @@ func TestFieldLimitHook(t *testing.T) {
 	})
 
 	t.Run("skips limit check for unregistered groups", func(t *testing.T) {
-		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_no_limits", Version: model.PropertyGroupVersionV1})
+		otherGroup, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "test_no_limits", Version: model.PropertyGroupVersionV2})
 		require.NoError(t, groupErr)
 
 		for range 10 {

@@ -19,7 +19,7 @@ func TestHooksOnlyScopeToManagedGroups(t *testing.T) {
 
 	// Operations on an unmanaged group should bypass the access control
 	// hook entirely and proceed directly to the store layer.
-	unmanagedGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unmanaged_group", Version: model.PropertyGroupVersionV1})
+	unmanagedGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "unmanaged_group", Version: model.PropertyGroupVersionV2})
 	require.NoError(t, err)
 
 	t.Run("CreatePropertyField on unmanaged group bypasses hooks", func(t *testing.T) {
