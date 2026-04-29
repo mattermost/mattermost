@@ -105,6 +105,213 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		require.NotNil(t, result)
 		mockAccessControl.AssertExpectations(t)
 	})
+
+	t.Run("Channel-type policy broadcasts policy enforced update", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		channelID := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:   channelID,
+			Type: model.AccessControlPolicyTypeChannel,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		// publishChannelPolicyEnforcedUpdate is expected to invalidate the
+		// channel cache and reload the channel for the WS payload.
+		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("SavePolicy", thMock.Context, mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
+			return p.ID == channelID && p.Type == model.AccessControlPolicyTypeChannel
+		})).Return(channelPolicy, nil).Once()
+
+		result, err := thMock.App.CreateOrUpdateAccessControlPolicy(thMock.Context, channelPolicy)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mockAccessControl.AssertExpectations(t)
+		mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
+		mockChannelStore.AssertCalled(t, "Get", channelID, true)
+	})
+
+	t.Run("Parent-type policy does not broadcast channel-only update", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		parentID := model.NewId()
+		parentPolicy := &model.AccessControlPolicy{
+			ID:   parentID,
+			Type: model.AccessControlPolicyTypeParent,
+			Name: "parent-no-broadcast",
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
+
+		// publishChannelPolicyEnforcedForChannelPoliciesWithImport iterates
+		// over child channel policies; with no children there is no fan-out
+		// to channel cache invalidation.
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{}, int64(0), nil)
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("SavePolicy", thMock.Context, mock.Anything).Return(parentPolicy, nil).Once()
+
+		result, err := thMock.App.CreateOrUpdateAccessControlPolicy(thMock.Context, parentPolicy)
+		require.Nil(t, err)
+		require.NotNil(t, result)
+
+		mockChannelStore.AssertNotCalled(t, "InvalidateChannel", mock.Anything)
+		mockChannelStore.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
+	})
+}
+
+func TestDeleteAccessControlPolicy(t *testing.T) {
+	t.Run("Feature not enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		th.App.Srv().ch.AccessControl = nil
+
+		appErr := th.App.DeleteAccessControlPolicy(th.Context, model.NewId())
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
+
+	t.Run("GetPolicy error is propagated", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		policyID := model.NewId()
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockAccessControl
+		expectedErr := model.NewAppError("GetPolicy", "app.pap.get_policy.app_error", nil, "boom", http.StatusInternalServerError)
+		mockAccessControl.On("GetPolicy", th.Context, policyID).Return(nil, expectedErr).Once()
+
+		appErr := th.App.DeleteAccessControlPolicy(th.Context, policyID)
+		require.NotNil(t, appErr)
+		require.Equal(t, expectedErr.Id, appErr.Id)
+		mockAccessControl.AssertNotCalled(t, "DeletePolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Channel-type policy invalidates cache and broadcasts update", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		channelID := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"},
+			},
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		// publishChannelPolicyEnforcedUpdate must invalidate the channel
+		// cache and reload the channel for the WS payload.
+		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
+
+		// channel-type policies must NOT trigger a parent fan-out search.
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore).Maybe()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("GetPolicy", thMock.Context, channelID).Return(channelPolicy, nil).Once()
+		mockAccessControl.On("DeletePolicy", thMock.Context, channelID).Return(nil).Once()
+
+		appErr := thMock.App.DeleteAccessControlPolicy(thMock.Context, channelID)
+		require.Nil(t, appErr)
+
+		mockAccessControl.AssertExpectations(t)
+		mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
+		mockChannelStore.AssertCalled(t, "Get", channelID, true)
+		mockACPStore.AssertNotCalled(t, "SearchPolicies", mock.Anything, mock.Anything)
+	})
+
+	t.Run("Parent-type policy fans out to all child channels", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		parentID := model.NewId()
+		childChannelID := model.NewId()
+
+		parentPolicy := &model.AccessControlPolicy{
+			ID:      parentID,
+			Type:    model.AccessControlPolicyTypeParent,
+			Name:    "parent-broadcast",
+			Version: model.AccessControlPolicyVersionV0_3,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore)
+		// One affected child channel must have its cache invalidated and be reloaded.
+		mockChannelStore.On("InvalidateChannel", childChannelID).Once()
+		mockChannelStore.On("Get", childChannelID, true).Return(&model.Channel{Id: childChannelID, Type: model.ChannelTypePrivate}, nil).Once()
+
+		mockACPStore := storemocks.AccessControlPolicyStore{}
+		mockStore.On("AccessControlPolicy").Return(&mockACPStore)
+		// channelPolicyIDsWithImport (called pre-delete) returns one child.
+		mockACPStore.On("SearchPolicies", thMock.Context, mock.MatchedBy(func(s model.AccessControlPolicySearch) bool {
+			return s.Type == model.AccessControlPolicyTypeChannel && s.ParentID == parentID
+		})).Return([]*model.AccessControlPolicy{{ID: childChannelID, Type: model.AccessControlPolicyTypeChannel}}, int64(1), nil).Once()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("GetPolicy", thMock.Context, parentID).Return(parentPolicy, nil).Once()
+		mockAccessControl.On("DeletePolicy", thMock.Context, parentID).Return(nil).Once()
+
+		appErr := thMock.App.DeleteAccessControlPolicy(thMock.Context, parentID)
+		require.Nil(t, appErr)
+
+		mockAccessControl.AssertExpectations(t)
+		mockChannelStore.AssertCalled(t, "InvalidateChannel", childChannelID)
+		mockChannelStore.AssertCalled(t, "Get", childChannelID, true)
+	})
+
+	t.Run("Channel-type policy: DeletePolicy error short-circuits broadcast", func(t *testing.T) {
+		thMock := SetupWithStoreMock(t)
+
+		channelID := model.NewId()
+		channelPolicy := &model.AccessControlPolicy{
+			ID:      channelID,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_3,
+		}
+
+		mockStore := thMock.App.Srv().Store().(*storemocks.Store)
+		mockChannelStore := storemocks.ChannelStore{}
+		mockStore.On("Channel").Return(&mockChannelStore).Maybe()
+
+		mockAccessControl := &mocks.AccessControlServiceInterface{}
+		thMock.App.Srv().ch.AccessControl = mockAccessControl
+		mockAccessControl.On("GetPolicy", thMock.Context, channelID).Return(channelPolicy, nil).Once()
+		expectedErr := model.NewAppError("DeletePolicy", "app.pap.delete.app_error", nil, "delete failed", http.StatusInternalServerError)
+		mockAccessControl.On("DeletePolicy", thMock.Context, channelID).Return(expectedErr).Once()
+
+		appErr := thMock.App.DeleteAccessControlPolicy(thMock.Context, channelID)
+		require.NotNil(t, appErr)
+		require.Equal(t, expectedErr.Id, appErr.Id)
+
+		// Broadcast must not happen if deletion failed.
+		mockChannelStore.AssertNotCalled(t, "InvalidateChannel", mock.Anything)
+		mockChannelStore.AssertNotCalled(t, "Get", mock.Anything, mock.Anything)
+	})
 }
 
 func TestGetChannelsForPolicy(t *testing.T) {
@@ -606,6 +813,9 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockStore.On("Channel").Return(&mockChannelStore)
 		// Expect InvalidateChannel to be called
 		mockChannelStore.On("InvalidateChannel", channelID).Once()
+		// publishChannelPolicyEnforcedUpdate calls Channel().Get(...) to load
+		// the fresh channel (with PolicyEnforced computed) for the WS payload.
+		mockChannelStore.On("Get", channelID, true).Return(&model.Channel{Id: channelID, Type: model.ChannelTypePrivate}, nil).Once()
 
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		thMock.App.Srv().ch.AccessControl = mockAccessControl

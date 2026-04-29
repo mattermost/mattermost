@@ -15,6 +15,42 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Routes should be available when ClassificationMarkings=true even with IntegratedBoards=false
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ClassificationMarkings = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "classification_test",
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, err)
+	require.NotNil(t, group)
+
+	t.Run("create field should succeed with ClassificationMarkings flag", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, createdField.ID)
+	})
+
+	t.Run("get fields should succeed with ClassificationMarkings flag", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{TargetType: "system"})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {

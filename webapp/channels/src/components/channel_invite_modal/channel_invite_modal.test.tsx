@@ -502,9 +502,9 @@ describe('components/channel_invite_modal', () => {
         // Modal renders in a portal, so query from document instead of container
         expect(document.querySelector('.AlertBanner')).not.toBeNull();
 
-        // Check that the attribute tags are shown
-        expect(screen.getByText('tag1')).toBeInTheDocument();
-        expect(screen.getByText('tag2')).toBeInTheDocument();
+        // Check that the attribute tags are shown in "Attribute: value" form.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
 
     test('should not show AlertBanner when policy_enforced is false', () => {
