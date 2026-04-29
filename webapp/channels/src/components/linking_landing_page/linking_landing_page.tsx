@@ -12,7 +12,7 @@ import ExternalLink from 'components/external_link';
 
 import desktopImg from 'images/deep-linking/deeplinking-desktop-img.png';
 import mobileImg from 'images/deep-linking/deeplinking-mobile-img.png';
-import MattermostLogoSvg from 'images/logo.svg';
+import MattermostLogo from 'images/logo.png';
 import {LandingPreferenceTypes} from 'utils/constants';
 
 type Props = {
@@ -441,7 +441,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         let header = (
             <div className='get-app__header'>
                 <img
-                    src={MattermostLogoSvg}
+                    src={MattermostLogo}
                     className='get-app__logo'
                 />
             </div>
