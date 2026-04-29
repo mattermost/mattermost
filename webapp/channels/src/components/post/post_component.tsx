@@ -360,9 +360,10 @@ function PostComponent(props: Props) {
         setAlt(false);
     }, []);
 
-    const handleRightClick = useCallback(() => {
-        return;
+    const handleRightClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+        e.preventDefault();
     }, []);
+
 
     const handleCardClick = (post?: Post) => {
         if (!post) {
@@ -746,7 +747,7 @@ function PostComponent(props: Props) {
                 post={post}
                 className={getClassName()}
                 style={props.preventClickInteraction ? preventInteractionStyle : undefined}
-                onClick={handlePostClick}
+                onDoubleClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
                 onContextMenu={handleRightClick}
