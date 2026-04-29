@@ -114,6 +114,10 @@ const ChannelInviteModalComponent = (props: Props) => {
     // overwrite recommendations for the current one.
     const recommendedUserIdsRequestId = useRef<number>(0);
 
+    // Monotonic token for fetchAbacUsers — stale HTTP responses must not
+    // overwrite abacFilteredUsers after the user switches channels.
+    const abacProfilesFetchRequestId = useRef<number>(0);
+
     // Public channels with a policy are advisory — the invite list is not
     // filtered and matching users are merely surfaced as a recommendation.
     // Private channels with a policy remain a hard gate.
@@ -307,6 +311,7 @@ const ChannelInviteModalComponent = (props: Props) => {
     // search/profile actions don't apply the ABAC server-side filter, and
     // doing so would surface non-matching users in the strict-gate UI.
     const fetchAbacUsers = useCallback(async (page = 0, perPage = USERS_PER_PAGE, cursorId = '') => {
+        const requestId = ++abacProfilesFetchRequestId.current;
         const isInitialLoad = page === 0 && !cursorId;
         try {
             const profiles = await Client4.getProfilesNotInChannel(
@@ -317,6 +322,9 @@ const ChannelInviteModalComponent = (props: Props) => {
                 perPage,
                 cursorId,
             );
+            if (requestId !== abacProfilesFetchRequestId.current) {
+                return {data: profiles || []};
+            }
             if (isInitialLoad) {
                 setAbacFilteredUsers(profiles || []);
             } else if (profiles && profiles.length > 0) {
@@ -328,6 +336,9 @@ const ChannelInviteModalComponent = (props: Props) => {
             }
             return {data: profiles || []};
         } catch (error) {
+            if (requestId !== abacProfilesFetchRequestId.current) {
+                return {error};
+            }
             if (isInitialLoad) {
                 setAbacFilteredUsers([]);
             }
@@ -650,6 +661,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         // and modal unmount.
         return () => {
             recommendedUserIdsRequestId.current++;
+            abacProfilesFetchRequestId.current++;
         };
     }, [
         props.channel.id,

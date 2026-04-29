@@ -648,7 +648,7 @@ describe('components/BrowseChannels', () => {
         });
     });
 
-    test('Recommended filter fetches recommended channels and lists only those', async () => {
+    test('Recommended filter fetches recommended channels, boosts them on All, and lists only recommended when filtered', async () => {
         const recommendedChannel = TestHelper.getChannelMock({
             id: 'recommended-channel-id',
             team_id: 'team_1',
@@ -657,32 +657,40 @@ describe('components/BrowseChannels', () => {
             type: 'O',
         });
 
+        const getChannels = jest.fn().mockResolvedValue({
+            data: [defaultChannel, recommendedChannel],
+        });
         const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedChannel]});
         const props = {
             ...baseProps,
             accessControlEnabled: true,
             channels: [defaultChannel, recommendedChannel],
-            actions: {...baseProps.actions, getRecommendedChannelsForUser},
+            actions: {...baseProps.actions, getChannels, getRecommendedChannelsForUser},
         };
 
         renderWithContext(<BrowseChannels {...props}/>);
 
-        await act(async () => {
-            await Promise.resolve();
+        await waitFor(() => {
+            expect(getRecommendedChannelsForUser).toHaveBeenCalledWith('team_1');
         });
 
-        expect(getRecommendedChannelsForUser).toHaveBeenCalledWith('team_1');
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.getByTestId('ChannelRow-default-channel')).toBeInTheDocument();
+        });
+
+        const recommendedRow = screen.getByTestId('ChannelRow-recommended-channel');
+        const defaultRow = screen.getByTestId('ChannelRow-default-channel');
+        expect(
+            recommendedRow.compareDocumentPosition(defaultRow) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).not.toBe(0);
 
         await user.click(screen.getByLabelText('Channel type filter'));
         await user.click(await screen.findByText('Recommended channels'));
 
-        await act(async () => {
-            await Promise.resolve();
-        });
-
         await waitFor(() => {
-            expect(screen.getByText('Recommended Channel')).toBeInTheDocument();
-            expect(screen.queryByText('Default Channel')).not.toBeInTheDocument();
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.queryByTestId('ChannelRow-default-channel')).not.toBeInTheDocument();
         });
     });
 

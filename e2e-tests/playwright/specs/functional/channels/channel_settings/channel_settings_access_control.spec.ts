@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 /**
- * @objective E2E tests for the Access Control tab in Channel Settings Modal
- * @reference MM-67326
+ * @objective E2E tests for the Membership Policy tab (access_rules) in Channel Settings Modal
+ * @reference MM-67326 — public and private channels can carry ABAC membership policies
  */
 
 import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
@@ -62,7 +62,7 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await channelSettings.close();
     });
 
-    test('MM-67326_c3 Access Control tab hidden for public channel', async ({pw}) => {
+    test('MM-67326_c3 Membership Policy tab visible for admin on public channel with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
@@ -76,8 +76,8 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channelSettings = await channelsPage.openChannelSettings();
 
-        // * Access Control tab is NOT visible for public channel
-        await expect(channelSettings.container.getByTestId('access_rules-tab-button')).not.toBeVisible();
+        // * Membership Policy tab is visible on public channels when ABAC is enabled (not group-constrained / not default)
+        await expect(channelSettings.container.getByTestId('access_rules-tab-button')).toBeVisible();
 
         await channelSettings.close();
     });

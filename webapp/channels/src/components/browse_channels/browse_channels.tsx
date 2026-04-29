@@ -160,8 +160,10 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             if (ids.size > 0) {
                 this.props.actions.getChannelsMemberCount(Array.from(ids));
             }
+            this.loadComplete();
+        }).catch(() => {
+            this.loadComplete();
         });
-        this.loadComplete();
     }
 
     loadComplete = () => {

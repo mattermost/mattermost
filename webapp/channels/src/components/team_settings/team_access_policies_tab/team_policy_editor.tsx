@@ -224,6 +224,30 @@ export default function TeamPolicyEditor({
         return false;
     }, [savedChannelTypes, channelChanges]);
 
+    const confirmationChannelCounts = useMemo(() => {
+        let publicCount = 0;
+        let privateCount = 0;
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        const channelsAffected = (channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length;
+        return {publicCount, privateCount, channelsAffected};
+    }, [savedChannelTypes, channelChanges, channelsCount]);
+
     const validateForm = useCallback(async () => {
         if (policyName.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.name_required', defaultMessage: 'Please add a name to the policy'}));
@@ -599,41 +623,16 @@ export default function TeamPolicyEditor({
                 />
             )}
 
-            {showConfirmationModal && (() => {
-                // Effective channel mix = (saved - removed) + added. Count by
-                // type so the confirmation modal can describe the outcome
-                // precisely — public and private channels behave differently
-                // under the same policy.
-                let publicCount = 0;
-                let privateCount = 0;
-                for (const [id, type] of Object.entries(savedChannelTypes)) {
-                    if (channelChanges.removed[id]) {
-                        continue;
-                    }
-                    if (type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                for (const ch of Object.values(channelChanges.added)) {
-                    if (ch.type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                return (
-                    <TeamPolicyConfirmationModal
-                        onExited={() => setShowConfirmationModal(false)}
-                        onConfirm={handleSave}
-                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                        publicChannelsAffected={publicCount}
-                        privateChannelsAffected={privateCount}
-                        saving={saving}
-                    />
-                );
-            })()}
+            {showConfirmationModal && (
+                <TeamPolicyConfirmationModal
+                    onExited={() => setShowConfirmationModal(false)}
+                    onConfirm={handleSave}
+                    channelsAffected={confirmationChannelCounts.channelsAffected}
+                    publicChannelsAffected={confirmationChannelCounts.publicCount}
+                    privateChannelsAffected={confirmationChannelCounts.privateCount}
+                    saving={saving}
+                />
+            )}
 
             {showDeleteModal && (
                 <GenericModal

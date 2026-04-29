@@ -145,6 +145,7 @@ func TestCreateOrUpdateAccessControlPolicy(t *testing.T) {
 		mockAccessControl.AssertExpectations(t)
 		mockChannelStore.AssertCalled(t, "InvalidateChannel", channelID)
 		mockChannelStore.AssertCalled(t, "Get", channelID, true)
+		mockChannelStore.AssertExpectations(t)
 	})
 
 	t.Run("Parent-type policy does not broadcast channel-only update", func(t *testing.T) {
@@ -789,7 +790,7 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 		th.App.Srv().ch.AccessControl = notImplementedACS
 		t.Cleanup(func() { th.App.Srv().ch.AccessControl = mockACS })
 		notImplementedACS.On("DeletePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string")).
-			Return(model.NewAppError("DeletePolicy", "app.pap.not_initialized", nil, "PAP not initialized", http.StatusNotImplemented))
+			Return(model.NewAppError("DeletePolicy", "app.pap.not_initialized", nil, "PAP not initialized", http.StatusNotImplemented)).Once()
 
 		ch := th.CreatePrivateChannel(t, th.BasicTeam)
 		saveChildPolicy(t, ch.Id)
@@ -799,6 +800,9 @@ func TestChannelDeleteCleansUpAccessControlPolicy(t *testing.T) {
 
 		appErr = th.App.PermanentDeleteChannel(th.Context, reloaded)
 		require.Nil(t, appErr)
+
+		notImplementedACS.AssertCalled(t, "DeletePolicy", mock.AnythingOfType("*request.Context"), ch.Id)
+		notImplementedACS.AssertExpectations(t)
 
 		_, err := th.App.Srv().Store().AccessControlPolicy().Get(th.Context, ch.Id)
 		require.Error(t, err, "policy should be removed via the store-level fallback when acs reports NotImplemented")

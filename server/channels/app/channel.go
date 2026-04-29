@@ -745,7 +745,10 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		// does to members. The admin must remove the policy first and
 		// re-apply it after the conversion if they still want it.
 		current, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
-		if getErr == nil && current.Type != channel.Type {
+		if getErr != nil {
+			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+		}
+		if current.Type != channel.Type {
 			return nil, model.NewAppError("UpdateChannel",
 				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
 				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)

@@ -488,6 +488,23 @@ describe('ChannelSettingsModal', () => {
             expect(accessControlTab).toHaveTextContent('Membership Policy');
         });
 
+        it('should not show Membership Policy tab for shared channels', async () => {
+            mockManageChannelAccessRulesPermission = true;
+
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+            testState.entities.channels.channels[channelId].shared = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
+        });
+
         it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
             mockManageChannelAccessRulesPermission = true;
 

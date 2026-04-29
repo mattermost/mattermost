@@ -356,7 +356,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             return (
                 <FormattedMessage
                     id='more_channels.show_recommended_channels'
-                    defaultMessage='Recommended channels'
+                    defaultMessage='Channel Type: Recommended'
                 />
             );
         default:

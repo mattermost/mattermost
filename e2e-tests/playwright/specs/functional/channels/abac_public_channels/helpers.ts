@@ -261,13 +261,13 @@ export async function createTrackedTeamMember(
     teamId: string,
     attribute: {fieldId: string; value: string} | undefined,
     ledger: CleanupLedger,
-): Promise<UserProfile> {
+): Promise<UserProfile & {password: string}> {
     const id = getRandomId();
     const username = `pub${id}`.toLowerCase();
     const password = newTestPassword();
 
     const user = await adminClient.createUser(
-        {email: `${username}@sample.mattermost.com`, username, password} as any,
+        {email: `${username}@sample.mattermost.com`, username, password} as UserProfile & {password: string},
         '',
         '',
     );
@@ -284,6 +284,5 @@ export async function createTrackedTeamMember(
 
     // Attach the password back to the user object so pw.testBrowser.login() can
     // authenticate — the API response does not include it.
-    (user as any).password = password;
-    return user;
+    return {...user, password};
 }
