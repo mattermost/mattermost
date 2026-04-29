@@ -116,15 +116,18 @@ describe('link (mmaction://)', () => {
         expect(result).not.toContain('inline-action-button-placeholder');
     });
 
-    test('oversized params returns plain text', () => {
+    test('params at the size cap render; over the cap fall through to plain text', () => {
         const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
-        const longValue = 'x'.repeat(2100); // > MAX_INLINE_ACTION_PARAMS_LENGTH (2048)
-        const href = `mmaction://mx?k=${longValue}`;
 
-        const result = renderer.link(href, '', 'Click');
+        // MAX_INLINE_ACTION_PARAMS_LENGTH is 2048. "k=" is 2 chars, so 2046
+        // x's makes the query string exactly 2048 (at the cap). 2047 x's
+        // makes it 2049 (over the cap). Locks down the > vs >= boundary.
+        const atCap = renderer.link(`mmaction://mx?k=${'x'.repeat(2046)}`, '', 'Click');
+        expect(atCap).toContain('inline-action-button-placeholder');
 
-        expect(result).toBe('Click');
-        expect(result).not.toContain('inline-action-button-placeholder');
+        const overCap = renderer.link(`mmaction://mx?k=${'x'.repeat(2047)}`, '', 'Click');
+        expect(overCap).toBe('Click');
+        expect(overCap).not.toContain('inline-action-button-placeholder');
     });
 
     test('label with HTML tags is stripped to plain text', () => {
@@ -140,6 +143,19 @@ describe('link (mmaction://)', () => {
 
         // The tag is fully removed, leaving an empty label in this case.
         expect(result).toContain('"></span>');
+    });
+
+    test('text surrounding a stripped tag is preserved in the label', () => {
+        const renderer = new Renderer({}, {allowInlineActions: true, postId: 'p1'});
+
+        // Guards against an over-eager sanitizer (e.g., a future swap from
+        // regex-based stripping to a DOM-based one) dropping legitimate text
+        // along with the tag.
+        const result = renderer.link('mmaction://mx?a=1', '', 'prefix<img src=x>suffix');
+
+        expect(result).toContain('>prefixsuffix</span>');
+        expect(result).not.toContain('<img');
+        expect(result).not.toContain('&lt;img');
     });
 
     test('label with bold markup is flattened to plain text', () => {
