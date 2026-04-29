@@ -118,6 +118,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
     public heightTimeout = 0;
     public mounted = false;
     public timeout: NodeJS.Timeout | null = null;
+    public imageRetryTimeout: NodeJS.Timeout | null = null;
 
     constructor(props: Props) {
         super(props);
@@ -143,6 +144,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.mounted = false;
+        if (this.imageRetryTimeout) {
+            clearTimeout(this.imageRetryTimeout);
+            this.imageRetryTimeout = null;
+        }
     }
 
     dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
@@ -172,14 +177,17 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
 
     handleError = () => {
         if (this.mounted) {
-            if (this.props.onImageLoadFail) {
-                this.props.onImageLoadFail();
-            }
+            const shouldRetry = !this.props.isFileRejected && getFileMiniPreviewUrl(this.props.fileInfo) && this.state.imageRetry < MAX_IMAGE_LOAD_RETRIES;
+
             this.setState({error: true});
 
-            if (getFileMiniPreviewUrl(this.props.fileInfo) && this.state.imageRetry < MAX_IMAGE_LOAD_RETRIES) {
+            if (shouldRetry) {
                 const imageRetry = this.state.imageRetry + 1;
-                setTimeout(() => {
+                if (this.imageRetryTimeout) {
+                    clearTimeout(this.imageRetryTimeout);
+                }
+                this.imageRetryTimeout = setTimeout(() => {
+                    this.imageRetryTimeout = null;
                     if (this.mounted) {
                         this.setState({
                             error: false,
@@ -187,6 +195,11 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                         });
                     }
                 }, IMAGE_LOAD_RETRY_DELAY);
+                return;
+            }
+
+            if (this.props.onImageLoadFail) {
+                this.props.onImageLoadFail();
             }
         }
     };
