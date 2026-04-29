@@ -3219,6 +3219,10 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
+    "id": "api.property_value.field_object_type_mismatch.app_error",
+    "translation": "One or more property fields do not match the route's object type."
+  },
+  {
     "id": "api.property_value.invalid_object_type.app_error",
     "translation": "The provided object type is not valid."
   },
@@ -3241,6 +3245,10 @@
   {
     "id": "api.property_value.patch.too_many_items.request_error",
     "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "System values must use the dedicated system values endpoint."
   },
   {
     "id": "api.property_value.target_user.forbidden.app_error",
