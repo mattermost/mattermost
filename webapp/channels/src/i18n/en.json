@@ -4431,6 +4431,7 @@
   "deactivate_member_modal.sso_warning": "You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.",
   "deactivate_member_modal.title": "Deactivate {username}",
   "default_category.create_new_prefix": "Create new category: ",
+  "default_category.help_text": "Sets the default sidebar category for users when they join the channel.",
   "default_category.label": "Default category (optional)",
   "default_category.placeholder": "Choose a default category (optional)",
   "default_category.placeholder_focused": "Select category or type a new one",
