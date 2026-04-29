@@ -448,4 +448,66 @@ func testAttributesStoreSearchUsersBySubjectID(t *testing.T, rctx request.CTX, s
 		require.Len(t, subjects, 0, "expected 0 users when query doesn't match SubjectID")
 		require.Equal(t, int64(0), count, "expected count 0")
 	})
+
+	// Regression test: a top-level OR in the CEL-derived query (e.g. produced
+	// by "has any of [a, b]") used to bleed past the AND-joined SubjectID
+	// clause because of SQL operator precedence (AND binds tighter than OR).
+	// The expression must be wrapped in parentheses before it is added to
+	// the WHERE clause; otherwise the SubjectID filter is silently bypassed
+	// for the left-hand side of the OR. See ValidateExpressionAgainstRequester
+	// callers (channel-admin "Test access rule" self-exclusion check).
+	t.Run("Search users by SubjectID with top-level OR query does not bypass SubjectID filter", func(t *testing.T) {
+		// users[0] (u1) has property_a = value_a1
+		// users[1] (u2) has property_a = value_a2
+		// users[2] (u3) has property_a = value_a1
+		// The OR query matches all three; SubjectID must restrict the
+		// result to a single user.
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text OR Attributes ->> '" + testPropertyA + "' = $2::text"
+
+		for _, u := range users {
+			subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+				Query:     query,
+				Args:      []any{testPropertyValueA1, testPropertyValueA2},
+				SubjectID: u.Id,
+				Limit:     1,
+			})
+			require.NoError(t, err, "couldn't search users by SubjectID with top-level OR query")
+			require.Len(t, subjects, 1, "expected exactly the requested SubjectID to be returned (subject_id=%s)", u.Id)
+			require.Equal(t, u.Id, subjects[0].Id, "expected SubjectID filter to be honored despite top-level OR (subject_id=%s)", u.Id)
+			require.Equal(t, int64(1), count, "expected count 1 when filtering by SubjectID with top-level OR query (subject_id=%s)", u.Id)
+		}
+	})
+
+	// Regression test: same root cause as the SubjectID test above, but for
+	// the implicit Users.DeleteAt = 0 filter. A top-level OR in the
+	// CEL-derived query must not bleed past the AND-joined DeleteAt clause
+	// and surface soft-deleted users.
+	t.Run("Search users with top-level OR query does not surface soft-deleted users", func(t *testing.T) {
+		// Soft-delete users[0]; revert at end of subtest.
+		u := users[0]
+		originalDeleteAt := u.DeleteAt
+		u.DeleteAt = model.GetMillis()
+		_, err := ss.User().Update(rctx, u, true)
+		require.NoError(t, err, "couldn't soft-delete user")
+		t.Cleanup(func() {
+			u.DeleteAt = originalDeleteAt
+			_, cErr := ss.User().Update(rctx, u, true)
+			require.NoError(t, cErr, "couldn't restore user")
+		})
+
+		// users[0] (soft-deleted) and users[2] both have property_a = value_a1.
+		// users[1] has property_a = value_a2. The OR query matches all three.
+		// AllowInactive defaults to false, so users[0] must be excluded.
+		query := "Attributes ->> '" + testPropertyA + "' = $1::text OR Attributes ->> '" + testPropertyA + "' = $2::text"
+		subjects, count, err := ss.Attributes().SearchUsers(rctx, model.SubjectSearchOptions{
+			Query: query,
+			Args:  []any{testPropertyValueA1, testPropertyValueA2},
+		})
+		require.NoError(t, err, "couldn't search users with top-level OR query")
+		require.Len(t, subjects, 2, "expected 2 active users (soft-deleted users[0] excluded)")
+		require.Equal(t, int64(2), count, "expected count 2 active users")
+		for _, s := range subjects {
+			require.NotEqual(t, u.Id, s.Id, "soft-deleted user must not be surfaced by top-level OR query")
+		}
+	})
 }
