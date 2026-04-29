@@ -40,10 +40,14 @@ export class CleanupLedger {
     async drain(): Promise<void> {
         const tasks = this.tasks;
         this.tasks = [];
-        for (const task of tasks) {
+        for (let i = 0; i < tasks.length; i++) {
             try {
-                await task();
-            } catch {
+                await tasks[i]();
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : String(e);
+                const stack = e instanceof Error ? e.stack : undefined;
+                // eslint-disable-next-line no-console
+                console.error(`CleanupLedger.drain: cleanup task ${i} failed`, message, stack ?? '');
                 // Swallow — cleanup is best-effort and must not mask the test
                 // result or stop subsequent cleanups from running.
             }
@@ -243,8 +247,12 @@ export async function waitForJobCompletion(
 
     while (Date.now() < deadline) {
         const job: any = await client.getJob(jobId);
-        if (job.status === 'success' || job.status === 'error' || job.status === 'canceled') {
+        if (job.status === 'success') {
             return job;
+        }
+        if (job.status === 'error' || job.status === 'canceled') {
+            const detail = job?.data?.message ?? job?.message ?? job?.error ?? JSON.stringify(job?.data ?? job);
+            throw new Error(`Job ${jobId} finished with status ${job.status}: ${detail}`);
         }
         await new Promise((res) => setTimeout(res, pollIntervalMs));
     }

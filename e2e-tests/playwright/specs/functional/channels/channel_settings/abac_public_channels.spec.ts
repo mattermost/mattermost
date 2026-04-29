@@ -9,9 +9,9 @@
  * @reference Public-channel ABAC feature
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, getAdminClient, test} from '@mattermost/playwright-lib';
 
-import {enableABACConfig} from '../team_settings/helpers';
+import {enableABACConfig, enableAPIUserDeletion} from '../team_settings/helpers';
 
 import {
     CleanupLedger,
@@ -26,6 +26,18 @@ import {
 
 test.describe('ABAC - Public channels', () => {
     let ledger: CleanupLedger;
+
+    // Enable the permanent-delete API once for the whole describe so the
+    // CleanupLedger's permanentDeleteUser cleanup tasks succeed instead of
+    // spamming "Permanent user deletion feature is not enabled" on teardown.
+    // `pw` is test-scoped, so we use the worker-scoped getAdminClient here.
+    test.beforeAll(async () => {
+        const {adminClient} = await getAdminClient();
+        if (!adminClient) {
+            return;
+        }
+        await enableAPIUserDeletion(adminClient);
+    });
 
     test.beforeEach(() => {
         ledger = new CleanupLedger();

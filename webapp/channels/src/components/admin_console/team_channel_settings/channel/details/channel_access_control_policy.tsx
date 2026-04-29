@@ -145,14 +145,6 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>
                     <div className='access-policy-container'>
-                        {!accessControlPolicies && (
-                            <div className='access-policy-description'>
-                                <FormattedMessage
-                                    id='admin.channel_settings.channel_detail.select_policy'
-                                    defaultMessage='Apply a membership policy for this channel.'
-                                />
-                            </div>
-                        )}
                         {renderTable()}
                     </div>
                 </div>

@@ -102,10 +102,14 @@ const ChannelInviteModalComponent = (props: Props) => {
     const [inviteError, setInviteError] = useState<string | undefined>(undefined);
     const [pageCursors, setPageCursors] = useState<{[page: number]: string}>({});
     const [abacFilteredUsers, setAbacFilteredUsers] = useState<UserProfile[]>([]);
+
+    /** Server ABAC search hits when the user types a term on private policy-enforced channels (see Client4.searchUsers). Null means use {@link abacFilteredUsers} instead. */
+    const [privateAbacSearchHits, setPrivateAbacSearchHits] = useState<UserProfile[] | null>(null);
     const [recommendedUserIds, setRecommendedUserIds] = useState<Set<string>>(new Set());
 
     const searchTimeoutId = useRef<number>(0);
     const selectedItemRef = useRef<HTMLDivElement>(null);
+    const privateAbacSearchSeq = useRef<number>(0);
 
     // Monotonic token for fetchRecommendedUserIds — incremented every time we
     // start a fresh fetch (or the channel changes). The pagination loop reads
@@ -219,9 +223,11 @@ const ChannelInviteModalComponent = (props: Props) => {
 
         let users: UserProfileValue[];
         if (isPolicyEnforcedPrivate) {
-            // Hard-gate ABAC: use the server-filtered list (only matching users).
-            const filteredUsers = filterProfilesStartingWithTerm(abacFilteredUsers, term);
-            users = filterOutDeletedAndExcludedAndNotInTeamUsers(filteredUsers, excludedAndNotInTeamUserIds);
+            const sourceList =
+                term.trim().length > 0 ?
+                    (privateAbacSearchHits ?? []) :
+                    abacFilteredUsers;
+            users = filterOutDeletedAndExcludedAndNotInTeamUsers(sourceList, excludedAndNotInTeamUserIds);
         } else {
             // Non-ABAC or advisory (public policy): full team list.
             const filteredUsers = filterProfilesStartingWithTerm(props.profilesNotInCurrentChannel.concat(props.profilesInCurrentChannel), term);
@@ -272,6 +278,7 @@ const ChannelInviteModalComponent = (props: Props) => {
         excludedUsers,
         filterOutDeletedAndExcludedAndNotInTeamUsers,
         abacFilteredUsers,
+        privateAbacSearchHits,
     ]);
 
     // Handle modal hide
@@ -483,12 +490,39 @@ const ChannelInviteModalComponent = (props: Props) => {
         if (!term) {
             // Reset cursor state when clearing search
             setPageCursors({});
+            setPrivateAbacSearchHits(null);
             setUsersLoadingState(false);
             return;
         }
 
         searchTimeoutId.current = window.setTimeout(
             async () => {
+                if (isPolicyEnforcedPrivate) {
+                    privateAbacSearchSeq.current++;
+                    const seq = privateAbacSearchSeq.current;
+                    setUsersLoadingState(true);
+                    try {
+                        const profiles = await Client4.searchUsers(term, {
+                            team_id: props.channel.team_id,
+                            not_in_channel_id: props.channel.id,
+                            group_constrained: Boolean(props.channel.group_constrained),
+                            limit: 100,
+                        });
+                        if (seq === privateAbacSearchSeq.current) {
+                            setPrivateAbacSearchHits(profiles || []);
+                        }
+                    } catch {
+                        if (seq === privateAbacSearchSeq.current) {
+                            setPrivateAbacSearchHits([]);
+                        }
+                    } finally {
+                        if (seq === privateAbacSearchSeq.current) {
+                            setUsersLoadingState(false);
+                        }
+                    }
+                    return;
+                }
+
                 const options = {
                     team_id: props.channel.team_id,
                     not_in_channel_id: props.channel.id,
@@ -504,16 +538,11 @@ const ChannelInviteModalComponent = (props: Props) => {
                     include_member_ids: true,
                 };
 
-                // Skip searchProfiles for the hard-gated private policy path:
-                // getOptions() reads from the scoped abacFilteredUsers buffer in
-                // that mode and never touches profilesNotInCurrentChannel, so any
-                // results dispatched into the global Redux profile cache would be
-                // unused noise (and a wasted server round-trip).
-                const promises = isPolicyEnforcedPrivate ? [] : [
+                const promises = [
                     props.actions.searchProfiles(term, options),
                 ];
 
-                if (props.isGroupsEnabled && !isPolicyEnforcedPrivate) {
+                if (props.isGroupsEnabled) {
                     promises.push(props.actions.searchAssociatedGroupsForReference(term, props.channel.team_id, props.channel.id, opts));
                 }
                 await Promise.all(promises);
@@ -624,6 +653,13 @@ const ChannelInviteModalComponent = (props: Props) => {
 
     // Initial data loading - only run when channel changes or component mounts
     useEffect(() => {
+        privateAbacSearchSeq.current++;
+        setAbacFilteredUsers([]);
+        setRecommendedUserIds(new Set());
+        setPrivateAbacSearchHits(null);
+        setPageCursors({});
+        setUsersLoadingState(true);
+
         if (isPolicyEnforcedPrivate) {
             // Hard-gate ABAC: avoid Redux store pollution; only matching users.
             fetchAbacUsers().then(() => {
@@ -687,7 +723,8 @@ const ChannelInviteModalComponent = (props: Props) => {
         isPolicyEnforcedPrivate,
         isPolicyRecommendedPublic,
         recommendedUserIds,
-        abacFilteredUsers, // Add local ABAC state
+        abacFilteredUsers,
+        privateAbacSearchHits,
     ]);
 
     // Update team members when options change

@@ -104,6 +104,18 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         );
     }, [showPolicyNames, safePolicies, getPolicyDisplayName, handleMorePoliciesClick, handleKeyDown]);
 
+    const policyListSuffix = useMemo(() => {
+        if (!showPolicyNames || safePolicies.length === 0) {
+            return null;
+        }
+        return (
+            <>
+                {': '}
+                {renderPolicyList()}
+            </>
+        );
+    }, [showPolicyNames, safePolicies.length, renderPolicyList]);
+
     // Channels (and teams) use membership-oriented wording because the policy
     // governs who is or becomes a member. Files retain "access" wording — a
     // user doesn't become a "member" of a file.
@@ -171,28 +183,28 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
             description = hasMultiplePolicies ? (
                 <FormattedMessage
                     id='system_policy_indicator.description_with_membership_policies'
-                    defaultMessage='This {resourceType} has system-level membership policies applied: {policyList}. Any custom membership rules you set here will be applied in addition to these policies.'
-                    values={{resourceType, policyList: renderPolicyList()}}
+                    defaultMessage='This {resourceType} has system-level membership policies applied{policySuffix}. Any custom membership rules you set here will be applied in addition to these policies.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
                 />
             ) : (
                 <FormattedMessage
                     id='system_policy_indicator.description_with_membership_policy'
-                    defaultMessage='This {resourceType} has a system-level membership policy applied: {policyList}. Any custom membership rules you set here will be applied in addition to this policy.'
-                    values={{resourceType, policyList: renderPolicyList()}}
+                    defaultMessage='This {resourceType} has a system-level membership policy applied{policySuffix}. Any custom membership rules you set here will be applied in addition to this policy.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
                 />
             );
         } else {
             description = hasMultiplePolicies ? (
                 <FormattedMessage
                     id='system_policy_indicator.description_with_policies'
-                    defaultMessage='This {resourceType} has system-level access policies applied: {policyList}. Any custom access rules you set here will be applied in addition to these policies.'
-                    values={{resourceType, policyList: renderPolicyList()}}
+                    defaultMessage='This {resourceType} has system-level access policies applied{policySuffix}. Any custom access rules you set here will be applied in addition to these policies.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
                 />
             ) : (
                 <FormattedMessage
                     id='system_policy_indicator.description_with_policy'
-                    defaultMessage='This {resourceType} has a system-level access policy applied: {policyList}. Any custom access rules you set here will be applied in addition to this policy.'
-                    values={{resourceType, policyList: renderPolicyList()}}
+                    defaultMessage='This {resourceType} has a system-level access policy applied{policySuffix}. Any custom access rules you set here will be applied in addition to this policy.'
+                    values={{resourceType, policySuffix: policyListSuffix}}
                 />
             );
         }
@@ -215,7 +227,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
                 </div>
             </>
         );
-    }, [hasMultiplePolicies, resourceType, renderPolicyList, usesMembershipWording]);
+    }, [hasMultiplePolicies, resourceType, policyListSuffix, usesMembershipWording]);
 
     const renderMessage = useCallback(() => {
         if (variant === 'compact') {

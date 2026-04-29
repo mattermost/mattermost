@@ -34,9 +34,12 @@ export default function PolicyConfirmationModal({active, onExited, onConfirm, ch
             defaultMessage: 'This policy is applied to channels of mixed types. For private channels, only matching users can be added and non-matching existing members will be removed. For public channels, the policy acts as a recommendation only; no existing members will be removed.',
         });
     } else if (hasOnlyPublic) {
-        bodyText = formatMessage({
+        bodyText = active ? formatMessage({
             id: 'admin.access_control.policy.save_policy_confirmation_body.public',
             defaultMessage: 'Matching users will see these public channels as recommendations and, when auto-add is enabled, will be added automatically. Anyone can still join these channels; no existing members will be removed.',
+        }) : formatMessage({
+            id: 'admin.access_control.policy.save_policy_confirmation_body.public_inactive',
+            defaultMessage: 'Matching users will see these public channels as recommendations only; no existing members will be removed. Turn on Active (auto-add) to add matching users automatically.',
         });
     } else {
         bodyText = active ? formatMessage({

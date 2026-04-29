@@ -92,7 +92,7 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     <p>
                         <FormattedMessage
                             id='admin.access_control.sync_jobs.description'
-                            defaultMessage='Apply active membership policies to their assigned channels.'
+                            defaultMessage='Apply membership policies to their assigned resources.'
                         />
                     </p>
                 </div>

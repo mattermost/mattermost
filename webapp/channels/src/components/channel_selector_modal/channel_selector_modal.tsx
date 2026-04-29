@@ -38,6 +38,7 @@ type Props = {
     excludeTeamIds?: string[];
     excludeTypes?: string[];
     teamId?: string;
+    excludeRemote?: boolean;
     customNoOptionsMessage?: React.ReactNode;
     isStacked?: boolean;
 }
@@ -86,6 +87,9 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
         if (this.props.excludeDefaultChannels) {
             opts.exclude_default_channels = true;
+        }
+        if (this.props.excludeRemote) {
+            opts.exclude_remote = true;
         }
         return opts;
     }

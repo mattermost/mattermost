@@ -57,6 +57,7 @@ jest.mock('mattermost-redux/client', () => ({
     Client4: {
         getProfilesNotInChannel: jest.fn(),
         getProfilesMatchingChannelPolicy: jest.fn().mockResolvedValue([]),
+        searchUsers: jest.fn().mockResolvedValue([]),
         getProfilePictureUrl: jest.fn(() => 'mock-url'),
         getUsersRoute: jest.fn(() => '/api/v4/users'),
         getTeamsRoute: jest.fn(() => '/api/v4/teams'),
@@ -146,6 +147,7 @@ describe('components/channel_invite_modal', () => {
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockClear();
         Client4.getProfilesMatchingChannelPolicy.mockClear();
+        Client4.searchUsers.mockClear();
         Client4.getProfilePictureUrl.mockClear();
         Client4.getUsersRoute.mockClear();
         Client4.getTeamsRoute.mockClear();
@@ -158,6 +160,7 @@ describe('components/channel_invite_modal', () => {
 
         // Reset to default empty resolution so per-test overrides don't leak.
         Client4.getProfilesMatchingChannelPolicy.mockResolvedValue([]);
+        Client4.searchUsers.mockResolvedValue([]);
         Client4.getProfilePictureUrl.mockReturnValue('mock-url');
         Client4.getUsersRoute.mockReturnValue('/api/v4/users');
         Client4.getTeamsRoute.mockReturnValue('/api/v4/teams');
@@ -630,6 +633,7 @@ describe('components/channel_invite_modal', () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
         // Private channels hard-gate the member list; DM users must be suppressed.
         const channelWithPolicy = {...channel, type: 'P' as ChannelType, policy_enforced: true};
@@ -650,9 +654,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        // Wait for the search to complete
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // now only one visible <span> should match "user-1"
@@ -814,6 +817,7 @@ describe('components/channel_invite_modal', () => {
         // Mock Client4 to return user-1 for ABAC channels
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
         const mockGroups = [
             {
@@ -857,9 +861,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        // Wait for the search to complete
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // Should only show users, not groups when ABAC is enforced
@@ -901,6 +904,7 @@ describe('components/channel_invite_modal', () => {
         // ignoring Redux-backed sources that may include users from other parts of the app.
         const {Client4} = require('mattermost-redux/client');
         Client4.getProfilesNotInChannel.mockResolvedValue([users[0]]);
+        Client4.searchUsers.mockResolvedValue([users[0]]);
 
         const props = {
             ...baseProps,
@@ -919,8 +923,8 @@ describe('components/channel_invite_modal', () => {
         const input = screen.getByRole('combobox', {name: /search for people/i});
         await userEvent.type(input, 'user');
 
-        await act(async () => {
-            await new Promise((resolve) => setTimeout(resolve, 0));
+        await waitFor(() => {
+            expect(Client4.searchUsers).toHaveBeenCalled();
         });
 
         // Should only show clean ABAC data

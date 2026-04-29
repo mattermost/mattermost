@@ -619,6 +619,7 @@ export default function TeamPolicyEditor({
                     excludeGroupConstrained={true}
                     excludeDefaultChannels={true}
                     teamId={teamId}
+                    excludeRemote={Boolean(teamId)}
                     isStacked={true}
                 />
             )}
