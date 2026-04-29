@@ -154,7 +154,6 @@ export default function ClassificationMarkings({disabled}: Props) {
                 if (field) {
                     const result = processClassificationField(field);
 
-                    // Load the linked system classification field and its property value
                     const linkedField = await fetchLinkedClassificationField();
                     if (cancelled) {
                         return;
@@ -330,8 +329,8 @@ export default function ClassificationMarkings({disabled}: Props) {
     const persistLevels = useCallback(async (): Promise<void> => {
         const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
 
-        // Always re-fetch existing fields at save time to avoid creating duplicates
-        // when the initial useEffect load missed them (timing / currentUserId race).
+        // Re-fetch fields at save time to avoid creating duplicates if the
+        // initial load missed them (timing / currentUserId race).
         let templateField = existingField;
         let linkedField = existingLinkedField;
         if (!templateField) {
@@ -348,7 +347,6 @@ export default function ClassificationMarkings({disabled}: Props) {
         }
 
         if (enabled) {
-            // Create or patch the template field
             let savedTemplate: PropertyField;
             if (templateField) {
                 savedTemplate = await savePatchField(templateField.id, levels);
@@ -357,15 +355,17 @@ export default function ClassificationMarkings({disabled}: Props) {
             }
             const result = processClassificationField(savedTemplate);
 
-            // Create or patch the linked system classification field
+            // Create/patch linked field with empty actions first, upsert the
+            // selected value, then activate the banner — ensures the banner
+            // never points at a stale option if the value write fails.
+            const disabledBanner: GlobalBannerConfig = {...DEFAULT_GLOBAL_BANNER};
             let savedLinked: PropertyField;
             if (linkedField) {
-                savedLinked = await savePatchLinkedField(linkedField.id, effectiveBanner);
+                savedLinked = await savePatchLinkedField(linkedField.id, disabledBanner);
             } else {
-                savedLinked = await saveCreateLinkedField(savedTemplate.id, effectiveBanner);
+                savedLinked = await saveCreateLinkedField(savedTemplate.id, disabledBanner);
             }
 
-            // Upsert the system property value with the selected option ID
             if (effectiveBanner.enabled && effectiveBanner.level_name) {
                 const options = (savedTemplate.attrs?.options as PropertyFieldOption[]) ?? [];
                 const optionId = findOptionIdByName(options, effectiveBanner.level_name);
@@ -375,10 +375,10 @@ export default function ClassificationMarkings({disabled}: Props) {
                 }
             }
 
-            // Eagerly push saved fields into Redux so components like the
-            // GlobalClassificationBanner see the new options + value atomically,
-            // instead of waiting for separate WebSocket events that may arrive
-            // out of order and cause the banner to flicker or disappear.
+            savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
+
+            // Push saved fields into Redux eagerly so the banner updates
+            // atomically rather than waiting for out-of-order WS events.
             dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
 
             setExistingField(savedTemplate);
@@ -390,12 +390,13 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialGlobalBanner(effectiveBanner);
             setInitialEnabled(true);
         } else if (templateField) {
-            // Disabling classification:
-            // Linked field MUST be deleted before the template (deletion protection).
+            // Linked field must be deleted before the template (deletion protection).
             if (linkedField) {
                 await saveDeleteLinkedField(linkedField.id);
+                dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: linkedField.id}});
             }
             await saveDeleteField(templateField.id);
+            dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: templateField.id}});
 
             setExistingField(null);
             setExistingLinkedField(null);

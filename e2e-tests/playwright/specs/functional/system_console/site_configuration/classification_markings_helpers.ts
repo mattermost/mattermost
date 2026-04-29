@@ -152,7 +152,13 @@ export async function setupClassificationFieldWithGlobalBanner(
     } as Parameters<Client4['createPropertyField']>[2]);
 
     // 3. Upsert the system property value with the selected option ID.
-    if (enabled && optionId) {
+    if (enabled) {
+        if (!optionId) {
+            throw new Error(
+                `setupClassificationFieldWithGlobalBanner: resolved optionId is empty for level "${bannerOpts.levelName}". ` +
+                    'The server may not have assigned an ID to the option.',
+            );
+        }
         if (typeof (adminClient as any).patchPropertyValues !== 'function') {
             throw new Error('adminClient.patchPropertyValues is not available — rebuild @mattermost/client');
         }
