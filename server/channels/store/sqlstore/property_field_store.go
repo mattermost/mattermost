@@ -444,7 +444,8 @@ func (s *SqlPropertyFieldStore) buildConflictSubquery(level string, objectType, 
 // new fields.
 func (s *SqlPropertyFieldStore) CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error) {
 	// Legacy properties (PSAv1) use old uniqueness via DB constraint
-	if field.IsPSAv1() {
+	// FIXME: explicitly excluding templates from the shortcircuit, should be removed after CPA is fully migrated to v2
+	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
 		return "", nil
 	}
 

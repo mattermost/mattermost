@@ -24,6 +24,7 @@ export const LevelOptionLabel = styled.div`
     gap: 8px;
 `;
 
+
 export const InformationNoticeWrapper = styled.div`
     margin-bottom: 16px;
 

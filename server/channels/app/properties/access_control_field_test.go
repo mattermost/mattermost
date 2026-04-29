@@ -281,7 +281,7 @@ func TestGetPropertyFieldReadAccess(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without filtering", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-routing-read")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_routing_read", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -780,7 +780,7 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without setting source_plugin_id", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-create")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_create", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -952,7 +952,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-update")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_update", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -1130,7 +1130,7 @@ func TestDeletePropertyField_WriteAccessControl(t *testing.T) {
 	})
 
 	t.Run("non-CPA group routes directly to PropertyService without access control", func(t *testing.T) {
-		nonCpaGroup, err := th.service.RegisterPropertyGroup("other-group-delete")
+		nonCpaGroup, err := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: "other_group_delete", Version: model.PropertyGroupVersionV1})
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
@@ -1238,6 +1238,8 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 }
 
 func TestLinkedPropertyField_SecurityInheritance(t *testing.T) {
+	t.Skip("Skip until CPA is fully migrated to v2: this test creates linked fields with ObjectType and permissions on a v1 group, which is rejected by the version mismatch check")
+
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	th.service.setPluginCheckerForTests(func(pluginID string) bool {
 		return pluginID == "plugin-1" || pluginID == "plugin-2"

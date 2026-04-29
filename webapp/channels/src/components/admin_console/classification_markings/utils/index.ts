@@ -161,10 +161,7 @@ export async function saveCreateField(levels: ClassificationLevel[]): Promise<Pr
         type: 'select' as PropertyField['type'],
         target_type: TARGET_TYPE,
         target_id: TARGET_ID,
-        attrs: {
-            options,
-            managed: 'admin',
-        },
+        attrs: {options, managed: 'admin'},
         permission_field: 'sysadmin',
         permission_values: 'sysadmin',
         permission_options: 'sysadmin',
@@ -178,10 +175,7 @@ export async function saveDeleteField(fieldId: string): Promise<void> {
 export async function savePatchField(fieldId: string, levels: ClassificationLevel[]): Promise<PropertyField> {
     const options = levelsToOptions(levels);
     return Client4.patchPropertyField(GROUP_NAME, OBJECT_TYPE, fieldId, {
-        attrs: {
-            options,
-            managed: 'admin',
-        },
+        attrs: {options},
     } as Partial<PropertyField>);
 }
 
@@ -210,9 +204,6 @@ export async function fetchLinkedClassificationField(): Promise<PropertyField | 
 }
 
 export async function saveCreateLinkedField(templateFieldId: string, config: GlobalBannerConfig): Promise<PropertyField> {
-    // type, options, and permission levels are inherited from the source template
-    // automatically by the server (PR #35808). We only need to provide identity
-    // fields and our custom attrs.actions for banner placement.
     return Client4.createPropertyField(GROUP_NAME, LINKED_OBJECT_TYPE, {
         name: LINKED_FIELD_NAME,
         type: 'select' as PropertyField['type'],
