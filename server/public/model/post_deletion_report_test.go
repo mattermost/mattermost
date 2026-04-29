@@ -16,8 +16,8 @@ import (
 // stubTranslateFunc returns translation IDs as-is, or interpolates params if provided.
 // This mimics the i18n.TranslateFunc signature for unit tests without loading real locale files.
 func stubTranslateFunc(id string, args ...any) string {
-	if len(args) > 0 {
-		if params, ok := args[0].(map[string]any); ok {
+	for _, arg := range args {
+		if params, ok := arg.(map[string]any); ok {
 			result := id
 			for k, v := range params {
 				result = strings.ReplaceAll(result, fmt.Sprintf("{{.%s}}", k), fmt.Sprintf("%v", v))
@@ -36,6 +36,7 @@ func TestDeletionStepStatusIcon(t *testing.T) {
 		{StepSuccess, "✅"},
 		{StepFailed, "❌"},
 		{StepPartial, "⚠️"},
+		{StepNotApplicable, "➖"},
 		{DeletionStepStatus(99), "❓"},
 	}
 
@@ -47,9 +48,10 @@ func TestDeletionStepStatusIcon(t *testing.T) {
 func TestDeletionStepStatusLabel(t *testing.T) {
 	T := stubTranslateFunc
 
-	assert.Equal(t, "app.data_spillage.report.status.deleted", StepSuccess.Label(T))
+	assert.Equal(t, "app.data_spillage.report.status.removed", StepSuccess.Label(T))
 	assert.Equal(t, "app.data_spillage.report.status.failed", StepFailed.Label(T))
 	assert.Equal(t, "app.data_spillage.report.status.partial", StepPartial.Label(T))
+	assert.Equal(t, "app.data_spillage.report.status.not_applicable", StepNotApplicable.Label(T))
 	assert.Equal(t, "app.data_spillage.report.status.unknown", DeletionStepStatus(99).Label(T))
 }
 
@@ -98,19 +100,24 @@ func TestPostDeletionReportCountStatuses(t *testing.T) {
 	report.AddStep("s3", StepFailed, "", nil)
 	report.AddStep("s4", StepPartial, "", nil)
 	report.AddStep("s5", StepPartial, "", nil)
+	report.AddStep("s6", StepNotApplicable, "", nil)
+	report.AddStep("s7", StepNotApplicable, "", nil)
+	report.AddStep("s8", StepNotApplicable, "", nil)
 
-	success, failed, partial := report.CountStatuses()
+	success, failed, partial, notApplicable := report.CountStatuses()
 	assert.Equal(t, 2, success)
 	assert.Equal(t, 1, failed)
 	assert.Equal(t, 2, partial)
+	assert.Equal(t, 3, notApplicable)
 }
 
 func TestPostDeletionReportCountStatusesEmpty(t *testing.T) {
 	report := &PostDeletionReport{}
-	success, failed, partial := report.CountStatuses()
+	success, failed, partial, notApplicable := report.CountStatuses()
 	assert.Equal(t, 0, success)
 	assert.Equal(t, 0, failed)
 	assert.Equal(t, 0, partial)
+	assert.Equal(t, 0, notApplicable)
 }
 
 func TestCountSubStepSuccesses(t *testing.T) {
@@ -221,10 +228,10 @@ func TestRenderWithSubSteps(t *testing.T) {
 	report.Steps = append(report.Steps, DeletionStepResult{
 		Name:   "app.data_spillage.report.step.edit_histories",
 		Status: StepPartial,
-		Detail: "{{.Cleared}} of {{.Total}} revisions cleared",
+		Detail: "{{.Count}} of {{.Total}} revisions cleared",
 		DetailParams: map[string]any{
-			"Cleared": 2,
-			"Total":   3,
+			"Count": 2,
+			"Total": 3,
 		},
 		SubSteps: []DeletionSubStep{
 			{Name: "edit1", Status: StepSuccess},

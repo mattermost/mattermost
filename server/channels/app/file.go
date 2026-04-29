@@ -1776,8 +1776,8 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		rctx.Logger().Debug("No files found for post", mlog.String("post_id", postID))
 
 		if report != nil {
-			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_files"), nil)
-			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_rows_to_delete"), nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_files"), nil)
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.fileinfo_rows"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_rows_to_delete"), nil)
 		}
 
 		return nil
@@ -1799,7 +1799,7 @@ func (a *App) PermanentDeleteFilesByPost(rctx request.CTX, postID string, report
 		}
 	} else {
 		if report != nil {
-			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"FileCount": len(fileInfos)}, nil)
+			report.AddStepWithParams(i18n.TranslationId("app.data_spillage.report.step.file_attachments"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.file_names"), map[string]any{"Count": len(fileInfos)}, nil)
 		}
 	}
 

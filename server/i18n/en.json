@@ -6072,7 +6072,10 @@
   },
   {
     "id": "app.data_spillage.report.detail.file_names",
-    "translation": "Removed {{.FileCount}} from the file system"
+    "translation": {
+      "one": "Removed {{.Count}} file from disk.",
+      "other": "Removed {{.Count}} files from disk."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.no_data_found",
@@ -6092,7 +6095,10 @@
   },
   {
     "id": "app.data_spillage.report.detail.revisions_cleared",
-    "translation": "{{.Cleared}} of {{.Total}} revisions cleared"
+    "translation": {
+      "one": "Cleared {{.Count}} revision of {{.Total}}.",
+      "other": "Cleared {{.Count}} revisions of {{.Total}}."
+    }
   },
   {
     "id": "app.data_spillage.report.detail.thread_data_deleted",
@@ -6108,7 +6114,7 @@
   },
   {
     "id": "app.data_spillage.report.incomplete_warning",
-    "translation": "Post deletion incomplete. Resolve failures and retry."
+    "translation": "Post deletion incomplete. Review the Error Log and escalate to a System Administrator for manual remediation."
   },
   {
     "id": "app.data_spillage.report.post_id",
@@ -6123,16 +6129,20 @@
     "translation": "Revisions found:"
   },
   {
-    "id": "app.data_spillage.report.status.deleted",
-    "translation": "Deleted"
-  },
-  {
     "id": "app.data_spillage.report.status.failed",
     "translation": "Failed"
   },
   {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Not applicable"
+  },
+  {
     "id": "app.data_spillage.report.status.partial",
     "translation": "Partial"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Removed"
   },
   {
     "id": "app.data_spillage.report.status.unknown",
@@ -6144,15 +6154,15 @@
   },
   {
     "id": "app.data_spillage.report.step.edit_histories",
-    "translation": "Edit histories"
+    "translation": "Edit history"
   },
   {
     "id": "app.data_spillage.report.step.file_attachments",
-    "translation": "Post's file attachments from file system"
+    "translation": "File attachments"
   },
   {
     "id": "app.data_spillage.report.step.fileinfo_rows",
-    "translation": "`FileInfo` rows"
+    "translation": "File attachment records"
   },
   {
     "id": "app.data_spillage.report.step.persistent_notifications",
@@ -6160,11 +6170,11 @@
   },
   {
     "id": "app.data_spillage.report.step.post_itself",
-    "translation": "The post itself"
+    "translation": "Post record"
   },
   {
     "id": "app.data_spillage.report.step.priority_data",
-    "translation": "Post priority data"
+    "translation": "Priority metadata"
   },
   {
     "id": "app.data_spillage.report.step.reminders",
@@ -6172,7 +6182,7 @@
   },
   {
     "id": "app.data_spillage.report.step.thread_data",
-    "translation": "Thread & associated data"
+    "translation": "Thread, replies, and reactions"
   },
   {
     "id": "app.data_spillage.report.summary",

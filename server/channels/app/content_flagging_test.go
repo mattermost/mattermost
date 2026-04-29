@@ -2660,9 +2660,9 @@ func TestPermanentDeleteFlaggedPostReport(t *testing.T) {
 	require.Equal(t, post.Id, report.PostID)
 	require.False(t, report.Timestamp.IsZero())
 
-	// All steps should succeed
-	successCount, failedCount, partialCount := report.CountStatuses()
-	require.Equal(t, len(report.Steps), successCount, "all steps should succeed")
+	// All steps should succeed (or be marked not-applicable)
+	successCount, failedCount, partialCount, notApplicableCount := report.CountStatuses()
+	require.Equal(t, len(report.Steps), successCount+notApplicableCount, "all steps should succeed or be not applicable")
 	require.Equal(t, 0, failedCount)
 	require.Equal(t, 0, partialCount)
 
@@ -2688,7 +2688,7 @@ func TestPermanentDeleteFlaggedPostReport(t *testing.T) {
 	}
 
 	// File steps should report details about the deleted files
-	fileCount, ok := stepsByName["app.data_spillage.report.step.file_attachments"].DetailParams["FileCount"].(int)
+	fileCount, ok := stepsByName["app.data_spillage.report.step.file_attachments"].DetailParams["Count"].(int)
 	require.True(t, ok)
 	require.Equal(t, 2, fileCount)
 
@@ -2732,7 +2732,7 @@ func TestDeleteEditHistories(t *testing.T) {
 
 		step := findEditStep(report)
 		require.NotNil(t, step)
-		require.Equal(t, model.StepSuccess, step.Status)
+		require.Equal(t, model.StepNotApplicable, step.Status)
 		require.Equal(t, "app.data_spillage.report.detail.no_data_found", step.Detail)
 		require.Empty(t, step.SubSteps)
 	})
@@ -2754,7 +2754,7 @@ func TestDeleteEditHistories(t *testing.T) {
 		require.Len(t, step.SubSteps, 1)
 		require.Equal(t, model.StepSuccess, step.SubSteps[0].Status)
 		require.NotEmpty(t, step.SubSteps[0].Name)
-		require.Equal(t, 1, step.DetailParams["Cleared"])
+		require.Equal(t, 1, step.DetailParams["Count"])
 		require.Equal(t, 1, step.DetailParams["Total"])
 	})
 
@@ -2778,7 +2778,7 @@ func TestDeleteEditHistories(t *testing.T) {
 		for _, sub := range step.SubSteps {
 			require.Equal(t, model.StepSuccess, sub.Status)
 		}
-		require.Equal(t, 3, step.DetailParams["Cleared"])
+		require.Equal(t, 3, step.DetailParams["Count"])
 		require.Equal(t, 3, step.DetailParams["Total"])
 	})
 
@@ -2820,7 +2820,7 @@ func TestDeleteEditHistories(t *testing.T) {
 
 		step := findEditStep(report)
 		require.NotNil(t, step)
-		require.Equal(t, model.StepSuccess, step.Status)
+		require.Equal(t, model.StepNotApplicable, step.Status)
 		require.Equal(t, "app.data_spillage.report.detail.no_data_found", step.Detail)
 	})
 }

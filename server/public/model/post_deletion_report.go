@@ -17,6 +17,7 @@ const (
 	StepSuccess DeletionStepStatus = iota
 	StepFailed
 	StepPartial
+	StepNotApplicable
 )
 
 func (s DeletionStepStatus) Icon() string {
@@ -27,6 +28,8 @@ func (s DeletionStepStatus) Icon() string {
 		return "❌"
 	case StepPartial:
 		return "⚠️"
+	case StepNotApplicable:
+		return "➖"
 	default:
 		return "❓"
 	}
@@ -35,11 +38,13 @@ func (s DeletionStepStatus) Icon() string {
 func (s DeletionStepStatus) Label(T i18n.TranslateFunc) string {
 	switch s {
 	case StepSuccess:
-		return T("app.data_spillage.report.status.deleted")
+		return T("app.data_spillage.report.status.removed")
 	case StepFailed:
 		return T("app.data_spillage.report.status.failed")
 	case StepPartial:
 		return T("app.data_spillage.report.status.partial")
+	case StepNotApplicable:
+		return T("app.data_spillage.report.status.not_applicable")
 	default:
 		return T("app.data_spillage.report.status.unknown")
 	}
@@ -92,6 +97,9 @@ func (r *PostDeletionReport) translateDetail(T i18n.TranslateFunc, detail string
 		return ""
 	}
 	if len(detailParams) > 0 {
+		if count, ok := detailParams["Count"]; ok {
+			return T(detail, count, detailParams)
+		}
 		return T(detail, detailParams)
 	}
 	return T(detail)
@@ -100,17 +108,18 @@ func (r *PostDeletionReport) translateDetail(T i18n.TranslateFunc, detail string
 func (r *PostDeletionReport) Render(T i18n.TranslateFunc) string {
 	var b strings.Builder
 
-	successCount, failedCount, partialCount := r.CountStatuses()
+	successCount, failedCount, partialCount, notApplicableCount := r.CountStatuses()
 	totalSteps := len(r.Steps)
 
 	b.WriteString(fmt.Sprintf("### %s\n\n", T("app.data_spillage.report.title")))
 	b.WriteString(fmt.Sprintf("**%s** %s\n", T("app.data_spillage.report.generated"), r.Timestamp.Format("2006-01-02 at 15:04:05 UTC")))
 	b.WriteString(fmt.Sprintf("**%s** `%s`\n", T("app.data_spillage.report.post_id"), r.PostID))
-	b.WriteString(fmt.Sprintf("**%s** %d &nbsp;|&nbsp; ✅ %s: %d &nbsp;|&nbsp; ❌ %s: %d &nbsp;|&nbsp; ⚠️ %s: %d\n",
+	b.WriteString(fmt.Sprintf("**%s** %d &nbsp;|&nbsp; ✅ %s: %d &nbsp;|&nbsp; ➖ %s: %d &nbsp;|&nbsp; ⚠️ %s: %d &nbsp;|&nbsp; ❌ %s: %d\n",
 		T("app.data_spillage.report.total_steps"), totalSteps,
-		T("app.data_spillage.report.status.deleted"), successCount,
-		T("app.data_spillage.report.status.failed"), failedCount,
-		T("app.data_spillage.report.status.partial"), partialCount))
+		T("app.data_spillage.report.status.removed"), successCount,
+		T("app.data_spillage.report.status.not_applicable"), notApplicableCount,
+		T("app.data_spillage.report.status.partial"), partialCount,
+		T("app.data_spillage.report.status.failed"), failedCount))
 	b.WriteString("\n---\n\n")
 
 	for i, step := range r.Steps {
@@ -131,7 +140,7 @@ func (r *PostDeletionReport) Render(T i18n.TranslateFunc) string {
 func (r *PostDeletionReport) RenderSummary(T i18n.TranslateFunc) string {
 	var b strings.Builder
 
-	_, failedCount, partialCount := r.CountStatuses()
+	_, failedCount, partialCount, _ := r.CountStatuses()
 
 	r.renderSummaryTable(T, &b)
 
@@ -209,7 +218,7 @@ func (r *PostDeletionReport) renderSummaryTable(T i18n.TranslateFunc, b *strings
 	}
 }
 
-func (r *PostDeletionReport) CountStatuses() (success, failed, partial int) {
+func (r *PostDeletionReport) CountStatuses() (success, failed, partial, notApplicable int) {
 	for _, step := range r.Steps {
 		switch step.Status {
 		case StepSuccess:
@@ -218,6 +227,8 @@ func (r *PostDeletionReport) CountStatuses() (success, failed, partial int) {
 			failed++
 		case StepPartial:
 			partial++
+		case StepNotApplicable:
+			notApplicable++
 		}
 	}
 	return

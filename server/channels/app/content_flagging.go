@@ -693,7 +693,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	if (err == nil && persistentNotification == nil) || errors.As(err, &nfErr) {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 	} else {
 		if deleteErr := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); deleteErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete persistent notifications for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
@@ -710,7 +710,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	if appErr == nil && len(acknowledgements) == 0 {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 	} else {
 		if deleteErr := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); deleteErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
@@ -728,7 +728,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	if appErr == nil && postPriorityData == nil {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 	} else {
 		if deleteErr := a.DeletePriorityForPost(post.Id); deleteErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
@@ -744,7 +744,7 @@ func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Po
 	}
 
 	if (err == nil && len(reminders) == 0) || errors.As(err, &nfErr) {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 	} else {
 		if deleteErr := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); deleteErr != nil {
 			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
@@ -805,7 +805,7 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 	}
 
 	if len(editHistories) == 0 {
-		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
 		return
 	}
 
@@ -844,7 +844,7 @@ func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, r
 	cleared := model.CountSubStepSuccesses(step.SubSteps)
 	total := len(step.SubSteps)
 	step.Detail = i18n.TranslationId("app.data_spillage.report.detail.revisions_cleared")
-	step.DetailParams = map[string]any{"Cleared": cleared, "Total": total}
+	step.DetailParams = map[string]any{"Count": cleared, "Total": total}
 	report.Steps = append(report.Steps, step)
 }
 
