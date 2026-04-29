@@ -46,20 +46,20 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
             TARGET_TYPE,
             SYSTEM_FIELD_TARGET_ID,
         );
-        const linkedField = linkedFields.find(
+        const matchingLinkedFields = linkedFields.filter(
             (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
         );
-        if (linkedField?.id) {
-            await adminClient.deletePropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, linkedField.id);
+        for (const f of matchingLinkedFields) {
+            await adminClient.deletePropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, f.id);
         }
     } catch {
         // Linked field may not exist; ignore.
     }
     try {
         const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE);
-        const field = fields.find((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0);
-        if (field?.id) {
-            await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, field.id);
+        const matchingFields = fields.filter((f) => f.name === CLASSIFICATION_FIELD_NAME && f.delete_at === 0);
+        for (const f of matchingFields) {
+            await adminClient.deletePropertyField(PROPERTY_GROUP, OBJECT_TYPE, f.id);
         }
     } catch {
         // Property routes may be unavailable when the feature flag is off; ignore.
@@ -125,7 +125,7 @@ export async function setupClassificationFieldWithGlobalBanner(
         const available = options.map((o) => o.name).join(', ');
         throw new Error(
             `setupClassificationFieldWithGlobalBanner: unknown level "${bannerOpts.levelName}". ` +
-            `Available options on template field ${templateField.id}: [${available}]`,
+                `Available options on template field ${templateField.id}: [${available}]`,
         );
     }
     const optionId = matchedOption.id;
@@ -153,18 +153,10 @@ export async function setupClassificationFieldWithGlobalBanner(
 
     // 3. Upsert the system property value with the selected option ID.
     if (enabled && optionId) {
-        // Use the raw fetch since patchPropertyValues may not yet be in the compiled
-        // @mattermost/client package. Once the package is rebuilt this can use adminClient.patchPropertyValues.
-        await (
-            adminClient as unknown as {
-                patchPropertyValues: (
-                    group: string,
-                    objectType: string,
-                    targetId: string,
-                    items: unknown[],
-                ) => Promise<unknown>;
-            }
-        ).patchPropertyValues(PROPERTY_GROUP, LINKED_OBJECT_TYPE, adminUserId, [
+        if (typeof (adminClient as any).patchPropertyValues !== 'function') {
+            throw new Error('adminClient.patchPropertyValues is not available — rebuild @mattermost/client');
+        }
+        await (adminClient as any).patchPropertyValues(PROPERTY_GROUP, LINKED_OBJECT_TYPE, adminUserId, [
             {field_id: linkedField.id, value: optionId},
         ]);
     }

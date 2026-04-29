@@ -115,15 +115,15 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (enabled !== initialEnabled) {
             return true;
         }
+        if (!enabled) {
+            return false;
+        }
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
             globalBanner.level_name !== initialGlobalBanner.level_name
         ) {
             return true;
-        }
-        if (!enabled) {
-            return false;
         }
         if (levels.length !== initialLevels.length) {
             return true;

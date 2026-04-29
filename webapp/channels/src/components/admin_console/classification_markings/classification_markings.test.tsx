@@ -756,7 +756,7 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce(patchedLinked); // patch linked field
 
         // Spy at utility level to avoid auto-mock limitations for patchPropertyValues.
-        const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue(undefined);
+        const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue([]);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
         await screen.findByText('Classification levels');

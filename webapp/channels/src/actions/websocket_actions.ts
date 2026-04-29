@@ -336,8 +336,9 @@ export function reconnect() {
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
         dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
-        if (currentUserId) {
-            dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, currentUserId));
+        const userId = getCurrentUserId(state);
+        if (userId) {
+            dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, userId));
         }
     }
 
