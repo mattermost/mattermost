@@ -28,8 +28,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
-// (no-op: trigger config-change-checker CI validation)
-
 const (
 	ConnSecurityNone     = ""
 	ConnSecurityPlain    = "PLAIN"
@@ -1220,6 +1218,7 @@ type ExperimentalSettings struct {
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1269,6 +1268,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ExperimentalChannelCategorySorting == nil {
 		s.ExperimentalChannelCategorySorting = NewPointer(false)
+	}
+	
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = NewPointer(false)
 	}
 }
 
