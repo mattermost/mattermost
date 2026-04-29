@@ -141,6 +141,12 @@ export type Props = {
     canUploadFiles: boolean;
 
     /**
+     * Whether file upload is restricted by an ABAC permission policy.
+     * When true, the upload button is shown as disabled with an explanatory tooltip.
+     */
+    fileUploadRestrictedByPolicy?: boolean;
+
+    /**
      * Plugin file upload methods to be added
      */
     pluginFileUploadMethods: FileUploadMethodAction[];
@@ -228,11 +234,12 @@ export class FileUpload extends PureComponent<Props, State> {
     }
 
     componentDidUpdate(prevProps: Readonly<Props>) {
-        // when a post starts or finishes being edited, we need to
-        // clear existing drag handlers and register fresh ones in the right place.
+        // Re-register drag handlers when edit mode changes (different DOM target) or when
+        // the policy restriction flips (drag overlay must be suppressed/restored accordingly).
         if (
             prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited ||
-            prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited
+            prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited ||
+            prevProps.fileUploadRestrictedByPolicy !== this.props.fileUploadRestrictedByPolicy
         ) {
             this.unbindDragsterEvents?.();
             const {containerSelector, overlaySelector} = this.getDragEventDefinition();
@@ -378,6 +385,11 @@ export class FileUpload extends PureComponent<Props, State> {
             return;
         }
 
+        if (this.props.fileUploadRestrictedByPolicy) {
+            this.props.onUploadError(localizeMessage({id: 'file_upload.restricted_by_policy', defaultMessage: "File uploads are restricted by your organization's access policy"}));
+            return;
+        }
+
         this.props.onUploadError(null);
 
         const items = e.dataTransfer.items || [];
@@ -476,7 +488,7 @@ export class FileUpload extends PureComponent<Props, State> {
         const noop = () => {};
 
         let dragsterActions = {};
-        if (this.props.canUploadFiles) {
+        if (this.props.canUploadFiles && !this.props.fileUploadRestrictedByPolicy) {
             dragsterActions = {
                 enter,
                 leave,
@@ -520,6 +532,10 @@ export class FileUpload extends PureComponent<Props, State> {
         if (fileClipboardItems.length > 0) {
             if (!this.props.canUploadFiles) {
                 this.props.onUploadError(this.props.intl.formatMessage({id: 'file_upload.disabled', defaultMessage: 'File attachments are disabled.'}));
+                return;
+            }
+            if (this.props.fileUploadRestrictedByPolicy) {
+                this.props.onUploadError(localizeMessage({id: 'file_upload.restricted_by_policy', defaultMessage: "File uploads are restricted by your organization's access policy"}));
                 return;
             }
 
@@ -731,6 +747,33 @@ export class FileUpload extends PureComponent<Props, State> {
                         </Menu>
                     </MenuWrapper>
                 </div>
+            );
+        }
+
+        if (this.props.fileUploadRestrictedByPolicy) {
+            return (
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='file_upload.restricted_by_policy'
+                            defaultMessage="File uploads are restricted by your organization's access policy"
+                        />
+                    }
+                >
+                    <button
+                        type='button'
+                        id='fileUploadButton'
+                        aria-label={buttonAriaLabel}
+                        className='style--none AdvancedTextEditor__action-button disabled'
+                        disabled={true}
+                    >
+                        <PaperclipIcon
+                            size={18}
+                            color={'currentColor'}
+                            aria-label={iconAriaLabel}
+                        />
+                    </button>
+                </WithTooltip>
             );
         }
 

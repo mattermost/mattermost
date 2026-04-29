@@ -4150,6 +4150,126 @@ func TestGetChannelMembersForUser(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetChannelMemberFileUploadRestricted(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	setupABAC := func(t *testing.T, decision bool) (restore func()) {
+		t.Helper()
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: decision}, (*model.AppError)(nil))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		return func() {
+			th.App.Srv().Channels().AccessControl = original
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}
+	}
+
+	t.Run("sets FileUploadRestricted=true when ABAC policy denies upload", func(t *testing.T) {
+		restore := setupABAC(t, false) // deny
+		defer restore()
+
+		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.True(t, member.FileUploadRestricted, "FileUploadRestricted should be true when ABAC denies upload")
+	})
+
+	t.Run("sets FileUploadRestricted=false when ABAC policy allows upload", func(t *testing.T) {
+		restore := setupABAC(t, true) // allow
+		defer restore()
+
+		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should be false when ABAC allows upload")
+	})
+
+	t.Run("does not set FileUploadRestricted when fetching another user's membership", func(t *testing.T) {
+		restore := setupABAC(t, false) // policy denies, but should not be evaluated for other users
+		defer restore()
+
+		// Admin fetches BasicUser's membership — FileUploadRestricted must not be set for third-party lookups
+		member, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should not be set when admin fetches another user's membership")
+	})
+
+	t.Run("FileUploadRestricted is false when ABAC is disabled", func(t *testing.T) {
+		// No ABAC mock — default config has ABAC disabled
+		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
+		require.NoError(t, err)
+		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should be false when ABAC is disabled")
+	})
+}
+
+func TestGetChannelMembersForUserFileUploadRestricted(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	setupABAC := func(t *testing.T, channelID string, decision bool) (restore func()) {
+		t.Helper()
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == channelID && req.Action == model.AccessControlPolicyActionUploadFileAttachment
+		})).Return(model.AccessDecision{Decision: decision}, (*model.AppError)(nil))
+		// Allow all other channels
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		return func() {
+			th.App.Srv().Channels().AccessControl = original
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}
+	}
+
+	t.Run("sets FileUploadRestricted=true on the denied channel in bulk fetch", func(t *testing.T) {
+		restore := setupABAC(t, th.BasicChannel.Id, false) // deny upload on BasicChannel
+		defer restore()
+
+		members, _, err := th.Client.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+
+		var found bool
+		for _, m := range members {
+			if m.ChannelId == th.BasicChannel.Id {
+				found = true
+				require.True(t, m.FileUploadRestricted, "FileUploadRestricted should be true for the denied channel")
+			}
+		}
+		require.True(t, found, "BasicChannel membership not found in bulk result")
+	})
+
+	t.Run("does not set FileUploadRestricted when admin fetches another user's memberships", func(t *testing.T) {
+		restore := setupABAC(t, th.BasicChannel.Id, false)
+		defer restore()
+
+		// Admin fetches BasicUser's memberships — field must not be populated for third-party lookups
+		members, _, err := th.SystemAdminClient.GetChannelMembersForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")
+		require.NoError(t, err)
+
+		for _, m := range members {
+			require.False(t, m.FileUploadRestricted, "FileUploadRestricted must not be set when admin fetches another user's memberships")
+		}
+	})
+}
+
 func TestViewChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

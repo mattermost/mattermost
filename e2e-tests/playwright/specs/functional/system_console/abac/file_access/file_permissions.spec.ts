@@ -3,7 +3,6 @@
 
 import {expect, test, enableABAC} from '@mattermost/playwright-lib';
 
-import {getAsset} from '../../../../../asset';
 import {
     CustomProfileAttribute,
     setupCustomProfileAttributeFields,
@@ -12,6 +11,7 @@ import {
     createUserForABAC,
     createPrivateChannelForABAC,
     createPermissionPolicy,
+    cleanupAllPermissionPolicies,
     deletePermissionPolicyByName,
     enableUserManagedAttributes,
     ensureUserAttributes,
@@ -76,6 +76,11 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
         if (lastPolicyName && savedAdminClient) {
             await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
             lastPolicyName = '';
+        }
+        if (savedAdminClient) {
+            await savedAdminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             savedAdminClient = null;
         }
     });
@@ -130,7 +135,6 @@ test.describe('ABAC Permission Policies - Download File Enforcement', () => {
 
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await enableABAC(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(1000);
 
         const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
         await userChannelsPage.goto(team.name, channelName);
@@ -151,11 +155,16 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         if (lastPolicyName && savedAdminClient) {
             await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
             lastPolicyName = '';
+        }
+        if (savedAdminClient) {
+            await savedAdminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             savedAdminClient = null;
         }
     });
 
-    test('MM-T5822 user denied upload sees error when attempting file attachment', async ({pw}) => {
+    test('MM-T5822 user denied upload sees disabled upload button with policy tooltip', async ({pw}) => {
         test.setTimeout(180000);
         await pw.skipIfNoLicense();
 
@@ -179,13 +188,49 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         await deniedChannelsPage.goto(team.name, channelName);
         await deniedChannelsPage.toBeVisible();
 
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
+        // Upload button must be visible but disabled — not hidden
+        const uploadButton = deniedChannelsPage.centerView.postCreate.attachmentButton;
+        await expect(uploadButton).toBeVisible({timeout: 15000});
+        await expect(uploadButton).toBeDisabled();
 
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 15000});
-        // error text already asserted above
+        // Hovering over the disabled button must reveal the policy restriction tooltip
+        await uploadButton.hover();
+        await expect(deniedPage.getByText("File uploads are restricted by your organization's access policy")).toBeVisible({timeout: 5000});
+    });
+
+    test('MM-T5822a user denied upload cannot upload via drag-and-drop', async ({pw}) => {
+        test.setTimeout(180000);
+        await pw.skipIfNoLicense();
+
+        const {adminUser, adminClient, team} = await pw.initSetup();
+        savedAdminClient = adminClient;
+        const {testUser: deniedUser, channelName} = await setupUserAndChannel(adminClient, team);
+
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        await enableABAC(systemConsolePage.page);
+        await navigateToPermissionPoliciesPage(systemConsolePage.page);
+
+        lastPolicyName = `Upload Deny Drag ${pw.random.id()}`;
+        await createPermissionPolicy(systemConsolePage.page, {
+            name: lastPolicyName,
+            celExpression: 'false',
+            permissions: ['Upload Files'],
+        });
+        await systemConsolePage.page.waitForTimeout(1000);
+
+        const {channelsPage: deniedChannelsPage, page: deniedPage} = await pw.testBrowser.login(deniedUser);
+        await deniedChannelsPage.goto(team.name, channelName);
+        await deniedChannelsPage.toBeVisible();
+
+        // Simulate a drag-and-drop of a file into the post area.
+        // dispatchEvent requires an actual DataTransfer instance, not a plain object.
+        const dataTransfer = await deniedPage.evaluateHandle(() => new DataTransfer());
+        const postInputArea = deniedPage.locator('.post-create__container');
+        await postInputArea.dispatchEvent('dragenter', {dataTransfer});
+        await postInputArea.dispatchEvent('dragover', {dataTransfer});
+
+        // The drag overlay must NOT appear when upload is policy-restricted
+        await expect(deniedPage.locator('.file-drag__overlay')).not.toBeVisible();
     });
 
     test('MM-T5823 user can attach and send a file when no upload restriction policy exists', async ({pw}) => {
@@ -199,6 +244,10 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await enableABAC(systemConsolePage.page);
         await systemConsolePage.page.waitForTimeout(1000);
+
+        // Parallel workers can create upload policies that "govern" the action globally.
+        // Any governed action is denied by default for roles without an explicit allow policy.
+        await cleanupAllPermissionPolicies(adminClient);
 
         const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
         await userChannelsPage.goto(team.name, channelName);
@@ -220,6 +269,11 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         if (lastPolicyName && savedAdminClient) {
             await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
             lastPolicyName = '';
+        }
+        if (savedAdminClient) {
+            await savedAdminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             savedAdminClient = null;
         }
     });
@@ -256,12 +310,14 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder')).toContainText('Files not available');
 
-        deniedPage.once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(getAsset('mattermost.png'));
-        });
-        await deniedChannelsPage.centerView.postCreate.attachmentButton.click();
-        await expect(deniedPage.getByText(/required access to upload/i)).toBeVisible({timeout: 15000});
-        // error text already asserted above
+        // Upload button must be visible but disabled
+        const uploadButton = deniedChannelsPage.centerView.postCreate.attachmentButton;
+        await expect(uploadButton).toBeVisible({timeout: 15000});
+        await expect(uploadButton).toBeDisabled();
+
+        // Hovering shows the policy restriction tooltip
+        await uploadButton.hover();
+        await expect(deniedPage.getByText("File uploads are restricted by your organization's access policy")).toBeVisible({timeout: 5000});
     });
 
     test('MM-T5825 user can download and upload files when no restriction policies exist', async ({pw}) => {
@@ -280,6 +336,10 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         await enableABAC(systemConsolePage.page);
         await systemConsolePage.page.waitForTimeout(1000);
+
+        // Parallel workers can create download or upload policies that govern those actions globally.
+        // Any governed action is denied by default for roles without an explicit allow policy.
+        await cleanupAllPermissionPolicies(adminClient);
 
         const {channelsPage: userChannelsPage, page: userPage} = await pw.testBrowser.login(testUser);
         await userChannelsPage.goto(team.name, channelName);
@@ -304,6 +364,11 @@ test.describe('ABAC Permission Policies - Attribute-Based Access', () => {
         if (lastPolicyName && savedAdminClient) {
             await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
             lastPolicyName = '';
+        }
+        if (savedAdminClient) {
+            await savedAdminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             savedAdminClient = null;
         }
     });
@@ -380,6 +445,11 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         if (lastPolicyName && savedAdminClient) {
             await deletePermissionPolicyByName(savedAdminClient, lastPolicyName);
             lastPolicyName = '';
+        }
+        if (savedAdminClient) {
+            await savedAdminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             savedAdminClient = null;
         }
     });

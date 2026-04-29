@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
+import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
@@ -37,6 +39,16 @@ const useUploadFiles = (
     isPostBeingEdited?: boolean,
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
+    const permissionPoliciesEnabled = useSelector(isPermissionPoliciesEnabled);
+    const dispatch = useDispatch();
+
+    // The channel-join path already fetches the member, but navigating between channels does not.
+    // Re-fetch on channelId change so file_upload_restricted stays current after navigation.
+    useEffect(() => {
+        if (permissionPoliciesEnabled && channelId) {
+            dispatch(getMyChannelMember(channelId));
+        }
+    }, [channelId, permissionPoliciesEnabled, dispatch]);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
 

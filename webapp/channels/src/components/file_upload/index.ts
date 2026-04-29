@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {uploadFile} from 'actions/file_actions';
@@ -17,7 +18,11 @@ import type {GlobalState} from 'types/store';
 
 import FileUpload from './file_upload';
 
-function mapStateToProps(state: GlobalState) {
+type OwnProps = {
+    channelId: string;
+};
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const config = getConfig(state);
     const maxFileSize = parseInt(config.MaxFileSize || '', 10);
 
@@ -25,9 +30,12 @@ function mapStateToProps(state: GlobalState) {
     const centerChannelPostBeingEdited = editingPost.show && !editingPost.isRHS;
     const rhsPostBeingEdited = editingPost.show && editingPost.isRHS;
 
+    const membership = getMyChannelMembership(state, ownProps.channelId);
+
     return {
         maxFileSize,
         canUploadFiles: canUploadFiles(config),
+        fileUploadRestrictedByPolicy: membership?.file_upload_restricted ?? false,
         locale: getCurrentLocale(state),
         pluginFileUploadMethods: state.plugins.components.FileUploadMethod,
         pluginFilesWillUploadHooks: state.plugins.components.FilesWillUploadHook,

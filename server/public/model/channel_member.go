@@ -68,6 +68,8 @@ type ChannelMember struct {
 	SchemeAdmin             bool      `json:"scheme_admin"`
 	ExplicitRoles           string    `json:"explicit_roles"`
 	AutoTranslationDisabled bool      `json:"autotranslation_disabled"`
+	// FileUploadRestricted is a computed field (not stored) set when an ABAC policy denies upload access in this channel.
+	FileUploadRestricted bool `json:"file_upload_restricted,omitempty"`
 }
 
 func (o *ChannelMember) Auditable() map[string]any {

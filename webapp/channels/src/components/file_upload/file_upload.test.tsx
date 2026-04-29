@@ -490,4 +490,90 @@ describe('components/FileUpload', () => {
         expect(baseProps.onUploadError).toHaveBeenCalledTimes(1);
         expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
     });
+
+    describe('ABAC policy upload restriction', () => {
+        test('should render a visible disabled button when fileUploadRestrictedByPolicy is true', () => {
+            const ref = React.createRef<FileUploadClass>();
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    ref={ref}
+                    fileUploadRestrictedByPolicy={true}
+                />,
+            );
+
+            const button = container.querySelector('#fileUploadButton') as HTMLButtonElement;
+            expect(button).not.toBeNull();
+            expect(button.disabled).toBe(true);
+            expect(button.className).toContain('disabled');
+        });
+
+        test('should not return null when fileUploadRestrictedByPolicy is true (button stays visible)', () => {
+            const ref = React.createRef<FileUploadClass>();
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    ref={ref}
+                    fileUploadRestrictedByPolicy={true}
+                />,
+            );
+
+            expect(container.querySelector('#fileUploadButton')).not.toBeNull();
+        });
+
+        test('should return null when canUploadFiles is false regardless of fileUploadRestrictedByPolicy', () => {
+            const ref = React.createRef<FileUploadClass>();
+            const {container} = renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    ref={ref}
+                    canUploadFiles={false}
+                    fileUploadRestrictedByPolicy={false}
+                />,
+            );
+
+            expect(container.querySelector('#fileUploadButton')).toBeNull();
+        });
+
+        test('should call onUploadError with policy message and not upload when handleDrop is called with fileUploadRestrictedByPolicy', () => {
+            const ref = React.createRef<FileUploadClass>();
+            renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    ref={ref}
+                    fileUploadRestrictedByPolicy={true}
+                />,
+            );
+
+            const e = {dataTransfer: {files: [{name: 'file1.pdf'}]}} as unknown as DragEvent<HTMLInputElement>;
+            const instance = ref.current!;
+            instance.uploadFiles = jest.fn();
+            instance.handleDrop(e);
+
+            expect(baseProps.onUploadError).toHaveBeenCalledTimes(1);
+            expect(baseProps.onUploadError).toHaveBeenCalledWith(
+                expect.stringContaining('File uploads are restricted by your organization'),
+            );
+            expect(instance.uploadFiles).not.toHaveBeenCalled();
+        });
+
+        test('should not call onUploadError with policy message when fileUploadRestrictedByPolicy is false', () => {
+            const ref = React.createRef<FileUploadClass>();
+            renderWithContext(
+                <FileUpload
+                    {...baseProps}
+                    ref={ref}
+                    fileUploadRestrictedByPolicy={false}
+                />,
+            );
+
+            const e = {dataTransfer: {files: [{name: 'file1.pdf'}]}} as unknown as DragEvent<HTMLInputElement>;
+            const instance = ref.current!;
+            instance.uploadFiles = jest.fn();
+            instance.handleDrop(e);
+
+            expect(baseProps.onUploadError).toHaveBeenCalledWith(null);
+            expect(instance.uploadFiles).toHaveBeenCalled();
+        });
+    });
 });

@@ -139,6 +139,9 @@ export type ChannelMembership = {
     scheme_admin: boolean;
     post_root_id?: string;
     autotranslation_disabled?: boolean;
+
+    /** Set by the server when an ABAC policy denies upload access in this channel. Not persisted. */
+    file_upload_restricted?: boolean;
 };
 
 export type ChannelUnread = {

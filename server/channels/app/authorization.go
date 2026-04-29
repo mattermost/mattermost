@@ -645,7 +645,7 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 
 	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
 	if appErr != nil {
-		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
+		rctx.Logger().Warn("Failed to build ABAC subject for file action evaluation",
 			mlog.String("user_id", userID),
 			mlog.String("action", action),
 			mlog.Err(appErr),
@@ -672,4 +672,43 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 	}
 
 	return decision.Decision
+}
+
+// SetFileUploadRestrictedOnMembers evaluates upload permissions for a batch of channel memberships,
+// building the ABAC subject once and calling AccessEvaluation per channel.
+func (a *App) SetFileUploadRestrictedOnMembers(rctx request.CTX, userID string, roles string, members model.ChannelMembers) {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl || !a.Config().FeatureFlags.PermissionPolicies {
+		return
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
+	if appErr != nil {
+		rctx.Logger().Warn("Failed to build ABAC subject for file upload evaluation",
+			mlog.String("user_id", userID),
+			mlog.Err(appErr),
+		)
+		return
+	}
+
+	for i := range members {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject: *subject,
+			Resource: model.Resource{
+				Type: model.AccessControlPolicyTypeChannel,
+				ID:   members[i].ChannelId,
+			},
+			Action: model.AccessControlPolicyActionUploadFileAttachment,
+		})
+		if evalErr != nil {
+			rctx.Logger().Debug("ABAC upload evaluation failed, denying by default",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", members[i].ChannelId),
+				mlog.Err(evalErr),
+			)
+			members[i].FileUploadRestricted = true
+			continue
+		}
+		members[i].FileUploadRestricted = !decision.Decision
+	}
 }

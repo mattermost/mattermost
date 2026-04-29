@@ -1716,8 +1716,12 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Sanitize member for current user
+	// Sanitize members for current user
 	member.SanitizeForCurrentUser(c.AppContext.Session().UserId)
+
+	if c.Params.UserId == c.AppContext.Session().UserId {
+		member.FileUploadRestricted = !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment)
+	}
 
 	if err := json.NewEncoder(w).Encode(member); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1746,10 +1750,14 @@ func getChannelMembersForTeamForUser(c *Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	// Sanitize members for current user
 	currentUserId := c.AppContext.Session().UserId
+	isSelf := c.Params.UserId == currentUserId
 	for i := range members {
 		members[i].SanitizeForCurrentUser(currentUserId)
+	}
+
+	if isSelf {
+		c.App.SetFileUploadRestrictedOnMembers(c.AppContext, currentUserId, c.AppContext.Session().Roles, members)
 	}
 
 	if err := json.NewEncoder(w).Encode(members); err != nil {
