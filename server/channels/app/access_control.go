@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"slices"
 	"time"
@@ -694,10 +695,25 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 // EvaluateExpression evaluates a CEL expression against the given users via the PDP.
 // It first validates the expression syntax, then builds a Subject for each user and
 // calls AccessEvaluationWithExpression. Returns per-user results or expression errors.
+//
+// Input validation is performed up-front so non-HTTP callers (e.g. the plugin
+// API) cannot bypass the same limits the HTTP handler enforces.
 func (a *App) EvaluateExpression(rctx request.CTX, req model.EvaluateExpressionRequest) (*model.EvaluateExpressionResponse, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	if req.Expression == "" {
+		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, "expression must not be empty", http.StatusBadRequest)
+	}
+
+	if len(req.UserIDs) == 0 {
+		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, "user_ids must not be empty", http.StatusBadRequest)
+	}
+
+	if len(req.UserIDs) > model.MaxEvaluateExpressionUserIDs {
+		return nil, model.NewAppError("EvaluateExpression", "app.pap.evaluate_expression.app_error", nil, fmt.Sprintf("user_ids must not exceed %d entries", model.MaxEvaluateExpressionUserIDs), http.StatusBadRequest)
 	}
 
 	celErrors, appErr := acs.CheckExpression(rctx, req.Expression)
@@ -740,7 +756,6 @@ func (a *App) EvaluateExpression(rctx request.CTX, req model.EvaluateExpressionR
 
 		accessReq := model.AccessRequest{
 			Subject: *subject,
-			Action:  req.Action,
 		}
 
 		decision, evalErr := acs.AccessEvaluationWithExpression(rctx, accessReq, req.Expression)

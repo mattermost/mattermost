@@ -606,22 +606,11 @@
                   description: The CEL expression to evaluate.
                 user_ids:
                   type: array
+                  minItems: 1
+                  maxItems: 100
                   items:
                     type: string
                   description: List of user IDs to evaluate the expression against. Maximum 100.
-                action:
-                  type: string
-                  description: The action context for the evaluation (e.g. "membership").
-                resource:
-                  type: object
-                  description: The resource context for the evaluation.
-                  properties:
-                    type:
-                      type: string
-                      description: Resource type (e.g. "channel").
-                    id:
-                      type: string
-                      description: Resource ID.
       responses:
         "200":
           description: Expression evaluated successfully.
@@ -635,6 +624,9 @@
                     description: Per-user evaluation results. Omitted when expression_errors is present.
                     items:
                       type: object
+                      required:
+                        - user_id
+                        - decision
                       properties:
                         user_id:
                           type: string

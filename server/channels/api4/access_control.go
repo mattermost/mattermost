@@ -401,8 +401,7 @@ func evaluateExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const maxUserIDs = 100
-	if len(req.UserIDs) > maxUserIDs {
+	if len(req.UserIDs) > model.MaxEvaluateExpressionUserIDs {
 		c.SetInvalidParam("user_ids")
 		return
 	}

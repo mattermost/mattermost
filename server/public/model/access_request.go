@@ -78,6 +78,11 @@ type QueryExpressionParams struct {
 	TeamId     string `json:"teamId,omitempty"`
 }
 
+// MaxEvaluateExpressionUserIDs is the maximum number of user IDs accepted
+// in a single EvaluateExpressionRequest. The HTTP handler and the app-layer
+// validator both enforce this limit.
+const MaxEvaluateExpressionUserIDs = 100
+
 type EvaluateExpressionRequest struct {
 	Expression string   `json:"expression"`
 	UserIDs    []string `json:"user_ids"`
