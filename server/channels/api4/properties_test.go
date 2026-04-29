@@ -15,6 +15,42 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func TestPropertyRoutesWithClassificationMarkingsFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	// Routes should be available when ClassificationMarkings=true even with IntegratedBoards=false
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.IntegratedBoards = false
+		cfg.FeatureFlags.ClassificationMarkings = true
+	}).InitBasic(t)
+
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{
+		Name:    "classification_test",
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.Nil(t, err)
+	require.NotNil(t, group)
+
+	t.Run("create field should succeed with ClassificationMarkings flag", func(t *testing.T) {
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		createdField, resp, err := th.SystemAdminClient.CreatePropertyField(context.Background(), group.Name, "post", field)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, createdField.ID)
+	})
+
+	t.Run("get fields should succeed with ClassificationMarkings flag", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetPropertyFields(context.Background(), group.Name, "post", model.PropertyFieldSearch{TargetType: "system"})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+}
+
 func TestCreatePropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
@@ -22,7 +58,7 @@ func TestCreatePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register a property group for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -369,6 +405,22 @@ func TestCreatePropertyField(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_create", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		field := &model.PropertyField{
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+		}
+
+		_, resp, err := th.Client.CreatePropertyField(context.Background(), v1Group.Name, "post", field)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyFields(t *testing.T) {
@@ -378,11 +430,11 @@ func TestGetPropertyFields(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_get_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_get_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -529,6 +581,16 @@ func TestGetPropertyFields(t *testing.T) {
 			require.NotEqual(t, createdOtherField.ID, f.ID, "Field from other group should not be returned")
 		}
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_get_fields", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		_, resp, err := th.Client.GetPropertyFields(context.Background(), v1Group.Name, "post", model.PropertyFieldSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyFieldsScopeAccess(t *testing.T) {
@@ -537,7 +599,7 @@ func TestGetPropertyFieldsScopeAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_scope")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_scope", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -647,7 +709,7 @@ func TestGetPropertyFieldsFiltering(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_filter")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_filter", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
@@ -775,11 +837,11 @@ func TestPatchPropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_patch_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_patch_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1298,26 +1360,17 @@ func TestPatchPropertyField(t *testing.T) {
 		require.NotNil(t, updatedField.Attrs["options"])
 	})
 
-	t.Run("PSAv1 field should not be patchable", func(t *testing.T) {
-		// Create a PSAv1 field (empty ObjectType) directly via the service
-		v1Field := &model.PropertyField{
-			Name:       model.NewId(),
-			Type:       model.PropertyFieldTypeText,
-			GroupID:    group.ID,
-			ObjectType: "",
-			TargetType: "system",
-			TargetID:   model.NewId(),
-		}
-		createdV1Field, appErr := th.App.CreatePropertyField(th.Context, v1Field, true, "")
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_field", Version: model.PropertyGroupVersionV1})
 		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
 
-		th.LoginBasic(t)
 		newName := model.NewId()
 		patch := &model.PropertyFieldPatch{Name: &newName}
 
-		_, resp, err := th.Client.PatchPropertyField(context.Background(), group.Name, "post", createdV1Field.ID, patch)
+		_, resp, err := th.Client.PatchPropertyField(context.Background(), v1Group.Name, "post", model.NewId(), patch)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 }
 
@@ -1328,11 +1381,11 @@ func TestDeletePropertyField(t *testing.T) {
 	}).InitBasic(t)
 
 	// Register property groups for testing
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_delete", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, group)
 
-	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_properties_delete_other")
+	otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_properties_delete_other", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 	require.NotNil(t, otherGroup)
 
@@ -1488,6 +1541,16 @@ func TestDeletePropertyField(t *testing.T) {
 			return false
 		}, 5*time.Second, 100*time.Millisecond)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_delete_field", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		resp, err := th.Client.DeletePropertyField(context.Background(), v1Group.Name, "post", model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestIsOptionsOnlyPatch(t *testing.T) {
@@ -1549,7 +1612,7 @@ func TestGetPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_get")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_get", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1696,6 +1759,16 @@ func TestGetPropertyValues(t *testing.T) {
 			require.False(t, page0IDs[v.ID], "Second page should not contain values from first page")
 		}
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_get_values", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		_, resp, err := th.Client.GetPropertyValues(context.Background(), v1Group.Name, "post", th.BasicPost.Id, model.PropertyValueSearch{PerPage: 60})
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestPatchPropertyValues(t *testing.T) {
@@ -1704,7 +1777,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_patch", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -1884,7 +1957,7 @@ func TestPatchPropertyValues(t *testing.T) {
 	t.Run("field from different group should fail", func(t *testing.T) {
 		th.LoginBasic(t)
 
-		otherGroup, err := th.App.RegisterPropertyGroup(th.Context, "test_values_patch_other")
+		otherGroup, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_values_patch_other", Version: model.PropertyGroupVersionV2})
 		require.Nil(t, err)
 
 		otherField := &model.PropertyField{
@@ -2094,6 +2167,20 @@ func TestPatchPropertyValues(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})
+
+	t.Run("v1 group should return 404", func(t *testing.T) {
+		v1Group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_v1_patch_values", Version: model.PropertyGroupVersionV1})
+		require.Nil(t, appErr)
+		require.NotNil(t, v1Group)
+
+		items := []model.PropertyValuePatchItem{
+			{FieldID: model.NewId(), Value: json.RawMessage(`"test"`)},
+		}
+
+		_, resp, err := th.Client.PatchPropertyValues(context.Background(), v1Group.Name, "post", th.BasicPost.Id, items)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
@@ -2102,7 +2189,7 @@ func TestGetPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_get_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2167,7 +2254,7 @@ func TestPatchPropertyValuesUserTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_patch_access")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2230,7 +2317,7 @@ func TestGetPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_get_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_get_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2349,7 +2436,7 @@ func TestPatchPropertyValuesChannelTargetAccess(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, appErr := th.App.RegisterPropertyGroup(th.Context, "test_chan_patch_access")
+	group, appErr := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_chan_patch_access", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, appErr)
 
 	memberLevel := model.PermissionLevelMember
@@ -2486,7 +2573,7 @@ func TestCreatePropertyFieldTeamScopedBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_team_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_team_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	t.Run("team-scoped field broadcast has TeamId set and ChannelId empty", func(t *testing.T) {
@@ -2537,7 +2624,7 @@ func TestPatchPropertyValuesChannelObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_channel_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_channel_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2591,7 +2678,7 @@ func TestPatchPropertyValuesUserObjectTypeBroadcast(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_user_val_broadcast")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_user_val_broadcast", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2645,7 +2732,10 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_psav1_optout")
+	// PSAv1 fields must live in a v1 group; the marker v2 field uses a separate v2 group.
+	psav1Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v1", Version: model.PropertyGroupVersionV1})
+	require.Nil(t, err)
+	v2Group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_psav1_optout_v2", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	// Create a PSAv1-style field: no ObjectType, meaning it predates
@@ -2653,7 +2743,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 	psav1Field := &model.PropertyField{
 		Name:       model.NewId(),
 		Type:       model.PropertyFieldTypeText,
-		GroupID:    group.ID,
+		GroupID:    psav1Group.ID,
 		TargetType: "system",
 	}
 	createdField, appErr := th.App.CreatePropertyField(th.Context, psav1Field, false, "")
@@ -2672,7 +2762,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 			{
 				TargetID:   th.BasicPost.Id,
 				TargetType: "post",
-				GroupID:    group.ID,
+				GroupID:    psav1Group.ID,
 				FieldID:    createdField.ID,
 				Value:      json.RawMessage(`"psav1-value"`),
 				CreatedBy:  th.BasicUser.Id,
@@ -2690,7 +2780,7 @@ func TestUpsertPropertyValuesPSAv1OptOut(t *testing.T) {
 		markerField := &model.PropertyField{
 			Name:              model.NewId(),
 			Type:              model.PropertyFieldTypeText,
-			GroupID:           group.ID,
+			GroupID:           v2Group.ID,
 			ObjectType:        "post",
 			TargetType:        "channel",
 			TargetID:          th.BasicChannel.Id,
@@ -2724,7 +2814,7 @@ func TestPatchPropertyValuesMultiValuePayload(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_multi_val_payload")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_multi_val_payload", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	memberLevel := model.PermissionLevelMember
@@ -2798,7 +2888,7 @@ func TestLinkedProperties(t *testing.T) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
 
-	group, err := th.App.RegisterPropertyGroup(th.Context, "test_linked_properties")
+	group, err := th.App.RegisterPropertyGroup(th.Context, &model.PropertyGroup{Name: "test_linked_properties", Version: model.PropertyGroupVersionV2})
 	require.Nil(t, err)
 
 	sysadminLevel := model.PermissionLevelSysadmin

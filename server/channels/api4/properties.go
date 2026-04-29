@@ -20,7 +20,7 @@ func (api *API) InitProperties() {
 	api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 	api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
 	api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(getSystemPropertyValues)).Methods(http.MethodGet)
-	if api.srv.Config().FeatureFlags.IntegratedBoards {
+	if api.srv.Config().FeatureFlags.IntegratedBoards || api.srv.Config().FeatureFlags.ClassificationMarkings {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(createPropertyField)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(patchPropertyField)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
@@ -30,16 +30,29 @@ func (api *API) InitProperties() {
 	}
 }
 
+// getV2Group resolves c.Params.GroupName to a PSAv2 property group.
+// On any error (not found, or not a v2 group) it sets c.Err and returns nil.
+func getV2Group(c *Context, callerName string) *model.PropertyGroup {
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+	if !group.IsPSAv2() {
+		c.Err = model.NewAppError(callerName, "api.property.v2_group_not_found.app_error", nil, "", http.StatusNotFound)
+		return nil
+	}
+	return group
+}
+
 func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireGroupName().RequireObjectType()
 	if c.Err != nil {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("createPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "createPropertyField")
+	if c.Err != nil {
 		return
 	}
 
@@ -178,10 +191,8 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("getPropertyFields", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "getPropertyFields")
+	if c.Err != nil {
 		return
 	}
 
@@ -273,10 +284,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("patchPropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "patchPropertyField")
+	if c.Err != nil {
 		return
 	}
 	groupID := group.ID
@@ -313,8 +322,10 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// This API only supports PSAv2 fields (those with an ObjectType)
-	if existingField.IsPSAv1() {
+	// FIXME: IsPSAv1 currently includes template fields (ObjectType="template"), but
+	// templates are valid PSAv2 objects and must be patchable. Once the FIXME in
+	// model.PropertyField.IsPSAv1 is resolved, this extra condition can be removed.
+	if existingField.IsPSAv1() && existingField.ObjectType == "" {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -410,10 +421,8 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("deletePropertyField", "api.property_field.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "deletePropertyField")
+	if c.Err != nil {
 		return
 	}
 	groupID := group.ID
@@ -496,10 +505,8 @@ func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("getPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
+	group := getV2Group(c, "getPropertyValues")
+	if c.Err != nil {
 		return
 	}
 
@@ -582,18 +589,16 @@ func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Reques
 }
 
 func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
+	group := getV2Group(c, "patchPropertyValues")
+	if c.Err != nil {
+		return
+	}
+	groupID := group.ID
+
 	// Check target access based on object type
 	if !hasTargetAccess(c, objectType, targetID, true) {
 		return
 	}
-
-	// Resolve group_name to internal group ID
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, c.Params.GroupName)
-	if appErr != nil {
-		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.invalid_group_name.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		return
-	}
-	groupID := group.ID
 
 	var items []model.PropertyValuePatchItem
 	if err := json.NewDecoder(r.Body).Decode(&items); err != nil {
