@@ -100,7 +100,7 @@ describe('CategorySelector', () => {
     it('should use default placeholder when not overridden', () => {
         renderWithContext(<CategorySelector {...baseProps}/>, baseState);
 
-        expect(screen.getByText('Choose a category (optional)')).toBeInTheDocument();
+        expect(screen.getByText('Choose a default category (optional)')).toBeInTheDocument();
     });
 
     it('should use label and placeholder overrides when provided', async () => {
