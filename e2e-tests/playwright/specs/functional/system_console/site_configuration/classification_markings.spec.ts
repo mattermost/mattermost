@@ -75,7 +75,7 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
+
 
             // * User is redirected away from the hidden route (no Route registered)
             await expect(systemConsolePage.page).not.toHaveURL(/classification_markings/);
@@ -104,7 +104,7 @@ test.describe('System Console - Classification markings', () => {
             // # Log in and open the classification markings URL
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
+
 
             // * URL stays on the classification markings section
             await expect(systemConsolePage.page).toHaveURL(/classification_markings/);
@@ -132,7 +132,7 @@ test.describe('System Console - Classification markings', () => {
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await systemConsolePage.page.waitForLoadState('networkidle');
+
 
             // # Enable classification markings without choosing a preset or adding levels
             await systemConsolePage.page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -165,7 +165,6 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             // # Enable markings and choose NATO preset
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -178,7 +177,6 @@ test.describe('System Console - Classification markings', () => {
 
             // # Save
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * No server error and first level name is unchanged after save
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
@@ -206,12 +204,10 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
             await selectClassificationPreset(page, 'UK (GSCP)');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * UK preset first level is present
             await expect(page.getByLabel('Classification level name').first()).toHaveValue('OFFICIAL');
@@ -254,12 +250,10 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
             await selectClassificationPreset(page, 'Canada');
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             await expect(page.getByLabel('Classification level name').first()).toHaveValue('PROTECTED A');
 
@@ -272,7 +266,6 @@ test.describe('System Console - Classification markings', () => {
 
             // # Save custom levels
             await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
 
             // * No error and preset remains custom
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();

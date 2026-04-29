@@ -45,34 +45,25 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
     });
 
     // # Create multiple replies to the first post
-    const replies = Array.from({length: NUMBER_OF_REPLIES}, (_, i) => `Reply number ${i + 1}`);
-    for (let i = 0; i < replies.length; i += 10) {
-        const batch = replies.slice(i, i + 10);
-        await Promise.all(
-            batch.map((message) =>
-                userClient.createPost({
-                    channel_id: townSquare.id,
-                    message,
-                    user_id: mainUser.id,
-                    root_id: firstPost.id,
-                }),
-            ),
-        );
+    const replies: string[] = [];
+    for (let i = 1; i <= NUMBER_OF_REPLIES; i++) {
+        const replyMessage = `Reply number ${i}`;
+        await userClient.createPost({
+            channel_id: townSquare.id,
+            message: replyMessage,
+            user_id: mainUser.id,
+            root_id: firstPost.id,
+        });
+        replies.push(replyMessage);
     }
 
     // # Create enough posts from another user (not related to the thread) to not load on first view
-    const mainMessages = Array.from({length: NUMBER_OF_MAIN_THREAD_MESSAGES}, (_, i) => `Other message ${i + 1}`);
-    for (let i = 0; i < mainMessages.length; i += 10) {
-        const batch = mainMessages.slice(i, i + 10);
-        await Promise.all(
-            batch.map((message) =>
-                adminClient.createPost({
-                    channel_id: townSquare.id,
-                    message,
-                    user_id: otherUser.id,
-                }),
-            ),
-        );
+    for (let i = 1; i <= NUMBER_OF_MAIN_THREAD_MESSAGES; i++) {
+        await adminClient.createPost({
+            channel_id: townSquare.id,
+            message: `Other message ${i}`,
+            user_id: otherUser.id,
+        });
     }
 
     // # Reply on original thread with a last reply
@@ -99,14 +90,21 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
     // * Verify that the last reply appears in the RHS
     await expect(channelsPage.sidebarRight.container.getByText(lastReplyMessage)).toBeVisible();
 
-    // # Scroll the RHS to the top to verify older replies are loaded and the first post is visible
-    const rhsScrollArea = channelsPage.sidebarRight.container.locator('.post-list__dynamic--RHS');
-    await rhsScrollArea.evaluate((el: HTMLElement) => el.scrollTo({top: 0, behavior: 'instant'}));
+    // # Iterate through messages from the end, scrolling up to load previous messages.
+    // We only assert on a sparse sample (every 10th reply) to keep the test fast while still
+    // proving the virtualized thread list is scrollable end-to-end.
+    const rhsContainer = channelsPage.sidebarRight.container;
+    for (let i = replies.length - 1; i >= 0; i -= 10) {
+        const replyText = replies[i];
+        const replyElement = rhsContainer.getByText(replyText, {exact: true});
 
-    // * Verify that the first post message is visible after scrolling
-    await expect(rhsScrollArea.getByText('First message')).toBeVisible();
+        // # Scroll the reply into view
+        await replyElement.scrollIntoViewIfNeeded();
 
-    // # Scroll the RHS to the bottom to verify the last reply remains visible
-    await rhsScrollArea.evaluate((el: HTMLElement) => el.scrollTo({top: el.scrollHeight, behavior: 'instant'}));
-    await expect(rhsScrollArea.getByText(lastReplyMessage)).toBeVisible();
+        // * Verify the reply is visible
+        await expect(replyElement).toBeVisible();
+    }
+
+    // * Verify that the first post message is visible after scrolling through the thread
+    await expect(rhsContainer.getByText('First message')).toBeVisible();
 });
