@@ -5,6 +5,7 @@ package app
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -290,6 +291,37 @@ func TestMarkRecapsAsViewed(t *testing.T) {
 		ids, appErr := th.App.MarkRecapsAsViewed(ctx)
 		require.Nil(t, appErr)
 		assert.Empty(t, ids)
+	})
+
+	t.Run("publishes a recap_updated websocket event per affected recap", func(t *testing.T) {
+		userID := th.BasicUser.Id
+
+		// Two completed recaps that need to be marked as viewed.
+		a := save(userID, model.RecapStatusCompleted, 0)
+		b := save(userID, model.RecapStatusCompleted, 0)
+
+		messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventRecapUpdated})
+		defer closeWS()
+
+		ctx := th.Context.WithSession(&model.Session{UserId: userID})
+		ids, appErr := th.App.MarkRecapsAsViewed(ctx)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, []string{a, b}, ids)
+
+		seen := make(map[string]bool)
+		deadline := time.After(5 * time.Second)
+		for len(seen) < 2 {
+			select {
+			case msg := <-messages:
+				recapID, ok := msg.GetData()["recap_id"].(string)
+				require.True(t, ok, "recap_updated event missing recap_id")
+				seen[recapID] = true
+			case <-deadline:
+				require.Failf(t, "timed out waiting for recap_updated events", "received %d/2", len(seen))
+			}
+		}
+		assert.True(t, seen[a])
+		assert.True(t, seen[b])
 	})
 }
 

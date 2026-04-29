@@ -230,6 +230,37 @@ func TestRecapStore(t *testing.T) {
 			assert.Empty(t, ids2)
 		})
 
+		t.Run("UpdateRecap persists ReadAt and ViewedAt resets", func(t *testing.T) {
+			recap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            model.NewId(),
+				Title:             "T",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				ReadAt:            500,
+				ViewedAt:          600,
+				Status:            model.RecapStatusCompleted,
+				TotalMessageCount: 1,
+				BotID:             "bot",
+			}
+			_, err := ss.Recap().SaveRecap(recap)
+			require.NoError(t, err)
+
+			// RegenerateRecap-style reset: clear both timestamps and revert status.
+			recap.ReadAt = 0
+			recap.ViewedAt = 0
+			recap.Status = model.RecapStatusPending
+			recap.UpdateAt = model.GetMillis()
+			_, err = ss.Recap().UpdateRecap(recap)
+			require.NoError(t, err)
+
+			fresh, err := ss.Recap().GetRecap(recap.Id)
+			require.NoError(t, err)
+			assert.Zero(t, fresh.ReadAt, "ReadAt should be reset by UpdateRecap")
+			assert.Zero(t, fresh.ViewedAt, "ViewedAt should be reset by UpdateRecap")
+			assert.Equal(t, model.RecapStatusPending, fresh.Status)
+		})
+
 		t.Run("DeleteRecap", func(t *testing.T) {
 			recap := &model.Recap{
 				Id:                model.NewId(),

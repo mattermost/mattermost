@@ -47,10 +47,13 @@ const Recaps = () => {
         const fetchData = async () => {
             await dispatch(getRecaps(0, 60));
             setIsLoading(false);
+
+            // Mark after getRecaps resolves so its response can't overwrite
+            // the viewed_at timestamps the WS-driven refresh is about to set.
+            dispatch(markRecapsAsViewed());
         };
         fetchData();
         dispatch(getAgents());
-        dispatch(markRecapsAsViewed());
     }, [dispatch]);
 
     // Redirect if feature flag is disabled

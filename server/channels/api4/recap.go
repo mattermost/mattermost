@@ -207,7 +207,7 @@ func markRecapsAsViewed(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventMarkRecapsAsViewed, model.AuditStatusFail)
-	defer c.LogAuditRecWithLevel(auditRec, app.LevelAPI)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddEventObjectType("recap")
 
 	ids, err := c.App.MarkRecapsAsViewed(c.AppContext)
@@ -217,9 +217,8 @@ func markRecapsAsViewed(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec.Success()
-	if len(ids) > 0 {
-		auditRec.AddMeta("recap_count", len(ids))
-	}
+	auditRec.AddMeta("recap_count", len(ids))
+	auditRec.AddEventResultState(map[string]any{"recap_ids": ids})
 
 	if err := json.NewEncoder(w).Encode(map[string]any{"recap_ids": ids}); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
