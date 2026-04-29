@@ -1218,6 +1218,7 @@ type ExperimentalSettings struct {
 	UsersStatusAndProfileFetchingPollIntervalMilliseconds *int64 `access:"experimental_features"`
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
+	EnableWatermark                                       *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1269,6 +1270,9 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.ExperimentalChannelCategorySorting = NewPointer(false)
 	}
 
+	if s.EnableWatermark == nil {
+		s.EnableWatermark = NewPointer(false)
+	}
 }
 
 type AnalyticsSettings struct {
