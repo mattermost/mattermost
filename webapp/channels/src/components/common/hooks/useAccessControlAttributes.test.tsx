@@ -7,7 +7,7 @@ import {Provider} from 'react-redux';
 import configureStore from 'redux-mock-store';
 import {thunk} from 'redux-thunk';
 
-import {useAccessControlAttributes, EntityType} from './useAccessControlAttributes';
+import {invalidateAccessControlAttributesCache, useAccessControlAttributes, EntityType} from './useAccessControlAttributes';
 
 // Mock the getChannelAccessControlAttributes action
 jest.mock('mattermost-redux/actions/channels', () => {
@@ -90,6 +90,28 @@ describe('useAccessControlAttributes', () => {
         expect(result.current.attributeTags).toEqual([]);
         expect(result.current.structuredAttributes).toEqual([]);
         expect(result.current.loading).toBe(false);
+    });
+
+    test('clears attribute state when hasAccessControl becomes false after data was loaded', async () => {
+        const {result, rerender, unmount} = renderHook(
+            ({hasAC}: {hasAC: boolean}) => useAccessControlAttributes(EntityType.Channel, 'channel-1', hasAC),
+            {initialProps: {hasAC: true}, wrapper},
+        );
+
+        await waitFor(() => {
+            expect(result.current.attributeTags).toEqual(['engineering', 'marketing', 'remote']);
+        });
+
+        rerender({hasAC: false});
+        await act(async () => {
+            await result.current.fetchAttributes();
+        });
+
+        expect(result.current.attributeTags).toEqual([]);
+        expect(result.current.structuredAttributes).toEqual([]);
+
+        unmount();
+        invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-1');
     });
 
     test('should fetch and process attributes successfully', async () => {
@@ -200,6 +222,94 @@ describe('useAccessControlAttributes', () => {
         });
 
         // The action should have been called again
+        expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
+    });
+
+    test('invalidateAccessControlAttributesCache forces a refresh on next read', async () => {
+        // Prime the cache with a first fetch.
+        const {result: result1, unmount} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+        expect(result1.current.structuredAttributes).toEqual([
+            {name: 'department', values: ['engineering', 'marketing']},
+            {name: 'location', values: ['remote']},
+        ]);
+
+        // Unmount the first hook so its listener subscription doesn't trigger
+        // an extra fetch when we invalidate below — this test specifically
+        // verifies that the *next* mount sees fresh data after invalidation.
+        unmount();
+
+        const getChannelAccessControlAttributes = require('mattermost-redux/actions/channels').getChannelAccessControlAttributes;
+        getChannelAccessControlAttributes.mockClear();
+
+        // After invalidating the cache the next mount should hit the action again.
+        invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-1');
+
+        const {result: result2} = renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        });
+
+        expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
+        expect(result2.current.structuredAttributes).toEqual(result1.current.structuredAttributes);
+    });
+
+    test('should re-fetch when the cache is invalidated for the entity', async () => {
+        renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+
+        // Wait for the initial fetch to complete and prime the cache
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const getChannelAccessControlAttributes = require('mattermost-redux/actions/channels').getChannelAccessControlAttributes;
+        getChannelAccessControlAttributes.mockClear();
+
+        await act(async () => {
+            invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-1');
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
+    });
+
+    test('should not re-fetch when the cache is invalidated for a different entity', async () => {
+        renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+
+        // Wait for the initial fetch to complete and prime the cache
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const getChannelAccessControlAttributes = require('mattermost-redux/actions/channels').getChannelAccessControlAttributes;
+        getChannelAccessControlAttributes.mockClear();
+
+        await act(async () => {
+            invalidateAccessControlAttributesCache(EntityType.Channel, 'channel-2');
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(getChannelAccessControlAttributes).not.toHaveBeenCalled();
+    });
+
+    test('should re-fetch all mounted hooks when cache is fully cleared', async () => {
+        renderHook(() => useAccessControlAttributes(EntityType.Channel, 'channel-1', true), {wrapper});
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const getChannelAccessControlAttributes = require('mattermost-redux/actions/channels').getChannelAccessControlAttributes;
+        getChannelAccessControlAttributes.mockClear();
+
+        await act(async () => {
+            invalidateAccessControlAttributesCache();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
         expect(getChannelAccessControlAttributes).toHaveBeenCalledWith('channel-1');
     });
 });
