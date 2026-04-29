@@ -363,6 +363,7 @@ function PostComponent(props: Props) {
 
     const handleRightClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
+        setHover(true);
         setForceShowPostMenu((value) => value + 1);
     }, []);
 

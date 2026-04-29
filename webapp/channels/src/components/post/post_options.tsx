@@ -76,7 +76,6 @@ const PostOptions = (props: Props): JSX.Element => {
         }
     }, [props.forceShowDotMenu, props.handleDropdownOpened]);
 
-
     const toggleEmojiPicker = useCallback((show: boolean) => {
         setShowEmojiPicker(show);
         props.handleDropdownOpened!(show);

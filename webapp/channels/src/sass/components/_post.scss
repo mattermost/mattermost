@@ -551,8 +551,6 @@
     word-wrap: break-word;
 
     &:not(.post--editing):not(.post--editing):hover {
-        background-color: rgba(functions.v(center-channel-color-rgb), 0.04);
-
         .PostAttachmentOpenGraph .remove-button {
             display: flex;
         }
