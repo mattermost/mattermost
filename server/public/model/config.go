@@ -28,6 +28,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/utils"
 )
 
+// (no-op: trigger config-change-checker CI validation)
+
 const (
 	ConnSecurityNone     = ""
 	ConnSecurityPlain    = "PLAIN"
