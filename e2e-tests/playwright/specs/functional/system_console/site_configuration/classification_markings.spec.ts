@@ -48,6 +48,18 @@ test.describe('System Console - Classification markings', () => {
             licenseTier(license.SkuShortName) < 20,
             'Classification markings requires Enterprise-tier license (SkuShortName enterprise, entry, or advanced). Professional/trial Professional is not sufficient—the admin route is hidden and redirects to /admin_console/about/license.',
         );
+
+        // Skip if the custom_profile_attributes property group is absent on this server.
+        // The group must exist (seeded by the server) before classification markings can be saved;
+        // the API returns "The specified property group was not found." otherwise.
+        try {
+            await adminClient.getPropertyFields('custom_profile_attributes', 'template', 'system');
+        } catch {
+            test.skip(
+                true,
+                'custom_profile_attributes property group not found on this server; skipping classification markings save tests.',
+            );
+        }
     });
 
     /**

@@ -346,7 +346,7 @@ const defaultServerConfig: AdminConfig = {
         SendEmailNotifications: true,
         UseChannelInEmailNotifications: false,
         RequireEmailVerification: false,
-        FeedbackName: '',
+        FeedbackName: 'Mattermost',
         FeedbackEmail: 'test@example.com',
         ReplyToAddress: 'test@example.com',
         FeedbackOrganization: '',
