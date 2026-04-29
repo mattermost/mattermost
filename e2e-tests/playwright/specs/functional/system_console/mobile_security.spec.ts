@@ -362,8 +362,6 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
 test('should configure new IntuneSettings with SAML auth provider', async ({pw}) => {
     // # Configure SAML settings
     const {adminUser, adminClient} = await pw.initSetup();
-    const config = await adminClient.getConfig();
-
     const license = await adminClient.getClientLicenseOld();
 
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have enterprise advanced license');
