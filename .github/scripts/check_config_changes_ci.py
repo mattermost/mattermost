@@ -129,59 +129,67 @@ def lines_by_sign(patch: str) -> tuple[list[str], list[str]]:
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
  
+_CONFIG_PATH  = "server/public/model/config.go"
+_STRUCT_RE    = re.compile(r"^type\s+(\w+)\s+struct\s*\{")
+_FIELD_RE     = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
+ 
+ 
+def _parse_config_snapshot(sha: str) -> set[tuple[str, str]]:
+    """
+    Parse the full config.go at `sha` and return a set of
+    (StructName, FieldName) tuples for every exported struct field.
+ 
+    Using the complete file at a known commit avoids the hunk-ordering
+    problem that makes patch-stream inference unreliable.
+    """
+    try:
+        out = subprocess.run(
+            ["git", "show", f"{sha}:{_CONFIG_PATH}"],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except subprocess.CalledProcessError:
+        return set()
+ 
+    fields: set[tuple[str, str]] = set()
+    current_struct: Optional[str] = None
+ 
+    for line in out.splitlines():
+        sm = _STRUCT_RE.match(line)
+        if sm:
+            current_struct = sm.group(1)
+            continue
+        # Top-level closing brace exits the struct
+        if line == "}":
+            current_struct = None
+            continue
+        if current_struct:
+            fm = _FIELD_RE.match(line)
+            if fm:
+                fields.add((current_struct, fm.group(1)))
+ 
+    return fields
+ 
+ 
 def check_config(patches: dict[str, str]) -> CheckResult:
     """
     Detect exported Go struct field additions/removals in config.go.
  
-    Deduplication is keyed by StructName.FieldName so that a field with the
-    same name in two different structs (one added, one removed) is not
-    incorrectly cancelled out.
+    Compares full-file snapshots at BASE_SHA and HEAD_SHA so that fields
+    are always attributed to the correct struct regardless of which hunks
+    appear in the diff.
     """
     result = CheckResult(label="`config.json` Field Changes")
-    patch = patches.get("server/public/model/config.go", "")
-    if not patch:
+    if _CONFIG_PATH not in patches:
         return result
  
-    struct_re = re.compile(r"^\s*type\s+(\w+)\s+struct\s*\{")
-    field_re  = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
+    base_fields = _parse_config_snapshot(BASE_SHA)
+    head_fields = _parse_config_snapshot(HEAD_SHA)
  
-    additions: list[str] = []   # "StructName.FieldName"
-    removals:  list[str] = []
-    current_struct = "Unknown"
+    added   = head_fields - base_fields
+    removed = base_fields - head_fields
  
-    for line in patch.splitlines():
-        # Skip diff file-header lines
-        if line.startswith(("+++", "---", "diff ", "@@")):
-            continue
- 
-        # Strip the diff sign to get the raw Go source line
-        if line.startswith(("+", "-", " ")):
-            content = line[1:]
-        else:
-            continue
- 
-        # Track the enclosing struct from ALL lines (context, added, removed)
-        sm = struct_re.match(content)
-        if sm:
-            current_struct = sm.group(1)
- 
-        # Record field changes only from added/removed lines
-        fm = field_re.match(content)
-        if fm:
-            qualified = f"{current_struct}.{fm.group(1)}"
-            if line.startswith("+"):
-                additions.append(qualified)
-            elif line.startswith("-"):
-                removals.append(qualified)
- 
-    # Deduplicate: cancel out only when the same StructName.FieldName appears
-    # on both sides (e.g. a field moved/reordered within the file).
-    seen_both = set(additions) & set(removals)
-    additions = [x for x in dict.fromkeys(additions) if x not in seen_both]
-    removals  = [x for x in dict.fromkeys(removals)  if x not in seen_both]
- 
-    result.additions = [f"`{x}`" for x in additions]
-    result.removals  = [f"`{x}`" for x in removals]
+    result.additions = sorted(f"`{s}.{f}`" for s, f in added)
+    result.removals  = sorted(f"`{s}.{f}`" for s, f in removed)
     return result
  
  
