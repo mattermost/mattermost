@@ -114,19 +114,6 @@ def split_patch_by_file(full_patch: str) -> dict[str, str]:
     return patches
 
 
-def lines_by_sign(patch: str) -> tuple[list[str], list[str]]:
-    """Return (added_lines, removed_lines) from a patch, skipping file headers."""
-    added, removed = [], []
-    for line in patch.splitlines():
-        if line.startswith("+++") or line.startswith("---"):
-            continue
-        if line.startswith("+"):
-            added.append(line[1:])
-        elif line.startswith("-"):
-            removed.append(line[1:])
-    return added, removed
-
-
 def file_at(ref: str, path: str) -> str:
     """
     Return the contents of `path` at git ref `ref`, or "" if the file does
@@ -267,59 +254,49 @@ def check_api(patches: dict[str, str]) -> CheckResult:
 
 # ── Checker 3 — audit_events.go ───────────────────────────────────────────────
 
+_AUDIT_PATH     = "server/public/model/audit_events.go"
+_AUDIT_CONST_RE = re.compile(r"^\t(AuditEvent\w+)\s*=", re.MULTILINE)
+
+
 def check_audit_events(patches: dict[str, str]) -> CheckResult:
     """Detect AuditEvent* constant additions/removals."""
     result = CheckResult(label="Audit Log Event Changes")
-    patch = patches.get("server/public/model/audit_events.go", "")
-    if not patch:
+    if _AUDIT_PATH not in patches:
         return result
 
-    # Matches:  AuditEventSomeThing = "someThing"
-    const_re = re.compile(r"^\t(AuditEvent\w+)\s*=")
-    added, removed = lines_by_sign(patch)
+    before = set(_AUDIT_CONST_RE.findall(file_at(BASE_SHA, _AUDIT_PATH)))
+    after  = set(_AUDIT_CONST_RE.findall(file_at(HEAD_SHA, _AUDIT_PATH)))
 
-    result.additions = [
-        f"`{m.group(1)}`" for line in added
-        if (m := const_re.match(line))
-    ]
-    result.removals = [
-        f"`{m.group(1)}`" for line in removed
-        if (m := const_re.match(line))
-    ]
-    seen_both = set(result.additions) & set(result.removals)
-    result.additions = [x for x in dict.fromkeys(result.additions) if x not in seen_both]
-    result.removals  = [x for x in dict.fromkeys(result.removals)  if x not in seen_both]
+    result.additions = [f"`{n}`" for n in sorted(after  - before)]
+    result.removals  = [f"`{n}`" for n in sorted(before - after)]
     return result
 
 
 # ── Checker 4 — Dockerfile.buildenv (Go version) ──────────────────────────────
 
+_BUILDENV_PATH = "server/build/Dockerfile.buildenv"
+
 # The Go version lives in the base image tag, e.g.:
 #   FROM mattermost/golang-bullseye:1.25.8@sha256:...
-_IMAGE_VER_RE = re.compile(r"^FROM \S+:([0-9]+\.[0-9]+(?:\.[0-9]+)?)")
+_IMAGE_VER_RE = re.compile(r"^FROM \S+:([0-9]+\.[0-9]+(?:\.[0-9]+)?)", re.MULTILINE)
+
+
+def _extract_go_version(text: str) -> Optional[str]:
+    m = _IMAGE_VER_RE.search(text)
+    return m.group(1) if m else None
 
 
 def check_go_version(patches: dict[str, str]) -> CheckResult:
     """Detect Go runtime version changes via the base image tag."""
     result = CheckResult(label="Go Runtime Version")
-    patch = patches.get("server/build/Dockerfile.buildenv", "")
-    if not patch:
+    if _BUILDENV_PATH not in patches:
         return result
 
-    added, removed = lines_by_sign(patch)
-    old_ver = next(
-        (m.group(1) for line in removed if (m := _IMAGE_VER_RE.match(line.strip()))),
-        None,
-    )
-    new_ver = next(
-        (m.group(1) for line in added if (m := _IMAGE_VER_RE.match(line.strip()))),
-        None,
-    )
+    old_ver = _extract_go_version(file_at(BASE_SHA, _BUILDENV_PATH))
+    new_ver = _extract_go_version(file_at(HEAD_SHA, _BUILDENV_PATH))
 
     if old_ver and new_ver and old_ver != new_ver:
-        result.changes.append(
-            f"Go updated: `{old_ver}` → `{new_ver}`"
-        )
+        result.changes.append(f"Go updated: `{old_ver}` → `{new_ver}`")
     elif new_ver and not old_ver:
         result.additions.append(f"`{new_ver}`")
     return result
