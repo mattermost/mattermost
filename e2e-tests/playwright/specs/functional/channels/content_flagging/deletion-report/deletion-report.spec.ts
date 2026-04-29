@@ -56,7 +56,7 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.sidebarRight.toContainText('Status');
     await channelsPage.sidebarRight.toContainText('Detail');
 
-    await channelsPage.sidebarRight.toContainText("File attachments");
+    await channelsPage.sidebarRight.toContainText('File attachments');
     await channelsPage.sidebarRight.toContainText('File attachment records');
     await channelsPage.sidebarRight.toContainText('Edit history');
     await channelsPage.sidebarRight.toContainText('Priority metadata');
