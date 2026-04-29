@@ -48,12 +48,15 @@ jq -c '.[]' "$prs_json" | while read -r pr; do
 
   printf "PR #%s @ %s -> %s (%s)\n" "$number" "$head_sha" "$conclusion" "$title"
 
-  gh api "repos/${REPO}/check-runs" \
-    --method POST \
-    --field name='branch-freshness' \
-    --field head_sha="$head_sha" \
-    --field status='completed' \
-    --field conclusion="$conclusion" \
-    --field "output[title]=$title" \
-    --field "output[summary]=$summary" >/dev/null
+  if ! gh api "repos/${REPO}/check-runs" \
+      --method POST \
+      --field name='branch-freshness' \
+      --field head_sha="$head_sha" \
+      --field status='completed' \
+      --field conclusion="$conclusion" \
+      --field "output[title]=$title" \
+      --field "output[summary]=$summary" >/dev/null; then
+    printf "PR #%s: failed to update check run, continuing.\n" "$number" >&2
+    continue
+  fi
 done
