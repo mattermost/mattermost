@@ -126,10 +126,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
         // by default we assume is not cloud, so the cta button is Start Trial (which will request a trial license)
         let ctaPrimaryButton = (
-            <StartTrialBtn
-                btnClass='btn btn-primary'
-                renderAsButton={true}
-            />
+            <StartTrialBtn renderAsButton={true}/>
         );
 
         if (isCloud) {
