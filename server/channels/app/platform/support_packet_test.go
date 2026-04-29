@@ -422,8 +422,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
 			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
 		})
 
 		packet := getDiagnostics(t)
@@ -436,6 +443,14 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
 			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
 		})
 
@@ -453,7 +468,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
 			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
 		})
 
 		packet := getDiagnostics(t)
