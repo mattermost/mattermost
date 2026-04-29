@@ -1755,6 +1755,68 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
     });
 
+    test('public channel: saves without membership impact confirmation even when sync would add users', async () => {
+        const user = userEvent.setup();
+
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}],
+                total_count: 2,
+            },
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        const publicChannelProps = {
+            ...baseProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                name: 'public-channel',
+                display_name: 'Public Channel',
+                type: 'O',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...publicChannelProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+        });
+
+        expect(screen.queryByText('Review membership impact')).not.toBeInTheDocument();
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
+
     describe('Activity warning logic - comprehensive scenarios', () => {
         const stateWithMessages = {
             ...initialState,

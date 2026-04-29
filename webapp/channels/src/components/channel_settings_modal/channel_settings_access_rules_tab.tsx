@@ -481,6 +481,28 @@ function ChannelSettingsAccessRulesTab({
             const hasRulesNow = expression.trim().length > 0;
             const isRemovingAllRules = hadRulesBefore && !hasRulesNow;
 
+            // Public channels use advisory membership policies: members are never removed by sync,
+            // and the impact preview would incorrectly imply removals. Save without confirmation.
+            if (channel.type === Constants.OPEN_CHANNEL) {
+                if (autoSyncMembers && isEmptyRulesState) {
+                    setFormError(formatMessage({
+                        id: 'channel_settings.access_rules.expression_required_for_autosync',
+                        defaultMessage: 'Access rules are required when auto-add members is enabled',
+                    }));
+                    return SAVE_RESULT_ERROR;
+                }
+
+                if (expression.trim()) {
+                    const isValid = await validateSelfExclusion(expression);
+                    if (!isValid) {
+                        return SAVE_RESULT_ERROR;
+                    }
+                }
+
+                const success = await performSave();
+                return success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
+            }
+
             // For empty rules state, check if we need to show warning for removing all rules
             if (isEmptyRulesState) {
                 // If removing all rules and channel has history, show activity warning first
@@ -564,7 +586,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
