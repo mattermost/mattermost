@@ -56,15 +56,15 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.sidebarRight.toContainText('Status');
     await channelsPage.sidebarRight.toContainText('Detail');
 
-    await channelsPage.sidebarRight.toContainText("Post's file attachments from file system");
-    await channelsPage.sidebarRight.toContainText('FileInfo rows');
-    await channelsPage.sidebarRight.toContainText('Edit histories');
-    await channelsPage.sidebarRight.toContainText('Post priority data');
+    await channelsPage.sidebarRight.toContainText("File attachments");
+    await channelsPage.sidebarRight.toContainText('File attachment records');
+    await channelsPage.sidebarRight.toContainText('Edit history');
+    await channelsPage.sidebarRight.toContainText('Priority metadata');
     await channelsPage.sidebarRight.toContainText('Persistent notifications');
     await channelsPage.sidebarRight.toContainText('Acknowledgements');
     await channelsPage.sidebarRight.toContainText('Reminders');
-    await channelsPage.sidebarRight.toContainText('Thread & associated data');
-    await channelsPage.sidebarRight.toContainText('The post itself');
+    await channelsPage.sidebarRight.toContainText('Thread, replies, and reactions');
+    await channelsPage.sidebarRight.toContainText('Post record');
 
     // Verify file attachment is present with the expected filename pattern
     const rhsLastPost = await channelsPage.sidebarRight.getLastPost();
