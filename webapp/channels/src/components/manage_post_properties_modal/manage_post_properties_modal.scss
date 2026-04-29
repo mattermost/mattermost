@@ -9,8 +9,10 @@
 
 .manage-post-properties-modal__rows {
     display: flex;
+    max-height: min(60vh, 480px);
     flex-direction: column;
     gap: 6px;
+    overflow-y: auto;
 }
 
 .manage-post-properties-modal__row {

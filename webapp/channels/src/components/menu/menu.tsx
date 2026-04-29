@@ -3,7 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import type {PopoverOrigin} from '@mui/material/Popover';
+import type {PopoverActions, PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {
     useState,
@@ -92,6 +92,10 @@ interface Props {
     // and transformOrigin values - https://mui.com/material-ui/react-popover/#anchor-playground
     anchorOrigin?: PopoverOrigin;
     transformOrigin?: PopoverOrigin;
+
+    // Imperative handle to MUI Popover actions (e.g. updatePosition() when
+    // menu content resizes after open).
+    popoverAction?: React.Ref<PopoverActions>;
 }
 
 /**
@@ -253,6 +257,7 @@ export function Menu(props: Props) {
             {renderMenuButton()}
             <MenuContext.Provider value={providerValue}>
                 <MuiPopover
+                    action={props.popoverAction}
                     anchorEl={anchorElement}
                     open={isMenuOpen}
                     onClose={handleMenuClose}

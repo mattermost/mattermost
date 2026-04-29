@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {FieldType, PropertyFieldOption} from '@mattermost/types/properties';
@@ -17,6 +17,7 @@ export type NewPropertyData = {
 export type Props = {
     onSave: (data: NewPropertyData) => Promise<void>;
     onCancel: () => void;
+    onLayoutChange?: () => void;
 };
 
 const TYPES_WITH_OPTIONS: FieldType[] = ['select', 'multiselect'];
@@ -29,7 +30,7 @@ function generateOptionId(): string {
     return `opt-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-export default function NewPropertyForm({onSave, onCancel}: Props) {
+export default function NewPropertyForm({onSave, onCancel, onLayoutChange}: Props) {
     const {formatMessage} = useIntl();
 
     const [name, setName] = useState('');
@@ -40,6 +41,10 @@ export default function NewPropertyForm({onSave, onCancel}: Props) {
     const [optionsError, setOptionsError] = useState('');
 
     const needsOptions = TYPES_WITH_OPTIONS.includes(type);
+
+    useLayoutEffect(() => {
+        onLayoutChange?.();
+    }, [needsOptions, options.length, Boolean(nameError), Boolean(optionsError), onLayoutChange]);
 
     const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
         setType(e.target.value as FieldType);

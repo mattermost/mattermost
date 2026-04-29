@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PopoverActions} from '@mui/material/Popover';
 import classNames from 'classnames';
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -38,6 +39,13 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
     const [open, setOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [inAddNewMode, setInAddNewMode] = useState(false);
+    const popoverActionRef = useRef<PopoverActions | null>(null);
+
+    const handleFormLayoutChange = useCallback(() => {
+        // Re-anchor the popover so it grows upward (per anchor/transform origin)
+        // instead of overflowing the viewport when the form resizes.
+        popoverActionRef.current?.updatePosition();
+    }, []);
 
     const stagedSet = new Set(stagedFieldIds);
 
@@ -190,6 +198,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                     vertical: 'bottom',
                     horizontal: 'left',
                 }}
+                popoverAction={popoverActionRef}
             >
                 {inAddNewMode && onCreateField ? [
                     (
@@ -202,6 +211,7 @@ function PostPropertyPicker({fields, stagedFieldIds, onToggleStaged, onCreateFie
                             <NewPropertyForm
                                 onSave={handleSaveNew}
                                 onCancel={handleCancelAddNew}
+                                onLayoutChange={handleFormLayoutChange}
                             />
                         </li>
                     ),

@@ -37,6 +37,10 @@ const selectStyles: StylesConfig<SelectOption, true> = {
         ...baseStyles,
         padding: '2px 6px',
     }),
+    menuPortal: (baseStyles) => ({
+        ...baseStyles,
+        zIndex: 9999,
+    }),
 };
 
 function getOptions(field: PropertyValueEditorProps['field']): PropertyFieldOption[] {
@@ -100,6 +104,8 @@ export default function SelectEditor({field, value, onChange, multi}: Props) {
                 options={opts}
                 isClearable={true}
                 isSearchable={false}
+                menuPlacement='auto'
+                menuPortalTarget={typeof document === 'undefined' ? null : document.body}
                 placeholder={formatMessage({
                     id: 'property_value_editor.select.placeholder',
                     defaultMessage: 'Select',
