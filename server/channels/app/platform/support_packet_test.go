@@ -698,6 +698,150 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
+
+	t.Run("oauth providers disabled", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(false)
+			cfg.GoogleSettings.Enable = model.NewPointer(false)
+			cfg.Office365Settings.Enable = model.NewPointer(false)
+			cfg.OpenIdSettings.Enable = model.NewPointer(false)
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.GitLab.Status)
+		assert.False(t, packet.OAuthProviders.GitLab.Enabled)
+		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.Google.Status)
+		assert.False(t, packet.OAuthProviders.Google.Enabled)
+		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.Office365.Status)
+		assert.False(t, packet.OAuthProviders.Office365.Enabled)
+		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.OpenID.Status)
+		assert.False(t, packet.OAuthProviders.OpenID.Enabled)
+		assert.Empty(t, packet.OAuthProviders.OpenID.DiscoveredIssuer)
+	})
+
+	t.Run("oauth token endpoint providers reachable", func(t *testing.T) {
+		tokenEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer tokenEndpointServer.Close()
+
+		tokenEndpoint := tokenEndpointServer.URL + "/oauth/token"
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+			cfg.GitLabSettings.TokenEndpoint = model.NewPointer(tokenEndpoint)
+			cfg.GoogleSettings.Enable = model.NewPointer(true)
+			cfg.GoogleSettings.TokenEndpoint = model.NewPointer(tokenEndpoint)
+			cfg.Office365Settings.Enable = model.NewPointer(true)
+			cfg.Office365Settings.TokenEndpoint = model.NewPointer(tokenEndpoint)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.GitLabSettings.Enable = model.NewPointer(false)
+				cfg.GoogleSettings.Enable = model.NewPointer(false)
+				cfg.Office365Settings.Enable = model.NewPointer(false)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.GitLab.Status)
+		assert.True(t, packet.OAuthProviders.GitLab.Enabled)
+		assert.Empty(t, packet.OAuthProviders.GitLab.Error)
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.Google.Status)
+		assert.True(t, packet.OAuthProviders.Google.Enabled)
+		assert.Empty(t, packet.OAuthProviders.Google.Error)
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.Office365.Status)
+		assert.True(t, packet.OAuthProviders.Office365.Enabled)
+		assert.Empty(t, packet.OAuthProviders.Office365.Error)
+	})
+
+	t.Run("oauth token endpoint providers unreachable", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = model.NewPointer(true)
+			cfg.GitLabSettings.TokenEndpoint = model.NewPointer("http://localhost:1/oauth/token")
+			cfg.GoogleSettings.Enable = model.NewPointer(true)
+			cfg.GoogleSettings.TokenEndpoint = model.NewPointer("http://localhost:1/oauth/token")
+			cfg.Office365Settings.Enable = model.NewPointer(true)
+			cfg.Office365Settings.TokenEndpoint = model.NewPointer("http://localhost:1/oauth/token")
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.GitLabSettings.Enable = model.NewPointer(false)
+				cfg.GoogleSettings.Enable = model.NewPointer(false)
+				cfg.Office365Settings.Enable = model.NewPointer(false)
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
+		assert.True(t, packet.OAuthProviders.GitLab.Enabled)
+		assert.NotEmpty(t, packet.OAuthProviders.GitLab.Error)
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.Google.Status)
+		assert.True(t, packet.OAuthProviders.Google.Enabled)
+		assert.NotEmpty(t, packet.OAuthProviders.Google.Error)
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.Office365.Status)
+		assert.True(t, packet.OAuthProviders.Office365.Enabled)
+		assert.NotEmpty(t, packet.OAuthProviders.Office365.Error)
+	})
+
+	t.Run("openid provider reachable with discovery issuer", func(t *testing.T) {
+		discoveryEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, "/.well-known/openid-configuration", r.URL.Path)
+			w.Header().Set("Content-Type", "application/json")
+			_, writeErr := w.Write([]byte(`{"issuer":"https://idp.example.com"}`))
+			require.NoError(t, writeErr)
+		}))
+		defer discoveryEndpointServer.Close()
+
+		discoveryEndpoint := discoveryEndpointServer.URL + "/.well-known/openid-configuration"
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer(discoveryEndpoint)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.OAuthProviders.OpenID.Status)
+		assert.True(t, packet.OAuthProviders.OpenID.Enabled)
+		assert.Equal(t, "https://idp.example.com", packet.OAuthProviders.OpenID.DiscoveredIssuer)
+		assert.Empty(t, packet.OAuthProviders.OpenID.Error)
+	})
+
+	t.Run("openid provider discovery endpoint failure", func(t *testing.T) {
+		discoveryEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, writeErr := w.Write([]byte(`{}`))
+			require.NoError(t, writeErr)
+		}))
+		defer discoveryEndpointServer.Close()
+
+		discoveryEndpoint := discoveryEndpointServer.URL + "/.well-known/openid-configuration"
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.OpenIdSettings.Enable = model.NewPointer(true)
+			cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer(discoveryEndpoint)
+		})
+		t.Cleanup(func() {
+			th.Service.UpdateConfig(func(cfg *model.Config) {
+				cfg.OpenIdSettings.Enable = model.NewPointer(false)
+				cfg.OpenIdSettings.DiscoveryEndpoint = model.NewPointer("")
+			})
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.OAuthProviders.OpenID.Status)
+		assert.True(t, packet.OAuthProviders.OpenID.Enabled)
+		assert.Empty(t, packet.OAuthProviders.OpenID.DiscoveredIssuer)
+		assert.Contains(t, packet.OAuthProviders.OpenID.Error, "missing issuer")
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
