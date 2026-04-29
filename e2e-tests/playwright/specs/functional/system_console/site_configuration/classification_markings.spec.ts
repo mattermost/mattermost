@@ -27,6 +27,17 @@ async function selectClassificationPreset(page: Page, optionLabel: string) {
 }
 
 test.describe('System Console - Classification markings', () => {
+    test.beforeAll(async () => {
+        const {adminClient} = await getAdminClient({skipLog: true});
+        await setClassificationMarkingsFeatureFlag(adminClient, true);
+        const config = await adminClient.getConfig();
+        test.skip(
+            config.FeatureFlags?.ClassificationMarkings !== true &&
+                config.FeatureFlags?.ClassificationMarkings !== 'true',
+            'ClassificationMarkings feature flag is off (probably overridden by env); skipping.',
+        );
+    });
+
     test.describe.configure({mode: 'serial'});
 
     test.beforeEach(async ({pw}) => {

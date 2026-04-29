@@ -203,12 +203,14 @@ test('should show and enable Intune MAM when Enterprise Advanced licensed and Of
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-client-id';
-    config.Office365Settings.Secret = 'test-client-secret';
-    config.Office365Settings.DirectoryId = 'test-directory-id';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-client-id',
+            Secret: 'test-client-secret',
+            DirectoryId: 'test-directory-id',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -265,9 +267,11 @@ test('should hide Intune MAM when Office365 is not configured', async ({pw}) => 
     }
 
     // # Ensure Office365 is disabled
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = false;
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: false,
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -297,13 +301,17 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-office365-client-id';
-    config.Office365Settings.Secret = 'test-office365-secret';
-    config.Office365Settings.DirectoryId = 'test-office365-directory-id';
-    config.SamlSettings.EmailAttribute = 'useremail';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-office365-client-id',
+            Secret: 'test-office365-secret',
+            DirectoryId: 'test-office365-directory-id',
+        },
+        SamlSettings: {
+            EmailAttribute: 'useremail',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -392,21 +400,20 @@ test('should configure new IntuneSettings with SAML auth provider', async ({pw})
     });
 
     // # Configure SAML settings
-    config.SamlSettings.Enable = true;
-    config.SamlSettings.IdpURL = 'https://example.com/saml';
-    config.SamlSettings.IdpDescriptorURL = 'https://example.com/saml/metadata';
-    config.SamlSettings.IdpCertificateFile = 'test-cert.pem';
-    config.SamlSettings.EmailAttribute = 'useremail';
-    config.SamlSettings.UsernameAttribute = 'username';
-    config.SamlSettings.ServiceProviderIdentifier = 'sp-entity-id';
-    config.SamlSettings.AssertionConsumerServiceURL = 'https://sp.example.com/login';
-    config.SamlSettings.IdpCertificateFile = 'saml-idp.crt';
-    config.SamlSettings.PrivateKeyFile = 'saml-idp.crt';
-
-    if ('PublicCertificateFile' in config.SamlSettings) {
-        config.SamlSettings.PublicCertificateFile = 'saml-public-cert.pem';
-    }
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        SamlSettings: {
+            Enable: true,
+            IdpURL: 'https://example.com/saml',
+            IdpDescriptorURL: 'https://example.com/saml/metadata',
+            IdpCertificateFile: 'saml-idp.crt',
+            EmailAttribute: 'useremail',
+            UsernameAttribute: 'username',
+            ServiceProviderIdentifier: 'sp-entity-id',
+            AssertionConsumerServiceURL: 'https://sp.example.com/login',
+            PrivateKeyFile: 'saml-idp.crt',
+            PublicCertificateFile: 'saml-public-cert.pem',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -462,12 +469,14 @@ test('should disable Intune inputs when toggle is off', async ({pw}) => {
     }
 
     // # Configure Office365 settings
-    const config = await adminClient.getConfig();
-    config.Office365Settings.Enable = true;
-    config.Office365Settings.Id = 'test-client-id';
-    config.Office365Settings.Secret = 'test-secret';
-    config.Office365Settings.DirectoryId = 'test-directory-id';
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        Office365Settings: {
+            Enable: true,
+            Id: 'test-client-id',
+            Secret: 'test-secret',
+            DirectoryId: 'test-directory-id',
+        },
+    } as any);
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);

@@ -26,13 +26,12 @@ import {
 test.afterAll(async () => {
     try {
         const {adminClient} = await getAdminClient({skipLog: true});
-        const config = await adminClient.getConfig();
-        (config as any).AccessControlSettings = {
-            ...((config as any).AccessControlSettings || {}),
-            EnableAttributeBasedAccessControl: true,
-            EnableUserManagedAttributes: true,
-        };
-        await adminClient.updateConfig(config);
+        await adminClient.patchConfig({
+            AccessControlSettings: {
+                EnableAttributeBasedAccessControl: true,
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
     } catch {
         // Best-effort cleanup.
     }
@@ -151,7 +150,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
 
     // Try to find the policy row first without search
     const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-    const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
+    let isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
     // If not visible, use search
     if (!isPolicyVisible) {
@@ -159,10 +158,16 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
             .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
             .first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.click();
             await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1500);
         }
+        // Re-bind and poll — grid refresh under parallel load may be delayed.
+        await expect
+            .poll(() => policyRowLocator.isVisible(), {
+                timeout: 20_000,
+                message: `policy "${policyName}" should appear in grid after search`,
+            })
+            .toBe(true);
+        isPolicyVisible = true;
     }
 
     // Click policy to edit
@@ -190,16 +195,26 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
 
     // The attribute dropdown opens automatically after clicking "Add attribute"
     const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-    await attributeMenu.waitFor({state: 'visible', timeout: 5000});
+    await expect
+        .poll(() => attributeMenu.isVisible(), {
+            timeout: 15_000,
+            message: 'attribute dropdown should appear',
+        })
+        .toBe(true);
 
     const officeOption = attributeMenu.locator('li:has-text("Office")').first();
-    await officeOption.waitFor({state: 'visible', timeout: 5000});
+    await expect
+        .poll(() => officeOption.isVisible(), {
+            timeout: 15_000,
+            message: 'Office option should be visible in attribute dropdown',
+        })
+        .toBe(true);
     await officeOption.click({force: true});
     await page.waitForTimeout(500);
 
     // Select operator "==" (is)
     const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').last();
-    await operatorButton.waitFor({state: 'visible', timeout: 5000});
+    await operatorButton.waitFor({state: 'visible', timeout: 10_000});
     await operatorButton.click({force: true});
     await page.waitForTimeout(500);
 
@@ -209,7 +224,7 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
 
     // Fill value "Remote"
     const valueInput = page.locator('.values-editor__simple-input').last();
-    await valueInput.waitFor({state: 'visible', timeout: 5000});
+    await valueInput.waitFor({state: 'visible', timeout: 10_000});
     await valueInput.fill('Remote');
     await page.waitForTimeout(500);
 
@@ -253,18 +268,29 @@ test('MM-T5791 Editing policy to add attribute with auto-add enabled', async ({p
     // STEP 5 & 6: Verify channel membership after edit
     // ===========================================
 
-    const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-    const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
-    const salesAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-
-    // Step 5: engineerRemoteUser should be in channel (satisfies BOTH attributes)
-    expect(engineerRemoteAfterEdit).toBe(true);
-
-    // Step 6: engineerOfficeUser should be REMOVED (only satisfies original, not new policy)
-    expect(engineerOfficeAfterEdit).toBe(false);
-
-    // salesUser should not be in channel (never satisfied any policy)
-    expect(salesAfterEdit).toBe(false);
+    // Poll under PW_WORKERS>=2: another shard's sync job may briefly change
+    // membership after we read it, so we retry until stable.
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerRemoteUser should be in channel (satisfies BOTH attributes)',
+        })
+        .toBe(true);
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerOfficeUser should be REMOVED (does not satisfy new policy)',
+        })
+        .toBe(false);
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, salesUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'salesUser should not be in channel',
+        })
+        .toBe(false);
 });
 
 /**
@@ -375,21 +401,26 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
     await addPolicyButton.waitFor({state: 'visible', timeout: 10000});
 
+    // Wait for the exact policy row to appear with retry — under parallel load the
+    // grid update from the server may lag behind the page load.
     const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-    const isPolicyVisible = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
+    const found = await policyRowLocator.isVisible({timeout: 3000}).catch(() => false);
 
-    if (!isPolicyVisible) {
+    if (!found) {
         const policySearchInput = page
             .locator('.DataGrid input[type="text"], input[placeholder*="Search policies" i]')
             .first();
         if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.click();
             await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1500);
         }
+        // Re-bind locator after the grid refreshes so we don't hold a stale reference.
+        await expect
+            .poll(() => policyRowLocator.isVisible(), {
+                timeout: 20_000,
+                message: `policy "${policyName}" should appear in grid after search`,
+            })
+            .toBe(true);
     }
-
-    await policyRowLocator.waitFor({state: 'visible', timeout: 15000});
     await policyRowLocator.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
@@ -476,16 +507,26 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 5 & 6: Verify channel membership after edit
     // ===========================================
 
-    const engineerRemoteAfterEdit = await verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id);
-    const engineerOfficeAfterEdit = await verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id);
-    const salesRemoteAfterEdit = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
-
-    // Step 5: engineerOfficeUser should be AUTO-ADDED (now satisfies simpler Dept-only policy)
-    expect(engineerOfficeAfterEdit).toBe(true);
-
-    // engineerRemoteUser should still be in channel (continues to satisfy policy)
-    expect(engineerRemoteAfterEdit).toBe(true);
-
-    // Step 6: salesRemoteUser should NOT be in channel (never satisfied Dept requirement)
-    expect(salesRemoteAfterEdit).toBe(false);
+    // Poll under PW_WORKERS>=2: other shards' sync jobs may briefly change membership.
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerOfficeUser should be AUTO-ADDED (satisfies simpler Dept-only policy)',
+        })
+        .toBe(true);
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'engineerRemoteUser should still be in channel',
+        })
+        .toBe(true);
+    await expect
+        .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id), {
+            timeout: 30_000,
+            intervals: [500, 1000, 2000],
+            message: 'salesRemoteUser should NOT be in channel',
+        })
+        .toBe(false);
 });

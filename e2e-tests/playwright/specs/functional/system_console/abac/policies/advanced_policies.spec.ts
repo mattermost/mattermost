@@ -28,6 +28,7 @@ import {
     createAdvancedPolicy,
     activatePolicy,
     waitForLatestSyncJob,
+    waitForPolicySyncJob,
     getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
 } from '../support';
@@ -129,7 +130,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
             await searchInput.clear();
 
             await activatePolicy(adminClient, policyId);
-            await waitForLatestSyncJob(systemConsolePage.page, 10);
+            await waitForPolicySyncJob(adminClient, policyId);
             const __jobId1 = await runSyncJob(systemConsolePage.page);
             await waitForLatestSyncJob(systemConsolePage.page, 10, __jobId1);
 
@@ -154,22 +155,37 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     test('MM-T5785_a auto-adds qualifying user who was not in channel', async () => {
         test.setTimeout(60000);
         test.skip(!licensed, 'No ABAC license');
-        const inChannel = await verifyUserInChannel(sharedAdminClient, user1.id, privateChannel.id);
-        expect(inChannel).toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(sharedAdminClient, user1.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'user1 should be auto-added to channel',
+            })
+            .toBe(true);
     });
 
     test('MM-T5785_b keeps qualifying user who was already in channel', async () => {
         test.setTimeout(60000);
         test.skip(!licensed, 'No ABAC license');
-        const inChannel = await verifyUserInChannel(sharedAdminClient, user2.id, privateChannel.id);
-        expect(inChannel).toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(sharedAdminClient, user2.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'user2 should stay in channel',
+            })
+            .toBe(true);
     });
 
     test('MM-T5785_c auto-removes non-qualifying user who was in channel', async () => {
         test.setTimeout(60000);
         test.skip(!licensed, 'No ABAC license');
-        const inChannel = await verifyUserInChannel(sharedAdminClient, user3.id, privateChannel.id);
-        expect(inChannel).toBe(false);
+        await expect
+            .poll(async () => verifyUserInChannel(sharedAdminClient, user3.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'user3 should be auto-removed from channel',
+            })
+            .toBe(false);
     });
 });
 
@@ -285,8 +301,16 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
 
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         await searchInput.fill(searchTerm);
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
+        // Wait for the exact policy row to appear instead of grabbing .first() blindly.
+        // Under parallel load the grid update may be delayed, and .first() can return a
+        // policy created by another concurrent test.
+        const policyRow = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
+        await expect
+            .poll(() => policyRow.isVisible(), {
+                timeout: 10_000,
+                message: `policy row for "${policyName}" should appear in search results`,
+            })
+            .toBe(true);
         const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
         if (policyId) {
             await activatePolicy(sharedAdminClient, policyId);
@@ -295,10 +319,21 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         }
         await searchInput.clear();
 
-        const engInChannel = await verifyUserInChannel(sharedAdminClient, engineerUser.id, channel.id);
-        const salesInChannel = await verifyUserInChannel(sharedAdminClient, salesUser.id, channel.id);
-        expect(engInChannel).toBe(true);
-        expect(salesInChannel).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(sharedAdminClient, engineerUser.id, channel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerUser should be in channel',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(sharedAdminClient, salesUser.id, channel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesUser should not be in channel',
+            })
+            .toBe(false);
     }
 
     test('MM-T5786_a is-not (!=) operator', async () => {
@@ -424,7 +459,10 @@ test.describe('ABAC Policies - Advanced Policies', () => {
             await navigateToABACPage(systemConsolePage.page);
         }
 
-        await waitForLatestSyncJob(systemConsolePage.page);
+        // Brief wait for any remaining background sync to settle.
+        // Avoids waitForLatestSyncJob() which is racy under PW_WORKERS>=2
+        // because it polls the most-recent job in the UI table.
+        await systemConsolePage.page.waitForTimeout(3000);
 
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
@@ -446,13 +484,27 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         }
         await searchInput.clear();
 
-        const engineerInChannel = await verifyUserInChannel(adminClient, engineerUser.id, channel.id);
-        expect(engineerInChannel).toBe(true);
-
-        const salesRemoteInChannel = await verifyUserInChannel(adminClient, salesRemoteUser.id, channel.id);
-        expect(salesRemoteInChannel).toBe(true);
-
-        const salesOfficeInChannel = await verifyUserInChannel(adminClient, salesOfficeUser.id, channel.id);
-        expect(salesOfficeInChannel).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerUser should be in channel',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, channel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesRemoteUser should be in channel',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesOfficeUser.id, channel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesOfficeUser should not be in channel',
+            })
+            .toBe(false);
     });
 });

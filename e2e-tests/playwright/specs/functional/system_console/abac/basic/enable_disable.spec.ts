@@ -34,9 +34,11 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
     // # Reset ABAC to disabled via API before testing the UI toggle.
     // Parallel tests may have already enabled it, which would leave the radio
     // pre-selected and the Save button permanently disabled (no dirty state).
-    const config = await adminClient.getConfig();
-    config.AccessControlSettings.EnableAttributeBasedAccessControl = false;
-    await adminClient.updateConfig(config);
+    await adminClient.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: false,
+        },
+    } as any);
 
     // # Now login - this ensures the UI will have the attributes loaded
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -48,11 +50,13 @@ test('MM-T5782 System admin can enable or disable system-wide ABAC', async ({pw}
 
     // Re-apply the ABAC=false reset right before UI interaction: a concurrent
     // initSetup() on another shard may have re-enabled ABAC between the initial
-    // updateConfig call above and here. If it's already enabled when we click
+    // patchConfig call above and here. If it's already enabled when we click
     // enableRadio the radio is a no-op and Save stays disabled.
-    const freshConfig = await adminClient.getConfig();
-    freshConfig.AccessControlSettings.EnableAttributeBasedAccessControl = false;
-    await adminClient.updateConfig(freshConfig);
+    await adminClient.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: false,
+        },
+    } as any);
     await pw.waitUntil(async () => {
         const cfg = await adminClient.getConfig();
         return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;

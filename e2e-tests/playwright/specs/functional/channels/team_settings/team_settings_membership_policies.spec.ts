@@ -35,13 +35,12 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
     test.afterAll(async () => {
         try {
             const {adminClient} = await getAdminClient({skipLog: true});
-            const config = await adminClient.getConfig();
-            (config as any).AccessControlSettings = {
-                ...((config as any).AccessControlSettings || {}),
-                EnableAttributeBasedAccessControl: true,
-                EnableUserManagedAttributes: true,
-            };
-            await adminClient.updateConfig(config);
+            await adminClient.patchConfig({
+                AccessControlSettings: {
+                    EnableAttributeBasedAccessControl: true,
+                    EnableUserManagedAttributes: true,
+                },
+            } as any);
         } catch {
             // Best-effort cleanup.
         }

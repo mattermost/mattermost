@@ -20,7 +20,8 @@ import {
     createPrivateChannelForABAC,
     createBasicPolicy,
     createAdvancedPolicy,
-    waitForLatestSyncJob,
+    waitForPolicySyncJob,
+    getPolicyIdByName,
     enableUserManagedAttributes,
 } from '../support';
 
@@ -116,6 +117,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: false, // Auto-add is OFF
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Check membership AFTER policy creation (before explicit sync)
         await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
@@ -256,22 +258,32 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Wait for sync to complete
+        // Wait for sync to complete (race-safe: polls exact policy, not UI table)
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page, 5);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after policy edit
         // ===========================================
 
-        const salesInChannelAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-        const engineerInChannelAfterEdit = await verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id);
-
-        // Step 5: salesUser should NOT be in channel (auto-add is off)
-        expect(salesInChannelAfterEdit).toBe(false);
-
-        // Step 6: engineerUser should be REMOVED (no longer satisfies policy)
-        expect(engineerInChannelAfterEdit).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may flip membership.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesUser should NOT be in channel (auto-add is off)',
+            })
+            .toBe(false);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerUser should be REMOVED (no longer satisfies policy)',
+            })
+            .toBe(false);
 
         // ===========================================
         // STEP 7: Admin can manually add satisfying user
@@ -402,6 +414,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: true, // Auto-add is ON
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
         await page.waitForTimeout(3000);
@@ -514,35 +527,38 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
         await page.waitForTimeout(2000);
 
         // Wait for the auto-triggered sync job to complete (policy edit triggers sync automatically)
-        await waitForLatestSyncJob(page);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // Additional wait for membership changes to propagate
-        await page.waitForTimeout(5000);
-
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerRemoteUser.id,
-            privateChannel.id,
-        );
-        const engineerOfficeAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerOfficeUser.id,
-            privateChannel.id,
-        );
-        const salesAfterEdit = await verifyUserInChannel(adminClient, salesUser.id, privateChannel.id);
-
-        // Step 5: engineerRemoteUser should be in channel (satisfies BOTH attributes)
-        expect(engineerRemoteAfterEdit).toBe(true);
-
-        // Step 6: engineerOfficeUser should be REMOVED (only satisfies original, not new policy)
-        expect(engineerOfficeAfterEdit).toBe(false);
-
-        // salesUser should not be in channel (never satisfied any policy)
-        expect(salesAfterEdit).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerRemoteUser should be in channel (satisfies BOTH attributes)',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerOfficeUser should be REMOVED (only satisfies original, not new policy)',
+            })
+            .toBe(false);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesUser should not be in channel',
+            })
+            .toBe(false);
     });
 
     /**
@@ -668,6 +684,7 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             autoSync: true, // Auto-add is ON
             channels: [privateChannel.display_name],
         });
+        const policyId = await getPolicyIdByName(adminClient, policyName);
 
         // Wait for automatic sync to complete
         await page.waitForTimeout(3000);
@@ -799,34 +816,39 @@ test.describe('ABAC Policy Management - Edit Policies', () => {
             await page.waitForTimeout(1000);
         }
 
-        // Navigate to ABAC page and wait for sync job to complete
+        // Navigate to ABAC page and wait for sync job to complete (race-safe by policyId)
         await navigateToABACPage(page);
-        await waitForLatestSyncJob(page);
+        if (!policyId) {
+            throw new Error('Policy ID not found after creation');
+        }
+        await waitForPolicySyncJob(adminClient, policyId);
 
         // ===========================================
         // STEP 5 & 6: Verify channel membership after edit
         // ===========================================
 
-        const engineerRemoteAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerRemoteUser.id,
-            privateChannel.id,
-        );
-        const engineerOfficeAfterEdit = await verifyUserInChannel(
-            adminClient,
-            engineerOfficeUser.id,
-            privateChannel.id,
-        );
-        const salesRemoteAfterEdit = await verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id);
-
-        // Step 5: engineerOfficeUser should be AUTO-ADDED (now satisfies simpler Dept-only policy)
-        expect(engineerOfficeAfterEdit).toBe(true);
-
-        // engineerRemoteUser should still be in channel (continues to satisfy policy)
-        expect(engineerRemoteAfterEdit).toBe(true);
-
-        // Step 6: salesRemoteUser should NOT be in channel (never satisfied Dept requirement)
-        expect(salesRemoteAfterEdit).toBe(false);
+        // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerOfficeUser should be AUTO-ADDED (satisfies simpler Dept-only policy)',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, engineerRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'engineerRemoteUser should still be in channel',
+            })
+            .toBe(true);
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, privateChannel.id), {
+                timeout: 30_000,
+                intervals: [500, 1000, 2000],
+                message: 'salesRemoteUser should NOT be in channel',
+            })
+            .toBe(false);
     });
 
     /**

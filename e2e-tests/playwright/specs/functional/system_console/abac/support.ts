@@ -81,12 +81,11 @@ export async function createUserAttributeField(client: Client4, name: string, ty
  */
 export async function enableUserManagedAttributes(client: Client4): Promise<void> {
     try {
-        const config = await client.getConfig();
-        if (config.AccessControlSettings?.EnableUserManagedAttributes !== true) {
-            config.AccessControlSettings = config.AccessControlSettings || {};
-            config.AccessControlSettings.EnableUserManagedAttributes = true;
-            await client.updateConfig(config);
-        }
+        await client.patchConfig({
+            AccessControlSettings: {
+                EnableUserManagedAttributes: true,
+            },
+        } as any);
     } catch {
         // console.warn('Failed to enable EnableUserManagedAttributes:', _error.message || String(_error));
     }
