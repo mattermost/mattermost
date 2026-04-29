@@ -96,6 +96,29 @@ describe('components/SizeAwareImage', () => {
         expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
     });
 
+    test('should retry loading the image when mini preview is shown', () => {
+        jest.useFakeTimers();
+        const props = {
+            ...baseProps,
+            onImageLoadFail: jest.fn(),
+            fileInfo: TestHelper.getFileInfoMock({
+                ...baseProps.fileInfo,
+                mime_type: 'image/png',
+                mini_preview: 'mini_preview',
+            }),
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        simulateImageError(container.querySelector('.file-preview__button img')!);
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        expect(container.querySelector('.file-preview__button img')?.getAttribute('src')).toEqual(`${props.src}?retry=1`);
+        jest.useRealTimers();
+    });
+
     test('should have display set to initial in loaded state', () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 

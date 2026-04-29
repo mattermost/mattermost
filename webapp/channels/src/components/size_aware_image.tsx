@@ -25,6 +25,8 @@ import {copyToClipboard, getFileType} from 'utils/utils';
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
+const MAX_IMAGE_LOAD_RETRIES = 3;
+const IMAGE_LOAD_RETRY_DELAY = 1000;
 
 export type Props = WrappedComponentProps & {
 
@@ -107,6 +109,7 @@ type State = {
     linkCopyInProgress: boolean;
     error: boolean;
     imageWidth: number;
+    imageRetry: number;
 }
 
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
@@ -128,6 +131,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             linkCopyInProgress: false,
             error: false,
             imageWidth: 0,
+            imageRetry: 0,
         };
 
         this.heightTimeout = 0;
@@ -172,6 +176,18 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 this.props.onImageLoadFail();
             }
             this.setState({error: true});
+
+            if (getFileMiniPreviewUrl(this.props.fileInfo) && this.state.imageRetry < MAX_IMAGE_LOAD_RETRIES) {
+                const imageRetry = this.state.imageRetry + 1;
+                setTimeout(() => {
+                    if (this.mounted) {
+                        this.setState({
+                            error: false,
+                            imageRetry,
+                        });
+                    }
+                }, IMAGE_LOAD_RETRY_DELAY);
+            }
         }
     };
 
@@ -235,6 +251,9 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             };
         }
 
+        const separator = src.includes('?') ? '&' : '?';
+        const imageSrc = this.state.imageRetry ? `${src}${separator}retry=${this.state.imageRetry}` : src;
+
         const image = (
             <img
                 {...props}
@@ -246,7 +265,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     this.props.className +
                     (this.props.handleSmallImageContainer &&
                         this.state.isSmallImage ? ' small-image--inside-container' : '')}
-                src={src}
+                src={imageSrc}
                 onError={this.handleError}
                 onLoad={this.handleLoad}
                 style={conditionalSVGStyleAttribute}
