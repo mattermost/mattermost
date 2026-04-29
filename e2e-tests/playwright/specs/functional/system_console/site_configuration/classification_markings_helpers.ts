@@ -121,7 +121,14 @@ export async function setupClassificationFieldWithGlobalBanner(
     // Resolve the option ID for the requested level name.
     const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
     const matchedOption = options.find((o) => o.name === bannerOpts.levelName);
-    const optionId = matchedOption?.id ?? '';
+    if (!matchedOption) {
+        const available = options.map((o) => o.name).join(', ');
+        throw new Error(
+            `setupClassificationFieldWithGlobalBanner: unknown level "${bannerOpts.levelName}". ` +
+            `Available options on template field ${templateField.id}: [${available}]`,
+        );
+    }
+    const optionId = matchedOption.id;
 
     // Build the actions array from the banner options.
     const enabled = bannerOpts.enabled ?? true;

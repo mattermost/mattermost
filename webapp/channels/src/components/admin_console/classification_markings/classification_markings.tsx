@@ -140,7 +140,7 @@ export default function ClassificationMarkings({disabled}: Props) {
 
     useEffect(() => {
         if (!currentUserId) {
-            return;
+            return undefined;
         }
 
         let cancelled = false;

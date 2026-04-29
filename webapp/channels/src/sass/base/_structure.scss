@@ -121,6 +121,7 @@ body.app__body #root {
         "admin-announcement admin-announcement admin-announcement" min-content
         "header header header" min-content
         "team-sidebar main app-sidebar"
+        "classification-banner-bottom classification-banner-bottom classification-banner-bottom" min-content
         "footer footer footer" min-content / var(--columns);
 
     > :only-child {
@@ -138,6 +139,7 @@ body.app__body #root {
             "admin-announcement admin-announcement" min-content
             "header header" min-content
             "lhs center"
+            "classification-banner-bottom classification-banner-bottom" min-content
             "footer footer" min-content;
         grid-template-columns: auto 1fr; /* lhs takes its content width, center takes remaining space */
     }
@@ -149,6 +151,10 @@ body.app__body #root {
 
     .global-classification-banner:not(.global-classification-banner--bottom) {
         grid-area: classification-banner;
+    }
+
+    .global-classification-banner--bottom {
+        grid-area: classification-banner-bottom;
     }
 
     .announcement-bar {
@@ -249,6 +255,7 @@ body.app__body #root {
                 "admin-announcement" min-content
                 "header" min-content
                 "main" auto
+                "classification-banner-bottom" min-content
                 "footer" min-content / auto;
             .team-sidebar,
             .app-bar {

@@ -895,27 +895,29 @@ describe('GlobalClassificationIndicators section', () => {
             origError(...args);
         };
 
-        renderWithContext(<ClassificationMarkings/>, BASE_STATE);
-        await screen.findByText('Global Classification Indicators');
+        try {
+            renderWithContext(<ClassificationMarkings/>, BASE_STATE);
+            await screen.findByText('Global Classification Indicators');
 
-        const user = userEvent.setup();
+            const user = userEvent.setup();
 
-        await act(async () => {
-            await user.click(screen.getByTestId('classificationEnabledfalse'));
-        });
+            await act(async () => {
+                await user.click(screen.getByTestId('classificationEnabledfalse'));
+            });
 
-        await act(async () => {
-            await user.click(screen.getByText('Save'));
-        });
+            await act(async () => {
+                await user.click(screen.getByText('Save'));
+            });
 
-        await waitFor(() => {
-            expect(deleteOrder).toHaveLength(2);
-        });
-        await act(async () => {});
+            await waitFor(() => {
+                expect(deleteOrder).toHaveLength(2);
+            });
+            await act(async () => {});
 
-        expect(deleteOrder[0]).toBe('linked:linked_field1');
-        expect(deleteOrder[1]).toBe('template:field1');
-
-        console.error = origError;
+            expect(deleteOrder[0]).toBe('linked:linked_field1');
+            expect(deleteOrder[1]).toBe('template:field1');
+        } finally {
+            console.error = origError;
+        }
     });
 });

@@ -73,7 +73,7 @@ import {
     resetReloadPostsInChannel,
     resetReloadPostsInTranslatedChannels,
 } from 'mattermost-redux/actions/posts';
-import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, fetchPropertyValues} from 'mattermost-redux/actions/properties';
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
@@ -151,7 +151,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
-import {GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID} from 'components/admin_console/classification_markings/utils';
+import {GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID, LINKED_OBJECT_TYPE, SYSTEM_FIELD_TARGET_ID} from 'components/admin_console/classification_markings/utils';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
@@ -332,9 +332,13 @@ export function reconnect() {
         dispatch(getCustomProfileAttributeFields());
     }
 
-    // Refresh classification template field on reconnect when the feature flag is active
+    // Refresh classification fields and values on reconnect when the feature flag is active
     if (getFeatureFlagValue(state, 'ClassificationMarkings') === 'true') {
         dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
+        dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
+        if (currentUserId) {
+            dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, currentUserId));
+        }
     }
 
     if (state.websocket.lastDisconnectAt) {
