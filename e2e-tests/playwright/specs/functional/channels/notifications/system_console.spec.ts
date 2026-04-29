@@ -24,200 +24,214 @@ async function resetNotificationsConfig(adminClient: {
     } as Partial<AdminConfig>);
 }
 
-/**
- * @objective Verify that the Push Notification Contents setting is properly displayed and can be changed to all available options
- */
-test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.getAdminClient();
+test.describe('System Console Notifications', () => {
+    test.describe.configure({mode: 'serial'});
 
-    if (!adminUser || !adminClient) {
-        throw new Error('Failed to get admin user');
-    }
+    /**
+     * @objective Verify that the Push Notification Contents setting is properly displayed and can be changed to all available options
+     */
+    test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
+        const {adminUser, adminClient} = await pw.getAdminClient();
 
-    // Ensure required Notifications fields are populated so the Save button
-    // starts enabled — prevents state pollution from concurrent initSetup() calls
-    // that reset FeedbackName and SupportEmail to '' via updateConfig(defaultConfig).
-    await resetNotificationsConfig(adminClient);
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to get admin user');
+        }
 
-    // # Update to default config
-    await adminClient.patchConfig({
-        EmailSettings: {
-            PushNotificationContents: 'full',
-        },
-    } as Partial<AdminConfig>);
+        // Ensure required Notifications fields are populated so the Save button
+        // starts enabled — prevents state pollution from concurrent initSetup() calls
+        // that reset FeedbackName and SupportEmail to '' via updateConfig(defaultConfig).
+        await resetNotificationsConfig(adminClient);
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Update to default config
+        await adminClient.patchConfig({
+            EmailSettings: {
+                PushNotificationContents: 'full',
+            },
+        } as Partial<AdminConfig>);
 
-    // # Visit Notifications admin console page
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.notifications.click();
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Wait for Notifications section to load
-    const notifications = systemConsolePage.notifications;
-    await notifications.toBeVisible();
+        // # Visit Notifications admin console page
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.notifications.click();
 
-    // * Verify that setting is visible and matches text content
-    await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
-    await notifications.pushNotificationContents.toBeVisible();
+        // # Wait for Notifications section to load
+        const notifications = systemConsolePage.notifications;
+        await notifications.toBeVisible();
 
-    // * Verify that the help text is visible and matches text content
-    const helpText = notifications.pushNotificationContents.helpText;
-    await expect(helpText).toBeVisible();
+        // * Verify that setting is visible and matches text content
+        await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
+        await notifications.pushNotificationContents.toBeVisible();
 
-    const contents = [
-        'Generic description with only sender name',
-        ' - Includes only the name of the person who sent the message in push notifications, with no information about channel name or message contents. ',
-        'Generic description with sender and channel names',
-        ' - Includes the name of the person who sent the message and the channel it was sent in, but not the message contents. ',
-        'Full message content sent in the notification payload',
-        " - Includes the message contents in the push notification payload that is relayed through Apple's Push Notification Service (APNS) or Google's Firebase Cloud Messaging (FCM). It is ",
-        'highly recommended',
-        ' this option only be used with an "https" protocol to encrypt the connection and protect confidential information sent in messages.',
-        'Full message content fetched from the server on receipt',
-        ' - The notification payload relayed through APNS or FCM contains no message content, instead it contains a unique message ID used to fetch message content from the server when a push notification is received by a device. If the server cannot be reached, a generic notification will be displayed.',
-    ];
-    await expect(helpText).toHaveText(contents.join(''));
+        // * Verify that the help text is visible and matches text content
+        const helpText = notifications.pushNotificationContents.helpText;
+        await expect(helpText).toBeVisible();
 
-    const strongElements = helpText.locator('strong');
-    await expect(strongElements.nth(0)).toHaveText(contents[0]);
-    await expect(strongElements.nth(1)).toHaveText(contents[2]);
-    await expect(strongElements.nth(2)).toHaveText(contents[4]);
-    await expect(strongElements.nth(3)).toHaveText(contents[6]);
-    await expect(strongElements.nth(4)).toHaveText(contents[8]);
+        const contents = [
+            'Generic description with only sender name',
+            ' - Includes only the name of the person who sent the message in push notifications, with no information about channel name or message contents. ',
+            'Generic description with sender and channel names',
+            ' - Includes the name of the person who sent the message and the channel it was sent in, but not the message contents. ',
+            'Full message content sent in the notification payload',
+            " - Includes the message contents in the push notification payload that is relayed through Apple's Push Notification Service (APNS) or Google's Firebase Cloud Messaging (FCM). It is ",
+            'highly recommended',
+            ' this option only be used with an "https" protocol to encrypt the connection and protect confidential information sent in messages.',
+            'Full message content fetched from the server on receipt',
+            ' - The notification payload relayed through APNS or FCM contains no message content, instead it contains a unique message ID used to fetch message content from the server when a push notification is received by a device. If the server cannot be reached, a generic notification will be displayed.',
+        ];
+        await expect(helpText).toHaveText(contents.join(''));
 
-    // * Verify that the option/dropdown is visible and has default value
-    const dropdown = notifications.pushNotificationContents.dropdown;
-    await expect(dropdown).toBeVisible();
-    await expect(dropdown).toHaveValue('full');
+        const strongElements = helpText.locator('strong');
+        await expect(strongElements.nth(0)).toHaveText(contents[0]);
+        await expect(strongElements.nth(1)).toHaveText(contents[2]);
+        await expect(strongElements.nth(2)).toHaveText(contents[4]);
+        await expect(strongElements.nth(3)).toHaveText(contents[6]);
+        await expect(strongElements.nth(4)).toHaveText(contents[8]);
 
-    const options = [
-        {label: 'Generic description with only sender name', value: 'generic_no_channel'},
-        {label: 'Generic description with sender and channel names', value: 'generic'},
-        {label: 'Full message content sent in the notification payload', value: 'full'},
-        {label: 'Full message content fetched from the server on receipt', value: 'id_loaded'},
-    ];
+        // * Verify that the option/dropdown is visible and has default value
+        const dropdown = notifications.pushNotificationContents.dropdown;
+        await expect(dropdown).toBeVisible();
+        await expect(dropdown).toHaveValue('full');
 
-    // # Select each value and save
-    // * Verify that the config is correctly saved in the server
-    for (const option of options) {
-        await dropdown.selectOption({label: option.label});
-        await expect(dropdown).toHaveValue(option.value);
+        const options = [
+            {label: 'Generic description with only sender name', value: 'generic_no_channel'},
+            {label: 'Generic description with sender and channel names', value: 'generic'},
+            {label: 'Full message content sent in the notification payload', value: 'full'},
+            {label: 'Full message content fetched from the server on receipt', value: 'id_loaded'},
+        ];
 
+        // # Select each value and save
+        // * Verify that the config is correctly saved in the server
+        for (const option of options) {
+            await dropdown.selectOption({label: option.label});
+            await expect(dropdown).toHaveValue(option.value);
+
+            await notifications.save();
+
+            // * Verify config is saved
+            const {adminClient} = await pw.getAdminClient();
+            await expect
+                .poll(async () => {
+                    const config = await adminClient.getConfig();
+                    return config.EmailSettings?.PushNotificationContents;
+                })
+                .toBe(option.value);
+        }
+    });
+
+    /**
+     * @objective Verify that the Support Email setting can be changed and saved
+     */
+    test('MM-T1210 Can change Support Email setting', async ({pw}) => {
+        const {adminUser, adminClient} = await pw.getAdminClient();
+
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to get admin user');
+        }
+
+        // Ensure required Notifications fields are populated so the Save button
+        // starts enabled — prevents state pollution from other parallel tests.
+        await resetNotificationsConfig(adminClient);
+
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+
+        // # Visit Notifications admin console page
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.notifications.click();
+
+        // # Wait for Notifications section to load
+        const notifications = systemConsolePage.notifications;
+        await notifications.toBeVisible();
+
+        // # Scroll Support Email section into view and verify that it's visible
+        await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
+        await notifications.supportEmailAddress.toBeVisible();
+
+        // * Verify that the help text is visible and matches text content
+        await expect(notifications.supportEmailAddress.helpText).toBeVisible();
+        await expect(notifications.supportEmailAddress.helpText).toHaveText(
+            'Email address displayed on support emails.',
+        );
+
+        // # Clear and type new email
+        const newEmail = 'changed_for_test_support@example.com';
+        await notifications.supportEmailAddress.clear();
+        await notifications.supportEmailAddress.fill(newEmail);
+
+        // * Verify that set value is visible and matches text
+        await expect(notifications.supportEmailAddress.input).toHaveValue(newEmail);
+
+        // # Wait for Save button to be enabled (React processes fill() events asynchronously)
+        await expect(notifications.saveButton).not.toBeDisabled();
+
+        // # Save setting
         await notifications.save();
 
-        // * Verify config is saved
-        const {adminClient} = await pw.getAdminClient();
-        const config = await adminClient.getConfig();
-        expect(config.EmailSettings?.PushNotificationContents).toBe(option.value);
-    }
-});
+        // * Verify that the config is correctly saved in the server
+        await expect
+            .poll(async () => {
+                const config = await adminClient.getConfig();
+                return config.SupportSettings?.SupportEmail;
+            })
+            .toBe(newEmail);
+    });
 
-/**
- * @objective Verify that the Support Email setting can be changed and saved
- */
-test('MM-T1210 Can change Support Email setting', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.getAdminClient();
+    /**
+     * @objective Verify that the save button is disabled when mandatory fields are empty
+     */
+    test('MM-41671 cannot save the notifications page if mandatory fields are missing', async ({pw}) => {
+        const {adminUser, adminClient} = await pw.getAdminClient();
+        if (!adminUser || !adminClient) {
+            throw new Error('Failed to get admin user');
+        }
 
-    if (!adminUser || !adminClient) {
-        throw new Error('Failed to get admin user');
-    }
+        // Ensure all required fields are populated before the test starts so that
+        // clearing one field at a time reliably disables the save button, and
+        // restoring it reliably re-enables it (no other empty field blocking save).
+        await resetNotificationsConfig(adminClient);
 
-    // Ensure required Notifications fields are populated so the Save button
-    // starts enabled — prevents state pollution from other parallel tests.
-    await resetNotificationsConfig(adminClient);
+        // # Log in as admin
+        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Visit Notifications admin console page
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+        await systemConsolePage.sidebar.notifications.click();
 
-    // # Visit Notifications admin console page
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.notifications.click();
+        // # Wait for Notifications section to load
+        const notifications = systemConsolePage.notifications;
+        await notifications.toBeVisible();
 
-    // # Wait for Notifications section to load
-    const notifications = systemConsolePage.notifications;
-    await notifications.toBeVisible();
+        const tests = [
+            {name: 'Support Email Address', field: notifications.supportEmailAddress},
+            {name: 'Notification Display Name', field: notifications.notificationDisplayName},
+            {name: 'Notification From Address', field: notifications.notificationFromAddress},
+        ];
 
-    // # Scroll Support Email section into view and verify that it's visible
-    await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
-    await notifications.supportEmailAddress.toBeVisible();
+        for (const testCase of tests) {
+            // # Clear the field
+            await testCase.field.toBeVisible();
+            await testCase.field.clear();
 
-    // * Verify that the help text is visible and matches text content
-    await expect(notifications.supportEmailAddress.helpText).toBeVisible();
-    await expect(notifications.supportEmailAddress.helpText).toHaveText('Email address displayed on support emails.');
+            // Scope error check to this field's container to avoid strict-mode failure
+            // when other fields on the page also have validation errors simultaneously.
+            const fieldError = testCase.field.container.locator('.has-error');
 
-    // # Clear and type new email
-    const newEmail = 'changed_for_test_support@example.com';
-    await notifications.supportEmailAddress.clear();
-    await notifications.supportEmailAddress.fill(newEmail);
+            // * Error message is shown and save button is disabled
+            await expect(fieldError).toHaveText(`"${testCase.name}" is required`);
+            await expect(notifications.saveButton).toBeDisabled();
 
-    // * Verify that set value is visible and matches text
-    await expect(notifications.supportEmailAddress.input).toHaveValue(newEmail);
+            // # Restore the field with a valid value so format-validation errors from
+            // this field don't interfere with the next iteration.
+            await testCase.field.fill('test@example.com');
 
-    // # Wait for Save button to be enabled (React processes fill() events asynchronously)
-    await expect(notifications.saveButton).not.toBeDisabled();
-
-    // # Save setting
-    await notifications.save();
-
-    // * Verify that the config is correctly saved in the server
-    const config = await adminClient.getConfig();
-    expect(config.SupportSettings?.SupportEmail).toBe(newEmail);
-});
-
-/**
- * @objective Verify that the save button is disabled when mandatory fields are empty
- */
-test('MM-41671 cannot save the notifications page if mandatory fields are missing', async ({pw}) => {
-    const {adminUser, adminClient} = await pw.getAdminClient();
-    if (!adminUser || !adminClient) {
-        throw new Error('Failed to get admin user');
-    }
-
-    // Ensure all required fields are populated before the test starts so that
-    // clearing one field at a time reliably disables the save button, and
-    // restoring it reliably re-enables it (no other empty field blocking save).
-    await resetNotificationsConfig(adminClient);
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Visit Notifications admin console page
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-    await systemConsolePage.sidebar.notifications.click();
-
-    // # Wait for Notifications section to load
-    const notifications = systemConsolePage.notifications;
-    await notifications.toBeVisible();
-
-    const tests = [
-        {name: 'Support Email Address', field: notifications.supportEmailAddress},
-        {name: 'Notification Display Name', field: notifications.notificationDisplayName},
-        {name: 'Notification From Address', field: notifications.notificationFromAddress},
-    ];
-
-    for (const testCase of tests) {
-        // # Clear the field
-        await testCase.field.toBeVisible();
-        await testCase.field.clear();
-
-        // Scope error check to this field's container to avoid strict-mode failure
-        // when other fields on the page also have validation errors simultaneously.
-        const fieldError = testCase.field.container.locator('.has-error');
-
-        // * Error message is shown and save button is disabled
-        await expect(fieldError).toHaveText(`"${testCase.name}" is required`);
-        await expect(notifications.saveButton).toBeDisabled();
-
-        // # Restore the field with a valid value so format-validation errors from
-        // this field don't interfere with the next iteration.
-        await testCase.field.fill('test@example.com');
-
-        // * Ensure error for this field is gone and save button is enabled
-        await expect(fieldError).toHaveCount(0);
-        await expect(notifications.saveButton).not.toBeDisabled();
-    }
+            // * Ensure error for this field is gone and save button is enabled
+            await expect(fieldError).toHaveCount(0);
+            await expect(notifications.saveButton).not.toBeDisabled();
+        }
+    });
 });

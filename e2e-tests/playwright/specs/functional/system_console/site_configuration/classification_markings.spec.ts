@@ -57,7 +57,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6201 classification markings: feature flag off redirects away from admin URL',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Turn off ClassificationMarkings in server config
             await setClassificationMarkingsFeatureFlag(adminClient, false);
@@ -87,7 +91,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6202 classification markings: feature flag on loads configuration page',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and clear any existing classification field
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -112,7 +120,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6203 classification markings: save fails when enabled with zero levels',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable feature flag and ensure no classification field exists
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -140,7 +152,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6204 classification markings: select NATO preset and save',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and start from no classification field
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -157,6 +173,7 @@ test.describe('System Console - Classification markings', () => {
 
             const firstLevelNameInput = page.getByLabel('Classification level name').first();
             // * Preset levels appear in the table
+            await expect(firstLevelNameInput).toBeVisible();
             await expect(firstLevelNameInput).toHaveValue('NATO UNCLASSIFIED');
 
             // # Save
@@ -176,7 +193,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6205 classification markings: preset change shows confirm modal then applies',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and clear field, then prepare saved UK levels
             await setClassificationMarkingsFeatureFlag(adminClient, true);
@@ -220,7 +241,11 @@ test.describe('System Console - Classification markings', () => {
         'MM-T6206 classification markings: delete level switches to custom and saves',
         {tag: ['@system_console', '@classification_markings']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient} = await getAdminClient();
+
+            if (!adminUser || !adminClient) {
+                throw new Error('Failed to get admin user');
+            }
 
             // # Enable flag and save Canada preset as baseline
             await setClassificationMarkingsFeatureFlag(adminClient, true);
