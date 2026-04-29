@@ -56,7 +56,7 @@ const useUploadFiles = (
     const removeTooltip = useMemo(() => {
         return editAttachmentsDisabled ? intl.formatMessage({
             id: 'file_preview.no_edit_permission',
-            defaultMessage: 'You do not have permission to edit attachments',
+            defaultMessage: 'Post attachments cannot be edited',
         }) : undefined;
     }, [editAttachmentsDisabled, intl]);
 

@@ -4665,7 +4665,7 @@
   "file_preview_modal_main_nav.file": "{count, number} of {total, number}",
   "file_preview_modal_main_nav.nextAriaLabel": "Next file",
   "file_preview_modal_main_nav.prevAriaLabel": "Previous file",
-  "file_preview.no_edit_permission": "You do not have permission to edit attachments",
+  "file_preview.no_edit_permission": "Post attachments cannot be edited",
   "file_search_result_item.copy_link": "Copy link",
   "file_search_result_item.download": "Download",
   "file_search_result_item.more_actions": "More Actions",

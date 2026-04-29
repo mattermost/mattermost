@@ -160,6 +160,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                             Permissions.EDIT_OTHERS_POSTS,
                         ],
                     },
+                    Permissions.EDIT_FILE_ATTACHMENT,
                     {
                         id: 'delete_posts',
                         permissions: [
@@ -176,7 +177,6 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                         ],
                     },
                     Permissions.USE_CHANNEL_MENTIONS,
-                    Permissions.EDIT_FILE_ATTACHMENT,
                 ],
             },
             {
