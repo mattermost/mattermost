@@ -1015,3 +1015,71 @@ func TestDetectSAMLProviderType(t *testing.T) {
 		})
 	}
 }
+
+func TestGetOAuthProviderStatusForTokenEndpoint(t *testing.T) {
+	t.Run("disabled provider", func(t *testing.T) {
+		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), false, "")
+		assert.False(t, status.Enabled)
+		assert.Equal(t, model.StatusDisabled, status.Status)
+		assert.Empty(t, status.Error)
+	})
+
+	t.Run("reachable token endpoint host", func(t *testing.T) {
+		tokenEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer tokenEndpointServer.Close()
+
+		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), true, tokenEndpointServer.URL+"/oauth/token")
+		assert.True(t, status.Enabled)
+		assert.Equal(t, model.StatusOk, status.Status)
+		assert.Empty(t, status.Error)
+	})
+
+	t.Run("unreachable token endpoint host", func(t *testing.T) {
+		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), true, "http://localhost:1/oauth/token")
+		assert.True(t, status.Enabled)
+		assert.Equal(t, model.StatusFail, status.Status)
+		assert.NotEmpty(t, status.Error)
+	})
+}
+
+func TestGetOpenIDProviderStatus(t *testing.T) {
+	t.Run("disabled provider", func(t *testing.T) {
+		status := getOpenIDProviderStatus(t.Context(), false, "")
+		assert.False(t, status.Enabled)
+		assert.Equal(t, model.StatusDisabled, status.Status)
+		assert.Empty(t, status.Error)
+		assert.Empty(t, status.DiscoveredIssuer)
+	})
+
+	t.Run("reachable discovery endpoint with issuer", func(t *testing.T) {
+		discoveryEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, writeErr := w.Write([]byte(`{"issuer":"https://idp.example.com"}`))
+			require.NoError(t, writeErr)
+		}))
+		defer discoveryEndpointServer.Close()
+
+		status := getOpenIDProviderStatus(t.Context(), true, discoveryEndpointServer.URL+"/.well-known/openid-configuration")
+		assert.True(t, status.Enabled)
+		assert.Equal(t, model.StatusOk, status.Status)
+		assert.Equal(t, "https://idp.example.com", status.DiscoveredIssuer)
+		assert.Empty(t, status.Error)
+	})
+
+	t.Run("discovery endpoint missing issuer", func(t *testing.T) {
+		discoveryEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			_, writeErr := w.Write([]byte(`{}`))
+			require.NoError(t, writeErr)
+		}))
+		defer discoveryEndpointServer.Close()
+
+		status := getOpenIDProviderStatus(t.Context(), true, discoveryEndpointServer.URL+"/.well-known/openid-configuration")
+		assert.True(t, status.Enabled)
+		assert.Equal(t, model.StatusFail, status.Status)
+		assert.Contains(t, status.Error, "missing issuer")
+		assert.Empty(t, status.DiscoveredIssuer)
+	})
+}
