@@ -4432,7 +4432,7 @@
   "deactivate_member_modal.title": "Deactivate {username}",
   "default_category.create_new_prefix": "Create new category: ",
   "default_category.label": "Default category (optional)",
-  "default_category.placeholder": "Choose a category (optional)",
+  "default_category.placeholder": "Choose a default category (optional)",
   "default_category.placeholder_focused": "Select category or type a new one",
   "delete_category_modal.delete": "Delete",
   "delete_category_modal.deleteCategory": "Delete this category?",

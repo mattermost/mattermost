@@ -473,6 +473,7 @@ function ChannelSettingsInfoTab({
                     getOptions={getSidebarCategoryNamesForTeam.current}
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelProperties}
+                    helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
                 />
             )}
             {/* Managed Sidebar Category Selector */}

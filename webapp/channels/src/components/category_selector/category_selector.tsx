@@ -27,6 +27,7 @@ export type CategorySelectorProps = {
     getOptions: (state: GlobalState, teamId: string) => string[];
     label?: string;
     placeholder?: string;
+    helpText?: string;
     menuPortalTargetId?: string;
     disabled?: boolean;
 };
@@ -85,7 +86,7 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
     );
 };
 
-export default function CategorySelector({value, onChange, getOptions, label, placeholder, menuPortalTargetId, disabled}: CategorySelectorProps) {
+export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled}: CategorySelectorProps) {
     const {formatMessage} = useIntl();
     const [focused, setFocused] = useState(false);
 
@@ -138,7 +139,7 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
 
     const portalTarget = menuPortalTargetId ? document.getElementById(menuPortalTargetId) : undefined;
     const legend = label ?? formatMessage({id: 'default_category.label', defaultMessage: 'Default category (optional)'});
-    const placeholderText = placeholder ?? formatMessage({id: 'default_category.placeholder', defaultMessage: 'Choose a category (optional)'});
+    const placeholderText = placeholder ?? formatMessage({id: 'default_category.placeholder', defaultMessage: 'Choose a default category (optional)'});
     const showLegend = Boolean(focused || value);
 
     return (
@@ -174,6 +175,11 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
                     />
                 </div>
             </fieldset>
+            {helpText && (
+                <div className='Input___customMessage Input___info'>
+                    <span>{helpText}</span>
+                </div>
+            )}
         </div>
     );
 }

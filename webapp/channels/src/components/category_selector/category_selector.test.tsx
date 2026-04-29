@@ -118,6 +118,24 @@ describe('CategorySelector', () => {
         expect(screen.getByText('Custom label')).toBeInTheDocument();
     });
 
+    it('should not render help text when helpText prop is not provided', () => {
+        const {container} = renderWithContext(<CategorySelector {...baseProps}/>, baseState);
+
+        expect(container.querySelector('.Input___customMessage')).not.toBeInTheDocument();
+    });
+
+    it('should render help text when helpText prop is provided', () => {
+        renderWithContext(
+            <CategorySelector
+                {...baseProps}
+                helpText='Choose where new channels will appear in the sidebar'
+            />,
+            baseState,
+        );
+
+        expect(screen.getByText('Choose where new channels will appear in the sidebar')).toBeInTheDocument();
+    });
+
     it('should use options from injected getOptions', async () => {
         const injectedOptions = ['Alpha', 'Beta'];
         const getOptions = () => injectedOptions;

@@ -300,6 +300,7 @@ const NewChannelModal = () => {
                             onChange={setDefaultCategoryName}
                             getOptions={getSidebarCategoryNamesForTeam.current}
                             menuPortalTargetId='new-channel-modal'
+                            helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
                         />
                     </div>
                 )}
