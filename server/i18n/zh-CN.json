@@ -2971,19 +2971,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "{{.Backend}} 聚合器工作者创建索引任务失败"
+    "translation": "{{.Backend}} 聚合器工作进程创建索引任务失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "{{.Backend}} 聚合器工作者删除索引失败"
+    "translation": "{{.Backend}} 聚合器工作进程删除索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "{{.Backend}} 聚合器工作者获取索引失败"
+    "translation": "{{.Backend}} 聚合器工作进程获取索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "{{.Backend}} 聚合器工作者因索引任务失败而失败"
+    "translation": "{{.Backend}} 聚合器工作进程因索引任务失败而失败"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3011,11 +3011,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "{{.Backend}} 索引工作者解析结束时间失败"
+    "translation": "{{.Backend}} 索引工作进程解析结束时间失败"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "{{.Backend}} 索引工作者解析开始时间失败"
+    "translation": "{{.Backend}} 索引工作进程解析开始时间失败"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -12652,5 +12652,129 @@
   {
     "id": "api.slackimport.slack_add_users.send_reset_email_failed",
     "translation": "无法向 {{.Username}}（{{.Email}}）发送密码重置电子邮件。\n"
+  },
+  {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "未找到指定的属性组。"
+  },
+  {
+    "id": "api.property_field.patch.cannot_link_existing.app_error",
+    "translation": "无法在已存在的字段上设置 linked_field_id。只能在创建时设置。"
+  },
+  {
+    "id": "api.property_field.patch.linked_field_change.app_error",
+    "translation": "无法更改链接目标。请先取消链接，再创建一个新的链接字段。"
+  },
+  {
+    "id": "api.property_field.patch.linked_options_change.app_error",
+    "translation": "无法修改链接字段的选项。选项继承自来源。"
+  },
+  {
+    "id": "api.property_field.patch.linked_type_change.app_error",
+    "translation": "无法修改链接字段的类型。类型继承自来源。"
+  },
+  {
+    "id": "api.property_value.template_no_values.app_error",
+    "translation": "模板字段不能有值。"
+  },
+  {
+    "id": "app.bot.update.internal_error",
+    "translation": "无法更新机器人。"
+  },
+  {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "查找现有机器人失败"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "未找到机器人的用户"
+  },
+  {
+    "id": "app.property_field.create.linked_source_cross_group.app_error",
+    "translation": "无法链接到另一组中的字段。"
+  },
+  {
+    "id": "app.property_field.create.linked_source_deleted.app_error",
+    "translation": "链接的源字段已被删除。"
+  },
+  {
+    "id": "app.property_field.create.linked_source_is_linked.app_error",
+    "translation": "无法链接到一个自身是链接的字段。不允许链式链接。"
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_found.app_error",
+    "translation": "找不到链接的源字段。"
+  },
+  {
+    "id": "app.property_field.create.linked_source_not_template.app_error",
+    "translation": "只能链接至模板字段。"
+  },
+  {
+    "id": "app.property_field.create.linked_source_protected.app_error",
+    "translation": "只有源插件可以从受保护的模板创建链接字段。"
+  },
+  {
+    "id": "app.property_field.create.linked_target_type_mismatch.app_error",
+    "translation": "链接字段的目标类型必须与源模板的目标类型匹配。"
+  },
+  {
+    "id": "app.property_field.create.template_cannot_be_linked.app_error",
+    "translation": "模板字段不能包含链接字段。"
+  },
+  {
+    "id": "app.property_field.delete.has_linked_dependents.app_error",
+    "translation": "无法删除有活跃依赖者的字段。请先解除链接或删除依赖者。"
+  },
+  {
+    "id": "app.property_field.update.cannot_change_link_target.app_error",
+    "translation": "无法更改链接目标。请先解除链接，再创建一个新的链接字段。"
+  },
+  {
+    "id": "app.property_field.update.cannot_link_existing.app_error",
+    "translation": "无法在已存在的字段上设置 linked_field_id。只能在创建时设置。"
+  },
+  {
+    "id": "app.property_field.update.conflict.app_error",
+    "translation": "由于冲突，无法更新属性字段。请重试。"
+  },
+  {
+    "id": "app.property_field.update.linked_options_change.app_error",
+    "translation": "无法修改链接字段的选项。选项继承自来源。"
+  },
+  {
+    "id": "app.property_field.update.linked_type_change.app_error",
+    "translation": "无法修改链接字段的类型。类型继承自来源。"
+  },
+  {
+    "id": "app.property_field.update.type_change_with_dependents.app_error",
+    "translation": "无法更改有活跃依赖者的字段的类型。"
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "属性字段与组版本不兼容。"
+  },
+  {
+    "id": "app.property_value.template_no_values.app_error",
+    "translation": "模板字段不能有值。"
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "文件名无效。"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+    "translation": "索引任务已完成，但是 {{.NumFailed}} 个文档被搜索后端拒绝且未索引"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.create_bulk_processor.error",
+    "translation": "索引工作进程初始化批量处理器失败"
+  },
+  {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "名称的值无效。"
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "属性组无效：{{.FieldName}}（{{.Reason}}）。"
   }
 ]
