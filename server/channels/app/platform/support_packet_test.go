@@ -25,12 +25,21 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
+
+type samlDiagnosticStub struct {
+	providerType string
+}
+
+func (s *samlDiagnosticStub) DetectProviderType(_ request.CTX, _ string) string {
+	return s.providerType
+}
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -1057,5 +1066,25 @@ func TestGetOpenIDProviderStatus(t *testing.T) {
 		status := getOpenIDProviderStatus(t.Context(), true, discoveryEndpointServer.URL+"/.well-known/openid-configuration")
 		assert.Equal(t, model.StatusFail, status.Status)
 		assert.Contains(t, status.Error, "missing issuer")
+	})
+}
+
+func TestGetSAMLProviderTypeForSupportPacket(t *testing.T) {
+	t.Run("falls back to local detection when enterprise hook is unavailable", func(t *testing.T) {
+		providerType := getSAMLProviderTypeForSupportPacket(
+			request.EmptyContext(mlog.CreateConsoleLogger()),
+			nil,
+			"https://company.okta.com/app/mattermost/saml",
+		)
+		assert.Equal(t, "Okta", providerType)
+	})
+
+	t.Run("uses enterprise hook when available", func(t *testing.T) {
+		providerType := getSAMLProviderTypeForSupportPacket(
+			request.EmptyContext(mlog.CreateConsoleLogger()),
+			&samlDiagnosticStub{providerType: "EE Provider"},
+			"https://saml.example.com/metadata",
+		)
+		assert.Equal(t, "EE Provider", providerType)
 	})
 }

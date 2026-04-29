@@ -25,6 +25,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -238,7 +239,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	/* SAML */
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
-		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
+		d.SAML.ProviderType = ps.GetSupportPacketSAMLProviderType(idpDescriptorURL)
 	}
 
 	/* Elastic Search */
@@ -459,6 +460,17 @@ func testOIDCDiscoveryEndpoint(ctx context.Context, discoveryEndpoint string) er
 	}
 
 	return nil
+}
+
+func getSAMLProviderTypeForSupportPacket(rctx request.CTX, samlDiagnostic einterfaces.SamlDiagnosticInterface, idpDescriptorURL string) string {
+	if samlDiagnostic != nil {
+		return samlDiagnostic.DetectProviderType(rctx, idpDescriptorURL)
+	}
+	return detectSAMLProviderType(idpDescriptorURL)
+}
+
+func (ps *PlatformService) GetSupportPacketSAMLProviderType(idpDescriptorURL string) string {
+	return getSAMLProviderTypeForSupportPacket(request.EmptyContext(ps.Log()), ps.SamlDiagnostic(), idpDescriptorURL)
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {

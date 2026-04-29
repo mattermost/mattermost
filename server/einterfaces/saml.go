@@ -16,3 +16,7 @@ type SamlInterface interface {
 	GetMetadata(rctx request.CTX) (string, *model.AppError)
 	CheckProviderAttributes(rctx request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string
 }
+
+type SamlDiagnosticInterface interface {
+	DetectProviderType(rctx request.CTX, idpDescriptorURL string) string
+}
