@@ -207,10 +207,10 @@ describe('Move Thread', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.get('.MoveThreadModal__cancel-button').should('not.be.disabled').type('{esc}', {force: true});
+                cy.findByText('Cancel').should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
-                cy.get('.GenericModal__button.confirm').should('not.be.disabled').type('{enter}', {force: true});
+                cy.findByText('Move').should('not.be.disabled').click();
             }
         });
     };
