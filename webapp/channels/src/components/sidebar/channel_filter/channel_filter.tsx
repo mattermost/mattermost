@@ -6,8 +6,8 @@ import React from 'react';
 import {defineMessages, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {ShortcutKeys} from 'components/shortcut_key';
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';

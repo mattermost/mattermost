@@ -1792,10 +1792,6 @@
     "translation": "Elasticsearch е забранен."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch вече е спрян."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Неуспешен анализ на версията на сървъра Elasticsearch."
   },
