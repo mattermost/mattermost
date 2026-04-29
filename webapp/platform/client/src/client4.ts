@@ -114,10 +114,10 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    PropertyField,
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
-    PropertyField,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
@@ -348,6 +348,14 @@ export default class Client4 {
 
     getRemoteClusterRoute(remoteId: string) {
         return `${this.getRemoteClustersRoute()}/${remoteId}`;
+    }
+
+    getPropertyFieldsRoute(groupName: string, objectType: string) {
+        return `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields`;
+    }
+
+    getPropertyFieldRoute(groupName: string, objectType: string, fieldId: string) {
+        return `${this.getPropertyFieldsRoute(groupName, objectType)}/${fieldId}`;
     }
 
     getCustomProfileAttributeFieldsRoute() {
@@ -2136,13 +2144,6 @@ export default class Client4 {
         );
     };
 
-    getPropertyFields = (groupName: string, objectType: string, targetType: string) => {
-        return this.doFetch<PropertyField[]>(
-            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/fields?target_type=${targetType}`,
-            {method: 'get'},
-        );
-    };
-
     getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
@@ -2303,6 +2304,49 @@ export default class Client4 {
         return this.doFetch<Record<string, string | string[]>>(
             `${this.getUserRoute(userID)}/custom_profile_attributes`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
+    // Generic Property Field Routes
+
+    getPropertyFields = async (groupName: string, objectType: string, targetType: string, targetId?: string, options?: {perPage?: number; cursorId?: string; cursorCreateAt?: number}) => {
+        const params = new URLSearchParams({target_type: targetType});
+        if (targetId) {
+            params.set('target_id', targetId);
+        }
+        if (options?.perPage) {
+            params.set('per_page', String(options.perPage));
+        }
+        if (options?.cursorId) {
+            params.set('cursor_id', options.cursorId);
+        }
+        if (options?.cursorCreateAt !== undefined) {
+            params.set('cursor_create_at', String(options.cursorCreateAt));
+        }
+        return this.doFetch<PropertyField[]>(
+            `${this.getPropertyFieldsRoute(groupName, objectType)}?${params.toString()}`,
+            {method: 'GET'},
+        );
+    };
+
+    createPropertyField = async (groupName: string, objectType: string, field: Partial<PropertyField> & Record<string, unknown>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getPropertyFieldsRoute(groupName, objectType)}`,
+            {method: 'POST', body: JSON.stringify(field)},
+        );
+    };
+
+    patchPropertyField = async (groupName: string, objectType: string, fieldId: string, patch: Partial<PropertyField> & Record<string, unknown>) => {
+        return this.doFetch<PropertyField>(
+            `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
+        );
+    };
+
+    deletePropertyField = async (groupName: string, objectType: string, fieldId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getPropertyFieldRoute(groupName, objectType, fieldId)}`,
+            {method: 'DELETE'},
         );
     };
 

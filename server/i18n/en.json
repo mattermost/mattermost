@@ -10649,6 +10649,10 @@
     "translation": "ClusterName must be set."
   },
   {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL must be set."
+  },
+  {
     "id": "model.cluster.is_valid.type.app_error",
     "translation": "Type must be set."
   },
