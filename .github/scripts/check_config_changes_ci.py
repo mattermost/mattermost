@@ -64,16 +64,6 @@ class CheckResult:
     def has_findings(self) -> bool:
         return bool(self.additions or self.removals or self.changes)
  
-    def to_markdown(self) -> str:
-        lines = [f"### {self.label}"]
-        if self.additions:
-            lines.append("**Added:** "   + ", ".join(self.additions))
-        if self.removals:
-            lines.append("**Removed:** " + ", ".join(self.removals))
-        for change in self.changes:
-            lines.append(change)
-        return "\n".join(lines)
- 
  
 # ── Diff helpers ───────────────────────────────────────────────────────────────
  
@@ -194,24 +184,38 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # ── Checker 2 — api4/ ─────────────────────────────────────────────────────────
  
 # Matches Handle() route registrations after whitespace-collapsing the source.
-# Whitespace collapse makes multi-line declarations single-searchable.
+# Tolerates whitespace inside the call (the collapse leaves single spaces
+# between tokens) and supports wrappers with extra arguments. The handler is
+# captured as the first identifier inside the wrapper call.
 # Group 1: path   Group 2: handler func   Group 3: raw Methods(...) content
 _HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'          # path
-    r',\s*\w+\.\w+\((\w+)\)\)'     # wrapper(handlerFunc))
-    r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
+    r'\.Handle\(\s*"([^"]*)"\s*,'        # path
+    r'\s*\w+\.\w+\(\s*(\w+)[^)]*\)\s*\)' # wrapper(handler[, ...])
+    r'\s*\.Methods\(([^)]+)\)'           # .Methods(...) — caller filters via _HTTP_METHODS
 )
+ 
+# Known HTTP verbs — used to filter out stray identifiers that aren't methods
+# (e.g. tokens that slip in from comments after whitespace-collapse).
+_HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
  
 _METHOD_RE = re.compile(r'(?:http\.Method)?(\w+)')
  
  
 def _parse_methods(raw: str) -> list[str]:
-    """Split raw Methods(...) content into individual uppercase HTTP verbs."""
-    return [
-        m.group(1).upper()
-        for token in raw.split(",")
-        if (m := _METHOD_RE.search(token.strip()))
-    ]
+    """
+    Split raw Methods(...) content into individual uppercase HTTP verbs.
+    Filters against _HTTP_METHODS so unrelated identifiers cannot be mistaken
+    for HTTP methods.
+    """
+    methods: list[str] = []
+    for token in raw.split(","):
+        m = _METHOD_RE.search(token.strip())
+        if not m:
+            continue
+        verb = m.group(1).upper()
+        if verb in _HTTP_METHODS:
+            methods.append(verb)
+    return methods
  
  
 def _format_endpoint(path: str, handler: str, method: str) -> str:
@@ -345,6 +349,7 @@ def check_go_version(patches: dict[str, str]) -> CheckResult:
 _AUTO_LINE_RE = re.compile(
     r"^(Added|Removed) `[^`]+`.*(configuration setting|API endpoint|audit log event)\."
     r"|^Go runtime updated from \S+ to \S+\."
+    r"|^Go runtime set to `[^`]+`\."
     r"|^🆕 New API file:"
     r"|^🗑️  Removed API file:"
 )
@@ -374,6 +379,8 @@ def _format_lines(result: CheckResult) -> list[str]:
             lines.append(f"Removed {item} audit log event.")
  
     elif "Go Runtime" in result.label:
+        for item in result.additions:
+            lines.append(f"Go runtime set to {item}.")
         for c in result.changes:
             # c arrives as "Go updated: `1.21` → `1.22`" — rewrite it
             m = re.search(r"`([^`]+)`\s*→\s*`([^`]+)`", c)
@@ -396,10 +403,15 @@ def build_pr_note(results: list[CheckResult]) -> str:
  
 def strip_old_note(body: str) -> str:
     """
-    Remove previously auto-generated lines from inside the ```release-note block.
-    Lines are identified by pattern rather than markers, so no visible annotations
-    need to appear in the PR description.
+    Remove previously auto-generated lines so we can re-inject a fresh set.
+    Lines are identified by pattern (_AUTO_LINE_RE) rather than visible markers.
+ 
+    Cleans both INSIDE the ```release-note fence (the preferred location) and
+    OUTSIDE it (the fallback locations used when no fence exists), so reruns
+    never accumulate duplicates regardless of where notes landed.
     """
+    body = body or ""
+ 
     def _clean_fence(m: re.Match) -> str:
         open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
         cleaned_lines = [
@@ -408,12 +420,19 @@ def strip_old_note(body: str) -> str:
         ]
         return open_tag + "\n".join(cleaned_lines) + close_tag
  
-    return re.sub(
+    body = re.sub(
         r"(```release-note)(.*?)(```)",
         _clean_fence,
-        body or "",
+        body,
         flags=re.DOTALL | re.IGNORECASE,
-    ).rstrip()
+    )
+ 
+    # Strip stray auto-lines that ended up outside any fence (fallback paths).
+    body = "\n".join(
+        line for line in body.split("\n")
+        if not _AUTO_LINE_RE.match(line.strip())
+    )
+    return body.rstrip()
  
  
 def inject_note(body: str, note: str) -> str:
@@ -509,6 +528,9 @@ def main():
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
     new_body = inject_note(body, note)
+    if new_body == body:
+        print("ℹ️  PR description already up to date — no PATCH needed.")
+        return
     update_pr_body(new_body)
     print(f"✅ PR #{PR_NUMBER} description updated.")
  
