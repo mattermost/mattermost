@@ -92,6 +92,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable classification markings for banners at the system and channel level
+	ClassificationMarkings bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -148,6 +151,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableShiftEscapeToMarkAllRead = false
 
 	f.AutoTranslation = true
+
+	f.ClassificationMarkings = false
 
 	f.BurnOnRead = true
 

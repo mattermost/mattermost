@@ -45,6 +45,7 @@ const (
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
+	StatusDisabled                  = "disabled"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
 	ConnectionId                    = "Connection-Id"

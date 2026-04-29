@@ -57,6 +57,7 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as magicLinkSearchableStrings} from './custom_enable_disable_guest_accounts_magic_link_setting';
@@ -3013,6 +3014,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
                         },
                     ],
+                },
+            },
+            classification_markings: {
+                url: 'site_config/classification_markings',
+                title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                searchableStrings: classificationMarkingsSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                ),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationMarkings',
+                    component: ClassificationMarkings,
                 },
             },
             announcement_banner: {
