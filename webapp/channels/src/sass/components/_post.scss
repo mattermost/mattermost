@@ -690,6 +690,55 @@
         }
     }
 
+
+    &.post--chat-bubbles {
+        display: flex;
+        padding-right: 1.5em;
+
+        .post__img {
+            display: none;
+        }
+
+        .post__content {
+            max-width: min(78%, 760px);
+            margin-right: auto;
+            border-radius: 18px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            padding: 8px 12px;
+        }
+
+        &.current--user {
+            justify-content: flex-end;
+
+            .post__content {
+                margin-right: 0;
+                margin-left: auto;
+                background: rgba(var(--button-bg-rgb), 0.2);
+            }
+        }
+
+        .post__header {
+            margin-bottom: 4px;
+        }
+
+        &.same--root.same--user {
+            padding-top: 2px;
+
+            .post__header {
+                display: none;
+            }
+
+            .post__content {
+                border-top-left-radius: 8px;
+            }
+
+            &.current--user .post__content {
+                border-top-right-radius: 8px;
+                border-top-left-radius: 18px;
+            }
+        }
+    }
+
     &.post--compact {
         &.post--thread {
             .post__header {
