@@ -362,9 +362,7 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 }
 
 func getOAuthProviderStatusForTokenEndpoint(ctx context.Context, enabled bool, tokenEndpoint string) model.OAuthProviderStatus {
-	providerStatus := model.OAuthProviderStatus{
-		Enabled: enabled,
-	}
+	providerStatus := model.OAuthProviderStatus{}
 	if !enabled {
 		providerStatus.Status = model.StatusDisabled
 		return providerStatus
@@ -381,15 +379,13 @@ func getOAuthProviderStatusForTokenEndpoint(ctx context.Context, enabled bool, t
 }
 
 func getOpenIDProviderStatus(ctx context.Context, enabled bool, discoveryEndpoint string) model.OAuthProviderStatus {
-	providerStatus := model.OAuthProviderStatus{
-		Enabled: enabled,
-	}
+	providerStatus := model.OAuthProviderStatus{}
 	if !enabled {
 		providerStatus.Status = model.StatusDisabled
 		return providerStatus
 	}
 
-	issuer, err := testOIDCDiscoveryEndpoint(ctx, discoveryEndpoint)
+	err := testOIDCDiscoveryEndpoint(ctx, discoveryEndpoint)
 	if err != nil {
 		providerStatus.Status = model.StatusFail
 		providerStatus.Error = err.Error()
@@ -397,7 +393,6 @@ func getOpenIDProviderStatus(ctx context.Context, enabled bool, discoveryEndpoin
 	}
 
 	providerStatus.Status = model.StatusOk
-	providerStatus.DiscoveredIssuer = issuer
 	return providerStatus
 }
 
@@ -433,9 +428,9 @@ func testTokenEndpointHostConnection(ctx context.Context, tokenEndpoint string) 
 	return conn.Close()
 }
 
-func testOIDCDiscoveryEndpoint(ctx context.Context, discoveryEndpoint string) (string, error) {
+func testOIDCDiscoveryEndpoint(ctx context.Context, discoveryEndpoint string) error {
 	if discoveryEndpoint == "" {
-		return "", fmt.Errorf("discovery endpoint is empty")
+		return fmt.Errorf("discovery endpoint is empty")
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
@@ -443,27 +438,27 @@ func testOIDCDiscoveryEndpoint(ctx context.Context, discoveryEndpoint string) (s
 
 	req, err := http.NewRequestWithContext(timeoutCtx, http.MethodGet, discoveryEndpoint, nil)
 	if err != nil {
-		return "", err
+		return err
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		return "", fmt.Errorf("openid discovery endpoint returned unexpected status %d", resp.StatusCode)
+		return fmt.Errorf("openid discovery endpoint returned unexpected status %d", resp.StatusCode)
 	}
 
 	var document oidcDiscoveryDocument
 	if err := json.NewDecoder(resp.Body).Decode(&document); err != nil {
-		return "", fmt.Errorf("failed to decode OpenID Connect discovery document: %w", err)
+		return fmt.Errorf("failed to decode OpenID Connect discovery document: %w", err)
 	}
 	if document.Issuer == "" {
-		return "", fmt.Errorf("OpenID Connect discovery document is missing issuer")
+		return fmt.Errorf("OpenID Connect discovery document is missing issuer")
 	}
 
-	return document.Issuer, nil
+	return nil
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {

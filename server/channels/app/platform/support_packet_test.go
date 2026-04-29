@@ -710,14 +710,9 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.GitLab.Status)
-		assert.False(t, packet.OAuthProviders.GitLab.Enabled)
 		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.Google.Status)
-		assert.False(t, packet.OAuthProviders.Google.Enabled)
 		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.Office365.Status)
-		assert.False(t, packet.OAuthProviders.Office365.Enabled)
 		assert.Equal(t, model.StatusDisabled, packet.OAuthProviders.OpenID.Status)
-		assert.False(t, packet.OAuthProviders.OpenID.Enabled)
-		assert.Empty(t, packet.OAuthProviders.OpenID.DiscoveredIssuer)
 	})
 
 	t.Run("oauth token endpoint providers reachable", func(t *testing.T) {
@@ -746,13 +741,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Equal(t, model.StatusOk, packet.OAuthProviders.GitLab.Status)
-		assert.True(t, packet.OAuthProviders.GitLab.Enabled)
 		assert.Empty(t, packet.OAuthProviders.GitLab.Error)
 		assert.Equal(t, model.StatusOk, packet.OAuthProviders.Google.Status)
-		assert.True(t, packet.OAuthProviders.Google.Enabled)
 		assert.Empty(t, packet.OAuthProviders.Google.Error)
 		assert.Equal(t, model.StatusOk, packet.OAuthProviders.Office365.Status)
-		assert.True(t, packet.OAuthProviders.Office365.Enabled)
 		assert.Empty(t, packet.OAuthProviders.Office365.Error)
 	})
 
@@ -776,13 +768,10 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.GitLab.Status)
-		assert.True(t, packet.OAuthProviders.GitLab.Enabled)
 		assert.NotEmpty(t, packet.OAuthProviders.GitLab.Error)
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.Google.Status)
-		assert.True(t, packet.OAuthProviders.Google.Enabled)
 		assert.NotEmpty(t, packet.OAuthProviders.Google.Error)
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.Office365.Status)
-		assert.True(t, packet.OAuthProviders.Office365.Enabled)
 		assert.NotEmpty(t, packet.OAuthProviders.Office365.Error)
 	})
 
@@ -810,8 +799,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Equal(t, model.StatusOk, packet.OAuthProviders.OpenID.Status)
-		assert.True(t, packet.OAuthProviders.OpenID.Enabled)
-		assert.Equal(t, "https://idp.example.com", packet.OAuthProviders.OpenID.DiscoveredIssuer)
 		assert.Empty(t, packet.OAuthProviders.OpenID.Error)
 	})
 
@@ -838,8 +825,6 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Equal(t, model.StatusFail, packet.OAuthProviders.OpenID.Status)
-		assert.True(t, packet.OAuthProviders.OpenID.Enabled)
-		assert.Empty(t, packet.OAuthProviders.OpenID.DiscoveredIssuer)
 		assert.Contains(t, packet.OAuthProviders.OpenID.Error, "missing issuer")
 	})
 }
@@ -1019,7 +1004,6 @@ func TestDetectSAMLProviderType(t *testing.T) {
 func TestGetOAuthProviderStatusForTokenEndpoint(t *testing.T) {
 	t.Run("disabled provider", func(t *testing.T) {
 		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), false, "")
-		assert.False(t, status.Enabled)
 		assert.Equal(t, model.StatusDisabled, status.Status)
 		assert.Empty(t, status.Error)
 	})
@@ -1031,14 +1015,12 @@ func TestGetOAuthProviderStatusForTokenEndpoint(t *testing.T) {
 		defer tokenEndpointServer.Close()
 
 		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), true, tokenEndpointServer.URL+"/oauth/token")
-		assert.True(t, status.Enabled)
 		assert.Equal(t, model.StatusOk, status.Status)
 		assert.Empty(t, status.Error)
 	})
 
 	t.Run("unreachable token endpoint host", func(t *testing.T) {
 		status := getOAuthProviderStatusForTokenEndpoint(t.Context(), true, "http://localhost:1/oauth/token")
-		assert.True(t, status.Enabled)
 		assert.Equal(t, model.StatusFail, status.Status)
 		assert.NotEmpty(t, status.Error)
 	})
@@ -1047,10 +1029,8 @@ func TestGetOAuthProviderStatusForTokenEndpoint(t *testing.T) {
 func TestGetOpenIDProviderStatus(t *testing.T) {
 	t.Run("disabled provider", func(t *testing.T) {
 		status := getOpenIDProviderStatus(t.Context(), false, "")
-		assert.False(t, status.Enabled)
 		assert.Equal(t, model.StatusDisabled, status.Status)
 		assert.Empty(t, status.Error)
-		assert.Empty(t, status.DiscoveredIssuer)
 	})
 
 	t.Run("reachable discovery endpoint with issuer", func(t *testing.T) {
@@ -1062,9 +1042,7 @@ func TestGetOpenIDProviderStatus(t *testing.T) {
 		defer discoveryEndpointServer.Close()
 
 		status := getOpenIDProviderStatus(t.Context(), true, discoveryEndpointServer.URL+"/.well-known/openid-configuration")
-		assert.True(t, status.Enabled)
 		assert.Equal(t, model.StatusOk, status.Status)
-		assert.Equal(t, "https://idp.example.com", status.DiscoveredIssuer)
 		assert.Empty(t, status.Error)
 	})
 
@@ -1077,9 +1055,7 @@ func TestGetOpenIDProviderStatus(t *testing.T) {
 		defer discoveryEndpointServer.Close()
 
 		status := getOpenIDProviderStatus(t.Context(), true, discoveryEndpointServer.URL+"/.well-known/openid-configuration")
-		assert.True(t, status.Enabled)
 		assert.Equal(t, model.StatusFail, status.Status)
 		assert.Contains(t, status.Error, "missing issuer")
-		assert.Empty(t, status.DiscoveredIssuer)
 	})
 }

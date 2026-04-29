@@ -109,10 +109,8 @@ type SupportPacketDiagnostics struct {
 }
 
 type OAuthProviderStatus struct {
-	Enabled          bool   `yaml:"enabled"`
-	Status           string `yaml:"status,omitempty"`
-	Error            string `yaml:"error,omitempty"`
-	DiscoveredIssuer string `yaml:"discovered_issuer,omitempty"`
+	Status string `yaml:"status,omitempty"`
+	Error  string `yaml:"error,omitempty"`
 }
 
 type OAuthProviders struct {
