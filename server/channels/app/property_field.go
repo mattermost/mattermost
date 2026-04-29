@@ -7,12 +7,26 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
+
+// propertyFieldOptionsEqual reports whether two values from
+// PropertyField.Attrs[options] are equivalent. Used to detect a no-op options
+// patch on a linked field — see UpdatePropertyFields' linked-field invariants.
+// Both nil/zero forms compare equal; otherwise reflect.DeepEqual handles the
+// nested map/slice shape produced by JSON unmarshalling.
+func propertyFieldOptionsEqual(a, b any) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	return reflect.DeepEqual(a, b)
+}
 
 func propertyFieldBroadcastParams(rctx request.CTX, field *model.PropertyField) (teamID, channelID string, ok bool) {
 	switch field.TargetType {
@@ -56,6 +70,10 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	if field == nil {
 		return nil, model.NewAppError("CreatePropertyField", "app.property_field.invalid_input.app_error", nil, "property field is required", http.StatusBadRequest)
 	}
+
+	// Intrinsic invariants (apply to every caller — HTTP, plugin, internal).
+	CanonicalizeSystemObjectField(field)
+	field.Name = strings.TrimSpace(field.Name)
 
 	if !bypassProtectedCheck && field.Protected {
 		return nil, model.NewAppError(
@@ -194,30 +212,102 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.invalid_input.app_error", nil, "property fields are required", http.StatusBadRequest)
 	}
 
-	if !bypassProtectedCheck {
-		ids := make([]string, len(fields))
-		for i, f := range fields {
-			ids[i] = f.ID
+	// Intrinsic invariants — apply to every caller (HTTP, plugin, internal).
+	for _, f := range fields {
+		f.Name = strings.TrimSpace(f.Name)
+	}
+
+	// Load existing fields once. Used for: protected-check (gated by
+	// bypassProtectedCheck), PSAv1 reject (always-on), linked-field diff
+	// invariants (always-on). Service returns DB-order, not input-order, so
+	// build a lookup map keyed by ID.
+	ids := make([]string, len(fields))
+	for i, f := range fields {
+		ids[i] = f.ID
+	}
+
+	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
+	if err != nil {
+		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	existingByID := make(map[string]*model.PropertyField, len(existingFields))
+	for _, ex := range existingFields {
+		existingByID[ex.ID] = ex
+	}
+
+	for _, f := range fields {
+		existing, ok := existingByID[f.ID]
+		if !ok {
+			// Service-level GetPropertyFields returns an ErrResultsMismatch when
+			// any input ID is missing, so this branch is defensive.
+			continue
 		}
 
-		existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
-		if err != nil {
-			if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
-				return nil, appErr
-			}
-			return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
+		// *LinkedFieldID != "". Unlink (nil or "") is always allowed when
+		// existing was linked.
+		existingLinked := existing.LinkedFieldID != nil && *existing.LinkedFieldID != ""
+		incomingLinked := f.LinkedFieldID != nil && *f.LinkedFieldID != ""
 
-		for _, existing := range existingFields {
-			if existing.Protected {
+		if existingLinked {
+			if f.Type != existing.Type {
 				return nil, model.NewAppError(
 					"UpdatePropertyFields",
-					"app.property_field.update.protected.app_error",
+					"app.property_field.update.linked_type_change.app_error",
 					map[string]any{"FieldID": existing.ID},
-					"cannot update protected field",
-					http.StatusForbidden,
+					"cannot modify type of a linked field",
+					http.StatusBadRequest,
 				)
 			}
+			// Compare the options portion of Attrs.
+			var existingOpts, incomingOpts any
+			if existing.Attrs != nil {
+				existingOpts = existing.Attrs[model.PropertyFieldAttributeOptions]
+			}
+			if f.Attrs != nil {
+				incomingOpts = f.Attrs[model.PropertyFieldAttributeOptions]
+			}
+			if !propertyFieldOptionsEqual(existingOpts, incomingOpts) {
+				return nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.linked_options_change.app_error",
+					map[string]any{"FieldID": existing.ID},
+					"cannot modify options of a linked field",
+					http.StatusBadRequest,
+				)
+			}
+			if incomingLinked && *f.LinkedFieldID != *existing.LinkedFieldID {
+				return nil, model.NewAppError(
+					"UpdatePropertyFields",
+					"app.property_field.update.cannot_change_link_target.app_error",
+					map[string]any{"FieldID": existing.ID},
+					"cannot change link target",
+					http.StatusBadRequest,
+				)
+			}
+		} else if incomingLinked {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.cannot_link_existing.app_error",
+				map[string]any{"FieldID": existing.ID},
+				"linked_field_id can only be set at creation time",
+				http.StatusBadRequest,
+			)
+		}
+
+		// Protected-check is the only invariant gated on the caller's opt-out.
+		if !bypassProtectedCheck && existing.Protected {
+			return nil, model.NewAppError(
+				"UpdatePropertyFields",
+				"app.property_field.update.protected.app_error",
+				map[string]any{"FieldID": existing.ID},
+				"cannot update protected field",
+				http.StatusForbidden,
+			)
 		}
 	}
 

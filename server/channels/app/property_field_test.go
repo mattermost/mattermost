@@ -756,3 +756,281 @@ func TestSearchPropertyFields(t *testing.T) {
 		assert.NotEmpty(t, results)
 	})
 }
+
+func TestCreatePropertyField_SystemCanonicalization(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("system object: TargetType+TargetID and Permission* are canonicalized", func(t *testing.T) {
+		member := model.PermissionLevelMember
+		field := &model.PropertyField{
+			GroupID:           groupID,
+			Name:              "System Canonicalize",
+			Type:              model.PropertyFieldTypeText,
+			ObjectType:        model.PropertyFieldObjectTypeSystem,
+			TargetType:        "channel",
+			TargetID:          model.NewId(),
+			PermissionField:   &member,
+			PermissionValues:  &member,
+			PermissionOptions: &member,
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, string(model.PropertyFieldTargetLevelSystem), created.TargetType)
+		assert.Empty(t, created.TargetID)
+		require.NotNil(t, created.PermissionField)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionField)
+		require.NotNil(t, created.PermissionValues)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionValues)
+		require.NotNil(t, created.PermissionOptions)
+		assert.Equal(t, model.PermissionLevelSysadmin, *created.PermissionOptions)
+	})
+}
+
+func TestCreatePropertyField_TrimName(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("trims whitespace around name", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "  trim-me  ",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "trim-me", created.Name)
+	})
+}
+
+func TestUpdatePropertyField_TrimNameOnUpdate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("trims whitespace on update", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "Trim Update",
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		created, appErr := th.App.CreatePropertyField(th.Context, field, false, "")
+		require.Nil(t, appErr)
+
+		created.Name = "  trimmed-on-update  "
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "trimmed-on-update", updated.Name)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	makeLinkedPair := func(t *testing.T) (template, linked *model.PropertyField) {
+		t.Helper()
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "opt1"},
+				},
+			},
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+
+		linkedID := createdTmpl.ID
+		linkedField := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linkedField, false, "")
+		require.Nil(t, appErr)
+		return createdTmpl, createdLinked
+	}
+
+	t.Run("type immutable on linked field", func(t *testing.T) {
+		_, linked := makeLinkedPair(t)
+		linked.Type = model.PropertyFieldTypeText
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.linked_type_change.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("options immutable on linked field", func(t *testing.T) {
+		_, linked := makeLinkedPair(t)
+		linked.Attrs = model.StringInterface{
+			model.PropertyFieldAttributeOptions: []map[string]any{
+				{"id": model.NewId(), "name": "different"},
+			},
+		}
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.linked_options_change.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("link target immutable: cannot change to different target", func(t *testing.T) {
+		altTmpl, linked := makeLinkedPair(t)
+		// Create another template to point to
+		_ = altTmpl
+		newTmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-alt-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "x"},
+				},
+			},
+		}
+		createdNew, appErr := th.App.CreatePropertyField(th.Context, newTmpl, false, "")
+		require.Nil(t, appErr)
+
+		newID := createdNew.ID
+		linked.LinkedFieldID = &newID
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.cannot_change_link_target.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("cannot link a previously-unlinked field", func(t *testing.T) {
+		unlinked := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "unlinked-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdUnlinked, appErr := th.App.CreatePropertyField(th.Context, unlinked, false, "")
+		require.Nil(t, appErr)
+
+		// Create a template to link to
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-late-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		tID := createdTmpl.ID
+
+		createdUnlinked.LinkedFieldID = &tID
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdUnlinked, false, "")
+		require.NotNil(t, appErr)
+		assert.Nil(t, updated)
+		assert.Equal(t, "app.property_field.update.cannot_link_existing.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldNoOpPatchOK(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("setting Type to current value on a linked field passes", func(t *testing.T) {
+		// Build template + linked
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-noop-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []map[string]any{
+					{"id": model.NewId(), "name": "n"},
+				},
+			},
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		linkedID := createdTmpl.ID
+
+		linked := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-noop-" + model.NewId(),
+			Type:          model.PropertyFieldTypeSelect,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+		require.Nil(t, appErr)
+
+		// No-op update: Type unchanged.
+		createdLinked.Name = "linked-renamed"
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		require.Nil(t, appErr)
+		assert.Equal(t, "linked-renamed", updated.Name)
+	})
+}
+
+func TestUpdatePropertyField_LinkedFieldUnlinkAllowed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	groupID := registerTestPropertyGroup(t, th)
+
+	t.Run("plugin path: setting LinkedFieldID = nil on a linked field unlinks it", func(t *testing.T) {
+		tmpl := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "tmpl-unlink-" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		createdTmpl, appErr := th.App.CreatePropertyField(th.Context, tmpl, false, "")
+		require.Nil(t, appErr)
+		linkedID := createdTmpl.ID
+
+		linked := &model.PropertyField{
+			GroupID:       groupID,
+			Name:          "linked-unlink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+		}
+		createdLinked, appErr := th.App.CreatePropertyField(th.Context, linked, false, "")
+		require.Nil(t, appErr)
+
+		createdLinked.LinkedFieldID = nil
+		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		require.Nil(t, appErr)
+		assert.Nil(t, updated.LinkedFieldID)
+	})
+}

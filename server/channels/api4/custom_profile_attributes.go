@@ -9,6 +9,7 @@ package api4
 
 import (
 	"encoding/json"
+	"maps"
 	"net/http"
 	"strings"
 
@@ -77,6 +78,14 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// CPA fields are system-scoped; only a system administrator may create
+	// them. This mirrors the scope-based permission check the shared generic
+	// handler enforces for system-typed fields.
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
 	// Translate to PropertyField and route through the generic property API.
 	// Every server-controlled field on the decoded payload is explicitly
 	// overwritten below so they can't be set by the caller. This is just
@@ -96,14 +105,18 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.PermissionField = nil
 	field.PermissionValues = nil
 	field.PermissionOptions = nil
-	field.CreatedBy = ""
-	field.UpdatedBy = ""
+	field.CreatedBy = c.AppContext.Session().UserId
+	field.UpdatedBy = c.AppContext.Session().UserId
 	field.CreateAt = 0
 	field.UpdateAt = 0
 	field.DeleteAt = 0
 
-	createdField := executeCreatePropertyField(c, r, field)
-	if c.Err != nil {
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	createdField, appErr := c.App.CreatePropertyField(rctx, field, false, connectionID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -166,11 +179,52 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedField, originalField := executePatchPropertyField(c, r, group.ID, model.PropertyFieldObjectTypeUser, c.Params.FieldId, patch)
-	if originalField != nil {
-		auditRec.AddEventPriorState(originalField)
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	existingField, appErr := c.App.GetPropertyField(rctx, group.ID, c.Params.FieldId)
+	if appErr != nil {
+		c.Err = appErr
+		return
 	}
-	if c.Err != nil {
+
+	if existingField.ObjectType != model.PropertyFieldObjectTypeUser {
+		c.Err = model.NewAppError("patchCPAField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	// Permission branching (session-bound).
+	isOptionsOnly := isOptionsOnlyPatch(patch)
+	if isOptionsOnly && existingField.Type != model.PropertyFieldTypeSelect && existingField.Type != model.PropertyFieldTypeMultiselect {
+		isOptionsOnly = false
+	}
+	if isOptionsOnly {
+		if !c.App.SessionHasPermissionToManagePropertyFieldOptions(rctx, *c.AppContext.Session(), existingField) {
+			c.Err = model.NewAppError("patchCPAField", "api.property_field.update.no_options_permission.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+			c.Err = model.NewAppError("patchCPAField", "api.property_field.update.no_field_permission.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	// Capture original state for audit before in-place patch (Attrs is
+	// shallow-copied because Patch mutates it).
+	orig := *existingField
+	if existingField.Attrs != nil {
+		orig.Attrs = make(model.StringInterface, len(existingField.Attrs))
+		maps.Copy(orig.Attrs, existingField.Attrs)
+	}
+	auditRec.AddEventPriorState(&orig)
+
+	existingField.Patch(patch, true)
+	existingField.UpdatedBy = c.AppContext.Session().UserId
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	updatedField, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	if updateErr != nil {
+		c.Err = updateErr
 		return
 	}
 
@@ -210,8 +264,27 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existingField := executeDeletePropertyField(c, r, group.ID, model.PropertyFieldObjectTypeUser, c.Params.FieldId)
-	if c.Err != nil {
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	existingField, appErr := c.App.GetPropertyField(rctx, group.ID, c.Params.FieldId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if existingField.ObjectType != model.PropertyFieldObjectTypeUser {
+		c.Err = model.NewAppError("deleteCPAField", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToEditPropertyField(rctx, *c.AppContext.Session(), existingField) {
+		c.Err = model.NewAppError("deleteCPAField", "api.property_field.delete.no_permission.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	connectionID := r.Header.Get(model.ConnectionId)
+	if deleteErr := c.App.DeletePropertyField(rctx, group.ID, c.Params.FieldId, false, connectionID); deleteErr != nil {
+		c.Err = deleteErr
 		return
 	}
 
@@ -249,9 +322,11 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 // cpaPatchValues is the shared implementation for patchCPAValues and
-// patchCPAValuesForUser. It translates the CPA request format to the
-// generic property API, routes through executePatchPropertyValues, and
-// emits the CPA-specific websocket event.
+// patchCPAValuesForUser. It translates the CPA request format to the generic
+// property API, performs the same session-bound checks as the generic value
+// patch handler (target access, batch caps, per-field permission), routes
+// the upsert through App.UpsertPropertyValues, and emits the CPA-specific
+// websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
@@ -260,7 +335,14 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		return
 	}
 
-	// Translate CPA format → generic PropertyValuePatchItem list
+	if !hasTargetAccess(c, model.PropertyFieldObjectTypeUser, userID, true) {
+		return
+	}
+
+	// Translate CPA format → generic PropertyValuePatchItem list. Map
+	// iteration is unordered, but FieldID uniqueness is guaranteed by the
+	// JSON object key constraint, so we cannot hit duplicate-FieldID; still,
+	// we keep the same shape as the generic handler for parity.
 	items := make([]model.PropertyValuePatchItem, 0, len(updates))
 	for fieldID, value := range updates {
 		items = append(items, model.PropertyValuePatchItem{
@@ -269,8 +351,70 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		})
 	}
 
-	upserted := executePatchPropertyValues(c, r, group.ID, model.PropertyFieldObjectTypeUser, userID, items)
-	if c.Err != nil {
+	if len(items) == 0 {
+		c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.empty_body.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if len(items) > maxPropertyValuePatchItems {
+		c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.too_many_items.request_error", map[string]any{
+			"Max": maxPropertyValuePatchItems,
+		}, "", http.StatusBadRequest)
+		return
+	}
+
+	fieldIDs := make([]string, 0, len(items))
+	for _, item := range items {
+		if !model.IsValidId(item.FieldID) {
+			c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.invalid_field_id.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+		fieldIDs = append(fieldIDs, item.FieldID)
+	}
+
+	fields, fieldsErr := c.App.GetPropertyFields(rctx, group.ID, fieldIDs)
+	if fieldsErr != nil {
+		c.Err = fieldsErr
+		return
+	}
+	fieldByID := make(map[string]*model.PropertyField, len(fields))
+	for _, f := range fields {
+		fieldByID[f.ID] = f
+	}
+	for _, item := range items {
+		f, ok := fieldByID[item.FieldID]
+		if !ok {
+			c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.field_not_found.app_error",
+				map[string]any{"FieldID": item.FieldID}, "", http.StatusNotFound)
+			return
+		}
+		if f.ObjectType != model.PropertyFieldObjectTypeUser {
+			c.Err = model.NewAppError("cpaPatchValues", "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+			return
+		}
+		if !c.App.SessionHasPermissionToSetPropertyFieldValues(rctx, *c.AppContext.Session(), f) {
+			c.Err = model.NewAppError("cpaPatchValues", "api.property_value.patch.no_values_permission.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
+	callerID := c.AppContext.Session().UserId
+	values := make([]*model.PropertyValue, len(items))
+	for i, item := range items {
+		values[i] = &model.PropertyValue{
+			TargetID:   userID,
+			TargetType: model.PropertyFieldObjectTypeUser,
+			GroupID:    group.ID,
+			FieldID:    item.FieldID,
+			Value:      item.Value,
+			CreatedBy:  callerID,
+			UpdatedBy:  callerID,
+		}
+	}
+	connectionID := r.Header.Get(model.ConnectionId)
+
+	upserted, upsertErr := c.App.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeUser, userID, connectionID)
+	if upsertErr != nil {
+		c.Err = upsertErr
 		return
 	}
 

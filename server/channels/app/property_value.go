@@ -170,11 +170,92 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 
 // UpsertPropertyValues creates or updates multiple property values.
 // When objectType is non-empty, WebSocket events are broadcast to notify
-// clients of the updated values.
+// clients of the updated values, and every referenced field is required
+// to have a matching ObjectType.
 func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyValue, objectType, targetID, connectionID string) ([]*model.PropertyValue, *model.AppError) {
 	if len(values) == 0 {
 		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.invalid_input.app_error", nil, "property values are required", http.StatusBadRequest)
 	}
+
+	// Intrinsic invariants — apply to every caller (HTTP, plugin, internal).
+	// Single-group invariant must run before the bulk-load below, since
+	// GetPropertyFields takes a single groupID.
+	groupID := values[0].GroupID
+	seenIDs := make(map[string]bool, len(values))
+	fieldIDs := make([]string, 0, len(values))
+	for _, v := range values {
+		if v == nil {
+			return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.invalid_input.app_error", nil, "nil property value in batch", http.StatusBadRequest)
+		}
+		if v.GroupID != groupID {
+			return nil, model.NewAppError(
+				"UpsertPropertyValues",
+				"app.property_value.upsert.mixed_groups.app_error",
+				nil,
+				"all values in a batch must belong to the same group",
+				http.StatusBadRequest,
+			)
+		}
+		if !model.IsValidId(v.FieldID) {
+			return nil, model.NewAppError(
+				"UpsertPropertyValues",
+				"app.property_value.upsert.invalid_field_id.app_error",
+				map[string]any{"FieldID": v.FieldID},
+				"invalid field ID",
+				http.StatusBadRequest,
+			)
+		}
+		if seenIDs[v.FieldID] {
+			return nil, model.NewAppError(
+				"UpsertPropertyValues",
+				"app.property_value.upsert.duplicate_field_id.app_error",
+				map[string]any{"FieldID": v.FieldID},
+				"duplicate field ID in batch",
+				http.StatusBadRequest,
+			)
+		}
+		seenIDs[v.FieldID] = true
+		fieldIDs = append(fieldIDs, v.FieldID)
+	}
+
+	// ObjectType-mismatch check is gated on a non-empty objectType argument.
+	// Plugin API today always passes objectType="" and keeps its loose
+	// contract on this specific check.
+	if objectType != "" {
+		fields, fieldsErr := a.GetPropertyFields(rctx, groupID, fieldIDs)
+		if fieldsErr != nil {
+			return nil, fieldsErr
+		}
+		fieldByID := make(map[string]*model.PropertyField, len(fields))
+		for _, f := range fields {
+			fieldByID[f.ID] = f
+		}
+		for _, v := range values {
+			f, ok := fieldByID[v.FieldID]
+			if !ok {
+				return nil, model.NewAppError(
+					"UpsertPropertyValues",
+					"app.property_value.upsert.field_not_found.app_error",
+					map[string]any{"FieldID": v.FieldID},
+					"field not found",
+					http.StatusNotFound,
+				)
+			}
+			if f.ObjectType != objectType {
+				// 404 matches the shape of a non-existent field so callers
+				// cannot distinguish "no such field" from "field exists but
+				// in a different object-type bucket".
+				return nil, model.NewAppError(
+					"UpsertPropertyValues",
+					"app.property_value.upsert.object_type_mismatch.app_error",
+					map[string]any{"FieldID": v.FieldID},
+					"object type mismatch",
+					http.StatusNotFound,
+				)
+			}
+		}
+	}
+
 	for _, v := range values {
 		v.Value = model.SanitizePropertyValue(v.Value)
 	}

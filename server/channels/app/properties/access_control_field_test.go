@@ -651,9 +651,9 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 
 	t.Run("non-plugin caller can create field without source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    th.CPAGroupID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -758,9 +758,9 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 
 	t.Run("plugin caller auto-sets source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    th.CPAGroupID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -818,9 +818,9 @@ func TestCreatePropertyField_AccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		field := &model.PropertyField{
-			GroupID: nonCpaGroup.ID,
-			Name:    model.NewId(),
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    nonCpaGroup.ID,
+			Name:       model.NewId(),
+			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -847,9 +847,9 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 	t.Run("allows update of unprotected field", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    "Original Name",
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    th.CPAGroupID,
+			Name:       "Original Name",
+			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -931,10 +931,10 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 	t.Run("prevents changing source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    "Field",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{},
+			GroupID:    th.CPAGroupID,
+			Name:       "Field",
+			Type:       model.PropertyFieldTypeText,
+			Attrs:      model.StringInterface{},
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -952,10 +952,10 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 	t.Run("prevents setting protected=true without source_plugin_id", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    "Field Without Source Plugin",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{},
+			GroupID:    th.CPAGroupID,
+			Name:       "Field Without Source Plugin",
+			Type:       model.PropertyFieldTypeText,
+			Attrs:      model.StringInterface{},
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}
@@ -974,10 +974,10 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 	t.Run("prevents non-source plugin from setting protected=true", func(t *testing.T) {
 		field := &model.PropertyField{
-			GroupID: th.CPAGroupID,
-			Name:    "Field With Source Plugin",
-			Type:    model.PropertyFieldTypeText,
-			Attrs:   model.StringInterface{},
+			GroupID:    th.CPAGroupID,
+			Name:       "Field With Source Plugin",
+			Type:       model.PropertyFieldTypeText,
+			Attrs:      model.StringInterface{},
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 		}

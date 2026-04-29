@@ -3163,10 +3163,6 @@
     "translation": "You do not have permission to delete this property field."
   },
   {
-    "id": "api.property_field.delete.protected_via_api.app_error",
-    "translation": "Cannot delete a protected property field via API."
-  },
-  {
     "id": "api.property_field.get.invalid_target_type.app_error",
     "translation": "A valid target_type (system, team, or channel) is required."
   },
@@ -3183,24 +3179,8 @@
     "translation": "Property field object type does not match URL."
   },
   {
-    "id": "api.property_field.patch.cannot_link_existing.app_error",
-    "translation": "Cannot set linked_field_id on an existing field. It can only be set at creation time."
-  },
-  {
     "id": "api.property_field.patch.legacy_field.app_error",
     "translation": "Cannot patch a v1 property field via this API."
-  },
-  {
-    "id": "api.property_field.patch.linked_field_change.app_error",
-    "translation": "Cannot change link target. Unlink first, then create a new linked field."
-  },
-  {
-    "id": "api.property_field.patch.linked_options_change.app_error",
-    "translation": "Cannot modify options of a linked field. Options are inherited from the source."
-  },
-  {
-    "id": "api.property_field.patch.linked_type_change.app_error",
-    "translation": "Cannot modify type of a linked field. Type is inherited from the source."
   },
   {
     "id": "api.property_field.update.no_field_permission.app_error",
@@ -3209,10 +3189,6 @@
   {
     "id": "api.property_field.update.no_options_permission.app_error",
     "translation": "You do not have permission to manage options for this property field."
-  },
-  {
-    "id": "api.property_field.update.protected_via_api.app_error",
-    "translation": "Cannot update a protected property field via API."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
@@ -8025,6 +8001,26 @@
   {
     "id": "app.property_value.upsert.app_error",
     "translation": "Unable to upsert property values."
+  },
+  {
+    "id": "app.property_value.upsert.duplicate_field_id.app_error",
+    "translation": "Duplicate field ID in property value batch."
+  },
+  {
+    "id": "app.property_value.upsert.field_not_found.app_error",
+    "translation": "Property field {{.FieldID}} was not found."
+  },
+  {
+    "id": "app.property_value.upsert.invalid_field_id.app_error",
+    "translation": "Invalid property field ID."
+  },
+  {
+    "id": "app.property_value.upsert.mixed_groups.app_error",
+    "translation": "All property values in a batch must belong to the same property group."
+  },
+  {
+    "id": "app.property_value.upsert.object_type_mismatch.app_error",
+    "translation": "Property field object type does not match the request."
   },
   {
     "id": "app.property_value.upsert_many.app_error",
