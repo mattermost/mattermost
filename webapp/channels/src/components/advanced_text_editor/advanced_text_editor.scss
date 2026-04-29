@@ -133,6 +133,16 @@
             text-decoration: none;
         }
 
+        &:disabled {
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            cursor: not-allowed;
+
+            &:hover {
+                background: transparent;
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+        }
+
         &.hidden {
             visibility: hidden;
         }

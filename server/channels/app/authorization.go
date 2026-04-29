@@ -625,24 +625,26 @@ func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field
 	return false
 }
 
+// isFileUploadPolicyActive returns true when all three conditions hold:
+// the access-control service is wired up, ABAC is enabled, and the
+// PermissionPolicies feature flag is on.  Both file-upload helpers gate on
+// this check, so adding a new guard here is the only change needed.
+func (a *App) isFileUploadPolicyActive() bool {
+	return a.Srv().Channels().AccessControl != nil &&
+		*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl &&
+		a.Config().FeatureFlags.PermissionPolicies
+}
+
 // HasPermissionToFileAction evaluates whether the user is allowed to perform the
 // given file action (e.g. upload_file_attachment, download_file_attachment) on
 // a channel, based on ABAC permission policies.
 // Returns true if allowed (or if ABAC is not active), false if denied.
 func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	if !a.isFileUploadPolicyActive() {
+		return true
+	}
+
 	acs := a.Srv().Channels().AccessControl
-	if acs == nil {
-		return true
-	}
-
-	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		return true
-	}
-
-	if !a.Config().FeatureFlags.PermissionPolicies {
-		return true
-	}
-
 	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file action evaluation",
@@ -674,14 +676,16 @@ func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles s
 	return decision.Decision
 }
 
-// SetFileUploadRestrictedOnMembers evaluates upload permissions for a batch of channel memberships,
-// building the ABAC subject once and calling AccessEvaluation per channel.
+// SetFileUploadRestrictedOnMembers stamps FileUploadRestricted on each membership
+// in the slice.  The ABAC subject is built once and reused across all channels
+// to avoid N attribute lookups; AccessEvaluation is still called per channel so
+// that channel-scoped policies can be supported in the future.
 func (a *App) SetFileUploadRestrictedOnMembers(rctx request.CTX, userID string, roles string, members model.ChannelMembers) {
-	acs := a.Srv().Channels().AccessControl
-	if acs == nil || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl || !a.Config().FeatureFlags.PermissionPolicies {
+	if !a.isFileUploadPolicyActive() {
 		return
 	}
 
+	acs := a.Srv().Channels().AccessControl
 	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file upload evaluation",

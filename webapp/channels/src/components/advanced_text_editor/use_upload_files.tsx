@@ -42,8 +42,8 @@ const useUploadFiles = (
     const permissionPoliciesEnabled = useSelector(isPermissionPoliciesEnabled);
     const dispatch = useDispatch();
 
-    // The channel-join path already fetches the member, but navigating between channels does not.
-    // Re-fetch on channelId change so file_upload_restricted stays current after navigation.
+    // Re-fetch on channel navigation to pick up file_upload_restricted for channels
+    // not covered by the initial team-scoped bulk fetch (e.g. DMs) and after policy changes.
     useEffect(() => {
         if (permissionPoliciesEnabled && channelId) {
             dispatch(getMyChannelMember(channelId));

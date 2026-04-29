@@ -107,7 +107,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, isCustomProfileAttributesEnabled, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -813,7 +813,7 @@ export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.Ch
     };
 }
 
-function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
+export function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
         const roles = channelMember.roles.split(' ');
@@ -826,6 +826,12 @@ function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpd
 
         if (becameEnabled) {
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
+        }
+
+        // The server broadcasts the raw DB member, which has no computed fields.
+        // Re-fetch to restore file_upload_restricted so the upload button stays correct.
+        if (isPermissionPoliciesEnabled(state)) {
+            doDispatch(getMyChannelMember(channelMember.channel_id));
         }
     };
 }

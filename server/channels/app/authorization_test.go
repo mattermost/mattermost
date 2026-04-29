@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	einterfacesmocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestSessionHasPermissionTo(t *testing.T) {
@@ -2159,4 +2160,114 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 			assert.Equal(t, tc.expected, th.App.SessionHasPermissionToManagePropertyFieldOptions(th.Context, tc.session, tc.field))
 		})
 	}
+}
+
+func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	makeMembers := func(channelIDs ...string) model.ChannelMembers {
+		out := make(model.ChannelMembers, len(channelIDs))
+		for i, id := range channelIDs {
+			out[i] = model.ChannelMember{ChannelId: id, UserId: th.BasicUser.Id}
+		}
+		return out
+	}
+
+	setupACS := func(t *testing.T, allow bool) (acs *einterfacesmocks.AccessControlServiceInterface, restore func()) {
+		t.Helper()
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: allow}, (*model.AppError)(nil))
+		return mockACS, func() {
+			th.App.Srv().Channels().AccessControl = original
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}
+	}
+
+	t.Run("no-op when ABAC is inactive", func(t *testing.T) {
+		// Default config has ABAC disabled; AccessControl service is nil.
+		members := makeMembers(th.BasicChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+		require.False(t, members[0].FileUploadRestricted)
+	})
+
+	t.Run("sets FileUploadRestricted=true when policy denies", func(t *testing.T) {
+		_, restore := setupACS(t, false)
+		defer restore()
+
+		members := makeMembers(th.BasicChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+		require.True(t, members[0].FileUploadRestricted)
+	})
+
+	t.Run("sets FileUploadRestricted=false when policy allows", func(t *testing.T) {
+		_, restore := setupACS(t, true)
+		defer restore()
+
+		members := makeMembers(th.BasicChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+		require.False(t, members[0].FileUploadRestricted)
+	})
+
+	t.Run("evaluation error defaults to restricted", func(t *testing.T) {
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer func() {
+			th.App.Srv().Channels().AccessControl = original
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", 500))
+
+		members := makeMembers(th.BasicChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+		require.True(t, members[0].FileUploadRestricted, "evaluation error should fail closed")
+	})
+
+	t.Run("stamps each member independently", func(t *testing.T) {
+		secondChannel := th.CreateChannel(t, th.BasicTeam)
+
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer func() {
+			th.App.Srv().Channels().AccessControl = original
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}()
+
+		// deny on BasicChannel, allow on secondChannel
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		members := makeMembers(th.BasicChannel.Id, secondChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+
+		require.True(t, members[0].FileUploadRestricted, "BasicChannel should be restricted")
+		require.False(t, members[1].FileUploadRestricted, "secondChannel should not be restricted")
+	})
 }

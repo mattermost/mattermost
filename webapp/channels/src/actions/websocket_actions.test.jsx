@@ -7,7 +7,7 @@ import {WebSocketEvents} from '@mattermost/client';
 
 import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
+import {fetchAllMyTeamsChannels, getMyChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
@@ -35,6 +35,7 @@ import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleChannelMemberUpdatedEvent,
     handleEvent,
     handleNewPostEvent,
     handleNewPostEvents,
@@ -92,6 +93,7 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
     fetchAllMyTeamsChannels: jest.fn(),
+    getMyChannelMember: jest.fn(() => ({type: 'GET_MY_CHANNEL_MEMBER'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -1680,5 +1682,61 @@ describe('handleCustomAttributeCRUD', () => {
             expect(user.custom_profile_attributes).toBeTruthy();
             expect(user.custom_profile_attributes[field1.id]).toEqual('some value');
         });
+    });
+});
+
+describe('handleChannelMemberUpdatedEvent', () => {
+    const channelMember = {
+        channel_id: 'channel1',
+        user_id: 'currentUserId',
+        roles: 'channel_user',
+        last_update_at: 1000,
+        last_viewed_at: 1000,
+        msg_count: 0,
+        msg_count_root: 0,
+        mention_count: 0,
+        mention_count_root: 0,
+        urgent_mention_count: 0,
+        notify_props: {},
+    };
+
+    const msg = {
+        data: {channelMember: JSON.stringify(channelMember)},
+    };
+
+    beforeEach(() => {
+        getMyChannelMember.mockClear();
+    });
+
+    it('re-fetches the member when PermissionPolicies feature flag is enabled', () => {
+        const state = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+            },
+        };
+        const dispatch = jest.fn();
+        const getState = jest.fn(() => state);
+
+        handleChannelMemberUpdatedEvent(msg)(dispatch, getState);
+
+        expect(getMyChannelMember).toHaveBeenCalledWith('channel1');
+    });
+
+    it('does not re-fetch when PermissionPolicies feature flag is disabled', () => {
+        const state = {
+            ...mockState,
+            entities: {
+                ...mockState.entities,
+                general: {config: {FeatureFlagPermissionPolicies: 'false'}},
+            },
+        };
+        const dispatch = jest.fn();
+        const getState = jest.fn(() => state);
+
+        handleChannelMemberUpdatedEvent(msg)(dispatch, getState);
+
+        expect(getMyChannelMember).not.toHaveBeenCalled();
     });
 });

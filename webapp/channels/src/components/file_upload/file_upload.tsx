@@ -764,7 +764,7 @@ export class FileUpload extends PureComponent<Props, State> {
                         type='button'
                         id='fileUploadButton'
                         aria-label={buttonAriaLabel}
-                        className='style--none AdvancedTextEditor__action-button disabled'
+                        className='style--none AdvancedTextEditor__action-button'
                         disabled={true}
                     >
                         <PaperclipIcon
