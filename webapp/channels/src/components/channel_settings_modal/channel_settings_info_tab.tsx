@@ -92,12 +92,12 @@ function ChannelSettingsInfoTab({
 
     // Must stay aligned with server `UpdateChannel` when an ABAC membership policy is enforced.
     const channelTypeLockedByMembershipPolicy = Boolean(channel.policy_enforced);
-    const channelTypeLockTooltip = channelTypeLockedByMembershipPolicy
-        ? formatMessage({
+    const channelTypeLockTooltip = channelTypeLockedByMembershipPolicy ?
+        formatMessage({
             id: 'channel_settings.policy_enforced.cannot_change_channel_type',
             defaultMessage: 'This channel has a membership policy applied. Remove the policy before changing between public and private.',
-        })
-        : undefined;
+        }) :
+        undefined;
 
     const [managedCategoryName, setManagedCategoryName] = useState(currentCategoryName);
     const [serverCategoryName, setServerCategoryName] = useState(currentCategoryName);
