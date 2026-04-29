@@ -235,6 +235,17 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
+	if model.SafeDereference(ps.Config().SamlSettings.Enable) {
+		idpMetadataURL := model.SafeDereference(ps.Config().SamlSettings.IdpMetadataURL)
+		if samlErr := testSAMLMetadataConnection(rctx.Context(), idpMetadataURL); samlErr != nil {
+			d.SAML.Status = model.StatusFail
+			d.SAML.Error = samlErr.Error()
+		} else {
+			d.SAML.Status = model.StatusOk
+		}
+	} else {
+		d.SAML.Status = model.StatusDisabled
+	}
 
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
@@ -331,6 +342,32 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
 	}
+	return nil
+}
+
+func testSAMLMetadataConnection(ctx context.Context, metadataURL string) error {
+	if metadataURL == "" {
+		return errors.New("SAML metadata URL is not configured")
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, metadataURL, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("SAML metadata URL returned unexpected status %d", resp.StatusCode)
+	}
+
 	return nil
 }
 

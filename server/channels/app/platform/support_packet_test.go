@@ -410,6 +410,56 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		packet := getDiagnostics(t)
 
 		assert.Empty(t, packet.SAML.ProviderType)
+		assert.Equal(t, model.StatusDisabled, packet.SAML.Status)
+		assert.Empty(t, packet.SAML.Error)
+	})
+
+	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
+		metadataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer metadataServer.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusOk, packet.SAML.Status)
+		assert.Empty(t, packet.SAML.Error)
+		assert.Equal(t, "Keycloak", packet.SAML.ProviderType)
+	})
+
+	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "SAML metadata URL is not configured", packet.SAML.Error)
+	})
+
+	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
+		metadataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}))
+		defer metadataServer.Close()
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
 	t.Run("SAML enabled with Keycloak provider", func(t *testing.T) {
