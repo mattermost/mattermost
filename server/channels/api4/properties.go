@@ -21,12 +21,14 @@ const maxPropertyValuePatchItems = 50
 func (api *API) InitProperties() {
 	api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(getPropertyFields)).Methods(http.MethodGet)
 	api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(getPropertyValues)).Methods(http.MethodGet)
+	api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(getSystemPropertyValues)).Methods(http.MethodGet)
 	if api.srv.Config().FeatureFlags.IntegratedBoards || api.srv.Config().FeatureFlags.ClassificationMarkings {
 		api.BaseRoutes.PropertyFields.Handle("", api.APISessionRequired(createPropertyField)).Methods(http.MethodPost)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(patchPropertyField)).Methods(http.MethodPatch)
 		api.BaseRoutes.PropertyField.Handle("", api.APISessionRequired(deletePropertyField)).Methods(http.MethodDelete)
 
 		api.BaseRoutes.PropertyValues.Handle("", api.APISessionRequired(patchPropertyValues)).Methods(http.MethodPatch)
+		api.BaseRoutes.PropertySystemValues.Handle("", api.APISessionRequired(patchSystemPropertyValues)).Methods(http.MethodPatch)
 	}
 }
 
@@ -117,11 +119,16 @@ func getPropertyFields(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Required target_type filter
-	opts.TargetType = query.Get("target_type")
-	if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
-		c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
-		return
+	// target_type filter: required in general, but implicit for the system
+	// object type since it can only ever live at the system level.
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeSystem {
+		opts.TargetType = string(model.PropertyFieldTargetLevelSystem)
+	} else {
+		opts.TargetType = query.Get("target_type")
+		if !model.IsValidPSAv2PropertyFieldTargetType(opts.TargetType) {
+			c.Err = model.NewAppError("getPropertyFields", "api.property_field.get.invalid_target_type.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	// Optional target_id filter
@@ -266,32 +273,50 @@ func getPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeSystem {
+		c.Err = model.NewAppError("getPropertyValues", "api.property_value.system_use_dedicated_route.app_error", nil, "system values must use the dedicated system values endpoint", http.StatusBadRequest)
+		return
+	}
+
 	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
 
+	getPropertyValuesCore(c, w, r, c.Params.ObjectType, c.Params.TargetId)
+}
+
+func getSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupName()
+	if c.Err != nil {
+		return
+	}
+
+	getPropertyValuesCore(c, w, r, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID)
+}
+
+func getPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
 	group := getV2Group(c, "getPropertyValues")
 	if c.Err != nil {
 		return
 	}
 
 	// Check target access based on object type
-	if !hasTargetAccess(c, c.Params.ObjectType, c.Params.TargetId, false) {
+	if !hasTargetAccess(c, objectType, targetID, false) {
 		return
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPropertyValues, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
-	model.AddEventParameterToAuditRec(auditRec, "target_id", c.Params.TargetId)
+	model.AddEventParameterToAuditRec(auditRec, "object_type", objectType)
+	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
 
 	query := r.URL.Query()
 
 	opts := model.PropertyValueSearchOpts{
-		TargetIDs:  []string{c.Params.TargetId},
-		TargetType: c.Params.ObjectType,
+		TargetIDs:  []string{targetID},
+		TargetType: objectType,
 		PerPage:    c.Params.PerPage,
 	}
 
@@ -332,11 +357,29 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Params.ObjectType == model.PropertyFieldObjectTypeSystem {
+		c.Err = model.NewAppError("patchPropertyValues", "api.property_value.system_use_dedicated_route.app_error", nil, "system values must use the dedicated system values endpoint", http.StatusBadRequest)
+		return
+	}
+
 	c.RequireTargetId()
 	if c.Err != nil {
 		return
 	}
 
+	patchPropertyValuesCore(c, w, r, c.Params.ObjectType, c.Params.TargetId)
+}
+
+func patchSystemPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupName()
+	if c.Err != nil {
+		return
+	}
+
+	patchPropertyValuesCore(c, w, r, model.PropertyFieldObjectTypeSystem, model.PropertyValueSystemTargetID)
+}
+
+func patchPropertyValuesCore(c *Context, w http.ResponseWriter, r *http.Request, objectType, targetID string) {
 	group := getV2Group(c, "patchPropertyValues")
 	if c.Err != nil {
 		return
@@ -351,10 +394,10 @@ func patchPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPropertyValues, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "group_name", c.Params.GroupName)
-	model.AddEventParameterToAuditRec(auditRec, "object_type", c.Params.ObjectType)
-	model.AddEventParameterToAuditRec(auditRec, "target_id", c.Params.TargetId)
+	model.AddEventParameterToAuditRec(auditRec, "object_type", objectType)
+	model.AddEventParameterToAuditRec(auditRec, "target_id", targetID)
 
-	upserted := executePatchPropertyValues(c, r, group.ID, c.Params.ObjectType, c.Params.TargetId, items)
+	upserted := executePatchPropertyValues(c, r, group.ID, objectType, targetID, items)
 	if c.Err != nil {
 		return
 	}
@@ -440,6 +483,13 @@ func hasTargetAccess(c *Context, objectType, targetID string, write bool) bool {
 				return false
 			}
 		}
+	case model.PropertyFieldObjectTypeSystem:
+		// Any authenticated user can read system-scoped property values.
+		// Only a system administrator can write them.
+		if write && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return false
+		}
 	case model.PropertyFieldObjectTypeTemplate:
 		// Templates don't have value targets — this should not be reached
 		// if value endpoints properly reject template object type
@@ -470,6 +520,22 @@ func sessionCallerID(c *Context) string {
 // Returns the created field or nil with c.Err set.
 func executeCreatePropertyField(c *Context, r *http.Request, field *model.PropertyField) *model.PropertyField {
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+
+	// System-object fields attach to the system itself; canonicalize the
+	// target fields so clients can't submit inconsistent combinations.
+	// Permissions are likewise pinned to sysadmin: a system field's
+	// TargetType is "system", which makes member-level scope checks resolve
+	// to "any authenticated user" (see hasPropertyFieldScopeAccess), so
+	// honouring a member-level permission on a system field would expose
+	// the field's definition, options, and values to every logged-in user.
+	if field.ObjectType == model.PropertyFieldObjectTypeSystem {
+		field.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		field.TargetID = ""
+		sysadmin := model.PermissionLevelSysadmin
+		field.PermissionField = &sysadmin
+		field.PermissionValues = &sysadmin
+		field.PermissionOptions = &sysadmin
+	}
 
 	if field.Protected {
 		c.Err = model.NewAppError("executeCreatePropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
@@ -518,9 +584,12 @@ func executeCreatePropertyField(c *Context, r *http.Request, field *model.Proper
 
 	// Set permission levels based on admin status.
 	// Templates default to sysadmin since they define the schema linked fields inherit.
+	// System-object fields likewise default to sysadmin since they attach to the
+	// Mattermost instance and only a system administrator should write them.
 	isAdmin := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	defaultLevel := model.PermissionLevelMember
-	if field.ObjectType == model.PropertyFieldObjectTypeTemplate {
+	if field.ObjectType == model.PropertyFieldObjectTypeTemplate ||
+		field.ObjectType == model.PropertyFieldObjectTypeSystem {
 		defaultLevel = model.PermissionLevelSysadmin
 	}
 	if !isAdmin {
