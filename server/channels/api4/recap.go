@@ -218,7 +218,7 @@ func markRecapsAsViewed(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddMeta("recap_count", len(ids))
-	auditRec.AddEventResultState(map[string]any{"recap_ids": ids})
+	auditRec.AddMeta("recap_ids", ids)
 
 	if err := json.NewEncoder(w).Encode(map[string]any{"recap_ids": ids}); err != nil {
 		c.Logger.Warn("Error encoding response", mlog.Err(err))
