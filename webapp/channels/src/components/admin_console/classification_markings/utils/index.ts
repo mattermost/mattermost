@@ -20,12 +20,16 @@ export const TARGET_ID = '';
 export const FIELD_NAME = 'classification';
 export const LINKED_FIELD_NAME = 'system_classification';
 
-// Workaround: system object type not yet supported (#36250). Use 'user' until then.
-// hasTargetAccess for 'user' type allows any target_id when the caller has manage_system.
-export const LINKED_OBJECT_TYPE = 'user';
+// The linked field uses the 'system' object type introduced in #36250.
+// System fields are canonicalized server-side: target_type='system', target_id=''.
+// System values use the sentinel target_id 'system' and dedicated API routes.
+export const LINKED_OBJECT_TYPE = 'system';
 
-// The field definition uses target_type 'system' which requires target_id '' on the field itself.
+// System-scoped fields have target_id '' on the field definition.
 export const SYSTEM_FIELD_TARGET_ID = '';
+
+// The sentinel target_id used by the server for system-scoped property values.
+export const SYSTEM_VALUE_TARGET_ID = 'system';
 
 // Actions stored on the linked field's attrs.actions to control banner display.
 export const DISPLAY_BANNER_TOP = 'display_banner_top';
@@ -232,21 +236,21 @@ export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
 
 /**
  * Fetches the currently stored option ID for the system classification level.
- * TODO: Migrate to system-scoped value
+ * Uses the dedicated system values endpoint (no target_id in URL).
  */
-export async function fetchSystemClassificationValue(linkedFieldId: string, targetUserId: string): Promise<string | undefined> {
-    const values = await Client4.getPropertyValues<string>(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId);
+export async function fetchSystemClassificationValue(linkedFieldId: string): Promise<string | undefined> {
+    const values = await Client4.getSystemPropertyValues<string>(GROUP_NAME);
     const match = ((values as Array<PropertyValue<string>>) ?? []).find((v) => v.field_id === linkedFieldId);
     return match?.value;
 }
 
 /**
  * Upserts the system classification property value to the given option ID.
- * The value is attached to the admin user's ID as target.
+ * Uses the dedicated system values endpoint (sentinel target_id 'system').
  * Returns the saved property values so callers can eagerly update the store.
  */
-export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string, targetUserId: string): Promise<Array<PropertyValue<string>>> {
-    return Client4.patchPropertyValues<string>(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId, [
+export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string): Promise<Array<PropertyValue<string>>> {
+    return Client4.patchSystemPropertyValues<string>(GROUP_NAME, [
         {field_id: linkedFieldId, value: optionId},
     ]);
 }

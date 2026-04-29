@@ -60,3 +60,20 @@ export function fetchPropertyValues<T = unknown>(groupName: string, objectType: 
         return {data: values};
     };
 }
+
+/**
+ * Fetches all system-scoped property values for a given group via the
+ * dedicated `/system/values` endpoint, then stores them in Redux.
+ */
+export function fetchSystemPropertyValues<T = unknown>(groupName: string): ActionFuncAsync<Array<PropertyValue<T>>> {
+    return async (dispatch) => {
+        const values = await Client4.getSystemPropertyValues<T>(groupName);
+
+        dispatch({
+            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
+            data: {values},
+        });
+
+        return {data: values};
+    };
+}

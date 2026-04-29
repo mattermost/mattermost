@@ -7,10 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {fetchPropertyFields, fetchPropertyValues} from 'mattermost-redux/actions/properties';
+import {fetchPropertyFields, fetchSystemPropertyValues} from 'mattermost-redux/actions/properties';
 import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {
@@ -22,6 +21,7 @@ import {
     LINKED_OBJECT_TYPE,
     OBJECT_TYPE,
     SYSTEM_FIELD_TARGET_ID,
+    SYSTEM_VALUE_TARGET_ID,
     TARGET_ID,
     TARGET_TYPE,
     findOptionById,
@@ -51,7 +51,7 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
         return undefined;
     }
 
-    // The linked system field has the workaround object_type and a linked_field_id set.
+    // The linked system field has object_type 'system' and a linked_field_id set.
     return Object.values(byId).find(
         (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
@@ -60,14 +60,13 @@ function selectLinkedSystemField(state: GlobalState): PropertyField | undefined 
 export default function GlobalClassificationBanner({position}: Props) {
     const dispatch = useDispatch();
     const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
-    const currentUserId = useSelector(getCurrentUserId);
     const templateField = useSelector(selectClassificationTemplateField);
     const linkedField = useSelector(selectLinkedSystemField);
     const systemValue = useSelector((state: GlobalState) => {
-        if (!linkedField || !currentUserId) {
+        if (!linkedField) {
             return undefined;
         }
-        return getPropertyValueForTargetField(state, currentUserId, linkedField.id) as PropertyValue<string> | undefined;
+        return getPropertyValueForTargetField(state, SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
     });
     const bannerRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +77,7 @@ export default function GlobalClassificationBanner({position}: Props) {
     // The effect must re-run when linkedField arrives in the store so the values
     // fetch can proceed (it depends on linkedField being present).
     useEffect(() => {
-        if (!featureEnabled || !currentUserId) {
+        if (!featureEnabled) {
             return;
         }
         if (!templateField) {
@@ -88,9 +87,9 @@ export default function GlobalClassificationBanner({position}: Props) {
             dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
         }
         if (linkedField && !systemValue) {
-            dispatch(fetchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, currentUserId));
+            dispatch(fetchSystemPropertyValues(GROUP_NAME));
         }
-    }, [featureEnabled, currentUserId, templateField, linkedField, systemValue, dispatch]);
+    }, [featureEnabled, templateField, linkedField, systemValue, dispatch]);
 
     // Display conditions are encoded in the linked field's attrs.actions.
     const actions = (linkedField?.attrs?.actions as string[] | undefined) ?? [];

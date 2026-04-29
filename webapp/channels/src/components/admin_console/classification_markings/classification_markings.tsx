@@ -163,7 +163,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                         const actions = (linkedField.attrs?.actions as string[]) ?? [];
                         let levelName = '';
                         if (actions.includes(DISPLAY_BANNER_TOP)) {
-                            const optionId = await fetchSystemClassificationValue(linkedField.id, currentUserId);
+                            const optionId = await fetchSystemClassificationValue(linkedField.id);
                             if (cancelled) {
                                 return;
                             }
@@ -330,7 +330,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
 
         // Re-fetch fields at save time to avoid creating duplicates if the
-        // initial load missed them (timing / currentUserId race).
+        // initial load missed them (e.g. timing race on mount).
         let templateField = existingField;
         let linkedField = existingLinkedField;
         if (!templateField) {
@@ -370,7 +370,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                 const options = (savedTemplate.attrs?.options as PropertyFieldOption[]) ?? [];
                 const optionId = findOptionIdByName(options, effectiveBanner.level_name);
                 if (optionId) {
-                    const savedValues = await saveUpsertSystemValue(savedLinked.id, optionId, currentUserId);
+                    const savedValues = await saveUpsertSystemValue(savedLinked.id, optionId);
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
                 }
             }
@@ -407,7 +407,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
         }
-    }, [enabled, existingField, existingLinkedField, levels, globalBanner, currentUserId, dispatch]);
+    }, [enabled, existingField, existingLinkedField, levels, globalBanner, dispatch]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);

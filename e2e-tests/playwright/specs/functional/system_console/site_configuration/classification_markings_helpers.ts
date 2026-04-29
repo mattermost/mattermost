@@ -7,7 +7,7 @@ import type {Client4} from '@mattermost/client';
 // (cross-package import not feasible between e2e-tests and webapp)
 const PROPERTY_GROUP = 'classification_markings';
 const OBJECT_TYPE = 'template';
-const LINKED_OBJECT_TYPE = 'user'; // workaround until system object type lands (#36250)
+const LINKED_OBJECT_TYPE = 'system';
 const TARGET_TYPE = 'system';
 const SYSTEM_FIELD_TARGET_ID = ''; // target_type 'system' requires empty target_id on the field
 const CLASSIFICATION_FIELD_NAME = 'classification';
@@ -111,27 +111,28 @@ export async function setupClassificationField(
  */
 export async function setupClassificationFieldWithGlobalBanner(
     adminClient: Client4,
-    adminUserId: string,
     levels: Array<{id?: string; name: string; color: string; rank: number}>,
     bannerOpts: SetupGlobalBannerOptions,
 ) {
     // 1. Create the template field (levels only).
     const templateField = await setupClassificationField(adminClient, levels);
 
-    // Resolve the option ID for the requested level name.
-    const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
-    const matchedOption = options.find((o) => o.name === bannerOpts.levelName);
-    if (!matchedOption) {
-        const available = options.map((o) => o.name).join(', ');
-        throw new Error(
-            `setupClassificationFieldWithGlobalBanner: unknown level "${bannerOpts.levelName}". ` +
-                `Available options on template field ${templateField.id}: [${available}]`,
-        );
-    }
-    const optionId = matchedOption.id;
-
-    // Build the actions array from the banner options.
     const enabled = bannerOpts.enabled ?? true;
+
+    // Resolve the option ID for the requested level name (only needed when enabled).
+    let optionId = '';
+    if (enabled) {
+        const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
+        const matchedOption = options.find((o) => o.name === bannerOpts.levelName);
+        if (!matchedOption) {
+            const available = options.map((o) => o.name).join(', ');
+            throw new Error(
+                `setupClassificationFieldWithGlobalBanner: unknown level "${bannerOpts.levelName}". ` +
+                    `Available options on template field ${templateField.id}: [${available}]`,
+            );
+        }
+        optionId = matchedOption.id;
+    }
     const actions: string[] = [];
     if (enabled) {
         actions.push(DISPLAY_BANNER_TOP);
@@ -151,7 +152,7 @@ export async function setupClassificationFieldWithGlobalBanner(
         attrs: {actions},
     } as Parameters<Client4['createPropertyField']>[2]);
 
-    // 3. Upsert the system property value with the selected option ID.
+    // 3. Upsert the system property value via the dedicated system endpoint.
     if (enabled) {
         if (!optionId) {
             throw new Error(
@@ -159,10 +160,10 @@ export async function setupClassificationFieldWithGlobalBanner(
                     'The server may not have assigned an ID to the option.',
             );
         }
-        if (typeof (adminClient as any).patchPropertyValues !== 'function') {
-            throw new Error('adminClient.patchPropertyValues is not available — rebuild @mattermost/client');
+        if (typeof (adminClient as any).patchSystemPropertyValues !== 'function') {
+            throw new Error('adminClient.patchSystemPropertyValues is not available — rebuild @mattermost/client');
         }
-        await (adminClient as any).patchPropertyValues(PROPERTY_GROUP, LINKED_OBJECT_TYPE, adminUserId, [
+        await (adminClient as any).patchSystemPropertyValues(PROPERTY_GROUP, [
             {field_id: linkedField.id, value: optionId},
         ]);
     }

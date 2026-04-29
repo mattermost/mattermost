@@ -21,6 +21,7 @@ import {
     OBJECT_TYPE,
     LINKED_OBJECT_TYPE,
     SYSTEM_FIELD_TARGET_ID,
+    SYSTEM_VALUE_TARGET_ID,
     TARGET_TYPE,
     FIELD_NAME,
     LINKED_FIELD_NAME,
@@ -77,7 +78,7 @@ function makeLinkedField(overrides: Partial<PropertyField> = {}): PropertyField 
 function makeSystemValue(fieldId: string, optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
-        target_id: MOCK_USER_ID,
+        target_id: SYSTEM_VALUE_TARGET_ID,
         target_type: LINKED_OBJECT_TYPE,
         group_id: GROUP_NAME,
         field_id: fieldId,
@@ -589,7 +590,7 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce([field]). // template field
             mockResolvedValueOnce([linked]); // linked field
 
-        jest.spyOn(Client4, 'getPropertyValues').
+        jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]); // system value
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
@@ -614,7 +615,7 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]);
 
-        jest.spyOn(Client4, 'getPropertyValues').
+        jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
@@ -663,7 +664,7 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]);
 
-        jest.spyOn(Client4, 'getPropertyValues').
+        jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
@@ -707,7 +708,7 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]);
 
-        jest.spyOn(Client4, 'getPropertyValues').
+        jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
@@ -748,14 +749,14 @@ describe('GlobalClassificationIndicators section', () => {
             mockResolvedValueOnce([field]).
             mockResolvedValueOnce([linked]);
 
-        jest.spyOn(Client4, 'getPropertyValues').
+        jest.spyOn(Client4, 'getSystemPropertyValues').
             mockResolvedValueOnce([sysValue]);
 
         jest.spyOn(Client4, 'patchPropertyField').
             mockResolvedValueOnce(patchedTemplate). // patch template field
             mockResolvedValueOnce(patchedLinked); // patch linked field
 
-        // Spy at utility level to avoid auto-mock limitations for patchPropertyValues.
+        // Spy at utility level to avoid auto-mock limitations for patchSystemPropertyValues.
         const saveUpsertSpy = jest.spyOn(Utils, 'saveUpsertSystemValue').mockResolvedValue([]);
 
         renderWithContext(<ClassificationMarkings/>, BASE_STATE);
@@ -807,7 +808,7 @@ describe('GlobalClassificationIndicators section', () => {
             );
 
             // System value upserted with the resolved option ID.
-            expect(saveUpsertSpy).toHaveBeenCalledWith('linked_field1', 'lvl1', MOCK_USER_ID);
+            expect(saveUpsertSpy).toHaveBeenCalledWith('linked_field1', 'lvl1');
         });
         await act(async () => {}); // flush pending React state updates
     });
