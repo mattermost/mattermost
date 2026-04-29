@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -25,12 +27,54 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 	emocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	semocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
+
+type mockRow struct {
+	err  error
+	scan func(dest ...any) error
+}
+
+func (m mockRow) Scan(dest ...any) error {
+	if m.err != nil {
+		return m.err
+	}
+	if m.scan != nil {
+		return m.scan(dest...)
+	}
+	return nil
+}
+
+type mockQueryRowScanner struct {
+	rows map[string]mockRow
+}
+
+func (m mockQueryRowScanner) QueryRow(query string, _ ...any) rowScanner {
+	row, ok := m.rows[query]
+	if !ok {
+		return mockRow{err: errors.New("unexpected query")}
+	}
+	return row
+}
+
+type fixedDBStatsStore struct {
+	store.Store
+	masterStats  sql.DBStats
+	replicaStats sql.DBStats
+}
+
+func (s *fixedDBStatsStore) MasterDBStats() sql.DBStats {
+	return s.masterStats
+}
+
+func (s *fixedDBStatsStore) ReplicaDBStats() sql.DBStats {
+	return s.replicaStats
+}
 
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -238,6 +282,18 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.NotZero(t, d.Database.MasterConnectios)
 		assert.Zero(t, d.Database.ReplicaConnectios)
 		assert.Zero(t, d.Database.SearchConnections)
+		assert.Zero(t, d.Database.MasterConnectionsInUse)
+		assert.NotZero(t, d.Database.MasterConnectionsIdle)
+		assert.Zero(t, d.Database.MasterPoolWaitCount)
+		assert.Zero(t, d.Database.MasterPoolWaitDurationMs)
+		assert.Zero(t, d.Database.MasterConnectionsClosedMaxIdle)
+		assert.Zero(t, d.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Zero(t, d.Database.ReplicaConnectionsInUse)
+		assert.Zero(t, d.Database.ReplicaConnectionsIdle)
+		assert.Zero(t, d.Database.ReplicaPoolWaitCount)
+		assert.Zero(t, d.Database.ReplicaPoolWaitDurationMs)
+		assert.Zero(t, d.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Zero(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
 
 		/* File store */
 		assert.Equal(t, "OK", d.FileStore.Status)
@@ -698,6 +754,47 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, model.StatusFail, packet.Notifications.Email.Status)
 		assert.NotEmpty(t, packet.Notifications.Email.Error)
 	})
+
+	t.Run("maps connection pool diagnostics for master and replica", func(t *testing.T) {
+		originalStore := th.Service.Store
+		customStore := &fixedDBStatsStore{
+			Store: originalStore,
+			masterStats: sql.DBStats{
+				InUse:             3,
+				Idle:              7,
+				WaitCount:         11,
+				WaitDuration:      2*time.Second + 25*time.Millisecond,
+				MaxIdleClosed:     13,
+				MaxLifetimeClosed: 17,
+			},
+			replicaStats: sql.DBStats{
+				InUse:             5,
+				Idle:              9,
+				WaitCount:         19,
+				WaitDuration:      4*time.Second + 90*time.Millisecond,
+				MaxIdleClosed:     23,
+				MaxLifetimeClosed: 29,
+			},
+		}
+		th.Service.Store = customStore
+		t.Cleanup(func() {
+			th.Service.Store = originalStore
+		})
+
+		packet := getDiagnostics(t)
+		assert.Equal(t, 3, packet.Database.MasterConnectionsInUse)
+		assert.Equal(t, 7, packet.Database.MasterConnectionsIdle)
+		assert.Equal(t, int64(11), packet.Database.MasterPoolWaitCount)
+		assert.Equal(t, int64(2025), packet.Database.MasterPoolWaitDurationMs)
+		assert.Equal(t, int64(13), packet.Database.MasterConnectionsClosedMaxIdle)
+		assert.Equal(t, int64(17), packet.Database.MasterConnectionsClosedMaxLifetime)
+		assert.Equal(t, 5, packet.Database.ReplicaConnectionsInUse)
+		assert.Equal(t, 9, packet.Database.ReplicaConnectionsIdle)
+		assert.Equal(t, int64(19), packet.Database.ReplicaPoolWaitCount)
+		assert.Equal(t, int64(4090), packet.Database.ReplicaPoolWaitDurationMs)
+		assert.Equal(t, int64(23), packet.Database.ReplicaConnectionsClosedMaxIdle)
+		assert.Equal(t, int64(29), packet.Database.ReplicaConnectionsClosedMaxLifetime)
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
@@ -870,4 +967,119 @@ func TestDetectSAMLProviderType(t *testing.T) {
 			assert.Equal(t, tt.expectedProvider, result)
 		})
 	}
+}
+
+func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
+	t.Run("collects aggregate postgres diagnostics", func(t *testing.T) {
+		var diagnostics model.SupportPacketDiagnostics
+		queryer := mockQueryRowScanner{
+			rows: map[string]mockRow{
+				pgStatDatabaseQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*float64) = 0.998
+						*dest[1].(*int64) = 2
+						*dest[2].(*int64) = 3
+						*dest[3].(*int64) = 5 * 1024 * 1024
+						*dest[4].(*int64) = 4
+						return nil
+					},
+				},
+				pgStatActivityQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*int64) = 1
+						*dest[1].(*float64) = 12.5
+						*dest[2].(*int64) = 6
+						return nil
+					},
+				},
+				pgStatUserTablesQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*int64) = 42
+						*dest[1].(*sql.NullTime) = sql.NullTime{Time: time.Date(2026, 4, 29, 7, 10, 0, 0, time.UTC), Valid: true}
+						return nil
+					},
+				},
+			},
+		}
+
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		require.NoError(t, err)
+		require.NotNil(t, diagnostics.Database.CacheHitRatio)
+		assert.InDelta(t, 0.998, *diagnostics.Database.CacheHitRatio, 0.0001)
+		require.NotNil(t, diagnostics.Database.Deadlocks)
+		assert.Equal(t, int64(2), *diagnostics.Database.Deadlocks)
+		require.NotNil(t, diagnostics.Database.TempFiles)
+		assert.Equal(t, int64(3), *diagnostics.Database.TempFiles)
+		require.NotNil(t, diagnostics.Database.TempBytesMB)
+		assert.InDelta(t, 5.0, *diagnostics.Database.TempBytesMB, 0.0001)
+		require.NotNil(t, diagnostics.Database.Rollbacks)
+		assert.Equal(t, int64(4), *diagnostics.Database.Rollbacks)
+		require.NotNil(t, diagnostics.Database.IdleInTransactionCount)
+		assert.Equal(t, int64(1), *diagnostics.Database.IdleInTransactionCount)
+		require.NotNil(t, diagnostics.Database.LongestQueryDurationSeconds)
+		assert.InDelta(t, 12.5, *diagnostics.Database.LongestQueryDurationSeconds, 0.0001)
+		require.NotNil(t, diagnostics.Database.WaitingForLockCount)
+		assert.Equal(t, int64(6), *diagnostics.Database.WaitingForLockCount)
+		require.NotNil(t, diagnostics.Database.PostsDeadTuples)
+		assert.Equal(t, int64(42), *diagnostics.Database.PostsDeadTuples)
+		require.NotNil(t, diagnostics.Database.PostsLastAutovacuum)
+		assert.Equal(t, time.Date(2026, 4, 29, 7, 10, 0, 0, time.UTC), *diagnostics.Database.PostsLastAutovacuum)
+	})
+
+	t.Run("ignores missing posts row", func(t *testing.T) {
+		var diagnostics model.SupportPacketDiagnostics
+		queryer := mockQueryRowScanner{
+			rows: map[string]mockRow{
+				pgStatDatabaseQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*float64) = 1
+						*dest[1].(*int64) = 0
+						*dest[2].(*int64) = 0
+						*dest[3].(*int64) = 0
+						*dest[4].(*int64) = 0
+						return nil
+					},
+				},
+				pgStatActivityQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*int64) = 0
+						*dest[1].(*float64) = 0
+						*dest[2].(*int64) = 0
+						return nil
+					},
+				},
+				pgStatUserTablesQuery: {
+					err: sql.ErrNoRows,
+				},
+			},
+		}
+
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		require.NoError(t, err)
+		assert.Nil(t, diagnostics.Database.PostsDeadTuples)
+		assert.Nil(t, diagnostics.Database.PostsLastAutovacuum)
+	})
+
+	t.Run("returns wrapped warning when any pg_stat query fails", func(t *testing.T) {
+		var diagnostics model.SupportPacketDiagnostics
+		queryer := mockQueryRowScanner{
+			rows: map[string]mockRow{
+				pgStatDatabaseQuery: {
+					err: errors.New("boom-db"),
+				},
+				pgStatActivityQuery: {
+					err: errors.New("boom-activity"),
+				},
+				pgStatUserTablesQuery: {
+					err: errors.New("boom-posts"),
+				},
+			},
+		}
+
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		require.Error(t, err)
+		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_database")
+		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_activity")
+		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_user_tables")
+	})
 }

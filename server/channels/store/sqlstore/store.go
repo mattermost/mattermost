@@ -538,6 +538,10 @@ func (ss *SqlStore) TotalMasterDbConnections() int {
 	return ss.GetMaster().Stats().OpenConnections
 }
 
+func (ss *SqlStore) MasterDBStats() sql.DBStats {
+	return ss.GetMaster().Stats()
+}
+
 // ReplicaLagAbs queries all the replica databases to get the absolute replica lag value
 // and updates the Prometheus metric with it.
 func (ss *SqlStore) ReplicaLagAbs() error {
@@ -590,6 +594,27 @@ func (ss *SqlStore) TotalReadDbConnections() int {
 	}
 
 	return count
+}
+
+func (ss *SqlStore) ReplicaDBStats() sql.DBStats {
+	var stats sql.DBStats
+	for _, db := range ss.ReplicaXs {
+		if !db.Load().Online() {
+			continue
+		}
+
+		dbStats := db.Load().Stats()
+		stats.OpenConnections += dbStats.OpenConnections
+		stats.InUse += dbStats.InUse
+		stats.Idle += dbStats.Idle
+		stats.WaitCount += dbStats.WaitCount
+		stats.WaitDuration += dbStats.WaitDuration
+		stats.MaxIdleClosed += dbStats.MaxIdleClosed
+		stats.MaxIdleTimeClosed += dbStats.MaxIdleTimeClosed
+		stats.MaxLifetimeClosed += dbStats.MaxLifetimeClosed
+	}
+
+	return stats
 }
 
 func (ss *SqlStore) TotalSearchDbConnections() int {

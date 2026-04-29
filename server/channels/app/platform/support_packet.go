@@ -6,6 +6,7 @@ package platform
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -30,6 +31,36 @@ import (
 const (
 	envVarInstallType = "MM_INSTALL_TYPE"
 	unknownDataPoint  = "unknown"
+
+	pgStatDatabaseQuery = `
+SELECT
+    COALESCE(blks_hit::double precision / NULLIF(blks_hit + blks_read, 0), 0) AS cache_hit_ratio,
+    deadlocks,
+    temp_files,
+    temp_bytes,
+    xact_rollback
+FROM pg_stat_database
+WHERE datname = current_database()`
+
+	pgStatActivityQuery = `
+SELECT
+    COUNT(*) FILTER (WHERE state = 'idle in transaction') AS idle_in_transaction_count,
+    EXTRACT(EPOCH FROM COALESCE(
+        MAX(clock_timestamp() - query_start) FILTER (WHERE state = 'active' AND query_start IS NOT NULL),
+        interval '0 second'
+    )) AS longest_query_duration_seconds,
+    COUNT(*) FILTER (WHERE wait_event_type = 'Lock') AS waiting_for_lock_count
+FROM pg_stat_activity
+WHERE datname = current_database()`
+
+	pgStatUserTablesQuery = `
+SELECT
+    n_dead_tup,
+    last_autovacuum
+FROM pg_stat_user_tables
+WHERE relname = 'Posts'
+ORDER BY CASE WHEN schemaname = 'public' THEN 0 ELSE 1 END, relid
+LIMIT 1`
 )
 
 func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) ([]model.FileData, error) {
@@ -163,6 +194,14 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.MasterConnectios = ps.Store.TotalMasterDbConnections()
 	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
+	applyDBPoolStats(&d, ps.Store.MasterDBStats(), ps.Store.ReplicaDBStats())
+
+	if d.Database.Type == model.DatabaseDriverPostgres {
+		pgStatsErr := ps.collectPostgresDatabaseDiagnostics(ps.Store.GetInternalMasterDB(), &d)
+		if pgStatsErr != nil {
+			rErr = multierror.Append(rErr, pgStatsErr)
+		}
+	}
 
 	/* File store */
 	d.FileStore.Status = model.StatusOk
@@ -309,6 +348,129 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+func (ps *PlatformService) collectPostgresDatabaseDiagnostics(db *sql.DB, diagnostics *model.SupportPacketDiagnostics) error {
+	if db == nil {
+		return collectPostgresDatabaseDiagnosticsWithQueryer(nil, diagnostics)
+	}
+	return collectPostgresDatabaseDiagnosticsWithQueryer(sqlQueryRowScanner{db: db}, diagnostics)
+}
+
+type queryRowScanner interface {
+	QueryRow(query string, args ...any) rowScanner
+}
+
+type rowScanner interface {
+	Scan(dest ...any) error
+}
+
+type sqlQueryRowScanner struct {
+	db *sql.DB
+}
+
+func (s sqlQueryRowScanner) QueryRow(query string, args ...any) rowScanner {
+	return s.db.QueryRow(query, args...)
+}
+
+func collectPostgresDatabaseDiagnosticsWithQueryer(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+	if queryer == nil {
+		return errors.New("postgres diagnostics query failed: no master database connection")
+	}
+	var rErr *multierror.Error
+
+	if err := collectPGStatDatabaseDiagnostics(queryer, diagnostics); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_database"))
+	}
+
+	if err := collectPGStatActivityDiagnostics(queryer, diagnostics); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_activity"))
+	}
+
+	if err := collectPGStatUserTablesDiagnostics(queryer, diagnostics); err != nil {
+		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_user_tables"))
+	}
+
+	return rErr.ErrorOrNil()
+}
+
+func applyDBPoolStats(diagnostics *model.SupportPacketDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
+	diagnostics.Database.MasterConnectionsInUse = masterDBStats.InUse
+	diagnostics.Database.MasterConnectionsIdle = masterDBStats.Idle
+	diagnostics.Database.MasterPoolWaitCount = masterDBStats.WaitCount
+	diagnostics.Database.MasterPoolWaitDurationMs = masterDBStats.WaitDuration.Milliseconds()
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = masterDBStats.MaxIdleClosed
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = masterDBStats.MaxLifetimeClosed
+
+	diagnostics.Database.ReplicaConnectionsInUse = replicaDBStats.InUse
+	diagnostics.Database.ReplicaConnectionsIdle = replicaDBStats.Idle
+	diagnostics.Database.ReplicaPoolWaitCount = replicaDBStats.WaitCount
+	diagnostics.Database.ReplicaPoolWaitDurationMs = replicaDBStats.WaitDuration.Milliseconds()
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = replicaDBStats.MaxIdleClosed
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = replicaDBStats.MaxLifetimeClosed
+}
+
+func collectPGStatDatabaseDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+	var (
+		cacheHitRatio float64
+		deadlocks     int64
+		tempFiles     int64
+		tempBytes     int64
+		rollbacks     int64
+	)
+
+	if err := queryer.QueryRow(pgStatDatabaseQuery).Scan(&cacheHitRatio, &deadlocks, &tempFiles, &tempBytes, &rollbacks); err != nil {
+		return err
+	}
+
+	tempBytesMB := float64(tempBytes) / (1024 * 1024)
+	diagnostics.Database.CacheHitRatio = &cacheHitRatio
+	diagnostics.Database.Deadlocks = &deadlocks
+	diagnostics.Database.TempFiles = &tempFiles
+	diagnostics.Database.TempBytesMB = &tempBytesMB
+	diagnostics.Database.Rollbacks = &rollbacks
+
+	return nil
+}
+
+func collectPGStatActivityDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+	var (
+		idleInTransactionCount      int64
+		longestQueryDurationSeconds float64
+		waitingForLockCount         int64
+	)
+
+	if err := queryer.QueryRow(pgStatActivityQuery).Scan(&idleInTransactionCount, &longestQueryDurationSeconds, &waitingForLockCount); err != nil {
+		return err
+	}
+
+	diagnostics.Database.IdleInTransactionCount = &idleInTransactionCount
+	diagnostics.Database.LongestQueryDurationSeconds = &longestQueryDurationSeconds
+	diagnostics.Database.WaitingForLockCount = &waitingForLockCount
+
+	return nil
+}
+
+func collectPGStatUserTablesDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+	var (
+		postsDeadTuples int64
+		lastAutovacuum  sql.NullTime
+	)
+
+	if err := queryer.QueryRow(pgStatUserTablesQuery).Scan(&postsDeadTuples, &lastAutovacuum); err != nil {
+		if err == sql.ErrNoRows {
+			return nil
+		}
+		return err
+	}
+
+	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
+	if lastAutovacuum.Valid {
+		ts := lastAutovacuum.Time.UTC()
+		diagnostics.Database.PostsLastAutovacuum = &ts
+	}
+
+	return nil
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)

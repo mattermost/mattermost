@@ -1381,6 +1381,42 @@ func (_m *Store) TotalSearchDbConnections() int {
 	return r0
 }
 
+// MasterDBStats provides a mock function with no fields
+func (_m *Store) MasterDBStats() sql.DBStats {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for MasterDBStats")
+	}
+
+	var r0 sql.DBStats
+	if rf, ok := ret.Get(0).(func() sql.DBStats); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(sql.DBStats)
+	}
+
+	return r0
+}
+
+// ReplicaDBStats provides a mock function with no fields
+func (_m *Store) ReplicaDBStats() sql.DBStats {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReplicaDBStats")
+	}
+
+	var r0 sql.DBStats
+	if rf, ok := ret.Get(0).(func() sql.DBStats); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(sql.DBStats)
+	}
+
+	return r0
+}
+
 // UnlockFromMaster provides a mock function with no fields
 func (_m *Store) UnlockFromMaster() {
 	_m.Called()
