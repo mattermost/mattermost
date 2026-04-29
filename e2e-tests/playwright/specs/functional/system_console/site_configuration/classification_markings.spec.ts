@@ -325,10 +325,12 @@ test.describe('System Console - Classification markings', () => {
             await page.reload();
             await page.waitForLoadState('networkidle');
 
-            // * Banner configuration persisted: enabled, top_and_bottom, NATO UNCLASSIFIED selected
+            // * Banner configuration persisted: enabled, top_and_bottom, NATO UNCLASSIFIED selected.
+            // The linked field + property value fetch is async; wait for the level dropdown
+            // (only rendered when the banner is enabled) as the hydration signal.
+            await expect(page.getByTestId('globalBannerLevel')).toContainText('NATO UNCLASSIFIED', {timeout: 30000});
             await expect(page.locator('input[name="globalBannerEnabled"][value="true"]')).toBeChecked();
             await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked();
-            await expect(page.getByTestId('globalBannerLevel')).toContainText('NATO UNCLASSIFIED');
         },
     );
 
@@ -425,8 +427,8 @@ test.describe('System Console - Classification markings', () => {
                 page.getByText(/The global classification banner is configured with a level that no longer exists/i),
             ).toBeVisible();
 
-            // # Pick a valid replacement level
-            await page.getByTestId('globalBannerLevel').click();
+            // # Pick a valid replacement level (click the react-select control directly)
+            await page.getByTestId('globalBannerLevel').locator('.DropDown__control').click();
             const dropdownMenu = page.locator('.DropDown__menu').last();
             await expect(dropdownMenu).toBeVisible();
             await dropdownMenu.getByText('CONFIDENTIAL', {exact: true}).click();

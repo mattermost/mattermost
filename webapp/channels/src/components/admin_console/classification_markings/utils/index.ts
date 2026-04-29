@@ -8,7 +8,7 @@ import {Client4} from 'mattermost-redux/client';
 import type {ClassificationLevel} from './presets';
 import {PRESET_CUSTOM, presets} from './presets';
 
-export const GROUP_NAME = 'custom_profile_attributes';
+export const GROUP_NAME = 'classification_markings';
 
 // OBJECT_TYPE is 'template' so the classification field acts as the canonical schema
 // (a Linked Properties template). Per-channel fields will link to it and inherit its options.
@@ -236,16 +236,17 @@ export async function saveDeleteLinkedField(fieldId: string): Promise<void> {
  */
 export async function fetchSystemClassificationValue(linkedFieldId: string, targetUserId: string): Promise<string | undefined> {
     const values = await Client4.getPropertyValues<string>(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId);
-    const match = (values as Array<PropertyValue<string>>).find((v) => v.field_id === linkedFieldId);
+    const match = ((values as Array<PropertyValue<string>>) ?? []).find((v) => v.field_id === linkedFieldId);
     return match?.value;
 }
 
 /**
  * Upserts the system classification property value to the given option ID.
  * The value is attached to the admin user's ID as target.
+ * Returns the saved property values so callers can eagerly update the store.
  */
-export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string, targetUserId: string): Promise<void> {
-    await Client4.patchPropertyValues(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId, [
+export async function saveUpsertSystemValue(linkedFieldId: string, optionId: string, targetUserId: string): Promise<Array<PropertyValue<string>>> {
+    return Client4.patchPropertyValues<string>(GROUP_NAME, LINKED_OBJECT_TYPE, targetUserId, [
         {field_id: linkedFieldId, value: optionId},
     ]);
 }

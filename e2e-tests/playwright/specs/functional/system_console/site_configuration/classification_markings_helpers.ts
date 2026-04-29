@@ -5,7 +5,7 @@ import type {Client4} from '@mattermost/client';
 
 // Canonical values: webapp/channels/src/components/admin_console/classification_markings/utils/index.ts
 // (cross-package import not feasible between e2e-tests and webapp)
-const PROPERTY_GROUP = 'custom_profile_attributes';
+const PROPERTY_GROUP = 'classification_markings';
 const OBJECT_TYPE = 'template';
 const LINKED_OBJECT_TYPE = 'user'; // workaround until system object type lands (#36250)
 const TARGET_TYPE = 'system';

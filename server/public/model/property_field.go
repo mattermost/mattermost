@@ -46,6 +46,8 @@ const (
 	PropertyFieldObjectTypeChannel  = "channel"
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
+
+	ClassificationMarkingsPropertyGroupName = "classification_markings"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.

@@ -9,6 +9,7 @@ import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 
+import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {setNavigationBlocked} from 'actions/admin_actions';
@@ -138,20 +139,35 @@ export default function ClassificationMarkings({disabled}: Props) {
     }, [hasChanges, dispatch]);
 
     useEffect(() => {
+        if (!currentUserId) {
+            return;
+        }
+
+        let cancelled = false;
+
         (async () => {
             try {
                 const field = await fetchClassificationField();
+                if (cancelled) {
+                    return;
+                }
                 if (field) {
                     const result = processClassificationField(field);
 
                     // Load the linked system classification field and its property value
                     const linkedField = await fetchLinkedClassificationField();
+                    if (cancelled) {
+                        return;
+                    }
                     let banner: GlobalBannerConfig = {...DEFAULT_GLOBAL_BANNER};
                     if (linkedField) {
                         const actions = (linkedField.attrs?.actions as string[]) ?? [];
                         let levelName = '';
                         if (actions.includes(DISPLAY_BANNER_TOP)) {
                             const optionId = await fetchSystemClassificationValue(linkedField.id, currentUserId);
+                            if (cancelled) {
+                                return;
+                            }
                             if (optionId) {
                                 const options = (field.attrs?.options as PropertyFieldOption[]) ?? [];
                                 levelName = findOptionById(options, optionId)?.name ?? '';
@@ -171,16 +187,25 @@ export default function ClassificationMarkings({disabled}: Props) {
                     setInitialGlobalBanner(banner);
                 }
             } catch (err: unknown) {
+                if (cancelled) {
+                    return;
+                }
                 const isNotFound = (err as ClientError).status_code === 404;
                 if (!isNotFound) {
                     const message = err instanceof Error ? err.message : 'Failed to load classification markings';
                     setLoadError(message);
                 }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         })();
-    }, []);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [currentUserId]);
 
     const handleClassificationEnabledChange = useCallback((_id: string, value: boolean) => {
         setEnabled(value);
@@ -305,39 +330,72 @@ export default function ClassificationMarkings({disabled}: Props) {
     const persistLevels = useCallback(async (): Promise<void> => {
         const effectiveBanner: GlobalBannerConfig = enabled ? globalBanner : {...DEFAULT_GLOBAL_BANNER};
 
-        if (enabled && !initialEnabled) {
-            // First time enabling classification:
-            // 1. Create the template field (levels only)
-            const created = await saveCreateField(levels);
-            const result = processClassificationField(created);
+        // Always re-fetch existing fields at save time to avoid creating duplicates
+        // when the initial useEffect load missed them (timing / currentUserId race).
+        let templateField = existingField;
+        let linkedField = existingLinkedField;
+        if (!templateField) {
+            templateField = (await fetchClassificationField()) ?? null;
+            if (templateField) {
+                setExistingField(templateField);
+            }
+        }
+        if (!linkedField) {
+            linkedField = (await fetchLinkedClassificationField()) ?? null;
+            if (linkedField) {
+                setExistingLinkedField(linkedField);
+            }
+        }
 
-            // 2. Create the linked system classification field (with actions for placement)
-            const linkedCreated = await saveCreateLinkedField(created.id, effectiveBanner);
+        if (enabled) {
+            // Create or patch the template field
+            let savedTemplate: PropertyField;
+            if (templateField) {
+                savedTemplate = await savePatchField(templateField.id, levels);
+            } else {
+                savedTemplate = await saveCreateField(levels);
+            }
+            const result = processClassificationField(savedTemplate);
 
-            // 3. Upsert the property value if the banner is enabled with a level
+            // Create or patch the linked system classification field
+            let savedLinked: PropertyField;
+            if (linkedField) {
+                savedLinked = await savePatchLinkedField(linkedField.id, effectiveBanner);
+            } else {
+                savedLinked = await saveCreateLinkedField(savedTemplate.id, effectiveBanner);
+            }
+
+            // Upsert the system property value with the selected option ID
             if (effectiveBanner.enabled && effectiveBanner.level_name) {
-                const options = (created.attrs?.options as PropertyFieldOption[]) ?? [];
+                const options = (savedTemplate.attrs?.options as PropertyFieldOption[]) ?? [];
                 const optionId = findOptionIdByName(options, effectiveBanner.level_name);
                 if (optionId) {
-                    await saveUpsertSystemValue(linkedCreated.id, optionId, currentUserId);
+                    const savedValues = await saveUpsertSystemValue(savedLinked.id, optionId, currentUserId);
+                    dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
                 }
             }
 
-            setExistingField(created);
-            setExistingLinkedField(linkedCreated);
+            // Eagerly push saved fields into Redux so components like the
+            // GlobalClassificationBanner see the new options + value atomically,
+            // instead of waiting for separate WebSocket events that may arrive
+            // out of order and cause the banner to flicker or disappear.
+            dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+
+            setExistingField(savedTemplate);
+            setExistingLinkedField(savedLinked);
             setLevels(result.levels);
             setInitialLevels(result.levels);
             setPresetId(result.presetId);
             setGlobalBanner(effectiveBanner);
             setInitialGlobalBanner(effectiveBanner);
             setInitialEnabled(true);
-        } else if (!enabled && initialEnabled && existingField) {
+        } else if (templateField) {
             // Disabling classification:
             // Linked field MUST be deleted before the template (deletion protection).
-            if (existingLinkedField) {
-                await saveDeleteLinkedField(existingLinkedField.id);
+            if (linkedField) {
+                await saveDeleteLinkedField(linkedField.id);
             }
-            await saveDeleteField(existingField.id);
+            await saveDeleteField(templateField.id);
 
             setExistingField(null);
             setExistingLinkedField(null);
@@ -347,37 +405,8 @@ export default function ClassificationMarkings({disabled}: Props) {
             setPresetId(PRESET_CUSTOM);
             setGlobalBanner({...DEFAULT_GLOBAL_BANNER});
             setInitialGlobalBanner({...DEFAULT_GLOBAL_BANNER});
-        } else if (enabled && initialEnabled && existingField) {
-            // Updating existing classification:
-            // 1. Patch the template field (levels only)
-            const patched = await savePatchField(existingField.id, levels);
-            const result = processClassificationField(patched);
-
-            // 2. Create or patch the linked system field (update actions for placement)
-            let linkedField: PropertyField;
-            if (existingLinkedField) {
-                linkedField = await savePatchLinkedField(existingLinkedField.id, effectiveBanner);
-            } else {
-                linkedField = await saveCreateLinkedField(patched.id, effectiveBanner);
-            }
-
-            // 3. Upsert the system property value with the selected option ID
-            if (effectiveBanner.enabled && effectiveBanner.level_name) {
-                const options = (patched.attrs?.options as PropertyFieldOption[]) ?? [];
-                const optionId = findOptionIdByName(options, effectiveBanner.level_name);
-                if (optionId) {
-                    await saveUpsertSystemValue(linkedField.id, optionId, currentUserId);
-                }
-            }
-
-            setExistingField(patched);
-            setExistingLinkedField(linkedField);
-            setLevels(result.levels);
-            setInitialLevels(result.levels);
-            setGlobalBanner(effectiveBanner);
-            setInitialGlobalBanner(effectiveBanner);
         }
-    }, [enabled, initialEnabled, existingField, existingLinkedField, levels, globalBanner, currentUserId]);
+    }, [enabled, existingField, existingLinkedField, levels, globalBanner, currentUserId, dispatch]);
 
     const handleSave = useCallback(async () => {
         setSaveError(undefined);
