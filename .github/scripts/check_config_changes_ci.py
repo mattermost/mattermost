@@ -114,58 +114,56 @@ def split_patch_by_file(full_patch: str) -> dict[str, str]:
     return patches
  
  
-def lines_by_sign(patch: str) -> tuple[list[str], list[str]]:
-    """Return (added_lines, removed_lines) from a patch, skipping file headers."""
-    added, removed = [], []
-    for line in patch.splitlines():
-        if line.startswith("+++") or line.startswith("---"):
-            continue
-        if line.startswith("+"):
-            added.append(line[1:])
-        elif line.startswith("-"):
-            removed.append(line[1:])
-    return added, removed
+def file_at(ref: str, path: str) -> str:
+    """Return the full contents of `path` at git ref `ref`, or '' if absent."""
+    try:
+        return subprocess.run(
+            ["git", "show", f"{ref}:{path}"],
+            capture_output=True, text=True, check=True,
+        ).stdout
+    except subprocess.CalledProcessError:
+        return ""
  
  
 # ── Checker 1 — config.go ──────────────────────────────────────────────────────
  
-_CONFIG_PATH  = "server/public/model/config.go"
-_STRUCT_RE    = re.compile(r"^type\s+(\w+)\s+struct\s*\{")
-_FIELD_RE     = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
+_CONFIG_PATH     = "server/public/model/config.go"
+_STRUCT_DECL_RE  = re.compile(r"^type\s+(\w+)\s+struct\s*\{")
+_FIELD_LINE_RE   = re.compile(r"^\t([A-Z][A-Za-z0-9_]*)\s+\S")
  
  
-def _parse_config_snapshot(sha: str) -> set[tuple[str, str]]:
+def _scan_struct_fields(src: str) -> set[tuple[str, str]]:
     """
-    Parse the full config.go at `sha` and return a set of
-    (StructName, FieldName) tuples for every exported struct field.
+    Walk Go source and return {(StructName, FieldName)} for every exported
+    field in every struct.
  
-    Using the complete file at a known commit avoids the hunk-ordering
-    problem that makes patch-stream inference unreliable.
+    Uses a brace-depth stack so nested anonymous structs, interface bodies,
+    and function literals don't corrupt the enclosing struct context.
+    Named type declarations cannot be nested in Go, so the struct_stack
+    never grows beyond one entry for named structs.
     """
-    try:
-        out = subprocess.run(
-            ["git", "show", f"{sha}:{_CONFIG_PATH}"],
-            capture_output=True, text=True, check=True,
-        ).stdout
-    except subprocess.CalledProcessError:
-        return set()
- 
     fields: set[tuple[str, str]] = set()
-    current_struct: Optional[str] = None
+    # Each entry: (struct_name, brace_depth_when_opened)
+    struct_stack: list[tuple[str, int]] = []
+    depth = 0
  
-    for line in out.splitlines():
-        sm = _STRUCT_RE.match(line)
+    for line in src.splitlines():
+        sm = _STRUCT_DECL_RE.match(line)
         if sm:
-            current_struct = sm.group(1)
-            continue
-        # Top-level closing brace exits the struct
-        if line == "}":
-            current_struct = None
-            continue
-        if current_struct:
-            fm = _FIELD_RE.match(line)
+            # Record depth *before* counting this line's braces
+            struct_stack.append((sm.group(1), depth))
+ 
+        depth += line.count("{") - line.count("}")
+ 
+        # Pop any structs whose closing brace has been passed
+        while struct_stack and depth <= struct_stack[-1][1]:
+            struct_stack.pop()
+ 
+        # Record fields only when we're directly inside exactly one named struct
+        if len(struct_stack) == 1:
+            fm = _FIELD_LINE_RE.match(line)
             if fm:
-                fields.add((current_struct, fm.group(1)))
+                fields.add((struct_stack[0][0], fm.group(1)))
  
     return fields
  
@@ -175,15 +173,15 @@ def check_config(patches: dict[str, str]) -> CheckResult:
     Detect exported Go struct field additions/removals in config.go.
  
     Compares full-file snapshots at BASE_SHA and HEAD_SHA so that fields
-    are always attributed to the correct struct regardless of which hunks
-    appear in the diff.
+    are always attributed to the correct struct regardless of which diff
+    hunks are present.
     """
     result = CheckResult(label="`config.json` Field Changes")
     if _CONFIG_PATH not in patches:
         return result
  
-    base_fields = _parse_config_snapshot(BASE_SHA)
-    head_fields = _parse_config_snapshot(HEAD_SHA)
+    base_fields = _scan_struct_fields(file_at(BASE_SHA, _CONFIG_PATH))
+    head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
  
     added   = head_fields - base_fields
     removed = base_fields - head_fields
@@ -195,8 +193,8 @@ def check_config(patches: dict[str, str]) -> CheckResult:
  
 # ── Checker 2 — api4/ ─────────────────────────────────────────────────────────
  
-# Matches the common single-line pattern:
-#   .Handle("/path", api.SomeWrapper(handlerFunc)).Methods(http.MethodGet)
+# Matches Handle() route registrations after whitespace-collapsing the source.
+# Whitespace collapse makes multi-line declarations single-searchable.
 # Group 1: path   Group 2: handler func   Group 3: raw Methods(...) content
 _HANDLE_RE = re.compile(
     r'\.Handle\("([^"]*)"'          # path
@@ -204,16 +202,15 @@ _HANDLE_RE = re.compile(
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
  
-# Strips the "http.Method" prefix from a method token, e.g. "http.MethodGet" → "GET"
-_METHOD_PREFIX = re.compile(r'(?:http\.Method)?(\w+)')
+_METHOD_RE = re.compile(r'(?:http\.Method)?(\w+)')
  
  
 def _parse_methods(raw: str) -> list[str]:
-    """Return a list of HTTP method strings from the raw .Methods(...) content."""
+    """Split raw Methods(...) content into individual uppercase HTTP verbs."""
     return [
         m.group(1).upper()
         for token in raw.split(",")
-        if (m := _METHOD_PREFIX.search(token.strip()))
+        if (m := _METHOD_RE.search(token.strip()))
     ]
  
  
@@ -221,39 +218,30 @@ def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
  
  
-def _sign_runs(patch: str, sign: str) -> list[str]:
+def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
     """
-    Return a list of joined strings, where each string is a run of consecutive
-    lines starting with `sign`.  Joining handles multi-line Handle() calls so
-    the regex can match even when the call is split across several diff lines.
+    Parse Handle() registrations from a Go source file.
+ 
+    Whitespace-collapses the entire file first so multi-line declarations
+    (e.g. the 18 in group.go) are matched as a single token sequence.
+    Returns {(path, handler, method)} tuples.
     """
-    runs: list[str] = []
-    current: list[str] = []
-    for line in patch.splitlines():
-        if line.startswith(sign) and not line.startswith(sign * 3):
-            current.append(line[1:].strip())
-        else:
-            if current:
-                runs.append(" ".join(current))
-                current = []
-    if current:
-        runs.append(" ".join(current))
-    return runs
- 
- 
-def _extract_endpoints(patch: str, sign: str) -> list[str]:
-    """Extract all Handle() endpoint registrations from diff lines of `sign`."""
-    endpoints: list[str] = []
-    for run in _sign_runs(patch, sign):
-        for m in _HANDLE_RE.finditer(run):
-            path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
-            for method in _parse_methods(methods_raw):
-                endpoints.append(_format_endpoint(path, handler, method))
+    blob = " ".join(src.split())
+    endpoints: set[tuple[str, str, str]] = set()
+    for m in _HANDLE_RE.finditer(blob):
+        path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
+        for method in _parse_methods(methods_raw):
+            endpoints.add((path or "/", handler, method))
     return endpoints
  
  
 def check_api(patches: dict[str, str]) -> CheckResult:
-    """Detect API endpoint additions/removals in the api4/ directory."""
+    """
+    Detect API endpoint additions/removals in the api4/ directory.
+ 
+    Compares full-file snapshots at BASE_SHA and HEAD_SHA via set arithmetic,
+    so multi-line and multi-method registrations are handled correctly.
+    """
     result = CheckResult(label="API Changes (`api4`)")
  
     api4_patches = {
@@ -264,58 +252,52 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     if not api4_patches:
         return result
  
-    added_eps:   list[str] = []
-    removed_eps: list[str] = []
+    added_eps:   set[tuple[str, str, str]] = set()
+    removed_eps: set[tuple[str, str, str]] = set()
  
     for fname, patch in api4_patches.items():
-        added_eps.extend(_extract_endpoints(patch, "+"))
-        removed_eps.extend(_extract_endpoints(patch, "-"))
+        base_eps = _parse_endpoints(file_at(BASE_SHA, fname))
+        head_eps = _parse_endpoints(file_at(HEAD_SHA, fname))
+        added_eps   |= head_eps - base_eps
+        removed_eps |= base_eps - head_eps
  
-    # New files in api4/ suggest a new route group was added
-    new_files = [
-        fname for fname, patch in api4_patches.items()
-        if "new file mode" in patch
-    ]
-    deleted_files = [
-        fname for fname, patch in api4_patches.items()
-        if "deleted file mode" in patch
-    ]
-    for fname in new_files:
-        short = fname.split("/")[-1]
-        result.changes.append(f"🆕 New API file: `{short}`")
-    for fname in deleted_files:
-        short = fname.split("/")[-1]
-        result.changes.append(f"🗑️  Removed API file: `{short}`")
+        # Anchor the check to avoid false positives from unrelated source text
+        if re.search(r"^new file mode \d+", patch, re.MULTILINE):
+            result.changes.append(f"🆕 New API file: `{fname.split('/')[-1]}`")
+        if re.search(r"^deleted file mode \d+", patch, re.MULTILINE):
+            result.changes.append(f"🗑️  Removed API file: `{fname.split('/')[-1]}`")
  
-    result.additions = list(dict.fromkeys(added_eps))
-    result.removals  = list(dict.fromkeys(removed_eps))
+    result.additions = sorted(_format_endpoint(p, h, m) for p, h, m in added_eps)
+    result.removals  = sorted(_format_endpoint(p, h, m) for p, h, m in removed_eps)
     return result
  
  
 # ── Checker 3 — audit_events.go ───────────────────────────────────────────────
  
+_AUDIT_EVENT_PATH = "server/public/model/audit_events.go"
+_AUDIT_CONST_RE   = re.compile(r"^\t(AuditEvent\w+)\s*=")
+ 
+ 
+def _parse_audit_events(src: str) -> set[str]:
+    return {m.group(1) for line in src.splitlines() if (m := _AUDIT_CONST_RE.match(line))}
+ 
+ 
 def check_audit_events(patches: dict[str, str]) -> CheckResult:
-    """Detect AuditEvent* constant additions/removals."""
+    """
+    Detect AuditEvent* constant additions/removals.
+ 
+    Uses full-file snapshots at BASE_SHA/HEAD_SHA so reorderings and
+    cross-constant name collisions don't produce false results.
+    """
     result = CheckResult(label="Audit Log Event Changes")
-    patch = patches.get("server/public/model/audit_events.go", "")
-    if not patch:
+    if _AUDIT_EVENT_PATH not in patches:
         return result
  
-    # Matches:  AuditEventSomeThing = "someThing"
-    const_re = re.compile(r"^\t(AuditEvent\w+)\s*=")
-    added, removed = lines_by_sign(patch)
+    base_events = _parse_audit_events(file_at(BASE_SHA, _AUDIT_EVENT_PATH))
+    head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
-    result.additions = [
-        f"`{m.group(1)}`" for line in added
-        if (m := const_re.match(line))
-    ]
-    result.removals = [
-        f"`{m.group(1)}`" for line in removed
-        if (m := const_re.match(line))
-    ]
-    seen_both = set(result.additions) & set(result.removals)
-    result.additions = [x for x in dict.fromkeys(result.additions) if x not in seen_both]
-    result.removals  = [x for x in dict.fromkeys(result.removals)  if x not in seen_both]
+    result.additions = sorted(f"`{e}`" for e in head_events - base_events)
+    result.removals  = sorted(f"`{e}`" for e in base_events - head_events)
     return result
  
  
@@ -323,30 +305,34 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
  
 # The Go version lives in the base image tag, e.g.:
 #   FROM mattermost/golang-bullseye:1.25.8@sha256:...
-_IMAGE_VER_RE = re.compile(r"^FROM \S+:([0-9]+\.[0-9]+(?:\.[0-9]+)?)")
+_DOCKERFILE_PATH = "server/build/Dockerfile.buildenv"
+_IMAGE_VER_RE    = re.compile(r"^FROM \S+:([0-9]+\.[0-9]+(?:\.[0-9]+)?)")
+ 
+ 
+def _parse_go_version(src: str) -> Optional[str]:
+    for line in src.splitlines():
+        m = _IMAGE_VER_RE.match(line.strip())
+        if m:
+            return m.group(1)
+    return None
  
  
 def check_go_version(patches: dict[str, str]) -> CheckResult:
-    """Detect Go runtime version changes via the base image tag."""
+    """
+    Detect Go runtime version changes via the base image tag.
+ 
+    Uses full-file snapshots so the version is read from the actual file
+    state at each ref rather than reconstructed from patch lines.
+    """
     result = CheckResult(label="Go Runtime Version")
-    patch = patches.get("server/build/Dockerfile.buildenv", "")
-    if not patch:
+    if _DOCKERFILE_PATH not in patches:
         return result
  
-    added, removed = lines_by_sign(patch)
-    old_ver = next(
-        (m.group(1) for line in removed if (m := _IMAGE_VER_RE.match(line.strip()))),
-        None,
-    )
-    new_ver = next(
-        (m.group(1) for line in added if (m := _IMAGE_VER_RE.match(line.strip()))),
-        None,
-    )
+    old_ver = _parse_go_version(file_at(BASE_SHA, _DOCKERFILE_PATH))
+    new_ver = _parse_go_version(file_at(HEAD_SHA, _DOCKERFILE_PATH))
  
     if old_ver and new_ver and old_ver != new_ver:
-        result.changes.append(
-            f"Go updated: `{old_ver}` → `{new_ver}`"
-        )
+        result.changes.append(f"Go updated: `{old_ver}` → `{new_ver}`")
     elif new_ver and not old_ver:
         result.additions.append(f"`{new_ver}`")
     return result
