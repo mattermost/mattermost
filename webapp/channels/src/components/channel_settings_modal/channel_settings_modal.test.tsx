@@ -423,6 +423,28 @@ describe('ChannelSettingsModal', () => {
             expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
+        it.each([
+            ['town-square', 'town-square'],
+            ['off-topic', 'off-topic'],
+        ])('should not show Access Control tab on %s default channel even with permission', async (_label, channelName) => {
+            // The server rejects ABAC policies on default channels via
+            // ValidateChannelEligibilityForAccessControl, so the tab would only
+            // let the user assemble rules they can never save.
+            mockManageChannelAccessRulesPermission = true;
+
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].name = channelName;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
+        });
+
         it('should be able to navigate to Access Control tab when visible', async () => {
             mockManageChannelAccessRulesPermission = true;
 
@@ -464,24 +486,6 @@ describe('ChannelSettingsModal', () => {
             // Verify the tab shows the correct label
             const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
             expect(accessControlTab).toHaveTextContent('Membership Policy');
-        });
-
-        it('should show Access Control tab for default channel if private and user has permission', async () => {
-            mockManageChannelAccessRulesPermission = true;
-
-            const testState = makeTestState();
-            testState.entities.channels.channels[channelId].name = 'town-square';
-            testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
-
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
-
-            // Wait for the sidebar to load
-            await waitFor(() => {
-                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
-            });
-
-            // Access Control tab visibility is not restricted for default channel - only depends on channel type and permission
-            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
         });
 
         it('should not show Access Control tab for group-constrained private channel even with permission', async () => {

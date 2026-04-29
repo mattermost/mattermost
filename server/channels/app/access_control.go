@@ -86,6 +86,23 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		policy.ID = model.NewId()
 	}
 
+	// Channel-scope policies are pinned to a single channel by ID. Validate
+	// channel eligibility here (default / DM / GM / group-constrained / shared
+	// channels are ineligible) so this guard protects all callers — including
+	// system admins, whose request goes through the api4 handler's permission
+	// fast-path that skips the per-channel ValidateChannelAccessControlPolicyCreation
+	// check, and the parent-policy AssignAccessControlPolicyToChannels flow,
+	// which validates eligibility there but bypasses this entry point.
+	if policy.Type == model.AccessControlPolicyTypeChannel {
+		channel, appErr := a.GetChannel(rctx, policy.ID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	policy.Version = model.AccessControlPolicyVersionV0_3
 	for i, rule := range policy.Rules {
 		for j, action := range rule.Actions {

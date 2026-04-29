@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"testing"
 
@@ -325,6 +326,44 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), permissionPolicy)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+	})
+
+	t.Run("system admin cannot create a channel-scope policy on a team default channel", func(t *testing.T) {
+		// The api4 handler short-circuits validation for system admins, so the
+		// eligibility guard must live in the app layer. This test rides that
+		// path: SystemAdmin → handler skips ValidateChannelAccessControlPolicyCreation
+		// → CreateOrUpdateAccessControlPolicy must still reject default channels.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		// SavePolicy should never be reached — the guard rejects before that.
+		mockAccessControlService.On("SavePolicy", mock.Anything, mock.Anything).
+			Return(nil, model.NewAppError("SavePolicy", "should.not.be.called", nil, "", http.StatusInternalServerError)).Maybe()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		townSquare, appErr := th.App.GetChannelByName(th.Context, model.DefaultChannelName, th.BasicTeam.Id, false)
+		require.Nil(t, appErr)
+
+		defaultChannelPolicy := &model.AccessControlPolicy{
+			ID:       townSquare.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Name:     "default-channel-policy",
+			Version:  model.AccessControlPolicyVersionV0_3,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+
+		_, resp, err := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), defaultChannelPolicy)
+		require.Error(t, err, "default channels must not accept ABAC policies, even for system admins")
+		CheckBadRequestStatus(t, resp)
+		mockAccessControlService.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 	})
 }
 
@@ -1115,6 +1154,27 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 			"public channel assigned to the policy should appear in search results")
 		require.Equal(t, model.ChannelTypeOpen, channelsByID[publicChannel.Id].Type,
 			"expected the matched channel to be public")
+
+		// Same fetch via the team-admin path used by the team-settings policy
+		// editor (?team_id=…). The team-scoped branch must also surface public
+		// channels — there's no longer any reason to filter them out.
+		th.LinkUserToTeam(t, th.TeamAdminUser, th.BasicTeam)
+		th.UpdateUserToTeamAdmin(t, th.TeamAdminUser, th.BasicTeam)
+		th.LoginTeamAdmin(t)
+		t.Cleanup(func() { th.LoginBasic(t) })
+
+		teamScopedResp, resp, err := th.Client.SearchChannelsForAccessControlPolicyForTeam(
+			context.Background(), savedParent.ID, th.BasicTeam.Id, model.ChannelSearch{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, teamScopedResp)
+
+		teamChannelsByID := make(map[string]*model.ChannelWithTeamData, len(teamScopedResp.Channels))
+		for _, ch := range teamScopedResp.Channels {
+			teamChannelsByID[ch.Id] = ch
+		}
+		require.Contains(t, teamChannelsByID, publicChannel.Id,
+			"team-admin policy editor must also surface public channels assigned to the policy")
 	})
 
 	t.Run("team admin body TeamIds forced to authorized team", func(t *testing.T) {
