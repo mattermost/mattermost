@@ -235,16 +235,21 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
+	d.SAML.Status = model.StatusDisabled
 	if model.SafeDereference(ps.Config().SamlSettings.Enable) {
-		idpMetadataURL := model.SafeDereference(ps.Config().SamlSettings.IdpMetadataURL)
-		if samlErr := testSAMLMetadataConnection(rctx.Context(), idpMetadataURL); samlErr != nil {
-			d.SAML.Status = model.StatusFail
-			d.SAML.Error = samlErr.Error()
+		if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil {
+			status, errorMessage := samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings)
+			d.SAML.Status = status
+			d.SAML.Error = errorMessage
 		} else {
-			d.SAML.Status = model.StatusOk
+			idpMetadataURL := model.SafeDereference(ps.Config().SamlSettings.IdpMetadataURL)
+			if samlErr := testSAMLMetadataConnection(rctx.Context(), idpMetadataURL); samlErr != nil {
+				d.SAML.Status = model.StatusFail
+				d.SAML.Error = samlErr.Error()
+			} else {
+				d.SAML.Status = model.StatusOk
+			}
 		}
-	} else {
-		d.SAML.Status = model.StatusDisabled
 	}
 
 	/* Elastic Search */

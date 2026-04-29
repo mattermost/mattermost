@@ -485,6 +485,38 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, "SAML metadata URL returned unexpected status 503", packet.SAML.Error)
 	})
 
+	t.Run("SAML diagnostics enterprise interface override", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(model.StatusFail, "enterprise check failed")
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() {
+			th.Service.samlDiagnostic = originalSAMLDiag
+		})
+		th.Service.samlDiagnostic = diagMock
+
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.SamlSettings.Enable = model.NewPointer(true)
+			cfg.SamlSettings.Verify = model.NewPointer(false)
+			cfg.SamlSettings.Encrypt = model.NewPointer(false)
+			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
+			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
+			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
+			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
+			cfg.SamlSettings.EmailAttribute = model.NewPointer("email")
+			cfg.SamlSettings.UsernameAttribute = model.NewPointer("username")
+		})
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.StatusFail, packet.SAML.Status)
+		assert.Equal(t, "enterprise check failed", packet.SAML.Error)
+	})
+
 	t.Run("SAML enabled with Keycloak provider", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
