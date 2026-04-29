@@ -611,6 +611,65 @@
         }
     }
 
+    &.post--chat-bubble {
+        padding-top: 6px;
+
+        &.same--user {
+            padding-top: 2px;
+        }
+
+        .post__content {
+            display: flex;
+            align-items: flex-end;
+            column-gap: 8px;
+        }
+
+        .post__main {
+            display: flex;
+            width: min(100%, 760px);
+            flex-direction: column;
+        }
+
+        .post__body {
+            width: fit-content;
+            max-width: min(100%, 680px);
+            padding: 10px 14px;
+            border-radius: 18px 18px 18px 6px;
+            margin-top: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        &.same--user .post__body {
+            border-top-left-radius: 6px;
+        }
+
+        &.post--chat-bubble-me {
+            padding-right: 0.25em;
+
+            .post__content {
+                flex-direction: row-reverse;
+                justify-content: flex-start;
+            }
+
+            .post__img {
+                margin-right: 0;
+            }
+
+            .post__main {
+                align-items: flex-end;
+            }
+
+            .post__body {
+                border-radius: 18px 18px 6px 18px;
+                background: rgba(var(--button-bg-rgb), 0.18);
+            }
+
+            &.same--user .post__body {
+                border-top-right-radius: 6px;
+            }
+        }
+    }
+
     &:hover,
     &.a11y--active {
         overflow: visible;
