@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -20,7 +21,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';

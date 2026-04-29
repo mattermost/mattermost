@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategoryType} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -80,7 +81,7 @@ describe('getCategoryInTeamWithChannel', () => {
     });
 });
 
-describe('makeGetCategoriesForTeam', () => {
+describe('makeGetNonManagedCategoriesForTeam', () => {
     const category1 = {id: 'category1', display_name: 'Category One', type: CategoryTypes.CUSTOM};
     const category2 = {id: 'category2', display_name: 'Category Two', type: CategoryTypes.CUSTOM};
 
@@ -99,7 +100,7 @@ describe('makeGetCategoriesForTeam', () => {
     } as unknown as GlobalState;
 
     test('should return categories for team in order', () => {
-        const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
+        const getCategoriesForTeam = Selectors.makeGetNonManagedCategoriesForTeam();
 
         expect(getCategoriesForTeam(state, 'team1')).toEqual([
             state.entities.channelCategories.byId.category2,
@@ -108,7 +109,7 @@ describe('makeGetCategoriesForTeam', () => {
     });
 
     test('should memoize properly', () => {
-        const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
+        const getCategoriesForTeam = Selectors.makeGetNonManagedCategoriesForTeam();
 
         const result = getCategoriesForTeam(state, 'team1');
 
@@ -116,7 +117,7 @@ describe('makeGetCategoriesForTeam', () => {
         expect(getCategoriesForTeam(state, 'team1')).toBe(result);
 
         // Calls to a difference instance of the selector won't return the same array
-        expect(result).not.toBe(Selectors.makeGetCategoriesForTeam()(state, 'team1'));
+        expect(result).not.toBe(Selectors.makeGetNonManagedCategoriesForTeam()(state, 'team1'));
 
         // Calls with different arguments won't return the same array
         expect(getCategoriesForTeam(state, 'team2')).not.toBe(result);
@@ -1445,5 +1446,254 @@ describe('makeGetChannelsByCategory', () => {
             expect(result.channelsCategory).toEqual(previousResult.channelsCategory);
             expect(result.directMessagesCategory).not.toEqual(previousResult.directMessagesCategory);
         });
+    });
+});
+
+describe('isChannelInManagedCategory', () => {
+    const state = {
+        entities: {
+            general: {
+                config: {EnableManagedChannelCategories: 'true'},
+            },
+            channels: {
+                channels: {
+                    channel1: {id: 'channel1', team_id: 'team1'},
+                    channel2: {id: 'channel2', team_id: 'team1'},
+                    channel3: {id: 'channel3', team_id: 'team2'},
+                },
+            },
+            channelCategories: {
+                managedCategoryMappings: {
+                    team1: {channel1: 'Operations'},
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('should return true for a channel in a managed category', () => {
+        expect(Selectors.isChannelInManagedCategory(state, 'channel1')).toBe(true);
+    });
+
+    test('should return false for a channel not in a managed category', () => {
+        expect(Selectors.isChannelInManagedCategory(state, 'channel2')).toBe(false);
+    });
+
+    test('should return false for a channel on a team with no mappings', () => {
+        expect(Selectors.isChannelInManagedCategory(state, 'channel3')).toBe(false);
+    });
+
+    test('should return false for a nonexistent channel', () => {
+        expect(Selectors.isChannelInManagedCategory(state, 'nonexistent')).toBe(false);
+    });
+});
+
+describe('getChannelManagedCategoryName', () => {
+    const state = {
+        entities: {
+            general: {
+                config: {EnableManagedChannelCategories: 'true'},
+            },
+            channels: {
+                channels: {
+                    channel1: {id: 'channel1', team_id: 'team1'},
+                    channel2: {id: 'channel2', team_id: 'team1'},
+                },
+            },
+            channelCategories: {
+                managedCategoryMappings: {
+                    team1: {channel1: 'Operations'},
+                },
+            },
+        },
+    } as unknown as GlobalState;
+
+    test('should return the category name for a mapped channel', () => {
+        expect(Selectors.getChannelManagedCategoryName(state, 'channel1')).toBe('Operations');
+    });
+
+    test('should return undefined for an unmapped channel', () => {
+        expect(Selectors.getChannelManagedCategoryName(state, 'channel2')).toBeUndefined();
+    });
+
+    test('should return undefined for a nonexistent channel', () => {
+        expect(Selectors.getChannelManagedCategoryName(state, 'nonexistent')).toBeUndefined();
+    });
+});
+
+describe('makeGetManagedCategoriesForTeam', () => {
+    test('should return empty array when no managed mappings exist', () => {
+        const getManagedCategoriesForTeam = Selectors.makeGetManagedCategoriesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    managedCategoryMappings: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        } as unknown as GlobalState;
+
+        expect(getManagedCategoriesForTeam(state, 'team1')).toEqual([]);
+    });
+
+    test('should build synthetic categories from mappings sorted alphabetically', () => {
+        const getManagedCategoriesForTeam = Selectors.makeGetManagedCategoriesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    managedCategoryMappings: {
+                        team1: {
+                            channel1: 'Support',
+                            channel2: 'Operations',
+                            channel3: 'Support',
+                        },
+                        team2: {
+                            channel4: 'Support',
+                            channel5: 'Operations',
+                            channel6: 'Support',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = getManagedCategoriesForTeam(state, 'team1');
+
+        expect(result).toHaveLength(2);
+        expect(result[0].display_name).toBe('Operations');
+        expect(result[0].channel_ids).toEqual(['channel2']);
+
+        expect(result[1].display_name).toBe('Support');
+        expect(result[1].channel_ids).toEqual(['channel1', 'channel3']);
+    });
+});
+
+describe('makeGetCategoriesForTeam (merged)', () => {
+    const nonManagedCategory1 = {
+        id: 'favorites1',
+        team_id: 'team1',
+        type: CategoryTypes.FAVORITES,
+        display_name: 'Favorites',
+        channel_ids: ['channel1', 'channel2', 'channel3'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+    const nonManagedCategory2 = {
+        id: 'channels1',
+        team_id: 'team1',
+        type: CategoryTypes.CHANNELS,
+        display_name: 'Channels',
+        channel_ids: ['channel4', 'channel5'],
+        sorting: CategorySorting.Default,
+        user_id: 'user1',
+        muted: false,
+        collapsed: false,
+    };
+
+    test('should return only non-managed categories when no managed mappings exist', () => {
+        const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
+                    orderByTeam: {team1: ['favorites1', 'channels1']},
+                    managedCategoryMappings: {},
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = getCategoriesForTeam(state, 'team1');
+        expect(result).toEqual([nonManagedCategory1, nonManagedCategory2]);
+    });
+
+    test('should prepend managed categories and strip their channels from non-managed categories', () => {
+        const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
+                    orderByTeam: {team1: ['favorites1', 'channels1']},
+                    managedCategoryMappings: {
+                        team1: {
+                            channel2: 'Admin Ops',
+                            channel4: 'Admin Ops',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = getCategoriesForTeam(state, 'team1');
+
+        expect(result).toHaveLength(3);
+
+        expect(result[0].type).toBe(CategoryTypes.MANAGED as ChannelCategoryType);
+        expect(result[0].display_name).toBe('Admin Ops');
+        expect(result[0].channel_ids).toEqual(['channel2', 'channel4']);
+
+        expect(result[1].id).toBe('favorites1');
+        expect(result[1].channel_ids).toEqual(['channel1', 'channel3']);
+
+        expect(result[2].id).toBe('channels1');
+        expect(result[2].channel_ids).toEqual(['channel5']);
+    });
+
+    test('should not modify non-managed categories when no channels overlap with managed categories', () => {
+        const getCategoriesForTeam = Selectors.makeGetCategoriesForTeam();
+
+        const state = {
+            entities: {
+                general: {
+                    config: {EnableManagedChannelCategories: 'true'},
+                },
+                channelCategories: {
+                    byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
+                    orderByTeam: {team1: ['favorites1', 'channels1']},
+                    managedCategoryMappings: {
+                        team1: {
+                            channel99: 'Isolated',
+                        },
+                    },
+                },
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        } as unknown as GlobalState;
+
+        const result = getCategoriesForTeam(state, 'team1');
+
+        expect(result).toHaveLength(3);
+        expect(result[0].display_name).toBe('Isolated');
+        expect(result[1].channel_ids).toEqual(nonManagedCategory1.channel_ids);
+        expect(result[2].channel_ids).toEqual(nonManagedCategory2.channel_ids);
     });
 });

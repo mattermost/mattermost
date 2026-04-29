@@ -486,3 +486,190 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 
 	return false
 }
+
+// SessionHasPermissionToEditPropertyField checks if the session has permission to edit the field definition.
+// Returns false if the field is nil, protected, or if PermissionField is nil (legacy fields).
+func (a *App) SessionHasPermissionToEditPropertyField(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.Protected {
+		return false
+	}
+	if field.PermissionField == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionField)
+}
+
+// SessionHasPermissionToSetPropertyFieldValues checks if the session has permission to set values on objects.
+// Returns false if the field is nil or if PermissionValues is nil (legacy fields).
+func (a *App) SessionHasPermissionToSetPropertyFieldValues(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.PermissionValues == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionValues)
+}
+
+// SessionHasPermissionToManagePropertyFieldOptions checks if the session has permission to manage field options.
+// Returns false if the field is nil or if PermissionOptions is nil (legacy fields).
+func (a *App) SessionHasPermissionToManagePropertyFieldOptions(rctx request.CTX, session model.Session, field *model.PropertyField) bool {
+	if field == nil {
+		return false
+	}
+	if field.PermissionOptions == nil {
+		return false
+	}
+	if session.IsUnrestricted() {
+		return true
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, session.UserId, field, *field.PermissionOptions)
+}
+
+// HasPermissionToEditPropertyField checks if the user has permission to edit the field definition.
+// Returns false if the field is nil, protected, userID is empty, or if PermissionField is nil (legacy fields).
+func (a *App) HasPermissionToEditPropertyField(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.Protected {
+		return false
+	}
+	if field.PermissionField == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionField)
+}
+
+// HasPermissionToSetPropertyFieldValues checks if the user has permission to set values on objects.
+// Returns false if the field is nil, userID is empty, or if PermissionValues is nil (legacy fields).
+func (a *App) HasPermissionToSetPropertyFieldValues(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.PermissionValues == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionValues)
+}
+
+// HasPermissionToManagePropertyFieldOptions checks if the user has permission to manage field options.
+// Returns false if the field is nil, userID is empty, or if PermissionOptions is nil (legacy fields).
+func (a *App) HasPermissionToManagePropertyFieldOptions(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	if field == nil || userID == "" {
+		return false
+	}
+	if field.PermissionOptions == nil {
+		return false
+	}
+	return a.hasPropertyFieldPermissionLevel(rctx, userID, field, *field.PermissionOptions)
+}
+
+// hasPropertyFieldPermissionLevel checks if the user has the specified permission level for the field.
+func (a *App) hasPropertyFieldPermissionLevel(rctx request.CTX, userID string, field *model.PropertyField, level model.PermissionLevel) bool {
+	switch level {
+	case model.PermissionLevelNone:
+		return false
+	case model.PermissionLevelSysadmin:
+		return a.HasPermissionTo(userID, model.PermissionManageSystem)
+	case model.PermissionLevelMember:
+		return a.hasPropertyFieldScopeAccess(rctx, userID, field)
+	}
+	return false
+}
+
+// hasPropertyFieldScopeAccess checks if the user has access to the property field's scope.
+// For system-level properties, any authenticated user has access.
+// For channel-level properties, the user must be a member of the channel.
+func (a *App) hasPropertyFieldScopeAccess(rctx request.CTX, userID string, field *model.PropertyField) bool {
+	switch field.TargetType {
+	case string(model.PropertyFieldTargetLevelSystem):
+		// System-level property: any authenticated user
+		return true
+	case string(model.PropertyFieldTargetLevelTeam):
+		// Team-level property: must be team member
+		member, err := a.Srv().Store().Team().GetMember(rctx, field.TargetID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get team member for property field scope check",
+				mlog.String("team_id", field.TargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
+	case string(model.PropertyFieldTargetLevelChannel):
+		// Channel-level property: must be channel member
+		member, err := a.Srv().Store().Channel().GetMember(rctx, field.TargetID, userID)
+		if err != nil {
+			rctx.Logger().Warn("Failed to get channel member for property field scope check",
+				mlog.String("channel_id", field.TargetID),
+				mlog.String("user_id", userID),
+				mlog.String("field_id", field.ID),
+				mlog.Err(err),
+			)
+			return false
+		}
+		return member != nil
+	}
+	return false
+}
+
+// HasPermissionToFileAction evaluates whether the user is allowed to perform the
+// given file action (e.g. upload_file_attachment, download_file_attachment) on
+// a channel, based on ABAC permission policies.
+// Returns true if allowed (or if ABAC is not active), false if denied.
+func (a *App) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return true
+	}
+
+	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return true
+	}
+
+	if !a.Config().FeatureFlags.PermissionPolicies {
+		return true
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, roles)
+	if appErr != nil {
+		rctx.Logger().Info("Failed to build ABAC subject for file action evaluation",
+			mlog.String("user_id", userID),
+			mlog.String("action", action),
+			mlog.Err(appErr),
+		)
+		return false
+	}
+
+	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+		Subject: *subject,
+		Resource: model.Resource{
+			Type: model.AccessControlPolicyTypeChannel,
+			ID:   channelID,
+		},
+		Action: action,
+	})
+	if evalErr != nil {
+		rctx.Logger().Debug("ABAC file action evaluation failed, denying by default",
+			mlog.String("user_id", userID),
+			mlog.String("action", action),
+			mlog.String("channel_id", channelID),
+			mlog.Err(evalErr),
+		)
+		return false
+	}
+
+	return decision.Decision
+}

@@ -15,11 +15,12 @@
 // Group: @channels @enterprise @not_cloud @extend_session @ldap @saml @keycloak
 
 import {UserProfile} from '@mattermost/types/users';
-import {LdapUser} from 'tests/support/ldap_server_commands';
-
-import {getKeycloakServerSettings} from '../../../../../utils/config';
 
 import {verifyExtendedSession, verifyNotExtendedSession} from './helpers';
+
+import {LdapUser} from '@/support/ldap_server_commands';
+import {getKeycloakServerSettings} from '@/utils/config';
+
 
 describe('Extended Session Length', () => {
     const sessionLengthInDays = 1;
@@ -62,7 +63,7 @@ describe('Extended Session Length', () => {
             cy.apiUploadSAMLIDPCert('keycloak.crt');
 
             // # Create Keycloak user and login for the first time
-            cy.keycloakCreateUsers([samlLdapUser]);
+            cy.keycloakCreateUsers([samlLdapUser] as LdapUser[]);
             cy.doKeycloakLogin(samlLdapUser);
 
             // # Wait for the UI to be ready which indicates SAML registration is complete

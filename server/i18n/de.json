@@ -3043,10 +3043,6 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ist bereits gestoppt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} ist deaktiviert."
   },
@@ -5261,10 +5257,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost Enterprise Lizenz wurde deaktiviert."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Die Lizenz deiner Enterprise Edition ist abgelaufen und einige Funktionen sind möglicherweise deaktiviert. Bitte erneuere die Lizenz."
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -10024,10 +10016,6 @@
     "translation": "Die Eigenschaftsgruppe der benutzerdefinierten Profilattribute kann nicht abgerufen werden."
   },
   {
-    "id": "app.custom_profile_attributes.create_property_field.app_error",
-    "translation": "Benutzerdefiniertes Profilattributfeld kann nicht erstellt werden"
-  },
-  {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
     "translation": "Benutzerdefiniertes Profilattributfeld kann nicht abgerufen werden"
   },
@@ -10734,10 +10722,6 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Das Passwort des Benutzers konnte nicht aktualisiert werden."
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Nicht in der Lage, bestehende Jobs zu bekommen."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",
@@ -12006,5 +11990,9 @@
   {
     "id": "model.user_report_options.is_valid.invalid_guest_filter",
     "translation": "Der vorgegebene Gast-Filter ist nicht gültig."
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Die Token-Gewährung wurde nicht für diesen Kunden ausgestellt."
   }
 ]

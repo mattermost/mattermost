@@ -49,28 +49,28 @@ const EnterpriseEditionRightPanel = ({
 
     const enterpriseToAdvancedAdvantages = [
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.attributeBasedAccess',
-            defaultMessage: 'Attribute-based access control',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.dynamicAttributeBasedAccessControls',
+            defaultMessage: 'Dynamic attribute-based access controls',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.channelWarningBanners',
-            defaultMessage: 'Channel warning banners',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.dataSpillageHandling',
+            defaultMessage: 'Data spillage handling',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.adLdapGroupSync',
-            defaultMessage: 'AD/LDAP group sync',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.burnOnReadMessages',
+            defaultMessage: 'Burn-on-read messages',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedWorkflows',
-            defaultMessage: 'Advanced workflows with Playbooks',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.mobileBiometricsAndAdvancedSecurity',
+            defaultMessage: 'Mobile biometrics & advanced security',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.highAvailability',
-            defaultMessage: 'High availability',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.automaticChannelTranslations',
+            defaultMessage: 'Automatic channel translations',
         }),
         intl.formatMessage({
-            id: 'admin.license.enterpriseToAdvancedAdvantage.advancedCompliance',
-            defaultMessage: 'Advanced compliance',
+            id: 'admin.license.enterpriseToAdvancedAdvantage.channelBanners',
+            defaultMessage: 'Channel banners',
         }),
         intl.formatMessage({
             id: 'admin.license.upgradeAdvantage.andMore',

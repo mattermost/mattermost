@@ -38,14 +38,8 @@ func TestMigrate(t *testing.T) {
 		os.Clearenv()
 		t.Helper()
 
-		tempDir, err := os.MkdirTemp("", "TestMigrate")
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			os.RemoveAll(tempDir)
-		})
-
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
 		truncateTables(t)
 	}

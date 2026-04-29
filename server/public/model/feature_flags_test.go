@@ -9,6 +9,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestFeatureFlagsSetDefaults(t *testing.T) {
+	f := &FeatureFlags{}
+	f.SetDefaults()
+
+	t.Run("ClassificationMarkings should default to false", func(t *testing.T) {
+		require.False(t, f.ClassificationMarkings)
+	})
+
+	t.Run("ClassificationMarkings should serialize correctly", func(t *testing.T) {
+		m := f.ToMap()
+		require.Equal(t, "false", m["ClassificationMarkings"])
+
+		f.ClassificationMarkings = true
+		m = f.ToMap()
+		require.Equal(t, "true", m["ClassificationMarkings"])
+	})
+}
+
 func TestFeatureFlagsToMap(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Flags            FeatureFlags

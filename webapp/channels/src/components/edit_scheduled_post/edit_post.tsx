@@ -167,10 +167,13 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     }, []);
 
     useEffect(() => {
-        if (selectionRange.start === selectionRange.end) {
-            Utils.setCaretPosition(textboxRef.current?.getInputBox(), selectionRange.start);
-        } else {
-            Utils.setSelectionRange(textboxRef.current?.getInputBox(), selectionRange.start, selectionRange.end);
+        const textbox = textboxRef.current?.getInputBox();
+        if (textbox) {
+            if (selectionRange.start === selectionRange.end) {
+                Utils.setCaretPosition(textbox, selectionRange.start);
+            } else {
+                Utils.setSelectionRange(textbox, selectionRange.start, selectionRange.end);
+            }
         }
     }, [selectionRange]);
 

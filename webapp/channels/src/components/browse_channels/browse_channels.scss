@@ -1,7 +1,19 @@
 #browseChannelsModal {
+    .modal-content {
+        width: 100%;
+    }
+
     .modal-dialog {
         @media screen and (max-width: 640px) {
+            width: 100%;
+            max-width: 100%;
             margin-top: 0 !important;
+        }
+    }
+
+    @media screen and (max-width: 640px) {
+        .modal-content {
+            overflow: hidden;
         }
     }
 
@@ -130,6 +142,8 @@
             border-bottom: none;
 
             .more-modal__details {
+                overflow: hidden;
+                min-width: 0;
                 padding-left: 0;
                 color: rgba(var(--center-channel-color-rgb), 0.75);
 
@@ -161,8 +175,11 @@
                     }
 
                     .more-modal__description {
+                        overflow: hidden;
                         margin-left: 4px;
                         font-weight: 400;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
                     }
 
                     #membershipIndicatorContainer {
@@ -196,11 +213,12 @@
 
             .more-modal__actions {
                 button {
-                    display: none;
                     min-width: 54px;
                     height: 32px;
                     font-size: 12px;
                     font-weight: 600;
+                    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+                    visibility: hidden;
                 }
             }
         }
@@ -213,7 +231,7 @@
             .more-modal__actions {
                 .primaryButton,
                 .outlineButton {
-                    display: inline-block;
+                    visibility: visible;
                 }
             }
         }

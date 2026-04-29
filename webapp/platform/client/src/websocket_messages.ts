@@ -195,6 +195,10 @@ export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConve
     channel_id: string;
 }>;
 
+export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
+    channel_id: string;
+}>;
+
 export type ChannelSchemeUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelSchemeUpdated>;
 
 export type ChannelDeleted = BaseWebSocketMessage<WebSocketEvents.ChannelDeleted, {
@@ -255,6 +259,12 @@ export type ChannelBookmarkDeleted = BaseWebSocketMessage<WebSocketEvents.Channe
 
 export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.ChannelBookmarkSorted, {
     bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
+}>;
+
+// Channel access control messages
+
+export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
+    channel: JsonEncodedValue<Channel>;
 }>;
 
 // Team and team member messages
@@ -359,6 +369,15 @@ export type SidebarCategoryDeleted = BaseWebSocketMessage<WebSocketEvents.Sideba
 
 export type SidebarCategoryOrderUpdated = BaseWebSocketMessage<WebSocketEvents.SidebarCategoryOrderUpdated, {
     order: string[];
+}>;
+
+// Property system messages
+
+export type PropertyValuesUpdated = BaseWebSocketMessage<WebSocketEvents.PropertyValuesUpdated, {
+    object_type?: string;
+    target_id?: string;
+    field_id?: string;
+    values: JsonEncodedValue<Array<PropertyValue<unknown>>>;
 }>;
 
 // Emoji messages

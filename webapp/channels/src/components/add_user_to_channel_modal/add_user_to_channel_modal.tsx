@@ -17,6 +17,7 @@ import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SearchChannelWithPermissionsProvider from 'components/suggestion/search_channel_with_permissions_provider';
 import SuggestionBox from 'components/suggestion/suggestion_box';
 import type SuggestionBoxComponent from 'components/suggestion/suggestion_box/suggestion_box';
+import type {SuggestionBoxElement} from 'components/suggestion/suggestion_box/suggestion_box';
 
 import {placeCaretAtEnd} from 'utils/utils';
 
@@ -123,13 +124,13 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
         }
 
         const textbox = this.channelSearchBox.getTextbox();
-        if (document.activeElement !== textbox) {
+        if (textbox && document.activeElement !== textbox) {
             textbox.focus();
             placeCaretAtEnd(textbox);
         }
     };
 
-    onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    onInputChange = (e: ChangeEvent<SuggestionBoxElement>) => {
         this.setState({text: e.target.value, selectedChannelId: null});
     };
 

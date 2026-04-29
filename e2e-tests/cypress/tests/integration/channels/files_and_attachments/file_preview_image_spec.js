@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @files_and_attachments
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {
     attachFile,
     downloadAttachmentAndVerifyItsProperties,
     interceptFileUpload,
     waitUntilUploadComplete,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
 
 describe('Upload Files - Image', () => {
     before(() => {

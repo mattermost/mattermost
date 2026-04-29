@@ -14,10 +14,10 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
 	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MM_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MM_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/$(MMCTL_BIN_NAME) | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/$(MMCTL_BIN_NAME) | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 
 build-linux-arm64: setup-go-work
@@ -90,10 +90,10 @@ ifeq ($(FIPS_ENABLED),true)
 	@echo Verifying Build Linux amd64 for FIPS
 	$(GO) version -m $(GOBIN)/mattermost | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mattermost binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/mattermost | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mattermost binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/mattermost | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/mattermost | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mattermost binary missing OpenSSL integration" && exit 1)
 	$(GO) version -m $(GOBIN)/mmctl | grep -q "GOEXPERIMENT=systemcrypto" || (echo "ERROR: FIPS mmctl binary missing GOEXPERIMENT=systemcrypto" && exit 1)
 	$(GO) version -m $(GOBIN)/mmctl | grep "\-tags" | grep -q "requirefips" || (echo "ERROR: FIPS mmctl binary missing -tags=requirefips" && exit 1)
-	$(GO) tool nm $(GOBIN)/mmctl | grep -q "func_go_openssl_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
+	$(GO) tool nm $(GOBIN)/mmctl | grep -qE "func_go_openssl_OpenSSL_version|_mkcgo_OpenSSL_version" || (echo "ERROR: FIPS mmctl binary missing OpenSSL integration" && exit 1)
 endif
 ifeq ($(FIPS_ENABLED),true)
 	@echo Skipping Build Linux arm64 for FIPS

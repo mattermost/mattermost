@@ -206,8 +206,13 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 		return result, postsErr
 	}
 
+	sourcePostIDs := extractPostIDs(posts)
+
 	// No posts to summarize - return success with 0 messages
 	if len(posts) == 0 {
+		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); appErr != nil {
+			return result, appErr
+		}
 		result.Success = true
 		return result, nil
 	}
@@ -221,28 +226,38 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	// Summarize posts
 	summary, err := a.SummarizePosts(rctx, userID, posts, channel.DisplayName, team.Name, agentID)
 	if err != nil {
+		if saveErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); saveErr != nil {
+			return result, saveErr
+		}
 		return result, err
 	}
 
-	// Save recap channel
-	recapChannel := &model.RecapChannel{
-		Id:            model.NewId(),
-		RecapId:       recapID,
-		ChannelId:     channelID,
-		ChannelName:   channel.DisplayName,
-		Highlights:    summary.Highlights,
-		ActionItems:   summary.ActionItems,
-		SourcePostIds: extractPostIDs(posts),
-		CreateAt:      model.GetMillis(),
-	}
-
-	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
-		return result, model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); appErr != nil {
+		return result, appErr
 	}
 
 	result.MessageCount = len(posts)
 	result.Success = true
 	return result, nil
+}
+
+func (a *App) saveRecapChannelRecord(recapID, channelID, channelName string, highlights, actionItems, sourcePostIDs []string) *model.AppError {
+	recapChannel := &model.RecapChannel{
+		Id:            model.NewId(),
+		RecapId:       recapID,
+		ChannelId:     channelID,
+		ChannelName:   channelName,
+		Highlights:    highlights,
+		ActionItems:   actionItems,
+		SourcePostIds: sourcePostIDs,
+		CreateAt:      model.GetMillis(),
+	}
+
+	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
+		return model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
 // fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information

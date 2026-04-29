@@ -1217,6 +1217,8 @@ export const PermissionsScope = {
     [Permissions.DELETE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.RESTORE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.MANAGE_CUSTOM_GROUP_MEMBERS]: 'system_scope',
+    [Permissions.MANAGE_OWN_AGENT]: 'system_scope',
+    [Permissions.MANAGE_OTHERS_AGENT]: 'system_scope',
     [Permissions.USE_SLASH_COMMANDS]: 'channel_scope',
     [Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL]: 'channel_scope',
     [Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL]: 'channel_scope',
@@ -1229,6 +1231,7 @@ export const PermissionsScope = {
     [Permissions.MANAGE_PUBLIC_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_PRIVATE_CHANNEL_BANNER]: 'channel_scope',
     [Permissions.MANAGE_CHANNEL_ACCESS_RULES]: 'channel_scope',
+    [Permissions.MANAGE_TEAM_ACCESS_RULES]: 'team_scope',
 };
 
 export const DefaultRolePermissions = {
@@ -1280,6 +1283,7 @@ export const DefaultRolePermissions = {
         Permissions.CREATE_EMOJIS,
         Permissions.RUN_VIEW,
         Permissions.RESTORE_CUSTOM_GROUP,
+        Permissions.MANAGE_OWN_AGENT,
         Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
         Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL,
         Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
@@ -1352,6 +1356,7 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PUBLIC_CHANNEL_BANNER,
         Permissions.MANAGE_PRIVATE_CHANNEL_BANNER,
         Permissions.MANAGE_CHANNEL_ACCESS_RULES,
+        Permissions.MANAGE_TEAM_ACCESS_RULES,
     ],
     guests: [
         Permissions.EDIT_POST,
@@ -2022,8 +2027,7 @@ export const Constants = {
     PERMISSIONS_DELETE_POST_TEAM_ADMIN: 'team_admin',
     PERMISSIONS_DELETE_POST_SYSTEM_ADMIN: 'system_admin',
     PERMISSIONS_SYSTEM_CUSTOM_GROUP_ADMIN: 'system_custom_group_admin',
-    PERMISSIONS_SHARED_CHANNEL_MANAGER: 'shared_channel_manager',
-    PERMISSIONS_SECURE_CONNECTION_MANAGER: 'secure_connection_manager',
+    PERMISSIONS_SHARED_CHANNEL_MANAGER: 'system_shared_channel_manager',
     ALLOW_EDIT_POST_ALWAYS: 'always',
     ALLOW_EDIT_POST_NEVER: 'never',
     ALLOW_EDIT_POST_TIME_LIMIT: 'time_limit',
@@ -2216,12 +2220,6 @@ export const OverlayTransitionStyles = {
     START: {
         opacity: 0,
     },
-};
-
-export const OverlayArrow = {
-    WIDTH: 10, // in px
-    HEIGHT: 6, // in px
-    OFFSET: 8, // in px
 };
 
 export default Constants;

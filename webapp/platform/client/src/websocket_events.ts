@@ -63,6 +63,7 @@ export const enum WebSocketEvents {
     SidebarCategoryUpdated = 'sidebar_category_updated',
     SidebarCategoryDeleted = 'sidebar_category_deleted',
     SidebarCategoryOrderUpdated = 'sidebar_category_order_updated',
+    PropertyValuesUpdated = 'property_values_updated',
     CloudSubscriptionChanged = 'cloud_subscription_changed',
     ThreadUpdated = 'thread_updated',
     ThreadFollowChanged = 'thread_follow_changed',
@@ -79,6 +80,7 @@ export const enum WebSocketEvents {
     ChannelBookmarkUpdated = 'channel_bookmark_updated',
     ChannelBookmarkDeleted = 'channel_bookmark_deleted',
     ChannelBookmarkSorted = 'channel_bookmark_sorted',
+    ChannelAccessControlUpdated = 'channel_access_control_updated',
     PresenceIndicator = 'presence',
     PostedNotifyAck = 'posted_notify_ack', // This isn't currently used by the web app
     ScheduledPostCreated = 'scheduled_post_created',
@@ -93,4 +95,5 @@ export const enum WebSocketEvents {
     PostTranslationUpdated = 'post_translation_updated',
     FileDownloadRejected = 'file_download_rejected',
     ShowToast = 'show_toast',
+    SharedChannelRemoteUpdated = 'shared_channel_remote_updated',
 }

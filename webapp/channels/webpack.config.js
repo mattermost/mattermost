@@ -184,6 +184,7 @@ var config = {
                 {from: 'src/images/logo_email_blue.png', to: 'images'},
                 {from: 'src/images/logo_email_dark.png', to: 'images'},
                 {from: 'src/images/logo_email_gray.png', to: 'images'},
+                {from: 'src/images/license_illustration.png', to: 'images'},
                 {from: 'src/images/forgot_password_illustration.png', to: 'images'},
                 {from: 'src/images/invite_illustration.png', to: 'images'},
                 {from: 'src/images/channel_icon.png', to: 'images'},

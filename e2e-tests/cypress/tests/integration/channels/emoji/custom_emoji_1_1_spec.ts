@@ -9,15 +9,16 @@
 
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-
 import {getCustomEmoji, verifyLastPostedEmoji} from './helpers';
 
+import * as TIMEOUTS from '@/fixtures/timeouts';
+
+
 describe('Custom emojis', () => {
-    let testTeam;
-    let testUser;
+    let testTeam: Cypress.Team;
+    let testUser: Cypress.UserProfile;
     let otherUser;
-    let offTopicUrl;
+    let offTopicUrl: string;
 
     const largeEmojiFile = 'gif-image-file.gif';
     const largeEmojiFileResized = 'gif-image-file-resized.gif';
@@ -103,7 +104,7 @@ describe('Custom emojis', () => {
     });
 });
 
-function saveCustomEmoji(teamName) {
+function saveCustomEmoji(teamName: string) {
     // # Click on Save
     cy.findByText('Save').click();
 

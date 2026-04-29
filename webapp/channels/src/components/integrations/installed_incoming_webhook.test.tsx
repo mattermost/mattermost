@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import {screen} from '@testing-library/react';
 import React from 'react';
-import {Link} from 'react-router-dom';
 
 import type {IncomingWebhook} from '@mattermost/types/integrations';
 
-import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
 import InstalledIncomingWebhook from 'components/integrations/installed_incoming_webhook';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/integrations/InstalledIncomingWebhook', () => {
     const incomingWebhook: IncomingWebhook = {
@@ -28,349 +28,139 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
 
     const teamId = 'testteamid';
 
-    test('should match snapshot', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
+    const initialState = {
+        entities: {
+            general: {
+                config: {},
+            },
+            users: {
+                currentUserId: 'currentUserId',
+            },
+        },
+    };
 
-        const wrapper = shallow<InstalledIncomingWebhook>(
+    const baseProps = {
+        incomingWebhook,
+        onDelete: jest.fn(),
+        creator: {username: 'creator'},
+        team: {
+            id: teamId,
+            name: 'test',
+            create_at: 1502455422406,
+            delete_at: 0,
+            update_at: 1502455422406,
+            type: 'O' as const,
+            display_name: 'name',
+            scheme_id: 'id',
+            allow_open_invite: false,
+            group_constrained: false,
+            description: '',
+            email: '',
+            company_name: '',
+            allowed_domains: '',
+            invite_id: '',
+        },
+        channel: {
+            id: '1jiw9kphbjrntfyrm7xpdcya4o',
+            name: 'town-square',
+            create_at: 1502455422406,
+            delete_at: 0,
+            update_at: 1502455422406,
+            team_id: teamId,
+            type: 'O' as const,
+            display_name: 'name',
+            header: 'header',
+            purpose: 'purpose',
+            last_post_at: 0,
+            last_root_post_at: 0,
+            creator_id: 'id',
+            scheme_id: 'id',
+            group_constrained: false,
+        },
+    };
+
+    test('should match snapshot', () => {
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 canChange={true}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not have edit and delete actions if user does not have permissions to change', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
-
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 canChange={false}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper.find('.item-actions').length).toBe(0);
+        expect(container.querySelector('.item-actions')).toBeNull();
     });
 
     test('should have edit and delete actions if user can change webhook', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
-
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 canChange={true}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper.find('.item-actions').find(Link).exists()).toBe(true);
-        expect(wrapper.find('.item-actions').find(DeleteIntegrationLink).exists()).toBe(true);
+        expect(container.querySelector('.item-actions')).not.toBeNull();
+        expect(screen.getByText('Edit')).toBeInTheDocument();
+        expect(screen.getByText('Delete')).toBeInTheDocument();
     });
 
     test('Should have the same name and description on view as it has in incomingWebhook', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
-
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 canChange={false}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
 
-        expect(wrapper.find('.item-details__description').text()).toBe('build status');
-        expect(wrapper.find('.item-details__name').text()).toBe('build');
+        expect(container.querySelector('.item-details__description')!.textContent).toBe('build status');
+        expect(container.querySelector('.item-details__name')!.textContent).toBe('build');
     });
 
     test('Should not display description as it is null', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
         const newIncomingWebhook: IncomingWebhook = {...incomingWebhook, description: ''};
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
+                {...baseProps}
                 incomingWebhook={newIncomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
                 canChange={false}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper.find('.item-details__description').length).toBe(0);
+        expect(container.querySelector('.item-details__description')).toBeNull();
     });
 
     test('Should not render any nodes as there are no filtered results', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 filter={'someLongText'}
                 canChange={false}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper.getElement()).toBe(null);
+        expect(container.firstChild).toBeNull();
     });
 
     test('Should render a webhook item as filtered result is true', () => {
-        function emptyFunction() {} //eslint-disable-line no-empty-function
-        const wrapper = shallow<InstalledIncomingWebhook>(
+        const {container} = renderWithContext(
             <InstalledIncomingWebhook
-                key={1}
-                incomingWebhook={incomingWebhook}
-                onDelete={emptyFunction}
-                creator={{username: 'creator'}}
+                {...baseProps}
                 filter={'buil'}
                 canChange={true}
-                team={{
-                    id: teamId,
-                    name: 'test',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    type: 'O',
-                    display_name: 'name',
-                    scheme_id: 'id',
-                    allow_open_invite: false,
-                    group_constrained: false,
-                    description: '',
-                    email: '',
-                    company_name: '',
-                    allowed_domains: '',
-                    invite_id: '',
-                }}
-                channel={{
-                    id: '1jiw9kphbjrntfyrm7xpdcya4o',
-                    name: 'town-square',
-                    create_at: 1502455422406,
-                    delete_at: 0,
-                    update_at: 1502455422406,
-                    team_id: teamId,
-                    type: 'O',
-                    display_name: 'name',
-                    header: 'header',
-                    purpose: 'purpose',
-                    last_post_at: 0,
-                    last_root_post_at: 0,
-                    creator_id: 'id',
-                    scheme_id: 'id',
-                    group_constrained: false,
-                }}
             />,
+            initialState,
         );
-        expect(wrapper.find('.item-details').exists()).toBe(true);
+        expect(container.querySelector('.item-details')).not.toBeNull();
     });
 });

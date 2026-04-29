@@ -45,12 +45,12 @@ func TestGetImage(t *testing.T) {
 
 	t.Run("atmos/camo", func(t *testing.T) {
 		imageURL := "http://foo.bar/baz.gif"
-		proxiedURL := "https://proxy.foo.bar/004afe2ef382eb5f30c4490f793f8a8c5b33d8a2/687474703a2f2f666f6f2e6261722f62617a2e676966"
+		proxiedURL := "https://proxy.foo.bar/83d4d9ac78b76ce425ea67038826df867c62cc5c/687474703a2f2f666f6f2e6261722f62617a2e676966"
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ImageProxySettings.Enable = model.NewPointer(true)
 			cfg.ImageProxySettings.ImageProxyType = model.NewPointer("atmos/camo")
-			cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("foo")
+			cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewPointer("7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac")
 			cfg.ImageProxySettings.RemoteImageProxyURL = model.NewPointer("https://proxy.foo.bar")
 		})
 

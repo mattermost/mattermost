@@ -1280,6 +1280,45 @@ func TestSubmitDialogResponse_IsValid(t *testing.T) {
 	}
 }
 
+func TestValidateRelativePattern(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"valid days", "+1d", true},
+		{"valid weeks", "+2w", true},
+		{"valid months", "+3m", true},
+		{"valid hours", "+2H", true},
+		{"valid minutes", "+30M", true},
+		{"valid seconds", "+90S", true},
+		{"negative days", "-1d", true},
+		{"negative hours", "-2H", true},
+		{"multi-digit number", "+99d", true},
+		{"max digits", "+999d", true},
+		{"lowercase h rejected", "+1h", false},
+		{"lowercase s rejected", "+1s", false},
+		{"uppercase D rejected", "+1D", false},
+		{"uppercase W rejected", "+1W", false},
+		{"no number", "+d", false},
+		{"empty", "", false},
+		{"too long days", "+9999d", false},
+		{"too long hours", "+9999H", false},
+		{"too long minutes", "+9999M", false},
+		{"too long seconds", "+9999S", false},
+		{"no number hours", "+H", false},
+		{"no number minutes", "+M", false},
+		{"no number seconds", "+S", false},
+		{"no sign", "1d", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, validateRelativePattern(tt.input))
+		})
+	}
+}
+
 func TestValidateDateFormat(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -1359,6 +1398,34 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	})
 
 	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "2025-01-01T00:00:00Z",
+			MaxDate:      "2025-12-31T23:59:59Z",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DialogElement with datetime type and relative min/max", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "+2H",
+			MaxDate:      "+7d",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should accept datetime DialogElement with date-only min/max for backward compatibility", func(t *testing.T) {
 		element := DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
@@ -1445,7 +1512,7 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 	})
 
 	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
-		// Valid with default 60-minute interval
+		// Valid with explicit 60-minute interval
 		element := DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
@@ -1456,16 +1523,15 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		err := element.IsValid()
 		assert.NoError(t, err)
 
-		// Invalid with default 60-minute interval
+		// time_interval=0 means omitted — treated as default, should pass validation
 		element = DialogElement{
 			DisplayName:  "Test DateTime",
 			Name:         "test_datetime",
 			Type:         "datetime",
-			TimeInterval: 0, // Should use default of 60
+			TimeInterval: 0,
 			Optional:     false,
 		}
 		err = element.IsValid()
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
+		assert.NoError(t, err)
 	})
 }

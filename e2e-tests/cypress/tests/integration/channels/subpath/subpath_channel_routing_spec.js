@@ -9,7 +9,7 @@
 
 // Group: @channels @subpath
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Subpath Channel routing', () => {
     let testUser;

@@ -33,12 +33,13 @@ function apiInitSetup(arg: SetupParam = {}): ChainableT<SetupResult> {
         skipBoardsWelcomePage = true,
     } = arg;
 
-    return (cy.apiCreateTeam(teamPrefix.name, teamPrefix.displayName) as any).then(({team}) => {
+    // Cast needed: custom Cypress command chaining not fully typed
+    return (cy.apiCreateTeam(teamPrefix.name, teamPrefix.displayName) as any).then(({team}: {team: Cypress.Team}) => {
         // # Add public channel
-        return (cy.apiCreateChannel(team.id, channelPrefix.name, channelPrefix.displayName) as any).then(({channel}) => {
-            return (cy.apiCreateUser({prefix: userPrefix || (promoteNewUserAsAdmin ? 'admin' : 'user'), createAt: userCreateAt}) as any).then(({user}) => {
+        return (cy.apiCreateChannel(team.id, channelPrefix.name, channelPrefix.displayName) as any).then(({channel}: {channel: Cypress.Channel}) => { // Cast needed: custom Cypress command chaining not fully typed
+            return (cy.apiCreateUser({prefix: userPrefix || (promoteNewUserAsAdmin ? 'admin' : 'user'), createAt: userCreateAt}) as any).then(({user}: {user: Cypress.UserProfile}) => { // Cast needed: custom Cypress command chaining not fully typed
                 if (promoteNewUserAsAdmin) {
-                    (cy as any).apiPatchUserRoles(user.id, ['system_admin', 'system_user']);
+                    (cy as any).apiPatchUserRoles(user.id, ['system_admin', 'system_user']); // Cast needed: custom Cypress command chaining not fully typed
 
                     // Only hide start trial modal for admin since it's not applicable to other users
                     cy.apiSaveStartTrialModal(user.id, hideAdminTrialModal.toString());

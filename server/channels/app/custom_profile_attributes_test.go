@@ -31,12 +31,18 @@ func TestGetCPAField(t *testing.T) {
 	})
 
 	t.Run("should fail when getting a field from a different group", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_get_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, field)
+		createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 		require.Nil(t, err)
 
 		fetchedField, appErr := th.App.GetCPAField(rctx, createdField.ID)
@@ -73,7 +79,7 @@ func TestGetCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   nil,
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, field)
+		createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 		require.Nil(t, err)
 
 		// GetCPAField should initialize Attrs with defaults
@@ -91,7 +97,7 @@ func TestGetCPAField(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{},
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, field)
+		createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 		require.Nil(t, err)
 
 		// GetCPAField should add missing default attrs
@@ -173,15 +179,21 @@ func TestListCPAFields(t *testing.T) {
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 1},
 		}
 
-		_, err := th.App.CreatePropertyField(rctx, &field1)
+		_, err := th.App.CreatePropertyField(rctx, &field1, false, "")
 		require.Nil(t, err)
 
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_list_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field2 := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    "Field 2",
 			Type:    model.PropertyFieldTypeText,
 		}
-		_, err = th.App.CreatePropertyField(rctx, field2)
+		_, err = th.App.CreatePropertyField(rctx, field2, false, "")
 		require.Nil(t, err)
 
 		field3 := model.PropertyField{
@@ -190,7 +202,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsSortOrder: 0},
 		}
-		_, err = th.App.CreatePropertyField(rctx, &field3)
+		_, err = th.App.CreatePropertyField(rctx, &field3, false, "")
 		require.Nil(t, err)
 
 		fields, appErr := th.App.ListCPAFields(rctx)
@@ -208,7 +220,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   nil,
 		}
-		_, err := th.App.CreatePropertyField(rctx, fieldWithNilAttrs)
+		_, err := th.App.CreatePropertyField(rctx, fieldWithNilAttrs, false, "")
 		require.Nil(t, err)
 
 		// Create a field with empty Attrs
@@ -218,7 +230,7 @@ func TestListCPAFields(t *testing.T) {
 			Type:    model.PropertyFieldTypeText,
 			Attrs:   model.StringInterface{},
 		}
-		_, err = th.App.CreatePropertyField(rctx, fieldWithEmptyAttrs)
+		_, err = th.App.CreatePropertyField(rctx, fieldWithEmptyAttrs, false, "")
 		require.Nil(t, err)
 
 		// ListCPAFields should initialize Attrs with defaults
@@ -456,13 +468,19 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to patch a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_patch_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
 
-		field, err := th.App.CreatePropertyField(rctx, newField)
+		field, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
 
 		updatedField, uErr := th.App.PatchCPAField(rctx, field.ID, patch)
@@ -719,12 +737,18 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_delete_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		field, err := th.App.CreatePropertyField(rctx, newField)
+		field, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
 
 		dErr := th.App.DeleteCPAField(rctx, field.ID)
@@ -776,7 +800,7 @@ func TestGetCPAValue(t *testing.T) {
 		Name:    model.NewId(),
 		Type:    model.PropertyFieldTypeText,
 	}
-	createdField, err := th.App.CreatePropertyField(rctx, field)
+	createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
 	require.Nil(t, err)
 	fieldID := createdField.ID
 
@@ -825,7 +849,7 @@ func TestGetCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeMultiselect,
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, arrayField)
+		createdField, err := th.App.CreatePropertyField(rctx, arrayField, false, "")
 		require.Nil(t, err)
 
 		propertyValue := &model.PropertyValue{
@@ -875,7 +899,7 @@ func TestListCPAValues(t *testing.T) {
 				Name:    fmt.Sprintf("Field %d", i),
 				Type:    model.PropertyFieldTypeText,
 			}
-			_, err := th.App.CreatePropertyField(rctx, field)
+			_, err := th.App.CreatePropertyField(rctx, field, false, "")
 			require.Nil(t, err)
 
 			value := &model.PropertyValue{
@@ -927,7 +951,7 @@ func TestPatchCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, newField)
+		createdField, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
 
 		userID := model.NewId()
@@ -953,9 +977,9 @@ func TestPatchCPAValue(t *testing.T) {
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, newField)
+		createdField, err := th.App.CreatePropertyField(rctx, newField, false, "")
 		require.Nil(t, err)
-		err = th.App.DeletePropertyField(rctx, cpaID, createdField.ID)
+		err = th.App.DeletePropertyField(rctx, cpaID, createdField.ID, false, "")
 		require.Nil(t, err)
 
 		userID := model.NewId()
@@ -979,7 +1003,7 @@ func TestPatchCPAValue(t *testing.T) {
 				},
 			},
 		}
-		createdField, err := th.App.CreatePropertyField(rctx, arrayField)
+		createdField, err := th.App.CreatePropertyField(rctx, arrayField, false, "")
 		require.Nil(t, err)
 
 		// Create a JSON array with option IDs (not names)

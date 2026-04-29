@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"maps"
-	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -974,6 +973,8 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 }
 
 func TestImageProxySettingsIsValid(t *testing.T) {
+	testHMACKey := NewTestPassword()
+
 	for _, test := range []struct {
 		Name                    string
 		Enable                  bool
@@ -1014,7 +1015,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			Enable:                  true,
 			ImageProxyType:          ImageProxyTypeAtmosCamo,
 			RemoteImageProxyURL:     "someurl",
-			RemoteImageProxyOptions: "someoptions",
+			RemoteImageProxyOptions: testHMACKey,
 			ExpectError:             false,
 		},
 		{
@@ -1032,6 +1033,14 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, short options under FIPS",
+			Enable:                  true,
+			ImageProxyType:          ImageProxyTypeAtmosCamo,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "foo",
+			ExpectError:             FIPSEnabled,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
@@ -1581,9 +1590,13 @@ func TestConfigSanitize(t *testing.T) {
 
 	*c.LdapSettings.BindPassword = "foo"
 	*c.FileSettings.AmazonS3SecretAccessKey = "bar"
+	*c.FileSettings.ExportAmazonS3SecretAccessKey = "export-secret"
 	*c.EmailSettings.SMTPPassword = "baz"
 	*c.GitLabSettings.Secret = "bingo"
 	*c.OpenIdSettings.Secret = "secret"
+	*c.ServiceSettings.GoogleDeveloperKey = "google-api-key"
+	*c.ServiceSettings.GiphySdkKey = "giphy-sdk-key"
+	*c.ElasticsearchSettings.ClientKey = "/path/to/client-key.pem"
 	*c.AutoTranslationSettings.LibreTranslate.APIKey = "libre-api-key"
 	c.SqlSettings.DataSourceReplicas = []string{"stuff"}
 	c.SqlSettings.DataSourceSearchReplicas = []string{"stuff"}
@@ -1598,6 +1611,7 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.LdapSettings.BindPassword)
 	assert.Equal(t, FakeSetting, *c.FileSettings.PublicLinkSalt)
 	assert.Equal(t, FakeSetting, *c.FileSettings.AmazonS3SecretAccessKey)
+	assert.Equal(t, FakeSetting, *c.FileSettings.ExportAmazonS3SecretAccessKey)
 	assert.Equal(t, FakeSetting, *c.EmailSettings.SMTPPassword)
 	assert.Equal(t, FakeSetting, *c.GitLabSettings.Secret)
 	assert.Equal(t, FakeSetting, *c.OpenIdSettings.Secret)
@@ -1605,6 +1619,9 @@ func TestConfigSanitize(t *testing.T) {
 	assert.Equal(t, FakeSetting, *c.SqlSettings.DataSource)
 	assert.Equal(t, FakeSetting, *c.SqlSettings.AtRestEncryptKey)
 	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.Password)
+	assert.Equal(t, FakeSetting, *c.ElasticsearchSettings.ClientKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GoogleDeveloperKey)
+	assert.Equal(t, FakeSetting, *c.ServiceSettings.GiphySdkKey)
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceReplicas[0])
 	assert.Equal(t, FakeSetting, c.SqlSettings.DataSourceSearchReplicas[0])
 
@@ -2182,8 +2199,8 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable Calls plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2215,8 +2232,8 @@ func TestConfigDefaultAIPluginState(t *testing.T) {
 	})
 
 	t.Run("should enable AI plugin by default on Cloud", func(t *testing.T) {
-		os.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
-		defer os.Unsetenv("MM_CLOUD_INSTALLATION_ID")
+		// t.Setenv prevents t.Parallel — env var has no config equivalent
+		t.Setenv("MM_CLOUD_INSTALLATION_ID", "test")
 		c1 := Config{}
 		c1.SetDefaults()
 
@@ -2963,5 +2980,24 @@ func TestNativeAppSettingsIsValid(t *testing.T) {
 		appErr := cfg.NativeAppSettings.AreDownloadLinksValid()
 		require.NotNil(t, appErr)
 		require.Equal(t, "model.config.is_valid.native_app_settings.download_link.app_error", appErr.Id)
+	})
+}
+
+func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
+	t.Parallel()
+
+	t.Run("EnableWatermark defaults to false", func(t *testing.T) {
+		cfg := Config{}
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.False(t, *cfg.ExperimentalSettings.EnableWatermark)
+	})
+
+	t.Run("SetDefaults does not overwrite explicit true value", func(t *testing.T) {
+		cfg := Config{}
+		cfg.ExperimentalSettings.EnableWatermark = NewPointer(true)
+		cfg.SetDefaults()
+		require.NotNil(t, cfg.ExperimentalSettings.EnableWatermark)
+		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)
 	})
 }

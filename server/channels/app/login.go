@@ -64,8 +64,11 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
-		envToken, ok := os.LookupEnv(cwsTokenEnv)
-		if ok && subtle.ConstantTimeCompare([]byte(envToken), []byte(cwsToken)) == 1 {
+		envToken := a.Srv().cwsTokenOverride
+		if envToken == "" {
+			envToken, _ = os.LookupEnv(cwsTokenEnv)
+		}
+		if envToken != "" && subtle.ConstantTimeCompare([]byte(envToken), []byte(cwsToken)) == 1 {
 			token = &model.Token{
 				Token:    cwsToken,
 				CreateAt: model.GetMillis(),

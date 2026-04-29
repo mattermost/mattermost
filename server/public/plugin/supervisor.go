@@ -198,7 +198,7 @@ func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
-// PerformHealthCheck checks the plugin through an an RPC ping.
+// PerformHealthCheck checks the plugin through an RPC ping.
 func (sup *supervisor) PerformHealthCheck() error {
 	// No need for a lock here because Ping is read-locked.
 	if pingErr := sup.Ping(); pingErr != nil {

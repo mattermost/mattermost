@@ -23,11 +23,8 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
 
-	tempDir, err := os.MkdirTemp("", "setupConfigFile")
-	require.NoError(t, err)
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err)
+	tempDir := t.TempDir()
+	t.Chdir(tempDir)
 
 	var name string
 	if cfg != nil {
@@ -1326,12 +1323,10 @@ func TestResolveConfigPath(t *testing.T) {
 	})
 
 	t.Run("should be able to resolve relative path", func(t *testing.T) {
-		tempDir, err := os.MkdirTemp("", "resolveconfig")
-		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
+		tempDir := t.TempDir()
+		t.Chdir(tempDir)
 
-		err = os.Chdir(tempDir)
-		require.NoError(t, err)
+		var err error
 
 		file := "config-test-1.json"
 		_, err = os.Stat(file)

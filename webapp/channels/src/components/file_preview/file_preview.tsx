@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 
@@ -28,7 +29,8 @@ type Props = {
     fileInfos: FilePreviewInfo[];
     uploadsInProgress?: string[];
     uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
-}
+    compactMode?: boolean;
+};
 
 export default class FilePreview extends React.PureComponent<Props> {
     static defaultProps = {
@@ -85,6 +87,10 @@ export default class FilePreview extends React.PureComponent<Props> {
                 previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
             }
 
+            if (this.props.compactMode) {
+                className += ' compact';
+            }
+
             previews.push(
                 <div
                     key={info.id}
@@ -95,10 +101,10 @@ export default class FilePreview extends React.PureComponent<Props> {
                     </div>
                     <div className='post-image__details'>
                         <div className='post-image__detail_wrapper'>
-                            <div className='post-image__detail'>
+                            <div className={classNames('post-image__detail', {compact: this.props.compactMode})}>
                                 <FilenameOverlay
                                     fileInfo={info}
-                                    compactDisplay={false}
+                                    compactDisplay={this.props.compactMode}
                                     canDownload={false}
                                 />
                                 {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
@@ -108,7 +114,7 @@ export default class FilePreview extends React.PureComponent<Props> {
                         <div>
                             {Boolean(this.props.onRemove) && (
                                 <a
-                                    className='file-preview__remove'
+                                    className={classNames('file-preview__remove', {compact: this.props.compactMode})}
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
                                     <i className='icon icon-close'/>
@@ -138,7 +144,7 @@ export default class FilePreview extends React.PureComponent<Props> {
         }
 
         return (
-            <div className='file-preview__container'>
+            <div className={classNames('file-preview__container', {compact: this.props.compactMode})}>
                 {previews}
             </div>
         );

@@ -311,10 +311,10 @@ func TestAddAncillaryPermissions(t *testing.T) {
 func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 	roles := MakeDefaultRoles()
 
-	t.Run("shared_channel_manager role exists with correct permissions", func(t *testing.T) {
+	t.Run("system_shared_channel_manager role exists with correct permissions", func(t *testing.T) {
 		role, ok := roles[SharedChannelManagerRoleId]
-		require.True(t, ok, "shared_channel_manager role should exist in MakeDefaultRoles")
-		assert.Equal(t, "shared_channel_manager", role.Name)
+		require.True(t, ok, "system_shared_channel_manager role should exist in MakeDefaultRoles")
+		assert.Equal(t, "system_shared_channel_manager", role.Name)
 		assert.True(t, role.BuiltIn, "role should be built-in")
 		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
 		assert.True(t, slices.Contains(role.Permissions, PermissionManageSharedChannels.Id),
@@ -323,23 +323,9 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 			"role should NOT have manage_secure_connections permission")
 	})
 
-	t.Run("secure_connection_manager role exists with correct permissions", func(t *testing.T) {
-		role, ok := roles[SecureConnectionManagerRoleId]
-		require.True(t, ok, "secure_connection_manager role should exist in MakeDefaultRoles")
-		assert.Equal(t, "secure_connection_manager", role.Name)
-		assert.True(t, role.BuiltIn, "role should be built-in")
-		assert.False(t, role.SchemeManaged, "role should not be scheme-managed")
-		assert.True(t, slices.Contains(role.Permissions, PermissionManageSecureConnections.Id),
-			"role should have manage_secure_connections permission")
-		assert.False(t, slices.Contains(role.Permissions, PermissionManageSharedChannels.Id),
-			"role should NOT have manage_shared_channels permission")
-	})
-
 	t.Run("roles are included in NewSystemRoleIDs", func(t *testing.T) {
 		assert.True(t, slices.Contains(NewSystemRoleIDs, SharedChannelManagerRoleId),
-			"shared_channel_manager should be in NewSystemRoleIDs")
-		assert.True(t, slices.Contains(NewSystemRoleIDs, SecureConnectionManagerRoleId),
-			"secure_connection_manager should be in NewSystemRoleIDs")
+			"system_shared_channel_manager should be in NewSystemRoleIDs")
 	})
 
 	t.Run("system_admin includes manage_oauth by default", func(t *testing.T) {
@@ -354,4 +340,47 @@ func TestMakeDefaultRolesContainsNewManagerRoles(t *testing.T) {
 			return permission.Id == PermissionManageOAuth.Id
 		}), "manage_oauth should not remain deprecated")
 	})
+}
+
+func TestManageAgentPermissionsDefinition(t *testing.T) {
+	assert.Equal(t, "manage_own_agent", PermissionManageOwnAgent.Id)
+	assert.Equal(t, "authentication.permissions.manage_own_agent.name", PermissionManageOwnAgent.Name)
+	assert.Equal(t, "authentication.permissions.manage_own_agent.description", PermissionManageOwnAgent.Description)
+	assert.Equal(t, PermissionScopeSystem, PermissionManageOwnAgent.Scope,
+		"manage_own_agent should have system scope")
+	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
+		return p.Id == PermissionManageOwnAgent.Id
+	}), "manage_own_agent should be in AllPermissions")
+
+	assert.Equal(t, "manage_others_agent", PermissionManageOthersAgent.Id)
+	assert.Equal(t, "authentication.permissions.manage_others_agent.name", PermissionManageOthersAgent.Name)
+	assert.Equal(t, "authentication.permissions.manage_others_agent.description", PermissionManageOthersAgent.Description)
+	assert.Equal(t, PermissionScopeSystem, PermissionManageOthersAgent.Scope,
+		"manage_others_agent should have system scope")
+	assert.True(t, slices.ContainsFunc(AllPermissions, func(p *Permission) bool {
+		return p.Id == PermissionManageOthersAgent.Id
+	}), "manage_others_agent should be in AllPermissions")
+}
+
+func TestManageAgentPermissionsDefaultRoles(t *testing.T) {
+	roles := MakeDefaultRoles()
+
+	for _, tc := range []struct {
+		roleId       string
+		expectOwn    bool
+		expectOthers bool
+	}{
+		{SystemAdminRoleId, true, true},
+		{SystemUserRoleId, true, false},
+		{SystemGuestRoleId, false, false},
+	} {
+		t.Run(tc.roleId, func(t *testing.T) {
+			role, ok := roles[tc.roleId]
+			require.True(t, ok, "%s role should exist", tc.roleId)
+			assert.Equal(t, tc.expectOwn, slices.Contains(role.Permissions, PermissionManageOwnAgent.Id),
+				"%s manage_own_agent permission presence", tc.roleId)
+			assert.Equal(t, tc.expectOthers, slices.Contains(role.Permissions, PermissionManageOthersAgent.Id),
+				"%s manage_others_agent permission presence", tc.roleId)
+		})
+	}
 }

@@ -3036,10 +3036,6 @@
     "translation": "解碼搜尋結果失敗"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch 已停止。"
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "Elasticsearch 已停用。"
   },
@@ -5210,10 +5206,6 @@
   {
     "id": "api.templates.remove_expired_license.subject",
     "translation": "Mattermost 企業授權已被停用。"
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "企業授權已過期，部份功能已被停用。請立即更新授權。"
   },
   {
     "id": "api.templates.invite_guest_subject",

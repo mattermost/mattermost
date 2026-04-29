@@ -139,5 +139,57 @@ describe('integration utils', () => {
             expect(dateError?.id).toBe('interactive_dialog.error.required');
             expect(datetimeError?.id).toBe('interactive_dialog.error.required');
         });
+
+        it('should accept valid datetime with timezone offset', () => {
+            const element = TestHelper.getDialogElementMock({type: 'datetime'});
+            expect(checkDialogElementForError(element, '2025-01-15T14:30:00+05:30')).toBeNull();
+            expect(checkDialogElementForError(element, '2025-01-15T14:30:00-07:00')).toBeNull();
+        });
+
+        it('should return error when datetime is before min_date', () => {
+            const element = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                min_date: '2025-06-01T00:00:00Z',
+            });
+
+            const error = checkDialogElementForError(element, '2025-05-15T12:00:00Z');
+            expect(error?.id).toBe('interactive_dialog.error.before_min_date');
+        });
+
+        it('should return error when datetime is after max_date', () => {
+            const element = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                max_date: '2025-06-01T00:00:00Z',
+            });
+
+            const error = checkDialogElementForError(element, '2025-06-15T12:00:00Z');
+            expect(error?.id).toBe('interactive_dialog.error.after_max_date');
+        });
+
+        it('should return null when datetime is within min_date and max_date bounds', () => {
+            const element = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                min_date: '2025-01-01T00:00:00Z',
+                max_date: '2025-12-31T23:59:59Z',
+            });
+
+            expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
+        });
+
+        it('should skip range validation when min_date/max_date are not set', () => {
+            const element = TestHelper.getDialogElementMock({type: 'datetime'});
+            expect(checkDialogElementForError(element, '2025-01-15T14:30:00Z')).toBeNull();
+        });
+
+        it('should handle unresolvable min_date/max_date gracefully', () => {
+            const element = TestHelper.getDialogElementMock({
+                type: 'datetime',
+                min_date: 'not-a-valid-format',
+                max_date: 'also-invalid',
+            });
+
+            // Should skip range check (resolveBoundToDate returns null) and pass
+            expect(checkDialogElementForError(element, '2025-06-15T12:00:00Z')).toBeNull();
+        });
     });
 });

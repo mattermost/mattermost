@@ -55,6 +55,8 @@ jobs:
           echo "${{ inputs.name }}" > server/test-name
           echo "${{ github.event.pull_request.number }}" > server/pr-number
       - name: Run docker compose
+        env:
+          POSTGRES_PASSWORD: ${{ inputs.fips-enabled && 'mostest-fips-test' || 'mostest' }}
         run: |
           cd server/build
           docker compose --ansi never run --rm start_dependencies
@@ -76,6 +78,7 @@ jobs:
           docker run --net ghactions_mm-test \
             --ulimit nofile=8096:8096 \
             --env-file=server/build/dotenv/test.env \
+            --env TEST_DATABASE_POSTGRESQL_DSN="${{ inputs.datasource }}" \
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \

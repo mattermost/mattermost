@@ -8,6 +8,8 @@ import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
 import ScheduledPostIndicator from './scheduled_post_indicator';
 
+import {hexToRgb} from '@/util';
+
 export default class ChannelsSidebarRight {
     readonly container: Locator;
 
@@ -22,6 +24,7 @@ export default class ChannelsSidebarRight {
     readonly postEdit;
     readonly currentVersionEditedPosttext;
     readonly restorePreviousPostVersionIcon;
+    readonly channelBanner;
 
     constructor(container: Locator) {
         this.container = container;
@@ -40,6 +43,7 @@ export default class ChannelsSidebarRight {
         this.restorePreviousPostVersionIcon = container.locator(
             'button[aria-label="Select to restore an old message."]',
         );
+        this.channelBanner = container.getByTestId('channel_banner_container');
     }
 
     async toBeVisible() {
@@ -96,5 +100,22 @@ export default class ChannelsSidebarRight {
     async restorePreviousPostVersion() {
         await this.restorePreviousPostVersionIcon.isVisible();
         await this.restorePreviousPostVersionIcon.click();
+    }
+
+    async assertChannelBanner(text: string, backgroundColor: string) {
+        await expect(this.channelBanner).toBeVisible();
+
+        const actualText = await this.channelBanner.textContent();
+        expect(actualText).toBe(text);
+
+        const actualBackgroundColor = await this.channelBanner.evaluate((el) => {
+            return window.getComputedStyle(el).getPropertyValue('background-color');
+        });
+
+        expect(actualBackgroundColor).toBe(hexToRgb(backgroundColor));
+    }
+
+    async assertChannelBannerNotVisible() {
+        await expect(this.channelBanner).not.toBeVisible();
     }
 }

@@ -810,5 +810,45 @@
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Não foi possível publicar a mensagem de atualização displayname"
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "many": "{{.User}} já estão no canal.",
+      "one": "{{.User}} já está no canal.",
+      "other": "{{.User}} já estão no canal."
+    }
+  },
+  {
+    "id": "api.email_batching.send_batched_email_notification.subject",
+    "translation": {
+      "many": "[{{.SiteName}}] Novas Notificações para {{.Month}} {{.Day}}, {{.Year}}",
+      "one": "[{{.SiteName}}] Nova Notificação para {{.Month}} {{.Day}}, {{.Year}}",
+      "other": "[{{.SiteName}}] Novas Notificações para {{.Month}} {{.Day}}, {{.Year}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "many": "{{.Count}} ficheiros enviados: {{.Filenames}}",
+      "one": "{{.Count}} ficheiro enviado: {{.Filenames}}",
+      "other": "{{.Count}} ficheiros enviados: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "many": "{{.Count}} imagens enviadas: {{.Filenames}}",
+      "one": "{{.Count}} imagem enviada: {{.Filenames}}",
+      "other": "{{.Count}} imagens enviadas: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "many": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}",
+      "one": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}",
+      "other": "- {{.Count}} no canal {{.ChannelName}}. Motivo: {{.ErrorReason}}"
+    }
   }
 ]

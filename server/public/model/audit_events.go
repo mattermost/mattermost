@@ -12,6 +12,13 @@ const (
 	AuditEventUnassignAccessPolicy      = "unassignAccessPolicy"      // remove access control policy from channels
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
+
+	AuditEventCreateTeamAccessPolicy   = "createTeamAccessPolicy"   // create team-scoped access control policy
+	AuditEventUpdateTeamAccessPolicy   = "updateTeamAccessPolicy"   // update team-scoped access control policy
+	AuditEventDeleteTeamAccessPolicy   = "deleteTeamAccessPolicy"   // delete team-scoped access control policy
+	AuditEventAssignTeamAccessPolicy   = "assignTeamAccessPolicy"   // assign channels to team-scoped access control policy
+	AuditEventUnassignTeamAccessPolicy = "unassignTeamAccessPolicy" // remove channels from team-scoped access control policy
+	AuditEventTriggerTeamPolicySync    = "triggerTeamPolicySync"    // trigger sync for team-scoped access control policies
 )
 
 // Audit & Certificates
@@ -47,6 +54,17 @@ const (
 	AuditEventListChannelBookmarksForChannel = "listChannelBookmarksForChannel" // list bookmarks for channel
 )
 
+// Views
+const (
+	AuditEventCreateView          = "createView"          // create view in channel
+	AuditEventGetView             = "getView"             // get view by ID
+	AuditEventUpdateView          = "updateView"          // update view
+	AuditEventDeleteView          = "deleteView"          // delete view
+	AuditEventListViewsForChannel = "listViewsForChannel" // list views for channel
+	AuditEventUpdateViewSortOrder = "updateViewSortOrder" // update view sort order
+	AuditEventGetPostsForView     = "getPostsForView"     // get posts for view
+)
+
 // Channel Categories
 const (
 	AuditEventCreateCategoryForTeamForUser      = "createCategoryForTeamForUser"      // create channel category for user
@@ -78,6 +96,7 @@ const (
 	AuditEventPatchChannelModerations            = "patchChannelModerations"            // update channel moderation settings
 	AuditEventRemoveChannelMember                = "removeChannelMember"                // remove member from channel
 	AuditEventRestoreChannel                     = "restoreChannel"                     // restore previously deleted channel
+	AuditEventSetChannelMembers                  = "setChannelMembers"                  // bulk set (replace) channel memberships
 	AuditEventUpdateChannel                      = "updateChannel"                      // update channel properties
 	AuditEventUpdateChannelMemberNotifyProps     = "updateChannelMemberNotifyProps"     // update notification preferences
 	AuditEventUpdateChannelMemberAutotranslation = "updateChannelMemberAutotranslation" // update autotranslation setting
@@ -125,6 +144,20 @@ const (
 	AuditEventDeleteCPAField = "deleteCPAField" // delete custom profile attribute
 	AuditEventPatchCPAField  = "patchCPAField"  // update custom profile attribute field
 	AuditEventPatchCPAValues = "patchCPAValues" // update custom profile attribute values
+)
+
+// Property Fields
+const (
+	AuditEventCreatePropertyField = "createPropertyField" // create property field
+	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
+	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
+	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+)
+
+// Property Values
+const (
+	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
+	AuditEventPatchPropertyValues = "patchPropertyValues" // update property values for target
 )
 
 // Data Retention Policies

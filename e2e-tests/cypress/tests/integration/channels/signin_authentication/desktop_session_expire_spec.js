@@ -9,11 +9,12 @@
 
 // Group: @channels @signin_authentication
 
-import {getAdminAccount} from '../../../support/env';
-import {spyNotificationAs} from '../../../support/notification';
-import timeouts from '../../../fixtures/timeouts';
-
 import {fillCredentialsForUser} from './helpers';
+
+import {getAdminAccount} from '@/support/env';
+import {spyNotificationAs} from '@/support/notification';
+import timeouts from '@/fixtures/timeouts';
+
 
 describe('Authentication', () => {
     let testTeam;

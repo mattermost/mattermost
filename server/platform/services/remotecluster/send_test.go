@@ -34,11 +34,10 @@ type testPayload struct {
 
 func TestBroadcastMsg(t *testing.T) {
 	msgId := model.NewId()
-	disablePing = true
 
 	t.Run("No error", func(t *testing.T) {
-		var countCallbacks int32
-		var countWebReq int32
+		var countCallbacks atomic.Int32
+		var countWebReq atomic.Int32
 		merr := merror.New()
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +52,7 @@ func TestBroadcastMsg(t *testing.T) {
 				w.Write(b)
 			}()
 
-			atomic.AddInt32(&countWebReq, 1)
+			countWebReq.Add(1)
 
 			var frame model.RemoteClusterFrame
 			jsonErr := json.NewDecoder(r.Body).Decode(&frame)
@@ -87,6 +86,7 @@ func TestBroadcastMsg(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)
@@ -102,7 +102,7 @@ func TestBroadcastMsg(t *testing.T) {
 
 		err = service.BroadcastMsg(ctx, msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp *Response, err error) {
 			defer wg.Done()
-			atomic.AddInt32(&countCallbacks, 1)
+			countCallbacks.Add(1)
 
 			if err != nil {
 				merr.Append(err)
@@ -127,10 +127,10 @@ func TestBroadcastMsg(t *testing.T) {
 
 		assert.NoError(t, merr.ErrorOrNil())
 
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
+		assert.Equal(t, int32(NumRemotes), countCallbacks.Load())
+		assert.Equal(t, int32(NumRemotes), countWebReq.Load())
 		t.Logf("%d callbacks counted;  %d web requests counted;  %d expected",
-			atomic.LoadInt32(&countCallbacks), atomic.LoadInt32(&countWebReq), NumRemotes)
+			countCallbacks.Load(), countWebReq.Load(), NumRemotes)
 	})
 
 	t.Run("HTTP error", func(t *testing.T) {
@@ -144,30 +144,31 @@ func TestBroadcastMsg(t *testing.T) {
 
 		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
+		service.disablePing = true
 
 		err = service.Start()
 		require.NoError(t, err)
 		defer service.Shutdown()
 
 		msg := makeRemoteClusterMsg(msgId, NoteContent)
-		var countCallbacks int32
-		var countErrors int32
+		var countCallbacks atomic.Int32
+		var countErrors atomic.Int32
 		wg := &sync.WaitGroup{}
 		wg.Add(NumRemotes)
 
 		err = service.BroadcastMsg(context.Background(), msg, func(msg model.RemoteClusterMsg, remote *model.RemoteCluster, resp *Response, err error) {
 			defer wg.Done()
-			atomic.AddInt32(&countCallbacks, 1)
+			countCallbacks.Add(1)
 			if err != nil {
-				atomic.AddInt32(&countErrors, 1)
+				countErrors.Add(1)
 			}
 		})
 		assert.NoError(t, err)
 
 		wg.Wait()
 
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countCallbacks))
-		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countErrors))
+		assert.Equal(t, int32(NumRemotes), countCallbacks.Load())
+		assert.Equal(t, int32(NumRemotes), countErrors.Load())
 	})
 }
 

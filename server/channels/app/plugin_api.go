@@ -55,6 +55,11 @@ func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 		for _, setting := range api.manifest.SettingsSchema.Settings {
 			finalConfig[strings.ToLower(setting.Key)] = setting.Default
 		}
+		for _, section := range api.manifest.SettingsSchema.Sections {
+			for _, setting := range section.Settings {
+				finalConfig[strings.ToLower(setting.Key)] = setting.Default
+			}
+		}
 	}
 
 	// If we have settings given we override the defaults with them
@@ -1476,6 +1481,10 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 	return api.app.UnregisterPluginForSharedChannels(pluginID)
 }
 
+func (api *PluginAPI) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	return api.app.UnregisterPluginRemoteForSharedChannels(api.id, remoteID)
+}
+
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
 	if errors.Is(err, model.ErrChannelAlreadyShared) {
@@ -1507,6 +1516,18 @@ func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID s
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
 	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelSyncMsg(remoteID string, msg *model.SyncMsg) (model.SyncResponse, error) {
+	return api.app.ReceiveSharedChannelSyncMsg(api.ctx, api.id, remoteID, msg)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelAttachmentSyncMsg(remoteID, channelID string, fi *model.FileInfo, data io.Reader) (*model.FileInfo, error) {
+	return api.app.ReceiveSharedChannelAttachmentSyncMsg(api.ctx, api.id, remoteID, channelID, fi, data)
+}
+
+func (api *PluginAPI) ReceiveSharedChannelProfileImageSyncMsg(remoteID, userID string, image []byte) error {
+	return api.app.ReceiveSharedChannelProfileImageSyncMsg(api.ctx, api.id, remoteID, userID, image)
 }
 
 func (api *PluginAPI) GetPluginID() string {
@@ -1551,7 +1572,7 @@ func (api *PluginAPI) psaPluginContext() request.CTX {
 }
 
 func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
-	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field)
+	createdField, appErr := api.app.CreatePropertyField(api.psaPluginContext(), field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1575,7 +1596,7 @@ func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.
 }
 
 func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
-	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field)
+	updatedField, appErr := api.app.UpdatePropertyField(api.psaPluginContext(), groupID, field, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1583,7 +1604,7 @@ func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyF
 }
 
 func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
-	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID); appErr != nil {
+	if appErr := api.app.DeletePropertyField(api.psaPluginContext(), groupID, fieldID, false, ""); appErr != nil {
 		return appErr
 	}
 	return nil
@@ -1669,7 +1690,10 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
+	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), &model.PropertyGroup{
+		Name:    name,
+		Version: model.PropertyGroupVersionV1,
+	})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1693,7 +1717,7 @@ func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*m
 }
 
 func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields)
+	updatedFields, appErr := api.app.UpdatePropertyFields(api.psaPluginContext(), groupID, fields, false, "")
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -1709,7 +1733,7 @@ func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.Prope
 }
 
 func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
-	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values)
+	upsertedValues, appErr := api.app.UpsertPropertyValues(api.psaPluginContext(), values, "", "", "")
 	if appErr != nil {
 		return nil, appErr
 	}

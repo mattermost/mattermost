@@ -496,7 +496,7 @@ type State = BaseState & {
     requirePluginSignature: boolean;
     removing: string | null;
 }
-class PluginManagement extends OLDAdminSettings<Props, State> {
+export class PluginManagement extends OLDAdminSettings<Props, State> {
     private fileInput: React.RefObject<HTMLInputElement>;
     constructor(props: Props) {
         super(props);

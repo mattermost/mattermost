@@ -599,9 +599,7 @@ func TestGetOrCreateDirectChannel(t *testing.T) {
 	})
 
 	t.Run("Cannot create with a remote user", func(t *testing.T) {
-		user2.RemoteId = model.NewPointer(model.NewId())
-		_, appErr := th.App.UpdateUser(th.Context, user2, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, user2.Id, model.NewId())
 
 		dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
 		require.Nil(t, dm)
@@ -622,9 +620,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
 
 	t.Run("Should not allow to create a group with a remote user", func(t *testing.T) {
-		user2.RemoteId = model.NewPointer(model.NewId())
-		_, appErr := th.App.UpdateUser(th.Context, user2, false)
-		require.Nil(t, appErr)
+		th.SetUserRemoteID(t, user2.Id, model.NewId())
 
 		dm, appErr := th.App.CreateGroupChannel(th.Context, groupUserIds, th.BasicUser.Id)
 		require.NotNil(t, appErr)
@@ -715,7 +711,6 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 }
 
 func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
-	t.Skip("MM-67041")
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t).DeleteBots(t)
 
@@ -730,11 +725,13 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 
 	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
+	startTime := model.GetMillis()
 	_, appErr = th.App.AddUserToChannel(th.Context, user, channel, false)
 	require.Nil(t, appErr, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{channel.Id})
+	// Use a wide time window (±10s) to avoid flaky failures under CI load (MM-67041)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(startTime-10000, model.GetMillis()+10000, []string{channel.Id})
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -975,7 +972,6 @@ func TestLeaveLastChannel(t *testing.T) {
 }
 
 func TestAddChannelMemberNoUserRequestor(t *testing.T) {
-	t.Skip("MM-67037")
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -990,11 +986,13 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 	channel := th.createChannel(t, th.BasicTeam, model.ChannelTypeOpen)
 
+	startTime := model.GetMillis()
 	_, appErr = th.App.AddChannelMember(th.Context, user.Id, channel, ChannelMemberOpts{})
 	require.Nil(t, appErr, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, []string{channel.Id})
+	// Use a wide time window (±10s) to avoid flaky failures under CI load (MM-67037)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(startTime-10000, model.GetMillis()+10000, []string{channel.Id})
 	require.NoError(t, nErr)
 	assert.Len(t, histories, 2)
 	channelMemberHistoryUserIds := make([]string, 0)
@@ -1002,7 +1000,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, channel.Id, history.ChannelId)
 		channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 	}
-	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
+	assert.ElementsMatch(t, groupUserIds, channelMemberHistoryUserIds)
 
 	postList, nErr := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 	require.NoError(t, nErr)
@@ -1404,7 +1402,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	_, appErr = th.App.UpdateUser(th.Context, user2, false)
 	require.Nil(t, appErr)
 
-	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user3 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, appErr := th.App.CreateUser(th.Context, &user3)
 	require.Nil(t, appErr)
 
@@ -1418,7 +1416,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	_, appErr = th.App.UpdateUser(th.Context, ruser, false)
 	require.Nil(t, appErr)
 
-	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user4 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ = th.App.CreateUser(th.Context, &user4)
 	_, appErr = th.App.AddUserToChannel(th.Context, ruser, th.BasicChannel, false)
 	require.NotNil(t, appErr, "user should not be able to join the channel without being in the team.")
@@ -1561,7 +1559,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("from guest to user", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1575,7 +1573,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from user to guest", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1589,7 +1587,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from user to admin", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1603,7 +1601,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("from guest to guest plus custom", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1620,7 +1618,7 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 	})
 
 	t.Run("a guest cant have user role", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateGuest(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1639,7 +1637,7 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	t.Run("empty roles string requires user or guest scheme role", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1659,7 +1657,7 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	})
 
 	t.Run("admin role requires user or guest scheme role", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1674,7 +1672,7 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	})
 
 	t.Run("valid user and admin roles update succeeds", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1691,7 +1689,7 @@ func TestUpdateChannelMemberRolesRequireUser(t *testing.T) {
 	})
 
 	t.Run("removing admin role while keeping user role succeeds", func(t *testing.T) {
-		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: "passwd1", AuthService: ""}
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Tester", Username: "tester" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
 
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, ruser.Id, "")
@@ -1984,7 +1982,7 @@ func TestAddUserToChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser1, _ := th.App.CreateUser(th.Context, &user1)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, &user1)
@@ -2024,7 +2022,7 @@ func TestAddUserToChannel(t *testing.T) {
 	require.Nil(t, appErr)
 	require.False(t, cm1.SchemeAdmin)
 
-	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser2, _ := th.App.CreateUser(th.Context, &user2)
 	defer func() {
 		appErr = th.App.PermanentDeleteUser(th.Context, &user2)
@@ -2078,7 +2076,7 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, ruser)

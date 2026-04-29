@@ -59,7 +59,7 @@ func (rcs *Service) sendFile(task sendFileTask) {
 	var response Response
 
 	if err != nil {
-		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Remote Cluster send file failed",
+		rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Remote Cluster send file failed",
 			mlog.String("remote", task.rc.DisplayName),
 			mlog.String("uploadId", task.us.Id),
 			mlog.Err(err),

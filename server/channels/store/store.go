@@ -90,6 +90,7 @@ type Store interface {
 	DesktopTokens() DesktopTokensStore
 	ChannelBookmark() ChannelBookmarkStore
 	ScheduledPost() ScheduledPostStore
+	View() ViewStore
 	PropertyGroup() PropertyGroupStore
 	PropertyField() PropertyFieldStore
 	PropertyValue() PropertyValueStore
@@ -274,6 +275,7 @@ type ChannelStore interface {
 	GetMembersForUserWithCursorPagination(userId string, perPage int, fromChanneID string) (model.ChannelMembersWithTeamData, error)
 	Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error)
 	AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error)
+	AutocompleteInTeamFiltered(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest, privateOnly, excludeGroupConstrained bool) (model.ChannelList, error)
 	AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (model.ChannelListWithTeamData, int64, error)
 	SearchInTeam(teamID string, term string, includeDeleted bool) (model.ChannelList, error)
@@ -570,7 +572,13 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
+	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
+	// when the plugin has one registration. Use GetAllByPluginID instead.
 	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
+	// GetAllByPluginID returns all remotes registered by the specified plugin.
+	GetAllByPluginID(pluginID string) ([]*model.RemoteCluster, error)
+	// GetBySiteURL returns the remote cluster with the given SiteURL, or an error if not found.
+	GetBySiteURL(siteURL string) (*model.RemoteCluster, error)
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterID string) error
@@ -1101,6 +1109,16 @@ type ChannelBookmarkStore interface {
 	GetBookmarksForChannelSince(channelID string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error)
 }
 
+type ViewStore interface {
+	Save(view *model.View) (*model.View, error)
+	Get(id string) (*model.View, error)
+	GetForChannel(channelID string, opts model.ViewQueryOpts) ([]*model.View, error)
+	CountForChannel(channelID string, opts model.ViewQueryOpts) (int64, error)
+	Update(view *model.View) (*model.View, error)
+	Delete(viewID string, deleteAt int64) error
+	UpdateSortOrder(viewID, channelID string, newIndex int64) ([]*model.View, error)
+}
+
 type ScheduledPostStore interface {
 	GetMaxMessageSize() int
 	CreateScheduledPost(scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error)
@@ -1114,20 +1132,23 @@ type ScheduledPostStore interface {
 }
 
 type PropertyGroupStore interface {
-	Register(name string) (*model.PropertyGroup, error)
+	Register(group *model.PropertyGroup) (*model.PropertyGroup, error)
 	Get(name string) (*model.PropertyGroup, error)
+	GetByID(id string) (*model.PropertyGroup, error)
 }
 
 type PropertyFieldStore interface {
 	Create(field *model.PropertyField) (*model.PropertyField, error)
-	Get(groupID, id string) (*model.PropertyField, error)
-	GetMany(groupID string, ids []string) ([]*model.PropertyField, error)
-	GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error)
+	Get(ctx context.Context, groupID, id string) (*model.PropertyField, error)
+	GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error)
+	GetFieldByName(ctx context.Context, groupID, targetID, name string) (*model.PropertyField, error)
 	CountForGroup(groupID string, includeDeleted bool) (int64, error)
 	CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
+	CountLinkedFields(fieldID string) (int64, error)
 	SearchPropertyFields(opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
-	Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
+	Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error)
 	Delete(groupID string, id string) error
+	CheckPropertyNameConflict(field *model.PropertyField, excludeID string) (model.PropertyFieldTargetLevel, error)
 }
 
 type PropertyValueStore interface {

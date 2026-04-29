@@ -11,7 +11,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       <div>
         <a
           class="fa fa-angle-left back"
-          href="/admin_console/system_attributes/attribute_based_access_control"
+          href="/admin_console/system_attributes/membership_policies"
         />
         Edit Access Control Policy
       </div>
@@ -486,7 +486,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       </button>
       <a
         class="btn btn-quaternary"
-        href="/admin_console/system_attributes/attribute_based_access_control"
+        href="/admin_console/system_attributes/membership_policies"
       >
         Cancel
       </a>
@@ -506,7 +506,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       <div>
         <a
           class="fa fa-angle-left back"
-          href="/admin_console/system_attributes/attribute_based_access_control"
+          href="/admin_console/system_attributes/membership_policies"
         />
         Edit Access Control Policy
       </div>
@@ -943,7 +943,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
       </button>
       <a
         class="btn btn-quaternary"
-        href="/admin_console/system_attributes/attribute_based_access_control"
+        href="/admin_console/system_attributes/membership_policies"
       >
         Cancel
       </a>

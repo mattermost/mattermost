@@ -193,6 +193,63 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
 	})
 
+	t.Run("team admin can create team-scoped sync job with team_id only", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithTeamOnly := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id": th.BasicTeam.Id,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithTeamOnly)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
+	t.Run("team admin cannot smuggle a foreign policy_id alongside their team_id", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithPolicyAndTeam := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id":   th.BasicTeam.Id,
+				"policy_id": model.NewId(), // foreign policy the team admin does not own
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithPolicyAndTeam)
+		assert.False(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageSystem.Id, permissionRequired.Id)
+	})
+
 	t.Run("regular user cannot create access control sync job", func(t *testing.T) {
 		regularUser := th.CreateUser(t)
 		regularUserSession := model.Session{

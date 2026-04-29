@@ -9,7 +9,7 @@
 
 // Group: @channels @messaging
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Messaging', () => {
     let testTeam;

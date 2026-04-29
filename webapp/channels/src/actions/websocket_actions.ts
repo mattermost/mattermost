@@ -46,7 +46,7 @@ import {
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {addChannelToInitialCategory, fetchMyCategories, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -75,6 +75,7 @@ import {
 import {getRecap} from 'mattermost-redux/actions/recaps';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {
@@ -106,11 +107,12 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
     getMyTeams,
@@ -147,6 +149,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
@@ -156,6 +159,7 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 
@@ -273,7 +277,9 @@ export function reconnect() {
         }
 
         dispatch(fetchAllMyTeamsChannels());
-        dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        if (isScheduledPostsEnabled(state)) {
+            dispatch(fetchTeamScheduledPosts(currentTeamId, true, true));
+        }
         dispatch(fetchAllMyChannelMembers());
         dispatch(fetchMyCategories(currentTeamId));
         loadProfilesForSidebar();
@@ -319,7 +325,9 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    dispatch(getCustomProfileAttributeFields());
+    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
+        dispatch(getCustomProfileAttributeFields());
+    }
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
@@ -479,6 +487,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleChannelConvertedEvent(msg);
         break;
 
+    case WebSocketEvents.SharedChannelRemoteUpdated:
+        handleSharedChannelRemoteUpdatedEvent(msg);
+        break;
+
     case WebSocketEvents.ChannelUpdated:
         dispatch(handleChannelUpdatedEvent(msg));
         break;
@@ -501,6 +513,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.ChannelBookmarkSorted:
         dispatch(handleChannelBookmarkSorted(msg));
+        break;
+
+    case WebSocketEvents.ChannelAccessControlUpdated:
+        dispatch(handleChannelAccessControlUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.DirectAdded:
@@ -617,6 +633,9 @@ export function handleEvent(msg: WebSocketMessage) {
     case WebSocketEvents.SidebarCategoryOrderUpdated:
         dispatch(handleSidebarCategoryOrderUpdated(msg));
         break;
+    case WebSocketEvents.PropertyValuesUpdated:
+        dispatch(handlePropertyValuesUpdated(msg));
+        break;
     case WebSocketEvents.UserActivationStatusChange:
         dispatch(handleUserActivationStatusChange());
         break;
@@ -710,6 +729,13 @@ export function handleEvent(msg: WebSocketMessage) {
     });
 }
 
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
+    const channelId = msg.data.channel_id || msg.broadcast.channel_id;
+    if (channelId) {
+        dispatch(fetchChannelRemotes(channelId, true));
+    }
+}
+
 // handleChannelConvertedEvent handles updating of channel which is converted from public to private
 function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     const channelId = msg.data.channel_id;
@@ -765,6 +791,25 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             }
             getHistory().replace(channelPath);
         }
+    };
+}
+
+export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.channel) {
+            return;
+        }
+
+        const channel = JSON.parse(msg.data.channel) as Channel;
+
+        // Refresh the channel record so consumers see the latest
+        // policy_enforced flag (and any other access-control-derived fields).
+        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+
+        // Drop any cached access control attributes for this channel so
+        // consumers (e.g. the channel invite modal banner) refetch the
+        // latest attribute set after a policy change.
+        invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
     };
 }
 
@@ -1160,6 +1205,27 @@ function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkA
         if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
             dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
+    };
+}
+
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        let values;
+        try {
+            values = JSON.parse(msg.data.values ?? '[]');
+        } catch {
+            // invalid JSON
+            return;
+        }
+
+        const parsedPropertyValuesUpdated = {
+            object_type: msg.data.object_type,
+            target_id: msg.data.target_id,
+            field_id: msg.data.field_id,
+            values,
+        };
+
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 

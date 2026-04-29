@@ -147,6 +147,22 @@ func TestEnsureBot(t *testing.T) {
 		assert.Equal(t, "another bot", bot.Description)
 	})
 
+	t.Run("ensure bot should fail if username belongs to a non-bot user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		pluginId := "pluginId"
+
+		// th.BasicUser is a regular (non-bot) user created by InitBasic.
+		// EnsureBot must return an error — not the human user's ID.
+		botID, err := th.App.EnsureBot(th.Context, pluginId, &model.Bot{
+			Username:    th.BasicUser.Username,
+			Description: "a bot",
+			OwnerId:     th.BasicUser.Id,
+		})
+		require.Error(t, err)
+		assert.Empty(t, botID)
+	})
+
 	t.Run("ensure bot should pass even after delete bot user", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
@@ -718,7 +734,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin1 := model.User{
 		Email:    "sys1@example.com",
 		Nickname: "nn_sysadmin1",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin1",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -730,7 +746,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 	sysadmin2 := model.User{
 		Email:    "sys2@example.com",
 		Nickname: "nn_sysadmin2",
-		Password: "hello1",
+		Password: model.NewTestPassword(),
 		Username: "un_sysadmin2",
 		Roles:    model.SystemAdminRoleId + " " + model.SystemUserRoleId,
 	}
@@ -744,7 +760,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user1@example.com",
 		Username: "user1_disabled",
 		Nickname: "user1",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -753,7 +769,7 @@ func TestNotifySysadminsBotOwnerDisabled(t *testing.T) {
 		Email:    "user2@example.com",
 		Username: "user2_disabled",
 		Nickname: "user2",
-		Password: "Password1",
+		Password: model.NewTestPassword(),
 	})
 	require.Nil(t, err, "failed to create user")
 
@@ -902,7 +918,7 @@ func TestConvertUserToBot(t *testing.T) {
 		oauthUser := &model.User{
 			Email:         "oauth_user@example.com",
 			Username:      "oauth_user",
-			Password:      "password",
+			Password:      model.NewTestPassword(),
 			EmailVerified: true,
 		}
 

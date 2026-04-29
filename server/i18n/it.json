@@ -3044,10 +3044,6 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} è già fermo."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} non è attivo."
   },
@@ -5314,10 +5310,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Aggiornamento membro squadra invalido: Un utente deve essere ospite o utente ma non entrambi."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "La licenza enterprise è scaduta e alcune funzionalità possono essere disabilitate. Rinnovare la licenza."
   },
   {
     "id": "api.templates.remove_expired_license.subject",
