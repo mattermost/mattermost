@@ -76,7 +76,6 @@ test.describe('System Console - Classification markings', () => {
             await systemConsolePage.goto();
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
 
-
             // * User is redirected away from the hidden route (no Route registered)
             await expect(systemConsolePage.page).not.toHaveURL(/classification_markings/);
             // * Classification markings page title is not shown
@@ -105,7 +104,6 @@ test.describe('System Console - Classification markings', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
 
-
             // * URL stays on the classification markings section
             await expect(systemConsolePage.page).toHaveURL(/classification_markings/);
             // * Page title is visible
@@ -132,7 +130,6 @@ test.describe('System Console - Classification markings', () => {
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-
 
             // # Enable classification markings without choosing a preset or adding levels
             await systemConsolePage.page.locator('input[name="classificationEnabled"][value="true"]').click();
