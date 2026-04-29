@@ -20,6 +20,12 @@
     white-space: normal;
 }
 
+.post-menu--left {
+    right: auto;
+    left: 0;
+    justify-content: flex-start;
+}
+
 .post-menu__item {
     display: inline-flex;
     width: 28px;

@@ -163,6 +163,7 @@ function PostComponent(props: Props) {
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
     const [burnOnReadRevealing, setBurnOnReadRevealing] = useState(false);
     const [burnOnReadRevealError, setBurnOnReadRevealError] = useState<string | null>(null);
+    const [forceShowPostMenu, setForceShowPostMenu] = useState(0);
 
     const {locale} = useIntl();
 
@@ -362,6 +363,7 @@ function PostComponent(props: Props) {
 
     const handleRightClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
+        setForceShowPostMenu((value) => value + 1);
     }, []);
 
 
@@ -878,6 +880,9 @@ function PostComponent(props: Props) {
                                 removePost={props.actions.removePost}
                                 handleJumpClick={handleJumpClick}
                                 isPostHeaderVisible={getPostHeaderVisible()}
+                                forceShowDotMenu={forceShowPostMenu}
+                                isCurrentUserPost={props.currentUserId === post.user_id}
+
                             />
                             }
                         </div>

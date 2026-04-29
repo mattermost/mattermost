@@ -57,6 +57,8 @@ type Props = {
     isChannelAutotranslated: boolean;
     isBurnOnReadPost?: boolean;
     shouldDisplayBurnOnReadConcealed?: boolean;
+    forceShowDotMenu?: number;
+    isCurrentUserPost?: boolean;
     actions: {
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
     };
@@ -66,6 +68,14 @@ const PostOptions = (props: Props): JSX.Element => {
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
+
+    useEffect(() => {
+        if (props.forceShowDotMenu) {
+            setShowDotMenu(true);
+            props.handleDropdownOpened?.(true);
+        }
+    }, [props.forceShowDotMenu, props.handleDropdownOpened]);
+
 
     const toggleEmojiPicker = useCallback((show: boolean) => {
         setShowEmojiPicker(show);
@@ -295,7 +305,10 @@ const PostOptions = (props: Props): JSX.Element => {
         options = (
             <ul
                 data-testid={`post-menu-${props.post.id}`}
-                className={classnames('col post-menu', {'post-menu--position': !hoverLocal && showCommentIcon})}
+                className={classnames('col post-menu', {
+                    'post-menu--position': !hoverLocal && showCommentIcon,
+                    'post-menu--left': hoverLocal && !props.isCurrentUserPost,
+                })}
             >
                 {!collapsedThreadsEnabled && !showRecentlyUsedReactions && dotMenu}
                 {showRecentReactions}
