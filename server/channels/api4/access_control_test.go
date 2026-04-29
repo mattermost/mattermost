@@ -435,6 +435,15 @@ func TestDeleteAccessControlPolicy(t *testing.T) {
 
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		// DeleteAccessControlPolicy resolves the policy first to decide
+		// whether to broadcast a channel access control update; return a
+		// parent policy so the channel-update path is not exercised here.
+		parentPolicy := &model.AccessControlPolicy{
+			ID:      samplePolicyID,
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_3,
+		}
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(parentPolicy, nil).Times(1)
 		mockAccessControlService.On("DeletePolicy", mock.AnythingOfType("*request.Context"), samplePolicyID).Return(nil).Times(1)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
