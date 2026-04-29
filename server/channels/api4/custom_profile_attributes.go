@@ -253,6 +253,13 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // generic property API, routes through executePatchPropertyValues, and
 // emits the CPA-specific websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
+	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
+	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	// Translate CPA format → generic PropertyValuePatchItem list
 	items := make([]model.PropertyValuePatchItem, 0, len(updates))
 	for fieldID, value := range updates {
@@ -262,7 +269,7 @@ func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID s
 		})
 	}
 
-	upserted := executePatchPropertyValues(c, r, model.ProtectedAttributesPropertyGroupName, model.PropertyFieldObjectTypeUser, userID, items)
+	upserted := executePatchPropertyValues(c, r, group.ID, model.PropertyFieldObjectTypeUser, userID, items)
 	if c.Err != nil {
 		return
 	}
