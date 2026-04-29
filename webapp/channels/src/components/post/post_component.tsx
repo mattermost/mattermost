@@ -149,7 +149,6 @@ function PostComponent(props: Props) {
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const isModal = props.location === Locations.MODAL;
-    const isCenterDMOrGM = props.location === Locations.CENTER && (props.channelType === Constants.DM_CHANNEL || props.channelType === Constants.GM_CHANNEL);
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
@@ -332,7 +331,6 @@ function PostComponent(props: Props) {
             'mention-comment': props.isCommentMention,
             'post--thread': isRHS,
             'post--modal': isModal,
-            'post--chat-bubbles': isCenterDMOrGM && !isSystemMessage,
         });
     };
 
