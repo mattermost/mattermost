@@ -180,14 +180,14 @@ test(
             type: 'O',
         });
 
-        // Re-apply config immediately before login: a concurrent initSetup() →
-        // patchConfig(defaultConfig) can reset AutoTranslationSettings.Enable back
-        // to false between the initial enableAutotranslationConfig call and here.
-        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         const {channelsPage} = await pw.testBrowser.login(adminUser);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply config right before the modal opens: a concurrent initSetup() can reset
+        // AutoTranslationSettings.Enable back to false at any point between the initial
+        // enableAutotranslationConfig call above and here, hiding the translation toggle.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
         await configurationTab.enableChannelAutotranslation();
