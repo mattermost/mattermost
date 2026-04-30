@@ -3604,6 +3604,10 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
+	t.Cleanup(func() {
+		th.ConfigStore.SetReadOnlyFF(true)
+	})
 	api := th.SetupPluginAPI()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
@@ -3611,8 +3615,8 @@ func TestPluginAPICreateChannelManagedCategory(t *testing.T) {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = true })
-	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableManagedChannelCategories = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = true })
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ManagedChannelCategories = false })
 
 	categoryName := "Operations"
 	channel := &model.Channel{

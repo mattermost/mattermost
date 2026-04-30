@@ -1453,7 +1453,7 @@ describe('isChannelInManagedCategory', () => {
     const state = {
         entities: {
             general: {
-                config: {EnableManagedChannelCategories: 'true'},
+                config: {FeatureFlagManagedChannelCategories: 'true'},
             },
             channels: {
                 channels: {
@@ -1491,7 +1491,7 @@ describe('getChannelManagedCategoryName', () => {
     const state = {
         entities: {
             general: {
-                config: {EnableManagedChannelCategories: 'true'},
+                config: {FeatureFlagManagedChannelCategories: 'true'},
             },
             channels: {
                 channels: {
@@ -1527,7 +1527,7 @@ describe('makeGetManagedCategoriesForTeam', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     managedCategoryMappings: {},
@@ -1547,7 +1547,7 @@ describe('makeGetManagedCategoriesForTeam', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     managedCategoryMappings: {
@@ -1610,7 +1610,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
@@ -1633,7 +1633,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},
@@ -1672,7 +1672,7 @@ describe('makeGetCategoriesForTeam (merged)', () => {
         const state = {
             entities: {
                 general: {
-                    config: {EnableManagedChannelCategories: 'true'},
+                    config: {FeatureFlagManagedChannelCategories: 'true'},
                 },
                 channelCategories: {
                     byId: {favorites1: nonManagedCategory1, channels1: nonManagedCategory2},

@@ -304,7 +304,7 @@ func (a *App) CreateChannel(rctx request.CTX, channel *model.Channel, addMember 
 	}
 
 	if channel.ManagedCategoryName != "" {
-		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !model.SafeDereference(a.Config().TeamSettings.EnableManagedChannelCategories) {
+		if !model.MinimumEnterpriseLicense(a.Channels().License()) || !a.Config().FeatureFlags.ManagedChannelCategories {
 			rctx.Logger().Warn("Managed category update ignored: feature not available")
 			sc.ManagedCategoryName = ""
 		} else {

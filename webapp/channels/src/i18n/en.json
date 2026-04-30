@@ -3309,8 +3309,6 @@
   "admin.team.invalidateEmailInvitesTitle": "Invalidate pending email invites",
   "admin.team.lastActiveTimeDescription": "When enabled, last active time allows users to see when someone was last online.",
   "admin.team.lastActiveTimeTitle": "Enable last active time: ",
-  "admin.team.managedChannelCategoriesDescription": "Enables teams to have fixed sidebar categories to organize channels for all members of the team. Channel admins can create categories and organize their channels.",
-  "admin.team.managedChannelCategoriesTitle": "Managed channel categories:",
   "admin.team.maxChannelsDescription": "Maximum total number of channels per team, including both active and archived channels.",
   "admin.team.maxChannelsExample": "E.g.: \"100\"",
   "admin.team.maxChannelsTitle": "Max Channels Per Team:",
