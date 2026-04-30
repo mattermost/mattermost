@@ -1266,8 +1266,29 @@ export async function createPermissionPolicy(
         await page.locator(`#pp-role-option-${options.role}`).click();
     }
 
-    // Switch to Advanced (CEL) mode and enter expression
-    await page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
+    // Switch to Advanced (CEL) mode and enter expression.
+    // The button is disabled when no user-attribute fields exist. If another test's
+    // afterEach deleted all CPA fields between our ensureUserAttributes call and now,
+    // re-create them and reload the "Add policy" form before clicking.
+    const switchBtn = page.getByRole('button', {name: 'Switch to Advanced Mode'});
+    if (await switchBtn.isDisabled()) {
+        if (options.adminClient) {
+            await ensureUserAttributes(options.adminClient);
+        }
+        await navigateToPermissionPoliciesPage(page);
+        const addPolicyRetry = page.getByRole('button', {name: 'Add policy'});
+        await addPolicyRetry.waitFor({state: 'visible', timeout: 15000});
+        await addPolicyRetry.click();
+        await page.waitForLoadState('networkidle');
+        // Re-fill policy name and role after the form reload.
+        await page.getByPlaceholder('Add a unique policy name').fill(options.name);
+        if (options.role && options.role !== 'system_user') {
+            await page.locator('#pp-role-selector-btn').click();
+            await page.locator(`#pp-role-option-${options.role}`).click();
+        }
+    }
+    await expect(switchBtn).toBeEnabled({timeout: 10000});
+    await switchBtn.click();
 
     const monacoContainer = page.locator('.monaco-editor').first();
     await monacoContainer.waitFor({state: 'visible', timeout: 5000});

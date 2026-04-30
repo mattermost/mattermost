@@ -71,17 +71,22 @@ async function createAnonymousUrlChannel(
 ) {
     await setAnonymousUrls(adminClient, true);
 
-    // Wait until the server confirms UseAnonymousURLs=true before creating the
-    // channel. patchConfig resolves when the HTTP response is received, but the
-    // value may not yet be visible to the channel-creation handler, and a
-    // concurrent initSetup() could reset it between the patch and the browser request.
-    for (let i = 0; i < 20; i++) {
-        const cfg = await adminClient.getConfig();
-        if (cfg.PrivacySettings?.UseAnonymousURLs === true) {
-            break;
-        }
-        await new Promise((r) => setTimeout(r, 500));
-    }
+    // Wait until the server confirms UseAnonymousURLs=true.
+    // expect.poll gives reliable retry semantics vs. a manual break-loop.
+    await expect
+        .poll(
+            async () => {
+                const cfg = await adminClient.getConfig();
+                return cfg.PrivacySettings?.UseAnonymousURLs;
+            },
+            {timeout: 15000, intervals: [500, 1000, 2000]},
+        )
+        .toBe(true);
+
+    // Final re-apply immediately before the UI action to close the race window
+    // between the polling confirmation and the channel-creation POST reaching
+    // the server (the modal open + fill + submit adds ~200–500 ms of latency).
+    await setAnonymousUrls(adminClient, true);
 
     await createChannelFromUI(channelsPage, displayName);
     await channelsPage.centerView.header.toHaveTitle(displayName);
