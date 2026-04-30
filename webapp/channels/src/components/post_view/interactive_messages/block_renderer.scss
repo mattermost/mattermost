@@ -127,29 +127,6 @@
         }
     }
 
-    // Attachment `fields` (legacy `.attachment-fields` table spacing).
-    .mm-blocks-text--attachment-field {
-        margin-bottom: 0.65em;
-
-        p {
-            margin-top: 0;
-            margin-bottom: 0.2em;
-        }
-
-        p:last-child {
-            margin-bottom: 0;
-        }
-    }
-
-    .mm-blocks-column .mm-blocks-text--attachment-field {
-        margin-bottom: 0;
-    }
-
-    // Short field rows (no thumb/image column); thumb `column_set` includes `.mm-blocks-image`.
-    .mm-blocks-column-set:not(:has(.mm-blocks-image)) {
-        margin-bottom: 0.65em;
-    }
-
     .mm-blocks-text--subtle {
         color: rgba(var(--center-channel-color-rgb), 0.56);
     }
@@ -195,7 +172,6 @@
         flex-direction: row;
         flex-wrap: wrap;
         align-items: flex-start;
-        gap: 12px;
     }
 
     .mm-blocks-container--flow-vertical {

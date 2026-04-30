@@ -56,13 +56,13 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
             typeof a.author_icon === 'string' ? a.author_icon : undefined,
         );
         if (authorText) {
-            prefixItems.push({type: 'text', content: authorText});
+            prefixItems.push({type: 'text', text: authorText});
         }
 
         if (typeof a.title === 'string' && a.title) {
             prefixItems.push({
                 type: 'text',
-                content: buildAttachmentTitleMarkdown(
+                text: buildAttachmentTitleMarkdown(
                     a.title,
                     typeof a.title_link === 'string' ? a.title_link : undefined,
                 ),
@@ -72,7 +72,7 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
         const mainBodyItems: MmBlock[] = [];
 
         if (typeof a.text === 'string' && a.text) {
-            mainBodyItems.push({type: 'text', content: a.text});
+            mainBodyItems.push({type: 'text', text: a.text});
         }
 
         if (typeof a.image_url === 'string' && a.image_url) {
@@ -86,7 +86,10 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
 
         if (Array.isArray(a.fields)) {
             const parsedFields = parseAttachmentFields(a.fields);
-            mainBodyItems.push(...attachmentFieldsToMmBlocks(parsedFields));
+            const fieldsContainer = attachmentFieldsToMmBlocks(parsedFields);
+            if (fieldsContainer) {
+                mainBodyItems.push(fieldsContainer);
+            }
         }
 
         if (typeof a.footer === 'string' && a.footer) {
@@ -94,7 +97,7 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
             const icon = typeof a.footer_icon === 'string' && a.footer_icon ? `![](${a.footer_icon}${FOOTER_ICON_MARKDOWN_SIZE}) ` : '';
             mainBodyItems.push({
                 type: 'text',
-                content: `${icon}${footerBody}`,
+                text: `${icon}${footerBody}`,
                 is_subtle: true,
                 size: 'small',
             });
@@ -110,7 +113,7 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
         if (thumbUrl) {
             const leftColumnItems: MmBlock[] = [...mainBodyItems];
             if (leftColumnItems.length === 0) {
-                leftColumnItems.push({type: 'text', content: COLUMN_PLACEHOLDER_TEXT});
+                leftColumnItems.push({type: 'text', text: COLUMN_PLACEHOLDER_TEXT});
             }
             const thumbColumn: MmColumnBlock = {
                 type: 'column',
@@ -146,7 +149,7 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
         // Pretext is a sibling `text` block before the bordered `container`, matching legacy layout
         // (pretext outside `.attachment__content` — see `message_attachment.tsx`).
         if (pretext) {
-            result.push({type: 'text', content: pretext});
+            result.push({type: 'text', text: pretext});
         }
 
         if (!hasInnerBody) {
@@ -157,7 +160,7 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
             type: 'container',
             border: true,
             accent_color: accentColor,
-            items,
+            content: items,
         });
     }
     return result;
@@ -227,11 +230,11 @@ function attachmentFieldMarkdown(f: ParsedAttachmentField): string {
     return `**${title}:**  \n${value}`;
 }
 
-function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmBlock[] {
+function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmContainerBlock | null {
     if (parsed.length === 0) {
-        return [];
+        return null;
     }
-    const out: MmBlock[] = [];
+    const content: MmBlock[] = [];
     let pending: ParsedAttachmentField | null = null;
 
     for (const field of parsed) {
@@ -242,8 +245,7 @@ function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmBlock[] 
                     width: 'stretch',
                     items: [{
                         type: 'text',
-                        content: attachmentFieldMarkdown(pending),
-                        attachment_field: true,
+                        text: attachmentFieldMarkdown(pending),
                     }],
                 };
                 const right: MmColumnBlock = {
@@ -251,39 +253,40 @@ function attachmentFieldsToMmBlocks(parsed: ParsedAttachmentField[]): MmBlock[] 
                     width: 'stretch',
                     items: [{
                         type: 'text',
-                        content: attachmentFieldMarkdown(field),
-                        attachment_field: true,
+                        text: attachmentFieldMarkdown(field),
                     }],
                 };
-                out.push({type: 'column_set', columns: [left, right]});
+                content.push({type: 'column_set', columns: [left, right]});
                 pending = null;
             } else {
                 pending = field;
             }
         } else {
             if (pending) {
-                out.push({
+                content.push({
                     type: 'text',
-                    content: attachmentFieldMarkdown(pending),
-                    attachment_field: true,
+                    text: attachmentFieldMarkdown(pending),
                 });
                 pending = null;
             }
-            out.push({
+            content.push({
                 type: 'text',
-                content: attachmentFieldMarkdown(field),
-                attachment_field: true,
+                text: attachmentFieldMarkdown(field),
             });
         }
     }
     if (pending) {
-        out.push({
+        content.push({
             type: 'text',
-            content: attachmentFieldMarkdown(pending),
-            attachment_field: true,
+            text: attachmentFieldMarkdown(pending),
         });
     }
-    return out;
+    return {
+        type: 'container',
+        flow: 'vertical',
+        gap: 'medium',
+        content,
+    };
 }
 
 function formatAttachmentFieldValue(value: unknown): string {
@@ -306,7 +309,7 @@ function translateAttachmentActions(actions: unknown[]) {
     const result: MmContainerBlock = {
         type: 'container',
         flow: 'horizontal',
-        items: [],
+        content: [],
     };
     for (const action of actions) {
         if (typeof action !== 'object' || action === null) {
@@ -319,7 +322,7 @@ function translateAttachmentActions(actions: unknown[]) {
             if (!text || !actionId) {
                 continue;
             }
-            result.items.push({
+            result.content.push({
                 type: 'button',
                 action_id: actionId,
                 text,
@@ -343,7 +346,7 @@ function translateAttachmentActions(actions: unknown[]) {
                 }
             }
 
-            result.items.push({
+            result.content.push({
                 type: 'static_select',
                 action_id: actionId,
                 placeholder,
@@ -355,7 +358,7 @@ function translateAttachmentActions(actions: unknown[]) {
             });
         }
     }
-    if (result.items.length === 0) {
+    if (result.content.length === 0) {
         return null;
     }
     return result;

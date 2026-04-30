@@ -46,13 +46,13 @@ function translateBlockKitBlock(
         if (!plain) {
             return null;
         }
-        return {type: 'text', content: `# ${plain}`};
+        return {type: 'text', text: `# ${plain}`};
     }
     case 'markdown': {
         if (typeof b.text !== 'string' || !b.text.trim()) {
             return null;
         }
-        return {type: 'text', content: b.text};
+        return {type: 'text', text: b.text};
     }
     case 'divider':
         return {type: 'divider'};
@@ -80,7 +80,7 @@ function translateBlockKitSection(
         const textColumn: MmColumnBlock = {
             type: 'column',
             width: 'stretch',
-            items: [{type: 'text', content: textContent}],
+            items: [{type: 'text', text: textContent}],
         };
         const accessoryBlock = translateBlockKitAccessory(accessory);
         const accessoryColumn: MmColumnBlock = {
@@ -89,12 +89,12 @@ function translateBlockKitSection(
             items: accessoryBlock ? [accessoryBlock] : [],
         };
         if (accessoryColumn.items.length === 0) {
-            main = {type: 'text', content: textContent};
+            main = {type: 'text', text: textContent};
         } else {
             main = {type: 'column_set', columns: [textColumn, accessoryColumn]};
         }
     } else if (textContent !== null) {
-        main = {type: 'text', content: textContent};
+        main = {type: 'text', text: textContent};
     }
 
     if (main && fieldBlocks.length > 0) {
@@ -136,12 +136,12 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
             const left: MmColumnBlock = {
                 type: 'column',
                 width: 'stretch',
-                items: [{type: 'text', content: pending, attachment_field: true}],
+                items: [{type: 'text', text: pending}],
             };
             const right: MmColumnBlock = {
                 type: 'column',
                 width: 'stretch',
-                items: [{type: 'text', content, attachment_field: true}],
+                items: [{type: 'text', text: content}],
             };
             out.push({type: 'column_set', columns: [left, right]});
             pending = null;
@@ -150,8 +150,7 @@ function sectionFieldsToMmBlocks(fields: unknown): MmBlock[] {
     if (pending !== null) {
         out.push({
             type: 'text',
-            content: pending,
-            attachment_field: true,
+            text: pending,
         });
     }
     return out;
@@ -205,7 +204,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
     const result: MmContainerBlock = {
         type: 'container',
         flow: 'horizontal',
-        items: [],
+        content: [],
     };
     for (const el of elements) {
         if (typeof el !== 'object' || el === null) {
@@ -217,7 +216,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
             if (!text || typeof e.action_id !== 'string' || !e.action_id) {
                 continue;
             }
-            result.items.push({
+            result.content.push({
                 type: 'button',
                 action_id: e.action_id,
                 text,
@@ -232,7 +231,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
             if (options.length === 0) {
                 continue;
             }
-            result.items.push({
+            result.content.push({
                 type: 'static_select',
                 action_id: e.action_id,
                 placeholder,
@@ -240,7 +239,7 @@ function translateBlockKitActionRows(elements: unknown): MmContainerBlock | null
             });
         }
     }
-    if (result.items.length === 0) {
+    if (result.content.length === 0) {
         return null;
     }
     return result;

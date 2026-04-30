@@ -30,7 +30,7 @@ const INITIAL_DRAFTS: Record<InputMode, string> = {
     mm_blocks: `[
   {
     "type": "text",
-    "content": "Hello **from** mm blocks"
+    "text": "Hello **from** mm blocks"
   },
   {
     "type": "button",
@@ -180,11 +180,11 @@ const MmBlocksComponentLibrary = ({
         setDrafts((d) => ({...d, [inputMode]: value}));
     }, [inputMode]);
 
-    const onAction = useCallback((actionId: string, selectedOption?: string, cookie?: string, query?: Record<string, string>) => {
+    const onAction = useCallback((actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
         const parts = [
             `action_id: ${actionId}`,
             selectedOption !== undefined && selectedOption !== '' ? `value: ${selectedOption}` : null,
-            cookie !== undefined && cookie !== '' ? `cookie: ${cookie}` : null,
+            attachmentCookie !== undefined && attachmentCookie !== '' ? `cookie: ${attachmentCookie.slice(0, 48)}…` : null,
             query && Object.keys(query).length > 0 ? `query: ${JSON.stringify(query)}` : null,
         ].filter(Boolean);
         window.alert(parts.join('\n'));

@@ -5,13 +5,14 @@
 // The server treats mm_blocks as opaque data; all validation and rendering is client-side.
 //
 // Native payloads use `props.mm_blocks` as a `MmBlock[]`. Each interactive control carries its
-// own dispatch data: post actions use `action_id` (and optional `value` / per-control `cookie` / `query`);
-// client-side URL opens use `url`. Optional per-control `query` is sent in the post-action API
-// body alongside `selected_option`, `cookie`, and `integration_format` (e.g. `mm_block`).
+// own dispatch data: post actions use `action_id` (and optional `value` / `query`); client-side URL
+// opens use `url`. Optional per-control `query` is sent in the post-action API body alongside
+// `selected_option`, `cookie`, and `integration_format` (e.g. `mm_block`).
 //
-// When the server sets `props.mm_blocks_actions` to a string, it is the single encrypted payload for
-// all mm_blocks actions: the client should send that value as the post-action `cookie` (e.g. when
-// a control has no per-control `cookie`, use the `mm_blocks_actions` string).
+// Cookie handling:
+// - Native mm_blocks: the client sends `props.mm_blocks_actions` (string) as the post-action cookie.
+// - Legacy attachments translated into mm_blocks: each control may carry `cookie` copied from
+//   `props.attachments[].actions[].cookie` (encrypted PostAction cookie per button/select).
 //
 // Legacy bundled `{ blocks, actions }` inside `mm_blocks` and top-level `mm_actions` are merged
 // into controls client-side when still present.
@@ -34,9 +35,13 @@ export type MmButtonBlock = {
     style?: MmButtonStyle;
     tooltip?: string;
     disabled?: boolean;
-    cookie?: string;
     query?: Record<string, string>;
 
+    /**
+     * Legacy attachment actions only: encrypted cookie from `attachments[].actions[].cookie`.
+     * Omitted for native mm_blocks (use post `mm_blocks_actions` instead).
+     */
+    cookie?: string;
 };
 
 export type MmStaticSelectBlock = {
@@ -47,8 +52,13 @@ export type MmStaticSelectBlock = {
     options?: MmStaticSelectOption[];
     initial_option?: string;
     disabled?: boolean;
-    cookie?: string;
     data_source?: string;
+
+    /**
+     * Legacy attachment actions only: encrypted cookie from `attachments[].actions[].cookie`.
+     * Omitted for native mm_blocks (use post `mm_blocks_actions` instead).
+     */
+    cookie?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -59,16 +69,13 @@ export type MmTextSize = 'small' | 'default';
 
 export type MmTextBlock = {
     type: 'text';
-    content: string;
+    text: string;
 
     /** Muted color only; does not change font size. */
     is_subtle?: boolean;
 
     /** Typography scale; omitted is equivalent to `default`. */
     size?: MmTextSize;
-
-    /** Attachment `fields` item; used for vertical spacing between field rows. */
-    attachment_field?: boolean;
 };
 
 /**
@@ -125,9 +132,12 @@ export type MmColumnSetBlock = {
     columns: MmColumnBlock[];
 };
 
+/** Spacing between child blocks inside a container (CSS `gap`). Defaults to `none` when omitted. */
+export type MmContainerGap = 'none' | 'small' | 'medium' | 'big';
+
 export type MmContainerBlock = {
     type: 'container';
-    items: MmBlock[];
+    content: MmBlock[];
 
     /** Optional full container border; independent of `accent_color` */
     border?: boolean;
@@ -139,6 +149,9 @@ export type MmContainerBlock = {
     accent_color?: string;
 
     flow?: 'horizontal' | 'vertical';
+
+    /** Space between items in the container flex layout. Defaults to `none`. */
+    gap?: MmContainerGap;
 };
 
 export type MmCollapsibleBlock = {
@@ -148,10 +161,14 @@ export type MmCollapsibleBlock = {
     collapsed?: boolean;
 };
 
+export type MmScrollableHeight = 'small' | 'medium' | 'large';
+
 export type MmScrollableBlock = {
     type: 'scrollable';
     content: MmBlock[];
-    max_height?: number;
+
+    /** Scroll region maximum height; defaults to `medium` when omitted. */
+    height?: MmScrollableHeight;
 };
 
 export type MmBlock =

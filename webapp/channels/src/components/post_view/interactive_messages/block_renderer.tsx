@@ -60,7 +60,8 @@ import './block_renderer.scss';
 // Action handler type – delegates to the existing action dispatch layer
 // ---------------------------------------------------------------------------
 
-export type ActionHandler = (actionId: string, selectedOption?: string, cookie?: string, query?: Record<string, string>) => void;
+/** Optional 4th arg is legacy attachment `cookie` when the block was translated from `props.attachments`. */
+export type ActionHandler = (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => void;
 
 const MmBlocksImagesMetadataContext = createContext<Record<string, PostImage> | undefined>(undefined);
 
@@ -243,26 +244,23 @@ function mmTextBlockClassNames(block: MmTextBlock): string {
     if (block.size === 'small') {
         parts.push('mm-blocks-text--small');
     }
-    if (block.attachment_field) {
-        parts.push('mm-blocks-text--attachment-field');
-    }
     return parts.join(' ');
 }
 
 const TextBlock = ({block, postId, onAction}: TextBlockProps) => {
     const handleMmActionMarkdown = useCallback(
         (actionId: string, query: Record<string, string>) => {
-            onAction(actionId, undefined, undefined, query);
+            onAction(actionId, undefined, query, undefined);
         },
         [onAction],
     );
-    if (!block.content) {
+    if (!block.text) {
         return null;
     }
     return (
         <div className={mmTextBlockClassNames(block)}>
             <Markdown
-                message={block.content}
+                message={block.text}
                 postId={postId}
                 onMmBlocksMarkdownAction={handleMmActionMarkdown}
             />
@@ -391,7 +389,7 @@ const ButtonElement = ({element, onAction}: ButtonElementProps) => {
         if (!element.action_id) {
             return;
         }
-        onAction(element.action_id, undefined, element.cookie, element.query);
+        onAction(element.action_id, undefined, element.query, element.cookie);
     }, [element.action_id, element.cookie, element.query, element.text, onAction]);
 
     if (!element.text || (!element.action_id)) {
@@ -491,7 +489,7 @@ const StaticSelectElement = ({element, onAction}: StaticSelectElementProps) => {
                 selectedOption = option.value;
             }
 
-            onAction(element.action_id, selectedOption, element.cookie, element.query);
+            onAction(element.action_id, selectedOption, element.query, element.cookie);
             setValue(text);
         },
         [element.action_id, element.cookie, element.data_source, element.query, onAction],
@@ -594,8 +592,23 @@ type ContainerBlockProps = {
 
 const NAMED_ATTACHMENT_ACCENT_SET = new Set(['good', 'warning', 'danger']);
 
+/** Pixels for CSS `gap` between container children. `none` uses 0. */
+const MM_CONTAINER_GAP_PX: Record<'small' | 'medium' | 'big', number> = {
+    small: 4,
+    medium: 8,
+    big: 16,
+};
+
+function mmContainerGapStyle(gap: MmContainerBlock['gap'] | undefined): CSSProperties {
+    const g = gap ?? 'none';
+    if (g === 'none') {
+        return {gap: 0};
+    }
+    return {gap: MM_CONTAINER_GAP_PX[g]};
+}
+
 const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
-    if (!block.items || block.items.length === 0) {
+    if (!block.content || block.content.length === 0) {
         return null;
     }
     let flowClass = '';
@@ -605,6 +618,7 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
         flowClass = 'mm-blocks-container--flow-vertical';
     }
     const accent = block.accent_color;
+    const gapStyle = mmContainerGapStyle(block.gap);
     if (!accent) {
         const className = [
             'mm-blocks-container',
@@ -613,8 +627,11 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
         ].filter(Boolean).join(' ');
 
         return (
-            <div className={className}>
-                {block.items.map((item, i) => (
+            <div
+                className={className}
+                style={gapStyle}
+            >
+                {block.content.map((item, i) => (
                     <BlockSwitch
                         key={i}
                         block={item}
@@ -636,12 +653,14 @@ const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
         flowClass,
     ].filter(Boolean).join(' ');
 
+    const innerStyle: CSSProperties = {...gapStyle, ...accentInlineStyle};
+
     const inner = (
         <div
             className={innerClasses}
-            style={accentInlineStyle}
+            style={innerStyle}
         >
-            {block.items.map((item, i) => (
+            {block.content.map((item, i) => (
                 <BlockSwitch
                     key={i}
                     block={item}
@@ -726,6 +745,18 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
 // Scrollable block
 // ---------------------------------------------------------------------------
 
+/** Fixed scroll viewport heights (px) for MmScrollableBlock.height presets. */
+const MM_SCROLLABLE_HEIGHT_PX: Record<'small' | 'medium' | 'large', number> = {
+    small: 160,
+    medium: 280,
+    large: 420,
+};
+
+function mmScrollableHeightPx(height: MmScrollableBlock['height'] | undefined): number {
+    const key = height === 'small' || height === 'medium' || height === 'large' ? height : 'medium';
+    return MM_SCROLLABLE_HEIGHT_PX[key];
+}
+
 type ScrollableBlockProps = {
     block: MmScrollableBlock;
     postId: string;
@@ -737,14 +768,14 @@ const ScrollableBlock = ({block, postId, onAction}: ScrollableBlockProps) => {
         return null;
     }
 
-    const maxHeight = typeof block.max_height === 'number' && block.max_height > 0 ? block.max_height : undefined;
+    const h = mmScrollableHeightPx(block.height);
 
     return (
         <div
             role='region'
             aria-label='Scrollable content'
             className='mm-blocks-scrollable'
-            style={maxHeight ? {maxHeight, overflowY: 'auto'} : undefined}
+            style={{maxHeight: h, overflowY: 'auto'}}
         >
             {block.content.map((item, i) => (
                 <BlockSwitch

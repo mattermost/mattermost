@@ -29,10 +29,15 @@ const InteractiveMessages = ({post}: Props) => {
     const mmBlocksActionsProp = (post.props as Record<string, unknown> | undefined)?.mm_blocks_actions;
     const mmBlocksActionsCookie = typeof mmBlocksActionsProp === 'string' ? mmBlocksActionsProp : undefined;
 
-    const handleAction = useCallback(async (actionId: string, selectedOption?: string, cookie?: string, query?: Record<string, string>) => {
-        const integrationContext = getPostInteractiveIntegrationFormat(post.props as Record<string, unknown>);
-        const actionCookie = cookie ?? mmBlocksActionsCookie ?? '';
-        const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationContext));
+    const handleAction = useCallback(async (actionId: string, selectedOption?: string, query?: Record<string, string>, attachmentCookie?: string) => {
+        const integrationFormat = getPostInteractiveIntegrationFormat(post.props as Record<string, unknown>);
+        let actionCookie = '';
+        if (integrationFormat === 'attachment') {
+            actionCookie = attachmentCookie ?? '';
+        } else {
+            actionCookie = mmBlocksActionsCookie ?? '';
+        }
+        const result = await dispatch(doPostActionWithCookie(post.id, actionId, actionCookie, selectedOption ?? '', query, integrationFormat));
         const goToLocation =
             typeof result.data === 'object' &&
             result.data !== null &&

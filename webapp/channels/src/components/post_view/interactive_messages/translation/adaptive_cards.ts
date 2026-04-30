@@ -60,7 +60,7 @@ function translateAdaptiveCardItem(
         const size = acSize === 'Small' || acSize === 'small' ? 'small' as const : undefined;
         return {
             type: 'text',
-            content: i.text,
+            text: i.text,
             is_subtle: i.isSubtle === true || undefined,
             ...(size ? {size} : {}),
         };
@@ -79,7 +79,7 @@ function translateAdaptiveCardItem(
         if (items.length === 0) {
             return null;
         }
-        return {type: 'container', items};
+        return {type: 'container', content: items};
     }
     case 'ColumnSet': {
         if (!Array.isArray(i.columns)) {
@@ -144,7 +144,7 @@ function translateAdaptiveCardActions(actions: unknown[]) {
     const result: MmContainerBlock = {
         type: 'container',
         flow: 'horizontal',
-        items: [],
+        content: [],
     };
     for (const action of actions) {
         if (typeof action !== 'object' || action === null) {
@@ -159,7 +159,7 @@ function translateAdaptiveCardActions(actions: unknown[]) {
             const actionId = typeof ac.id === 'string' ? ac.id : '';
             const rawStyle = typeof ac.style === 'string' ? ac.style : undefined;
             const style = adaptiveCardStyleToMm(rawStyle);
-            result.items.push({
+            result.content.push({
                 type: 'button',
                 action_id: actionId,
                 text: title,
@@ -167,7 +167,7 @@ function translateAdaptiveCardActions(actions: unknown[]) {
             });
         }
     }
-    if (result.items.length === 0) {
+    if (result.content.length === 0) {
         return null;
     }
     return result;
