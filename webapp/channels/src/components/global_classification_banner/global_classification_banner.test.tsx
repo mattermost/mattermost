@@ -22,6 +22,8 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
+import {SYSTEM_VALUE_TARGET_ID} from 'components/admin_console/classification_markings/utils';
+
 const MOCK_USER_ID = 'current_user_id_12345678';
 
 import GlobalClassificationBanner from './global_classification_banner';
@@ -74,7 +76,7 @@ function makeLinkedField(actions: string[]): PropertyField {
 function makeSystemValue(optionId: string): PropertyValue<string> {
     return {
         id: 'value1',
-        target_id: MOCK_USER_ID,
+        target_id: SYSTEM_VALUE_TARGET_ID,
         target_type: LINKED_OBJECT_TYPE,
         group_id: GROUP_NAME,
         field_id: LINKED_FIELD_ID,
