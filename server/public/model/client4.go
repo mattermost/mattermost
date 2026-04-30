@@ -3265,7 +3265,7 @@ func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, chann
 	return DecodeJSONFromResponse[*ChannelViewResponse](r)
 }
 
-// ReadMultipleChannels performs a view action on all direct and group messages for a user
+// ReadAllMessages performs a view action on all direct and group messages for a user
 func (c *Client4) ReadAllMessages(ctx context.Context, userId string) (*ChannelViewResponse, *Response, error) {
 	r, err := c.doAPIPutJSON(ctx, c.channelsRoute().Join("members", userId, "direct", "read"), nil)
 	if err != nil {
