@@ -15,14 +15,13 @@ import {
     LINKED_OBJECT_TYPE,
     OBJECT_TYPE,
     SYSTEM_FIELD_TARGET_ID,
+    SYSTEM_VALUE_TARGET_ID,
     TARGET_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
-
-import {SYSTEM_VALUE_TARGET_ID} from 'components/admin_console/classification_markings/utils';
 
 const MOCK_USER_ID = 'current_user_id_12345678';
 
