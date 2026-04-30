@@ -2910,7 +2910,11 @@ func getChannelAccessControlAttributes(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	attributes, err := c.App.GetAccessControlPolicyAttributes(c.AppContext, c.Params.ChannelId, "*")
+	// Channel banners care about the membership rule — the attributes that
+	// determine who can be in the channel. Since the v0.3 migration stores the
+	// action as "membership" rather than "*", ask for it explicitly; the
+	// wildcard fallback in GetRule still covers older policies that kept "*".
+	attributes, err := c.App.GetAccessControlPolicyAttributes(c.AppContext, c.Params.ChannelId, model.AccessControlPolicyActionMembership)
 	if err != nil {
 		c.Err = err
 		return

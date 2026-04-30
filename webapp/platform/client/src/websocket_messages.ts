@@ -261,6 +261,12 @@ export type ChannelBookmarkSorted = BaseWebSocketMessage<WebSocketEvents.Channel
     bookmarks: JsonEncodedValue<ChannelBookmarkWithFileInfo[]>;
 }>;
 
+// Channel access control messages
+
+export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelAccessControlUpdated, {
+    channel: JsonEncodedValue<Channel>;
+}>;
+
 // Team and team member messages
 
 export type Team =
