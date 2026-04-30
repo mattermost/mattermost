@@ -221,6 +221,59 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
 	})
 
+	t.Run("team admin can create policy-scoped sync job for their owned policy", func(t *testing.T) {
+		teamAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)
+		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
+		require.Nil(t, appErr)
+
+		// Build ownership via the real parent->child channel relationship, then reconcile scope.
+		parentPolicy := &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "team-owned-policy",
+			Type:    model.AccessControlPolicyTypeParent,
+			Version: model.AccessControlPolicyVersionV0_2,
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
+		}
+		savedParent, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
+		require.NoError(t, storeErr)
+
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		childPolicy := &model.AccessControlPolicy{
+			ID:      channel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+		}
+		require.Nil(t, childPolicy.Inherit(savedParent))
+		_, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, storeErr)
+
+		appErr = th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
+
+		teamAdminSession := model.Session{
+			UserId: teamAdmin.Id,
+			Roles:  model.SystemUserRoleId,
+			TeamMembers: []*model.TeamMember{
+				{TeamId: th.BasicTeam.Id, UserId: teamAdmin.Id, Roles: "team_user team_admin"},
+			},
+		}
+
+		jobWithOwnedPolicy := model.Job{
+			Id:   model.NewId(),
+			Type: model.JobTypeAccessControlSync,
+			Data: model.StringMap{
+				"team_id":   th.BasicTeam.Id,
+				"policy_id": savedParent.ID,
+			},
+		}
+
+		hasPermission, permissionRequired := th.App.SessionHasPermissionToCreateJob(teamAdminSession, &jobWithOwnedPolicy)
+		assert.True(t, hasPermission)
+		require.NotNil(t, permissionRequired)
+		assert.Equal(t, model.PermissionManageTeamAccessRules.Id, permissionRequired.Id)
+	})
+
 	t.Run("team admin cannot smuggle a foreign policy_id alongside their team_id", func(t *testing.T) {
 		teamAdmin := th.CreateUser(t)
 		th.LinkUserToTeam(t, teamAdmin, th.BasicTeam)

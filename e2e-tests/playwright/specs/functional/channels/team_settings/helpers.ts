@@ -16,6 +16,20 @@ export async function enableABACConfig(client: Client4) {
     });
 }
 
+/**
+ * Enable `ServiceSettings.EnableAPIUserDeletion` so test cleanup can permanently
+ * delete the throwaway users it created. Without this, test cleanup spams the
+ * console with "Permanent user deletion feature is not enabled" errors and leaks
+ * disabled-but-not-deleted test users on the server.
+ */
+export async function enableAPIUserDeletion(client: Client4) {
+    await client.patchConfig({
+        ServiceSettings: {
+            EnableAPIUserDeletion: true,
+        },
+    });
+}
+
 export async function ensureDepartmentAttribute(client: Client4) {
     let fields: any[] = [];
     try {
@@ -128,6 +142,57 @@ export async function setUserAttribute(adminClient: Client4, userId: string, fie
         throw new Error(`Field "${fieldName}" not found`);
     }
     await adminClient.updateUserCustomProfileAttributesValues(userId, {[field.id]: value});
+}
+
+/**
+ * Wait until all `expectedUserIds` show up as matching `expression` via the
+ * access-control CEL test endpoint.
+ *
+ * Why this exists: ABAC queries (validateExpressionAgainstRequester,
+ * calculateMembershipChanges) read from a Postgres materialized view
+ * (`AttributeView`). The enterprise access-control service refreshes that view
+ * at most once every 30 seconds — so freshly-written CPA values are not visible
+ * until the next refresh tick. A test that writes a brand-new CPA value and
+ * then immediately clicks "Save" on a rule referencing that value will hit
+ * `requester_matches: false` and surface the self-exclusion modal instead of
+ * the membership-changes confirmation modal.
+ *
+ * Polling forces wall-clock time to advance; the next CEL query after the 30s
+ * gate elapses will refresh the view and pick up the new attribute values.
+ * Default timeout 45s = 30s gate + 15s headroom.
+ */
+export async function waitForAttributeViewToInclude(
+    adminClient: Client4,
+    expression: string,
+    expectedUserIds: string[],
+    timeoutMs = 45_000,
+    pollIntervalMs = 1_000,
+): Promise<void> {
+    const deadline = Date.now() + timeoutMs;
+    let lastSeen = new Set<string>();
+    while (Date.now() < deadline) {
+        const response: any = await (adminClient as any).doFetch(
+            `${adminClient.getBaseRoute()}/access_control_policies/cel/test`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    expression,
+                    term: '',
+                    after: '',
+                    limit: 1000,
+                }),
+            },
+        );
+        lastSeen = new Set<string>((response?.users || []).map((u: any) => u.id));
+        if (expectedUserIds.every((id) => lastSeen.has(id))) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+    }
+    const missing = expectedUserIds.filter((id) => !lastSeen.has(id));
+    throw new Error(
+        `AttributeView did not include users [${missing.join(', ')}] for expression "${expression}" within ${timeoutMs}ms`,
+    );
 }
 
 export async function createPrivateChannel(client: Client4, teamId: string) {
