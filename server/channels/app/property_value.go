@@ -179,7 +179,12 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 
 	// Intrinsic invariants — apply to every caller (HTTP, plugin, internal).
 	// Single-group invariant must run before the bulk-load below, since
-	// GetPropertyFields takes a single groupID.
+	// GetPropertyFields takes a single groupID. Guard values[0] explicitly
+	// because the per-element nil check inside the loop would otherwise be
+	// reached after the values[0].GroupID dereference.
+	if values[0] == nil {
+		return nil, model.NewAppError("UpsertPropertyValues", "app.property_value.invalid_input.app_error", nil, "nil property value in batch", http.StatusBadRequest)
+	}
 	groupID := values[0].GroupID
 	seenIDs := make(map[string]bool, len(values))
 	fieldIDs := make([]string, 0, len(values))
