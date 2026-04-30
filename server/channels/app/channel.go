@@ -3346,21 +3346,19 @@ func (a *App) MarkTeamChannelsAndThreadsViewed(rctx request.CTX, teamID string, 
 			message.Add("channel_times", times)
 			a.Publish(message)
 		}
+	}
 
-		for _, channelID := range channelsToClearPushNotifications {
-			a.clearPushNotification(currentSessionID, userID, channelID, "")
-		}
+	for _, channelID := range channelsToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
 	}
 
 	if isCRTEnabled {
-		// Thread updates can have happened in any team channel (not just channelsToView),
-		// so notify clients to refresh thread state across the entire team.
-		timestamp := model.GetMillis()
-		for _, channelID := range allChannelIDs {
-			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
-			message.Add("timestamp", timestamp)
-			a.Publish(message)
-		}
+		// Threads can have been marked read across the entire team, so broadcast a
+		// single team-scoped event. The client routes this to a single
+		// ALL_TEAM_THREADS_READ Redux action — it does NOT trigger any API calls.
+		message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, teamID, "", userID, nil, "")
+		message.Add("timestamp", model.GetMillis())
+		a.Publish(message)
 	}
 
 	return times, nil
@@ -3408,15 +3406,16 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 			message.Add("channel_times", times)
 			a.Publish(message)
 		}
+	}
 
-		for _, channelID := range messagesToClearPushNotifications {
-			a.clearPushNotification(currentSessionID, userID, channelID, "")
-		}
+	for _, channelID := range messagesToClearPushNotifications {
+		a.clearPushNotification(currentSessionID, userID, channelID, "")
 	}
 
 	if isCRTEnabled {
-		// Thread updates can have happened in any DM/GM (not just messagesToView),
-		// so notify clients to refresh thread state across all of them.
+		// Threads can have been marked read in any DM/GM. There's no team to
+		// broadcast on, so emit one event per channel. The client routes each to a
+		// single ALL_THREADS_IN_CHANNEL_READ Redux action — no API calls are made.
 		timestamp := model.GetMillis()
 		for _, channelID := range allChannelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
