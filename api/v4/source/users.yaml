@@ -3124,6 +3124,9 @@
                   last_viewed_at_times:
                     type: object
                     description: A JSON object mapping channel IDs to the last viewed times
+                    additionalProperties:
+                      type: integer
+                      format: int64
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
