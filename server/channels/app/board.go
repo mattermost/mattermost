@@ -36,19 +36,19 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	}
 
 	// Look up boards property fields by name
-	boardsGroup, err := a.Srv().PropertyService().GetPropertyGroup(model.BoardsPropertyGroupName)
-	if err != nil {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "boards property group not found", http.StatusInternalServerError).Wrap(err)
+	boardsGroup, appErr := a.GetPropertyGroup(rctx, model.BoardsPropertyGroupName)
+	if appErr != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "boards property group not found", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	assigneeField, err := a.Srv().PropertyService().GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldAssignee)
-	if err != nil {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "assignee property field not found", http.StatusInternalServerError).Wrap(err)
+	assigneeField, appErr := a.GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldAssignee)
+	if appErr != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "assignee property field not found", http.StatusInternalServerError).Wrap(appErr)
 	}
 
-	statusField, err := a.Srv().PropertyService().GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldStatus)
-	if err != nil {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status property field not found", http.StatusInternalServerError).Wrap(err)
+	statusField, appErr := a.GetPropertyFieldByName(rctx, boardsGroup.ID, "", model.BoardsPropertyFieldStatus)
+	if appErr != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status property field not found", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	// Set linked properties on channel
