@@ -1509,18 +1509,18 @@ func TestGetUserByAuthData(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		t.Run("returns user and auth fields for system admin and local", func(t *testing.T) {
-			ruser, resp, getErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
+			ruser, resp, getErr := client.GetUserByAuthData(context.Background(), authID, "")
 			require.NoError(t, getErr)
 			require.Equal(t, user.Id, ruser.Id)
 			require.NotNil(t, ruser.AuthData)
 			require.Equal(t, authID, *ruser.AuthData)
 			require.Equal(t, model.UserAuthServiceSaml, ruser.AuthService)
-			ruser, resp, _ = client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, resp.Etag)
+			ruser, resp, _ = client.GetUserByAuthData(context.Background(), authID, resp.Etag)
 			CheckEtag(t, ruser, resp)
 		})
 
 		t.Run("not found returns not found", func(t *testing.T) {
-			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, "nope-"+model.NewId(), "")
+			_, resp, notFoundErr := client.GetUserByAuthData(context.Background(), "nope-"+model.NewId(), "")
 			require.Error(t, notFoundErr)
 			CheckNotFoundStatus(t, resp)
 		})
@@ -1531,14 +1531,14 @@ func TestGetUserByAuthData(t *testing.T) {
 		// a separate team member to assert the endpoint requires a system admin.
 		_, _, err = th.Client.Login(context.Background(), regularUser.Email, regularUser.Password)
 		require.NoError(t, err)
-		_, resp, err := th.Client.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, authID, "")
+		_, resp, err := th.Client.GetUserByAuthData(context.Background(), authID, "")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
 
 	t.Run("rejects auth data over max length", func(t *testing.T) {
 		longData := strings.Repeat("x", model.UserAuthDataMaxLength+1)
-		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), model.UserAuthServiceSaml, longData, "")
+		_, resp, err := th.SystemAdminClient.GetUserByAuthData(context.Background(), longData, "")
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 	})

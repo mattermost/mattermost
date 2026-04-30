@@ -2160,6 +2160,17 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 		assert.Equal(t, u3, u)
 	})
 
+	t.Run("GetByAuthData finds user by auth data only", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u1.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u1.Id, u.Id)
+		assert.Equal(t, "service", u.AuthService)
+
+		u, err = ss.User().GetByAuthData(u3.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u3.Id, u.Id)
+	})
+
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
 		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
 		require.Error(t, err)

@@ -6,7 +6,6 @@ package api4
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,12 +25,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
-
-// hashAuthDataForAudit returns a short, non-reversible hash for audit records (raw auth_data is never logged).
-func hashAuthDataForAudit(authData string) string {
-	sum := sha256.Sum256([]byte(authData))
-	return hex.EncodeToString(sum[:8])
-}
 
 func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("", api.APIHandler(createUser)).Methods(http.MethodPost)
@@ -470,21 +463,8 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("getUserByAuth", model.AuditStatusFail)
-	if c.Params.AuthService != "" {
-		model.AddEventParameterToAuditRec(auditRec, "auth_service", c.Params.AuthService)
-	}
-	if c.Params.AuthData != "" {
-		model.AddEventParameterToAuditRec(auditRec, "auth_data_hash", hashAuthDataForAudit(c.Params.AuthData))
-	}
-	defer c.LogAuditRec(auditRec)
-
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-	if c.Params.AuthService == "" {
-		c.SetInvalidURLParam("auth_service")
 		return
 	}
 	if c.Params.AuthData == "" {
@@ -496,7 +476,7 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	authData := c.Params.AuthData
-	user, err := c.App.GetUserByAuth(&authData, c.Params.AuthService)
+	user, err := c.App.GetUserByAuthData(&authData)
 	if err != nil {
 		restrictions, err2 := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 		if err2 != nil {
@@ -506,10 +486,6 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		if restrictions != nil {
 			c.SetPermissionError(model.PermissionViewMembers)
 			return
-		}
-		auditRec.AddMeta("outcome", "lookup_failed")
-		if err.Id != "" {
-			auditRec.AddMeta("app_error_id", err.Id)
 		}
 		c.Err = err
 		return
@@ -527,8 +503,6 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
-	auditRec.AddMeta("user_id", user.Id)
-	auditRec.Success()
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return

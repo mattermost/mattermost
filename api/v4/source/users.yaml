@@ -1420,28 +1420,22 @@
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
-  "/api/v4/users/auth_service/{auth_service}/auth_data/{auth_data}":
+  "/api/v4/users/auth_data/{auth_data}":
     get:
       tags:
         - users
-      summary: Get a user by auth data and auth service
+      summary: Get a user by auth data
       description: >
-        Get a user object by providing the auth service (for example, LDAP or SAML)
-        and the external auth data identifier. The `auth_data` value must be
-        URL path-encoded. Sensitive information is included for system
-        administrators consistent with other admin user APIs.
+        Get a user object by providing the external auth data identifier
+        (`Users.AuthData`). Non-null auth data is unique per server. The
+        `auth_data` value must be URL path-encoded. Sensitive information is
+        included for system administrators consistent with other admin user APIs.
 
         ##### Permissions
 
         Must be a system admin.
       operationId: GetUserByAuthData
       parameters:
-        - name: auth_service
-          in: path
-          description: The auth service (e.g. ldap, saml) matching `Users.AuthService`
-          required: true
-          schema:
-            type: string
         - name: auth_data
           in: path
           description: The user's AuthData from the external identity provider

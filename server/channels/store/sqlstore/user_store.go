@@ -1281,27 +1281,36 @@ func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
 	return &user, nil
 }
 
-func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
+func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
 	}
 
-	query := us.usersQuery.
-		Where("Users.AuthData = ?", authData).
-		Where("Users.AuthService = ?", authService)
+	query := us.usersQuery.Where("Users.AuthData = ?", authData)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "get_by_auth_tosql")
+		return nil, errors.Wrap(err, "get_by_auth_data_tosql")
 	}
 
 	user := model.User{}
 	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
-		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s, authService=%s", *authData, authService))
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s", *authData))
 	} else if err != nil {
-		return nil, errors.Wrapf(err, "failed to find User with authData=%s and authService=%s", *authData, authService)
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s", *authData)
 	}
 	return &user, nil
+}
+
+func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
+	user, err := us.GetByAuthData(authData)
+	if err != nil {
+		return nil, err
+	}
+	if user.AuthService != authService {
+		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s, authService=%s", *authData, authService))
+	}
+	return user, nil
 }
 
 func (us SqlUserStore) GetAllUsingAuthService(authService string) ([]*model.User, error) {

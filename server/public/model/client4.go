@@ -232,8 +232,8 @@ func (c *Client4) userByEmailRoute(email string) clientRoute {
 	return c.usersRoute().Join("email", email)
 }
 
-func (c *Client4) userByAuthDataRoute(authService, authData string) clientRoute {
-	return c.usersRoute().Join("auth_service", authService, "auth_data", authData)
+func (c *Client4) userByAuthDataRoute(authData string) clientRoute {
+	return c.usersRoute().Join("auth_data", authData)
 }
 
 func (c *Client4) botsRoute() clientRoute {
@@ -1181,9 +1181,9 @@ func (c *Client4) GetUserByEmail(ctx context.Context, email, etag string) (*User
 	return DecodeJSONFromResponse[*User](r)
 }
 
-// GetUserByAuthData returns a user by auth_service and auth_data. Path segments are escaped by the route builder.
-func (c *Client4) GetUserByAuthData(ctx context.Context, authService, authData, etag string) (*User, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.userByAuthDataRoute(authService, authData), etag)
+// GetUserByAuthData returns a user by auth_data (external AuthData). Path segments are escaped by the route builder.
+func (c *Client4) GetUserByAuthData(ctx context.Context, authData, etag string) (*User, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.userByAuthDataRoute(authData), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

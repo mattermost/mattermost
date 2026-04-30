@@ -467,6 +467,7 @@ type UserStore interface {
 	GetByEmail(email string) (*model.User, error)
 	GetByRemoteID(remoteID string) (*model.User, error)
 	GetByAuth(authData *string, authService string) (*model.User, error)
+	GetByAuthData(authData *string) (*model.User, error)
 	GetAllUsingAuthService(authService string) ([]*model.User, error)
 	GetAllNotInAuthService(authServices []string) ([]*model.User, error)
 	GetByUsername(username string) (*model.User, error)
