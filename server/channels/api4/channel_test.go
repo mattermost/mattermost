@@ -1038,6 +1038,37 @@ func TestPatchChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("Should be able to patch default_category_name on an open channel", func(t *testing.T) {
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		th.LoginBasic(t)
+
+		channel := &model.Channel{
+			DisplayName: GenerateTestChannelName(),
+			Name:        GenerateTestChannelName(),
+			Type:        model.ChannelTypeOpen,
+			TeamId:      team.Id,
+		}
+		channel, _, err = client.CreateChannel(context.Background(), channel)
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		patched, _, err := client.PatchChannel(context.Background(), channel.Id, patch)
+		require.NoError(t, err)
+		require.Equal(t, categoryName, patched.DefaultCategoryName)
+
+		fetched, _, err := client.GetChannel(context.Background(), channel.Id)
+		require.NoError(t, err)
+		require.Equal(t, categoryName, fetched.DefaultCategoryName)
+
+		emptyName := ""
+		clearPatch := &model.ChannelPatch{DefaultCategoryName: &emptyName}
+		cleared, _, err := client.PatchChannel(context.Background(), channel.Id, clearPatch)
+		require.NoError(t, err)
+		require.Equal(t, "", cleared.DefaultCategoryName)
+	})
+
 	t.Run("Should not be able to configure channel banner without a license", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
