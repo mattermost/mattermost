@@ -10,7 +10,7 @@ import {LhsItemType, LhsPage} from 'types/store/lhs';
 
 import Recaps from './recaps';
 
-const mockDispatch = jest.fn();
+const mockDispatch = jest.fn(() => Promise.resolve({data: []}));
 const mockGetAgents = jest.fn(() => ({type: 'GET_AGENTS'}));
 const mockGetRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_RECAPS', meta: {page, perPage}}));
 const mockMarkRecapsAsViewed = jest.fn(() => ({type: 'MARK_RECAPS_VIEWED'}));

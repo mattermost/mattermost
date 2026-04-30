@@ -45,12 +45,16 @@ const Recaps = () => {
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
         const fetchData = async () => {
-            await dispatch(getRecaps(0, 60));
+            const result = await dispatch(getRecaps(0, 60));
             setIsLoading(false);
 
-            // Mark after getRecaps resolves so its response can't overwrite
-            // the viewed_at timestamps the WS-driven refresh is about to set.
-            dispatch(markRecapsAsViewed());
+            // Only mark viewed when getRecaps succeeded. Marking after the
+            // fetch (rather than in parallel) also prevents getRecaps's
+            // response from overwriting the viewed_at timestamps the
+            // WS-driven refresh is about to set.
+            if (!result.error) {
+                dispatch(markRecapsAsViewed());
+            }
         };
         fetchData();
         dispatch(getAgents());
