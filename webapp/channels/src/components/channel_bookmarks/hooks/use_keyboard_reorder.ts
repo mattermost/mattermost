@@ -144,8 +144,8 @@ export function useKeyboardReorder({
         setState(INITIAL_STATE);
         readAloud(
             formatMessage({
-                id: 'channel_bookmarks.reorder.cancelled',
-                defaultMessage: 'Reorder cancelled.',
+                id: 'channel_bookmarks.reorder.canceled',
+                defaultMessage: 'Reorder canceled.',
             }),
         );
     }, [state, onReorder, onOverflowOpenChange, formatMessage, readAloud]);
