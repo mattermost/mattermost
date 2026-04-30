@@ -148,6 +148,8 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
 
     const channelNameRef = useRef<HTMLSpanElement>(null);
     const [isChannelNameTruncated, setIsChannelNameTruncated] = useState(false);
+    const teamNameRef = useRef<HTMLSpanElement>(null);
+    const [isTeamNameTruncated, setIsTeamNameTruncated] = useState(false);
 
     const ids = usePrefixedIds(id, {
         name: null,
@@ -324,12 +326,18 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let teamName = null;
     if (isRealChannel(channel) && channel.team_id && team) {
         teamName = (
-            <span
-                id={ids.teamName}
-                className='ml-2 suggestion-list__team-name'
+            <WithTooltip
+                title={team.display_name}
+                disabled={!isTeamNameTruncated}
             >
-                {team.display_name}
-            </span>
+                <span
+                    id={ids.teamName}
+                    ref={teamNameRef}
+                    className='ml-2 suggestion-list__team-name'
+                >
+                    {team.display_name}
+                </span>
+            </WithTooltip>
         );
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
@@ -337,8 +345,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     Reflect.deleteProperty(otherProps, 'dispatch');
 
     useLayoutEffect(() => {
-        const el = channelNameRef.current;
-        setIsChannelNameTruncated(Boolean(el && el.scrollWidth > el.clientWidth));
+        const channelEl = channelNameRef.current;
+        setIsChannelNameTruncated(Boolean(channelEl && channelEl.scrollWidth > channelEl.clientWidth));
+
+        const teamEl = teamNameRef.current;
+        setIsTeamNameTruncated(Boolean(teamEl && teamEl.scrollWidth > teamEl.clientWidth));
     }, [name, description, showSlug, isPartOfOnlyOneTeam, team?.display_name, item.unread, channelIsArchived]);
 
     return (

@@ -1542,9 +1542,12 @@ describe('SwitchChannelSuggestion', () => {
             const primaryColumn = flexRow.querySelector(':scope > .suggestion-list__switch-channel-primary');
             expect(primaryColumn).not.toBeNull();
 
-            const teamNameNode = flexRow.querySelector(':scope > .suggestion-list__team-name');
+            const teamNameNode = flexRow.querySelector('.suggestion-list__team-name');
             expect(teamNameNode).not.toBeNull();
             expect(teamNameNode).toHaveTextContent(longTeam1.display_name);
+
+            // Team name must live outside the primary column so it remains a flex sibling that doesn't shrink with the channel name.
+            expect(primaryColumn!.contains(teamNameNode)).toBe(false);
 
             // Channel name span should live inside the primary column with the truncation class
             const channelNameNode = primaryColumn!.querySelector('.suggestion-list__channel-name-text');
@@ -1573,6 +1576,10 @@ describe('SwitchChannelSuggestion', () => {
             const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
             expect(channelNameTooltip).toBeDefined();
             expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
+
+            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
+            expect(teamNameTooltip).toBeDefined();
+            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
         });
 
         test('should enable the channel-name tooltip when the channel name overflows its container', () => {
@@ -1596,6 +1603,10 @@ describe('SwitchChannelSuggestion', () => {
             const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
             expect(channelNameTooltip).toBeDefined();
             expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
+
+            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
+            expect(teamNameTooltip).toBeDefined();
+            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
         });
     });
 });
