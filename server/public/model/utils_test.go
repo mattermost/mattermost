@@ -34,7 +34,7 @@ func TestRandomString(t *testing.T) {
 }
 
 func BenchmarkNewTestPassword(b *testing.B) {
-	for range b.N {
+	for b.Loop() {
 		NewTestPassword()
 	}
 }
