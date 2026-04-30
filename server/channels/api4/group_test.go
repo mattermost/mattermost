@@ -3004,9 +3004,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 }
 
 // newSchemeAdminTestLdapGroup creates a fresh LDAP-source group with
-// AllowReference=true so that verifyLinkUnlinkPermission's AllowReference
-// branch is bypassed and the only check the regular user must clear is the
-// team/channel link permission (invite_user / manage_*_channel_members).
+// AllowReference=true.
 func newSchemeAdminTestLdapGroup(t *testing.T, th *TestHelper) *model.Group {
 	t.Helper()
 	id := model.NewId()
@@ -3023,12 +3021,7 @@ func newSchemeAdminTestLdapGroup(t *testing.T, th *TestHelper) *model.Group {
 }
 
 // findPersistedGroupSyncable returns the persisted GroupSyncable for a
-// given (groupID, syncableID, syncableType) tuple. It uses
-// App.GetGroupSyncables (plural) on purpose because the singular
-// App.GetGroupSyncable does NOT populate SchemeAdmin in the returned
-// struct (a pre-existing bug in SqlGroupStore.getGroupSyncable, see
-// server/channels/store/sqlstore/group_store.go), and asserting on
-// the persisted SchemeAdmin is exactly what these tests need.
+// given (groupID, syncableID, syncableType) tuple, including SchemeAdmin.
 func findPersistedGroupSyncable(t *testing.T, th *TestHelper, groupID, syncableID string, syncableType model.GroupSyncableType) *model.GroupSyncable {
 	t.Helper()
 	syncables, appErr := th.App.GetGroupSyncables(groupID, syncableType)
@@ -3056,15 +3049,13 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
-		require.Error(t, err, "regular team user must not be able to elevate group members to team admin via scheme_admin")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 
-		// Persisted state: either no syncable was created, or it exists
-		// with SchemeAdmin=false. Under no circumstances should it be true.
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		if persisted != nil {
-			assert.False(t, persisted.SchemeAdmin, "GroupSyncable.SchemeAdmin must remain false after a forbidden link request")
+			assert.False(t, persisted.SchemeAdmin)
 		}
 	})
 
@@ -3075,11 +3066,9 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 
-		// GroupSyncable.UnmarshalJSON does not decode scheme_admin
-		// Assert on the persisted state instead.
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-		require.NotNil(t, persisted, "system admin must be able to create a team syncable")
-		assert.True(t, persisted.SchemeAdmin, "system admin must be able to set scheme_admin: true (positive case must remain working)")
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("regular team user can still link with scheme_admin omitted", func(t *testing.T) {
@@ -3089,7 +3078,7 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 			AutoAdd: model.NewPointer(true),
 		}
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-		require.NoError(t, err, "a team_user with invite_user can link a group with AllowReference=true as long as scheme_admin is not touched")
+		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		require.NotNil(t, groupSyncable)
 
@@ -3098,24 +3087,22 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.False(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user can still link with scheme_admin: false explicitly", func(t *testing.T) {
+	t.Run("regular team user must NOT be able to link with scheme_admin: false explicitly", func(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
-		// On a fresh link the syncable defaults to SchemeAdmin: false, so
-		// passing SchemeAdmin: false explicitly is functionally identical to
-		// omitting the field.
 		patch := &model.GroupSyncablePatch{
 			AutoAdd:     model.NewPointer(true),
 			SchemeAdmin: model.NewPointer(false),
 		}
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-		require.NoError(t, err, "regular team user must still be able to link with explicit scheme_admin: false (no-op vs the default)")
-		CheckCreatedStatus(t, response)
-		require.NotNil(t, groupSyncable)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-		require.NotNil(t, persisted)
-		assert.False(t, persisted.SchemeAdmin)
+		if persisted != nil {
+			assert.False(t, persisted.SchemeAdmin)
+		}
 	})
 }
 
@@ -3125,9 +3112,8 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	// verifyLinkUnlinkPermission requires a pre-existing team syncable (or
-	// system-level perms) before a regular user can link a channel syncable,
-	// so we create one as system admin per group.
+	// A regular user can only link a channel syncable when the group is
+	// already linked to the parent team, so seed the team link as sysadmin.
 	mkLinkedGroup := func(t *testing.T) *model.Group {
 		t.Helper()
 		g := newSchemeAdminTestLdapGroup(t, th)
@@ -3148,13 +3134,13 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		g := mkLinkedGroup(t)
 
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminTrue)
-		require.Error(t, err, "regular channel user must not be able to elevate group members to channel admin via scheme_admin")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 		assert.Nil(t, groupSyncable)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		if persisted != nil {
-			assert.False(t, persisted.SchemeAdmin, "GroupSyncable.SchemeAdmin must remain false after a forbidden link request")
+			assert.False(t, persisted.SchemeAdmin)
 		}
 	})
 
@@ -3166,8 +3152,8 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		CheckCreatedStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-		require.NotNil(t, persisted, "system admin must be able to create a channel syncable")
-		assert.True(t, persisted.SchemeAdmin, "system admin must be able to set scheme_admin: true (positive case must remain working)")
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("regular channel user can still link with scheme_admin omitted", func(t *testing.T) {
@@ -3177,7 +3163,7 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 			AutoAdd: model.NewPointer(true),
 		}
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-		require.NoError(t, err, "the security fix must not regress the existing happy-path: a channel_user with manage_*_channel_members can link a group with AllowReference=true as long as scheme_admin is not touched")
+		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
 		require.NotNil(t, groupSyncable)
 
@@ -3186,7 +3172,7 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.False(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular channel user can still link with scheme_admin: false explicitly", func(t *testing.T) {
+	t.Run("regular channel user must NOT be able to link with scheme_admin: false explicitly", func(t *testing.T) {
 		g := mkLinkedGroup(t)
 
 		patch := &model.GroupSyncablePatch{
@@ -3194,13 +3180,14 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 			SchemeAdmin: model.NewPointer(false),
 		}
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-		require.NoError(t, err, "regular channel user must still be able to link with explicit scheme_admin: false (no-op vs the default)")
-		CheckCreatedStatus(t, response)
-		require.NotNil(t, groupSyncable)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, groupSyncable)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-		require.NotNil(t, persisted)
-		assert.False(t, persisted.SchemeAdmin)
+		if persisted != nil {
+			assert.False(t, persisted.SchemeAdmin)
+		}
 	})
 }
 
@@ -3210,15 +3197,13 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	// Each sub-test uses a fresh group pre-linked to BasicTeam by the
-	// system admin (with scheme_admin: false) so that the regular user's
-	// patch attempt exercises only the patch-time permission check.
-	setupLinkedGroup := func(t *testing.T) *model.Group {
+	// schemeAdmin controls the seeded SchemeAdmin value on the team syncable.
+	setupLinkedGroup := func(t *testing.T, schemeAdmin bool) *model.Group {
 		t.Helper()
 		g := newSchemeAdminTestLdapGroup(t, th)
 		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
 			AutoAdd:     model.NewPointer(true),
-			SchemeAdmin: model.NewPointer(false),
+			SchemeAdmin: model.NewPointer(schemeAdmin),
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
@@ -3229,20 +3214,24 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		SchemeAdmin: model.NewPointer(true),
 	}
 
+	schemeAdminFalse := &model.GroupSyncablePatch{
+		SchemeAdmin: model.NewPointer(false),
+	}
+
 	t.Run("regular team user with invite_user must NOT be able to patch scheme_admin: true", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, false)
 
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
-		require.Error(t, err, "regular team user must not be able to elevate group members to team admin via scheme_admin patch")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NotNil(t, persisted)
-		assert.False(t, persisted.SchemeAdmin, "GroupSyncable.SchemeAdmin must remain false after a forbidden patch request")
+		assert.False(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("system admin can still patch scheme_admin: true", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, false)
 
 		_, response, err := th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
 		require.NoError(t, err)
@@ -3250,38 +3239,69 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NotNil(t, persisted)
-		assert.True(t, persisted.SchemeAdmin, "system admin must be able to patch scheme_admin: true (positive case must remain working)")
+		assert.True(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("regular team user can still patch other fields with scheme_admin omitted", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, true)
 
 		patch := &model.GroupSyncablePatch{
 			AutoAdd: model.NewPointer(false),
 		}
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-		require.NoError(t, err, "a team_user with invite_user can patch non-scheme_admin fields on an AllowReference=true group syncable")
+		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NotNil(t, persisted)
-		assert.False(t, persisted.SchemeAdmin)
 		assert.False(t, persisted.AutoAdd)
+		assert.True(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user can still patch scheme_admin: false", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+	t.Run("regular team user must NOT be able to patch scheme_admin: false", func(t *testing.T) {
+		g := setupLinkedGroup(t, true)
 
-		schemeAdminFalse := &model.GroupSyncablePatch{
-			SchemeAdmin: model.NewPointer(false),
-		}
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminFalse)
-		require.NoError(t, err, "regular team user must still be able to patch scheme_admin: false")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("system admin can still patch scheme_admin: false", func(t *testing.T) {
+		g := setupLinkedGroup(t, true)
+
+		_, response, err := th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminFalse)
+		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NotNil(t, persisted)
 		assert.False(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("sysconsole_write_user_management_groups holder can patch scheme_admin in either direction", func(t *testing.T) {
+		// system_manager bundles sysconsole_write_user_management_groups,
+		// the override honoured by verifySchemeAdminAssignmentPermission.
+		th.LoginSystemManager(t)
+
+		gPromote := setupLinkedGroup(t, false)
+		_, response, err := th.SystemManagerClient.PatchGroupSyncable(context.Background(), gPromote.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		persistedPromote := findPersistedGroupSyncable(t, th, gPromote.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persistedPromote)
+		assert.True(t, persistedPromote.SchemeAdmin)
+
+		gDemote := setupLinkedGroup(t, true)
+		_, response, err = th.SystemManagerClient.PatchGroupSyncable(context.Background(), gDemote.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminFalse)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		persistedDemote := findPersistedGroupSyncable(t, th, gDemote.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persistedDemote)
+		assert.False(t, persistedDemote.SchemeAdmin)
 	})
 }
 
@@ -3291,12 +3311,9 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	// Each sub-test uses a fresh group pre-linked to BasicTeam (so that
-	// verifyLinkUnlinkPermission's first-time-channel branch passes) and
-	// then pre-linked to BasicChannel (with scheme_admin: false) by the
-	// system admin so that the regular user's patch attempt exercises only
-	// the patch-time permission check.
-	setupLinkedGroup := func(t *testing.T) *model.Group {
+	// schemeAdmin controls the seeded SchemeAdmin value on the channel
+	// syncable. The team syncable is seeded so the channel link succeeds.
+	setupLinkedGroup := func(t *testing.T, schemeAdmin bool) *model.Group {
 		t.Helper()
 		g := newSchemeAdminTestLdapGroup(t, th)
 		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
@@ -3307,7 +3324,7 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 		_, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{
 			AutoAdd:     model.NewPointer(true),
-			SchemeAdmin: model.NewPointer(false),
+			SchemeAdmin: model.NewPointer(schemeAdmin),
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, response)
@@ -3318,20 +3335,24 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		SchemeAdmin: model.NewPointer(true),
 	}
 
+	schemeAdminFalse := &model.GroupSyncablePatch{
+		SchemeAdmin: model.NewPointer(false),
+	}
+
 	t.Run("regular channel user with manage_*_channel_members must NOT be able to patch scheme_admin: true", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, false)
 
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminTrue)
-		require.Error(t, err, "regular channel user must not be able to elevate group members to channel admin via scheme_admin patch")
+		require.Error(t, err)
 		CheckForbiddenStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		require.NotNil(t, persisted)
-		assert.False(t, persisted.SchemeAdmin, "GroupSyncable.SchemeAdmin must remain false after a forbidden patch request")
+		assert.False(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("system admin can still patch scheme_admin: true", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, false)
 
 		_, response, err := th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminTrue)
 		require.NoError(t, err)
@@ -3339,36 +3360,204 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		require.NotNil(t, persisted)
-		assert.True(t, persisted.SchemeAdmin, "system admin must be able to patch scheme_admin: true (positive case must remain working)")
+		assert.True(t, persisted.SchemeAdmin)
 	})
 
 	t.Run("regular channel user can still patch other fields with scheme_admin omitted", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+		g := setupLinkedGroup(t, true)
 
 		patch := &model.GroupSyncablePatch{
 			AutoAdd: model.NewPointer(false),
 		}
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
-		require.NoError(t, err, "the security fix must not regress the existing happy-path: a channel_user with manage_*_channel_members can patch non-scheme_admin fields on an AllowReference=true group syncable")
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persisted)
+		assert.False(t, persisted.AutoAdd)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("regular channel user must NOT be able to patch scheme_admin: false", func(t *testing.T) {
+		g := setupLinkedGroup(t, true)
+
+		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminFalse)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("system admin can still patch scheme_admin: false", func(t *testing.T) {
+		g := setupLinkedGroup(t, true)
+
+		_, response, err := th.SystemAdminClient.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminFalse)
+		require.NoError(t, err)
 		CheckOKStatus(t, response)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
 		require.NotNil(t, persisted)
 		assert.False(t, persisted.SchemeAdmin)
-		assert.False(t, persisted.AutoAdd)
 	})
 
-	t.Run("regular channel user can still patch scheme_admin: false", func(t *testing.T) {
-		g := setupLinkedGroup(t)
+	t.Run("sysconsole_write_user_management_groups holder can patch scheme_admin in either direction", func(t *testing.T) {
+		// system_manager bundles sysconsole_write_user_management_groups,
+		// the override honoured by verifySchemeAdminAssignmentPermission.
+		th.LoginSystemManager(t)
 
-		schemeAdminFalse := &model.GroupSyncablePatch{
+		gPromote := setupLinkedGroup(t, false)
+		_, response, err := th.SystemManagerClient.PatchGroupSyncable(context.Background(), gPromote.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminTrue)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		persistedPromote := findPersistedGroupSyncable(t, th, gPromote.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persistedPromote)
+		assert.True(t, persistedPromote.SchemeAdmin)
+
+		gDemote := setupLinkedGroup(t, true)
+		_, response, err = th.SystemManagerClient.PatchGroupSyncable(context.Background(), gDemote.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminFalse)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+		persistedDemote := findPersistedGroupSyncable(t, th, gDemote.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persistedDemote)
+		assert.False(t, persistedDemote.SchemeAdmin)
+	})
+}
+
+func TestLinkGroupTeam_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	seedSchemeAdminTrue := func(t *testing.T) *model.Group {
+		t.Helper()
+		g := newSchemeAdminTestLdapGroup(t, th)
+		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+			AutoAdd:     model.NewPointer(true),
+			SchemeAdmin: model.NewPointer(true),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persisted)
+		require.True(t, persisted.SchemeAdmin)
+		return g
+	}
+
+	t.Run("regular team user calling LINK with scheme_admin omitted must not change persisted scheme_admin", func(t *testing.T) {
+		g := seedSchemeAdminTrue(t)
+
+		patch := &model.GroupSyncablePatch{
+			AutoAdd: model.NewPointer(true),
+		}
+		_, _, _ = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("regular team user calling LINK with scheme_admin: false must not change persisted scheme_admin", func(t *testing.T) {
+		g := seedSchemeAdminTrue(t)
+
+		patch := &model.GroupSyncablePatch{
+			AutoAdd:     model.NewPointer(true),
 			SchemeAdmin: model.NewPointer(false),
 		}
-		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminFalse)
-		require.NoError(t, err, "regular channel user must still be able to patch scheme_admin: false")
-		CheckOKStatus(t, response)
+		_, _, _ = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+}
+
+func TestLinkGroupChannel_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	seedSchemeAdminTrue := func(t *testing.T) *model.Group {
+		t.Helper()
+		g := newSchemeAdminTestLdapGroup(t, th)
+		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+			AutoAdd: model.NewPointer(true),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		_, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{
+			AutoAdd:     model.NewPointer(true),
+			SchemeAdmin: model.NewPointer(true),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persisted)
+		require.True(t, persisted.SchemeAdmin)
+		return g
+	}
+
+	t.Run("regular channel user calling LINK with scheme_admin omitted must not change persisted scheme_admin", func(t *testing.T) {
+		g := seedSchemeAdminTrue(t)
+
+		patch := &model.GroupSyncablePatch{
+			AutoAdd: model.NewPointer(true),
+		}
+		_, _, _ = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 
 		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+
+	t.Run("regular channel user calling LINK with scheme_admin: false must not change persisted scheme_admin", func(t *testing.T) {
+		g := seedSchemeAdminTrue(t)
+
+		patch := &model.GroupSyncablePatch{
+			AutoAdd:     model.NewPointer(true),
+			SchemeAdmin: model.NewPointer(false),
+		}
+		_, _, _ = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+		require.NotNil(t, persisted)
+		assert.True(t, persisted.SchemeAdmin)
+	})
+}
+
+func TestLinkGroupTeam_LinkOnSoftDeletedDoesNotPreserveSchemeAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	t.Run("regular team user re-linking a soft-deleted syncable with scheme_admin omitted must persist scheme_admin: false", func(t *testing.T) {
+		g := newSchemeAdminTestLdapGroup(t, th)
+
+		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+			AutoAdd:     model.NewPointer(true),
+			SchemeAdmin: model.NewPointer(true),
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		patch := &model.GroupSyncablePatch{
+			AutoAdd: model.NewPointer(true),
+		}
+		_, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		persisted := findPersistedGroupSyncable(t, th, g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 		require.NotNil(t, persisted)
 		assert.False(t, persisted.SchemeAdmin)
 	})

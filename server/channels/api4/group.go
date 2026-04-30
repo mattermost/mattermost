@@ -379,10 +379,28 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groupSyncable := &model.GroupSyncable{
-		GroupId:    c.Params.GroupId,
-		SyncableId: syncableID,
-		Type:       syncableType,
+	// Upsert onto the existing row only when it is currently active so
+	// unspecified fields are preserved. A fresh link, or a re-link of a
+	// soft-deleted row, starts from a zero-value struct so that fields
+	// the caller did not (or was not authorized to) set are not carried
+	// over from the previous incarnation. The downstream upsert clears
+	// DeleteAt when re-activating.
+	existing, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		appErr.Where = "Api4.linkGroupSyncable"
+		c.Err = appErr
+		return
+	}
+
+	var groupSyncable *model.GroupSyncable
+	if existing != nil && existing.DeleteAt == 0 {
+		groupSyncable = existing
+	} else {
+		groupSyncable = &model.GroupSyncable{
+			GroupId:    c.Params.GroupId,
+			SyncableId: syncableID,
+			Type:       syncableType,
+		}
 	}
 	groupSyncable.Patch(patch)
 	groupSyncable, appErr = c.App.UpsertGroupSyncable(groupSyncable)
@@ -719,13 +737,13 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	return nil
 }
 
-// verifySchemeAdminAssignmentPermission must be called whenever an incoming
-// GroupSyncablePatch attempts to set SchemeAdmin to true. It enforces that
-// the caller has the role-management permission for the syncable type
+// verifySchemeAdminAssignmentPermission requires the caller to hold the
+// role-management permission for the target syncable
 // (manage_team_roles / manage_channel_roles), or the sysconsole groups
-// write permission as an override.
+// write permission, before an explicit SchemeAdmin value in the patch is
+// accepted. A nil patch.SchemeAdmin is a no-op.
 func verifySchemeAdminAssignmentPermission(c *Context, syncableType model.GroupSyncableType, syncableID string, patch *model.GroupSyncablePatch) *model.AppError {
-	if patch == nil || patch.SchemeAdmin == nil || !*patch.SchemeAdmin {
+	if patch == nil || patch.SchemeAdmin == nil {
 		return nil
 	}
 
