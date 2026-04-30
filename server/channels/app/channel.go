@@ -3377,34 +3377,48 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if len(messagesToView) == 0 {
-		return times, nil
+	// times already contains every DM/GM the user belongs to, including fully-read
+	// ones. We pass the full set to the thread store because a CRT-enabled user can
+	// have unread thread replies in a channel whose channel-level counters are
+	// already up to date (thread replies don't bump TotalMsgCount). The thread
+	// store's `LastReplyAt > LastViewed` clause keeps the actual UPDATE bounded to
+	// genuinely stale thread memberships.
+	allChannelIDs := make([]string, 0, len(times))
+	for channelID := range times {
+		allChannelIDs = append(allChannelIDs, channelID)
+	}
+	if err = a.Srv().Store().Thread().MarkAllAsReadByChannels(userID, allChannelIDs); err != nil {
+		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.thread.mark_all_as_read_by_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(messagesToView, userID)
-	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if len(messagesToView) > 0 {
+		_, err = a.Srv().Store().Channel().UpdateLastViewedAt(messagesToView, userID)
+		if err != nil {
+			var invErr *store.ErrInvalidInput
+			switch {
+			case errors.As(err, &invErr):
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			default:
+				return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if *a.Config().ServiceSettings.EnableChannelViewedMessages {
+			message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
+			message.Add("channel_times", times)
+			a.Publish(message)
+		}
+
+		for _, channelID := range messagesToClearPushNotifications {
+			a.clearPushNotification(currentSessionID, userID, channelID, "")
 		}
 	}
 
-	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
-		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")
-		message.Add("channel_times", times)
-		a.Publish(message)
-	}
-
-	for _, channelID := range messagesToClearPushNotifications {
-		a.clearPushNotification(currentSessionID, userID, channelID, "")
-	}
-
 	if isCRTEnabled {
+		// Thread updates can have happened in any DM/GM (not just messagesToView),
+		// so notify clients to refresh thread state across all of them.
 		timestamp := model.GetMillis()
-		for _, channelID := range messagesToView {
+		for _, channelID := range allChannelIDs {
 			message := model.NewWebSocketEvent(model.WebsocketEventThreadReadChanged, "", channelID, userID, nil, "")
 			message.Add("timestamp", timestamp)
 			a.Publish(message)
