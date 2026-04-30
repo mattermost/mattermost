@@ -117,6 +117,12 @@ const fieldNameMessages = defineMessages({
     },
 });
 
+export type ActionRow = {
+    label: React.ReactNode;
+    content: React.ReactNode;
+    testId?: string;
+};
+
 type Props = {
     title: React.ReactNode;
     propertyFields: NameMappedPropertyFields;
@@ -124,12 +130,12 @@ type Props = {
     shortModeFieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
-    actionsRow?: React.ReactNode;
+    actionRows?: ActionRow[];
     metadata?: PropertiesCardViewMetadata;
     footer?: React.ReactNode;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata, footer}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionRows, metadata, footer}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {
         const hasRequiredData =
             Object.keys(propertyFields).length > 0 &&
@@ -200,21 +206,19 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                     })
                 }
 
-                {
-                    mode === 'full' && actionsRow &&
-                    <div className='row'>
-                        <div className='field'>
-                            <FormattedMessage
-                                id='property_card.actions_row.label'
-                                defaultMessage='Actions'
-                            />
+                {mode === 'full' && actionRows?.map(({label, content, testId}, idx) => (
+                    content ? (
+                        <div
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={idx}
+                            className='row'
+                            data-testid={testId}
+                        >
+                            <div className='field'>{label}</div>
+                            <div className='value'>{content}</div>
                         </div>
-
-                        <div className='value'>
-                            {actionsRow}
-                        </div>
-                    </div>
-                }
+                    ) : null
+                ))}
 
                 {footer}
             </div>

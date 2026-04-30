@@ -4980,6 +4980,10 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getFlaggedPostReportUrl = (postId: string) => {
+        return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
