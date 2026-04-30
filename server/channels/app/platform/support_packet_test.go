@@ -6,7 +6,6 @@ package platform
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -53,14 +52,6 @@ func (m mockRow) Scan(dest ...any) error {
 
 type mockQueryRowScanner struct {
 	rows map[string]mockRow
-}
-
-func (m mockQueryRowScanner) QueryRowContext(_ context.Context, query string, _ ...any) rowScanner {
-	row, ok := m.rows[query]
-	if !ok {
-		return mockRow{err: errors.New("unexpected query")}
-	}
-	return row
 }
 
 type fixedDBStatsStore struct {
@@ -968,119 +959,4 @@ func TestDetectSAMLProviderType(t *testing.T) {
 			assert.Equal(t, tt.expectedProvider, result)
 		})
 	}
-}
-
-func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
-	t.Run("collects aggregate postgres diagnostics", func(t *testing.T) {
-		var diagnostics model.SupportPacketDiagnostics
-		queryer := mockQueryRowScanner{
-			rows: map[string]mockRow{
-				pgStatDatabaseQuery: {
-					scan: func(dest ...any) error {
-						*dest[0].(*float64) = 0.998
-						*dest[1].(*int64) = 2
-						*dest[2].(*int64) = 3
-						*dest[3].(*int64) = 5 * 1024 * 1024
-						*dest[4].(*int64) = 4
-						return nil
-					},
-				},
-				pgStatActivityQuery: {
-					scan: func(dest ...any) error {
-						*dest[0].(*int64) = 1
-						*dest[1].(*float64) = 12.5
-						*dest[2].(*int64) = 6
-						return nil
-					},
-				},
-				pgStatUserTablesQuery: {
-					scan: func(dest ...any) error {
-						*dest[0].(*int64) = 42
-						*dest[1].(*sql.NullTime) = sql.NullTime{Time: time.Date(2026, 4, 29, 7, 10, 0, 0, time.UTC), Valid: true}
-						return nil
-					},
-				},
-			},
-		}
-
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
-		require.NoError(t, err)
-		require.NotNil(t, diagnostics.Database.CacheHitRatio)
-		assert.InDelta(t, 0.998, *diagnostics.Database.CacheHitRatio, 0.0001)
-		require.NotNil(t, diagnostics.Database.Deadlocks)
-		assert.Equal(t, int64(2), *diagnostics.Database.Deadlocks)
-		require.NotNil(t, diagnostics.Database.TempFiles)
-		assert.Equal(t, int64(3), *diagnostics.Database.TempFiles)
-		require.NotNil(t, diagnostics.Database.TempBytesMB)
-		assert.InDelta(t, 5.0, *diagnostics.Database.TempBytesMB, 0.0001)
-		require.NotNil(t, diagnostics.Database.Rollbacks)
-		assert.Equal(t, int64(4), *diagnostics.Database.Rollbacks)
-		require.NotNil(t, diagnostics.Database.IdleInTransactionCount)
-		assert.Equal(t, int64(1), *diagnostics.Database.IdleInTransactionCount)
-		require.NotNil(t, diagnostics.Database.LongestQueryDurationSeconds)
-		assert.InDelta(t, 12.5, *diagnostics.Database.LongestQueryDurationSeconds, 0.0001)
-		require.NotNil(t, diagnostics.Database.WaitingForLockCount)
-		assert.Equal(t, int64(6), *diagnostics.Database.WaitingForLockCount)
-		require.NotNil(t, diagnostics.Database.PostsDeadTuples)
-		assert.Equal(t, int64(42), *diagnostics.Database.PostsDeadTuples)
-		require.NotNil(t, diagnostics.Database.PostsLastAutovacuum)
-		assert.Equal(t, time.Date(2026, 4, 29, 7, 10, 0, 0, time.UTC), *diagnostics.Database.PostsLastAutovacuum)
-	})
-
-	t.Run("ignores missing posts row", func(t *testing.T) {
-		var diagnostics model.SupportPacketDiagnostics
-		queryer := mockQueryRowScanner{
-			rows: map[string]mockRow{
-				pgStatDatabaseQuery: {
-					scan: func(dest ...any) error {
-						*dest[0].(*float64) = 1
-						*dest[1].(*int64) = 0
-						*dest[2].(*int64) = 0
-						*dest[3].(*int64) = 0
-						*dest[4].(*int64) = 0
-						return nil
-					},
-				},
-				pgStatActivityQuery: {
-					scan: func(dest ...any) error {
-						*dest[0].(*int64) = 0
-						*dest[1].(*float64) = 0
-						*dest[2].(*int64) = 0
-						return nil
-					},
-				},
-				pgStatUserTablesQuery: {
-					err: sql.ErrNoRows,
-				},
-			},
-		}
-
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
-		require.NoError(t, err)
-		assert.Nil(t, diagnostics.Database.PostsDeadTuples)
-		assert.Nil(t, diagnostics.Database.PostsLastAutovacuum)
-	})
-
-	t.Run("returns wrapped warning when any pg_stat query fails", func(t *testing.T) {
-		var diagnostics model.SupportPacketDiagnostics
-		queryer := mockQueryRowScanner{
-			rows: map[string]mockRow{
-				pgStatDatabaseQuery: {
-					err: errors.New("boom-db"),
-				},
-				pgStatActivityQuery: {
-					err: errors.New("boom-activity"),
-				},
-				pgStatUserTablesQuery: {
-					err: errors.New("boom-posts"),
-				},
-			},
-		}
-
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
-		require.Error(t, err)
-		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_database")
-		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_activity")
-		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_user_tables")
-	})
 }

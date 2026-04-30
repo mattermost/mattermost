@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
 
@@ -569,6 +570,36 @@ func (_m *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, erro
 
 	if rf, ok := ret.Get(1).(func() error); ok {
 		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetSupportPacketDatabaseDiagnostics provides a mock function with given fields: ctx
+func (_m *Store) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetSupportPacketDatabaseDiagnostics")
+	}
+
+	var r0 *model.SupportPacketDatabaseDiagnostics
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) (*model.SupportPacketDatabaseDiagnostics, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) *model.SupportPacketDatabaseDiagnostics); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SupportPacketDatabaseDiagnostics)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
 	} else {
 		r1 = ret.Error(1)
 	}

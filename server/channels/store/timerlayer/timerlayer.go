@@ -14454,6 +14454,10 @@ func (s *TimerLayer) ReplicaDBStats() sql.DBStats {
 	return s.Store.ReplicaDBStats()
 }
 
+func (s *TimerLayer) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
+	return s.Store.GetSupportPacketDatabaseDiagnostics(ctx)
+}
+
 func (s *TimerLayer) UnlockFromMaster() {
 	s.Store.UnlockFromMaster()
 }
