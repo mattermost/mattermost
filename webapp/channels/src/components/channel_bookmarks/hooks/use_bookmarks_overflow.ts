@@ -50,14 +50,14 @@ function useObservedRefs({onResize, refs}: UseObservedRefsOptions) {
     }, [onResize, refs]);
 
     const register = useCallback((id: string, element: HTMLElement | null) => {
+        const existing = refs.current.get(id);
+        if (existing) {
+            observerRef.current?.unobserve(existing);
+        }
         if (element) {
             refs.current.set(id, element);
             observerRef.current?.observe(element);
         } else {
-            const existing = refs.current.get(id);
-            if (existing) {
-                observerRef.current?.unobserve(existing);
-            }
             refs.current.delete(id);
         }
     }, [refs]);
