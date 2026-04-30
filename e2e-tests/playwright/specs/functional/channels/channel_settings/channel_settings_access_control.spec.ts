@@ -45,7 +45,14 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
     test('MM-67326_c2 Access Control tab hidden when ABAC disabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
-        // ABAC NOT enabled
+
+        // Explicitly disable ABAC. initSetup() resets to the default config which has
+        // EnableAttributeBasedAccessControl:true (required by the ABAC test suite baseline),
+        // so we must patch it off. Concurrent tests in other files also call enableABACConfig()
+        // and may race to re-enable it before this modal opens.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
@@ -54,6 +61,10 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
 
+        // Disable ABAC once more right before the modal opens to shrink the race window.
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+        });
         const channelSettings = await channelsPage.openChannelSettings();
 
         // * Access Control tab is NOT visible

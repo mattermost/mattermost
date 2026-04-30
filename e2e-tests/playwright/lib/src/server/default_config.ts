@@ -853,7 +853,7 @@ const defaultServerConfig: AdminConfig = {
         },
     },
     AutoTranslationSettings: {
-        Enable: false,
+        Enable: true,
         RestrictDMAndGM: false,
         Provider: '',
         TargetLanguages: ['en'],
