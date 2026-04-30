@@ -2228,8 +2228,8 @@ func (s SqlChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, user
 				"ChannelMembers.UserId": userID,
 			},
 			sq.Or{
-				sq.Eq{"Type": "D"}, // Direct Messages
-				sq.Eq{"Type": "G"}, // Group Messages
+				sq.Eq{"Type": model.ChannelTypeDirect},
+				sq.Eq{"Type": model.ChannelTypeGroup},
 			},
 		})
 
@@ -2252,7 +2252,7 @@ func (s SqlChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, user
 
 	err = s.GetReplica().Select(&channels, queryString, args...)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed to find team channels with unreads and mentions data")
+		return nil, nil, nil, errors.Wrap(err, "failed to find direct or group channels with unreads and mentions data")
 	}
 
 	channelsWithUnreads := []string{}
