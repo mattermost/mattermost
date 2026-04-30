@@ -519,8 +519,10 @@ describe('group configuration', () => {
             // # Save settings
             savePage();
 
-            // * Check the groupteam via the API to ensure its role wasn't updated
+            // * Check the groupteam via the API to ensure the channel was
+            // removed (delete_at != 0) and its role wasn't updated.
             cy.apiGetGroupChannel(groupID, testChannel.id).then(({body}) => {
+                expect(body.delete_at).to.not.eq(0);
                 expect(body.scheme_admin).to.eq(false);
             });
         });
