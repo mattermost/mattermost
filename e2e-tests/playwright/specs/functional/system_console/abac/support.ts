@@ -892,7 +892,12 @@ export async function activatePolicy(client: Client4, policyId: string): Promise
  * Both paths use `expect.poll` with 500 ms intervals and a 30 s timeout so
  * individual CI jobs that are delayed in the queue don't cause false failures.
  */
-export async function waitForLatestSyncJob(page: Page, _retries?: number, expectedJobId?: string | null): Promise<any> {
+export async function waitForLatestSyncJob(
+    page: Page,
+    _retries?: number,
+    expectedJobId?: string | null,
+    timeoutMs: number = 90_000,
+): Promise<any> {
     // ── Race-safe path: poll the exact job by ID ──────────────────────────
     if (expectedJobId) {
         await expect
@@ -917,9 +922,9 @@ export async function waitForLatestSyncJob(page: Page, _retries?: number, expect
                     }
                 },
                 {
-                    timeout: 90_000,
+                    timeout: timeoutMs,
                     intervals: [500, 500, 500, 1000, 1000, 2000],
-                    message: `Sync job ${expectedJobId} did not reach success within 90 s`,
+                    message: `Sync job ${expectedJobId} did not reach success within ${timeoutMs / 1000} s`,
                 },
             )
             .toBe('success');

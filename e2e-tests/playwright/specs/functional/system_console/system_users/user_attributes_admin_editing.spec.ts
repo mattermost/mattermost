@@ -146,11 +146,12 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // custom profile attribute fields (which are fetched asynchronously after mount).
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
-        // Wait for at least one custom attribute label to confirm CPA fields have loaded
+        // Wait for at least one custom attribute label to confirm CPA fields have loaded.
+        // CPA fields are fetched asynchronously after mount — 30 s handles slow CI workers.
         await systemConsolePage.page
             .locator('.AdminUserCard')
             .getByText('Work Email', {exact: false})
-            .waitFor({state: 'visible', timeout: 15000});
+            .waitFor({state: 'visible', timeout: 30000});
     });
 
     test.afterEach(async ({pw}) => {

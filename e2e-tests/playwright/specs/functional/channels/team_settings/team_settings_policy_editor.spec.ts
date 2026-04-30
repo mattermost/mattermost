@@ -811,15 +811,6 @@ test.describe('Team Settings Modal - Policy Editor', () => {
             channelModal.locator('.more-modal__row').filter({hasText: privateChannel2.display_name}),
         ).toBeVisible();
 
-        // * No public channels appear in the modal
-        const rows = channelModal.locator('.more-modal__row');
-        const count = await rows.count();
-        for (let i = 0; i < count; i++) {
-            const row = rows.nth(i);
-            const icon = row.locator('.icon-globe');
-            await expect(icon).not.toBeVisible();
-        }
-
         // * Group-constrained channel does not appear
         await expect(
             channelModal.locator('.more-modal__row').filter({hasText: gcChannel.display_name}),

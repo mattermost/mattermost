@@ -83,14 +83,29 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the single-channel guests card is visible
-            const singleChannelGuestsCard = systemConsolePage.page.getByTestId('singleChannelGuests');
-            await expect(singleChannelGuestsCard).toBeVisible({timeout: 15000});
+            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible({timeout: 15000});
 
-            // * Verify the count is at least 1
-            const countText = await singleChannelGuestsCard.textContent();
-            const match = countText?.match(/(\d+)/);
-            expect(match).toBeTruthy();
-            expect(Number(match![1])).toBeGreaterThanOrEqual(1);
+            // * Verify the count is at least 1.
+            // Analytics are indexed asynchronously on the server — poll with reload until
+            // the card reflects the newly created guest (can take several seconds in CI).
+            await expect
+                .poll(
+                    async () => {
+                        // Re-apply guest patch before reload: a concurrent initSetup() may
+                        // reset the config back to the default (Enable: false), which would
+                        // hide the card and make the textContent call return null.
+                        await patchGuestEnabled(adminClient, true);
+                        await systemConsolePage.page.reload();
+                        await systemConsolePage.page.waitForLoadState('networkidle');
+                        const text = await systemConsolePage.page
+                            .getByTestId('singleChannelGuests')
+                            .textContent()
+                            .catch(() => '');
+                        return Number(text?.match(/(\d+)/)?.[1] ?? 0);
+                    },
+                    {timeout: 30000, intervals: [3000, 5000, 5000]},
+                )
+                .toBeGreaterThanOrEqual(1);
         },
     );
 
