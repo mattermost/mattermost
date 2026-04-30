@@ -793,7 +793,6 @@ func (s *Server) doSetupBoardsProperties() error {
 		existingPropertiesMap[property.Name] = property
 	}
 
-	permNone := model.PermissionLevelNone
 	expectedPropertiesMap := map[string]*model.PropertyField{
 		model.BoardsPropertyFieldAssignee: {
 			GroupID:         group.ID,
@@ -802,7 +801,7 @@ func (s *Server) doSetupBoardsProperties() error {
 			ObjectType:      model.PropertyFieldObjectTypePost,
 			TargetType:      string(model.PropertyFieldTargetLevelSystem),
 			Protected:       true,
-			PermissionField: &permNone,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
 		},
 		model.BoardsPropertyFieldStatus: {
 			GroupID:         group.ID,
@@ -811,7 +810,7 @@ func (s *Server) doSetupBoardsProperties() error {
 			ObjectType:      model.PropertyFieldObjectTypePost,
 			TargetType:      string(model.PropertyFieldTargetLevelSystem),
 			Protected:       true,
-			PermissionField: &permNone,
+			PermissionField: model.NewPointer(model.PermissionLevelNone),
 			Attrs: map[string]any{
 				"options": []map[string]string{
 					{"name": model.BoardsStatusOptionTodo},
