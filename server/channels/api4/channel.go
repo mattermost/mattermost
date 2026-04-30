@@ -1808,6 +1808,13 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if view.ChannelId != "" && rejectBoardChannelByID(c, view.ChannelId) {
+		return
+	}
+	if view.PrevChannelId != "" && rejectBoardChannelByID(c, view.PrevChannelId) {
+		return
+	}
+
 	times, err := c.App.ViewChannel(c.AppContext, &view, c.Params.UserId, c.AppContext.Session().Id, view.CollapsedThreadsSupported)
 	if err != nil {
 		c.Err = err
@@ -1941,6 +1948,10 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
+		return
+	}
+
 	props := model.MapFromJSON(r.Body)
 	if props == nil {
 		c.SetInvalidParam("notify_props")
@@ -1980,6 +1991,10 @@ func updateChannelMemberAutotranslation(c *Context, w http.ResponseWriter, r *ht
 
 	c.RequireUserId().RequireChannelId()
 	if c.Err != nil {
+		return
+	}
+
+	if rejectBoardChannelByID(c, c.Params.ChannelId) {
 		return
 	}
 

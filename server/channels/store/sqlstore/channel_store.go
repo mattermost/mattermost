@@ -900,8 +900,9 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 				Id = ChannelId
                 AND Id = ?
                 AND UserId = ?
-                AND DeleteAt = 0`,
-		channelId, userId)
+                AND DeleteAt = 0
+                AND Channels.Type NOT IN (?, ?)`,
+		channelId, userId, model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Channel", fmt.Sprintf("channelId=%s,userId=%s", channelId, userId))
@@ -2893,6 +2894,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string, includeDeleted bo
 		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Id": channelIds}).
+		Where(sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}}).
 		OrderBy("Name")
 
 	if !includeDeleted {
@@ -2923,6 +2925,7 @@ func (s SqlChannelStore) GetChannelsWithTeamDataByIds(channelIDs []string, inclu
 		From("Channels c").
 		LeftJoin("Teams t ON c.TeamId = t.Id").
 		Where(sq.Eq{"c.Id": channelIDs}).
+		Where(sq.NotEq{"c.Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}}).
 		OrderBy("c.Name")
 
 	if !includeDeleted {

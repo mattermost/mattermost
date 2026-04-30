@@ -7102,6 +7102,24 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 		CheckForbiddenStatus(t, resp) // license check fires before channel fetch
 	})
 
+	t.Run("updateChannelMemberNotifyProps rejects board", func(t *testing.T) {
+		resp, err := client.UpdateChannelNotifyProps(ctx, boardChannel.Id, th.BasicUser.Id, map[string]string{model.DesktopNotifyProp: model.UserNotifyAll})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("updateChannelMemberAutotranslation rejects board", func(t *testing.T) {
+		resp, err := client.UpdateChannelMemberAutotranslation(ctx, boardChannel.Id, th.BasicUser.Id, true)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp) // feature-availability check fires before channel fetch
+	})
+
+	t.Run("viewChannel rejects board", func(t *testing.T) {
+		_, resp, err := client.ViewChannel(ctx, th.BasicUser.Id, &model.ChannelView{ChannelId: boardChannel.Id})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	// --- READ operations: boards are invisible (404) via store-level filter ---
 
 	t.Run("getChannel not found for board", func(t *testing.T) {
