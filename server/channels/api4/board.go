@@ -51,8 +51,7 @@ func createBoard(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateBoard, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "team_id", channel.TeamId)
-	model.AddEventParameterToAuditRec(auditRec, "type", string(channel.Type))
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", &channel)
 
 	board, appErr := c.App.CreateBoardChannel(c.AppContext, &channel)
 	if appErr != nil {
