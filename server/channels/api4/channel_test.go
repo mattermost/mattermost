@@ -7521,7 +7521,9 @@ func TestGetManagedCategories(t *testing.T) {
 
 func TestGetManagedCategoriesFeatureFlagDisabled(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ManagedChannelCategories = false
+	}).InitBasic(t)
 
 	t.Run("route is not registered when feature flag is off at startup", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
