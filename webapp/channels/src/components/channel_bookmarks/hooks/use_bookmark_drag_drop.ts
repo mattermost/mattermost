@@ -7,7 +7,6 @@ import {setCustomNativeDragPreview} from '@atlaskit/pragmatic-drag-and-drop/elem
 import {preventUnhandled} from '@atlaskit/pragmatic-drag-and-drop/prevent-unhandled';
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {attachClosestEdge, extractClosestEdge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import type {RefObject} from 'react';
 import {useEffect, useState} from 'react';
 
 import {createBookmarkDragPreview} from '../drag_preview';
@@ -18,7 +17,7 @@ interface UseBookmarkDragDropOptions {
     allowedEdges: Edge[];
     displayName: string;
     canReorder: boolean;
-    elementRef: RefObject<HTMLElement | null>;
+    element: HTMLElement | null;
 }
 
 interface UseBookmarkDragDropResult {
@@ -32,14 +31,13 @@ export function useBookmarkDragDrop({
     allowedEdges,
     displayName,
     canReorder,
-    elementRef,
+    element,
 }: UseBookmarkDragDropOptions): UseBookmarkDragDropResult {
     const [isDragSelf, setIsDragSelf] = useState(false);
     const [closestEdge, setClosestEdge] = useState<Edge | null>(null);
 
     useEffect(() => {
-        const el = elementRef.current;
-        if (!el || !canReorder) {
+        if (!element || !canReorder) {
             return undefined;
         }
 
@@ -51,11 +49,11 @@ export function useBookmarkDragDrop({
                 e.dataTransfer.effectAllowed = 'move';
             }
         };
-        el.addEventListener('dragstart', handleDragStart);
+        element.addEventListener('dragstart', handleDragStart);
 
         const cleanup = combine(
             draggable({
-                element: el,
+                element,
                 getInitialData: () => ({type: 'bookmark', bookmarkId: id, container}),
                 onGenerateDragPreview: ({nativeSetDragImage}) => {
                     setCustomNativeDragPreview({
@@ -75,7 +73,7 @@ export function useBookmarkDragDrop({
                 },
             }),
             dropTargetForElements({
-                element: el,
+                element,
                 getData: ({input, element: targetElement}) =>
                     attachClosestEdge(
                         {type: 'bookmark', bookmarkId: id, container},
@@ -90,10 +88,10 @@ export function useBookmarkDragDrop({
         );
 
         return () => {
-            el.removeEventListener('dragstart', handleDragStart);
+            element.removeEventListener('dragstart', handleDragStart);
             cleanup();
         };
-    }, [id, container, allowedEdges, displayName, canReorder, elementRef]);
+    }, [id, container, allowedEdges, displayName, canReorder, element]);
 
     return {isDragSelf, closestEdge};
 }

@@ -3,7 +3,7 @@
 
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useState} from 'react';
 import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
@@ -24,11 +24,10 @@ interface BookmarksBarItemProps {
 
 const edges: Edge[] = ['left', 'right'];
 function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReorderProps, isKeyboardReordering, hidden, onMount}: BookmarksBarItemProps) {
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        onMount?.(id, ref.current);
-        return () => onMount?.(id, null);
+    const [element, setElement] = useState<HTMLDivElement | null>(null);
+    const ref = useCallback((node: HTMLDivElement | null) => {
+        setElement(node);
+        onMount?.(id, node);
     }, [id, onMount]);
 
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
@@ -37,7 +36,7 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
         allowedEdges: edges,
         displayName: bookmark.display_name,
         canReorder: !disabled && !hidden,
-        elementRef: ref,
+        element,
     });
 
     // Prevent Space from bubbling to message input

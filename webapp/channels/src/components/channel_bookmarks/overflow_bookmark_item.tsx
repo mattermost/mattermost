@@ -4,7 +4,7 @@
 import type {Edge} from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import classNames from 'classnames';
-import React, {useCallback, useContext, useRef} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
@@ -45,7 +45,7 @@ function OverflowBookmarkItem({
         menuContext.close?.();
     }, [menuContext]);
 
-    const liRef = useRef<HTMLLIElement>(null);
+    const [liElement, setLiElement] = useState<HTMLLIElement | null>(null);
 
     const [isLabelOverflowing, labelRef] = useTextOverflow();
 
@@ -55,7 +55,7 @@ function OverflowBookmarkItem({
         allowedEdges: edges,
         displayName: bookmark.display_name,
         canReorder,
-        elementRef: liRef,
+        element: liElement,
     });
 
     // Compose keyboard handlers: reorder first, then ArrowRight to open dot menu
@@ -70,10 +70,10 @@ function OverflowBookmarkItem({
         if (e.key === 'ArrowRight') {
             e.preventDefault();
             e.stopPropagation();
-            const button = liRef.current?.querySelector('.channelBookmarksDotMenuButton--overflow') as HTMLElement;
+            const button = liElement?.querySelector('.channelBookmarksDotMenuButton--overflow') as HTMLElement;
             button?.click();
         }
-    }, [keyboardReorderProps]);
+    }, [keyboardReorderProps, liElement]);
 
     const linksDisabled = isDragging || isDragSelf;
     const {openBookmark, icon} = useBookmarkLink(bookmark, linksDisabled, handleNavigate);
@@ -84,9 +84,9 @@ function OverflowBookmarkItem({
             _event.preventDefault();
             _event.stopPropagation();
             closeMenu?.();
-            liRef.current?.focus();
+            liElement?.focus();
         }
-    }, []);
+    }, [liElement]);
 
     const itemClassName = classNames('overflowBookmarkItem', {
         'is-dragging-self': isDragSelf,
@@ -95,7 +95,7 @@ function OverflowBookmarkItem({
 
     return (
         <Menu.Item
-            ref={liRef}
+            ref={setLiElement}
             id={`overflow-bookmark-${id}`}
             className={itemClassName}
             data-bookmark-id={id}
