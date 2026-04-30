@@ -747,6 +747,6 @@ export function markAllInTeamAsRead(userId: string, teamId: string): ActionFuncA
         dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
         dispatch(handleAllMarkedRead(teamId));
 
-        return {};
+        return {data: response};
     };
 }
