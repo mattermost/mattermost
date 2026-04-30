@@ -24,6 +24,7 @@ type PropertyService struct {
 	propertyAccess    *PropertyAccessService
 	callerIDExtractor CallerIDExtractor
 	groupCache        sync.Map // name -> *model.PropertyGroup
+	groupIDCache      sync.Map // id -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {

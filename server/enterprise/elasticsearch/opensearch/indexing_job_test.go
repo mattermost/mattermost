@@ -62,6 +62,56 @@ func TestOpenSearchIndexerJobIsEnabled(t *testing.T) {
 	})
 }
 
+// TestOpenSearchDeleteNonExistentDocument verifies that bulk deletes returning 404
+// (document not found) do not cause the indexing job to fail. A soft-deleted post
+// that was never indexed is used so the delete operation is guaranteed to 404.
+//
+// Requires a running OpenSearch instance (skipped otherwise).
+func TestOpenSearchDeleteNonExistentDocument(t *testing.T) {
+	th := api4.SetupEnterprise(t).InitBasic(t)
+
+	connURL := "http://localhost:9201"
+	if os.Getenv("IS_CI") == "true" {
+		connURL = "http://opensearch:9201"
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ElasticsearchSettings.ConnectionURL = connURL
+		*cfg.ElasticsearchSettings.Backend = model.ElasticsearchSettingsOSBackend
+		*cfg.ElasticsearchSettings.EnableIndexing = true
+		*cfg.ElasticsearchSettings.EnableSearching = true
+		*cfg.ElasticsearchSettings.EnableAutocomplete = true
+		*cfg.SqlSettings.DisableDatabaseSearch = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	client := createTestClient(t, th.Context, th.App.Config(), th.App.FileBackend())
+
+	_, err := client.Info(context.Background(), nil)
+	if err != nil {
+		t.Skipf("OpenSearch not available at %s: %v", connURL, err)
+	}
+
+	// Soft-delete a post so the job issues a bulk delete for it. Since the index
+	// is empty (no prior reindex), the document doesn't exist and OS returns 404.
+	_, appErr := th.App.DeletePost(th.Context, th.BasicPost.Id, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	impl := OpensearchIndexerInterfaceImpl{Server: th.App.Srv()}
+	worker := impl.MakeWorker()
+	require.NotNil(t, worker)
+	th.Server.Jobs.RegisterJobType(model.JobTypeElasticsearchPostIndexing, worker, nil)
+
+	go worker.Run()
+	defer worker.Stop()
+
+	job, appErr := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeElasticsearchPostIndexing, map[string]string{})
+	require.Nil(t, appErr)
+	worker.JobChannel() <- *job
+	job = waitForIndexingJob(t, th, job.Id, 60*time.Second)
+	assert.Equal(t, model.JobStatusSuccess, job.Status, "reindex with 404 deletes should succeed")
+}
+
 // TestOpenSearchIndexerBulkWriteFailures verifies that a reindex job is marked as
 // failed when OpenSearch rejects bulk writes with per-item errors (e.g. a write
 // block on the index), rather than silently reporting success.

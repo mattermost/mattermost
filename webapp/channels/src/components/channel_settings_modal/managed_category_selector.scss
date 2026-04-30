@@ -27,6 +27,11 @@ $managed_category_index: 999999;
 
         .ManagedCategory__input {
             box-shadow: none;
+            color: var(--center-channel-color);
+        }
+
+        .ManagedCategory__input-container {
+            color: var(--center-channel-color);
         }
     }
 }

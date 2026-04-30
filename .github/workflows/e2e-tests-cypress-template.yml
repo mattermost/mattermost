@@ -104,12 +104,20 @@ on:
       CWS_EXTRA_HTTP_HEADERS:
         required: false
 
+# Callers must grant at least these scopes on the job that uses this workflow
+permissions:
+  contents: read
+  statuses: write
+
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
 
 jobs:
   update-initial-status:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - name: ci/set-initial-status
         uses: mattermost/actions/delivery/update-commit-status@f324ac89b05cc3511cb06e60642ac2fb829f0a63
@@ -612,6 +620,9 @@ jobs:
 
   update-success-status:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
     if: always() && needs.report.result == 'success' && needs.calculate-results.result == 'success'
     needs:
       - generate-test-cycle
@@ -631,6 +642,9 @@ jobs:
 
   update-failure-status:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
     if: always() && (needs.report.result != 'success' || needs.calculate-results.result != 'success')
     needs:
       - generate-test-cycle

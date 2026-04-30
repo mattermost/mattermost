@@ -3048,10 +3048,6 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} jest aktualnie zatrzymany."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} jest wyłączone."
   },
@@ -4577,11 +4573,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 144+"
+    "translation": "Wersja 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 144+"
+    "translation": "Wersja 146+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5221,7 +5217,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise license has been disabled."
+    "translation": "Twoja licencja {{.SkuName}} wygasła"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7057,11 +7053,11 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, Twoja subskrypcja ma wygasnąć za {{.Days}} dni. Mamy nadzieję, że korzystasz z elastycznej i bezpiecznej współpracy zespołowej, którą umożliwia Mattermost. Odnów wkrótce, aby Twój zespół mógł nadal korzystać z tych korzyści."
+    "translation": "Twoja licencja {{.SkuName}} dla <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> wygaśnie za {{.Days}} dni. Mamy nadzieję, że podoba Ci się bezpieczna współpraca o krytycznym znaczeniu, którą umożliwia Mattermost."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Twoja licencja jest w trakcie odnawiania"
+    "translation": "Twoja licencja {{.SkuName}} wymaga odnowienia"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -7093,7 +7089,7 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Twoja subskrypcja Mattermost wymaga przedłużenia"
+    "translation": "Twoja licencja Mattermost wymaga odnowienia"
   },
   {
     "id": "api.templates.invite_body_footer.learn_more",
@@ -10021,35 +10017,35 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Nie można pobrać grupy właściwości Atrybuty profilu niestandardowego."
+    "translation": "Nie można pobrać grupy właściwości Atrybuty użytkownika."
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Osiągnięto limit pola atrybutów profilu niestandardowego"
+    "translation": "Osiągnięto limit pola Atrybuty użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Nie można uzyskać pola atrybutu profilu niestandardowego"
+    "translation": "Nie można uzyskać pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Nie można uzyskać niestandardowych wartości atrybutów profilu"
+    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Nie można usunąć pola atrybutu profilu niestandardowego"
+    "translation": "Nie można usunąć pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Nie można zaktualizować pola atrybutu profilu niestandardowego"
+    "translation": "Nie można zaktualizować pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Nie znaleziono pola atrybutu profilu niestandardowego"
+    "translation": "Nie znaleziono pola Atrybut użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Nie można przeszukiwać pól atrybutów profilu niestandardowego"
+    "translation": "Nie można szukać pól Atrybutów użytkownika"
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
@@ -10113,7 +10109,7 @@
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Twoja licencja nie obsługuje niestandardowych atrybutów profilu."
+    "translation": "Twoja licencja nie obsługuje Atrybutów użytkownika."
   },
   {
     "id": "api.file.zip_file_reader.app_error",
@@ -10153,11 +10149,11 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Nie można policzyć liczby pól dla grupy atrybutów profilu niestandardowego"
+    "translation": "Nie można policzyć liczby pól dla grupy Atrybuty użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Nie można wstawić pól atrybutów profilu niestandardowego"
+    "translation": "Nie można wstawić pól Atrybutów użytkownika"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10225,7 +10221,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Nie można przekonwertować pola właściwości na niestandardowe pole atrybutu profilu"
+    "translation": "Nie można przekonwertować pola właściwości na pole atrybutu użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -10233,7 +10229,7 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "Nieprawidłowa poprawka pola atrybutu profilu niestandardowego"
+    "translation": "Nieprawidłowa poprawka pola Atrybut użytkownika"
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
@@ -10277,7 +10273,7 @@
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Nie można usunąć wartości atrybutu profilu niestandardowego dla użytkownika"
+    "translation": "Nie można usunąć wartości Atrybutu użytkownika dla użytkownika"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
@@ -10373,7 +10369,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola atrybutu profilu niestandardowego"
+    "translation": "Nie można zaktualizować wartości dla zsynchronizowanego pola Atrybut użytkownika"
   },
   {
     "id": "app.import.validate_attachment_import_data.invalid_path.error",
@@ -10693,7 +10689,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Nie można zaktualizować wartości pola Atrybut profilu niestandardowego zarządzanego przez administratora"
+    "translation": "Nie można zaktualizować wartości pola Atrybut użytkownika zarządzanego przez administratora"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
@@ -10730,10 +10726,6 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Nie udało się zaktualizować hasła użytkownika."
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Brak możliwości pobrania istniejących zadań."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",
@@ -10953,7 +10945,7 @@
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Nie można załatać pola Atrybut profilu niestandardowego"
+    "translation": "Nie można załatać pola Atrybut użytkownika"
   },
   {
     "id": "app.pap.update_access_control_policies_active.app_error",
@@ -12060,10 +12052,6 @@
     "translation": "Identyfikator target_id jest wymagany przy wyszukiwaniu według typu target_type Kanału lub Zespołu."
   },
   {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "Określona grupa właściwości nie została znaleziona."
-  },
-  {
     "id": "api.property_field.invalid_patch.app_error",
     "translation": "Nieprawidłowa poprawka pola właściwości."
   },
@@ -12086,5 +12074,597 @@
   {
     "id": "api.property_field.update.protected_via_api.app_error",
     "translation": "Nie można zaktualizować chronionego pola właściwości za pośrednictwem interfejsu API."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Podany typ obiektu jest nieprawidłowy."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Żądanie zawiera zduplikowane identyfikatory pól."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "Treść żądania musi zawierać co najmniej jedną aktualizację wartości właściwości."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Jeden lub więcej identyfikatorów pól w żądaniu jest nieprawidłowych."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "Nie masz uprawnień do ustawienia wartości w jednym lub kilku polach."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Nie można zaktualizować tak wielu wartości właściwości. Tylko {{.Max}} wartości właściwości mogą być aktualizowane jednocześnie."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "Nie masz uprawnień dostępu do wartości właściwości innego użytkownika."
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Porozmawiaj z ekspertem Mattermost</a>, aby uzyskać pomoc dotyczącą planów i opcji odnowienia."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Potrzebujesz pomocy?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Odnów wkrótce, aby Twój zespół mógł nadal cieszyć się tymi korzyściami."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Twoja licencja Mattermost wygasła"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Twoja licencja {{.SkuName}} dla <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> wygasła i niektóre funkcje mogą być wyłączone."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Odnów swoją licencję teraz, aby kontynuować korzystanie z pełnych możliwości Mattermost."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Nie można utworzyć widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Nie można usunąć widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Nie można uzyskać widoku z usuniętego kanału."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Nie możesz pobrać postów dla widoku z usuniętego kanału."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Nie można wyświetlić widoków dla usuniętego kanału."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "Widok nie należy do określonego Kanału."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Nie można zaktualizować widoku w usuniętym kanale."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Nie można zaktualizować kolejności sortowania widoku w usuniętym kanale."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Nieprawidłowa konfiguracja dla pomocnika testu mostu AI."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Dodanie członka kanału odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Archiwum Kanałów odrzucone przez Wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Nie można uzyskać wartości Atrybutu użytkownika"
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Polityka o tej Nazwie już istnieje. Wybierz inną nazwę."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Nie można pobrać postów dla widoku."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Nie można policzyć pól właściwości dla grupy."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Nie można policzyć pól właściwości dla celu."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Nie można utworzyć pola właściwości."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Nie można utworzyć właściwości \"{{.Name}}\": właściwość o tej nazwie już istnieje na poziomie {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Nie można utworzyć chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Nie można usunąć pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Nie można uzyskać pola właściwości do usunięcia."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Nie znaleziono pola właściwości."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Nie można usunąć chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Nie można uzyskać pola właściwości."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Nie można uzyskać pola właściwości po nazwie."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Nie można uzyskać pola właściwości."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "Co najmniej jeden identyfikator pola właściwości nie został znaleziony w określonej grupie."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Podano nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Nie można szukać pól właściwości."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Nie można zaktualizować pól właściwości."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Nie można pobrać pól właściwości do aktualizacji."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Nie można zaktualizować właściwości do \"{{.Name}}\": właściwość o tej nazwie już istnieje na poziomie {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Nie można zaktualizować chronionego pola właściwości."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Nie można uzyskać grupy właściwości."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Nie można zarejestrować grupy właściwości."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Nie można utworzyć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Nie można utworzyć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Nie można usunąć wartości właściwości."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Nie można usunąć wartości właściwości dla pola."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Nie można usunąć wartości właściwości dla celu."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Nie można uzyskać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Nie można pozyskać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Podano nieprawidłowe dane wejściowe."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Nierozpoznany typ obiektu \"{{.ObjectType}}\" dla wartości właściwości broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Nie można szukać wartości właściwości."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Nie można zaktualizować wartości właściwości."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Nie można zaktualizować wartości właściwości."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Nie można wstawić wartości właściwości."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Nie można wstawić wartości właściwości."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Dodanie członka zespołu odrzucone przez wtyczkę: {{.Reason}}"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Nie udało się policzyć wyświetleń dla Kanału."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Nie można utworzyć widoku."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Nie udało się policzyć wyświetleń dla Kanału."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Ten Kanał osiągnął maksymalną liczbę wyświetleń."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Nie można usunąć widoku."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Nie można uzyskać widoku."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Nie możesz uzyskać wyświetleń dla tego Kanału."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Nieprawidłowe dane wejściowe podczas pobierania widoków dla Kanału."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Nie można zaktualizować widoku."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "Widok jest wymagany."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Nie można zaktualizować kolejności sortowania widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Nieprawidłowe dane wejściowe dla aktualizacji kolejności sortowania widoku."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "Nie znaleziono widoku."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} nie jest uruchomiony."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} kontrola stanu nie powiodła się: nie można ukończyć kontroli."
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} Wersja {{.Version}} jest niższa niż min. wspierana wersja {{.MinVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Nieprawidłowe opcje RemoteImageProxyOptions dla atmos/camo: klucz HMAC musi mieć co najmniej {{.MinLength}} bajtów, aby zapewnić zgodność ze standardem FIPS."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu zapytania analitycznego dla ustawień SQL. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału widoku."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Nieprawidłowy czas utworzenia widoku."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Nieprawidłowy identyfikator twórcy widoku."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Opis widoku jest zbyt długi."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Nieprawidłowy identyfikator widoku."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "Tytuł widoku jest wymagany i nie może zawierać więcej niż 256 znaków."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ widoku."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Nieprawidłowy czas aktualizacji widoku."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "Funkcja Polityki uprawnień nie jest włączona."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Nie udało się utworzyć podmiotu kontroli dostępu dla użytkownika."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Nie można zaktualizować zarządzanej kategorii dla tego kanału bez odpowiednich uprawnień."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Nie można ustawić członków na kanale z ograniczeniami grupowymi."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Nie można ustawić członków na kanale wymuszonym przez politykę."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Nie można ustawić członków w tym typie kanału."
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Nie można zmienić ustawień logów mobilnych dla tego użytkownika."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Zarządzaj załącznikiem logów aplikacji mobilnej dla siebie lub innego użytkownika."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Załączanie logów aplikacji mobilnej jest teraz wyłączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Załączanie logów aplikacji mobilnej jest teraz włączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[wł.|wył.|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobile-logs"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Załączanie dziennika aplikacji mobilnej jest obecnie wyłączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Załączanie logów aplikacji mobilnej jest obecnie włączone dla {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Nie udało się zaktualizować ustawień Załącznika logów aplikacji mobilnej. Spróbuj ponownie."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Format: /mobilny-logi [wł.|wył.|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Nie można znaleźć użytkownika \"{{.Username}}\"."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "Ty"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "Nie masz wymaganego dostępu, aby pobrać ten plik."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "Nie masz wymaganego dostępu do przesyłania plików na ten kanał."
+  },
+  {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Zarządzane kategorie kanałów nie są dostępne."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId jest wymagany."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "Wymagane są dane pliku."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo jest wymagane."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Nazwa jest wymagana."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Nie udało się pobrać podmiotu kontroli dostępu."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Nie udało się pobrać grupy atrybutów kontroli dostępu."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "Operacja ustawiania członków kanału została anulowana."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Nie możesz usunąć wszystkich członków z kanału prywatnego."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Nie można uzyskać aktualnych członków Kanału."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Nie można uzyskać członków Kanału w celu uzgodnienia ról."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Nie udało się wyczyścić zarządzanej kategorii z Kanału."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Kanały wiadomości bezpośrednich i grupowych nie mogą być przypisane do kategorii zarządzanej."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "Nazwa kategorii zarządzanej nie może być pusta."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Nie udało się pobrać mapowań kategorii zarządzanych."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Nie znaleziono zarządzanej kategorii dla kanału."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Nie udało się ustawić zarządzanej kategorii na Kanale."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Nie udało się ocenić polityki uprawnień."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "Nie znaleziono jednego lub więcej kanałów."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Kanał {{.ChannelId}} nie należy do tego Zespołu."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "Wymagany jest co najmniej jeden kanał."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Nie można zweryfikować własności polityki dla tego zespołu."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Nie udało się uzgodnić zakresu zespołu dotyczącego polityki."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "Nie możesz stworzyć polityki, która wykluczałaby Ciebie samego."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Nie udało się zweryfikować reguł polityki."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Polityki uprawnień nie mogą dziedziczyć po innych politykach."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Działanie(a) jest nieprawidłowe."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Polityki uprawnień muszą być stosowane do dokładnie jednej roli."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Nieprawidłowa wartość zakresu dla tej polityki kontroli dostępu."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Identyfikator zakresu musi być prawidłowym identyfikatorem podczas ustawiania zakresu."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Identyfikator zakresu nie może być ustawiony bez zakresu."
   }
 ]

@@ -33,13 +33,13 @@ export default function PolicySelectionModal(props: Props): JSX.Element {
             modalHeaderText={(
                 <FormattedMessage
                     id='admin.channel_settings.channel_detail.select_policy_title'
-                    defaultMessage='Select an Access Control Policy'
+                    defaultMessage='Select a Membership Policy'
                 />
             )}
             modalSubheaderText={(
                 <FormattedMessage
                     id='admin.channel_settings.channel_detail.select_policy_description'
-                    defaultMessage='An access control policy will restrict channel membership based on user attributes.'
+                    defaultMessage='A membership policy defines who should be in this channel based on user attributes.'
                 />
             )}
         >
