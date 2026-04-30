@@ -34,6 +34,12 @@ async function disableManagedCategories(adminClient: any) {
 async function setupManagedCategoriesTest(pw: any) {
     const {adminClient, adminUser} = await pw.getAdminClient();
     const suffix = getRandomId();
+
+    // Guard against UseAnonymousURLs=true left by anonymous_urls tests running on the same
+    // server shard. When active, newly created channels receive obfuscated slugs instead of
+    // human-readable names, breaking sidebar-item selectors (e.g. #sidebarItem_managed-assign-…).
+    await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: false}});
+
     const team = await adminClient.createTeam({
         name: `mgd-${suffix}`,
         display_name: `Managed ${suffix}`,
