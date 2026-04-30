@@ -371,6 +371,17 @@ func (o *Channel) IsBoard() bool {
 	return o.Type == ChannelTypeOpenBoard || o.Type == ChannelTypePrivateBoard
 }
 
+// IsMessageChannel reports whether the channel is one of the message-bearing
+// types (open, private, direct, or group). Returns false for boards and any
+// future non-message channel types.
+func (o *Channel) IsMessageChannel() bool {
+	switch o.Type {
+	case ChannelTypeOpen, ChannelTypePrivate, ChannelTypeDirect, ChannelTypeGroup:
+		return true
+	}
+	return false
+}
+
 func (o *Channel) IsOpenBoard() bool {
 	return o.Type == ChannelTypeOpenBoard
 }
