@@ -47,7 +47,7 @@ function useObservedRefs({onResize, refs}: UseObservedRefsOptions) {
             observer.disconnect();
             observerRef.current = null;
         };
-    }, [onResize, refs]);
+    }, [onResize]);
 
     const register = useCallback((id: string, element: HTMLElement | null) => {
         const existing = refs.current.get(id);
@@ -60,7 +60,7 @@ function useObservedRefs({onResize, refs}: UseObservedRefsOptions) {
         } else {
             refs.current.delete(id);
         }
-    }, [refs]);
+    }, []);
 
     return {register};
 }
