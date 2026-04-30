@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from "react";
 
-import ClassificationColorInput from './classification_color_input';
+import ClassificationColorInput from "./classification_color_input";
 
-import type {ClassificationLevel} from '../utils/presets';
+import type { ClassificationLevel } from "../utils/presets";
 
 type LevelColorCellProps = {
     value: string;
@@ -14,7 +14,12 @@ type LevelColorCellProps = {
     swatchAriaLabel: string;
 };
 
-export default function LevelColorCell({value, id, updateLevel, swatchAriaLabel}: LevelColorCellProps) {
+export default function LevelColorCell({
+    value,
+    id,
+    updateLevel,
+    swatchAriaLabel,
+}: LevelColorCellProps) {
     const [localColor, setLocalColor] = useState(value);
 
     useEffect(() => {
@@ -25,7 +30,7 @@ export default function LevelColorCell({value, id, updateLevel, swatchAriaLabel}
         <div
             onBlur={() => {
                 if (localColor !== value) {
-                    updateLevel(id, {color: localColor});
+                    updateLevel(id, { color: localColor });
                 }
             }}
         >

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import styled from 'styled-components';
+import styled from "styled-components";
 
-import {SectionContent} from '../system_properties/controls';
+import { SectionContent } from "../system_properties/controls";
 
 export const GlobalBannerSectionContent = styled(SectionContent).attrs({
     $compact: true,
@@ -91,8 +91,8 @@ export const AddLevelButtonRow = styled.div`
 `;
 
 export const AddLevelButton = styled.button.attrs({
-    type: 'button',
-    className: 'btn btn-tertiary',
+    type: "button",
+    className: "btn btn-tertiary",
 })`
     && {
         padding-inline: 16px;
@@ -101,8 +101,10 @@ export const AddLevelButton = styled.button.attrs({
 
 export const TableWrapper = styled.div`
     table.adminConsoleListTable {
-        td, th {
-            &:after, &:before {
+        td,
+        th {
+            &:after,
+            &:before {
                 display: none;
             }
         }
@@ -126,8 +128,12 @@ export const TableWrapper = styled.div`
         tbody {
             tr {
                 border-top: none;
-                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-                border-bottom-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
+                border-bottom: 1px solid
+                    rgba(var(--center-channel-color-rgb), 0.08);
+                border-bottom-color: rgba(
+                    var(--center-channel-color-rgb),
+                    0.08
+                ) !important;
 
                 &:focus-within {
                     position: relative;
@@ -211,7 +217,9 @@ export const ActionsCell = styled.div`
     text-align: right;
 `;
 
-export const DeleteButton = styled.button.attrs({className: 'btn btn-sm btn-transparent'})`
+export const DeleteButton = styled.button.attrs({
+    className: "btn btn-sm btn-transparent",
+})`
     &:hover {
         background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
     }

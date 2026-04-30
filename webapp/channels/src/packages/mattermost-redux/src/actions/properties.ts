@@ -1,18 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {
+    PropertyField,
+    PropertyValue,
+} from "@mattermost/types/properties";
 
-import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import { Client4 } from "mattermost-redux/client";
+import type { ActionFuncAsync } from "mattermost-redux/types/actions";
 
-import PropertyTypes from '../action_types/properties';
+import PropertyTypes from "../action_types/properties";
 
 /**
  * Fetches property fields for a given group, object type, and target scope,
  * then stores them in the Redux property fields state.
  */
-export function fetchPropertyFields(groupName: string, objectType: string, targetType: string, targetId?: string): ActionFuncAsync<PropertyField[]> {
+export function fetchPropertyFields(
+    groupName: string,
+    objectType: string,
+    targetType: string,
+    targetId?: string
+): ActionFuncAsync<PropertyField[]> {
     return async (dispatch) => {
         let fields: PropertyField[] = [];
         const maxItems = 500;
@@ -22,7 +30,13 @@ export function fetchPropertyFields(groupName: string, objectType: string, targe
 
         while (fetched < maxItems) {
             // eslint-disable-next-line no-await-in-loop
-            const page = await Client4.getPropertyFields(groupName, objectType, targetType, targetId, {cursorId, cursorCreateAt});
+            const page = await Client4.getPropertyFields(
+                groupName,
+                objectType,
+                targetType,
+                targetId,
+                { cursorId, cursorCreateAt }
+            );
             fields = fields.concat(page);
 
             if (page.length === 0) {
@@ -37,27 +51,10 @@ export function fetchPropertyFields(groupName: string, objectType: string, targe
 
         dispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
-            data: {fields},
+            data: { fields },
         });
 
-        return {data: fields};
-    };
-}
-
-/**
- * Fetches all property values for a given group, object type, and target ID,
- * then stores them in the Redux property values state.
- */
-export function fetchPropertyValues<T = unknown>(groupName: string, objectType: string, targetId: string): ActionFuncAsync<Array<PropertyValue<T>>> {
-    return async (dispatch) => {
-        const values = await Client4.getPropertyValues<T>(groupName, objectType, targetId);
-
-        dispatch({
-            type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
-        });
-
-        return {data: values};
+        return { data: fields };
     };
 }
 
@@ -65,15 +62,18 @@ export function fetchPropertyValues<T = unknown>(groupName: string, objectType: 
  * Fetches all system-scoped property values for a given group via the
  * dedicated `/system/values` endpoint, then stores them in Redux.
  */
-export function fetchSystemPropertyValues<T = unknown>(groupName: string): ActionFuncAsync<Array<PropertyValue<T>>> {
+export function fetchSystemPropertyValues<T = unknown>(
+    groupName: string
+): ActionFuncAsync<Array<PropertyValue<T>>> {
     return async (dispatch) => {
-        const values = await Client4.getSystemPropertyValues<T>(groupName);
+        const values =
+            (await Client4.getSystemPropertyValues<T>(groupName)) ?? [];
 
         dispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: {values},
+            data: { values },
         });
 
-        return {data: values};
+        return { data: values };
     };
 }

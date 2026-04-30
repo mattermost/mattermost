@@ -286,15 +286,11 @@ test.describe('Global Classification Banner', () => {
 
             await setClassificationMarkingsFeatureFlag(adminClient, true);
 
-            await setupClassificationFieldWithGlobalBanner(
-                adminClient,
-                [{name: 'SECRET', color: '#C8102E', rank: 1}],
-                {
-                    levelName: 'SECRET',
-                    enabled: true,
-                    placement: 'top',
-                },
-            );
+            await setupClassificationFieldWithGlobalBanner(adminClient, [{name: 'SECRET', color: '#C8102E', rank: 1}], {
+                levelName: 'SECRET',
+                enabled: true,
+                placement: 'top',
+            });
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
