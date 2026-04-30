@@ -195,7 +195,9 @@ test.describe('ABAC Permission Policies - Upload File Enforcement', () => {
 
         // Hovering over the disabled button must reveal the policy restriction tooltip
         await uploadButton.hover();
-        await expect(deniedPage.getByText("File uploads are restricted by your organization's access policy")).toBeVisible({timeout: 5000});
+        await expect(
+            deniedPage.getByText("File uploads are restricted by your organization's access policy"),
+        ).toBeVisible({timeout: 5000});
     });
 
     test('MM-T5822a user denied upload cannot upload via drag-and-drop', async ({pw}) => {
@@ -317,7 +319,9 @@ test.describe('ABAC Permission Policies - Combined File Enforcement', () => {
 
         // Hovering shows the policy restriction tooltip
         await uploadButton.hover();
-        await expect(deniedPage.getByText("File uploads are restricted by your organization's access policy")).toBeVisible({timeout: 5000});
+        await expect(
+            deniedPage.getByText("File uploads are restricted by your organization's access policy"),
+        ).toBeVisible({timeout: 5000});
     });
 
     test('MM-T5825 user can download and upload files when no restriction policies exist', async ({pw}) => {

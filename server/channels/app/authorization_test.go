@@ -2197,8 +2197,10 @@ func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
 	t.Run("no-op when ABAC is inactive", func(t *testing.T) {
 		// Default config has ABAC disabled; AccessControl service is nil.
 		members := makeMembers(th.BasicChannel.Id)
+		members[0].FileUploadRestricted = true
 		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
-		require.False(t, members[0].FileUploadRestricted)
+		require.True(t, members[0].FileUploadRestricted)
+		require.False(t, members[0].FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("sets FileUploadRestricted=true when policy denies", func(t *testing.T) {
@@ -2208,6 +2210,7 @@ func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
 		members := makeMembers(th.BasicChannel.Id)
 		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
 		require.True(t, members[0].FileUploadRestricted)
+		require.True(t, members[0].FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("sets FileUploadRestricted=false when policy allows", func(t *testing.T) {
@@ -2217,6 +2220,7 @@ func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
 		members := makeMembers(th.BasicChannel.Id)
 		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
 		require.False(t, members[0].FileUploadRestricted)
+		require.True(t, members[0].FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("evaluation error defaults to restricted", func(t *testing.T) {
@@ -2239,6 +2243,37 @@ func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
 		members := makeMembers(th.BasicChannel.Id)
 		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
 		require.True(t, members[0].FileUploadRestricted, "evaluation error should fail closed")
+		require.True(t, members[0].FileUploadRestrictionEvaluated)
+	})
+
+	t.Run("subject build error defaults to restricted", func(t *testing.T) {
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		originalAccessControl := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer func() {
+			th.App.Srv().Channels().AccessControl = originalAccessControl
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			})
+		}()
+
+		mockStore := mocks.Store{}
+		mockAttributes := mocks.AttributesStore{}
+		mockAttributes.On("RefreshAttributes").Return(nil)
+		mockAttributes.On("GetSubject", mock.Anything, th.BasicUser.Id, mock.Anything).Return((*model.Subject)(nil), fmt.Errorf("subject store error"))
+		mockStore.On("Attributes").Return(&mockAttributes)
+
+		originalStore := th.App.Srv().Store()
+		th.App.Srv().SetStore(&mockStore)
+		defer th.App.Srv().SetStore(originalStore)
+
+		members := makeMembers(th.BasicChannel.Id)
+		th.App.SetFileUploadRestrictedOnMembers(th.Context, th.BasicUser.Id, model.SystemUserRoleId, members)
+		require.True(t, members[0].FileUploadRestricted, "subject build error should fail closed")
+		require.True(t, members[0].FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("stamps each member independently", func(t *testing.T) {
@@ -2269,5 +2304,7 @@ func TestSetFileUploadRestrictedOnMembers(t *testing.T) {
 
 		require.True(t, members[0].FileUploadRestricted, "BasicChannel should be restricted")
 		require.False(t, members[1].FileUploadRestricted, "secondChannel should not be restricted")
+		require.True(t, members[0].FileUploadRestrictionEvaluated)
+		require.True(t, members[1].FileUploadRestrictionEvaluated)
 	})
 }

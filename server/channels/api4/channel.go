@@ -1721,6 +1721,7 @@ func getChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.Params.UserId == c.AppContext.Session().UserId {
 		member.FileUploadRestricted = !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, c.Params.ChannelId, model.AccessControlPolicyActionUploadFileAttachment)
+		member.FileUploadRestrictionEvaluated = true
 	}
 
 	if err := json.NewEncoder(w).Encode(member); err != nil {

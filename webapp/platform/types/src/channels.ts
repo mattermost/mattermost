@@ -142,6 +142,9 @@ export type ChannelMembership = {
 
     /** Set by the server when an ABAC policy denies upload access in this channel. Not persisted. */
     file_upload_restricted?: boolean;
+
+    /** Set by the server when file_upload_restricted has been evaluated for this channel. Not persisted. */
+    file_upload_restriction_evaluated?: boolean;
 };
 
 export type ChannelUnread = {

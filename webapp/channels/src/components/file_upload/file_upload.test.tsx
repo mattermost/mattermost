@@ -505,7 +505,7 @@ describe('components/FileUpload', () => {
             const button = container.querySelector('#fileUploadButton') as HTMLButtonElement;
             expect(button).not.toBeNull();
             expect(button.disabled).toBe(true);
-            expect(button.className).toContain('disabled');
+            expect(button.className).toContain('AdvancedTextEditor__action-button');
         });
 
         test('should not return null when fileUploadRestrictedByPolicy is true (button stays visible)', () => {

@@ -4182,6 +4182,7 @@ func TestGetChannelMemberFileUploadRestricted(t *testing.T) {
 		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.True(t, member.FileUploadRestricted, "FileUploadRestricted should be true when ABAC denies upload")
+		require.True(t, member.FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("sets FileUploadRestricted=false when ABAC policy allows upload", func(t *testing.T) {
@@ -4191,6 +4192,7 @@ func TestGetChannelMemberFileUploadRestricted(t *testing.T) {
 		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should be false when ABAC allows upload")
+		require.True(t, member.FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("does not set FileUploadRestricted when fetching another user's membership", func(t *testing.T) {
@@ -4201,13 +4203,21 @@ func TestGetChannelMemberFileUploadRestricted(t *testing.T) {
 		member, _, err := th.SystemAdminClient.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should not be set when admin fetches another user's membership")
+		require.False(t, member.FileUploadRestrictionEvaluated)
 	})
 
 	t.Run("FileUploadRestricted is false when ABAC is disabled", func(t *testing.T) {
-		// No ABAC mock — default config has ABAC disabled
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		original := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		defer func() {
+			th.App.Srv().Channels().AccessControl = original
+		}()
+
 		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
 		require.False(t, member.FileUploadRestricted, "FileUploadRestricted should be false when ABAC is disabled")
+		require.True(t, member.FileUploadRestrictionEvaluated)
 	})
 }
 
@@ -4251,6 +4261,7 @@ func TestGetChannelMembersForUserFileUploadRestricted(t *testing.T) {
 			if m.ChannelId == th.BasicChannel.Id {
 				found = true
 				require.True(t, m.FileUploadRestricted, "FileUploadRestricted should be true for the denied channel")
+				require.True(t, m.FileUploadRestrictionEvaluated)
 			}
 		}
 		require.True(t, found, "BasicChannel membership not found in bulk result")
@@ -4266,6 +4277,7 @@ func TestGetChannelMembersForUserFileUploadRestricted(t *testing.T) {
 
 		for _, m := range members {
 			require.False(t, m.FileUploadRestricted, "FileUploadRestricted must not be set when admin fetches another user's memberships")
+			require.False(t, m.FileUploadRestrictionEvaluated)
 		}
 	})
 }

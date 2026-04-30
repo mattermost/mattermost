@@ -692,6 +692,10 @@ func (a *App) SetFileUploadRestrictedOnMembers(rctx request.CTX, userID string, 
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
+		for i := range members {
+			members[i].FileUploadRestricted = true
+			members[i].FileUploadRestrictionEvaluated = true
+		}
 		return
 	}
 
@@ -711,8 +715,10 @@ func (a *App) SetFileUploadRestrictedOnMembers(rctx request.CTX, userID string, 
 				mlog.Err(evalErr),
 			)
 			members[i].FileUploadRestricted = true
+			members[i].FileUploadRestrictionEvaluated = true
 			continue
 		}
 		members[i].FileUploadRestricted = !decision.Decision
+		members[i].FileUploadRestrictionEvaluated = true
 	}
 }

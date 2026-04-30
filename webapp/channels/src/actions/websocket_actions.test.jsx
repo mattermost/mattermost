@@ -187,6 +187,7 @@ let mockState = {
             membersInChannel: {
                 otherChannel: {},
             },
+            myMembers: {},
         },
         preferences: {
             myPreferences: {},

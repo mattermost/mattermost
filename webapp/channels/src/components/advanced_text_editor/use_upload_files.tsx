@@ -8,6 +8,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+import {getMyChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 import {isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
@@ -19,6 +20,7 @@ import FileUpload from 'components/file_upload';
 import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
 import type TextboxClass from 'components/textbox/textbox';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 const getFileCount = (draft: PostDraft) => {
@@ -40,15 +42,16 @@ const useUploadFiles = (
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
     const permissionPoliciesEnabled = useSelector(isPermissionPoliciesEnabled);
+    const uploadRestrictionEvaluated = useSelector((state: GlobalState) => Boolean(channelId && getMyChannelMembership(state, channelId)?.file_upload_restriction_evaluated));
     const dispatch = useDispatch();
 
-    // Re-fetch on channel navigation to pick up file_upload_restricted for channels
-    // not covered by the initial team-scoped bulk fetch (e.g. DMs) and after policy changes.
+    // Bulk membership responses already evaluate file_upload_restricted. Fetch only
+    // when this channel's restriction status has not been populated yet.
     useEffect(() => {
-        if (permissionPoliciesEnabled && channelId) {
+        if (permissionPoliciesEnabled && channelId && !uploadRestrictionEvaluated) {
             dispatch(getMyChannelMember(channelId));
         }
-    }, [channelId, permissionPoliciesEnabled, dispatch]);
+    }, [channelId, uploadRestrictionEvaluated, permissionPoliciesEnabled, dispatch]);
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
 
