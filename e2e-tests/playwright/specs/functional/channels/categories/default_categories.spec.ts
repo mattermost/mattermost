@@ -106,114 +106,122 @@ test.describe('Channel Category Sorting', () => {
      * @objective Verify that a Channel Admin can assign a default category to an existing channel via the channel
      * settings modal, and the category appears in the sidebar with the channel under it for the patching user.
      */
-    test('default category can be assigned via channel settings', {tag: '@channel_category_sorting'}, async ({pw}) => {
-        // # Initialize setup with admin user and enterprise license
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoEnterpriseLicense(adminClient);
-        await enableChannelCategorySorting(adminClient);
-        await adminClient.addToTeam(team.id, adminUser.id);
+    test(
+        'default category can be assigned via channel settings',
+        {tag: '@channel_category_sorting'},
+        async ({pw}) => {
+            // # Initialize setup with admin user and enterprise license
+            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            await skipIfNoEnterpriseLicense(adminClient);
+            await enableChannelCategorySorting(adminClient);
+            await adminClient.addToTeam(team.id, adminUser.id);
 
-        // # Log in and navigate to town-square
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+            // # Log in and navigate to town-square
+            const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.toBeVisible();
 
-        // # Create a new channel
-        const channelName = `default-assign-${Date.now()}`;
-        await channelsPage.newChannel(channelName, 'O');
-        await channelsPage.toBeVisible();
+            // # Create a new channel
+            const channelName = `default-assign-${Date.now()}`;
+            await channelsPage.newChannel(channelName, 'O');
+            await channelsPage.toBeVisible();
 
-        // # Open channel settings and navigate to info tab
-        const channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+            // # Open channel settings and navigate to info tab
+            const channelSettingsModal = await channelsPage.openChannelSettings();
+            await channelSettingsModal.openInfoTab();
 
-        // * Verify the default category selector is visible
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(defaultCategorySection).toContainText('Choose a category (optional)');
+            // * Verify the default category selector is visible
+            const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+            await expect(defaultCategorySection).toContainText('Choose a category (optional)');
 
-        // # Click the selector, type a new category name, and select "Create new category"
-        const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
-        await defaultCategoryControl.click();
+            // # Click the selector, type a new category name, and select "Create new category"
+            const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
+            await defaultCategoryControl.click();
 
-        const input = defaultCategorySection.getByRole('combobox');
-        await input.fill('Operations');
+            const input = defaultCategorySection.getByRole('combobox');
+            await input.fill('Operations');
 
-        const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
-        await expect(createOption).toBeVisible();
-        await createOption.click();
+            const createOption = page.getByRole('option', {name: 'Create new category: Operations'});
+            await expect(createOption).toBeVisible();
+            await createOption.click();
 
-        // # Save and close
-        await channelSettingsModal.save();
-        await pw.wait(pw.duration.two_sec);
-        await channelSettingsModal.close();
+            // # Save and close
+            await channelSettingsModal.save();
+            await pw.wait(pw.duration.two_sec);
+            await channelSettingsModal.close();
 
-        // * Verify the default category appears in the sidebar with the channel under it
-        const sidebar = channelsPage.sidebarLeft.container;
-        await expect(sidebar.getByText('Operations')).toBeVisible();
+            // * Verify the default category appears in the sidebar with the channel under it
+            const sidebar = channelsPage.sidebarLeft.container;
+            await expect(sidebar.getByText('Operations')).toBeVisible();
 
-        const operationsSection = sidebar.locator('.SidebarChannelGroup').filter({hasText: 'Operations'});
-        await expect(operationsSection.locator(`#sidebarItem_${channelName}`)).toBeVisible();
-    });
+            const operationsSection = sidebar.locator('.SidebarChannelGroup').filter({hasText: 'Operations'});
+            await expect(operationsSection.locator(`#sidebarItem_${channelName}`)).toBeVisible();
+        },
+    );
 
     /**
      * @objective Verify that a Channel Admin can remove a default category from a channel via the channel settings
      * modal, and reopening the modal shows the field cleared.
      */
-    test('default category can be removed via channel settings', {tag: '@channel_category_sorting'}, async ({pw}) => {
-        // # Initialize setup and create a channel with a default category set
-        const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoEnterpriseLicense(adminClient);
-        await enableChannelCategorySorting(adminClient);
-        await adminClient.addToTeam(team.id, adminUser.id);
+    test(
+        'default category can be removed via channel settings',
+        {tag: '@channel_category_sorting'},
+        async ({pw}) => {
+            // # Initialize setup and create a channel with a default category set
+            const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
+            await skipIfNoEnterpriseLicense(adminClient);
+            await enableChannelCategorySorting(adminClient);
+            await adminClient.addToTeam(team.id, adminUser.id);
 
-        const channel = await adminClient.createChannel({
-            team_id: team.id,
-            name: `default-cat-remove-${Date.now()}`,
-            display_name: `Default remove ${Date.now()}`,
-            type: 'O',
-        });
-        await adminClient.patchChannel(channel.id, {default_category_name: 'Removable'});
-        await adminClient.addToChannel(adminUser.id, channel.id);
+            const channel = await adminClient.createChannel({
+                team_id: team.id,
+                name: `default-cat-remove-${Date.now()}`,
+                display_name: `Default remove ${Date.now()}`,
+                type: 'O',
+            });
+            await adminClient.patchChannel(channel.id, {default_category_name: 'Removable'});
+            await adminClient.addToChannel(adminUser.id, channel.id);
 
-        // # Log in and navigate to the channel
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+            // # Log in and navigate to the channel
+            const {channelsPage} = await pw.testBrowser.login(adminUser);
+            await channelsPage.goto(team.name, channel.name);
+            await channelsPage.toBeVisible();
 
-        // * Verify the default category is visible in the sidebar (admin was added after the patch set it)
-        const sidebar = channelsPage.sidebarLeft.container;
-        await expect(sidebar.getByText('Removable')).toBeVisible();
+            // * Verify the default category is visible in the sidebar (admin was added after the patch set it)
+            const sidebar = channelsPage.sidebarLeft.container;
+            await expect(sidebar.getByText('Removable')).toBeVisible();
 
-        // # Open channel settings and click the clear button on the default category selector
-        let channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+            // # Open channel settings and click the clear button on the default category selector
+            let channelSettingsModal = await channelsPage.openChannelSettings();
+            await channelSettingsModal.openInfoTab();
 
-        const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(defaultCategorySection).toContainText('Removable');
+            const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+            await expect(defaultCategorySection).toContainText('Removable');
 
-        const clearButton = defaultCategorySection.locator('.CategorySelector__clear-indicator');
-        await expect(clearButton).toBeVisible();
-        await clearButton.click();
-        await pw.wait(pw.duration.half_sec);
+            const clearButton = defaultCategorySection.locator('.CategorySelector__clear-indicator');
+            await expect(clearButton).toBeVisible();
+            await clearButton.click();
+            await pw.wait(pw.duration.half_sec);
 
-        // * Verify the clear button is gone (no value selected)
-        await expect(clearButton).not.toBeVisible();
+            // * Verify the clear button is gone (no value selected)
+            await expect(clearButton).not.toBeVisible();
 
-        // # Save and close
-        await channelSettingsModal.save();
-        await pw.wait(pw.duration.two_sec);
-        await channelSettingsModal.close();
+            // # Save and close
+            await channelSettingsModal.save();
+            await pw.wait(pw.duration.two_sec);
+            await channelSettingsModal.close();
 
-        // # Reopen channel settings to verify the cleared value persisted
-        channelSettingsModal = await channelsPage.openChannelSettings();
-        await channelSettingsModal.openInfoTab();
+            // # Reopen channel settings to verify the cleared value persisted
+            channelSettingsModal = await channelsPage.openChannelSettings();
+            await channelSettingsModal.openInfoTab();
 
-        // * Verify the default category selector shows the placeholder (value is cleared)
-        const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(reopenedDefaultCategorySection).toContainText('Choose a category (optional)');
+            // * Verify the default category selector shows the placeholder (value is cleared)
+            const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
+            await expect(reopenedDefaultCategorySection).toContainText('Choose a category (optional)');
 
-        await channelSettingsModal.close();
-    });
+            await channelSettingsModal.close();
+        },
+    );
 
     /**
      * @objective Verify that the Channel category sorting setting is available in the System Console
