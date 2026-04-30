@@ -86,6 +86,7 @@ type Hub struct {
 	stop            chan struct{}
 	didStop         chan struct{}
 	invalidateUser  chan string
+	invalidateAll   chan struct{}
 	activity        chan *webConnActivityMessage
 	directMsg       chan *webConnDirectMessage
 	explicitStop    bool
@@ -108,6 +109,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		stop:            make(chan struct{}),
 		didStop:         make(chan struct{}),
 		invalidateUser:  make(chan string),
+		invalidateAll:   make(chan struct{}),
 		activity:        make(chan *webConnActivityMessage),
 		directMsg:       make(chan *webConnDirectMessage),
 		checkRegistered: make(chan *webConnSessionMessage),
@@ -463,6 +465,19 @@ func (h *Hub) InvalidateUser(userID string) {
 	}
 }
 
+// InvalidateAll invalidates the cached session state on every WebConn
+// registered with this hub. It is the global counterpart of
+// InvalidateUser and is used by the global session-revocation path so
+// that live websocket connections re-validate against the store on
+// their next authentication check instead of trusting their cached
+// (and now-deleted) session.
+func (h *Hub) InvalidateAll() {
+	select {
+	case h.invalidateAll <- struct{}{}:
+	case <-h.stop:
+	}
+}
+
 // UpdateActivity sets the LastUserActivityAt field for the connection
 // of the user.
 func (h *Hub) UpdateActivity(userID, sessionToken string, activityAt int64) {
@@ -662,6 +677,34 @@ func (h *Hub) Start() {
 					h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
 					for webConn := range connIndex.ForUser(userID) {
 						closeAndRemoveConn(connIndex, webConn)
+					}
+				}
+			case <-h.invalidateAll:
+				// Global session-revocation path. Mirrors the
+				// invalidateUser handler but across every connection
+				// registered with this hub, with one critical
+				// difference: we also clear the session token so that
+				// IsBasicAuthenticated short-circuits on its next
+				// invocation rather than re-fetching the (potentially
+				// still cached upstream) session and re-populating
+				// the WebConn's cached auth state.
+				userIDs := make(map[string]struct{})
+				for webConn := range connIndex.All() {
+					webConn.InvalidateCache()
+					webConn.SetSessionToken("")
+					userIDs[webConn.UserId] = struct{}{}
+				}
+
+				if !*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					continue
+				}
+
+				for userID := range userIDs {
+					if err := connIndex.InvalidateCMCacheForUser(userID); err != nil {
+						h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
+						for conn := range connIndex.ForUser(userID) {
+							closeAndRemoveConn(connIndex, conn)
+						}
 					}
 				}
 			case activity := <-h.activity:

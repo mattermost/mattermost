@@ -70,6 +70,7 @@ func (ps *PlatformService) ClearSessionCacheForAllUsersSkipClusterSend() {
 	if err := ps.ClearAllUsersSessionCacheLocal(); err != nil {
 		ps.logger.Error("Failed to purge session cache", mlog.Err(err))
 	}
+	ps.invalidateWebConnSessionCacheForAllUsersSkipClusterSend()
 }
 
 func (ps *PlatformService) clusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
@@ -98,6 +99,20 @@ func (ps *PlatformService) invalidateWebConnSessionCacheForUserSkipClusterSend(u
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {
 		hub.InvalidateUser(userID)
+	}
+}
+
+// invalidateWebConnSessionCacheForAllUsersSkipClusterSend fans the
+// invalidate-all signal across every active hub. It mirrors the
+// per-user helper above and is the websocket-side companion to
+// ClearAllUsersSessionCacheLocal: without it, live WebConns keep
+// trusting their cached session and IsBasicAuthenticated keeps
+// short-circuiting on the cached expiry until it elapses.
+func (ps *PlatformService) invalidateWebConnSessionCacheForAllUsersSkipClusterSend() {
+	for _, hub := range ps.hubs {
+		if hub != nil {
+			hub.InvalidateAll()
+		}
 	}
 }
 
