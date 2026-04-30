@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import * as Menu from 'components/menu';
+import UserSettingsModal from 'components/user_settings/modal';
 
 import {ModalIdentifiers, UserStatuses} from 'utils/constants';
 
@@ -45,6 +46,25 @@ export default function UserAccountMenu(props: Props) {
 
     const isCustomStatusSet = !props.isCustomStatusExpired && props.customStatus && (props.customStatus.text?.length > 0 || props.customStatus.emoji?.length > 0);
     const shouldConfirmBeforeStatusChange = props.autoResetPref === '' && props.status === UserStatuses.OUT_OF_OFFICE;
+
+    function openRecentMentions() {
+        props.actions.showMentions();
+    }
+
+    function openSavedMessages() {
+        props.actions.showFlaggedPosts();
+    }
+
+    function openSettings() {
+        props.actions.openModal({
+            modalId: ModalIdentifiers.USER_SETTINGS,
+            dialogType: UserSettingsModal,
+            dialogProps: {
+                isContentProductSettings: true,
+                focusOriginElement: 'userAccountMenuButton',
+            },
+        });
+    }
 
     return (
         <Menu.Container
@@ -128,6 +148,22 @@ export default function UserAccountMenu(props: Props) {
             <Menu.Separator/>
             <UserAccountProfileMenuItem
                 userId={props.userId}
+            />
+            <Menu.Separator/>
+            <Menu.Item
+                leadingElement={<i className='icon icon-at'/>}
+                labels={formatMessage({id: 'sidebar_right_menu.recentMentions', defaultMessage: 'Recent Mentions'})}
+                onClick={openRecentMentions}
+            />
+            <Menu.Item
+                leadingElement={<i className='icon icon-bookmark-outline'/>}
+                labels={formatMessage({id: 'sidebar_right_menu.flagged', defaultMessage: 'Saved messages'})}
+                onClick={openSavedMessages}
+            />
+            <Menu.Item
+                leadingElement={<i className='icon icon-cog-outline'/>}
+                labels={formatMessage({id: 'navbar_dropdown.accountSettings', defaultMessage: 'Settings'})}
+                onClick={openSettings}
             />
             <Menu.Separator/>
             <UserAccountLogoutMenuItem/>
