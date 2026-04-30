@@ -73,10 +73,6 @@ func createPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
-	// Reject Protected=true at the HTTP boundary (before scope/admin checks).
-	// The App-layer bypassProtectedCheck=false path also rejects this for
-	// plugin/internal callers. Returning early here preserves the original
-	// 400-before-403 ordering API consumers depend on.
 	if field.Protected {
 		c.Err = model.NewAppError("createPropertyField", "api.property_field.create.protected_via_api.app_error", nil, "", http.StatusBadRequest)
 		return

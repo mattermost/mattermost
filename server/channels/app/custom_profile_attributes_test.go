@@ -133,7 +133,8 @@ func TestDeleteCPAValues(t *testing.T) {
 		values, appErr := th.App.SearchPropertyValues(rctx, cpaID, model.PropertyValueSearchOpts{
 			TargetIDs:  []string{targetID},
 			TargetType: model.PropertyValueTargetTypeUser,
-			PerPage:    250,
+			// Single-target search: at most one value per (target, field), so the field cap bounds the page.
+			PerPage: model.ProtectedAttributesGroupFieldLimit + 5,
 		})
 		require.Nil(t, appErr)
 		return values

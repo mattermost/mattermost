@@ -42,7 +42,7 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	pfs, appErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeUser,
-		PerPage:    250, // The global limit is 200, so this will get everything
+		PerPage:    model.ProtectedAttributesGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		c.Err = appErr
@@ -87,9 +87,9 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Translate to PropertyField and route through the generic property API.
-	// Every server-controlled field on the decoded payload is explicitly
-	// overwritten below so they can't be set by the caller. This is just
-	// a precaution - lower layers are responsible for setting these.
+	// Server-controlled fields (group, type, target shape, creator) are
+	// stamped here; ID/TargetID/Protected are stripped so a caller can't
+	// inject them. Permissions and timestamps are filled in by lower layers.
 	field := pf.ToPropertyField()
 	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
 	if appErr != nil {
@@ -102,14 +102,8 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	field.TargetType = string(model.PropertyFieldTargetLevelSystem)
 	field.TargetID = ""
 	field.Protected = false
-	field.PermissionField = nil
-	field.PermissionValues = nil
-	field.PermissionOptions = nil
 	field.CreatedBy = c.AppContext.Session().UserId
 	field.UpdatedBy = c.AppContext.Session().UserId
-	field.CreateAt = 0
-	field.UpdateAt = 0
-	field.DeleteAt = 0
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 	connectionID := r.Header.Get(model.ConnectionId)
@@ -477,7 +471,8 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	values, appErr := c.App.SearchPropertyValues(rctx, group.ID, model.PropertyValueSearchOpts{
 		TargetIDs:  []string{c.Params.UserId},
 		TargetType: model.PropertyValueTargetTypeUser,
-		PerPage:    250, // The global limit is 200, so this will get everything
+		// Single-target search: at most one value per (target, field), so the field cap bounds the page.
+		PerPage: model.ProtectedAttributesGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		c.Err = appErr

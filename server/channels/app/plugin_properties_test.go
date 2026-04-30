@@ -1170,7 +1170,7 @@ func TestPluginProperties(t *testing.T) {
 		updatedFields, appErr := th.App.SearchPropertyFields(request.TestContext(t), cpaID, model.PropertyFieldSearchOpts{
 			GroupID:    cpaID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
-			PerPage:    250,
+			PerPage:    model.ProtectedAttributesGroupFieldLimit + 5,
 		})
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool

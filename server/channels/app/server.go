@@ -339,14 +339,15 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Field limit hook — enforces per-object-type and global field limits.
 	// Only "user" has a per-type cap today; when channel/team/post CPA fields
-	// are added, set their per-type caps here. Until then the 200 GlobalLimit
-	// is the only ceiling for non-user object types within this group.
+	// are added, set their per-type caps here. Until then
+	// ProtectedAttributesGroupFieldLimit is the only ceiling for non-user
+	// object types within this group.
 	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
 	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
 		PerObjectType: map[string]int64{
 			model.PropertyFieldObjectTypeUser: 20,
 		},
-		GlobalLimit: 200,
+		GlobalLimit: model.ProtectedAttributesGroupFieldLimit,
 	})
 	s.propertyService.AddHook(fieldLimitHook)
 
