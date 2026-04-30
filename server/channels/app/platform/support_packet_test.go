@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -47,6 +48,25 @@ func (s *fixedDBStatsStore) MasterDBStats() sql.DBStats {
 
 func (s *fixedDBStatsStore) ReplicaDBStats() sql.DBStats {
 	return s.replicaStats
+}
+
+func (s *fixedDBStatsStore) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
+	diagnostics := &model.SupportPacketDatabaseDiagnostics{
+		MasterConnectionsInUse:              s.masterStats.InUse,
+		MasterConnectionsIdle:               s.masterStats.Idle,
+		MasterPoolWaitCount:                 s.masterStats.WaitCount,
+		MasterPoolWaitDurationMs:            s.masterStats.WaitDuration.Milliseconds(),
+		MasterConnectionsClosedMaxIdle:      s.masterStats.MaxIdleClosed,
+		MasterConnectionsClosedMaxLifetime:  s.masterStats.MaxLifetimeClosed,
+		ReplicaConnectionsInUse:             s.replicaStats.InUse,
+		ReplicaConnectionsIdle:              s.replicaStats.Idle,
+		ReplicaPoolWaitCount:                s.replicaStats.WaitCount,
+		ReplicaPoolWaitDurationMs:           s.replicaStats.WaitDuration.Milliseconds(),
+		ReplicaConnectionsClosedMaxIdle:     s.replicaStats.MaxIdleClosed,
+		ReplicaConnectionsClosedMaxLifetime: s.replicaStats.MaxLifetimeClosed,
+	}
+
+	return diagnostics, nil
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
