@@ -1219,6 +1219,7 @@ type ExperimentalSettings struct {
 	YoutubeReferrerPolicy                                 *bool  `access:"experimental_features"`
 	ExperimentalChannelCategorySorting                    *bool  `access:"experimental_features"`
 	EnableWatermark                                       *bool  `access:"experimental_features"`
+	TestCheckerFixtureSetting                             *bool  `access:"experimental_features"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -1272,6 +1273,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnableWatermark == nil {
 		s.EnableWatermark = NewPointer(false)
+	}
+
+	if s.TestCheckerFixtureSetting == nil {
+		s.TestCheckerFixtureSetting = NewPointer(false)
 	}
 }
 

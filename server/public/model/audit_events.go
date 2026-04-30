@@ -39,6 +39,11 @@ const (
 	AuditEventUpdateBotActive  = "updateBotActive"  // enable or disable bot account
 )
 
+// CI Checker Test Fixtures
+const (
+	AuditEventCICheckerTestFixture = "ciCheckerTestFixture" // fixture event used to validate the audit_events checker
+)
+
 // Branding
 const (
 	AuditEventDeleteBrandImage = "deleteBrandImage" // delete brand image

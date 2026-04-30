@@ -21,6 +21,12 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("/enable", api.APISessionRequired(enableBot)).Methods(http.MethodPost)
 	api.BaseRoutes.Bot.Handle("/convert_to_user", api.APISessionRequired(convertBotToUser)).Methods(http.MethodPost)
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignBot)).Methods(http.MethodPost)
+
+	// Fixtures for the config-change-checker workflow — exercises both single-method
+	// and multi-method route registrations. These reuse existing handlers under
+	// dedicated paths and are not part of the supported public API.
+	api.BaseRoutes.Bots.Handle("/_cicheck_fixture", api.APISessionRequired(getBots)).Methods(http.MethodGet)
+	api.BaseRoutes.Bot.Handle("/_cicheck_fixture_multi", api.APISessionRequired(getBot)).Methods(http.MethodGet, http.MethodPut)
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
