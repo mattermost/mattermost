@@ -14,6 +14,7 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -146,6 +147,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("MasterDBStats").Return(sql.DBStats{})
 		mockStore.On("ReplicaDBStats").Return(sql.DBStats{})
 		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
+		mockStore.On("GetSupportPacketDatabaseDiagnostics", mock.Anything).Return(&model.SupportPacketDatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)
