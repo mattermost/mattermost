@@ -751,23 +751,8 @@ func (s SqlChannelStore) SaveBoardChannel(rctx request.CTX, channel *model.Chann
 	// Do NOT call upsertPublicChannelT — boards must not appear in PublicChannels
 
 	view.ChannelId = newChannel.Id
-	view.PreSave()
-	if vErr := view.IsValid(); vErr != nil {
+	if vErr := s.stores.view.(*SqlViewStore).saveViewT(transaction, view); vErr != nil {
 		return nil, nil, vErr
-	}
-
-	// Insert view within the same transaction
-	viewBuilder := s.getQueryBuilder().
-		Insert("Views").
-		Columns(viewColumns()...).
-		Values(
-			view.Id, view.ChannelId, view.Type, view.CreatorId, view.Title,
-			view.Description, view.SortOrder, view.Props,
-			view.CreateAt, view.UpdateAt, view.DeleteAt,
-		)
-
-	if _, vErr := transaction.ExecBuilder(viewBuilder); vErr != nil {
-		return nil, nil, errors.Wrap(vErr, "save_view")
 	}
 
 	if err = transaction.Commit(); err != nil {
