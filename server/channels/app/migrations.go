@@ -773,12 +773,12 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 			return s.cacheManagedCategoryIDs()
 		}
 
-		if err := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); err != nil {
-			return fmt.Errorf("failed to increment managed category group version: %w", err)
+		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
 		}
 
-		if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); err != nil {
-			return fmt.Errorf("failed to save managed category setup done flag: %w", err)
+		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
 		}
 
 		return s.cacheManagedCategoryIDs()
