@@ -61,6 +61,15 @@ test.describe('System Console Notifications', () => {
         const notifications = systemConsolePage.notifications;
         await notifications.toBeVisible();
 
+        // Re-apply guard: a concurrent initSetup() may have cleared SupportEmail (a required
+        // field) between the initial resetNotificationsConfig call and the page rendering here,
+        // leaving the Save button disabled. Re-apply the config and reload so the form
+        // renders with all required fields populated.
+        await resetNotificationsConfig(adminClient);
+        await systemConsolePage.page.reload();
+        await systemConsolePage.sidebar.notifications.click();
+        await notifications.toBeVisible();
+
         // * Verify that setting is visible and matches text content
         await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
         await notifications.pushNotificationContents.toBeVisible();

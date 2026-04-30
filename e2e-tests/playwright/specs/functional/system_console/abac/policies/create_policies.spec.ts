@@ -398,8 +398,14 @@ test.describe('ABAC Policies - Create Policies', () => {
             channels: [privateChannel.display_name],
         });
 
-        // Navigate back and try to create another policy with the same name
+        // Navigate back and try to create another policy with the same name.
+        // Re-apply guard: a concurrent initSetup() may have reset EnableAttributeBasedAccessControl
+        // between the first createBasicPolicy call and now, triggering a page redirect that
+        // closes the browser context before the second policy form can be filled.
         await navigateToABACPage(page);
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
 
         await createBasicPolicy(page, {
             name: policyName,

@@ -330,6 +330,19 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
+        // between the initial patchConfig call and this browser action.
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === true;
+        });
+
         let channelSettingsModal = await channelsPage.openChannelSettings();
         let configurationTab = await channelSettingsModal.openConfigurationTab();
         await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
@@ -395,6 +408,19 @@ test.describe('Shared channel configuration', () => {
             const {channelsPage} = await pw.testBrowser.login(sharedChannelUser);
             await channelsPage.goto(team.name, channelName);
             await channelsPage.toBeVisible();
+
+            // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
+            // between the initial patchConfig call and this browser action.
+            await adminClient.patchConfig({
+                ConnectedWorkspacesSettings: {
+                    EnableSharedChannels: true,
+                    EnableRemoteClusterService: true,
+                },
+            });
+            await pw.waitUntil(async () => {
+                const cfg = await adminClient.getConfig();
+                return cfg.ConnectedWorkspacesSettings?.EnableSharedChannels === true;
+            });
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
             await channelSettingsModal.toBeVisible();
