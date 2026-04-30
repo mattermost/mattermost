@@ -465,12 +465,8 @@ func (h *Hub) InvalidateUser(userID string) {
 	}
 }
 
-// InvalidateAll invalidates the cached session state on every WebConn
-// registered with this hub. It is the global counterpart of
-// InvalidateUser and is used by the global session-revocation path so
-// that live websocket connections re-validate against the store on
-// their next authentication check instead of trusting their cached
-// (and now-deleted) session.
+// InvalidateAll invalidates the cached session state of every WebConn
+// registered with this hub. Global counterpart of InvalidateUser.
 func (h *Hub) InvalidateAll() {
 	select {
 	case h.invalidateAll <- struct{}{}:
@@ -680,14 +676,10 @@ func (h *Hub) Start() {
 					}
 				}
 			case <-h.invalidateAll:
-				// Global session-revocation path. Mirrors the
-				// invalidateUser handler but across every connection
-				// registered with this hub, with one critical
-				// difference: we also clear the session token so that
-				// IsBasicAuthenticated short-circuits on its next
-				// invocation rather than re-fetching the (potentially
-				// still cached upstream) session and re-populating
-				// the WebConn's cached auth state.
+				// Mirrors the invalidateUser arm across every conn,
+				// also clearing the session token so the next
+				// IsBasicAuthenticated check short-circuits instead
+				// of re-fetching from the cache.
 				userIDs := make(map[string]struct{})
 				for webConn := range connIndex.All() {
 					webConn.InvalidateCache()

@@ -13,11 +13,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// waitForWebConnRegistered ensures the hub goroutine has processed the
-// WebConn registration before the test issues invalidation signals.
-// Without this, a fast-scheduled test can race past the async register
-// channel and the invalidation arm will walk an empty connIndex,
-// observably looking like "the fix did not invalidate the WebConn".
+// waitForWebConnRegistered blocks until the hub has processed the
+// WebConn registration. Without it, a test can race past the async
+// register channel and signal invalidation against an empty connIndex.
 func waitForWebConnRegistered(t *testing.T, th *TestHelper, session *model.Session) {
 	t.Helper()
 	require.Eventually(t, func() bool {
@@ -27,20 +25,11 @@ func waitForWebConnRegistered(t *testing.T, th *TestHelper, session *model.Sessi
 		session.Id, session.UserId)
 }
 
-// preWarmStatusOnline seeds the status cache so the asynchronous
-// SetStatusOnline goroutine that NewWebConn fires off does not broadcast
-// a "user is now online" event. That broadcast otherwise races with the
-// hub's InvalidateUser handler: if the broadcast lands AFTER the
-// post-invalidate WebConn state, the hub's broadcast loop calls
-// WebConn.ShouldSendEvent -> IsAuthenticated -> IsBasicAuthenticated,
-// which in turn calls Suite.GetSession on the now-invalidated WebConn
-// and re-populates an empty session via the test's mockSuite. That
-// makes the test's secure-end-state condition (GetSession()==nil and
-// GetSessionExpiresAt()==0) flap to non-nil. By marking the user
-// already-online before NewWebConn runs, SetStatusOnline takes the
-// "no broadcast" branch and the race goes away. This does not weaken
-// the contract being tested: invalidation is still the only signal
-// that clears the cached session state.
+// preWarmStatusOnline marks the user online before any WebConn is
+// created so the async SetStatusOnline goroutine in NewWebConn skips
+// the broadcast path. Otherwise the broadcast can race with the
+// invalidation and re-populate the WebConn's cached session via
+// IsBasicAuthenticated, flipping the post-invalidate assertions.
 func preWarmStatusOnline(th *TestHelper, userID string) {
 	th.Service.AddStatusCacheSkipClusterSend(&model.Status{
 		UserId:         userID,
@@ -49,20 +38,11 @@ func preWarmStatusOnline(th *TestHelper, userID string) {
 	})
 }
 
-// TestClearSessionCacheInvalidatesWebConnSession is a regression contract test
-// for MM-68543.
-//
-// Contract: after PlatformService.ClearSessionCacheForAllUsersSkipClusterSend
-// is invoked (the global session-revocation path used by
-// POST /api/v4/users/sessions/revoke/all), every active WebSocket connection
-// across all hubs must have its cached authentication state invalidated —
-// i.e. the same observable end state that the per-user revocation path
-// produces today: WebConn.GetSession() returns nil and
-// WebConn.GetSessionExpiresAt() is reset to 0.
-//
-// The per-user case is included as a parallel sanity check: it exercises the
-// known-good code path and is expected to PASS today, which makes it obvious
-// in the failure output that the global path is the one breaking the contract.
+// TestClearSessionCacheInvalidatesWebConnSession asserts that after either
+// the per-user or the global session-cache clear runs, every matching
+// active WebSocket connection has its cached session reset to the
+// authenticated-as-no-one state (GetSession() == nil and
+// GetSessionExpiresAt() == 0).
 func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -71,18 +51,12 @@ func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 		revoke func(ps *PlatformService, userID string)
 	}{
 		{
-			// Secure baseline. Should pass today.
 			name: "PerUserRevokeInvalidatesWebConnSession",
 			revoke: func(ps *PlatformService, userID string) {
 				ps.ClearSessionCacheForUserSkipClusterSend(userID)
 			},
 		},
 		{
-			// Reproduces MM-68543. Should fail today: the global path
-			// only purges the in-memory session cache and never signals
-			// the websocket hubs, so live WebConns keep their cached
-			// session state and continue to authenticate against the
-			// (now-deleted) cached session.
 			name: "GlobalRevokeInvalidatesWebConnSession",
 			revoke: func(ps *PlatformService, _ string) {
 				_ = ps.ClearSessionCacheForAllUsersSkipClusterSend()
@@ -102,11 +76,8 @@ func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			// Make the cached session look "fresh" so that
-			// WebConn.IsBasicAuthenticated would short-circuit on the
-			// in-memory expiry check and never re-validate against the
-			// store. This is the precondition that turns the missing
-			// hub-side invalidation into a real authentication bypass.
+			// Pin a future expiry so IsBasicAuthenticated trusts the
+			// cached session and doesn't re-validate against the store.
 			session.ExpiresAt = model.GetMillis() + time.Hour.Milliseconds()
 
 			preWarmStatusOnline(th, th.BasicUser.Id)
@@ -123,16 +94,7 @@ func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 
 			tt.revoke(th.Service, th.BasicUser.Id)
 
-			// Hub processing of InvalidateUser is async (the hub
-			// goroutine reads from h.invalidateUser and then runs
-			// webConn.InvalidateCache() on each matching connection),
-			// so poll for the secure end state instead of sleeping.
-			//
-			// For the per-user path the hub is signaled, so this
-			// converges within a few hundred milliseconds. For the
-			// buggy global path the hub is never signaled, so this
-			// times out and we report the still-cached state — which
-			// is exactly the bug.
+			// Hub invalidation is async, so poll for the end state.
 			require.Eventually(t, func() bool {
 				return wc.GetSession() == nil && wc.GetSessionExpiresAt() == 0
 			}, 2*time.Second, 25*time.Millisecond,

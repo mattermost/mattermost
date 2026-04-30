@@ -110,13 +110,10 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 }
 
 func (ps *PlatformService) ClearAllUsersSessionCache() error {
-	// Delegate local-side work (session-cache purge + WebConn hub fan-out) to
-	// the same primitive that the cluster handler invokes on remote nodes.
-	// This mirrors the per-user shape used by ClearUserSessionCache ->
-	// ClearSessionCacheForUserSkipClusterSend. We still broadcast even when
-	// the local purge fails so remote nodes can run their own purge + hub
-	// fan-out independently, but we propagate the local error so callers
-	// keep the historical error contract.
+	// Mirrors the per-user shape: the SkipClusterSend helper handles the
+	// local cache purge and the WebConn hub fan-out, then we broadcast to
+	// peer nodes. The broadcast still runs on local-purge failure so peers
+	// can act independently.
 	err := ps.ClearSessionCacheForAllUsersSkipClusterSend()
 
 	if ps.clusterIFace != nil {
