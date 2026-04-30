@@ -475,7 +475,7 @@ function isUnreadChannel(
 }
 
 export function areManagedCategoriesEnabled(state: GlobalState): boolean {
-    return getConfig(state).EnableManagedChannelCategories === 'true';
+    return getConfig(state).FeatureFlagManagedChannelCategories === 'true';
 }
 
 export function getManagedCategoryMappings(state: GlobalState, teamId: string): Record<string, string> | undefined {

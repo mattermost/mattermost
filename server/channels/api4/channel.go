@@ -36,7 +36,9 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.APISessionRequiredDisableWhenBusy(searchChannelsForTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.ChannelsForTeam.Handle("/autocomplete", api.APISessionRequired(autocompleteChannelsForTeam)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelsForTeam.Handle("/search_autocomplete", api.APISessionRequired(autocompleteChannelsForTeamForSearch)).Methods(http.MethodGet)
-	api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
+	if api.srv.Config().FeatureFlags.ManagedChannelCategories {
+		api.BaseRoutes.ChannelsForTeam.Handle("/managed_categories", api.APISessionRequired(getManagedCategories)).Methods(http.MethodGet)
+	}
 	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.APISessionRequired(getChannelsForTeamForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/channels", api.APISessionRequired(getChannelsForUser)).Methods(http.MethodGet)
 
@@ -430,7 +432,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updatingManagedCategory {
-		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && *c.App.Config().TeamSettings.EnableManagedChannelCategories {
+		if model.MinimumEnterpriseLicense(c.App.Channels().License()) && c.App.Config().FeatureFlags.ManagedChannelCategories {
 			if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionManageChannelRoles); !ok {
 				c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.cannot_update_managed_category.app_error", nil, "", http.StatusForbidden)
 				return
@@ -454,7 +456,7 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if updatingManagedCategory {
-		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
+		if !model.MinimumEnterpriseLicense(c.App.Channels().License()) || !c.App.Config().FeatureFlags.ManagedChannelCategories {
 			c.Logger.Info("Managed category update ignored: feature not available")
 		} else {
 			name := *patch.ManagedCategoryName
@@ -2931,11 +2933,6 @@ func getManagedCategories(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("Api4.getManagedCategories", "api.license_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().TeamSettings.EnableManagedChannelCategories {
-		c.Err = model.NewAppError("Api4.getManagedCategories", "api.managed_category.feature_not_available.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
