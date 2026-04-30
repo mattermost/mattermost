@@ -96,8 +96,8 @@ type PlatformService struct {
 
 	esWatcher *searchEngineWatcher
 
-	ldapDiagnostic einterfaces.LdapDiagnosticInterface
-	samlDiagnostic einterfaces.SamlDiagnosticInterface
+	ldapDiagnostic          einterfaces.LdapDiagnosticInterface
+	supportPacketDiagnostic einterfaces.SupportPacketDiagnosticInterface
 
 	Jobs *jobs.JobServer
 
@@ -534,8 +534,8 @@ func (ps *PlatformService) initEnterprise() {
 	if ldapDiagnosticInterface != nil {
 		ps.ldapDiagnostic = ldapDiagnosticInterface(ps)
 	}
-	if samlDiagnosticInterface != nil {
-		ps.samlDiagnostic = samlDiagnosticInterface(ps)
+	if supportPacketDiagnosticInterface != nil {
+		ps.supportPacketDiagnostic = supportPacketDiagnosticInterface(ps)
 	}
 
 	if licenseInterface != nil {
@@ -671,8 +671,8 @@ func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface 
 	return ps.ldapDiagnostic
 }
 
-func (ps *PlatformService) SamlDiagnostic() einterfaces.SamlDiagnosticInterface {
-	return ps.samlDiagnostic
+func (ps *PlatformService) SupportPacketDiagnostic() einterfaces.SupportPacketDiagnosticInterface {
+	return ps.supportPacketDiagnostic
 }
 
 // DatabaseTypeAndSchemaVersion returns the database type and current version of the schema

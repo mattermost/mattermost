@@ -239,7 +239,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 
 	/* SAML */
 	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
-		d.SAML.ProviderType = ps.GetSupportPacketSAMLProviderType(idpDescriptorURL)
+		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
 
 	/* Elastic Search */
@@ -306,26 +306,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* OAuth Providers */
-	d.OAuthProviders.GitLab = getOAuthProviderStatusForTokenEndpoint(
-		rctx.Context(),
-		model.SafeDereference(ps.Config().GitLabSettings.Enable),
-		model.SafeDereference(ps.Config().GitLabSettings.TokenEndpoint),
-	)
-	d.OAuthProviders.Google = getOAuthProviderStatusForTokenEndpoint(
-		rctx.Context(),
-		model.SafeDereference(ps.Config().GoogleSettings.Enable),
-		model.SafeDereference(ps.Config().GoogleSettings.TokenEndpoint),
-	)
-	d.OAuthProviders.Office365 = getOAuthProviderStatusForTokenEndpoint(
-		rctx.Context(),
-		model.SafeDereference(ps.Config().Office365Settings.Enable),
-		model.SafeDereference(ps.Config().Office365Settings.TokenEndpoint),
-	)
-	d.OAuthProviders.OpenID = getOpenIDProviderStatus(
-		rctx.Context(),
-		model.SafeDereference(ps.Config().OpenIdSettings.Enable),
-		model.SafeDereference(ps.Config().OpenIdSettings.DiscoveryEndpoint),
-	)
+	d.OAuthProviders = ps.GetOAuthProvidersDiagnosticsForSupportPacket(rctx.Context())
 
 	b, err := yaml.Marshal(&d)
 	if err != nil {
@@ -462,15 +443,37 @@ func testOIDCDiscoveryEndpoint(ctx context.Context, discoveryEndpoint string) er
 	return nil
 }
 
-func getSAMLProviderTypeForSupportPacket(rctx request.CTX, samlDiagnostic einterfaces.SamlDiagnosticInterface, idpDescriptorURL string) string {
-	if samlDiagnostic != nil {
-		return samlDiagnostic.DetectProviderType(rctx, idpDescriptorURL)
+func getOAuthProvidersDiagnosticsForSupportPacket(ctx context.Context, oauthDiagnostic einterfaces.SupportPacketDiagnosticInterface, cfg *model.Config) model.OAuthProviders {
+	if oauthDiagnostic != nil {
+		return oauthDiagnostic.GetOAuthProvidersStatus(request.EmptyContext(mlog.CreateConsoleLogger()).WithContext(ctx), cfg)
 	}
-	return detectSAMLProviderType(idpDescriptorURL)
+
+	return model.OAuthProviders{
+		GitLab: getOAuthProviderStatusForTokenEndpoint(
+			ctx,
+			model.SafeDereference(cfg.GitLabSettings.Enable),
+			model.SafeDereference(cfg.GitLabSettings.TokenEndpoint),
+		),
+		Google: getOAuthProviderStatusForTokenEndpoint(
+			ctx,
+			model.SafeDereference(cfg.GoogleSettings.Enable),
+			model.SafeDereference(cfg.GoogleSettings.TokenEndpoint),
+		),
+		Office365: getOAuthProviderStatusForTokenEndpoint(
+			ctx,
+			model.SafeDereference(cfg.Office365Settings.Enable),
+			model.SafeDereference(cfg.Office365Settings.TokenEndpoint),
+		),
+		OpenID: getOpenIDProviderStatus(
+			ctx,
+			model.SafeDereference(cfg.OpenIdSettings.Enable),
+			model.SafeDereference(cfg.OpenIdSettings.DiscoveryEndpoint),
+		),
+	}
 }
 
-func (ps *PlatformService) GetSupportPacketSAMLProviderType(idpDescriptorURL string) string {
-	return getSAMLProviderTypeForSupportPacket(request.EmptyContext(ps.Log()), ps.SamlDiagnostic(), idpDescriptorURL)
+func (ps *PlatformService) GetOAuthProvidersDiagnosticsForSupportPacket(ctx context.Context) model.OAuthProviders {
+	return getOAuthProvidersDiagnosticsForSupportPacket(ctx, ps.SupportPacketDiagnostic(), ps.Config())
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {

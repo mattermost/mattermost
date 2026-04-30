@@ -33,14 +33,6 @@ import (
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
-type samlDiagnosticStub struct {
-	providerType string
-}
-
-func (s *samlDiagnosticStub) DetectProviderType(_ request.CTX, _ string) string {
-	return s.providerType
-}
-
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -1069,22 +1061,53 @@ func TestGetOpenIDProviderStatus(t *testing.T) {
 	})
 }
 
-func TestGetSAMLProviderTypeForSupportPacket(t *testing.T) {
-	t.Run("falls back to local detection when enterprise hook is unavailable", func(t *testing.T) {
-		providerType := getSAMLProviderTypeForSupportPacket(
-			request.EmptyContext(mlog.CreateConsoleLogger()),
+type oauthDiagnosticStub struct {
+	status model.OAuthProviders
+}
+
+func (o *oauthDiagnosticStub) GetOAuthProvidersStatus(_ request.CTX, _ *model.Config) model.OAuthProviders {
+	return o.status
+}
+
+func TestGetOAuthProvidersDiagnosticsForSupportPacket(t *testing.T) {
+	t.Run("falls back to local token endpoint probe when enterprise hook is unavailable", func(t *testing.T) {
+		tokenEndpointServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer tokenEndpointServer.Close()
+
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.GitLabSettings.Enable = model.NewPointer(true)
+		cfg.GitLabSettings.TokenEndpoint = model.NewPointer(tokenEndpointServer.URL + "/oauth/token")
+		cfg.GoogleSettings.Enable = model.NewPointer(false)
+		cfg.Office365Settings.Enable = model.NewPointer(false)
+		cfg.OpenIdSettings.Enable = model.NewPointer(false)
+
+		status := getOAuthProvidersDiagnosticsForSupportPacket(
+			t.Context(),
 			nil,
-			"https://company.okta.com/app/mattermost/saml",
+			cfg,
 		)
-		assert.Equal(t, "Okta", providerType)
+		assert.Equal(t, model.StatusOk, status.GitLab.Status)
+		assert.Equal(t, model.StatusDisabled, status.Google.Status)
+		assert.Equal(t, model.StatusDisabled, status.Office365.Status)
+		assert.Equal(t, model.StatusDisabled, status.OpenID.Status)
 	})
 
 	t.Run("uses enterprise hook when available", func(t *testing.T) {
-		providerType := getSAMLProviderTypeForSupportPacket(
-			request.EmptyContext(mlog.CreateConsoleLogger()),
-			&samlDiagnosticStub{providerType: "EE Provider"},
-			"https://saml.example.com/metadata",
+		expected := model.OAuthProviders{
+			GitLab: model.OAuthProviderStatus{Status: model.StatusOk},
+			Google: model.OAuthProviderStatus{Status: model.StatusFail, Error: "google down"},
+		}
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+
+		status := getOAuthProvidersDiagnosticsForSupportPacket(
+			t.Context(),
+			&oauthDiagnosticStub{status: expected},
+			cfg,
 		)
-		assert.Equal(t, "EE Provider", providerType)
+		assert.Equal(t, expected, status)
 	})
 }
