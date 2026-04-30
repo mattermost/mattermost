@@ -23,6 +23,7 @@ import type {TextFormattingOptions} from 'utils/text_formatting';
 import type {PostWillRenderEmbedComponent} from 'types/store/plugins';
 
 import EmbeddedBindings from '../embedded_bindings/embedded_bindings';
+import InteractiveMessages from '../interactive_messages';
 
 export type Props = {
     post: Post;
@@ -31,6 +32,7 @@ export type Props = {
     isEmbedVisible?: boolean;
     options?: Partial<TextFormattingOptions>;
     appsEnabled: boolean;
+    mmBlocksEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
@@ -151,6 +153,28 @@ export default class PostBodyAdditionalContent extends React.PureComponent<Props
 
     render() {
         const embed = this.getEmbed();
+
+        // New Interactive Messages framework — checked first per priority order.
+        // When the feature flag is on, mm_blocks/blocks/cards/attachments are all
+        // handled here. The existing paths below are only reached when the flag is off.
+        if (this.props.mmBlocksEnabled) {
+            const props = this.props.post.props as Record<string, unknown>;
+            const mb = props?.mm_blocks;
+            const hasMmBlocksArray = Array.isArray(mb) && mb.length > 0;
+            const hasInteractiveContent = hasMmBlocksArray ||
+                Array.isArray(props?.blocks) ||
+                Array.isArray(props?.cards) ||
+                Array.isArray(props?.attachments);
+
+            if (hasInteractiveContent) {
+                return (
+                    <>
+                        {this.props.children}
+                        <InteractiveMessages post={this.props.post}/>
+                    </>
+                );
+            }
+        }
 
         if (this.props.appsEnabled) {
             const appEmbeds = isArrayOf<AppBinding>(this.props.post.props?.app_bindings, isAppBinding) ? validateBindings(this.props.post.props?.app_bindings) : [];

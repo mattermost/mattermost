@@ -1535,3 +1535,14 @@ func TestDialogElementDateTimeValidation(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestNormalizePostActionIntegrationContext(t *testing.T) {
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext(""))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("  "))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("ATTACHMENT"))
+	assert.Equal(t, PostActionIntegrationFormatMmBlock, NormalizePostActionIntegrationContext("mm_block"))
+	assert.Equal(t, PostActionIntegrationFormatBlock, NormalizePostActionIntegrationContext("block"))
+	assert.Equal(t, PostActionIntegrationFormatCard, NormalizePostActionIntegrationContext("card"))
+	assert.Equal(t, PostActionIntegrationFormatAppsBinding, NormalizePostActionIntegrationContext("apps_binding"))
+	assert.Equal(t, PostActionIntegrationFormatAttachment, NormalizePostActionIntegrationContext("unknown-thing"))
+}

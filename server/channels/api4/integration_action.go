@@ -48,23 +48,29 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error decoding the action request", mlog.Err(err))
 	}
 
-	var cookie *model.PostActionCookie
+	var legacyCookie *model.PostActionCookie
+	var mmBlocksCookie *model.MmBlocksActionCookie
 	if actionRequest.Cookie != "" {
-		cookie = &model.PostActionCookie{}
-		cookieStr := ""
-		cookieStr, err = model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
-		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		cookieStr, decErr := model.DecryptPostActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
+		if decErr != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(decErr)
 			return
 		}
-		err = json.Unmarshal([]byte(cookieStr), &cookie)
-		if err != nil {
-			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		var parseErr error
+		legacyCookie, mmBlocksCookie, parseErr = model.ParseDecryptedActionCookiePayload(cookieStr)
+		if parseErr != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 			return
 		}
-		channel, err := c.App.GetChannel(c.AppContext, cookie.ChannelId)
-		if err != nil {
-			c.Err = err
+		var channelID string
+		if legacyCookie != nil {
+			channelID = legacyCookie.ChannelId
+		} else {
+			channelID = mmBlocksCookie.ChannelId
+		}
+		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+		if appErr != nil {
+			c.Err = appErr
 			return
 		}
 		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
@@ -81,8 +87,8 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
-		actionRequest.SelectedOption, cookie)
+	resp.TriggerId, resp.GotoLocation, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
+		actionRequest.SelectedOption, legacyCookie, mmBlocksCookie, actionRequest.Query, actionRequest.IntegrationFormat)
 	if appErr != nil {
 		c.Err = appErr
 		return

@@ -1115,6 +1115,23 @@ func TestPost_PropsIsValid(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		"valid mm_blocks array is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "text", "content": "Hello world"},
+					map[string]any{"type": "divider"},
+				},
+			},
+			wantErr: "",
+		},
+		"valid mm_blocks with unknown block types is treated as opaque data": {
+			props: StringInterface{
+				PostPropsMmBlocks: []any{
+					map[string]any{"type": "unknown_future_block_type", "foo": "bar"},
+				},
+			},
+			wantErr: "",
+		},
 		"invalid added_user_id type": {
 			props: StringInterface{
 				PostPropsAddedUserId: 123,

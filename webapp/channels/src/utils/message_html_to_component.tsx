@@ -45,6 +45,9 @@ export type Options = Partial<{
      * users automatically for all posts.
      */
     fetchMissingUsers: boolean;
+
+    /** Handles `mm_action:` markdown links rendered inside MM blocks. */
+    mmBlocksMarkdownActionHandler: (actionId: string, query: Record<string, string>) => void;
 }>
 
 type ProcessingInstruction = {
@@ -135,6 +138,56 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             );
         },
     });
+
+    if (options.mmBlocksMarkdownActionHandler) {
+        processingInstructions.push({
+            replaceChildren: false,
+            shouldProcessNode: (node: any) => {
+                return Boolean(
+                    node.type === 'tag' &&
+                    node.name === 'a' &&
+                    node.attribs &&
+                    node.attribs['data-mm-action-id'],
+                );
+            },
+            processNode: (node: any, children: any, index?: number) => {
+                const actionId = node.attribs['data-mm-action-id'] as string;
+                const handler = options.mmBlocksMarkdownActionHandler as (actionId: string, query: Record<string, string>) => void;
+                let query: Record<string, string> = {};
+                const raw = node.attribs['data-mm-action-query'] as string | undefined;
+                if (raw) {
+                    try {
+                        const parsed = JSON.parse(decodeURIComponent(raw));
+                        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                            query = parsed as Record<string, string>;
+                        }
+                    } catch {
+                        query = {};
+                    }
+                }
+                const baseProps = convertPropsToReactStandard(node.attribs) as Record<string, unknown>;
+                return (
+                    <a
+                        {...baseProps}
+                        key={`mm-action-md-${index}-${actionId}`}
+                        href='#'
+                        onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                            e.preventDefault();
+                            handler(actionId, query);
+                        }}
+                        onKeyDown={(e: React.KeyboardEvent<HTMLAnchorElement>) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handler(actionId, query);
+                            }
+                        }}
+                    >
+                        {children}
+                    </a>
+                );
+            },
+        });
+    }
 
     if (options.hasPluginTooltips) {
         processingInstructions.push({

@@ -7,10 +7,12 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {doPostActionWithCookie} from 'mattermost-redux/actions/posts';
+import {doPostActionWithCookie as doPostActionWithCookieThunk} from 'mattermost-redux/actions/posts';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
+
+import {applyIntegrationGotoLocation} from 'utils/integration_navigation';
 
 import MessageAttachment from './message_attachment';
 
@@ -22,9 +24,23 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators({
-            doPostActionWithCookie, openModal,
-        }, dispatch),
+        actions: {
+            ...bindActionCreators({
+                openModal,
+            }, dispatch),
+            doPostActionWithCookie: (
+                postId: string,
+                actionId: string,
+                actionCookie: string,
+                selectedOption?: string,
+                query?: Record<string, string>,
+            ) => dispatch(doPostActionWithCookieThunk(postId, actionId, actionCookie, selectedOption ?? '', query, 'attachment')).then((result) => {
+                if (!result.error) {
+                    applyIntegrationGotoLocation((result.data as {goto_location?: string} | undefined)?.goto_location);
+                }
+                return result;
+            }),
+        },
     };
 }
 

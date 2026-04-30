@@ -7,6 +7,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import type {Group} from '@mattermost/types/groups';
+import type {PostActionIntegrationFormat} from '@mattermost/types/integration_actions';
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -1228,14 +1229,14 @@ export function addPostReminder(userId: string, postId: string, timestamp: numbe
 }
 
 export function doPostAction(postId: string, actionId: string, selectedOption = '') {
-    return doPostActionWithCookie(postId, actionId, '', selectedOption);
+    return doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
 }
 
-export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = ''): ActionFuncAsync {
+export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationContext: PostActionIntegrationFormat | '' = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption);
+            data = await Client4.doPostActionWithCookie(postId, actionId, actionCookie, selectedOption, query, integrationContext);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

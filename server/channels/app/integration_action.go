@@ -39,7 +39,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, legacyCookie *model.PostActionCookie, mmBlocksCookie *model.MmBlocksActionCookie, clientQuery map[string]string, integrationContext string) (string, string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -88,87 +88,209 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 
 	result := <-pchan
 	if result.NErr != nil {
-		if cookie == nil {
+		if legacyCookie == nil && mmBlocksCookie == nil {
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(result.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
+				return "", "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
+				return "", "", model.NewAppError("DoPostActionWithCookie", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 			}
 		}
-		if cookie.Integration == nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
+		if legacyCookie != nil && mmBlocksCookie != nil {
+			return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "multiple action cookies set", http.StatusBadRequest)
 		}
 
-		if postID != cookie.PostId {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
-		}
+		if legacyCookie != nil {
+			if legacyCookie.Integration == nil {
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
+			}
 
-		channel, err := a.Srv().Store().Channel().Get(cookie.ChannelId, true)
-		if err != nil {
-			errCtx := map[string]any{"channel_id": cookie.ChannelId}
-			var nfErr *store.ErrNotFound
+			if postID != legacyCookie.PostId {
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
+			}
+
+			channel, err := a.Srv().Store().Channel().Get(legacyCookie.ChannelId, true)
+			if err != nil {
+				errCtx := map[string]any{"channel_id": legacyCookie.ChannelId}
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(err, &nfErr):
+					return "", "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
+				default:
+					return "", "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+
+			upstreamRequest.ChannelId = legacyCookie.ChannelId
+			upstreamRequest.ChannelName = channel.Name
+			upstreamRequest.TeamId = channel.TeamId
+			upstreamRequest.Type = legacyCookie.Type
+			upstreamRequest.Context = legacyCookie.Integration.Context
+			datasource = legacyCookie.DataSource
+
+			retain = legacyCookie.RetainProps
+			remove = legacyCookie.RemoveProps
+			rootPostId = legacyCookie.RootPostId
+			upstreamURL = legacyCookie.Integration.URL
+		} else {
+			if mmBlocksCookie.Kind != model.MmBlocksActionCookieKind {
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "invalid mm_blocks action cookie", http.StatusBadRequest)
+			}
+			if postID != mmBlocksCookie.PostId {
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
+			}
+
+			channel, err := a.Srv().Store().Channel().Get(mmBlocksCookie.ChannelId, true)
+			if err != nil {
+				errCtx := map[string]any{"channel_id": mmBlocksCookie.ChannelId}
+				var nfErr *store.ErrNotFound
+				switch {
+				case errors.As(err, &nfErr):
+					return "", "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
+				default:
+					return "", "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+				}
+			}
+
+			mmSpec := mmBlocksCookie.ActionSpec(actionId)
 			switch {
-			case errors.As(err, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
+			case mmSpec != nil && mmSpec.Type == model.MmBlocksActionTypeOpenURL:
+				if mmSpec.URL == "" {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, "openURL action requires a non-empty url", http.StatusNotFound)
+				}
+				gotoURL, mergeErr := model.MergeQueryIntoURL(mmSpec.URL, mmSpec.Query)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
+				return "", gotoURL, nil
+
+			case mmSpec != nil && mmSpec.Type == model.MmBlocksActionTypeExternal && mmSpec.URL != "":
+				upstreamRequest.ChannelId = mmBlocksCookie.ChannelId
+				upstreamRequest.ChannelName = channel.Name
+				upstreamRequest.TeamId = channel.TeamId
+				upstreamRequest.Type = model.PostActionTypeButton
+				upstreamRequest.Context = mmSpec.Context
+				datasource = ""
+
+				retain = mmBlocksCookie.RetainProps
+				remove = mmBlocksCookie.RemoveProps
+				rootPostId = mmBlocksCookie.RootPostId
+
+				var mergeErr error
+				upstreamURL, mergeErr = model.MergeQueryIntoURL(mmSpec.URL, mmSpec.Query)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
+				upstreamURL, mergeErr = model.MergeQueryIntoURL(upstreamURL, clientQuery)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("mm_blocks action_id=%s", actionId), http.StatusNotFound)
 			}
 		}
-
-		upstreamRequest.ChannelId = cookie.ChannelId
-		upstreamRequest.ChannelName = channel.Name
-		upstreamRequest.TeamId = channel.TeamId
-		upstreamRequest.Type = cookie.Type
-		upstreamRequest.Context = cookie.Integration.Context
-		datasource = cookie.DataSource
-
-		retain = cookie.RetainProps
-		remove = cookie.RemoveProps
-		rootPostId = cookie.RootPostId
-		upstreamURL = cookie.Integration.URL
 	} else {
 		post := result.Data
 		chResult := <-cchan
 		if chResult.NErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
+			return "", "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
 		channel := chResult.Data
 
-		action := post.GetAction(actionId)
-		if action == nil || action.Integration == nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
-		}
+		ctx := model.NormalizePostActionIntegrationContext(integrationContext)
 
-		upstreamRequest.ChannelId = post.ChannelId
-		upstreamRequest.ChannelName = channel.Name
-		upstreamRequest.TeamId = channel.TeamId
-		upstreamRequest.Type = action.Type
-		upstreamRequest.Context = action.Integration.Context
-		datasource = action.DataSource
+		switch ctx {
+		case model.PostActionIntegrationFormatMmBlock:
+			mmSpec := post.GetMmBlocksActionSpec(actionId)
+			switch {
+			case mmSpec != nil && mmSpec.Type == model.MmBlocksActionTypeOpenURL:
+				if mmSpec.URL == "" {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, "openURL action requires a non-empty url", http.StatusNotFound)
+				}
+				gotoURL, mergeErr := model.MergeQueryIntoURL(mmSpec.URL, mmSpec.Query)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
+				return "", gotoURL, nil
 
-		// Save the original values that may need to be preserved (including selected
-		// Props, i.e. override_username, override_icon_url)
-		for _, key := range model.PostActionRetainPropKeys {
-			value, ok := post.GetProps()[key]
-			if ok {
-				retain[key] = value
-			} else {
-				remove = append(remove, key)
+			case mmSpec != nil && mmSpec.Type == model.MmBlocksActionTypeExternal && mmSpec.URL != "":
+				upstreamRequest.ChannelId = post.ChannelId
+				upstreamRequest.ChannelName = channel.Name
+				upstreamRequest.TeamId = channel.TeamId
+				upstreamRequest.Type = model.PostActionTypeButton
+				upstreamRequest.Context = mmSpec.Context
+				datasource = ""
+
+				for _, key := range model.PostActionRetainPropKeys {
+					value, ok := post.GetProps()[key]
+					if ok {
+						retain[key] = value
+					} else {
+						remove = append(remove, key)
+					}
+				}
+				originalProps = post.GetProps()
+				originalIsPinned = post.IsPinned
+				originalHasReactions = post.HasReactions
+
+				if post.RootId == "" {
+					rootPostId = post.Id
+				} else {
+					rootPostId = post.RootId
+				}
+
+				var mergeErr error
+				upstreamURL, mergeErr = model.MergeQueryIntoURL(mmSpec.URL, mmSpec.Query)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
+				upstreamURL, mergeErr = model.MergeQueryIntoURL(upstreamURL, clientQuery)
+				if mergeErr != nil {
+					return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+				}
+			default:
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("mm_blocks action_id=%s", actionId), http.StatusNotFound)
 			}
-		}
-		originalProps = post.GetProps()
-		originalIsPinned = post.IsPinned
-		originalHasReactions = post.HasReactions
 
-		if post.RootId == "" {
-			rootPostId = post.Id
-		} else {
-			rootPostId = post.RootId
-		}
+		case model.PostActionIntegrationFormatAttachment,
+			model.PostActionIntegrationFormatAppsBinding,
+			model.PostActionIntegrationFormatBlock,
+			model.PostActionIntegrationFormatCard:
+			action := post.GetAction(actionId)
+			if action == nil || action.Integration == nil {
+				return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
+			}
 
-		upstreamURL = action.Integration.URL
+			upstreamRequest.ChannelId = post.ChannelId
+			upstreamRequest.ChannelName = channel.Name
+			upstreamRequest.TeamId = channel.TeamId
+			upstreamRequest.Type = action.Type
+			upstreamRequest.Context = action.Integration.Context
+			datasource = action.DataSource
+
+			// Save the original values that may need to be preserved (including selected
+			// Props, i.e. override_username, override_icon_url)
+			for _, key := range model.PostActionRetainPropKeys {
+				value, ok := post.GetProps()[key]
+				if ok {
+					retain[key] = value
+				} else {
+					remove = append(remove, key)
+				}
+			}
+			originalProps = post.GetProps()
+			originalIsPinned = post.IsPinned
+			originalHasReactions = post.HasReactions
+
+			if post.RootId == "" {
+				rootPostId = post.Id
+			} else {
+				rootPostId = post.RootId
+			}
+
+			upstreamURL = action.Integration.URL
+		}
 	}
 
 	teamChan := make(chan store.StoreResult[*model.Team], 1)
@@ -190,9 +312,9 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(ur.NErr, &nfErr):
-			return "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
+			return "", "", model.NewAppError("DoPostActionWithCookie", MissingAccountError, nil, "", http.StatusNotFound).Wrap(ur.NErr)
 		default:
-			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
+			return "", "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
 	user := ur.Data
@@ -204,9 +326,9 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(tr.NErr, &nfErr):
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
+				return "", "", model.NewAppError("DoPostActionWithCookie", "app.team.get.find.app_error", nil, "", http.StatusNotFound).Wrap(tr.NErr)
 			default:
-				return "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
+				return "", "", model.NewAppError("DoPostActionWithCookie", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 			}
 		}
 
@@ -226,12 +348,12 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 
 	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
 	if appErr != nil {
-		return "", appErr
+		return "", "", appErr
 	}
 
 	requestJSON, err := json.Marshal(upstreamRequest)
 	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Log request, regardless of whether destination is internal or external
@@ -247,7 +369,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	defer cancel()
 	resp, appErr := a.DoActionRequest(rctx.WithContext(ctx), upstreamURL, requestJSON)
 	if appErr != nil {
-		return "", appErr
+		return "", "", appErr
 	}
 	defer resp.Body.Close()
 
@@ -255,12 +377,12 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	limitedReader := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 	respBytes, err := io.ReadAll(limitedReader)
 	if err != nil {
-		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if len(respBytes) > 0 {
 		if err = json.Unmarshal(respBytes, &response); err != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return "", "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -282,7 +404,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.HasReactions = originalHasReactions
 
 		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false}); appErr != nil {
-			return "", appErr
+			return "", "", appErr
 		}
 	}
 
@@ -304,7 +426,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		a.SendEphemeralPost(rctx, userID, ephemeralPost)
 	}
 
-	return clientTriggerId, nil
+	return clientTriggerId, response.GotoLocation, nil
 }
 
 // DoActionRequest performs an HTTP POST request to an integration's action endpoint.

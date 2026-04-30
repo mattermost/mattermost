@@ -367,27 +367,6 @@ button {
         }
     }
 
-    &.btn-danger {
-        background: var(--error-text);
-        color: variables.$white;
-
-        .app__body & {
-            color: variables.$white;
-
-            &:hover,
-            &:focus,
-            &:active {
-                color: variables.$white;
-            }
-        }
-
-        &:hover,
-        &:focus,
-        &:active {
-            color: variables.$white;
-        }
-    }
-
     &.btn-transparent {
         padding: 7px 12px;
         border: none;

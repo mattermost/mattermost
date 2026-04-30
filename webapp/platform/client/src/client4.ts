@@ -2667,15 +2667,21 @@ export default class Client4 {
     };
 
     doPostAction = (postId: string, actionId: string, selectedOption = '') => {
-        return this.doPostActionWithCookie(postId, actionId, '', selectedOption);
+        return this.doPostActionWithCookie(postId, actionId, '', selectedOption, undefined, '');
     };
 
-    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '') => {
+    doPostActionWithCookie = (postId: string, actionId: string, actionCookie: string, selectedOption = '', query?: Record<string, string>, integrationFormat = '') => {
         const msg: any = {
             selected_option: selectedOption,
         };
         if (actionCookie !== '') {
             msg.cookie = actionCookie;
+        }
+        if (query && Object.keys(query).length > 0) {
+            msg.query = query;
+        }
+        if (integrationFormat) {
+            msg.integration_format = integrationFormat;
         }
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,

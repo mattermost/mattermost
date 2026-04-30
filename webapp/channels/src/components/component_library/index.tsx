@@ -8,11 +8,13 @@ import {Preferences} from 'mattermost-redux/constants';
 
 import {applyTheme} from 'utils/utils';
 
+import MmBlocksComponentLibrary from './mm_blocks.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
 
 const componentMap = {
+    'MM blocks': MmBlocksComponentLibrary,
     'Section Notice': SectionNoticeComponentLibrary,
 };
 

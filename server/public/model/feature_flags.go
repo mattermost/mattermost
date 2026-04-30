@@ -110,6 +110,9 @@ type FeatureFlags struct {
 
 	// Collect plugin metrics and serve them on the /metrics endpoint
 	AggregatePluginMetrics bool
+
+	// Enable the new mm_blocks Interactive Messages framework
+	MmBlocksEnabled bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -162,6 +165,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CJKSearch = false
 
 	f.AggregatePluginMetrics = false
+
+	f.MmBlocksEnabled = false
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -84,6 +84,11 @@ export type OwnProps = {
      * Some additional data to pass down to rendered component to aid in rendering decisions
      */
     messageMetadata?: Record<string, string>;
+
+    /**
+     * When set, Markdown links using the `mm_action:` protocol dispatch interactive post actions (MM blocks).
+     */
+    onMmBlocksMarkdownAction?: (actionId: string, query: Record<string, string>) => void;
 }
 
 function Markdown({
@@ -109,6 +114,7 @@ function Markdown({
     team,
     minimumHashtagLength,
     managedResourcePaths,
+    onMmBlocksMarkdownAction,
 }: Props) {
     if (message === '' || !enableFormatting) {
         return (
@@ -134,6 +140,7 @@ function Markdown({
         managedResourcePaths,
         editedAt,
         postId,
+        enableMmActionMarkdownLinks: Boolean(onMmBlocksMarkdownAction),
     }, options);
 
     const htmlFormattedText = formatText(message, inputOptions, emojiMap);
@@ -152,6 +159,7 @@ function Markdown({
         editedAt,
         atSumOfMembersMentions: options?.atSumOfMembersMentions,
         atPlanMentions: options?.atPlanMentions,
+        mmBlocksMarkdownActionHandler: onMmBlocksMarkdownAction,
     });
 }
 

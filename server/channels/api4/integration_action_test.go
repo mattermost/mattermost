@@ -133,7 +133,7 @@ func TestPostActionCookies(t *testing.T) {
 			assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
 			post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
-			resp, err := client.DoPostActionWithCookie(context.Background(), post.Id, test.Action.Id, "", test.Action.Cookie)
+			resp, err := client.DoPostActionWithCookie(context.Background(), post.Id, test.Action.Id, "", test.Action.Cookie, nil, "")
 			require.NotNil(t, resp)
 			if test.ExpectedSuccess {
 				assert.NoError(t, err)

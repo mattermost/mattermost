@@ -90,6 +90,8 @@ const (
 	PostPropsFromOAuthApp             = "from_oauth_app"
 	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsAttachments              = "attachments"
+	PostPropsMmBlocks                 = "mm_blocks"
+	PostPropsMmBlocksActions          = "mm_blocks_actions"
 	PostPropsFromPlugin               = "from_plugin"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"

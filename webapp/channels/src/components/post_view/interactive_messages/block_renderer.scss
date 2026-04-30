@@ -1,0 +1,225 @@
+// Interactive Messages (mm_blocks) layout — buttons/selects use global .btn / .form-control.
+
+// Legacy webhook attachment chrome (see layout/_webhooks.scss under `.post .attachment`); mm_blocks is not
+// inside `.attachment`, so we mirror `.attachment__content` + `.attachment__container` here for parity.
+.mm-blocks__attachment-content {
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(var(--center-channel-color-rgb), 0.16);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    margin: 5px 0;
+}
+
+.mm-blocks {
+    // Markdown `mm_action:` links in text blocks behave like buttons (handled in message_html_to_component).
+    .mm-action-md-link {
+        cursor: pointer;
+    }
+
+    .mm-blocks-container.attachment__container {
+        box-sizing: border-box;
+        padding: 12px;
+        border-left-width: 4px;
+        border-left-style: solid;
+        border-left-color: var(--sidebar-header-bg);
+        border-top: none;
+        border-right: none;
+        border-bottom: none;
+    }
+
+    .mm-blocks-container.attachment__container.attachment__container--good {
+        border-left-color: #00c100;
+    }
+
+    .mm-blocks-container.attachment__container.attachment__container--warning {
+        border-left-color: #dede01;
+    }
+
+    .mm-blocks-container.attachment__container.attachment__container--danger {
+        border-left-color: #e40303;
+    }
+
+    .attachment-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 4px;
+        position: relative;
+
+        .btn {
+            margin-top: 8px;
+        }
+
+        select.form-control {
+            margin-top: 8px;
+            max-width: 22rem;
+            text-overflow: ellipsis;
+        }
+    }
+
+    // `AutocompleteSelector` / `SuggestionBox` use `.select-suggestion-container`, which has global
+    // `margin: 8px 8px 0 0` (_select.scss). Drop that for mm_blocks-only dropdowns so height matches
+    // sibling controls inside flex layouts.
+    .post-attachment-dropdown .select-suggestion-container {
+        margin: 0;
+    }
+
+    // AutocompleteSelector uses `.form-group` for the dropdown container, which adds a bottom margin.
+    // This removes such margin.
+    .form-group {
+        margin: 0;
+    }
+
+    // Button styles automatically add a margin between button siblings.
+    // We handle this with flex gap, so we remove this margin.
+    .btn + .btn {
+        margin-left: 0px;
+    }
+
+    .mm-blocks-image {
+        margin-bottom: 1em;
+
+        &__frame {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            line-height: 0;
+
+            // `SizeAwareImage` nests `inline-block` wrappers; cap them so percentage widths
+            // on the img do not expand to the image's intrinsic size.
+            .file-preview__button {
+                display: block;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+
+            figure.image-loaded-container {
+                display: block;
+                max-width: 100%;
+                margin: 0;
+            }
+
+            .image-loading__container {
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        &__img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid transparent;
+            vertical-align: middle;
+        }
+
+        &__img--person {
+            border-radius: 50%;
+            aspect-ratio: 1;
+        }
+    }
+
+    .mm-blocks-text {
+        p:first-child {
+            margin-top: 0;
+        }
+    }
+
+    // Attachment `fields` (legacy `.attachment-fields` table spacing).
+    .mm-blocks-text--attachment-field {
+        margin-bottom: 0.65em;
+
+        p {
+            margin-top: 0;
+            margin-bottom: 0.2em;
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    .mm-blocks-column .mm-blocks-text--attachment-field {
+        margin-bottom: 0;
+    }
+
+    // Short field rows (no thumb/image column); thumb `column_set` includes `.mm-blocks-image`.
+    .mm-blocks-column-set:not(:has(.mm-blocks-image)) {
+        margin-bottom: 0.65em;
+    }
+
+    .mm-blocks-text--subtle {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    .mm-blocks-text--small {
+        font-size: 12px;
+    }
+
+    .mm-blocks-divider {
+        border: 0;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        margin: 8px 0;
+    }
+
+    .mm-blocks-column-set {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .mm-blocks-column {
+        min-width: 0;
+        flex: 1 1 auto;
+
+        &--auto {
+            flex: 0 1 auto;
+        }
+
+        &--stretch {
+            flex: 1 1 0;
+        }
+    }
+
+    .mm-blocks-container--border {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        padding: 8px;
+    }
+
+    .mm-blocks-container--flow-horizontal {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .mm-blocks-container--flow-vertical {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mm-blocks-collapsible {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        margin: 4px 0;
+    }
+
+    .mm-blocks-collapsible-header {
+        width: 100%;
+        text-align: left;
+        padding: 8px 10px;
+    }
+
+    .mm-blocks-collapsible-content {
+        padding: 0 10px 10px;
+    }
+
+    .mm-blocks-scrollable {
+        margin: 4px 0;
+    }
+}

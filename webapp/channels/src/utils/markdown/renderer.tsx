@@ -5,6 +5,7 @@ import marked from 'marked';
 import type {MarkedOptions} from 'marked';
 
 import EmojiMap from 'utils/emoji_map';
+import {parseMmActionMarkdownHref} from 'utils/mm_action_markdown';
 import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
 import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
@@ -135,6 +136,20 @@ export default class Renderer extends marked.Renderer {
 
     public link(href: string, title: string, text: string) {
         let outHref = href;
+
+        if (this.formattingOptions.enableMmActionMarkdownLinks) {
+            const mmAction = parseMmActionMarkdownHref(href);
+            if (mmAction) {
+                const queryEncoded = encodeURIComponent(JSON.stringify(mmAction.query));
+                const idEscaped = TextFormatting.escapeHtml(mmAction.actionId);
+                let output = `<a class="theme markdown__link mm-action-md-link" href="#" data-mm-action-id="${idEscaped}" data-mm-action-query="${queryEncoded}" role="button"`;
+                if (title) {
+                    output += ` title="${title}"`;
+                }
+                output += '>' + text.replace(/<\/?a[^>]*>/g, '') + '</a>';
+                return output;
+            }
+        }
 
         if (this.formattingOptions.unsafeLinks && mightTriggerExternalRequest(href, this.formattingOptions.siteURL)) {
             if (text === href) {

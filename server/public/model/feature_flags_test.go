@@ -51,6 +51,13 @@ func TestFeatureFlagsToMap(t *testing.T) {
 	}
 }
 
+func TestFeatureFlagsMmBlocksEnabledDefault(t *testing.T) {
+	var f FeatureFlags
+	f.SetDefaults()
+	require.False(t, f.MmBlocksEnabled)
+	require.Equal(t, "false", f.ToMap()["MmBlocksEnabled"])
+}
+
 func TestFeatureFlagsToMapBool(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Flags            FeatureFlags

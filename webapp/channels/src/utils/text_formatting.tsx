@@ -224,6 +224,13 @@ export interface TextFormattingOptionsBase {
     unsafeLinks: boolean;
 
     /**
+     * When true, `mm_action:` markdown links render as in-app interactive actions (MM blocks).
+     *
+     * Defaults to `false`.
+     */
+    enableMmActionMarkdownLinks: boolean;
+
+    /**
      * Whether or not to render text emoticons (:D) as emojis
      */
     renderEmoticonsAsEmoji: boolean;

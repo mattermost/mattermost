@@ -58,8 +58,37 @@ var commonDateTimeFormats = []string{
 var PostActionRetainPropKeys = []string{PostPropsFromWebhook, PostPropsOverrideUsername, PostPropsOverrideIconURL}
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option,omitempty"`
-	Cookie         string `json:"cookie,omitempty"`
+	SelectedOption string            `json:"selected_option,omitempty"`
+	Cookie         string            `json:"cookie,omitempty"`
+	Query          map[string]string `json:"query,omitempty"`
+	// IntegrationFormat identifies which format originally had the action (attachment, mm_block, ...).
+	// Empty means a legacy client and is treated as attachment.
+	IntegrationFormat string `json:"integration_format,omitempty"`
+}
+
+// Integration context values for DoPostActionRequest.IntegrationContext (client → server).
+const (
+	PostActionIntegrationFormatAttachment  = "attachment"
+	PostActionIntegrationFormatAppsBinding = "apps_binding"
+	PostActionIntegrationFormatBlock       = "block"
+	PostActionIntegrationFormatCard        = "card"
+	PostActionIntegrationFormatMmBlock     = "mm_block"
+)
+
+// NormalizePostActionIntegrationContext returns a canonical integration context, defaulting to attachment when empty or unknown.
+func NormalizePostActionIntegrationContext(s string) string {
+	c := strings.TrimSpace(strings.ToLower(s))
+	switch c {
+	case PostActionIntegrationFormatMmBlock,
+		PostActionIntegrationFormatAppsBinding,
+		PostActionIntegrationFormatBlock,
+		PostActionIntegrationFormatCard:
+		return c
+	case PostActionIntegrationFormatAttachment, "":
+		return PostActionIntegrationFormatAttachment
+	default:
+		return PostActionIntegrationFormatAttachment
+	}
 }
 
 const (
@@ -262,9 +291,11 @@ func (p *PostAction) Equals(input *PostAction) bool {
 
 // PostActionCookie is set by the server, serialized and encrypted into
 // PostAction.Cookie. The clients should hold on to it, and include it with
-// subsequent DoPostAction requests.  This allows the server to access the
+// subsequent DoPostAction requests. This allows the server to access the
 // action metadata even when it's not available in the database, for ephemeral
-// posts.
+// posts. Used for attachment-based interactive messages (legacy PostAction shape).
+//
+// mm_blocks uses [MmBlocksActionCookie] instead; see mm_blocks_actions.go.
 type PostActionCookie struct {
 	Type        string                 `json:"type,omitempty"`
 	PostId      string                 `json:"post_id,omitempty"`
@@ -274,6 +305,23 @@ type PostActionCookie struct {
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	RetainProps map[string]any         `json:"retain_props,omitempty"`
 	RemoveProps []string               `json:"remove_props,omitempty"`
+}
+
+// MmBlocksActionCookieKind is the JSON "kind" discriminator for [MmBlocksActionCookie] payloads.
+const MmBlocksActionCookieKind = "mm_blocks_actions"
+
+// MmBlocksActionCookie is the decrypted cookie payload for mm_blocks interactive messages
+// (encrypted into props.mm_blocks_actions for clients). It mirrors the shared post/channel
+// metadata of [PostActionCookie] but carries props.mm_blocks_actions as an actions map instead
+// of a single PostAction integration.
+type MmBlocksActionCookie struct {
+	Kind        string                    `json:"kind,omitempty"`
+	PostId      string                    `json:"post_id,omitempty"`
+	RootPostId  string                    `json:"root_post_id,omitempty"`
+	ChannelId   string                    `json:"channel_id,omitempty"`
+	RetainProps map[string]any            `json:"retain_props,omitempty"`
+	RemoveProps []string                  `json:"remove_props,omitempty"`
+	Actions     map[string]map[string]any `json:"actions"`
 }
 
 type PostActionOptions struct {
@@ -319,11 +367,13 @@ type PostActionIntegrationResponse struct {
 	Update           *Post  `json:"update"`
 	EphemeralText    string `json:"ephemeral_text"`
 	SkipSlackParsing bool   `json:"skip_slack_parsing"` // Set to `true` to skip the Slack-compatibility handling of Text.
+	GotoLocation     string `json:"goto_location,omitempty"`
 }
 
 type PostActionAPIResponse struct {
-	Status    string `json:"status"` // needed to maintain backwards compatibility
-	TriggerId string `json:"trigger_id"`
+	Status       string `json:"status"` // needed to maintain backwards compatibility
+	TriggerId    string `json:"trigger_id"`
+	GotoLocation string `json:"goto_location,omitempty"`
 }
 
 type Dialog struct {
@@ -832,6 +882,7 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
+	o.StripMmBlocksActionSecrets()
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -898,6 +949,8 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 			action.Cookie, _ = encryptPostActionCookie(string(b), secret)
 		}
 	}
+
+	AddMmBlocksActionCookies(p, secret)
 
 	return p
 }
