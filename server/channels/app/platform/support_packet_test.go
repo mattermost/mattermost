@@ -6,6 +6,7 @@ package platform
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -54,7 +55,7 @@ type mockQueryRowScanner struct {
 	rows map[string]mockRow
 }
 
-func (m mockQueryRowScanner) QueryRow(query string, _ ...any) rowScanner {
+func (m mockQueryRowScanner) QueryRowContext(_ context.Context, query string, _ ...any) rowScanner {
 	row, ok := m.rows[query]
 	if !ok {
 		return mockRow{err: errors.New("unexpected query")}
@@ -1002,7 +1003,7 @@ func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
 			},
 		}
 
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
 		require.NoError(t, err)
 		require.NotNil(t, diagnostics.Database.CacheHitRatio)
 		assert.InDelta(t, 0.998, *diagnostics.Database.CacheHitRatio, 0.0001)
@@ -1054,7 +1055,7 @@ func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
 			},
 		}
 
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
 		require.NoError(t, err)
 		assert.Nil(t, diagnostics.Database.PostsDeadTuples)
 		assert.Nil(t, diagnostics.Database.PostsLastAutovacuum)
@@ -1076,7 +1077,7 @@ func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
 			},
 		}
 
-		err := collectPostgresDatabaseDiagnosticsWithQueryer(queryer, &diagnostics)
+		err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer, &diagnostics)
 		require.Error(t, err)
 		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_database")
 		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_activity")

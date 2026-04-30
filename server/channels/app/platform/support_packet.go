@@ -29,8 +29,9 @@ import (
 )
 
 const (
-	envVarInstallType = "MM_INSTALL_TYPE"
-	unknownDataPoint  = "unknown"
+	envVarInstallType         = "MM_INSTALL_TYPE"
+	unknownDataPoint          = "unknown"
+	pgDiagnosticsQueryTimeout = 10 * time.Second
 
 	pgStatDatabaseQuery = `
 SELECT
@@ -197,7 +198,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	applyDBPoolStats(&d, ps.Store.MasterDBStats(), ps.Store.ReplicaDBStats())
 
 	if d.Database.Type == model.DatabaseDriverPostgres {
-		pgStatsErr := ps.collectPostgresDatabaseDiagnostics(ps.Store.GetInternalMasterDB(), &d)
+		pgStatsErr := ps.collectPostgresDatabaseDiagnostics(rctx.Context(), ps.Store.GetInternalMasterDB(), &d)
 		if pgStatsErr != nil {
 			rErr = multierror.Append(rErr, pgStatsErr)
 		}
@@ -350,15 +351,15 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	return fileData, rErr.ErrorOrNil()
 }
 
-func (ps *PlatformService) collectPostgresDatabaseDiagnostics(db *sql.DB, diagnostics *model.SupportPacketDiagnostics) error {
+func (ps *PlatformService) collectPostgresDatabaseDiagnostics(ctx context.Context, db *sql.DB, diagnostics *model.SupportPacketDiagnostics) error {
 	if db == nil {
-		return collectPostgresDatabaseDiagnosticsWithQueryer(nil, diagnostics)
+		return collectPostgresDatabaseDiagnosticsWithQueryer(ctx, nil, diagnostics)
 	}
-	return collectPostgresDatabaseDiagnosticsWithQueryer(sqlQueryRowScanner{db: db}, diagnostics)
+	return collectPostgresDatabaseDiagnosticsWithQueryer(ctx, sqlQueryRowScanner{db: db}, diagnostics)
 }
 
 type queryRowScanner interface {
-	QueryRow(query string, args ...any) rowScanner
+	QueryRowContext(ctx context.Context, query string, args ...any) rowScanner
 }
 
 type rowScanner interface {
@@ -369,27 +370,38 @@ type sqlQueryRowScanner struct {
 	db *sql.DB
 }
 
-func (s sqlQueryRowScanner) QueryRow(query string, args ...any) rowScanner {
-	return s.db.QueryRow(query, args...)
+func (s sqlQueryRowScanner) QueryRowContext(ctx context.Context, query string, args ...any) rowScanner {
+	return s.db.QueryRowContext(ctx, query, args...)
 }
 
-func collectPostgresDatabaseDiagnosticsWithQueryer(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+func collectPostgresDatabaseDiagnosticsWithQueryer(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
 	if queryer == nil {
 		return errors.New("postgres diagnostics query failed: no master database connection")
 	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	var rErr *multierror.Error
 
-	if err := collectPGStatDatabaseDiagnostics(queryer, diagnostics); err != nil {
+	databaseCtx, cancelDatabase := context.WithTimeout(ctx, pgDiagnosticsQueryTimeout)
+	if err := collectPGStatDatabaseDiagnostics(databaseCtx, queryer, diagnostics); err != nil {
 		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_database"))
 	}
+	cancelDatabase()
 
-	if err := collectPGStatActivityDiagnostics(queryer, diagnostics); err != nil {
+	activityCtx, cancelActivity := context.WithTimeout(ctx, pgDiagnosticsQueryTimeout)
+	if err := collectPGStatActivityDiagnostics(activityCtx, queryer, diagnostics); err != nil {
 		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_activity"))
 	}
+	cancelActivity()
 
-	if err := collectPGStatUserTablesDiagnostics(queryer, diagnostics); err != nil {
+	userTablesCtx, cancelUserTables := context.WithTimeout(ctx, pgDiagnosticsQueryTimeout)
+	if err := collectPGStatUserTablesDiagnostics(userTablesCtx, queryer, diagnostics); err != nil {
 		rErr = multierror.Append(rErr, errors.Wrap(err, "postgres diagnostics query failed for pg_stat_user_tables"))
 	}
+	cancelUserTables()
 
 	return rErr.ErrorOrNil()
 }
@@ -410,7 +422,7 @@ func applyDBPoolStats(diagnostics *model.SupportPacketDiagnostics, masterDBStats
 	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = replicaDBStats.MaxLifetimeClosed
 }
 
-func collectPGStatDatabaseDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+func collectPGStatDatabaseDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
 	var (
 		cacheHitRatio float64
 		deadlocks     int64
@@ -419,7 +431,7 @@ func collectPGStatDatabaseDiagnostics(queryer queryRowScanner, diagnostics *mode
 		rollbacks     int64
 	)
 
-	if err := queryer.QueryRow(pgStatDatabaseQuery).Scan(&cacheHitRatio, &deadlocks, &tempFiles, &tempBytes, &rollbacks); err != nil {
+	if err := queryer.QueryRowContext(ctx, pgStatDatabaseQuery).Scan(&cacheHitRatio, &deadlocks, &tempFiles, &tempBytes, &rollbacks); err != nil {
 		return err
 	}
 
@@ -433,14 +445,14 @@ func collectPGStatDatabaseDiagnostics(queryer queryRowScanner, diagnostics *mode
 	return nil
 }
 
-func collectPGStatActivityDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+func collectPGStatActivityDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
 	var (
 		idleInTransactionCount      int64
 		longestQueryDurationSeconds float64
 		waitingForLockCount         int64
 	)
 
-	if err := queryer.QueryRow(pgStatActivityQuery).Scan(&idleInTransactionCount, &longestQueryDurationSeconds, &waitingForLockCount); err != nil {
+	if err := queryer.QueryRowContext(ctx, pgStatActivityQuery).Scan(&idleInTransactionCount, &longestQueryDurationSeconds, &waitingForLockCount); err != nil {
 		return err
 	}
 
@@ -451,13 +463,13 @@ func collectPGStatActivityDiagnostics(queryer queryRowScanner, diagnostics *mode
 	return nil
 }
 
-func collectPGStatUserTablesDiagnostics(queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
+func collectPGStatUserTablesDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDiagnostics) error {
 	var (
 		postsDeadTuples int64
 		lastAutovacuum  sql.NullTime
 	)
 
-	if err := queryer.QueryRow(pgStatUserTablesQuery).Scan(&postsDeadTuples, &lastAutovacuum); err != nil {
+	if err := queryer.QueryRowContext(ctx, pgStatUserTablesQuery).Scan(&postsDeadTuples, &lastAutovacuum); err != nil {
 		if err == sql.ErrNoRows {
 			return nil
 		}
