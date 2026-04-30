@@ -13,6 +13,7 @@ import Recaps from './recaps';
 const mockDispatch = jest.fn();
 const mockGetAgents = jest.fn(() => ({type: 'GET_AGENTS'}));
 const mockGetRecaps = jest.fn((page: number, perPage: number) => ({type: 'GET_RECAPS', meta: {page, perPage}}));
+const mockMarkRecapsAsViewed = jest.fn(() => ({type: 'MARK_RECAPS_VIEWED'}));
 const mockSelectLhsItem = jest.fn((type: string, id?: string) => {
     return {type: 'SELECT_LHS_ITEM', meta: {lhsType: type, id}};
 });
@@ -29,6 +30,7 @@ jest.mock('mattermost-redux/actions/agents', () => ({
 
 jest.mock('mattermost-redux/actions/recaps', () => ({
     getRecaps: (page: number, perPage: number) => mockGetRecaps(page, perPage),
+    markRecapsAsViewed: () => mockMarkRecapsAsViewed(),
 }));
 
 jest.mock('mattermost-redux/selectors/entities/recaps', () => ({
