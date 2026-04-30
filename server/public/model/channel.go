@@ -339,6 +339,25 @@ func (o *Channel) IsValid() *AppError {
 	return nil
 }
 
+// IsValidBoard performs the input-validation checks specific to board channels:
+// the channel type must be BO/BP, a TeamId must be set, and DisplayName must be
+// non-empty. Callers are expected to TrimSpace DisplayName before calling.
+func (o *Channel) IsValidBoard() *AppError {
+	if !o.IsBoard() {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.type.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.TeamId == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.team_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if o.DisplayName == "" {
+		return NewAppError("Channel.IsValidBoard", "model.channel.is_valid_board.display_name.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func (o *Channel) PreSave() {
 	if o.Id == "" {
 		o.Id = NewId()

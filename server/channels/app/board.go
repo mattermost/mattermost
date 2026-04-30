@@ -19,20 +19,9 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.boards_not_enabled.app_error", nil, "The Integrated Boards feature is not enabled.", http.StatusForbidden)
 	}
 
-	// Validate channel type
-	if !channel.IsBoard() {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.invalid_type.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// Validate team
-	if channel.TeamId == "" {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.no_team.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	// Validate display name
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
-	if channel.DisplayName == "" {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.no_display_name.app_error", nil, "", http.StatusBadRequest)
+	if appErr := channel.IsValidBoard(); appErr != nil {
+		return nil, appErr
 	}
 
 	// Look up boards property fields by name
