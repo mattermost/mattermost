@@ -4213,6 +4213,9 @@ func TestGetChannelMemberFileUploadRestricted(t *testing.T) {
 		defer func() {
 			th.App.Srv().Channels().AccessControl = original
 		}()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+		})
 
 		member, _, err := th.Client.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
 		require.NoError(t, err)
