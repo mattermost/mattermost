@@ -342,6 +342,17 @@ test('Verify the Quarantine for Review option is not available when feature is d
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
+    // Re-apply guard: parallel tests often turn flagging back on; the menu item only hides when false.
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: false,
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ContentFlaggingSettings?.EnableContentFlagging === false;
+    });
+
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItemNotToBeVisible();
 });

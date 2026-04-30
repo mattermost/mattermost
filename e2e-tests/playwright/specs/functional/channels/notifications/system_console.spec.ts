@@ -117,15 +117,34 @@ test.describe('System Console Notifications', () => {
             await dropdown.selectOption({label: option.label});
             await expect(dropdown).toHaveValue(option.value);
 
+            // Another worker's initSetup() can clear required notification fields mid-loop,
+            // leaving Save disabled until we re-patch and reload the form.
+            if (await notifications.saveButton.isDisabled()) {
+                await resetNotificationsConfig(adminClient);
+                await systemConsolePage.page.reload();
+                await systemConsolePage.sidebar.notifications.click();
+                await notifications.toBeVisible();
+                await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
+                await notifications.pushNotificationContents.toBeVisible();
+                const loopDropdown = notifications.pushNotificationContents.dropdown;
+                await expect(loopDropdown).toBeVisible();
+                await loopDropdown.selectOption({label: option.label});
+                await expect(loopDropdown).toHaveValue(option.value);
+            }
+
+            await expect(notifications.saveButton).not.toBeDisabled({timeout: 15000});
             await notifications.save();
 
             // * Verify config is saved
-            const {adminClient} = await pw.getAdminClient();
+            const {adminClient: pollClient} = await pw.getAdminClient();
             await expect
-                .poll(async () => {
-                    const config = await adminClient.getConfig();
-                    return config.EmailSettings?.PushNotificationContents;
-                })
+                .poll(
+                    async () => {
+                        const config = await pollClient.getConfig();
+                        return config.EmailSettings?.PushNotificationContents;
+                    },
+                    {timeout: 30000},
+                )
                 .toBe(option.value);
         }
     });

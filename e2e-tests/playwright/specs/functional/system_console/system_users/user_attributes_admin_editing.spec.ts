@@ -287,15 +287,16 @@ test.describe('System Console - Admin User Profile Editing', () => {
 
         // # Find CPA email field (Work Email)
         const workEmailInput = userCard.getFieldInputByExactLabel('Work Email');
+        await workEmailInput.scrollIntoViewIfNeeded();
         const originalEmail = await workEmailInput.inputValue();
 
         // # Enter invalid email
         await workEmailInput.clear();
         await workEmailInput.fill('not-an-email');
 
-        // * Verify inline validation error appears
+        // * Verify inline validation error appears (async client-side validation in CI)
         const fieldError = userCard.getFieldError('Work Email');
-        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toBeVisible({timeout: 15000});
         await expect(fieldError).toContainText('Invalid email address');
 
         // * Verify Save button is disabled due to validation error
