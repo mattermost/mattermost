@@ -1817,12 +1817,12 @@ func (_m *ChannelStore) GetMembersInfoByChannelIds(channelIDs []string) (map[str
 	return r0, r1
 }
 
-// GetMessagesWithUnreadAndMentions provides a mock function with given fields: rctx, userID, userNotifyProps
-func (_m *ChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+// GetDirectMessagesWithUnreadAndMentions provides a mock function with given fields: rctx, userID, userNotifyProps
+func (_m *ChannelStore) GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
 	ret := _m.Called(rctx, userID, userNotifyProps)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetMessagesWithUnreadAndMentions")
+		panic("no return value specified for GetDirectMessagesWithUnreadAndMentions")
 	}
 
 	var r0 []string

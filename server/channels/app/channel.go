@@ -3370,7 +3370,7 @@ func (a *App) MarkAllDirectAndGroupMessagesViewed(rctx request.CTX, userID strin
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	messagesToView, messagesToClearPushNotifications, times, err := a.Srv().Store().Channel().GetMessagesWithUnreadAndMentions(rctx, userID, user.NotifyProps)
+	messagesToView, messagesToClearPushNotifications, times, err := a.Srv().Store().Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkAllDirectAndGroupMessagesViewed", "app.channel.get_channels_by_team_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

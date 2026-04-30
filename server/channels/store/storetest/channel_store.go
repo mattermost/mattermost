@@ -164,7 +164,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SetShared", func(t *testing.T) { testSetShared(t, rctx, ss) })
 	t.Run("GetTeamForChannel", func(t *testing.T) { testGetTeamForChannel(t, rctx, ss) })
 	t.Run("GetChannelsWithUnreadsAndWithMentions", func(t *testing.T) { testGetChannelsWithUnreadsAndWithMentions(t, rctx, ss) })
-	t.Run("GetMessagesWithUnreadsAndMentions", func(t *testing.T) { testGetMessagesWithUnreadAndMentions(t, rctx, ss) })
+	t.Run("GetDirectMessagesWithUnreadAndMentions", func(t *testing.T) { testGetDirectMessagesWithUnreadAndMentions(t, rctx, ss) })
 	t.Run("GetTeamChannelsWithUnreadAndMentions", func(t *testing.T) { testGetTeamChannelsWithUnreadAndMentions(t, rctx, ss) })
 }
 
@@ -8897,7 +8897,7 @@ func testGetChannelsWithUnreadsAndWithMentions(t *testing.T, rctx request.CTX, s
 	})
 }
 
-func testGetMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetDirectMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss store.Store) {
 	setupMembership := func(
 		pushProp string,
 		withUnreads bool,
@@ -9015,7 +9015,7 @@ func testGetMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss sto
 			userNotifyProps := model.GetDefaultChannelNotifyProps()
 			userNotifyProps[model.PushNotifyProp] = tc.userNotifyProp
 
-			unreads, mentions, times, err := ss.Channel().GetMessagesWithUnreadAndMentions(rctx, m1.UserId, userNotifyProps)
+			unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, m1.UserId, userNotifyProps)
 			require.NoError(t, err)
 
 			expectedUnreadsLength := 0
@@ -9057,7 +9057,7 @@ func testGetMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss sto
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
 
-		unreads, mentions, times, err := ss.Channel().GetMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
 		require.NoError(t, err)
 
 		require.Len(t, unreads, 4)
@@ -9107,7 +9107,7 @@ func testGetMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss sto
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
 
-		unreads, mentions, times, err := ss.Channel().GetMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
 		require.NoError(t, err)
 
 		// Should only find the DMs and GMs
@@ -9127,7 +9127,7 @@ func testGetMessagesWithUnreadAndMentions(t *testing.T, rctx request.CTX, ss sto
 		userNotifyProps := model.GetDefaultChannelNotifyProps()
 		userNotifyProps[model.PushNotifyProp] = model.UserNotifyMention
 
-		unreads, mentions, times, err := ss.Channel().GetMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
+		unreads, mentions, times, err := ss.Channel().GetDirectMessagesWithUnreadAndMentions(rctx, userID, userNotifyProps)
 		require.NoError(t, err)
 
 		require.Len(t, unreads, 0)

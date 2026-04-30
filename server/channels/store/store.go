@@ -288,7 +288,7 @@ type ChannelStore interface {
 	GetChannelUnread(channelID, userID string) (*model.ChannelUnread, error)
 	GetChannelsWithUnreadsAndWithMentions(rctx request.CTX, channelIDs []string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
-	GetMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
+	GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error)
 	ClearCaches()
 	ClearMembersForUserCache()
 	GetChannelsByScheme(schemeID string, offset int, limit int) (model.ChannelList, error)

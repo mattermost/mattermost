@@ -2148,20 +2148,23 @@ func (s SqlChannelStore) GetChannelsWithUnreadsAndWithMentions(_ request.CTX, ch
 }
 
 func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, teamID string, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
-	query := s.getQueryBuilder().Select(
-		"Channels.Id",
-		"Channels.Type",
-		"Channels.TotalMsgCount",
-		"Channels.LastPostAt",
-		"ChannelMembers.MsgCount",
-		"ChannelMembers.MentionCount",
-		"ChannelMembers.NotifyProps",
-		"ChannelMembers.LastViewedAt",
-	).From("ChannelMembers").
-		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").Where(sq.Eq{
-		"Channels.TeamId":       teamID,
-		"ChannelMembers.UserId": userID,
-	})
+	query := s.getQueryBuilder().
+		Select(
+			"Channels.Id",
+			"Channels.Type",
+			"Channels.TotalMsgCount",
+			"Channels.LastPostAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastViewedAt",
+		).
+		From("ChannelMembers").
+		Join("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.Eq{
+			"Channels.TeamId":       teamID,
+			"ChannelMembers.UserId": userID,
+		})
 
 	var channels []struct {
 		Id            string
@@ -2178,12 +2181,11 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 		return nil, nil, nil, errors.Wrap(err, "failed to find team channels with unreads and mentions data")
 	}
 
-	channelsWithUnreads := []string{}
-	channelsWithMentions := []string{}
-	readTimes := map[string]int64{}
+	channelsWithUnreads := make([]string, 0, len(channels))
+	channelsWithMentions := make([]string, 0, len(channels))
+	readTimes := make(map[string]int64, len(channels))
 
-	for i := range channels {
-		channel := channels[i]
+	for _, channel := range channels {
 		hasMentions := (channel.MentionCount > 0)
 		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
 
@@ -2211,33 +2213,24 @@ func (s SqlChannelStore) GetTeamChannelsWithUnreadAndMentions(rctx request.CTX, 
 	return channelsWithUnreads, channelsWithMentions, readTimes, nil
 }
 
-func (s SqlChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
-	query := s.getQueryBuilder().Select(
-		"Channels.Id",
-		"Channels.Type",
-		"Channels.TotalMsgCount",
-		"Channels.LastPostAt",
-		"ChannelMembers.MsgCount",
-		"ChannelMembers.MentionCount",
-		"ChannelMembers.NotifyProps",
-		"ChannelMembers.LastViewedAt",
-	).From("ChannelMembers").
-		InnerJoin("Channels ON ChannelMembers.ChannelId = Channels.Id").
-		Where(sq.And{
-			sq.Eq{
-				"ChannelMembers.UserId": userID,
-			},
-			sq.Or{
-				sq.Eq{"Type": model.ChannelTypeDirect},
-				sq.Eq{"Type": model.ChannelTypeGroup},
-			},
+func (s SqlChannelStore) GetDirectMessagesWithUnreadAndMentions(rctx request.CTX, userID string, userNotifyProps model.StringMap) ([]string, []string, map[string]int64, error) {
+	query := s.getQueryBuilder().
+		Select(
+			"Channels.Id",
+			"Channels.Type",
+			"Channels.TotalMsgCount",
+			"Channels.LastPostAt",
+			"ChannelMembers.MsgCount",
+			"ChannelMembers.MentionCount",
+			"ChannelMembers.NotifyProps",
+			"ChannelMembers.LastViewedAt",
+		).
+		From("ChannelMembers").
+		Join("Channels ON ChannelMembers.ChannelId = Channels.Id").
+		Where(sq.Eq{
+			"ChannelMembers.UserId": userID,
+			"Type":                  []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup},
 		})
-
-	queryString, args, err := query.ToSql()
-
-	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "channel_tosql")
-	}
 
 	var channels []struct {
 		Id            string
@@ -2250,17 +2243,15 @@ func (s SqlChannelStore) GetMessagesWithUnreadAndMentions(rctx request.CTX, user
 		LastViewedAt  int64
 	}
 
-	err = s.GetReplica().Select(&channels, queryString, args...)
-	if err != nil {
+	if err := s.GetReplica().SelectBuilder(&channels, query); err != nil {
 		return nil, nil, nil, errors.Wrap(err, "failed to find direct or group channels with unreads and mentions data")
 	}
 
-	channelsWithUnreads := []string{}
-	channelsWithMentions := []string{}
-	readTimes := map[string]int64{}
+	channelsWithUnreads := make([]string, 0, len(channels))
+	channelsWithMentions := make([]string, 0, len(channels))
+	readTimes := make(map[string]int64, len(channels))
 
-	for i := range channels {
-		channel := channels[i]
+	for _, channel := range channels {
 		hasMentions := (channel.MentionCount > 0)
 		hasUnreads := (channel.TotalMsgCount-channel.MsgCount > 0) || hasMentions
 
