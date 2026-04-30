@@ -616,6 +616,10 @@
     "translation": "Policy enforced channels cannot be updated."
   },
   {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "This channel has an attribute-based membership policy applied. Remove the policy before converting between public and private."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}."
   },
@@ -7299,16 +7303,20 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Membership policies cannot be applied to team default channels."
+  },
+  {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Access control policies can only be applied to private channels."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Access control policies can only be applied to public or private channels."
   },
   {
     "id": "app.pap.access_control.insufficient_channel_permissions",
