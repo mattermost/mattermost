@@ -631,6 +631,8 @@ func readAllMessages(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+
 	resp := &model.ChannelViewResponse{
 		Status:            "OK",
 		LastViewedAtTimes: times,
@@ -1906,6 +1908,8 @@ func readAllInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	auditRec.Success()
 
 	resp := &model.ChannelViewResponse{
 		Status:            "OK",
