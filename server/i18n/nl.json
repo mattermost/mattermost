@@ -3043,10 +3043,6 @@
     "translation": "Fout bij decoderen van zoekresultaten"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} is reeds gestopt."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} is uitgeschakeld."
   },
@@ -4596,11 +4592,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 144+"
+    "translation": "Versie 146+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 144+"
+    "translation": "Versie 146+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5240,7 +5236,7 @@
   },
   {
     "id": "api.templates.remove_expired_license.subject",
-    "translation": "Mattermost Enterprise licentie werd uitgeschakeld."
+    "translation": "Je {{.SkuName}} licentie is verlopen"
   },
   {
     "id": "api.templates.invite_guest_subject",
@@ -7971,15 +7967,15 @@
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
-    "translation": "Jouw Mattermost abonnement is aan vernieuwing toe"
+    "translation": "Je Mattermost licentie moet vernieuwd worden"
   },
   {
     "id": "api.templates.license_up_for_renewal_subtitle",
-    "translation": "{{.UserName}}, jouw abonnement is ingesteld om te verlopen in {{.Days}} dagen. We hopen dat je de flexibele, veilige teamsamenwerking ervaart die Mattermost mogelijk maakt. Verleng snel jouw Mattermost abonnement om er zeker van te zijn dat jouw team kan blijven profiteren van deze voordelen."
+    "translation": "Je {{.SkuName}} licentie voor <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> verloopt over {{.Days}} dagen. We hopen dat je geniet van de veilige, bedrijfskritische samenwerking die Mattermost mogelijk maakt."
   },
   {
     "id": "api.templates.license_up_for_renewal_subject",
-    "translation": "Je licentie is aan vernieuwing toe"
+    "translation": "Je {{.SkuName}} licentie moet vernieuwd worden"
   },
   {
     "id": "api.server.license_up_for_renewal.error_sending_email",
@@ -10029,35 +10025,35 @@
   },
   {
     "id": "app.custom_profile_attributes.cpa_group_id.app_error",
-    "translation": "Kan de eigenschappengroep Aangepaste profielattributen niet ophalen."
+    "translation": "Kan de eigenschapgroep Gebruikersattributen niet ophalen."
   },
   {
     "id": "app.custom_profile_attributes.get_property_field.app_error",
-    "translation": "Kan geen aangepast profielattribuutveld krijgen"
+    "translation": "Kan gebruikersattribuutveld niet krijgen"
   },
   {
     "id": "app.custom_profile_attributes.limit_reached.app_error",
-    "translation": "Veldlimiet aangepaste profielattributen bereikt"
+    "translation": "Gebruikersattributen veldlimiet bereikt"
   },
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
-    "translation": "Kan aangepast profielattribuutveld niet verwijderen"
+    "translation": "Kan gebruikersattribuutveld niet verwijderen"
   },
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
-    "translation": "Kan de waarden van aangepaste profielattributen niet ophalen"
+    "translation": "Kan de waarden van gebruikersattributen niet ophalen"
   },
   {
     "id": "app.custom_profile_attributes.property_field_not_found.app_error",
-    "translation": "Aangepast profielattribuutveld niet gevonden"
+    "translation": "Gebruikersattribuutveld niet gevonden"
   },
   {
     "id": "app.custom_profile_attributes.property_field_update.app_error",
-    "translation": "Kan aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan gebruikersattribuutveld niet bijwerken"
   },
   {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
-    "translation": "Kan niet zoeken in aangepaste profielattribuutvelden"
+    "translation": "Niet in velden met gebruikersattributen kunnen zoeken"
   },
   {
     "id": "app.file_info.delete_for_post_ids.app_error",
@@ -10129,7 +10125,7 @@
   },
   {
     "id": "api.custom_profile_attributes.license_error",
-    "translation": "Jouw licentie ondersteunt geen Aangepaste Profielattributen."
+    "translation": "Je licentie ondersteunt geen gebruikersattributen."
   },
   {
     "id": "api.channel.bookmark.create_channel_bookmark.deleted_channel.forbidden.app_error",
@@ -10161,11 +10157,11 @@
   },
   {
     "id": "app.custom_profile_attributes.count_property_fields.app_error",
-    "translation": "Kan het aantal velden voor de aangepaste profielattribuutgroep niet tellen"
+    "translation": "Kan het aantal velden voor de groep Gebruikersattributen niet tellen"
   },
   {
     "id": "app.custom_profile_attributes.property_value_upsert.app_error",
-    "translation": "Kan aangepaste profielattribuutvelden niet uploaden"
+    "translation": "Kan gebruikersattribuutvelden niet upsertten"
   },
   {
     "id": "model.config.is_valid.metrics_client_side_user_id.app_error",
@@ -10233,7 +10229,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
-    "translation": "Kan het eigenschapveld niet converteren naar een aangepast profielattribuutveld"
+    "translation": "Kan het eigenschapveld niet converteren naar een gebruikersattribuutveld"
   },
   {
     "id": "app.custom_profile_attributes.sanitize_and_validate.app_error",
@@ -10241,7 +10237,7 @@
   },
   {
     "id": "api.custom_profile_attributes.invalid_field_patch",
-    "translation": "Ongeldige patch voor aangepaste profieleigenschappen"
+    "translation": "ongeldige patch van gebruikersattribuutveld"
   },
   {
     "id": "model.access_policy.is_valid.rules_imports.app_error",
@@ -10285,7 +10281,7 @@
   },
   {
     "id": "app.custom_profile_attributes.delete_property_values_for_user.app_error",
-    "translation": "Kan aangepaste profielattribuutwaarden voor gebruiker niet verwijderen"
+    "translation": "Kan waarden van gebruikersattributen voor gebruiker niet verwijderen"
   },
   {
     "id": "app.custom_profile_attributes.validate_value.app_error",
@@ -10381,7 +10377,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
-    "translation": "Kan de waarde voor een gesynchroniseerd aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan waarde voor een gesynchroniseerd veld van gebruikersattributen niet bijwerken"
   },
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
@@ -10701,7 +10697,7 @@
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
-    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+    "translation": "Kan de waarde van een door de beheerder beheerd veld met gebruikersattributen niet bijwerken"
   },
   {
     "id": "app.lookup_interactive_dialog.decode_json_error",
@@ -10738,10 +10734,6 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Niet in staat om bestaande taken op te halen."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",
@@ -10897,7 +10889,7 @@
   },
   {
     "id": "app.custom_profile_attributes.patch_field.app_error",
-    "translation": "Kan aangepast Custom Profile Attribute niet patchen"
+    "translation": "Kan gebruikersattribuutveld niet patchen"
   },
   {
     "id": "app.post.rewrite.agent_call_failed",
@@ -12010,5 +12002,677 @@
   {
     "id": "model.config.is_valid.native_app_settings.download_link.app_error",
     "translation": "Een of meer links voor het downloaden van apps zijn geen geldige URL's."
+  },
+  {
+    "id": "api.ai_bridge_test_helper.disabled.app_error",
+    "translation": "Bridgetesthelper is uitgeschakeld."
+  },
+  {
+    "id": "api.command.execute_command.provided_site_url_different.app_error",
+    "translation": "Hostnaam verzoek verschilt van geconfigureerde SiteURL. De geconfigureerde SiteURL zal worden gebruikt voor de slash commando antwoord URL."
+  },
+  {
+    "id": "api.command.execute_command.site_url_required.app_error",
+    "translation": "SiteURL moet geconfigureerd zijn om slash commando's te gebruiken"
+  },
+  {
+    "id": "api.oauth.get_access_token.client_id_mismatch.app_error",
+    "translation": "invalid_grant: Token grant is niet uitgegeven aan deze cliënt."
+  },
+  {
+    "id": "api.post.create_post.card_type_disabled.app_error",
+    "translation": "Kaartberichten zijn niet ingeschakeld op deze server."
+  },
+  {
+    "id": "api.post.fill_in_post_props.burn_on_read.shared_channel.app_error",
+    "translation": "Verbranden-na-lezen posts zijn niet toegestaan in gedeelde kanalen."
+  },
+  {
+    "id": "api.post.reveal_post.invalid_request.app_error",
+    "translation": "Ongeldig verzoek: ontbrekende of ongeldige X-Requested-With header."
+  },
+  {
+    "id": "api.property_field.create.invalid_target_type.app_error",
+    "translation": "Het opgegeven doeltype is niet geldig."
+  },
+  {
+    "id": "api.property_field.create.protected_via_api.app_error",
+    "translation": "Kan geen beschermd eigenschapveld maken via API."
+  },
+  {
+    "id": "api.property_field.create.target_id_required.app_error",
+    "translation": "Een target_id is nodig bij het maken van een kanaal of team scoped eigenschapveld."
+  },
+  {
+    "id": "api.property_field.delete.no_permission.app_error",
+    "translation": "Je hebt geen toestemming om dit eigenschapveld te verwijderen."
+  },
+  {
+    "id": "api.property_field.delete.protected_via_api.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet verwijderen via API."
+  },
+  {
+    "id": "api.property_field.get.invalid_target_type.app_error",
+    "translation": "Een geldig target_type (systeem, team of kanaal) is vereist."
+  },
+  {
+    "id": "api.property_field.get.target_id_required.app_error",
+    "translation": "Een target_id is nodig bij het zoeken op kanaal of team target_id."
+  },
+  {
+    "id": "api.property_field.invalid_patch.app_error",
+    "translation": "Ongeldig eigendomsveld patch."
+  },
+  {
+    "id": "api.property_field.object_type_mismatch.app_error",
+    "translation": "Het objecttype van het eigenschapveld komt niet overeen met URL."
+  },
+  {
+    "id": "api.property_field.patch.legacy_field.app_error",
+    "translation": "Kan een v1 eigenschapveld niet patchen via deze API."
+  },
+  {
+    "id": "api.property_field.update.no_field_permission.app_error",
+    "translation": "Je hebt geen rechten om dit eigenschapveld te bewerken."
+  },
+  {
+    "id": "api.property_field.update.no_options_permission.app_error",
+    "translation": "Je hebt geen rechten om opties voor dit eigenschapveld te beheren."
+  },
+  {
+    "id": "api.property_field.update.protected_via_api.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet bijwerken via API."
+  },
+  {
+    "id": "api.property_value.invalid_object_type.app_error",
+    "translation": "Het opgegeven objecttype is ongeldig."
+  },
+  {
+    "id": "api.property_value.patch.duplicate_field_id.app_error",
+    "translation": "Het verzoek bevat dubbele veld-ID's."
+  },
+  {
+    "id": "api.property_value.patch.empty_body.app_error",
+    "translation": "De inhoud van het verzoek moet ten minste één bijwerking van de waarde van de eigenschap bevatten."
+  },
+  {
+    "id": "api.property_value.patch.invalid_field_id.app_error",
+    "translation": "Een of meer veld-ID's in het verzoek zijn ongeldig."
+  },
+  {
+    "id": "api.property_value.patch.no_values_permission.app_error",
+    "translation": "Je hebt geen toestemming om waarden in te stellen voor een of meer velden."
+  },
+  {
+    "id": "api.property_value.patch.too_many_items.request_error",
+    "translation": "Zoveel waarden van eigenschappen kunnen niet worden bijgewerkt. Alleen {{.Max}} waarden van eigenschappen kunnen in één keer worden bijgewerkt."
+  },
+  {
+    "id": "api.property_value.target_user.forbidden.app_error",
+    "translation": "Je hebt geen toegang tot de waarden van eigenschappen van een andere gebruiker."
+  },
+  {
+    "id": "api.templates.license_need_help.info",
+    "translation": "<a href=\"https://mattermost.com/contact-sales/\">Praat met een Mattermost expert</a> voor hulp met plannen en verlengingsopties."
+  },
+  {
+    "id": "api.templates.license_need_help.title",
+    "translation": "Hulp nodig?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_subtitle_two",
+    "translation": "Verleng snel om ervoor te zorgen dat je team kan blijven profiteren van deze voordelen."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.heading",
+    "translation": "Je Mattermost licentie is verlopen"
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle",
+    "translation": "Je {{.SkuName}} licentie voor <a href=\"{{.SiteURL}}\">{{.SiteName}}</a> is verlopen en sommige functies zijn mogelijk uitgeschakeld."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.subtitle_two",
+    "translation": "Verleng je licentie nu om de volledige mogelijkheden van Mattermost te kunnen blijven gebruiken."
+  },
+  {
+    "id": "api.view.create.deleted_channel.app_error",
+    "translation": "Kan geen weergave maken in een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.delete.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.delete.deleted_channel.app_error",
+    "translation": "Kan geen weergave in een verwijderd kanaal verwijderen."
+  },
+  {
+    "id": "api.view.get.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.get.deleted_channel.app_error",
+    "translation": "Kan geen weergave krijgen van een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.get_posts.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.get_posts.deleted_channel.app_error",
+    "translation": "Kan geen berichten krijgen voor een weergave van een verwijderd kanaal."
+  },
+  {
+    "id": "api.view.list.deleted_channel.app_error",
+    "translation": "Kan weergaven voor een verwijderd kanaal niet weergeven."
+  },
+  {
+    "id": "api.view.update.channel_mismatch.app_error",
+    "translation": "View behoort niet tot het gespecificeerde kanaal."
+  },
+  {
+    "id": "api.view.update.deleted_channel.app_error",
+    "translation": "Kan een weergave in een verwijderd kanaal niet bijwerken."
+  },
+  {
+    "id": "api.view.update_sort_order.deleted_channel.app_error",
+    "translation": "Kan de sorteervolgorde van weergaven in een verwijderd kanaal niet bijwerken."
+  },
+  {
+    "id": "app.ai_bridge_test_helper.invalid_config",
+    "translation": "Ongeldige configuratie voor AI bridge test helper."
+  },
+  {
+    "id": "app.channel.add_user.to.channel.rejected_by_plugin",
+    "translation": "Kanaallid toevoegen afgewezen door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.channel.delete_channel.rejected_by_plugin",
+    "translation": "Kanaalarchief afgekeurd door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.custom_profile_attributes.get_property_value.app_error",
+    "translation": "Kan waarde van gebruikersattribuut niet krijgen"
+  },
+  {
+    "id": "app.pap.save_policy.name_exists.app_error",
+    "translation": "Er bestaat al een beleid met deze naam. Kies een andere naam."
+  },
+  {
+    "id": "app.post.get_posts_for_view.app_error",
+    "translation": "Kan de berichten voor de weergave niet krijgen."
+  },
+  {
+    "id": "app.property_field.count_for_group.app_error",
+    "translation": "Kan eigenschapvelden voor groep niet tellen."
+  },
+  {
+    "id": "app.property_field.count_for_target.app_error",
+    "translation": "Kan eigenschapvelden voor doel niet tellen."
+  },
+  {
+    "id": "app.property_field.create.app_error",
+    "translation": "Kan geen eigenschapveld maken."
+  },
+  {
+    "id": "app.property_field.create.name_conflict.app_error",
+    "translation": "Kan eigenschap \"{{.Name}}\" niet maken: een eigenschap met deze naam bestaat al op het niveau {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.create.protected.app_error",
+    "translation": "Kan geen beschermd eigenschapveld maken."
+  },
+  {
+    "id": "app.property_field.delete.app_error",
+    "translation": "Kan eigenschapveld niet verwijderen."
+  },
+  {
+    "id": "app.property_field.delete.get_existing.app_error",
+    "translation": "Kan eigenschapveld voor verwijderen niet krijgen."
+  },
+  {
+    "id": "app.property_field.delete.not_found.app_error",
+    "translation": "Eigendomsveld niet gevonden."
+  },
+  {
+    "id": "app.property_field.delete.protected.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet verwijderen."
+  },
+  {
+    "id": "app.property_field.get.app_error",
+    "translation": "Kan eigenschap veld niet krijgen."
+  },
+  {
+    "id": "app.property_field.get_by_name.app_error",
+    "translation": "Kan eigenschapveld niet op naam krijgen."
+  },
+  {
+    "id": "app.property_field.get_many.app_error",
+    "translation": "Kan eigenschap veld niet krijgen."
+  },
+  {
+    "id": "app.property_field.get_many.fields_not_found.app_error",
+    "translation": "Een of meer veld-ID's van de eigenschap zijn niet gevonden in de opgegeven groep."
+  },
+  {
+    "id": "app.property_field.invalid_input.app_error",
+    "translation": "Ongeldige invoer verstrekt."
+  },
+  {
+    "id": "app.property_field.search.app_error",
+    "translation": "Kan niet zoeken in eigenschapvelden."
+  },
+  {
+    "id": "app.property_field.update.app_error",
+    "translation": "Kan eigenschapvelden niet bijwerken."
+  },
+  {
+    "id": "app.property_field.update.get_existing.app_error",
+    "translation": "Kan eigenschapvelden niet ophalen om bij te werken."
+  },
+  {
+    "id": "app.property_field.update.name_conflict.app_error",
+    "translation": "Kan eigenschap niet bijwerken naar \"{{.Name}}\": een eigenschap met deze naam bestaat al op het niveau {{.ConflictLevel}}."
+  },
+  {
+    "id": "app.property_field.update.protected.app_error",
+    "translation": "Kan een beschermd eigenschapveld niet bijwerken."
+  },
+  {
+    "id": "app.property_group.get.app_error",
+    "translation": "Kan eigenschapgroep niet krijgen."
+  },
+  {
+    "id": "app.property_group.register.app_error",
+    "translation": "Kan eigenschapgroep niet registreren."
+  },
+  {
+    "id": "app.property_value.create.app_error",
+    "translation": "Kan eigenschapwaarde niet creëren."
+  },
+  {
+    "id": "app.property_value.create_many.app_error",
+    "translation": "Kan geen waarden voor eigenschappen maken."
+  },
+  {
+    "id": "app.property_value.delete.app_error",
+    "translation": "Kan waarde van eigenschap niet verwijderen."
+  },
+  {
+    "id": "app.property_value.delete_for_field.app_error",
+    "translation": "Kan eigenschapwaarden voor veld niet verwijderen."
+  },
+  {
+    "id": "app.property_value.delete_for_target.app_error",
+    "translation": "Kan de waarden van eigenschappen voor het doelwit niet verwijderen."
+  },
+  {
+    "id": "app.property_value.get.app_error",
+    "translation": "Kan de waarde van de eigenschap niet krijgen."
+  },
+  {
+    "id": "app.property_value.get_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet ophalen."
+  },
+  {
+    "id": "app.property_value.invalid_input.app_error",
+    "translation": "Ongeldige invoer verstrekt."
+  },
+  {
+    "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",
+    "translation": "Niet-herkend objecttype \"{{.ObjectType}}\" voor propertywaarde broadcast."
+  },
+  {
+    "id": "app.property_value.search.app_error",
+    "translation": "Kan de waarden van eigendommen niet doorzoeken."
+  },
+  {
+    "id": "app.property_value.update.app_error",
+    "translation": "Kan de waarde van de eigenschap niet bijwerken."
+  },
+  {
+    "id": "app.property_value.update_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet bijwerken."
+  },
+  {
+    "id": "app.property_value.upsert.app_error",
+    "translation": "Kan de waarden van eigenschappen niet upsertten."
+  },
+  {
+    "id": "app.property_value.upsert_many.app_error",
+    "translation": "Kan de waarden van eigenschappen niet upsertten."
+  },
+  {
+    "id": "app.team.join_user_to_team.rejected_by_plugin",
+    "translation": "Toevoegen teamlid afgewezen door plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.view.count_for_channel.app_error",
+    "translation": "Aantal weergaven voor kanaal niet geteld."
+  },
+  {
+    "id": "app.view.create.app_error",
+    "translation": "Kan de weergave niet maken."
+  },
+  {
+    "id": "app.view.create.count.app_error",
+    "translation": "Aantal weergaven voor kanaal niet geteld."
+  },
+  {
+    "id": "app.view.create.limit.app_error",
+    "translation": "Dit kanaal heeft het maximale aantal weergaven bereikt."
+  },
+  {
+    "id": "app.view.create.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.delete.app_error",
+    "translation": "Kan de weergave niet verwijderen."
+  },
+  {
+    "id": "app.view.delete.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.delete.not_found.app_error",
+    "translation": "Weergave niet gevonden."
+  },
+  {
+    "id": "app.view.get.app_error",
+    "translation": "Kan view niet ophalen."
+  },
+  {
+    "id": "app.view.get.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "app.view.get_for_channel.app_error",
+    "translation": "Kan geen weergaven krijgen voor dit kanaal."
+  },
+  {
+    "id": "app.view.get_for_channel.invalid_input.app_error",
+    "translation": "Ongeldige invoer bij het ophalen van weergaven voor kanaal."
+  },
+  {
+    "id": "app.view.update.app_error",
+    "translation": "Kan de weergave niet bijwerken."
+  },
+  {
+    "id": "app.view.update.nil_view.app_error",
+    "translation": "View is vereist."
+  },
+  {
+    "id": "app.view.update.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "app.view.update_sort_order.app_error",
+    "translation": "Kan de sorteervolgorde van de weergave niet bijwerken."
+  },
+  {
+    "id": "app.view.update_sort_order.invalid_input.app_error",
+    "translation": "Ongeldige invoer voor sorteervolgorde bijwerken."
+  },
+  {
+    "id": "app.view.update_sort_order.not_found.app_error",
+    "translation": "View niet gevonden."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.not_started.app_error",
+    "translation": "{{.Backend}} is niet gestart."
+  },
+  {
+    "id": "ent.elasticsearch.healthcheck.unreachable.app_error",
+    "translation": "{{.Backend}} gezondheidscontrole mislukt: kon controle niet voltooien."
+  },
+  {
+    "id": "ent.elasticsearch.min_version.app_error",
+    "translation": "{{.Backend}} versie {{.Version}} lager is dan min ondersteunde versie van {{.MinVersion}}"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options_length.app_error",
+    "translation": "Ongeldige RemoteImageProxyOptions voor atmos/camo: HMAC-sleutel moet minimaal {{.MinLength}} bytes zijn voor naleving van FIPS."
+  },
+  {
+    "id": "model.config.is_valid.sql_analytics_query_timeout.app_error",
+    "translation": "Ongeldige analytische query timeout voor SQL-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.view.is_valid.channel_id.app_error",
+    "translation": "Ongeldig kanaal ID."
+  },
+  {
+    "id": "model.view.is_valid.create_at.app_error",
+    "translation": "Ongeldige view creatietijd."
+  },
+  {
+    "id": "model.view.is_valid.creator_id.app_error",
+    "translation": "Ongeldige view creator ID."
+  },
+  {
+    "id": "model.view.is_valid.description.app_error",
+    "translation": "Beschrijving is te lang."
+  },
+  {
+    "id": "model.view.is_valid.id.app_error",
+    "translation": "Ongeldig weergave-ID."
+  },
+  {
+    "id": "model.view.is_valid.title.app_error",
+    "translation": "De weergavetitel is verplicht en moet uit minder dan 256 tekens bestaan."
+  },
+  {
+    "id": "model.view.is_valid.type.app_error",
+    "translation": "Ongeldig weergavetype."
+  },
+  {
+    "id": "model.view.is_valid.update_at.app_error",
+    "translation": "Ongeldige weergavetijd."
+  },
+  {
+    "id": "api.access_control_policy.permission_policies.feature_disabled",
+    "translation": "De functie Toestemmingsbeleid is niet ingeschakeld."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.abac_subject_build_failed.app_error",
+    "translation": "Mislukt bij het maken van toegangscontroleonderwerp voor gebruiker."
+  },
+  {
+    "id": "api.channel.patch_update_channel.cannot_update_managed_category.app_error",
+    "translation": "Kan een beheerde categorie voor dit kanaal niet bijwerken zonder de juiste rechten."
+  },
+  {
+    "id": "api.channel.set_members.group_constrained.app_error",
+    "translation": "Kan geen leden instellen op een kanaal met beperkte groep."
+  },
+  {
+    "id": "api.channel.set_members.policy_enforced.app_error",
+    "translation": "Kan geen leden instellen op een kanaal met beleid."
+  },
+  {
+    "id": "api.channel.set_members.type.app_error",
+    "translation": "Kan geen leden instellen op dit kanaaltype."
+  },
+  {
+    "id": "api.command_mobile_logs.cross_user_unavailable.app_error",
+    "translation": "Kan de instellingen voor mobiel loggen voor die gebruiker niet wijzigen."
+  },
+  {
+    "id": "api.command_mobile_logs.desc",
+    "translation": "Beheer de logboekbijlage van mobiele apps voor jezelf of voor een andere gebruiker."
+  },
+  {
+    "id": "api.command_mobile_logs.disabled",
+    "translation": "Logboekbijlage voor mobiele apps is nu uitgeschakeld voor {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.enabled",
+    "translation": "Logboekbijlage voor mobiele apps is nu ingeschakeld voor {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.hint",
+    "translation": "[on|off|status] [@username]"
+  },
+  {
+    "id": "api.command_mobile_logs.name",
+    "translation": "mobiele logboeken"
+  },
+  {
+    "id": "api.command_mobile_logs.status_off",
+    "translation": "Mobiele app logboekbijlage is momenteel uitgeschakeld voor {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.status_on",
+    "translation": "Logboekbijlage voor mobiele apps is momenteel ingeschakeld voor {{.User}}."
+  },
+  {
+    "id": "api.command_mobile_logs.update_error.app_error",
+    "translation": "Het is niet gelukt de logboekbijlage-instelling van de mobiele app bij te werken. Probeer het opnieuw."
+  },
+  {
+    "id": "api.command_mobile_logs.usage",
+    "translation": "Gebruik: /mobile-logs [on|off|status] [@gebruikersnaam]"
+  },
+  {
+    "id": "api.command_mobile_logs.user_not_found.app_error",
+    "translation": "Gebruiker \"{{.Username}}\" kon niet worden gevonden."
+  },
+  {
+    "id": "api.command_mobile_logs.you",
+    "translation": "jij"
+  },
+  {
+    "id": "api.file.get_file.abac_denied.app_error",
+    "translation": "Je hebt niet de vereiste toegang om dit bestand te downloaden."
+  },
+  {
+    "id": "api.file.upload_file.abac_denied.app_error",
+    "translation": "Je hebt niet de vereiste toegang om bestanden te uploaden naar dit kanaal."
+  },
+  {
+    "id": "api.managed_category.feature_not_available.app_error",
+    "translation": "Beheerde kanaalcategorieën zijn niet beschikbaar."
+  },
+  {
+    "id": "api.shared_channel.attachment.creator_id_required.app_error",
+    "translation": "FileInfo.CreatorId is vereist."
+  },
+  {
+    "id": "api.shared_channel.attachment.data_required.app_error",
+    "translation": "Bestandsgegevens zijn vereist."
+  },
+  {
+    "id": "api.shared_channel.attachment.file_info_required.app_error",
+    "translation": "FileInfo is vereist."
+  },
+  {
+    "id": "api.shared_channel.attachment.filename_required.app_error",
+    "translation": "FileInfo.Name is vereist."
+  },
+  {
+    "id": "app.access_control.build_subject.get_subject.app_error",
+    "translation": "Het ophalen van het toegangscontroleonderwerp is mislukt."
+  },
+  {
+    "id": "app.access_control.build_subject.group_id.app_error",
+    "translation": "Mislukt bij het ophalen van de attribuutgroep voor toegangscontrole."
+  },
+  {
+    "id": "app.channel.set_members.context_cancelled.app_error",
+    "translation": "De handeling voor het instellen van kanaalleden is geannuleerd."
+  },
+  {
+    "id": "app.channel.set_members.empty_private.app_error",
+    "translation": "Kan niet alle leden van een besloten kanaal verwijderen."
+  },
+  {
+    "id": "app.channel.set_members.get_current.app_error",
+    "translation": "Kan huidige kanaalleden niet krijgen."
+  },
+  {
+    "id": "app.channel.set_members.get_members.app_error",
+    "translation": "Kan kanaalleden niet krijgen voor rolafstemming."
+  },
+  {
+    "id": "app.managed_category.clear.app_error",
+    "translation": "Beheerde categorie van kanaal is niet verwijderd."
+  },
+  {
+    "id": "app.managed_category.dm_gm_not_allowed.app_error",
+    "translation": "Directe kanalen en kanalen voor groepsberichten kunnen niet worden toegewezen aan een beheerde categorie."
+  },
+  {
+    "id": "app.managed_category.empty_name.app_error",
+    "translation": "De naam van de beheerde categorie kan niet leeg zijn."
+  },
+  {
+    "id": "app.managed_category.get_mappings.app_error",
+    "translation": "Mislukt bij het ophalen van beheerde categorietoewijzingen."
+  },
+  {
+    "id": "app.managed_category.search.app_error",
+    "translation": "Mislukt bij het zoeken naar beheerde categorie voor kanaal."
+  },
+  {
+    "id": "app.managed_category.set.app_error",
+    "translation": "Fout bij het instellen van beheerde categorie op kanaal."
+  },
+  {
+    "id": "app.pdp.access_evaluation.permission_policy.app_error",
+    "translation": "Toestemmingsbeleid niet geëvalueerd."
+  },
+  {
+    "id": "app.team.access_policies.channel_not_found.app_error",
+    "translation": "Een of meer kanalen zijn niet gevonden."
+  },
+  {
+    "id": "app.team.access_policies.channel_wrong_team.app_error",
+    "translation": "Kanaal {{.ChannelId}} hoort niet bij dit team."
+  },
+  {
+    "id": "app.team.access_policies.channels_required.app_error",
+    "translation": "Er is minstens één kanaal nodig."
+  },
+  {
+    "id": "app.team.access_policies.ownership_check.app_error",
+    "translation": "Kan beleidseigendom voor dit team niet verifiëren."
+  },
+  {
+    "id": "app.team.access_policies.reconcile_scope.app_error",
+    "translation": "Lukt niet om teambereik af te stemmen op beleid."
+  },
+  {
+    "id": "app.team.access_policies.self_exclusion.app_error",
+    "translation": "Je kunt geen beleid maken dat jezelf uitsluit."
+  },
+  {
+    "id": "app.team.access_policies.validation_error.app_error",
+    "translation": "Mislukt bij het valideren van beleidsregels."
+  },
+  {
+    "id": "model.access_policy.inherit.permission.app_error",
+    "translation": "Toestemmingsbeleid kan niet overerven van ander beleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.app_error",
+    "translation": "Actie(s) is ongeldig."
+  },
+  {
+    "id": "model.access_policy.is_valid.roles.app_error",
+    "translation": "Toestemmingsbeleid moet op precies één rol worden toegepast."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope.app_error",
+    "translation": "Ongeldige bereikwaarde voor dit toegangscontrolebeleid."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id.app_error",
+    "translation": "Scope ID moet een geldige ID zijn wanneer scope wordt ingesteld."
+  },
+  {
+    "id": "model.access_policy.is_valid.scope_id_without_scope.app_error",
+    "translation": "Scope ID kan niet worden ingesteld zonder scope."
   }
 ]
