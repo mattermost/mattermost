@@ -354,6 +354,12 @@ _AUTO_LINE_RE = re.compile(
     r"|^🗑️  Removed API file:"
 )
  
+# Matches "I have nothing to put here" placeholders that PR templates seed
+# inside the ```release-note fence. When real auto-detected entries are about
+# to be injected, these are replaced rather than left to sit alongside the
+# generated lines.
+_PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)\s*$", re.IGNORECASE)
+ 
  
 def _format_lines(result: CheckResult) -> list[str]:
     """Produce natural-language lines for one checker result."""
@@ -455,8 +461,25 @@ def inject_note(body: str, note: str) -> str:
         flags=re.DOTALL | re.IGNORECASE,
     )
     if release_note_block:
-        closing_start = release_note_block.start(3)
-        return body[:closing_start] + note + "\n" + body[closing_start:]
+        open_tag = release_note_block.group(1)
+        content  = release_note_block.group(2)
+        close_tag = release_note_block.group(3)
+ 
+        # If the existing fence content is empty or only contains template
+        # placeholders (e.g. "NONE"), replace it entirely so our entries
+        # don't sit alongside an inert "NONE". User-written content is
+        # preserved by appending instead.
+        non_blank = [ln for ln in content.split("\n") if ln.strip()]
+        if not non_blank or all(_PLACEHOLDER_RE.match(ln) for ln in non_blank):
+            new_content = "\n" + note + "\n"
+        else:
+            new_content = content.rstrip("\n") + "\n" + note + "\n"
+ 
+        return (
+            body[:release_note_block.start()]
+            + open_tag + new_content + close_tag
+            + body[release_note_block.end():]
+        )
  
     # 2. Markdown section headers
     for header in ["## Release Notes", "## Changelog", "## What Changed", "## What's Changed"]:
