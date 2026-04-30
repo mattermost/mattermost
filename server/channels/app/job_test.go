@@ -227,18 +227,29 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 		_, appErr := th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, "team_user team_admin")
 		require.Nil(t, appErr)
 
-		// Create a parent policy scoped explicitly to this team in the store
-		policy := &model.AccessControlPolicy{
+		// Build ownership via the real parent->child channel relationship, then reconcile scope.
+		parentPolicy := &model.AccessControlPolicy{
 			ID:      model.NewId(),
 			Name:    "team-owned-policy",
 			Type:    model.AccessControlPolicyTypeParent,
-			Scope:   model.AccessControlPolicyScopeTeam,
-			ScopeID: th.BasicTeam.Id,
 			Version: model.AccessControlPolicyVersionV0_2,
 			Rules:   []model.AccessControlPolicyRule{{Actions: []string{"*"}, Expression: "true"}},
 		}
-		savedPolicy, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		savedParent, storeErr := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 		require.NoError(t, storeErr)
+
+		channel := th.CreatePrivateChannel(t, th.BasicTeam)
+		childPolicy := &model.AccessControlPolicy{
+			ID:      channel.Id,
+			Type:    model.AccessControlPolicyTypeChannel,
+			Version: model.AccessControlPolicyVersionV0_2,
+		}
+		require.Nil(t, childPolicy.Inherit(savedParent))
+		_, storeErr = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, childPolicy)
+		require.NoError(t, storeErr)
+
+		appErr = th.App.ReconcilePolicyTeamScope(th.Context, savedParent.ID)
+		require.Nil(t, appErr)
 
 		teamAdminSession := model.Session{
 			UserId: teamAdmin.Id,
@@ -253,7 +264,7 @@ func TestSessionHasPermissionToCreateAccessControlSyncJob(t *testing.T) {
 			Type: model.JobTypeAccessControlSync,
 			Data: model.StringMap{
 				"team_id":   th.BasicTeam.Id,
-				"policy_id": savedPolicy.ID,
+				"policy_id": savedParent.ID,
 			},
 		}
 
