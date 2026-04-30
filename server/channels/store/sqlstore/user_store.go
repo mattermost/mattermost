@@ -1303,14 +1303,26 @@ func (us SqlUserStore) GetByAuthData(authData *string) (*model.User, error) {
 }
 
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
-	user, err := us.GetByAuthData(authData)
+	if authData == nil || *authData == "" {
+		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
+	}
+
+	query := us.usersQuery.
+		Where("Users.AuthData = ?", authData).
+		Where("Users.AuthService = ?", authService)
+
+	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "get_by_auth_tosql")
 	}
-	if user.AuthService != authService {
+
+	user := model.User{}
+	if err := us.GetReplica().Get(&user, queryString, args...); err == sql.ErrNoRows {
 		return nil, store.NewErrNotFound("User", fmt.Sprintf("authData=%s, authService=%s", *authData, authService))
+	} else if err != nil {
+		return nil, errors.Wrapf(err, "failed to find User with authData=%s and authService=%s", *authData, authService)
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (us SqlUserStore) GetAllUsingAuthService(authService string) ([]*model.User, error) {
