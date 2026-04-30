@@ -362,6 +362,34 @@ function PolicyDetails({
         );
     };
 
+    // Effective channel mix = (saved - removed) + added. Reused by the
+    // mixed-channel notice below the channel list and by the confirmation
+    // modal so both surfaces stay in sync.
+    const channelTypeCounts = useMemo(() => {
+        let publicCount = 0;
+        let privateCount = 0;
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        return {publicCount, privateCount};
+    }, [savedChannelTypes, channelChanges.removed, channelChanges.added]);
+
+    const hasMixedChannels = channelTypeCounts.publicCount > 0 && channelTypeCounts.privateCount > 0;
+
     return (
         <div className='wrapper--fixed AccessControlPolicySettings'>
             <AdminHeader withBackButton={true}>
@@ -560,6 +588,23 @@ function PolicyDetails({
                                 onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
                                 saving={saving}
                             />
+                            {hasMixedChannels && (
+                                <div className='AccessControlPolicySettings__mixedChannelsNotice'>
+                                    <SectionNotice
+                                        type='warning'
+                                        title={
+                                            <FormattedMessage
+                                                id='admin.access_control.policy.edit_policy.mixed_channels.title'
+                                                defaultMessage='Membership policies affect public and private channels differently'
+                                            />
+                                        }
+                                        text={formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.mixed_channels.text',
+                                            defaultMessage: 'On private channels, only matching users can join and non-matching members are removed. On public channels, matching users are recommended or auto-added, but the channel stays open to everyone.',
+                                        })}
+                                    />
+                                </div>
+                            )}
                         </Card.Body>
                     </Card>
                     {policyId && (
@@ -621,40 +666,16 @@ function PolicyDetails({
                 />
             )}
 
-            {showConfirmationModal && (() => {
-                // Effective channel mix = (saved - removed) + added. The
-                // confirmation modal messages the user differently for mixed,
-                // private-only, and public-only selections.
-                let publicCount = 0;
-                let privateCount = 0;
-                for (const [id, type] of Object.entries(savedChannelTypes)) {
-                    if (channelChanges.removed[id]) {
-                        continue;
-                    }
-                    if (type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                for (const ch of Object.values(channelChanges.added)) {
-                    if (ch.type === Constants.OPEN_CHANNEL) {
-                        publicCount++;
-                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
-                        privateCount++;
-                    }
-                }
-                return (
-                    <PolicyConfirmationModal
-                        active={autoSyncMembership}
-                        onExited={() => setShowConfirmationModal(false)}
-                        onConfirm={handleSubmit}
-                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                        publicChannelsAffected={publicCount}
-                        privateChannelsAffected={privateCount}
-                    />
-                );
-            })()}
+            {showConfirmationModal && (
+                <PolicyConfirmationModal
+                    active={autoSyncMembership}
+                    onExited={() => setShowConfirmationModal(false)}
+                    onConfirm={handleSubmit}
+                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                    publicChannelsAffected={channelTypeCounts.publicCount}
+                    privateChannelsAffected={channelTypeCounts.privateCount}
+                />
+            )}
 
             {showDeleteConfirmationModal && (
                 <GenericModal
