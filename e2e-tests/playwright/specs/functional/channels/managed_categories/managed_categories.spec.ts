@@ -39,7 +39,11 @@ async function setupManagedCategoriesTest(pw: any) {
         display_name: `Managed ${suffix}`,
         type: 'O',
     });
-    const user = await pw.createNewUserProfile(adminClient, {prefix: 'mgd-user'});
+    const user = await pw.createNewUserProfile(adminClient, {
+        prefix: 'mgd-user',
+        disableTutorial: true,
+        disableOnboarding: true,
+    });
     await adminClient.addToTeam(team.id, user.id);
     return {adminClient, adminUser, team, user};
 }

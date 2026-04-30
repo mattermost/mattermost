@@ -31,24 +31,6 @@ type ClientWithRemotes = {
 };
 
 /**
- * Deletes all remote clusters on the server. Use before TC-WEB-03 so that test sees "No connected
- * workspaces" and does not fail when other tests have created remotes.
- */
-async function deleteAllRemoteClusters(adminClient: {
-    getRemoteClusters: (options: {
-        excludePlugins: boolean;
-        notInChannel?: string;
-        onlyConfirmed?: boolean;
-    }) => Promise<Array<{remote_id: string}>>;
-    deleteRemoteCluster: (remoteId: string) => Promise<unknown>;
-}): Promise<void> {
-    const remotes = await adminClient.getRemoteClusters({excludePlugins: false});
-    for (const r of remotes) {
-        await adminClient.deleteRemoteCluster(r.remote_id);
-    }
-}
-
-/**
  * Creates and confirms a remote connection by completing the invite handshake.
  * This allows the "Share with connected workspaces" toggle to be enabled in channel configuration
  * and workspaces to appear in the workspace selector.
@@ -149,12 +131,10 @@ test.describe('Shared channel configuration', () => {
             },
         });
 
-        try {
-            await deleteAllRemoteClusters(adminClient);
-        } catch {
-            // Remote cluster service not enabled — no existing remotes, so the
-            // "no connected workspaces" condition is already satisfied.
-        }
+        // Each CI shard gets a fresh server — there are no pre-existing remote clusters.
+        // Calling deleteAllRemoteClusters() was deleting an implicit "self" cluster entry
+        // that is created when EnableRemoteClusterService is enabled, which caused the
+        // "Share with connected workspaces" section to disappear.  Skip the deletion.
 
         const channelName = `shared-config-03-${getRandomId()}`;
         await adminClient.createChannel({
@@ -312,10 +292,17 @@ test.describe('Shared channel configuration', () => {
             },
         });
 
-        const roles = await adminClient.getRolesByNames(['system_user']);
-        const systemRole = roles[0];
+        // Grant manage_shared_channels on both system_user (server-level check) and
+        // channel_user (channel-level check) — the UI may check either depending on context.
+        const roles = await adminClient.getRolesByNames(['system_user', 'channel_user']);
+        const systemRole = roles.find((r: {name: string}) => r.name === 'system_user')!;
+        const channelRole = roles.find((r: {name: string}) => r.name === 'channel_user')!;
         const withPermission = [...new Set([...(systemRole.permissions as string[]), 'manage_shared_channels'])];
         await adminClient.patchRole(systemRole.id, {permissions: withPermission});
+        const channelWithPermission = [
+            ...new Set([...(channelRole.permissions as string[]), 'manage_shared_channels']),
+        ];
+        await adminClient.patchRole(channelRole.id, {permissions: channelWithPermission});
 
         const channelName = `shared-config-10-${getRandomId()}`;
         const channel = await adminClient.createChannel({
@@ -337,6 +324,10 @@ test.describe('Shared channel configuration', () => {
 
         const withoutPermission = (systemRole.permissions as string[]).filter((p) => p !== 'manage_shared_channels');
         await adminClient.patchRole(systemRole.id, {permissions: withoutPermission});
+        const channelWithoutPermission = (channelRole.permissions as string[]).filter(
+            (p) => p !== 'manage_shared_channels',
+        );
+        await adminClient.patchRole(channelRole.id, {permissions: channelWithoutPermission});
 
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();

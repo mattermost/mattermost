@@ -38,23 +38,12 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
             if (attempt === 1) {
                 throw err;
             }
-            // Plugin may have been disabled by a concurrent initSetup() — re-enable without
-            // patchConfig to avoid triggering a plugin restart that could introduce noise.
-            try {
-                await adminClient.enablePlugin('com.mattermost.demo-plugin');
-            } catch {
-                // Already enabled or transient error — ignore.
-            }
-            await expect
-                .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
-                    timeout: 30_000,
-                    intervals: [2000],
-                })
-                .toBe(true);
-            // Give the plugin a few seconds to finish initializing its command handlers
-            // after the restart — isPluginActive=true means the plugin process is up but
-            // the HTTP handler registration may lag by a couple of seconds.
-            await new Promise((resolve) => setTimeout(resolve, 4000));
+            // Plugin may have been disabled (e.g. by a config reset or transient restart).
+            // Re-run full setup (install + enable + poll) to ensure it is truly active.
+            await setupDemoPlugin(adminClient, pw);
+            // Give the plugin extra time to finish wiring up command handlers after
+            // reactivation — isPluginActive=true only means the process is up.
+            await new Promise((resolve) => setTimeout(resolve, 5000));
         }
     }
 

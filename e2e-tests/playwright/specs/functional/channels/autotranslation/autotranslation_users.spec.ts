@@ -413,19 +413,26 @@ test(
 
         // Re-apply config immediately before posting so the server translates these messages.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
-        // Set source language before creating posts
-        // Post Spanish first so it gets the translation indicator (first message from posterClient)
+
+        // Post the English-only message FIRST so the mock's source-language state is reset
+        // before any setMockSourceLanguage calls.  The server processes translation
+        // asynchronously: if setMockSourceLanguage('en') is called right after a post the
+        // mock's detected language can be overridden before the server's detect request
+        // arrives, silently preventing translation of the Spanish message.
+        // By posting 'English only' first (no source override — mock auto-detects English
+        // and skips translation because source == target), we then safely set 'es' and
+        // post the Spanish message without any subsequent race-prone source switch.
+        await posterClient.createPost({
+            channel_id: created.id,
+            message: 'English only',
+            user_id: createdPoster.id,
+        });
+
+        // Set Spanish source so the mock translates the next post.
         await setMockSourceLanguage(translationUrl, 'es');
         await posterClient.createPost({
             channel_id: created.id,
             message: 'Solo español',
-            user_id: createdPoster.id,
-        });
-        // English message won't be translated
-        await setMockSourceLanguage(translationUrl, 'en');
-        await posterClient.createPost({
-            channel_id: created.id,
-            message: 'English only',
             user_id: createdPoster.id,
         });
         // Second user posts translated message (translation indicators only show with multiple users)
@@ -439,26 +446,18 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
-        // * Verify posts appeared
-        // Mock server produces "<original> [translated to en]", not real translations
-        await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
-            timeout: 15000,
-        });
-        await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Solo español [translated to en]', {exact: false}),
-        ).toBeVisible();
-
-        // * Verify both messages are present
+        // * Verify translated Spanish post is present
+        // Mock server produces "<original> [translated to en]"
         const translatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'Solo español [translated to en]'});
         await expect(translatedPost).toBeVisible({timeout: 15000});
 
+        // * Verify the English post is present and unchanged (not translated)
         const notTranslatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'English only', exact: true});
+            .filter({hasText: 'English only'})
+            .filter({hasNotText: '[translated to en]'});
         await expect(notTranslatedPost).toBeVisible();
     },
 );

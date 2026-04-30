@@ -320,7 +320,10 @@ test.describe('Single-channel guests', () => {
             // # Log in as admin
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-            // # Mock the server limits API to simulate overage by returning a limit of 1.
+            // # Mock the server limits API to simulate overage.
+            // We mock BOTH singleChannelGuestLimit (to 1) AND singleChannelGuestCount (to 3)
+            // because analytics indexing is asynchronous — the real count may still be 0
+            // immediately after creating guests, which would not trigger error styling.
             // Use a URL predicate (not a glob) so the mock intercepts requests regardless of
             // any query-string cache-busters the frontend may append.
             await systemConsolePage.page.route(
@@ -329,6 +332,7 @@ test.describe('Single-channel guests', () => {
                     const response = await route.fetch();
                     const json = await response.json();
                     json.singleChannelGuestLimit = 1;
+                    json.singleChannelGuestCount = 3;
                     await route.fulfill({response, json});
                 },
             );
