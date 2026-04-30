@@ -51,4 +51,4 @@ export function useGlobalState<TVal>(
  * existing class components.They can't use hooks,
  * but will still want to have the same format as the hook.
  */
-export const createStoredKey = (name: string, suffixToUse?: string) => `${name}${suffixToUse}`;
+export const createStoredKey = (name: string, suffixToUse?: string) => `${name}${suffixToUse ?? ''}`;
