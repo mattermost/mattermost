@@ -337,3 +337,5 @@ channels/db/migrations/postgres/000169_create_linked_field_id_index.down.sql
 channels/db/migrations/postgres/000169_create_linked_field_id_index.up.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.down.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.up.sql
+channels/db/migrations/postgres/000171_drop_property_fields_protected_index.down.sql
+channels/db/migrations/postgres/000171_drop_property_fields_protected_index.up.sql
