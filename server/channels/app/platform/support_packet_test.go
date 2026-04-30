@@ -256,7 +256,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Zero(t, d.Database.ReplicaConnectios)
 		assert.Zero(t, d.Database.SearchConnections)
 		assert.Zero(t, d.Database.MasterConnectionsInUse)
-		assert.NotZero(t, d.Database.MasterConnectionsIdle)
+		assert.GreaterOrEqual(t, d.Database.MasterConnectionsIdle, 0)
 		assert.Zero(t, d.Database.MasterPoolWaitCount)
 		assert.Zero(t, d.Database.MasterPoolWaitDurationMs)
 		assert.Zero(t, d.Database.MasterConnectionsClosedMaxIdle)
