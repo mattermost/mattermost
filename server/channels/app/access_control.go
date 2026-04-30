@@ -86,6 +86,23 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		policy.ID = model.NewId()
 	}
 
+	// Channel-scope policies are pinned to a single channel by ID. Validate
+	// channel eligibility here (default / DM / GM / group-constrained / shared
+	// channels are ineligible) so this guard protects all callers — including
+	// system admins, whose request goes through the api4 handler's permission
+	// fast-path that skips the per-channel ValidateChannelAccessControlPolicyCreation
+	// check, and the parent-policy AssignAccessControlPolicyToChannels flow,
+	// which validates eligibility there but bypasses this entry point.
+	if policy.Type == model.AccessControlPolicyTypeChannel {
+		channel, appErr := a.GetChannel(rctx, policy.ID)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	policy.Version = model.AccessControlPolicyVersionV0_3
 	for i, rule := range policy.Rules {
 		for j, action := range rule.Actions {
@@ -193,7 +210,7 @@ func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID str
 
 	policies := make([]*model.AccessControlPolicy, 0, len(channelIDs))
 	for _, channel := range channels {
-		if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+		if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
 			return nil, appErr
 		}
 
@@ -464,12 +481,13 @@ func (a *App) publishChannelPolicyEnforcedUpdate(rctx request.CTX, channelID str
 }
 
 // ValidateChannelEligibilityForAccessControl checks that a channel is eligible for
-// access control policy assignment: must be private, not group-constrained, not shared.
-func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.AppError {
-	if channel.Type != model.ChannelTypePrivate {
+// access control policy assignment: must be public or private (DM/GM excluded),
+// not group-constrained, not shared, and not a team default channel (e.g. town-square).
+func (a *App) ValidateChannelEligibilityForAccessControl(rctx request.CTX, channel *model.Channel) *model.AppError {
+	if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
-			"app.pap.access_control.channel_not_private",
-			nil, "Channel is not of type private", http.StatusBadRequest)
+			"app.pap.access_control.channel_type_not_supported",
+			nil, "Policies can only be applied to public or private channels", http.StatusBadRequest)
 	}
 
 	if channel.IsGroupConstrained() {
@@ -482,6 +500,12 @@ func ValidateChannelEligibilityForAccessControl(channel *model.Channel) *model.A
 		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
 			"app.pap.access_control.channel_shared",
 			nil, "Channel is shared", http.StatusBadRequest)
+	}
+
+	if slices.Contains(a.DefaultChannelNames(rctx), channel.Name) {
+		return model.NewAppError("ValidateChannelEligibilityForAccessControl",
+			"app.pap.access_control.channel_default",
+			nil, "Channel is a team default channel", http.StatusBadRequest)
 	}
 
 	return nil
@@ -500,7 +524,7 @@ func (a *App) ValidateChannelAccessControlPermission(rctx request.CTX, userID, c
 		return model.NewAppError("ValidateChannelAccessControlPermission", "app.pap.access_control.insufficient_channel_permissions", nil, "user_id="+userID+" channel_id="+channelID, http.StatusForbidden)
 	}
 
-	if appErr := ValidateChannelEligibilityForAccessControl(channel); appErr != nil {
+	if appErr := a.ValidateChannelEligibilityForAccessControl(rctx, channel); appErr != nil {
 		return appErr
 	}
 

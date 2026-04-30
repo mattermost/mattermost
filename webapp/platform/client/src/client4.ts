@@ -980,6 +980,30 @@ export default class Client4 {
         );
     };
 
+    // getProfilesMatchingChannelPolicy returns only users who satisfy the ABAC
+    // policy on the channel and are not yet members. Useful for public
+    // policy-enforced channels to annotate recommended members without
+    // filtering the primary invite list.
+    getProfilesMatchingChannelPolicy = (teamId: string, channelId: string, groupConstrained: boolean, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {
+            in_team: teamId,
+            not_in_channel: channelId,
+            per_page: perPage,
+            abac_match_only: true,
+        };
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        }
+        if (groupConstrained) {
+            queryStringObj.group_constrained = true;
+        }
+
+        return this.doFetch<UserProfile[]>(
+            `${this.getUsersRoute()}${buildQueryString(queryStringObj)}`,
+            {method: 'get'},
+        );
+    };
+
     getProfilesInGroup = (groupId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '') => {
         return this.doFetch<UserProfile[]>(
             `${this.getUsersRoute()}${buildQueryString({in_group: groupId, page, per_page: perPage, sort})}`,
@@ -1847,6 +1871,13 @@ export default class Client4 {
         );
     };
 
+    getRecommendedChannelsForUser = (teamId: string) => {
+        return this.doFetch<ServerChannel[]>(
+            `${this.getTeamRoute(teamId)}/channels/recommended`,
+            {method: 'get'},
+        );
+    };
+
     getMyChannels = (teamId: string, includeDeleted = false) => {
         return this.doFetch<ServerChannel[]>(
             `${this.getUserRoute('me')}/teams/${teamId}/channels${buildQueryString({include_deleted: includeDeleted})}`,
@@ -2155,6 +2186,20 @@ export default class Client4 {
     patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: PropertyValuePatchItem[]) => {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'PATCH', body: JSON.stringify(items)},
+        );
+    };
+
+    getSystemPropertyValues = <T>(groupName: string) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/system/values`,
+            {method: 'get'},
+        );
+    };
+
+    patchSystemPropertyValues = <T>(groupName: string, items: Array<{field_id: string; value: T}>) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/system/values`,
             {method: 'PATCH', body: JSON.stringify(items)},
         );
     };
