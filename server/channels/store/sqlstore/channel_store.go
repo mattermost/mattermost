@@ -1572,6 +1572,7 @@ func (s SqlChannelStore) getByNames(teamId string, names []string, allowFromCach
 	if len(names) > 0 {
 		cond := sq.And{
 			sq.Eq{"Name": names},
+			sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
 		}
 		if !includeArchivedChannels {
 			cond = append(cond, sq.Eq{"DeleteAt": 0})
@@ -1616,6 +1617,7 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		Select(channelSliceColumns(true)...).
 		From("Channels").
 		Where(sq.Eq{"Name": name}).
+		Where(sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}}).
 		Where(sq.Or{
 			sq.Eq{"TeamId": teamId},
 			sq.Eq{"TeamId": ""},
@@ -1648,6 +1650,7 @@ func (s SqlChannelStore) GetDeletedByName(teamId string, name string) (*model.Ch
 			sq.Or{sq.Eq{"TeamId": teamId}, sq.Eq{"TeamId": ""}},
 			sq.Eq{"Name": name},
 			sq.NotEq{"DeleteAt": 0},
+			sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}},
 		})
 
 	if err := s.GetReplica().GetBuilder(&channel, query); err != nil {
@@ -3125,7 +3128,8 @@ func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, inc
 			sq.Expr("c.TeamId = t.id"),
 			sq.Expr("t.id = tm.TeamId"),
 			sq.Eq{"tm.UserId": userID},
-		})
+		}).
+		Where(sq.NotEq{"c.Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}})
 
 	// Always filter out soft-deleted team memberships - users removed from
 	// a team should not see channels from that team regardless of includeDeleted
@@ -4192,6 +4196,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime int64, startChann
 				sq.Gt{"Id": startChannelID},
 			},
 		}).
+		Where(sq.NotEq{"Type": []model.ChannelType{model.ChannelTypeOpenBoard, model.ChannelTypePrivateBoard}}).
 		OrderBy("CreateAt ASC", "Id ASC").
 		Limit(uint64(limit))
 

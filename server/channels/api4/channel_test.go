@@ -7247,6 +7247,32 @@ func TestChannelEndpointsExcludeBoards(t *testing.T) {
 		_, hasPrivateBoard := counts[privateBoard.Id]
 		assert.False(t, hasPrivateBoard, "private board should not be in member count results")
 	})
+
+	t.Run("getChannelByName 404s for board", func(t *testing.T) {
+		_, resp, err := client.GetChannelByName(ctx, privateBoard.Name, th.BasicTeam.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannelByNameIncludeDeleted 404s for board", func(t *testing.T) {
+		_, resp, err := client.GetChannelByNameIncludeDeleted(ctx, privateBoard.Name, th.BasicTeam.Id, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("getChannelByNameForTeamName 404s for board", func(t *testing.T) {
+		_, resp, err := client.GetChannelByNameForTeamName(ctx, privateBoard.Name, th.BasicTeam.Name, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("searchAllChannelsForUser excludes boards", func(t *testing.T) {
+		channels, _, err := client.SearchAllChannelsForUser(ctx, "board")
+		require.NoError(t, err)
+		for _, ch := range channels {
+			assert.False(t, ch.IsBoard(), "board channel %s (type %s) should not appear in searchAllChannelsForUser results", ch.Id, ch.Type)
+		}
+	})
 }
 
 func TestSetChannelMembers(t *testing.T) {

@@ -8614,6 +8614,37 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX,
 	_, nErr = ss.Channel().Save(rctx, c6, -1)
 	require.NoError(t, nErr)
 
+	// Board channels must never reach the indexer
+	creatorID := model.NewId()
+	makeBoardView := func() *model.View {
+		kanban := &model.KanbanProps{
+			GroupBy: model.KanbanGroupBy{
+				FieldID: model.NewId(),
+				Columns: []model.KanbanColumn{
+					{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				},
+			},
+		}
+		props, _ := kanban.ToProps()
+		return &model.View{Type: model.ViewTypeKanban, CreatorId: creatorID, Title: "Indexing Board", Props: props}
+	}
+	openBoard, _, nErr := ss.Channel().SaveBoardChannel(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Board Open",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpenBoard,
+		CreatorId:   creatorID,
+	}, -1, makeBoardView())
+	require.NoError(t, nErr)
+	privateBoard, _, nErr := ss.Channel().SaveBoardChannel(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Board Private",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivateBoard,
+		CreatorId:   creatorID,
+	}, -1, makeBoardView())
+	require.NoError(t, nErr)
+
 	// First and last channel should be outside the range
 	channels, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt, "", 4)
 	assert.NoError(t, err)
@@ -8628,6 +8659,14 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, rctx request.CTX,
 	channels, err = ss.Channel().GetChannelsBatchForIndexing(channels[1].CreateAt, channels[1].Id, 1)
 	assert.NoError(t, err)
 	assert.Len(t, channels, 0)
+
+	// Walk the entire range to confirm board channels are filtered out
+	allIndexed, err := ss.Channel().GetChannelsBatchForIndexing(c1.CreateAt-1, "", 100)
+	assert.NoError(t, err)
+	for _, ch := range allIndexed {
+		assert.NotEqual(t, openBoard.Id, ch.Id, "open board should not be returned for indexing")
+		assert.NotEqual(t, privateBoard.Id, ch.Id, "private board should not be returned for indexing")
+	}
 }
 
 func testGroupSyncedChannelCount(t *testing.T, rctx request.CTX, ss store.Store) {
