@@ -123,7 +123,7 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
             name: 'access_policies',
             uiName: formatMessage({id: 'team_settings_modal.accessPoliciesTab', defaultMessage: 'Membership Policies'}),
             icon: 'icon icon-shield-outline',
-            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: abacEnabled && canManageTeamAccessRules,
         },
     ];

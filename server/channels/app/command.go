@@ -672,8 +672,6 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 		} else if response.IconURL != "" {
 			post.AddProp(model.PostPropsOverrideIconURL, response.IconURL)
 			isBotPost = true
-		} else {
-			post.AddProp(model.PostPropsOverrideIconURL, "")
 		}
 	}
 

@@ -26,6 +26,7 @@ import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 import ChannelList from './channel_list';
 
@@ -35,8 +36,6 @@ import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
 import './policy_details.scss';
-
-const DEFAULT_PAGE_SIZE = 10;
 
 interface PolicyActions {
     fetchPolicy: (id: string) => Promise<ActionResult>;
@@ -90,6 +89,10 @@ function PolicyDetails({
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
+
+    // Map of saved channelId → channel type. Lets the confirmation modal show
+    // the right messaging for mixed / public-only / private-only policies.
+    const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -99,15 +102,15 @@ function PolicyDetails({
     const abacActions = useChannelAccessControlActions();
 
     // Memoize the custom no options message to avoid recreating it on every render
-    const customNoPrivateChannelsMessage = useMemo(() => (
+    const customNoChannelsMessage = useMemo(() => (
         <div
-            key='no-private-channels'
+            key='no-channels-available'
             className='no-channel-message'
         >
             <p className='primary-message'>
                 <FormattedMessage
-                    id='admin.access_control.policy.edit_policy.no_private_channels'
-                    defaultMessage='There are no private channels available to add to this policy.'
+                    id='admin.access_control.policy.edit_policy.no_channels_available'
+                    defaultMessage='There are no channels available to add to this policy.'
                 />
             </p>
         </div>
@@ -140,8 +143,13 @@ function PolicyDetails({
                 setAutoSyncMembership(result.data?.active || false);
             });
 
-            const channelsPromise = actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+            // Fetch the full assigned-channel list (not just a page) to know
+            // the public/private split for the confirmation modal. The policy
+            // assignment permission limits this to 1000; match that ceiling.
+            const channelsPromise = actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
+                const channels: ChannelWithTeamData[] = result.data?.channels || [];
                 setChannelsCount(result.data?.total_count || 0);
+                setSavedChannelTypes(Object.fromEntries(channels.map((ch) => [ch.id, ch.type])));
             });
 
             // Wait for all fetches for an existing policy
@@ -364,7 +372,7 @@ function PolicyDetails({
                     />
                     <FormattedMessage
                         id='admin.access_control.policy.edit_policy.title'
-                        defaultMessage='Edit Access Control Policy'
+                        defaultMessage='Edit Membership Policy'
                     />
                 </div>
             </AdminHeader>
@@ -376,7 +384,7 @@ function PolicyDetails({
                             label={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.policyName'
-                                    defaultMessage='Access control policy name:'
+                                    defaultMessage='Membership policy name:'
                                 />
                             }
                             value={policyName}
@@ -427,13 +435,13 @@ function PolicyDetails({
                                 title={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.title'
-                                        defaultMessage='Attribute-based access rules'
+                                        defaultMessage='Attribute-based membership rules'
                                     />
                                 }
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.subtitle'
-                                        defaultMessage='Select user attributes and values as rules to restrict channel membership.'
+                                        defaultMessage='Select user attributes and values as rules to determine who should be in the channels this policy applies to.'
                                     />
                                 }
                                 buttonText={
@@ -530,7 +538,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                                        defaultMessage='Add channels that this membership policy will apply to.'
                                     />
                                 }
                                 buttonText={
@@ -606,20 +614,47 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeTypes={['O', 'D', 'G']}
-                    customNoOptionsMessage={customNoPrivateChannelsMessage}
+                    excludeTypes={['D', 'G']}
+                    customNoOptionsMessage={customNoChannelsMessage}
                     excludeGroupConstrained={true}
+                    excludeDefaultChannels={true}
                 />
             )}
 
-            {showConfirmationModal && (
-                <PolicyConfirmationModal
-                    active={autoSyncMembership}
-                    onExited={() => setShowConfirmationModal(false)}
-                    onConfirm={handleSubmit}
-                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                />
-            )}
+            {showConfirmationModal && (() => {
+                // Effective channel mix = (saved - removed) + added. The
+                // confirmation modal messages the user differently for mixed,
+                // private-only, and public-only selections.
+                let publicCount = 0;
+                let privateCount = 0;
+                for (const [id, type] of Object.entries(savedChannelTypes)) {
+                    if (channelChanges.removed[id]) {
+                        continue;
+                    }
+                    if (type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                for (const ch of Object.values(channelChanges.added)) {
+                    if (ch.type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                return (
+                    <PolicyConfirmationModal
+                        active={autoSyncMembership}
+                        onExited={() => setShowConfirmationModal(false)}
+                        onConfirm={handleSubmit}
+                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                        publicChannelsAffected={publicCount}
+                        privateChannelsAffected={privateCount}
+                    />
+                );
+            })()}
 
             {showDeleteConfirmationModal && (
                 <GenericModal

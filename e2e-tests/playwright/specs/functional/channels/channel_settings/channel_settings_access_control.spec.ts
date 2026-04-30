@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 /**
- * @objective E2E tests for the Access Control tab in Channel Settings Modal
- * @reference MM-67326
+ * @objective E2E tests for the Membership Policy tab (access_rules) in Channel Settings Modal
+ * @reference MM-67326 — public and private channels can carry ABAC membership policies
  */
 
 import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
@@ -19,7 +19,13 @@ import {
     setUserAttribute,
     addAttributeRule,
     createTeamAdmin,
+    waitForAttributeViewToInclude,
 } from '../team_settings/helpers';
+
+/** Unique CPA value so only users this test sets match the rule (avoids clashing with leftover Engineering users on the server). */
+function uniqueDepartmentValue(testId: string): string {
+    return `E2E-${testId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
 
 test.describe('Channel Settings Modal - Access Control Tab', () => {
     test('MM-67326_c1 Access Control tab visible for admin on private channel with ABAC enabled', async ({pw}) => {
@@ -62,7 +68,7 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await channelSettings.close();
     });
 
-    test('MM-67326_c3 Access Control tab hidden for public channel', async ({pw}) => {
+    test('MM-67326_c3 Membership Policy tab visible for admin on public channel with ABAC enabled', async ({pw}) => {
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableABACConfig(adminClient);
@@ -76,8 +82,8 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channelSettings = await channelsPage.openChannelSettings();
 
-        // * Access Control tab is NOT visible for public channel
-        await expect(channelSettings.container.getByTestId('access_rules-tab-button')).not.toBeVisible();
+        // * Membership Policy tab is visible on public channels when ABAC is enabled (not group-constrained / not default)
+        await expect(channelSettings.container.getByTestId('access_rules-tab-button')).toBeVisible();
 
         await channelSettings.close();
     });
@@ -239,15 +245,28 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
+        const departmentValue = uniqueDepartmentValue('c9');
+
         // # Admin's Department satisfies the rule (self-exclusion check passes)
-        await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
+        await setUserAttribute(adminClient, adminUser.id, 'Department', departmentValue);
 
         // # Private channel — admin is the creator and only member
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        // # Target user: in the team, Department=Engineering, NOT yet in the channel
+        // # Target user: in the team, same Department, NOT yet in the channel
         const targetUser = await createTeamAdmin(adminClient, team.id);
-        await setUserAttribute(adminClient, targetUser.id, 'Department', 'Engineering');
+        await setUserAttribute(adminClient, targetUser.id, 'Department', departmentValue);
+
+        // Save will run validateExpressionAgainstRequester and calculateMembershipChanges,
+        // both of which query the Postgres materialized AttributeView. The enterprise
+        // access-control service gates view refreshes to once per ~30s, so the brand-new
+        // unique CPA value above is not yet visible to CEL queries. Without this wait,
+        // Save hits the self-exclusion modal (admin appears unmatched against the rule
+        // they just satisfied via the API) and the confirmation modal never opens.
+        await waitForAttributeViewToInclude(adminClient, `user.attributes.Department == "${departmentValue}"`, [
+            adminUser.id,
+            targetUser.id,
+        ]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -262,8 +281,11 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         const tab = channelSettings.container.locator('.ChannelSettingsModal__accessRulesTab');
         await expect(tab).toBeVisible({timeout: 10000});
 
-        // # Add attribute rule: Department == Engineering
-        await addAttributeRule(tab, page, 'Engineering');
+        // # Add attribute rule (unique value → preview lists only targetUser to add)
+        await addAttributeRule(tab, page, departmentValue);
+
+        // * Unsaved changes must be committed before save; otherwise handleSave can skip the confirmation path
+        await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).toBeVisible({timeout: 15000});
 
         // # Enable auto-add members
         const autoAddCheckbox = tab.locator('#autoSyncMembersCheckbox');
@@ -449,15 +471,24 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await enableABACConfig(adminClient);
         await ensureDepartmentAttribute(adminClient);
 
+        const departmentValue = uniqueDepartmentValue('c13');
+
         // # Admin satisfies the rule
-        await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
+        await setUserAttribute(adminClient, adminUser.id, 'Department', departmentValue);
 
         // # Private channel — admin is the only member
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        // # Target user: in the team, Department=Engineering, NOT yet in the channel
+        // # Target user: in the team, same Department, NOT yet in the channel
         const memberToAdd = await createTeamAdmin(adminClient, team.id);
-        await setUserAttribute(adminClient, memberToAdd.id, 'Department', 'Engineering');
+        await setUserAttribute(adminClient, memberToAdd.id, 'Department', departmentValue);
+
+        // See c9: wait for the materialized AttributeView to surface admin and
+        // memberToAdd as matching the freshly-written CPA value before clicking Save.
+        await waitForAttributeViewToInclude(adminClient, `user.attributes.Department == "${departmentValue}"`, [
+            adminUser.id,
+            memberToAdd.id,
+        ]);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
@@ -472,8 +503,9 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         const tab = channelSettings.container.locator('.ChannelSettingsModal__accessRulesTab');
         await expect(tab).toBeVisible({timeout: 10000});
 
-        // # Add rule: Department == Engineering
-        await addAttributeRule(tab, page, 'Engineering');
+        // # Add rule (unique value → only memberToAdd appears in "to add" with this server data)
+        await addAttributeRule(tab, page, departmentValue);
+        await expect(tab.locator('[data-testid="SaveChangesPanel__save-btn"]')).toBeVisible({timeout: 15000});
 
         // # Enable auto-add so memberToAdd appears in the "to add" list
         const autoAddCheckbox = tab.locator('#autoSyncMembersCheckbox');
@@ -493,9 +525,6 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await expect(confirmModal).toContainText('remove 0 current channel members');
 
         // # Click "View users" to open the detailed user list
-        // Note: the "add N users" count in the summary is not asserted here because leftover
-        // users from previous test runs may also have Department=Engineering, making the
-        // count non-deterministic. We verify the specific user in the Allowed tab instead.
         await confirmModal.getByRole('button', {name: 'View users'}).click();
 
         // * Allowed tab is visible with at least one user (memberToAdd)
@@ -503,7 +532,7 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
             timeout: 5000,
         });
 
-        // # The Allowed tab is active by default — verify memberToAdd's username is shown
+        // # The Allowed tab is active by default — verify memberToAdd's username is shown (unique Dept avoids other matches)
         await expect(confirmModal).toContainText(memberToAdd.username, {timeout: 5000});
 
         // # Cancel — don't actually apply

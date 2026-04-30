@@ -805,6 +805,26 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
     };
 }
 
+export function getRecommendedChannelsForUser(teamId: string): ActionFuncAsync<Channel[]> {
+    return async (dispatch, getState) => {
+        let channels;
+        try {
+            channels = await Client4.getRecommendedChannelsForUser(teamId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            return {error};
+        }
+
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNELS,
+            teamId,
+            data: channels,
+        });
+
+        return {data: channels};
+    };
+}
+
 export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false, accessControlPolicyEnforced = false, excludeAccessControlPolicyEnforced = false): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
