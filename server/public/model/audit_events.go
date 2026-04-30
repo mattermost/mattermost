@@ -41,7 +41,7 @@ const (
 
 // CI Checker Test Fixtures
 const (
-	AuditEventCICheckerTestFixture = "ciCheckerTestFixture" // fixture event used to validate the audit_events checker
+	AuditEventCICheckerTestFixture = "ciCheckerTestFixture" // fixture event used to validate the audit_events checker (workflow re-trigger)
 )
 
 // Branding
