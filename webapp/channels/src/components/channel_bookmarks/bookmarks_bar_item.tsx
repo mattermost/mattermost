@@ -22,6 +22,7 @@ interface BookmarksBarItemProps {
     onMount?: (id: string, element: HTMLElement | null) => void;
 }
 
+const edges: Edge[] = ['left', 'right'];
 function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReorderProps, isKeyboardReordering, hidden, onMount}: BookmarksBarItemProps) {
     const ref = useRef<HTMLDivElement>(null);
 
@@ -33,7 +34,7 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
         id,
         container: 'bar',
-        allowedEdges: ['left', 'right'] as Edge[],
+        allowedEdges: edges,
         displayName: bookmark.display_name,
         canReorder: !disabled && !hidden,
         elementRef: ref,

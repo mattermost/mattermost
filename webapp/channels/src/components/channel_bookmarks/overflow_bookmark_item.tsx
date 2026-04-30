@@ -30,6 +30,8 @@ interface OverflowBookmarkItemProps {
     };
 }
 
+const edges: Edge[] = ['top', 'bottom'];
+
 function OverflowBookmarkItem({
     id,
     bookmark,
@@ -50,7 +52,7 @@ function OverflowBookmarkItem({
     const {isDragSelf, closestEdge} = useBookmarkDragDrop({
         id,
         container: 'overflow',
-        allowedEdges: ['top', 'bottom'] as Edge[],
+        allowedEdges: edges,
         displayName: bookmark.display_name,
         canReorder,
         elementRef: liRef,
