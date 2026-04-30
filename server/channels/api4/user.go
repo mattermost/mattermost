@@ -943,8 +943,33 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if ok, _ := c.App.ChannelAccessControlled(c.AppContext, notInChannelId); ok {
-			// Get cursor_id from query parameters for cursor-based pagination
+		// ABAC filtering is mandatory for private policy-enforced channels (hard gate).
+		// For public policy-enforced channels, ABAC is advisory — only apply the
+		// filter when the caller explicitly asks via abac_match_only=true so callers
+		// like the invite modal can fetch all team members and annotate the matching
+		// subset without the list being narrowed for them.
+		//
+		// Surface ChannelAccessControlled errors instead of silently swallowing
+		// them — a transient store / license read failure here would otherwise
+		// fall through to the unfiltered path and could expose users a hard-gated
+		// private channel was configured to hide.
+		abacMatchOnly, _ := strconv.ParseBool(r.URL.Query().Get("abac_match_only"))
+		useAbacFilter := false
+		enforced, enforcedErr := c.App.ChannelAccessControlled(c.AppContext, notInChannelId)
+		if enforcedErr != nil {
+			c.Err = enforcedErr
+			return
+		}
+		if enforced {
+			ch, chErr := c.App.GetChannel(c.AppContext, notInChannelId)
+			if chErr != nil {
+				c.Err = chErr
+				return
+			}
+			useAbacFilter = ch.Type == model.ChannelTypePrivate || abacMatchOnly
+		}
+
+		if useAbacFilter {
 			cursorId := r.URL.Query().Get("cursor_id")
 			profiles, appErr = c.App.GetUsersNotInAbacChannel(c.AppContext, inTeamId, notInChannelId, groupConstrainedBool, cursorId, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {

@@ -113,8 +113,8 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
         return (
             <AdminPanelWithButton
                 id='channel_access_control_policy'
-                title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access policy'})}
-                subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_description', defaultMessage: 'Select an access policy for this channel to restrict membership.'})}
+                title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
+                subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_description', defaultMessage: 'Select a membership policy for this channel.'})}
                 buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.link_policy', defaultMessage: 'Link to a policy'})}
                 onButtonClick={() => {
                     handleOpenPolicyModal();
@@ -135,8 +135,8 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
     return (
         <AdminPanelWithButton
             id='channel_access_control_with_policy'
-            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Access policy'})}
-            subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following access policy.'})}
+            title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
+            subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following membership policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}
             onButtonClick={() => {
                 actions.onPolicyRemoveAll();
@@ -145,14 +145,6 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
             <div className='group-teams-and-channels'>
                 <div className='group-teams-and-channels--body'>
                     <div className='access-policy-container'>
-                        {!accessControlPolicies && (
-                            <div className='access-policy-description'>
-                                <FormattedMessage
-                                    id='admin.channel_settings.channel_detail.select_policy'
-                                    defaultMessage='Apply an access policy for this channel to restrict membership'
-                                />
-                            </div>
-                        )}
                         {renderTable()}
                     </div>
                 </div>
