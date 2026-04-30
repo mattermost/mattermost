@@ -23,22 +23,18 @@ test('should open /dialog date and post submit confirmation after selecting date
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // 4. Send /dialog date command (with one retry if the dialog doesn't appear).
+    // 4. Send /dialog date command (retry if the dialog doesn't appear — plugin races are common under PW_WORKERS=8).
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog date');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
-            // Use 30 s on every attempt — after a plugin restart the dialog handler may
-            // need a few extra seconds to finish wiring up even after isPluginActive=true.
-            await expect(dialog).toBeVisible({timeout: 30000});
-            break; // dialog appeared — proceed
+            await expect(dialog).toBeVisible({timeout: 45000});
+            break;
         } catch (err) {
-            if (attempt === 1) {
-                throw err; // exhausted retries — let the error surface naturally
+            if (attempt === 2) {
+                throw err;
             }
-            // Plugin may have been disabled by a concurrent initSetup() — re-enable without
-            // patchConfig to avoid triggering a plugin restart that could introduce noise.
             try {
                 await adminClient.enablePlugin('com.mattermost.demo-plugin');
             } catch {
@@ -46,14 +42,11 @@ test('should open /dialog date and post submit confirmation after selecting date
             }
             await expect
                 .poll(() => pw.isPluginActive(adminClient, 'com.mattermost.demo-plugin'), {
-                    timeout: 30_000,
+                    timeout: 45_000,
                     intervals: [2000],
                 })
                 .toBe(true);
-            // Give the plugin a few seconds to finish initializing its command handlers
-            // after the restart — isPluginActive=true means the plugin process is up but
-            // the HTTP handler registration may lag by a couple of seconds.
-            await new Promise((resolve) => setTimeout(resolve, 4000));
+            await new Promise((resolve) => setTimeout(resolve, 6000));
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Date & DateTime Test Dialog');

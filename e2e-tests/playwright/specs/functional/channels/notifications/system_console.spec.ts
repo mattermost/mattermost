@@ -114,38 +114,42 @@ test.describe('System Console Notifications', () => {
         // # Select each value and save
         // * Verify that the config is correctly saved in the server
         for (const option of options) {
-            await dropdown.selectOption({label: option.label});
-            await expect(dropdown).toHaveValue(option.value);
-
-            // Another worker's initSetup() can clear required notification fields mid-loop,
-            // leaving Save disabled until we re-patch and reload the form.
-            if (await notifications.saveButton.isDisabled()) {
+            let saved = false;
+            for (let attempt = 0; attempt < 4 && !saved; attempt++) {
                 await resetNotificationsConfig(adminClient);
                 await systemConsolePage.page.reload();
                 await systemConsolePage.sidebar.notifications.click();
                 await notifications.toBeVisible();
                 await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
                 await notifications.pushNotificationContents.toBeVisible();
+
                 const loopDropdown = notifications.pushNotificationContents.dropdown;
                 await expect(loopDropdown).toBeVisible();
                 await loopDropdown.selectOption({label: option.label});
                 await expect(loopDropdown).toHaveValue(option.value);
+
+                await expect(notifications.saveButton).not.toBeDisabled({timeout: 25000});
+                await notifications.save();
+
+                const {adminClient: pollClient} = await pw.getAdminClient();
+                try {
+                    await expect
+                        .poll(
+                            async () => {
+                                const config = await pollClient.getConfig();
+                                return config.EmailSettings?.PushNotificationContents;
+                            },
+                            {timeout: 20000, intervals: [500, 1000, 2000]},
+                        )
+                        .toBe(option.value);
+                    saved = true;
+                } catch {
+                    // Concurrent full-config resets can drop the save — reload and retry.
+                }
             }
-
-            await expect(notifications.saveButton).not.toBeDisabled({timeout: 15000});
-            await notifications.save();
-
-            // * Verify config is saved
-            const {adminClient: pollClient} = await pw.getAdminClient();
-            await expect
-                .poll(
-                    async () => {
-                        const config = await pollClient.getConfig();
-                        return config.EmailSettings?.PushNotificationContents;
-                    },
-                    {timeout: 30000},
-                )
-                .toBe(option.value);
+            if (!saved) {
+                throw new Error(`Failed to save PushNotificationContents=${option.value} after retries`);
+            }
         }
     });
 
