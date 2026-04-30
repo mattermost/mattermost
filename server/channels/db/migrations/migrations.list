@@ -295,3 +295,9 @@ channels/db/migrations/postgres/000148_add_burn_on_read_messages.down.sql
 channels/db/migrations/postgres/000148_add_burn_on_read_messages.up.sql
 channels/db/migrations/postgres/000149_create_recaps.down.sql
 channels/db/migrations/postgres/000149_create_recaps.up.sql
+channels/db/migrations/postgres/000156_add_schemeid_to_roles.down.sql
+channels/db/migrations/postgres/000156_add_schemeid_to_roles.up.sql
+channels/db/migrations/postgres/000157_backfill_roles_schemeid.down.sql
+channels/db/migrations/postgres/000157_backfill_roles_schemeid.up.sql
+channels/db/migrations/postgres/000158_add_roles_schemeid_index.down.sql
+channels/db/migrations/postgres/000158_add_roles_schemeid_index.up.sql
