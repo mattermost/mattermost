@@ -24,6 +24,7 @@ import SaveChangesPanel from 'components/widgets/modals/components/save_changes_
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import Constants from 'utils/constants';
 
 import TeamPolicyConfirmationModal from './team_policy_confirmation_modal';
 
@@ -85,6 +86,12 @@ export default function TeamPolicyEditor({
     const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [channelsCount, setChannelsCount] = useState(0);
     const [savedChannelIds, setSavedChannelIds] = useState<string[]>([]);
+
+    // Map of saved channelId → channel type ('O' | 'P' | ...). Used to compute
+    // how many public vs. private channels a save will affect, so the
+    // confirmation modal can pick the right messaging. Only 'O'/'P' can ever
+    // be assigned to a policy, but we key by ID so removals map cleanly.
+    const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
     const [addChannelOpen, setAddChannelOpen] = useState(false);
 
     // Attribute state
@@ -135,8 +142,10 @@ export default function TeamPolicyEditor({
             }
         });
         actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
+            const channels: ChannelWithTeamData[] = result.data?.channels || [];
             setChannelsCount(result.data?.total_count || 0);
-            setSavedChannelIds((result.data?.channels || []).map((ch: ChannelWithTeamData) => ch.id));
+            setSavedChannelIds(channels.map((ch) => ch.id));
+            setSavedChannelTypes(Object.fromEntries(channels.map((ch) => [ch.id, ch.type])));
         });
     }, [policyId]);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -194,6 +203,51 @@ export default function TeamPolicyEditor({
         return ((channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length) > 0;
     }, [channelsCount, channelChanges]);
 
+    // True iff the policy will be applied to at least one private channel after
+    // pending changes are committed. Public-channel ABAC is advisory and cannot
+    // lock anyone out, so the self-inclusion guard only matters when a private
+    // channel is in scope.
+    const hasPrivateChannelInScope = useCallback(() => {
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.PRIVATE_CHANNEL) {
+                return true;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.PRIVATE_CHANNEL) {
+                return true;
+            }
+        }
+        return false;
+    }, [savedChannelTypes, channelChanges]);
+
+    const confirmationChannelCounts = useMemo(() => {
+        let publicCount = 0;
+        let privateCount = 0;
+        for (const [id, type] of Object.entries(savedChannelTypes)) {
+            if (channelChanges.removed[id]) {
+                continue;
+            }
+            if (type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        for (const ch of Object.values(channelChanges.added)) {
+            if (ch.type === Constants.OPEN_CHANNEL) {
+                publicCount++;
+            } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                privateCount++;
+            }
+        }
+        const channelsAffected = (channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length;
+        return {publicCount, privateCount, channelsAffected};
+    }, [savedChannelTypes, channelChanges, channelsCount]);
+
     const validateForm = useCallback(async () => {
         if (policyName.length === 0) {
             setFormError(formatMessage({id: 'admin.access_control.policy.edit_policy.error.name_required', defaultMessage: 'Please add a name to the policy'}));
@@ -216,8 +270,11 @@ export default function TeamPolicyEditor({
             return false;
         }
 
-        // Validate self-inclusion: delegated admin must satisfy the policy's rules
-        if (expression.trim()) {
+        // Validate self-inclusion: delegated admin must satisfy the policy's rules.
+        // Skipped when the policy applies only to public channels — those are
+        // advisory under ABAC and can't kick anyone out, so a non-matching admin
+        // is never at risk of locking themselves out.
+        if (expression.trim() && hasPrivateChannelInScope()) {
             try {
                 const result = await abacActions.validateExpressionAgainstRequester(expression);
                 if (!result.data?.requester_matches) {
@@ -226,14 +283,14 @@ export default function TeamPolicyEditor({
                     return false;
                 }
             } catch {
-                setFormError(formatMessage({id: 'team_settings.policy_editor.error.validation_failed', defaultMessage: 'Failed to validate access rules. Please try again.'}));
+                setFormError(formatMessage({id: 'team_settings.policy_editor.error.validation_failed', defaultMessage: 'Failed to validate membership rules. Please try again.'}));
                 setSaveChangesPanelState(SAVE_RESULT_ERROR);
                 return false;
             }
         }
 
         return true;
-    }, [policyName, expression, hasChannels, formatMessage, abacActions]);
+    }, [policyName, expression, hasChannels, hasPrivateChannelInScope, formatMessage, abacActions]);
 
     const handleSave = useCallback(async () => {
         if (!await validateForm()) {
@@ -439,13 +496,13 @@ export default function TeamPolicyEditor({
                         <h4 className='TeamPolicyEditor__section-title'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_title'
-                                defaultMessage='Access rules'
+                                defaultMessage='Membership rules'
                             />
                         </h4>
                         <p className='TeamPolicyEditor__section-subtitle'>
                             <FormattedMessage
                                 id='team_settings.policy_editor.rules_subtitle'
-                                defaultMessage='Select user attributes and values as rules to restrict access'
+                                defaultMessage='Select user attributes and values as rules for membership'
                             />
                         </p>
                     </div>
@@ -461,7 +518,12 @@ export default function TeamPolicyEditor({
                     actions={abacActions}
                     teamId={teamId}
                     isSystemAdmin={false}
-                    validateExpressionAgainstRequester={abacActions.validateExpressionAgainstRequester}
+
+                    // Suppress the live "you would be excluded" banner when
+                    // the policy applies only to public channels — there's
+                    // nothing to be excluded from in advisory mode, so the
+                    // warning is misleading.
+                    validateExpressionAgainstRequester={hasPrivateChannelInScope() ? abacActions.validateExpressionAgainstRequester : undefined}
                 />
             </div>
 
@@ -553,9 +615,11 @@ export default function TeamPolicyEditor({
                     onChannelsSelected={addToNewChannels}
                     groupID=''
                     alreadySelected={[...savedChannelIds, ...Object.keys(channelChanges.added)].filter((id) => !channelChanges.removed[id])}
-                    excludeTypes={['O', 'D', 'G']}
+                    excludeTypes={['D', 'G']}
                     excludeGroupConstrained={true}
+                    excludeDefaultChannels={true}
                     teamId={teamId}
+                    excludeRemote={Boolean(teamId)}
                     isStacked={true}
                 />
             )}
@@ -564,7 +628,9 @@ export default function TeamPolicyEditor({
                 <TeamPolicyConfirmationModal
                     onExited={() => setShowConfirmationModal(false)}
                     onConfirm={handleSave}
-                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                    channelsAffected={confirmationChannelCounts.channelsAffected}
+                    publicChannelsAffected={confirmationChannelCounts.publicCount}
+                    privateChannelsAffected={confirmationChannelCounts.privateCount}
                     saving={saving}
                 />
             )}

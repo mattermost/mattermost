@@ -979,6 +979,30 @@ export default class Client4 {
         );
     };
 
+    // getProfilesMatchingChannelPolicy returns only users who satisfy the ABAC
+    // policy on the channel and are not yet members. Useful for public
+    // policy-enforced channels to annotate recommended members without
+    // filtering the primary invite list.
+    getProfilesMatchingChannelPolicy = (teamId: string, channelId: string, groupConstrained: boolean, perPage = PER_PAGE_DEFAULT, cursorId = '') => {
+        const queryStringObj: any = {
+            in_team: teamId,
+            not_in_channel: channelId,
+            per_page: perPage,
+            abac_match_only: true,
+        };
+        if (cursorId) {
+            queryStringObj.cursor_id = cursorId;
+        }
+        if (groupConstrained) {
+            queryStringObj.group_constrained = true;
+        }
+
+        return this.doFetch<UserProfile[]>(
+            `${this.getUsersRoute()}${buildQueryString(queryStringObj)}`,
+            {method: 'get'},
+        );
+    };
+
     getProfilesInGroup = (groupId: string, page = 0, perPage = PER_PAGE_DEFAULT, sort = '') => {
         return this.doFetch<UserProfile[]>(
             `${this.getUsersRoute()}${buildQueryString({in_group: groupId, page, per_page: perPage, sort})}`,
@@ -1842,6 +1866,13 @@ export default class Client4 {
     getArchivedChannels = (teamId: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<ServerChannel[]>(
             `${this.getTeamRoute(teamId)}/channels/deleted${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getRecommendedChannelsForUser = (teamId: string) => {
+        return this.doFetch<ServerChannel[]>(
+            `${this.getTeamRoute(teamId)}/channels/recommended`,
             {method: 'get'},
         );
     };

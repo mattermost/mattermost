@@ -209,11 +209,12 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByText(/channel admins/)).toBeInTheDocument();
     });
 
-    test('should show alert banner for policy-enforced channels', () => {
+    test('should show alert banner for policy-enforced private channels with "restricted" wording', () => {
         const props = {
             ...baseProps,
             channel: {
                 ...baseProps.channel,
+                type: 'P' as ChannelType,
                 policy_enforced: true,
             },
         };
@@ -227,6 +228,30 @@ describe('channel_members_rhs/channel_members_rhs', () => {
         expect(screen.getByText('Channel access is restricted by user attributes')).toBeInTheDocument();
 
         // Each tag is rendered as "Attribute: value" for readability.
+        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
+        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+    });
+
+    test('should show advisory banner for policy-enforced public channels', () => {
+        const props = {
+            ...baseProps,
+            channel: {
+                ...baseProps.channel,
+                type: 'O' as ChannelType,
+                policy_enforced: true,
+            },
+        };
+
+        renderWithContext(
+            <ChannelMembersRHS
+                {...props as any}
+            />,
+        );
+
+        expect(screen.getByText('This channel has recommended members based on user attributes')).toBeInTheDocument();
+
+        // Each tag is rendered as "Attribute: value" — same shape as the
+        // private-channel test above; only the banner copy differs.
         expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
         expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
     });
