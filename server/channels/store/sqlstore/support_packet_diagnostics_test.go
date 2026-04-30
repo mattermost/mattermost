@@ -157,6 +157,60 @@ func TestCollectPostgresDatabaseDiagnosticsWithQueryer(t *testing.T) {
 		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_activity")
 		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_user_tables")
 	})
+
+	t.Run("returns error when one pg_stat query fails but preserves successful diagnostics", func(t *testing.T) {
+		queryer := mockQueryRowScanner{
+			rows: map[string]mockRow{
+				pgStatDatabaseQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*float64) = 0.995
+						*dest[1].(*int64) = 1
+						*dest[2].(*int64) = 2
+						*dest[3].(*int64) = 10 * 1024 * 1024
+						*dest[4].(*int64) = 3
+						return nil
+					},
+				},
+				pgStatActivityQuery: {
+					err: errors.New("boom-activity"),
+				},
+				pgStatUserTablesQuery: {
+					scan: func(dest ...any) error {
+						*dest[0].(*int64) = 44
+						*dest[1].(*sql.NullTime) = sql.NullTime{Time: time.Date(2026, 4, 30, 9, 0, 0, 0, time.UTC), Valid: true}
+						return nil
+					},
+				},
+			},
+		}
+
+		diagnostics, err := collectPostgresDatabaseDiagnosticsWithQueryer(context.Background(), queryer)
+		require.Error(t, err)
+		require.NotNil(t, diagnostics)
+		assert.ErrorContains(t, err, "postgres diagnostics query failed for pg_stat_activity")
+		assert.NotContains(t, err.Error(), "postgres diagnostics query failed for pg_stat_database")
+		assert.NotContains(t, err.Error(), "postgres diagnostics query failed for pg_stat_user_tables")
+
+		require.NotNil(t, diagnostics.CacheHitRatio)
+		assert.InDelta(t, 0.995, *diagnostics.CacheHitRatio, 0.0001)
+		require.NotNil(t, diagnostics.Deadlocks)
+		assert.Equal(t, int64(1), *diagnostics.Deadlocks)
+		require.NotNil(t, diagnostics.TempFiles)
+		assert.Equal(t, int64(2), *diagnostics.TempFiles)
+		require.NotNil(t, diagnostics.TempBytesMB)
+		assert.InDelta(t, 10.0, *diagnostics.TempBytesMB, 0.0001)
+		require.NotNil(t, diagnostics.Rollbacks)
+		assert.Equal(t, int64(3), *diagnostics.Rollbacks)
+
+		assert.Nil(t, diagnostics.IdleInTransactionCount)
+		assert.Nil(t, diagnostics.LongestQueryDurationSeconds)
+		assert.Nil(t, diagnostics.WaitingForLockCount)
+
+		require.NotNil(t, diagnostics.PostsDeadTuples)
+		assert.Equal(t, int64(44), *diagnostics.PostsDeadTuples)
+		require.NotNil(t, diagnostics.PostsLastAutovacuum)
+		assert.Equal(t, time.Date(2026, 4, 30, 9, 0, 0, 0, time.UTC), *diagnostics.PostsLastAutovacuum)
+	})
 }
 
 func TestApplyDBPoolStats(t *testing.T) {

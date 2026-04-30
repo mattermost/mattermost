@@ -43,7 +43,7 @@ SELECT
     n_dead_tup,
     last_autovacuum
 FROM pg_stat_user_tables
-WHERE relname = 'Posts'
+WHERE lower(relname) = 'posts'
 ORDER BY CASE WHEN schemaname = 'public' THEN 0 ELSE 1 END, relid
 LIMIT 1`
 )
@@ -73,16 +73,11 @@ func (ss *SqlStore) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*m
 	}
 
 	pgDiagnostics, err := collectPostgresDatabaseDiagnostics(ctx, ss.GetInternalMasterDB())
-	if err != nil {
-		return diagnostics, err
+	if pgDiagnostics != nil {
+		mergePostgresDiagnostics(diagnostics, pgDiagnostics)
 	}
-	mergePostgresDiagnostics(diagnostics, pgDiagnostics)
 
-	return diagnostics, nil
-}
-
-func applyDBPoolStatsToSupportPacketDatabase(diagnostics *model.SupportPacketDatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
-	applyDBPoolStats(diagnostics, masterDBStats, replicaDBStats)
+	return diagnostics, err
 }
 
 func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sql.DB) (*model.SupportPacketDatabaseDiagnostics, error) {

@@ -35,25 +35,6 @@ import (
 	fmocks "github.com/mattermost/mattermost/server/v8/platform/shared/filestore/mocks"
 )
 
-type mockRow struct {
-	err  error
-	scan func(dest ...any) error
-}
-
-func (m mockRow) Scan(dest ...any) error {
-	if m.err != nil {
-		return m.err
-	}
-	if m.scan != nil {
-		return m.scan(dest...)
-	}
-	return nil
-}
-
-type mockQueryRowScanner struct {
-	rows map[string]mockRow
-}
-
 type fixedDBStatsStore struct {
 	store.Store
 	masterStats  sql.DBStats

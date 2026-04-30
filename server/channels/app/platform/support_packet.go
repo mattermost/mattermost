@@ -164,7 +164,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	d.Database.ReplicaConnectios = ps.Store.TotalReadDbConnections()
 	d.Database.SearchConnections = ps.Store.TotalSearchDbConnections()
 
-	if err := ps.applyStoreDiagnostics(rctx.Context(), &d); err != nil {
+	err = ps.applyStoreDiagnostics(rctx.Context(), &d)
+	if err != nil {
 		rErr = multierror.Append(rErr, err)
 	}
 
@@ -325,6 +326,18 @@ func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostic
 		return nil
 	}
 
+	diagnostics.Database.MasterConnectionsInUse = storeDiagnostics.MasterConnectionsInUse
+	diagnostics.Database.MasterConnectionsIdle = storeDiagnostics.MasterConnectionsIdle
+	diagnostics.Database.MasterPoolWaitCount = storeDiagnostics.MasterPoolWaitCount
+	diagnostics.Database.MasterPoolWaitDurationMs = storeDiagnostics.MasterPoolWaitDurationMs
+	diagnostics.Database.MasterConnectionsClosedMaxIdle = storeDiagnostics.MasterConnectionsClosedMaxIdle
+	diagnostics.Database.MasterConnectionsClosedMaxLifetime = storeDiagnostics.MasterConnectionsClosedMaxLifetime
+	diagnostics.Database.ReplicaConnectionsInUse = storeDiagnostics.ReplicaConnectionsInUse
+	diagnostics.Database.ReplicaConnectionsIdle = storeDiagnostics.ReplicaConnectionsIdle
+	diagnostics.Database.ReplicaPoolWaitCount = storeDiagnostics.ReplicaPoolWaitCount
+	diagnostics.Database.ReplicaPoolWaitDurationMs = storeDiagnostics.ReplicaPoolWaitDurationMs
+	diagnostics.Database.ReplicaConnectionsClosedMaxIdle = storeDiagnostics.ReplicaConnectionsClosedMaxIdle
+	diagnostics.Database.ReplicaConnectionsClosedMaxLifetime = storeDiagnostics.ReplicaConnectionsClosedMaxLifetime
 	diagnostics.Database.CacheHitRatio = storeDiagnostics.CacheHitRatio
 	diagnostics.Database.Deadlocks = storeDiagnostics.Deadlocks
 	diagnostics.Database.TempFiles = storeDiagnostics.TempFiles
