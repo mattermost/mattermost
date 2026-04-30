@@ -9975,6 +9975,27 @@ func (s *RetryLayerPropertyFieldStore) CountForTarget(groupID string, targetType
 
 }
 
+func (s *RetryLayerPropertyFieldStore) CountLinkedFields(fieldID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyFieldStore.CountLinkedFields(fieldID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPropertyFieldStore) Create(field *model.PropertyField) (*model.PropertyField, error) {
 
 	tries := 0
@@ -10017,11 +10038,11 @@ func (s *RetryLayerPropertyFieldStore) Delete(groupID string, id string) error {
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Get(groupID string, id string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Get(ctx context.Context, groupID string, id string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Get(groupID, id)
+		result, err := s.PropertyFieldStore.Get(ctx, groupID, id)
 		if err == nil {
 			return result, nil
 		}
@@ -10038,11 +10059,11 @@ func (s *RetryLayerPropertyFieldStore) Get(groupID string, id string) (*model.Pr
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetFieldByName(groupID string, targetID string, name string) (*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetFieldByName(ctx context.Context, groupID string, targetID string, name string) (*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetFieldByName(groupID, targetID, name)
+		result, err := s.PropertyFieldStore.GetFieldByName(ctx, groupID, targetID, name)
 		if err == nil {
 			return result, nil
 		}
@@ -10059,11 +10080,11 @@ func (s *RetryLayerPropertyFieldStore) GetFieldByName(groupID string, targetID s
 
 }
 
-func (s *RetryLayerPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) GetMany(ctx context.Context, groupID string, ids []string) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.GetMany(groupID, ids)
+		result, err := s.PropertyFieldStore.GetMany(ctx, groupID, ids)
 		if err == nil {
 			return result, nil
 		}
@@ -10101,11 +10122,11 @@ func (s *RetryLayerPropertyFieldStore) SearchPropertyFields(opts model.PropertyF
 
 }
 
-func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+func (s *RetryLayerPropertyFieldStore) Update(groupID string, fields []*model.PropertyField, expectedUpdateAts map[string]int64) ([]*model.PropertyField, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyFieldStore.Update(groupID, fields)
+		result, err := s.PropertyFieldStore.Update(groupID, fields, expectedUpdateAts)
 		if err == nil {
 			return result, nil
 		}
@@ -10143,11 +10164,32 @@ func (s *RetryLayerPropertyGroupStore) Get(name string) (*model.PropertyGroup, e
 
 }
 
-func (s *RetryLayerPropertyGroupStore) Register(name string) (*model.PropertyGroup, error) {
+func (s *RetryLayerPropertyGroupStore) GetByID(id string) (*model.PropertyGroup, error) {
 
 	tries := 0
 	for {
-		result, err := s.PropertyGroupStore.Register(name)
+		result, err := s.PropertyGroupStore.GetByID(id)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyGroupStore) Register(group *model.PropertyGroup) (*model.PropertyGroup, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyGroupStore.Register(group)
 		if err == nil {
 			return result, nil
 		}
@@ -11073,11 +11115,53 @@ func (s *RetryLayerRemoteClusterStore) GetAll(offset int, limit int, filter mode
 
 }
 
+func (s *RetryLayerRemoteClusterStore) GetAllByPluginID(pluginID string) ([]*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetAllByPluginID(pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
 
 	tries := 0
 	for {
 		result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerRemoteClusterStore) GetBySiteURL(siteURL string) (*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetBySiteURL(siteURL)
 		if err == nil {
 			return result, nil
 		}

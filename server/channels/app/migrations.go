@@ -639,7 +639,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	}
 
 	// RegisterPropertyGroup is idempotent, so no need to check if group is already registered
-	group, err := s.propertyService.RegisterPropertyGroup(model.ContentFlaggingGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1})
 	if err != nil {
 		return fmt.Errorf("failed to register Content Flagging group: %w", err)
 	}
@@ -741,12 +741,17 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
-			return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+			// Another server may have won the race and created this field
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Tolerate that but propagate any other error.
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create content flagging property: %q, error: %w", property.Name, err)
+			}
 		}
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update content flagging property fields: %w", err)
 		}
 	}
@@ -773,7 +778,7 @@ func (s *Server) doSetupBoardsProperties() error {
 		return nil
 	}
 
-	group, err := s.propertyService.RegisterPropertyGroup(model.BoardsPropertyGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register boards property group: %w", err)
 	}
@@ -840,7 +845,7 @@ func (s *Server) doSetupBoardsProperties() error {
 	}
 
 	if len(propertiesToUpdate) > 0 {
-		if _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
+		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
 			return fmt.Errorf("failed to update boards property fields: %w", err)
 		}
 	}
@@ -863,7 +868,7 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 		return s.cacheManagedCategoryIDs()
 	}
 
-	group, err := s.propertyService.RegisterPropertyGroup(model.ManagedCategoryPropertyGroupName)
+	group, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2})
 	if err != nil {
 		return fmt.Errorf("failed to register managed category group: %w", err)
 	}
@@ -1065,7 +1070,11 @@ func (s *Server) doAccessControlPolicyV0_3Migration(rctx request.CTX) error {
 		Value: "true",
 	}
 
-	if err := s.Store().System().Save(&system); err != nil {
+	// SaveOrUpdate is idempotent — another server racing us to run the
+	// same migration (e.g. parallel tests sharing a database pool) would
+	// otherwise trigger a unique-constraint violation on systems_pkey and
+	// mlog.Fatal the process.
+	if err := s.Store().System().SaveOrUpdate(&system); err != nil {
 		return fmt.Errorf("failed to mark access control policy v0.3 migration as completed: %w", err)
 	}
 

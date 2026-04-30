@@ -4,8 +4,12 @@
 import React from 'react';
 import {FormattedMessage, createIntl, createIntlCache, type IntlShape, type MessageDescriptor} from 'react-intl';
 
+import {isMessageDescriptor} from '@mattermost/shared/utils/i18n';
+
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
+
+export {isMessageDescriptor};
 
 const cache = createIntlCache();
 
@@ -43,10 +47,6 @@ export function getIntl(): IntlShape {
         locale,
         messages: getTranslations(state, locale),
     }, cache);
-}
-
-export function isMessageDescriptor(descriptor: unknown): descriptor is MessageDescriptor {
-    return Boolean(descriptor && (descriptor as MessageDescriptor).id);
 }
 
 export function formatAsString(formatMessage: IntlShape['formatMessage'], messageOrDescriptor: string | MessageDescriptor | undefined): string | undefined {

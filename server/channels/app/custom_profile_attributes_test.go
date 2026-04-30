@@ -31,8 +31,14 @@ func TestGetCPAField(t *testing.T) {
 	})
 
 	t.Run("should fail when getting a field from a different group", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_get_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -176,8 +182,14 @@ func TestListCPAFields(t *testing.T) {
 		_, err := th.App.CreatePropertyField(rctx, &field1, false, "")
 		require.Nil(t, err)
 
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_list_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		field2 := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    "Field 2",
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -456,8 +468,14 @@ func TestPatchCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to patch a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_patch_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
@@ -719,8 +737,14 @@ func TestDeleteCPAField(t *testing.T) {
 	})
 
 	t.Run("should not allow to delete a field outside of CPA", func(t *testing.T) {
+		otherGroup, gErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+			Name:    "test_delete_cpa_other_group_" + model.NewId(),
+			Version: model.PropertyGroupVersionV1,
+		})
+		require.Nil(t, gErr)
+
 		newField := &model.PropertyField{
-			GroupID: model.NewId(),
+			GroupID: otherGroup.ID,
 			Name:    model.NewId(),
 			Type:    model.PropertyFieldTypeText,
 		}
