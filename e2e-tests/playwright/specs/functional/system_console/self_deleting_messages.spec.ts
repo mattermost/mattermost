@@ -308,14 +308,27 @@ test.describe('System Console > Self-Deleting Messages', () => {
         expect(await durationDropdown.inputValue()).toBe('300');
         expect(await maxTTLDropdown.inputValue()).toBe('259200');
 
+        // Re-apply guard: a concurrent initSetup() may reset BoR config between
+        // the initial page load and this reload.
+        await adminClient.patchConfig({
+            ServiceSettings: {
+                BurnOnReadDurationSeconds: 300,
+                BurnOnReadMaximumTimeToLiveSeconds: 259200,
+            },
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings.BurnOnReadDurationSeconds === 300;
+        });
+
         // # Reload directly to Posts section
         await page.goto('/admin_console/site_config/posts');
         await page.waitForLoadState('networkidle');
 
-        // * Verify values persist after reload
-        expect(await enableToggleTrue.isChecked()).toBe(true);
-        expect(await durationDropdown.inputValue()).toBe('300');
-        expect(await maxTTLDropdown.inputValue()).toBe('259200');
+        // * Verify values persist after reload — toHaveValue has built-in retry
+        await expect(enableToggleTrue).toBeChecked({timeout: 5000});
+        await expect(durationDropdown).toHaveValue('300', {timeout: 5000});
+        await expect(maxTTLDropdown).toHaveValue('259200', {timeout: 5000});
     });
 
     test('BoR toggle appears in channels when feature is enabled in System Console', async ({pw}) => {

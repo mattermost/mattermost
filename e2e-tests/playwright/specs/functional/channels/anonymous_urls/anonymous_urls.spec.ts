@@ -69,9 +69,20 @@ async function createAnonymousUrlChannel(
     teamId: string,
     displayName: string,
 ) {
-    // Re-apply config immediately before channel creation to guard against
-    // concurrent initSetup calls (from other workers) resetting UseAnonymousURLs.
     await setAnonymousUrls(adminClient, true);
+
+    // Wait until the server confirms UseAnonymousURLs=true before creating the
+    // channel. patchConfig resolves when the HTTP response is received, but the
+    // value may not yet be visible to the channel-creation handler, and a
+    // concurrent initSetup() could reset it between the patch and the browser request.
+    for (let i = 0; i < 20; i++) {
+        const cfg = await adminClient.getConfig();
+        if (cfg.PrivacySettings?.UseAnonymousURLs === true) {
+            break;
+        }
+        await new Promise((r) => setTimeout(r, 500));
+    }
+
     await createChannelFromUI(channelsPage, displayName);
     await channelsPage.centerView.header.toHaveTitle(displayName);
 
