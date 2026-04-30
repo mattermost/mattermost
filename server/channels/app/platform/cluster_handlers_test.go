@@ -85,7 +85,7 @@ func TestClearSessionCacheInvalidatesWebConnSession(t *testing.T) {
 			// (now-deleted) cached session.
 			name: "GlobalRevokeInvalidatesWebConnSession",
 			revoke: func(ps *PlatformService, _ string) {
-				ps.ClearSessionCacheForAllUsersSkipClusterSend()
+				_ = ps.ClearSessionCacheForAllUsersSkipClusterSend()
 			},
 		},
 	}

@@ -112,11 +112,12 @@ func (ps *PlatformService) ClearUserSessionCache(userID string) {
 func (ps *PlatformService) ClearAllUsersSessionCache() error {
 	// Delegate local-side work (session-cache purge + WebConn hub fan-out) to
 	// the same primitive that the cluster handler invokes on remote nodes.
-	// Without the hub fan-out here, live WebConns on the originating node
-	// keep trusting their cached session until it elapses, which is the
-	// MM-68543 bypass. This mirrors the per-user shape used by
-	// ClearUserSessionCache -> ClearSessionCacheForUserSkipClusterSend.
-	ps.ClearSessionCacheForAllUsersSkipClusterSend()
+	// This mirrors the per-user shape used by ClearUserSessionCache ->
+	// ClearSessionCacheForUserSkipClusterSend. We still broadcast even when
+	// the local purge fails so remote nodes can run their own purge + hub
+	// fan-out independently, but we propagate the local error so callers
+	// keep the historical error contract.
+	err := ps.ClearSessionCacheForAllUsersSkipClusterSend()
 
 	if ps.clusterIFace != nil {
 		msg := &model.ClusterMessage{
@@ -125,7 +126,7 @@ func (ps *PlatformService) ClearAllUsersSessionCache() error {
 		}
 		ps.clusterIFace.SendClusterMessage(msg)
 	}
-	return nil
+	return err
 }
 
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {
