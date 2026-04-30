@@ -999,6 +999,45 @@ func TestPatchChannel(t *testing.T) {
 		CheckBadRequestStatus(t, resp)
 	})
 
+	t.Run("Should block changes to default_category_name for group messages", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		groupChannel, _, err := client.CreateGroupChannel(context.Background(), []string{user1.Id, user2.Id, user3.Id})
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		_, resp, err := client.PatchChannel(context.Background(), groupChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Should block changes to default_category_name for direct messages", func(t *testing.T) {
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+
+		_, err := client.Logout(context.Background())
+		require.NoError(t, err)
+		_, _, err = client.Login(context.Background(), user1.Email, user1.Password)
+		require.NoError(t, err)
+
+		directChannel, _, err := client.CreateDirectChannel(context.Background(), user1.Id, user2.Id)
+		require.NoError(t, err)
+
+		categoryName := "Operations"
+		patch := &model.ChannelPatch{DefaultCategoryName: &categoryName}
+		_, resp, err := client.PatchChannel(context.Background(), directChannel.Id, patch)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
 	t.Run("Should not be able to configure channel banner without a license", func(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
