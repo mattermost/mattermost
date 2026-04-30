@@ -32,6 +32,7 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	managedCategoryMigrationVersion                = "v2"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -768,6 +769,18 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
+		if data.Value == managedCategoryMigrationVersion {
+			return s.cacheManagedCategoryIDs()
+		}
+
+		if err := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); err != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", err)
+		}
+
+		if err := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); err != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", err)
+		}
+
 		return s.cacheManagedCategoryIDs()
 	}
 
