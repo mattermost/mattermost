@@ -759,6 +759,10 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 }
 
 func (s *Server) doSetupBoardsProperties() error {
+	if !s.platform.Config().FeatureFlags.IntegratedBoards {
+		return nil
+	}
+
 	var nfErr *store.ErrNotFound
 	data, err := s.Store().System().GetByName(boardsPropertySetupDoneKey)
 	if err != nil && !errors.As(err, &nfErr) {
