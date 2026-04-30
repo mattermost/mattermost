@@ -43,14 +43,49 @@ export type AccessControlPolicyChannelsResult = {
 export type AccessControlPolicyRule = {
     actions?: string[];
     expression: string;
+
+    /**
+     * Admin-facing name. Required for v0.4 channel-scoped permission rules
+     * (file upload/download). Must be unique within the same policy.
+     */
+    name?: string;
+
+    /**
+     * Channel-scoped role this rule applies to (channel_guest / channel_user /
+     * channel_admin) for v0.4 permission rules. Membership rules leave this
+     * empty.
+     */
+    role?: string;
 }
+
+export const ACCESS_CONTROL_POLICY_VERSION_V0_3 = 'v0.3';
+export const ACCESS_CONTROL_POLICY_VERSION_V0_4 = 'v0.4';
+
+export const ACCESS_CONTROL_ACTION_MEMBERSHIP = 'membership';
+export const ACCESS_CONTROL_ACTION_UPLOAD_FILE = 'upload_file_attachment';
+export const ACCESS_CONTROL_ACTION_DOWNLOAD_FILE = 'download_file_attachment';
+
+export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+];
+
+export const ACCESS_CONTROL_CHANNEL_ROLE_GUEST = 'channel_guest';
+export const ACCESS_CONTROL_CHANNEL_ROLE_USER = 'channel_user';
+export const ACCESS_CONTROL_CHANNEL_ROLE_ADMIN = 'channel_admin';
+
+export const ACCESS_CONTROL_CHANNEL_ROLES: string[] = [
+    ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
+    ACCESS_CONTROL_CHANNEL_ROLE_USER,
+    ACCESS_CONTROL_CHANNEL_ROLE_ADMIN,
+];
 
 /**
  * Returns the first rule with a "membership" action, falling back to rules[0]
  * only when it carries a wildcard action (legacy v0.2 policies).
  */
 export function getMembershipRule(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule | undefined {
-    const membership = rules?.find((r) => r.actions?.includes('membership'));
+    const membership = rules?.find((r) => r.actions?.includes(ACCESS_CONTROL_ACTION_MEMBERSHIP));
     if (membership) {
         return membership;
     }
@@ -62,16 +97,58 @@ export function getMembershipRule(rules?: AccessControlPolicyRule[]): AccessCont
 }
 
 /**
+ * Returns the rules that govern non-membership actions (file upload/download
+ * permission rules in v0.4). Membership rules and wildcard-action rules are
+ * excluded.
+ */
+export function getPermissionRules(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule[] {
+    if (!rules) {
+        return [];
+    }
+    return rules.filter((r) => Boolean(r.actions?.some((a) => ACCESS_CONTROL_PERMISSION_ACTIONS.includes(a))));
+}
+
+/**
+ * Returns true if any pair of permission rules in the list shares the same
+ * (role, action) tuple. The UI uses this to surface an "OR" hint explaining
+ * that such rules are combined disjunctively at evaluation time.
+ */
+export function hasOverlappingPermissionRules(rules?: AccessControlPolicyRule[]): boolean {
+    const seen = new Set<string>();
+    for (const rule of getPermissionRules(rules)) {
+        const role = rule.role || '';
+        for (const action of rule.actions || []) {
+            const key = `${role}\x00${action}`;
+            if (seen.has(key)) {
+                return true;
+            }
+            seen.add(key);
+        }
+    }
+    return false;
+}
+
+/**
  * Replaces or inserts the membership rule in an existing rules array while
  * preserving all non-membership rules (e.g. file_upload, file_download).
  * If expression is empty the membership rule is removed.
  */
 export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[], expression: string): AccessControlPolicyRule[] {
-    const otherRules = existingRules.filter((r) => !r.actions?.includes('membership'));
+    const otherRules = existingRules.filter((r) => !r.actions?.includes(ACCESS_CONTROL_ACTION_MEMBERSHIP));
     if (!expression.trim()) {
         return otherRules;
     }
-    return [{actions: ['membership'], expression: expression.trim()}, ...otherRules];
+    return [{actions: [ACCESS_CONTROL_ACTION_MEMBERSHIP], expression: expression.trim()}, ...otherRules];
+}
+
+/**
+ * Replaces all v0.4 permission rules in an existing rules array with the
+ * provided permission rules, preserving the membership rule (and any other
+ * non-permission entries the backend may add later).
+ */
+export function buildRulesWithPermissionRules(existingRules: AccessControlPolicyRule[], permissionRules: AccessControlPolicyRule[]): AccessControlPolicyRule[] {
+    const nonPermission = existingRules.filter((r) => !r.actions?.some((a) => ACCESS_CONTROL_PERMISSION_ACTIONS.includes(a)));
+    return [...nonPermission, ...permissionRules];
 }
 
 export type CELExpressionError = {

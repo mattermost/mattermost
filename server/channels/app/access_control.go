@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -680,10 +681,15 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 	return false, nil
 }
 
-// BuildAccessControlSubject creates a fully populated Subject with user attributes and system role
-// for use in AccessEvaluation calls. It also ensures the materialized attribute view is
-// refreshed periodically (at most once per attributeViewRefreshInterval).
-func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string) (*model.Subject, *model.AppError) {
+// BuildAccessControlSubject creates a fully populated Subject with user attributes and
+// scoped roles for use in AccessEvaluation calls. It also ensures the materialized
+// attribute view is refreshed periodically (at most once per attributeViewRefreshInterval).
+//
+// channelID is optional: when non-empty, the channel-scoped role for the user is resolved
+// from ChannelMember and appended to Subject.ScopedRoles so v0.4 channel resource policy
+// permission rules can match (channel_guest / channel_user / channel_admin). When empty,
+// only the system-scoped role is populated.
+func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string, channelID string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
 	groupID, err := a.CpaGroupID()
@@ -695,24 +701,116 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(storeErr, &nfErr) {
-			return &model.Subject{
+			subject = &model.Subject{
 				ID:         userID,
 				Type:       "user",
-				Role:       roles,
 				Attributes: map[string]any{},
-			}, nil
+			}
+		} else {
+			rctx.Logger().Warn("Failed to get subject for access control subject",
+				mlog.String("user_id", userID),
+				mlog.String("roles", roles),
+				mlog.Err(storeErr),
+			)
+			return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
-
-		rctx.Logger().Warn("Failed to get subject for access control subject",
-			mlog.String("user_id", userID),
-			mlog.String("roles", roles),
-			mlog.Err(storeErr),
-		)
-		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	subject.Role = roles
+	subject.ScopedRoles = []model.ScopedRole{{
+		Scope: model.AccessControlSubjectScopeSystem,
+		Role:  ResolveSystemRole(roles),
+	}}
+	if channelID != "" {
+		channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID, roles)
+		if appErr != nil {
+			rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; proceeding without it",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channelID),
+				mlog.Err(appErr),
+			)
+		} else if channelRole != "" {
+			subject.ScopedRoles = append(subject.ScopedRoles, model.ScopedRole{
+				Scope: model.AccessControlSubjectScopeChannel,
+				Role:  channelRole,
+			})
+		}
+	}
+
 	return subject, nil
+}
+
+// GetSubjectChannelRole returns the channel-scoped role identifier
+// (channel_admin / channel_user / channel_guest) for the given user in the
+// given channel. systemRoles is the user's space-separated system roles
+// string, used as a fallback signal when the channel member lookup fails or
+// the membership has no scheme flags set.
+//
+// Resolution order:
+//  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
+//     SchemeGuest → channel_guest.
+//  2. Inspect the Roles tokens on the channel member for the channel role names.
+//  3. Fall back to system_guest → channel_guest, otherwise channel_user.
+//
+// Returns ("", nil) when the user is not a member of the channel and a
+// channel role cannot be inferred (caller decides what to do — typically
+// treats this as "no resource-lane decision contributed").
+func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID, systemRoles string) (string, *model.AppError) {
+	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			// Not a member: derive a best-effort channel role from system roles.
+			return guessChannelRoleFromSystemRoles(systemRoles), nil
+		}
+		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	switch {
+	case cm.SchemeAdmin:
+		return model.ChannelAdminRoleId, nil
+	case cm.SchemeGuest:
+		return model.ChannelGuestRoleId, nil
+	case cm.SchemeUser:
+		return model.ChannelUserRoleId, nil
+	}
+
+	for token := range strings.FieldsSeq(cm.Roles) {
+		switch token {
+		case model.ChannelAdminRoleId, model.ChannelUserRoleId, model.ChannelGuestRoleId:
+			return token, nil
+		}
+	}
+
+	return guessChannelRoleFromSystemRoles(systemRoles), nil
+}
+
+// ResolveSystemRole returns the highest-precedence base system role token
+// from a space-separated roles string. The check order is deterministic:
+// system_admin > system_guest > system_user. Custom/admin-managed roles
+// without a recognised base default to system_user so the permission-policy
+// lane is never silently skipped.
+func ResolveSystemRole(roles string) string {
+	tokens := strings.Fields(roles)
+	if slices.Contains(tokens, model.SystemAdminRoleId) {
+		return model.SystemAdminRoleId
+	}
+	if slices.Contains(tokens, model.SystemGuestRoleId) {
+		return model.SystemGuestRoleId
+	}
+	if slices.Contains(tokens, model.SystemUserRoleId) {
+		return model.SystemUserRoleId
+	}
+	return model.SystemUserRoleId
+}
+
+func guessChannelRoleFromSystemRoles(systemRoles string) string {
+	for t := range strings.FieldsSeq(systemRoles) {
+		if t == model.SystemGuestRoleId {
+			return model.ChannelGuestRoleId
+		}
+	}
+	return model.ChannelUserRoleId
 }
 
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last

@@ -1582,7 +1582,10 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 		return nil
 	}
 
-	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles)
+	// channelID is intentionally empty here: the subject is reused across many
+	// channels in the file-search loop. hasFileDownloadPermission attaches the
+	// channel-scoped role per-evaluation via attachChannelScopedRole.
+	subject, appErr := a.BuildAccessControlSubject(rctx, userID, user.Roles, "")
 	if appErr != nil {
 		rctx.Logger().Warn("Failed to build ABAC subject for file search filtering",
 			mlog.String("user_id", userID),
@@ -1590,6 +1593,28 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 		)
 		return nil
 	}
+	return subject
+}
+
+// attachChannelScopedRole returns a copy of the subject with the channel-scoped
+// ScopedRole entry replaced for the given channelID. It's used in hot paths
+// where the same per-user Subject is reused across many channels.
+func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) model.Subject {
+	channelRole, _ := a.GetSubjectChannelRole(rctx, userID, channelID, subject.Role)
+	scoped := make([]model.ScopedRole, 0, len(subject.ScopedRoles)+1)
+	for _, sr := range subject.ScopedRoles {
+		if sr.Scope == model.AccessControlSubjectScopeChannel {
+			continue
+		}
+		scoped = append(scoped, sr)
+	}
+	if channelRole != "" {
+		scoped = append(scoped, model.ScopedRole{
+			Scope: model.AccessControlSubjectScopeChannel,
+			Role:  channelRole,
+		})
+	}
+	subject.ScopedRoles = scoped
 	return subject
 }
 
@@ -1606,8 +1631,9 @@ func (a *App) hasFileDownloadPermission(rctx request.CTX, userID string, channel
 		return true
 	}
 
+	subjectForChannel := a.attachChannelScopedRole(rctx, *subject, userID, channelID)
 	decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
-		Subject:  *subject,
+		Subject:  subjectForChannel,
 		Resource: model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channelID},
 		Action:   model.AccessControlPolicyActionDownloadFileAttachment,
 	})

@@ -5199,6 +5199,10 @@
     "translation": "Failed to retrieve the access control attribute group."
   },
   {
+    "id": "app.access_control.get_channel_role.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "You do not have permission to manage this access control policy."
   },
@@ -7567,6 +7571,10 @@
   {
     "id": "app.pap.save_policy.name_exists.app_error",
     "translation": "A policy with this name already exists. Please choose a different name."
+  },
+  {
+    "id": "app.pap.save_policy.rule_name_unique.app_error",
+    "translation": ""
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -10487,6 +10495,14 @@
     "translation": "Action(s) is not valid."
   },
   {
+    "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.permission_type.app_error",
+    "translation": ""
+  },
+  {
     "id": "model.access_policy.is_valid.id.app_error",
     "translation": "Invalid policy id."
   },
@@ -10505,6 +10521,18 @@
   {
     "id": "model.access_policy.is_valid.roles.app_error",
     "translation": "Permission policies must be applied to exactly one role."
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_name_unique.app_error",
+    "translation": ""
+  },
+  {
+    "id": "model.access_policy.is_valid.rule_role.app_error",
+    "translation": ""
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",

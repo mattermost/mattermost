@@ -3,6 +3,24 @@
 
 package model
 
+// AccessControlSubjectScope* enumerates the supported scopes for ScopedRole.
+const (
+	AccessControlSubjectScopeSystem  = "system"
+	AccessControlSubjectScopeChannel = "channel"
+)
+
+// ScopedRole pairs a role identifier with the scope it applies to. A subject
+// may carry multiple ScopedRoles (e.g. one for the system, one for a channel)
+// so the PDP can select the appropriate role when matching against a v0.4
+// channel resource policy rule whose Role field is a channel-scoped role.
+type ScopedRole struct {
+	// Scope is one of AccessControlSubjectScope* constants.
+	Scope string `json:"scope"`
+	// Role is the role identifier within that scope (e.g. "system_user",
+	// "channel_admin").
+	Role string `json:"role"`
+}
+
 // Subject represents the user or a virtual entity for which the Authorization
 // API is called.
 type Subject struct {
@@ -13,11 +31,34 @@ type Subject struct {
 	Type string `json:"type"`
 	// Role is the system role of the subject (e.g. "system_user", "system_guest", "system_admin").
 	// This is separate from custom profile attributes since it's a first-class system concept.
+	//
+	// Deprecated: prefer ScopedRoles which can express both system and
+	// channel-scoped roles. Role is still populated for backward compatibility
+	// and is treated as a system-scoped role when ScopedRoles is empty.
 	Role string `json:"role"`
+	// ScopedRoles carries roles paired with the scope they apply to (system
+	// or channel). The PDP uses this slice to match a rule's scoped Role
+	// (e.g. v0.4 channel resource policy rules) against the subject.
+	ScopedRoles []ScopedRole `json:"scoped_roles,omitempty"`
 	// Attributes are the key-value pairs assicuated with the subject.
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
 	Attributes map[string]any `json:"attributes"`
+}
+
+// RoleForScope returns the role assigned to this subject within the given
+// scope. It first checks ScopedRoles; for the system scope it falls back to
+// the legacy Role field when ScopedRoles is empty.
+func (s *Subject) RoleForScope(scope string) string {
+	for _, sr := range s.ScopedRoles {
+		if sr.Scope == scope {
+			return sr.Role
+		}
+	}
+	if scope == AccessControlSubjectScopeSystem {
+		return s.Role
+	}
+	return ""
 }
 
 type SubjectSearchOptions struct {

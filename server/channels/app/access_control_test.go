@@ -1969,6 +1969,78 @@ func TestHasPermissionToFileAction(t *testing.T) {
 	})
 }
 
+func TestResolveSystemRole(t *testing.T) {
+	t.Run("system_admin highest precedence", func(t *testing.T) {
+		assert.Equal(t, model.SystemAdminRoleId, ResolveSystemRole("system_user system_admin"))
+	})
+	t.Run("system_guest before system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemGuestRoleId, ResolveSystemRole("system_user system_guest"))
+	})
+	t.Run("system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole("system_user"))
+	})
+	t.Run("falls back to system_user when no recognised base role", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole("custom_role"))
+	})
+	t.Run("empty string defaults to system_user", func(t *testing.T) {
+		assert.Equal(t, model.SystemUserRoleId, ResolveSystemRole(""))
+	})
+}
+
+func TestGetSubjectChannelRole(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("returns channel_admin for channel creator (SchemeAdmin)", func(t *testing.T) {
+		// BasicUser is the creator of BasicChannel and is auto-promoted to
+		// channel admin via SchemeAdmin.
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser.Id, th.BasicChannel.Id, th.BasicUser.Roles)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.ChannelAdminRoleId, role)
+	})
+
+	t.Run("returns guess for non-member with system_user role", func(t *testing.T) {
+		nonMemberID := model.NewId()
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemUserRoleId)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.ChannelUserRoleId, role)
+	})
+
+	t.Run("returns channel_guest when system_guest used as fallback for non-member", func(t *testing.T) {
+		nonMemberID := model.NewId()
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+		assert.Equal(t, model.ChannelGuestRoleId, role)
+	})
+}
+
+func TestBuildAccessControlSubjectScopedRoles(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	t.Run("populates system scope only when channelID empty", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+		require.Len(t, subject.ScopedRoles, 1)
+		assert.Equal(t, model.AccessControlSubjectScopeSystem, subject.ScopedRoles[0].Scope)
+		assert.Equal(t, model.SystemUserRoleId, subject.ScopedRoles[0].Role)
+		// Legacy field retained for backward compat
+		assert.Equal(t, th.BasicUser.Roles, subject.Role)
+	})
+
+	t.Run("populates both scopes when channelID provided", func(t *testing.T) {
+		subject, appErr := th.App.BuildAccessControlSubject(th.Context, th.BasicUser.Id, th.BasicUser.Roles, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, subject)
+
+		systemRole := subject.RoleForScope(model.AccessControlSubjectScopeSystem)
+		channelRole := subject.RoleForScope(model.AccessControlSubjectScopeChannel)
+
+		assert.Equal(t, model.SystemUserRoleId, systemRole)
+		// BasicUser is the channel creator → channel_admin via SchemeAdmin.
+		assert.Equal(t, model.ChannelAdminRoleId, channelRole)
+	})
+}
+
 func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
