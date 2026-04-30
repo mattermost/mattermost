@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import { ChromePicker } from "react-color";
-import type { ColorResult } from "react-color";
-import tinycolor from "tinycolor2";
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {ChromePicker} from 'react-color';
+import type {ColorResult} from 'react-color';
+import tinycolor from 'tinycolor2';
 
-import "./classification_color_input.scss";
+import './classification_color_input.scss';
 
 export type ClassificationColorInputProps = {
     id: string;
@@ -16,13 +16,7 @@ export type ClassificationColorInputProps = {
     isDisabled?: boolean;
 };
 
-function ClassificationColorInput({
-    id,
-    value,
-    onChange,
-    swatchAriaLabel,
-    isDisabled,
-}: ClassificationColorInputProps) {
+function ClassificationColorInput({id, value, onChange, swatchAriaLabel, isDisabled}: ClassificationColorInputProps) {
     const [focused, setFocused] = useState(false);
     const [isOpened, setIsOpened] = useState(false);
     const [localValue, setLocalValue] = useState(value);
@@ -48,7 +42,7 @@ function ClassificationColorInput({
             setLocalValue(hex);
             onChange(hex);
         },
-        [onChange]
+        [onChange],
     );
 
     const handleHexChange = useCallback(
@@ -56,11 +50,11 @@ function ClassificationColorInput({
             const next = event.target.value;
             const color = tinycolor(next);
             if (color.isValid()) {
-                onChange("#" + color.toHex());
+                onChange('#' + color.toHex());
             }
             setLocalValue(next);
         },
-        [onChange]
+        [onChange],
     );
 
     const handleHexFocus = useCallback(
@@ -74,23 +68,19 @@ function ClassificationColorInput({
                 el.setSelectionRange(1, el.value.length);
             }
         },
-        [isDisabled]
+        [isDisabled],
     );
 
     const handleHexBlur = useCallback(
         (event: React.FocusEvent<HTMLInputElement>) => {
             const related = event.relatedTarget as Node | null;
-            if (
-                popoverRef.current &&
-                related &&
-                popoverRef.current.contains(related)
-            ) {
+            if (popoverRef.current && related && popoverRef.current.contains(related)) {
                 return;
             }
             setIsOpened(false);
             const color = tinycolor(localValue);
             if (color.isValid()) {
-                const normalized = "#" + color.toHex();
+                const normalized = '#' + color.toHex();
                 onChange(normalized);
                 setLocalValue(normalized);
             } else {
@@ -98,7 +88,7 @@ function ClassificationColorInput({
             }
             setFocused(false);
         },
-        [localValue, onChange, value]
+        [localValue, onChange, value],
     );
 
     const handleSwatchClick = useCallback(() => {
@@ -113,41 +103,36 @@ function ClassificationColorInput({
         hexEl?.focus();
     }, [isDisabled, isOpened]);
 
-    const handleHexKeyDown = useCallback(
-        (event: React.KeyboardEvent<HTMLInputElement>) => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                event.currentTarget.blur();
-            }
-        },
-        []
-    );
+    const handleHexKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.currentTarget.blur();
+        }
+    }, []);
 
     return (
-        <div className="ClassificationColorInput">
-            <div className="ClassificationColorInput__control">
+        <div className='ClassificationColorInput'>
+            <div className='ClassificationColorInput__control'>
                 {!isDisabled && (
                     <button
-                        type="button"
+                        type='button'
                         id={`${id}-squareColorIcon`}
-                        className="ClassificationColorInput__swatch"
+                        className='ClassificationColorInput__swatch'
                         style={{
                             backgroundColor: localValue,
-                            borderColor: tinycolor(localValue)
-                                .darken(5)
-                                .toHexString(),
+                            borderColor: tinycolor(localValue).darken(5).toHexString(),
                         }}
                         aria-label={swatchAriaLabel}
                         aria-expanded={isOpened}
-                        aria-haspopup="dialog"
+                        aria-haspopup='dialog'
                         onClick={handleSwatchClick}
                     />
                 )}
                 <input
                     id={`${id}-inputColorValue`}
                     ref={hexInputRef}
-                    className="ClassificationColorInput__hex"
-                    type="text"
+                    className='ClassificationColorInput__hex'
+                    type='text'
                     value={localValue}
                     onChange={handleHexChange}
                     onBlur={handleHexBlur}
@@ -155,7 +140,7 @@ function ClassificationColorInput({
                     onKeyDown={handleHexKeyDown}
                     maxLength={7}
                     disabled={isDisabled}
-                    data-testid="color-inputColorValue"
+                    data-testid='color-inputColorValue'
                 />
             </div>
             {isOpened && !isDisabled && (
@@ -163,7 +148,7 @@ function ClassificationColorInput({
                     {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- mousedown preventDefault matches ColorInput (picker before blur) */}
                     <div
                         ref={popoverRef}
-                        className="ClassificationColorInput__popover"
+                        className='ClassificationColorInput__popover'
                         id={`${id}-ChromePickerModal`}
                         onMouseDown={(e) => e.preventDefault()}
                     >

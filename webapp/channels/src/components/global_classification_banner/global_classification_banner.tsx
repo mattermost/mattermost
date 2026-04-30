@@ -1,23 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { useEffect, useMemo, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, {useEffect, useMemo, useRef} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {
-    PropertyField,
-    PropertyFieldOption,
-    PropertyValue,
-} from "@mattermost/types/properties";
-import type { GlobalState } from "@mattermost/types/store";
+import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {
-    fetchPropertyFields,
-    fetchSystemPropertyValues,
-} from "mattermost-redux/actions/properties";
-import { getFeatureFlagValue } from "mattermost-redux/selectors/entities/general";
-import { getPropertyValueForTargetField } from "mattermost-redux/selectors/entities/properties";
-import { getContrastingSimpleColor } from "mattermost-redux/utils/theme_utils";
+import {fetchPropertyFields, fetchSystemPropertyValues} from 'mattermost-redux/actions/properties';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getPropertyValueForTargetField} from 'mattermost-redux/selectors/entities/properties';
+import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import {
     DISPLAY_BANNER_BOTTOM,
@@ -32,34 +25,27 @@ import {
     TARGET_ID,
     TARGET_TYPE,
     findOptionById,
-} from "components/admin_console/classification_markings/utils";
+} from 'components/admin_console/classification_markings/utils';
 
-import "./global_classification_banner.scss";
+import './global_classification_banner.scss';
 
-const BOTTOM_BANNER_CLASS = "global-classification-banner-bottom-visible";
+const BOTTOM_BANNER_CLASS = 'global-classification-banner-bottom-visible';
 
 type Props = {
-    position: "top" | "bottom";
+    position: 'top' | 'bottom';
 };
 
-function selectClassificationTemplateField(
-    state: GlobalState
-): PropertyField | undefined {
+function selectClassificationTemplateField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
     if (!byId) {
         return undefined;
     }
     return Object.values(byId).find(
-        (f) =>
-            f.object_type === OBJECT_TYPE &&
-            f.name === FIELD_NAME &&
-            f.delete_at === 0
+        (f) => f.object_type === OBJECT_TYPE && f.name === FIELD_NAME && f.delete_at === 0,
     );
 }
 
-function selectLinkedSystemField(
-    state: GlobalState
-): PropertyField | undefined {
+function selectLinkedSystemField(state: GlobalState): PropertyField | undefined {
     const byId = state.entities.properties?.fields?.byId;
     if (!byId) {
         return undefined;
@@ -67,31 +53,20 @@ function selectLinkedSystemField(
 
     // The linked system field has object_type 'system' and a linked_field_id set.
     return Object.values(byId).find(
-        (f) =>
-            f.object_type === LINKED_OBJECT_TYPE &&
-            f.name === LINKED_FIELD_NAME &&
-            f.linked_field_id &&
-            f.delete_at === 0
+        (f) => f.object_type === LINKED_OBJECT_TYPE && f.name === LINKED_FIELD_NAME && f.linked_field_id && f.delete_at === 0,
     );
 }
 
-export default function GlobalClassificationBanner({ position }: Props) {
+export default function GlobalClassificationBanner({position}: Props) {
     const dispatch = useDispatch();
-    const featureEnabled = useSelector(
-        (state: GlobalState) =>
-            getFeatureFlagValue(state, "ClassificationMarkings") === "true"
-    );
+    const featureEnabled = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'ClassificationMarkings') === 'true');
     const templateField = useSelector(selectClassificationTemplateField);
     const linkedField = useSelector(selectLinkedSystemField);
     const systemValue = useSelector((state: GlobalState) => {
         if (!linkedField) {
             return undefined;
         }
-        return getPropertyValueForTargetField(
-            state,
-            SYSTEM_VALUE_TARGET_ID,
-            linkedField.id
-        ) as PropertyValue<string> | undefined;
+        return getPropertyValueForTargetField(state, SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
     });
     const bannerRef = useRef<HTMLDivElement>(null);
 
@@ -106,24 +81,10 @@ export default function GlobalClassificationBanner({ position }: Props) {
             return;
         }
         if (!templateField) {
-            dispatch(
-                fetchPropertyFields(
-                    GROUP_NAME,
-                    OBJECT_TYPE,
-                    TARGET_TYPE,
-                    TARGET_ID
-                )
-            );
+            dispatch(fetchPropertyFields(GROUP_NAME, OBJECT_TYPE, TARGET_TYPE, TARGET_ID));
         }
         if (!linkedField) {
-            dispatch(
-                fetchPropertyFields(
-                    GROUP_NAME,
-                    LINKED_OBJECT_TYPE,
-                    TARGET_TYPE,
-                    SYSTEM_FIELD_TARGET_ID
-                )
-            );
+            dispatch(fetchPropertyFields(GROUP_NAME, LINKED_OBJECT_TYPE, TARGET_TYPE, SYSTEM_FIELD_TARGET_ID));
         }
         if (linkedField && !systemValue) {
             dispatch(fetchSystemPropertyValues(GROUP_NAME));
@@ -136,46 +97,40 @@ export default function GlobalClassificationBanner({ position }: Props) {
     const shouldRenderBottom = actions.includes(DISPLAY_BANNER_BOTTOM);
 
     // The level is identified by the option ID stored in the property value.
-    const optionId = systemValue?.value ?? "";
+    const optionId = systemValue?.value ?? '';
     const levelOption = useMemo((): PropertyFieldOption | undefined => {
         if (!optionId || !templateField) {
             return undefined;
         }
-        const options = templateField.attrs?.options as
-            | PropertyFieldOption[]
-            | undefined;
+        const options = templateField.attrs?.options as PropertyFieldOption[] | undefined;
         return findOptionById(options ?? [], optionId);
     }, [templateField, optionId]);
 
-    const levelName = levelOption?.name ?? "";
-    const color = levelOption?.color ?? "";
-    const textColor = useMemo(
-        () => (color ? getContrastingSimpleColor(color) : ""),
-        [color]
+    const levelName = levelOption?.name ?? '';
+    const color = levelOption?.color ?? '';
+    const textColor = useMemo(() => (color ? getContrastingSimpleColor(color) : ''), [color]);
+
+    const shouldRender = featureEnabled && Boolean(levelName) && (
+        position === 'top' ? shouldRenderTop : shouldRenderBottom
     );
 
-    const shouldRender =
-        featureEnabled &&
-        Boolean(levelName) &&
-        (position === "top" ? shouldRenderTop : shouldRenderBottom);
-
     useEffect(() => {
-        if (position !== "bottom" || !shouldRender) {
+        if (position !== 'bottom' || !shouldRender) {
             return undefined;
         }
 
-        const root = document.getElementById("root");
+        const root = document.getElementById('root');
         if (!root) {
             return undefined;
         }
 
-        const refKey = "bannerBottomRefCount";
-        const count = parseInt(root.dataset[refKey] || "0", 10) + 1;
+        const refKey = 'bannerBottomRefCount';
+        const count = parseInt(root.dataset[refKey] || '0', 10) + 1;
         root.dataset[refKey] = String(count);
         root.classList.add(BOTTOM_BANNER_CLASS);
 
         return () => {
-            const next = parseInt(root.dataset[refKey] || "1", 10) - 1;
+            const next = parseInt(root.dataset[refKey] || '1', 10) - 1;
             root.dataset[refKey] = String(next);
             if (next <= 0) {
                 delete root.dataset[refKey];
@@ -192,13 +147,10 @@ export default function GlobalClassificationBanner({ position }: Props) {
         <div
             ref={bannerRef}
             className={`global-classification-banner global-classification-banner--${position}`}
-            style={{
-                backgroundColor: color || undefined,
-                color: textColor || undefined,
-            }}
+            style={{backgroundColor: color || undefined, color: textColor || undefined}}
             data-testid={`global-classification-banner-${position}`}
         >
-            <span className="global-classification-banner__text">
+            <span className='global-classification-banner__text'>
                 {levelName}
             </span>
         </div>
