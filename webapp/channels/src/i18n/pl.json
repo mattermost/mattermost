@@ -346,7 +346,7 @@
   "admin.access_control.table_editor.attribute_synced": "Ten atrybut jest synchronizowany z zewnętrznego źródła",
   "admin.access_control.table_editor.blank_state": "Wybierz atrybut użytkownika i wartości, aby utworzyć regułę",
   "admin.access_control.table_editor.create_value": "Utwórz \"{value}\"",
-  "admin.access_control.table_editor.help_text": "Każdy wiersz to pojedynczy warunek, który musi być spełniony, aby użytkownik przestrzegał zasad. Wszystkie reguły są połączone operatorem logicznym AND (`&&`).",
+  "admin.access_control.table_editor.help_text": "Każdy wiersz to pojedynczy warunek, który musi być spełniony, aby użytkownik przestrzegał zasad polityki. Wszystkie reguły są połączone operatorem logicznym AND (`&&`).",
   "admin.access_control.table_editor.learnMore": "Dowiedz się więcej o tworzeniu wyrażeń dostępu na przykładach.",
   "admin.access_control.table_editor.not_safe_to_use": "Wartości tego atrybutu są zarządzane przez użytkowników i nie powinny być używane do kontroli dostępu. Połącz atrybut z AD/LDAP w celu użycia w polityce dostępu.",
   "admin.access_control.table_editor.operator": "Operator",
