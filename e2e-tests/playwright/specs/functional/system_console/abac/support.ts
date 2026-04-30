@@ -375,12 +375,12 @@ export async function createBasicPolicy(
     await nameInput.waitFor({state: 'visible', timeout: 10000});
     await nameInput.fill(options.name);
 
-    // Check if "Add attribute" button is disabled (means no attributes loaded)
-    // If so, reload the page to fetch the newly created attributes
+    // Check if "Add attribute" button is disabled (means no attributes loaded).
+    // If so, reload the page to fetch the newly created attributes, then wait
+    // up to ~10 s for the button to become enabled before proceeding.
     const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
     if (await addAttributeButton.isVisible({timeout: 2000})) {
-        const isDisabled = await addAttributeButton.isDisabled();
-        if (isDisabled) {
+        if (await addAttributeButton.isDisabled()) {
             await page.reload();
             await page.waitForLoadState('networkidle');
 
@@ -388,6 +388,12 @@ export async function createBasicPolicy(
             const nameInputAfterReload = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInputAfterReload.waitFor({state: 'visible', timeout: 10000});
             await nameInputAfterReload.fill(options.name);
+
+            // Wait for attributes to become available (up to 10 s in 2 s increments)
+            for (let i = 0; i < 5; i++) {
+                if (!(await addAttributeButton.isDisabled())) break;
+                await page.waitForTimeout(2000);
+            }
         }
     }
 

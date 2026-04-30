@@ -382,6 +382,11 @@ test.describe('ABAC Policies - Create Policies', () => {
         await navigateToABACPage(page);
         await enableABAC(page);
 
+        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         // Create the first policy
         const policyName = `Duplicate Test ${pw.random.id()}`;
         await createBasicPolicy(page, {
