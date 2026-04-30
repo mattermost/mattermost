@@ -248,9 +248,9 @@ describe('channel_members_rhs/channel_members_rhs', () => {
 
         expect(screen.getByText('This channel has recommended members based on user attributes')).toBeInTheDocument();
 
-        // Each tag is rendered as "Attribute: value" — same shape as the
-        // private-channel test above; only the banner copy differs.
-        expect(screen.getByText('Attribute1: tag1')).toBeInTheDocument();
-        expect(screen.getByText('Attribute1: tag2')).toBeInTheDocument();
+        // Tags share shape with the private-channel test above — AlertTag renders
+        // only the value as text; the attribute name is exposed via the tooltip.
+        expect(screen.getByText('tag1')).toBeInTheDocument();
+        expect(screen.getByText('tag2')).toBeInTheDocument();
     });
 });
