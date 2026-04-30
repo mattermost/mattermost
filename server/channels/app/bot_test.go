@@ -153,7 +153,8 @@ func TestEnsureBot(t *testing.T) {
 	})
 
 	t.Run("ensure bot should fail if username belongs to a non-bot user", func(t *testing.T) {
-		th := Setup(t).InitBasic(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
 
 		pluginId := "pluginId"
 
