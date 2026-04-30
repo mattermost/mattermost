@@ -8,14 +8,8 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
-import {
-    AlertCircleOutlineIcon,
-    InformationOutlineIcon,
-} from '@mattermost/compass-icons/components';
-import type {
-    ChannelBookmarkWithFileInfo,
-    UpdateChannelBookmarkResponse,
-} from '@mattermost/types/channel_bookmarks';
+import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {ChannelBookmarkWithFileInfo, UpdateChannelBookmarkResponse} from '@mattermost/types/channel_bookmarks';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {Draft} from '@mattermost/types/drafts';
 import type {Emoji} from '@mattermost/types/emojis';
@@ -52,16 +46,8 @@ import {
     ContentFlaggingTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-import {
-    fetchAppBindings,
-    fetchRHSAppsBindings,
-} from 'mattermost-redux/actions/apps';
-import {
-    addChannelToInitialCategory,
-    fetchMyCategories,
-    handleManagedCategoryPropertyValuesUpdated,
-    receivedCategoryOrder,
-} from 'mattermost-redux/actions/channel_categories';
+import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
+import {addChannelToInitialCategory, fetchMyCategories, handleManagedCategoryPropertyValuesUpdated, receivedCategoryOrder} from 'mattermost-redux/actions/channel_categories';
 import {
     getChannelAndMyMember,
     getMyChannelMember,
@@ -73,11 +59,7 @@ import {
     fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {
-    setServerVersion,
-    getClientConfig,
-    getCustomProfileAttributeFields,
-} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
@@ -130,23 +112,11 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {
-    getConfig,
-    getFeatureFlagValue,
-    getLicense,
-    isCustomProfileAttributesEnabled,
-} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense, isCustomProfileAttributesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
-import {
-    getPost,
-    getMostRecentPostIdInChannel,
-    getTeamIdFromPost,
-} from 'mattermost-redux/selectors/entities/posts';
+import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {
-    haveISystemPermission,
-    haveITeamPermission,
-} from 'mattermost-redux/selectors/entities/roles';
+import {haveISystemPermission, haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {
     getTeamIdByChannelId,
@@ -156,38 +126,23 @@ import {
     getTeam,
     getRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
-import {
-    getNewestThreadInTeam,
-    getThread,
-    getThreads,
-} from 'mattermost-redux/selectors/entities/threads';
-import {
-    getCurrentUser,
-    getCurrentUserId,
-    getUser,
-    getIsManualStatusForUserId,
-    isCurrentUserSystemAdmin,
-} from 'mattermost-redux/selectors/entities/users';
+import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
-import {
-    handleBurnOnReadPostRevealed,
-    handleBurnOnReadAllRevealed,
-} from 'actions/burn_on_read_websocket';
+import {handleBurnOnReadPostRevealed, handleBurnOnReadAllRevealed} from 'actions/burn_on_read_websocket';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions';
-import {getTeamsUsage} from 'actions/cloud';
+import {
+    getTeamsUsage,
+} from 'actions/cloud';
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
-import {
-    loadProfilesForDM,
-    loadProfilesForGM,
-    loadProfilesForSidebar,
-} from 'actions/user_actions';
+import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -207,10 +162,7 @@ import {
     LINKED_OBJECT_TYPE,
     SYSTEM_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
-import {
-    EntityType,
-    invalidateAccessControlAttributesCache,
-} from 'components/common/hooks/useAccessControlAttributes';
+import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
@@ -218,15 +170,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {
-    ActionTypes,
-    Constants,
-    AnnouncementBarMessages,
-    SocketEvents,
-    UserStatuses,
-    ModalIdentifiers,
-    PageLoadContext,
-} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getIntl} from 'utils/i18n';
 import {isEnterpriseLicense} from 'utils/license_utils';
 import {isChannelPopoutWindow} from 'utils/popouts/popout_windows';
@@ -241,10 +185,7 @@ const getState = store.getState;
 
 const MAX_WEBSOCKET_FAILS = 7;
 
-const pluginEventHandlers: Record<
-string,
-Record<string, (msg: WebSocketMessages.Unknown) => void>
-> = {};
+const pluginEventHandlers: Record<string, Record<string, (msg: WebSocketMessages.Unknown) => void>> = {};
 
 export function initialize() {
     if (!window.WebSocket) {
@@ -310,10 +251,7 @@ export function close() {
 
 const pluginReconnectHandlers: Record<string, () => void> = {};
 
-export function registerPluginReconnectHandler(
-    pluginId: string,
-    handler: () => void,
-) {
+export function registerPluginReconnectHandler(pluginId: string, handler: () => void) {
     pluginReconnectHandlers[pluginId] = handler;
 }
 
@@ -330,7 +268,7 @@ function restart() {
 
 export function reconnect() {
     // eslint-disable-next-line
-    console.log("Reconnecting WebSocket");
+    console.log('Reconnecting WebSocket');
 
     temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
 
@@ -344,10 +282,7 @@ export function reconnect() {
     if (currentTeamId) {
         const currentUserId = getCurrentUserId(state);
         const currentChannelId = getCurrentChannelId(state);
-        const mostRecentId = getMostRecentPostIdInChannel(
-            state,
-            currentChannelId,
-        );
+        const mostRecentId = getMostRecentPostIdInChannel(state, currentChannelId);
         const mostRecentPost = mostRecentId && getPost(state, mostRecentId);
 
         if (appsEnabled(state)) {
@@ -363,9 +298,7 @@ export function reconnect() {
         loadProfilesForSidebar();
 
         if (mostRecentPost) {
-            dispatch(
-                syncPostsInChannel(currentChannelId, mostRecentPost.create_at),
-            );
+            dispatch(syncPostsInChannel(currentChannelId, mostRecentPost.create_at));
         } else if (currentChannelId) {
             // if network timed-out the first time when loading a channel
             // we can request for getPosts again when socket is connected
@@ -374,9 +307,7 @@ export function reconnect() {
 
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         if (enabledUserStatuses) {
-            dispatch(
-                StatusActions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll(),
-            );
+            dispatch(StatusActions.addVisibleUsersInCurrentChannelAndSelfToStatusPoll());
         }
 
         const crtEnabled = isCollapsedThreadsEnabled(state);
@@ -407,10 +338,7 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    if (
-        isEnterpriseLicense(getLicense(state)) &&
-        isCustomProfileAttributesEnabled(state)
-    ) {
+    if (isEnterpriseLicense(getLicense(state)) && isCustomProfileAttributesEnabled(state)) {
         dispatch(getCustomProfileAttributeFields());
     }
 
@@ -446,26 +374,17 @@ function syncThreads(teamId: string, userId: string) {
     if (!newestThread) {
         return;
     }
-    dispatch(
-        getCountsAndThreadsSince(userId, teamId, newestThread.last_reply_at),
-    );
+    dispatch(getCountsAndThreadsSince(userId, teamId, newestThread.last_reply_at));
 }
 
-export function registerPluginWebSocketEvent(
-    pluginId: string,
-    event: string,
-    action: (msg: WebSocketMessages.Unknown) => void,
-) {
+export function registerPluginWebSocketEvent(pluginId: string, event: string, action: (msg: WebSocketMessages.Unknown) => void) {
     if (!pluginEventHandlers[pluginId]) {
         pluginEventHandlers[pluginId] = {};
     }
     pluginEventHandlers[pluginId][event] = action;
 }
 
-export function unregisterPluginWebSocketEvent(
-    pluginId: string,
-    event: string,
-) {
+export function unregisterPluginWebSocketEvent(pluginId: string, event: string) {
     const events = pluginEventHandlers[pluginId];
     if (!events) {
         return;
@@ -479,40 +398,31 @@ export function unregisterAllPluginWebSocketEvents(pluginId: string) {
 }
 
 function handleFirstConnect() {
-    dispatch(
-        batchActions([
-            {
-                type: GeneralTypes.WEBSOCKET_SUCCESS,
-                timestamp: Date.now(),
-            },
-            clearErrors(),
-        ]),
-    );
+    dispatch(batchActions([
+        {
+            type: GeneralTypes.WEBSOCKET_SUCCESS,
+            timestamp: Date.now(),
+        },
+        clearErrors(),
+    ]));
 }
 
 function handleClose(failCount: number) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
-        dispatch(
-            logError({
-                type: 'critical',
-                message: AnnouncementBarMessages.WEBSOCKET_PORT_ERROR,
-            }),
-        );
+        dispatch(logError({type: 'critical', message: AnnouncementBarMessages.WEBSOCKET_PORT_ERROR}));
     }
-    dispatch(
-        batchActions([
-            {
-                type: GeneralTypes.WEBSOCKET_FAILURE,
-                timestamp: Date.now(),
-            },
+    dispatch(batchActions([
+        {
+            type: GeneralTypes.WEBSOCKET_FAILURE,
+            timestamp: Date.now(),
+        },
 
-            // TODO The accompanying logic causes the post textbox to turn yellow when there are WebSocket issues,
-            // and it's been broken since https://github.com/mattermost/mattermost-webapp/pull/2981. Either this and the
-            // batchActions should be removed, or we should fix this by changing incrementWsErrorCount to be a non-thunk
-            // action.
-            // incrementWsErrorCount(),
-        ]),
-    );
+        // TODO The accompanying logic causes the post textbox to turn yellow when there are WebSocket issues,
+        // and it's been broken since https://github.com/mattermost/mattermost-webapp/pull/2981. Either this and the
+        // batchActions should be removed, or we should fix this by changing incrementWsErrorCount to be a non-thunk
+        // action.
+        // incrementWsErrorCount(),
+    ]));
 }
 
 export function handleEvent(msg: WebSocketMessage) {
@@ -757,8 +667,8 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(
             handlePropertyFieldCreatedOrUpdated(
                 msg as
-                        | WebSocketMessages.PropertyFieldCreated
-                        | WebSocketMessages.PropertyFieldUpdated,
+                    | WebSocketMessages.PropertyFieldCreated
+                    | WebSocketMessages.PropertyFieldUpdated,
             ),
         );
         break;
@@ -859,18 +769,13 @@ export function handleEvent(msg: WebSocketMessage) {
             return;
         }
 
-        if (
-            Object.hasOwn(pluginEvents, msg.event) &&
-            typeof pluginEvents[msg.event] === 'function'
-        ) {
+        if (Object.hasOwn(pluginEvents, msg.event) && typeof pluginEvents[msg.event] === 'function') {
             pluginEvents[msg.event](msg);
         }
     });
 }
 
-function handleSharedChannelRemoteUpdatedEvent(
-    msg: WebSocketMessages.SharedChannelRemoteUpdated,
-) {
+function handleSharedChannelRemoteUpdatedEvent(msg: WebSocketMessages.SharedChannelRemoteUpdated) {
     const channelId = msg.data.channel_id || msg.broadcast.channel_id;
     if (channelId) {
         dispatch(fetchChannelRemotes(channelId, true));
@@ -891,9 +796,7 @@ function handleChannelConvertedEvent(msg: WebSocketMessages.ChannelConverted) {
     }
 }
 
-export function handleChannelUpdatedEvent(
-    msg: WebSocketMessages.ChannelUpdated,
-): ThunkActionFunc<void> {
+export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if (!msg.data.channel) {
             return;
@@ -901,9 +804,7 @@ export function handleChannelUpdatedEvent(
 
         const channel = JSON.parse(msg.data.channel) as Channel;
 
-        const actions: MMReduxAction[] = [
-            {type: ChannelTypes.RECEIVED_CHANNEL, data: channel},
-        ];
+        const actions: MMReduxAction[] = [{type: ChannelTypes.RECEIVED_CHANNEL, data: channel}];
 
         // handling the case of GM converted to private channel.
         const state = doGetState();
@@ -912,14 +813,8 @@ export function handleChannelUpdatedEvent(
         // if the updated channel exists in store
         if (existingChannel) {
             // and it was a GM, converted to a private channel
-            if (
-                existingChannel.type === General.GM_CHANNEL &&
-                channel.type === General.PRIVATE_CHANNEL
-            ) {
-                actions.push({
-                    type: ChannelTypes.GM_CONVERTED_TO_CHANNEL,
-                    data: channel,
-                });
+            if (existingChannel.type === General.GM_CHANNEL && channel.type === General.PRIVATE_CHANNEL) {
+                actions.push({type: ChannelTypes.GM_CONVERTED_TO_CHANNEL, data: channel});
             }
 
             if (hasAutotranslationBecomeEnabled(state, channel)) {
@@ -937,11 +832,7 @@ export function handleChannelUpdatedEvent(
 
             // For the popout we make an exception and redirect to the popout path instead of the channel path.
             // DM/GM names never change, so we only need to handle regular channels here.
-            if (
-                isChannelPopoutWindow() &&
-                channel.type !== General.DM_CHANNEL &&
-                channel.type !== General.GM_CHANNEL
-            ) {
+            if (isChannelPopoutWindow() && channel.type !== General.DM_CHANNEL && channel.type !== General.GM_CHANNEL) {
                 channelPath = `/_popout/channel${teamUrl}/channels/${channel.name}`;
             }
             getHistory().replace(channelPath);
@@ -949,9 +840,7 @@ export function handleChannelUpdatedEvent(
     };
 }
 
-export function handleChannelAccessControlUpdatedEvent(
-    msg: WebSocketMessages.ChannelAccessControlUpdated,
-): ThunkActionFunc<void> {
+export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         if (!msg.data.channel) {
             return;
@@ -970,26 +859,16 @@ export function handleChannelAccessControlUpdatedEvent(
     };
 }
 
-function handleChannelMemberUpdatedEvent(
-    msg: WebSocketMessages.ChannelMemberUpdated,
-): ThunkActionFunc<void> {
+function handleChannelMemberUpdatedEvent(msg: WebSocketMessages.ChannelMemberUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
-        const channelMember = JSON.parse(
-            msg.data.channelMember,
-        ) as ChannelMembership;
+        const channelMember = JSON.parse(msg.data.channelMember) as ChannelMembership;
         const roles = channelMember.roles.split(' ');
         doDispatch(loadRolesIfNeeded(roles));
 
         const state = doGetState();
-        const becameEnabled = hasAutotranslationBecomeEnabled(
-            state,
-            channelMember,
-        );
+        const becameEnabled = hasAutotranslationBecomeEnabled(state, channelMember);
 
-        doDispatch({
-            type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER,
-            data: channelMember,
-        });
+        doDispatch({type: ChannelTypes.RECEIVED_MY_CHANNEL_MEMBER, data: channelMember});
 
         if (becameEnabled) {
             doDispatch(resetReloadPostsInChannel(channelMember.channel_id));
@@ -999,9 +878,7 @@ function handleChannelMemberUpdatedEvent(
 
 function debouncePostEvent(wait: number) {
     let timeout: number | undefined;
-    let queue: Array<
-    WebSocketMessages.Posted | WebSocketMessages.EphemeralPost
-    > = [];
+    let queue: Array<WebSocketMessages.Posted | WebSocketMessages.EphemeralPost> = [];
     let count = 0;
 
     // Called when timeout triggered
@@ -1016,17 +893,13 @@ function debouncePostEvent(wait: number) {
         count = 0;
     };
 
-    return function fx(
-        msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost,
-    ) {
+    return function fx(msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost) {
         if (timeout && count > 4) {
             // If the timeout is going this is the second or further event so queue them up.
             if (queue.push(msg) > 200) {
                 // Don't run us out of memory, give up if the queue gets insane
                 queue = [];
-                console.log(
-                    'channel broken because of too many incoming messages',
-                ); //eslint-disable-line no-console
+                console.log('channel broken because of too many incoming messages'); //eslint-disable-line no-console
             }
             clearTimeout(timeout);
             timeout = window.setTimeout(triggered, wait);
@@ -1042,9 +915,7 @@ function debouncePostEvent(wait: number) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
-export function handleNewPostEvent(
-    msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost,
-): ThunkActionFunc<void> {
+export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         const post = JSON.parse(msg.data.post) as Post;
 
@@ -1064,8 +935,7 @@ export function handleNewPostEvent(
         if (
             post.user_id !== getCurrentUserId(myGetState()) &&
             !getIsManualStatusForUserId(myGetState(), post.user_id) &&
-            'set_online' in msg.data &&
-            msg.data.set_online
+            'set_online' in msg.data && msg.data.set_online
         ) {
             myDispatch({
                 type: UserTypes.RECEIVED_STATUSES,
@@ -1075,9 +945,7 @@ export function handleNewPostEvent(
     };
 }
 
-export function handleNewPostEvents(
-    queue: Array<WebSocketMessages.Posted | WebSocketMessages.EphemeralPost>,
-): ThunkActionFunc<void> {
+export function handleNewPostEvents(queue: Array<WebSocketMessages.Posted | WebSocketMessages.EphemeralPost>): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         // Note that this method doesn't properly update the sidebar state for these posts
         const posts = queue.map((msg) => JSON.parse(msg.data.post) as Post);
@@ -1090,11 +958,7 @@ export function handleNewPostEvents(
         posts.forEach((post, index) => {
             const msg = queue[index];
             if ('should_ack' in msg.data && msg.data.should_ack) {
-                WebSocketClient.acknowledgePostedNotification(
-                    post.id,
-                    'not_sent',
-                    'too_many_posts',
-                );
+                WebSocketClient.acknowledgePostedNotification(post.id, 'not_sent', 'too_many_posts');
             }
         });
 
@@ -1166,27 +1030,27 @@ async function handlePostDeleteEvent(msg: WebSocketMessages.PostDeleted) {
 }
 
 export function handlePostUnreadEvent(msg: WebSocketMessages.PostUnread) {
-    dispatch({
-        type: ActionTypes.POST_UNREAD_SUCCESS,
-        data: {
-            lastViewedAt: msg.data.last_viewed_at,
-            channelId: msg.broadcast.channel_id,
-            msgCount: msg.data.msg_count,
-            msgCountRoot: msg.data.msg_count_root,
-            mentionCount: msg.data.mention_count,
-            mentionCountRoot: msg.data.mention_count_root,
-            urgentMentionCount: msg.data.urgent_mention_count,
+    dispatch(
+        {
+            type: ActionTypes.POST_UNREAD_SUCCESS,
+            data: {
+                lastViewedAt: msg.data.last_viewed_at,
+                channelId: msg.broadcast.channel_id,
+                msgCount: msg.data.msg_count,
+                msgCountRoot: msg.data.msg_count_root,
+                mentionCount: msg.data.mention_count,
+                mentionCountRoot: msg.data.mention_count_root,
+                urgentMentionCount: msg.data.urgent_mention_count,
+            },
         },
-    });
+    );
 }
 
 async function handleTeamAddedEvent(msg: WebSocketMessages.UserAddedToTeam) {
     await dispatch(TeamActions.getTeam(msg.data.team_id));
     await dispatch(TeamActions.getMyTeamMembers());
     const state = getState();
-    await dispatch(
-        TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)),
-    );
+    await dispatch(TeamActions.getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
     await dispatch(fetchChannelsAndMembers(msg.data.team_id));
     const license = getLicense(state);
     if (license.Cloud === 'true') {
@@ -1194,9 +1058,7 @@ async function handleTeamAddedEvent(msg: WebSocketMessages.UserAddedToTeam) {
     }
 }
 
-export function handleLeaveTeamEvent(
-    msg: WebSocketMessages.UserRemovedFromTeam,
-) {
+export function handleLeaveTeamEvent(msg: WebSocketMessages.UserRemovedFromTeam) {
     const state = getState();
 
     const actions: MMReduxAction[] = [
@@ -1211,8 +1073,7 @@ export function handleLeaveTeamEvent(
     ];
 
     const channelsPerTeam = getChannelsInTeam(state);
-    const channels =
-        (channelsPerTeam && channelsPerTeam[msg.data.team_id]) || [];
+    const channels = (channelsPerTeam && channelsPerTeam[msg.data.team_id]) || [];
 
     for (const channel of channels) {
         actions.push({
@@ -1231,10 +1092,7 @@ export function handleLeaveTeamEvent(
 
     if (currentUser.id === msg.data.user_id) {
         // Include channel IDs so reducers can clean up posts/embeds for those channels
-        dispatch({
-            type: TeamTypes.LEAVE_TEAM,
-            data: {id: msg.data.team_id, channelIds: channels},
-        });
+        dispatch({type: TeamTypes.LEAVE_TEAM, data: {id: msg.data.team_id, channelIds: channels}});
 
         // if they are on the team being removed redirect them to default team
         if (getCurrentTeamId(state) === msg.data.team_id) {
@@ -1248,22 +1106,18 @@ export function handleLeaveTeamEvent(
     } else {
         const team = getTeam(state, msg.data.team_id);
         const members = getChannelMembersInChannels(state);
-        const isMember = Object.values(members).some(
-            (member) => member[msg.data.user_id],
-        );
+        const isMember = Object.values(members).some((member) => member[msg.data.user_id]);
         if (team && isGuest(currentUser.roles) && !isMember) {
-            dispatch(
-                batchActions([
-                    {
-                        type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
-                        data: {user_id: msg.data.user_id},
-                    },
-                    {
-                        type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
-                        data: {team_id: team.id, user_id: msg.data.user_id},
-                    },
-                ]),
-            );
+            dispatch(batchActions([
+                {
+                    type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
+                    data: {user_id: msg.data.user_id},
+                },
+                {
+                    type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
+                    data: {team_id: team.id, user_id: msg.data.user_id},
+                },
+            ]));
         }
     }
 }
@@ -1271,10 +1125,7 @@ export function handleLeaveTeamEvent(
 function handleUpdateTeamEvent(msg: WebSocketMessages.Team) {
     const state = store.getState();
     const license = getLicense(state);
-    dispatch({
-        type: TeamTypes.UPDATED_TEAM,
-        data: JSON.parse(msg.data.team) as Team,
-    });
+    dispatch({type: TeamTypes.UPDATED_TEAM, data: JSON.parse(msg.data.team) as Team});
     if (license.Cloud === 'true') {
         dispatch(getTeamsUsage());
     }
@@ -1301,9 +1152,7 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
         const {currentUserId} = state.entities.users;
         const {currentTeamId, myMembers} = state.entities.teams;
         const teamMembers = Object.values(myMembers);
-        const teamMember = teamMembers.find(
-            (m) => m.user_id === currentUserId && m.team_id === currentTeamId,
-        );
+        const teamMember = teamMembers.find((m) => m.user_id === currentUserId && m.team_id === currentTeamId);
 
         let newTeamId = '';
         if (
@@ -1330,29 +1179,17 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
             }
         }
 
-        dispatch(
-            batchActions([
-                {
-                    type: TeamTypes.RECEIVED_TEAM_DELETED,
-                    data: {id: deletedTeam.id},
-                },
-                {type: TeamTypes.UPDATED_TEAM, data: deletedTeam},
-            ]),
-        );
+        dispatch(batchActions([
+            {type: TeamTypes.RECEIVED_TEAM_DELETED, data: {id: deletedTeam.id}},
+            {type: TeamTypes.UPDATED_TEAM, data: deletedTeam},
+        ]));
 
         if (currentTeamId === deletedTeam.id) {
             if (newTeamId) {
                 dispatch({type: TeamTypes.SELECT_TEAM, data: newTeamId});
                 const globalState = getState();
-                const redirectChannel = getRedirectChannelNameForTeam(
-                    globalState,
-                    newTeamId,
-                );
-                getHistory().push(
-                    `${getCurrentTeamUrl(
-                        globalState,
-                    )}/channels/${redirectChannel}`,
-                );
+                const redirectChannel = getRedirectChannelNameForTeam(globalState, newTeamId);
+                getHistory().push(`${getCurrentTeamUrl(globalState)}/channels/${redirectChannel}`);
             } else {
                 getHistory().push('/');
             }
@@ -1363,9 +1200,7 @@ function handleDeleteTeamEvent(msg: WebSocketMessages.Team) {
     }
 }
 
-function handleUpdateMemberRoleEvent(
-    msg: WebSocketMessages.TeamMemberRoleUpdated,
-) {
+function handleUpdateMemberRoleEvent(msg: WebSocketMessages.TeamMemberRoleUpdated) {
     const memberData = JSON.parse(msg.data.member) as TeamMembership;
     const newRoles = memberData.roles.split(' ');
 
@@ -1385,9 +1220,7 @@ function handleGroupAddedEvent(msg: WebSocketMessages.GroupChannelCreated) {
     return fetchChannelAndAddToSidebar(msg.broadcast.channel_id);
 }
 
-function handleUserAddedEvent(
-    msg: WebSocketMessages.UserAddedToChannel,
-): ThunkActionFunc<void> {
+function handleUserAddedEvent(msg: WebSocketMessages.UserAddedToChannel): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const config = getConfig(state);
@@ -1397,16 +1230,9 @@ function handleUserAddedEvent(
             doDispatch(getChannelStats(currentChannelId));
             doDispatch({
                 type: UserTypes.RECEIVED_PROFILE_IN_CHANNEL,
-                data: {
-                    id: msg.broadcast.channel_id,
-                    user_id: msg.data.user_id,
-                },
+                data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
-            if (
-                license?.IsLicensed === 'true' &&
-                license?.LDAPGroups === 'true' &&
-                config.EnableConfirmNotificationsToChannel === 'true'
-            ) {
+            if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
                 doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
         }
@@ -1418,10 +1244,7 @@ function handleUserAddedEvent(
         }
 
         // This event is fired when a user first joins the server, so refresh analytics to see if we're now over the user limit
-        if (
-            license.Cloud === 'true' &&
-            isCurrentUserSystemAdmin(doGetState())
-        ) {
+        if (license.Cloud === 'true' && isCurrentUserSystemAdmin(doGetState())) {
             doDispatch(getStandardAnalytics());
         }
 
@@ -1462,9 +1285,7 @@ function handlePropertyFieldDeleted(
     };
 }
 
-function handlePropertyValuesUpdated(
-    msg: WebSocketMessages.PropertyValuesUpdated,
-): ThunkActionFunc<void> {
+function handlePropertyValuesUpdated(msg: WebSocketMessages.PropertyValuesUpdated): ThunkActionFunc<void> {
     return (doDispatch) => {
         let values;
         try {
@@ -1489,19 +1310,13 @@ function handlePropertyValuesUpdated(
             data: {values},
         });
 
-        doDispatch(
-            handleManagedCategoryPropertyValuesUpdated(
-                parsedPropertyValuesUpdated,
-            ),
-        );
+        doDispatch(handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated));
     };
 }
 
 function fetchChannelAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const {data, error} = await doDispatch(
-            getChannelAndMyMember(channelId),
-        );
+        const {data, error} = await doDispatch(getChannelAndMyMember(channelId));
 
         if (data && !error) {
             doDispatch(addChannelToInitialCategory(data.channel));
@@ -1509,9 +1324,7 @@ function fetchChannelAndAddToSidebar(channelId: string): ThunkActionFunc<void> {
     };
 }
 
-export function handleUserRemovedEvent(
-    msg: WebSocketMessages.UserRemovedFromChannel,
-) {
+export function handleUserRemovedEvent(msg: WebSocketMessages.UserRemovedFromChannel) {
     const state = getState();
     const currentChannel = getCurrentChannel(state);
     const currentUser = getCurrentUser(state);
@@ -1533,16 +1346,14 @@ export function handleUserRemovedEvent(
                     dispatch(loadUser(msg.data.remover_id));
                 }
 
-                dispatch(
-                    openModal({
-                        modalId: ModalIdentifiers.REMOVED_FROM_CHANNEL,
-                        dialogType: RemovedFromChannelModal,
-                        dialogProps: {
-                            channelName: currentChannel.display_name,
-                            removerId: msg.data.remover_id,
-                        },
-                    }),
-                );
+                dispatch(openModal({
+                    modalId: ModalIdentifiers.REMOVED_FROM_CHANNEL,
+                    dialogType: RemovedFromChannelModal,
+                    dialogProps: {
+                        channelName: currentChannel.display_name,
+                        removerId: msg.data.remover_id,
+                    },
+                }));
             }
         }
 
@@ -1567,20 +1378,13 @@ export function handleUserRemovedEvent(
         if (isGuest(currentUser.roles)) {
             dispatch(removeNotVisibleUsers());
         }
-    } else if (
-        currentChannel &&
-        msg.broadcast.channel_id === currentChannel.id
-    ) {
+    } else if (currentChannel && msg.broadcast.channel_id === currentChannel.id) {
         dispatch(getChannelStats(currentChannel.id));
         dispatch({
             type: UserTypes.RECEIVED_PROFILE_NOT_IN_CHANNEL,
             data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
         });
-        if (
-            license?.IsLicensed === 'true' &&
-            license?.LDAPGroups === 'true' &&
-            config.EnableConfirmNotificationsToChannel === 'true'
-        ) {
+        if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
             dispatch(getChannelMemberCountsByGroup(currentChannel.id));
         }
     }
@@ -1588,9 +1392,7 @@ export function handleUserRemovedEvent(
     if (msg.broadcast.user_id !== currentUser.id) {
         const channel = getChannel(state, msg.broadcast.channel_id);
         const members = getChannelMembersInChannels(state);
-        const isMember = Object.values(members).some(
-            (member) => msg.data.user_id && member[msg.data.user_id],
-        );
+        const isMember = Object.values(members).some((member) => msg.data.user_id && member[msg.data.user_id]);
         if (channel && isGuest(currentUser.roles) && !isMember) {
             const actions = [
                 {
@@ -1599,10 +1401,7 @@ export function handleUserRemovedEvent(
                 },
                 {
                     type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
-                    data: {
-                        team_id: channel.team_id,
-                        user_id: msg.data.user_id,
-                    },
+                    data: {team_id: channel.team_id, user_id: msg.data.user_id},
                 },
             ];
             dispatch(batchActions(actions));
@@ -1612,31 +1411,21 @@ export function handleUserRemovedEvent(
     const channelId = msg.broadcast.channel_id || msg.data.channel_id || '';
     const userId = msg.broadcast.user_id || msg.data.user_id;
     const channel = getChannel(state, channelId);
-    if (
-        channel &&
-        !haveISystemPermission(state, {
-            permission: Permissions.VIEW_MEMBERS,
-        }) &&
-        !haveITeamPermission(state, channel.team_id, Permissions.VIEW_MEMBERS)
-    ) {
-        dispatch(
-            batchActions([
-                {
-                    type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
-                    data: {id: channel.team_id, user_id: userId},
-                },
-                {
-                    type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
-                    data: {team_id: channel.team_id, user_id: userId},
-                },
-            ]),
-        );
+    if (channel && !haveISystemPermission(state, {permission: Permissions.VIEW_MEMBERS}) && !haveITeamPermission(state, channel.team_id, Permissions.VIEW_MEMBERS)) {
+        dispatch(batchActions([
+            {
+                type: UserTypes.RECEIVED_PROFILE_NOT_IN_TEAM,
+                data: {id: channel.team_id, user_id: userId},
+            },
+            {
+                type: TeamTypes.REMOVE_MEMBER_FROM_TEAM,
+                data: {team_id: channel.team_id, user_id: userId},
+            },
+        ]));
     }
 }
 
-export async function handleUserUpdatedEvent(
-    msg: WebSocketMessages.UserUpdated,
-) {
+export async function handleUserUpdatedEvent(msg: WebSocketMessages.UserUpdated) {
     // This websocket event is sent to all non-guest users on the server, so be careful requesting data from the server
     // in response to it. That can overwhelm the server if every connected user makes such a request at the same time.
     // See https://mattermost.atlassian.net/browse/MM-40050 for more information.
@@ -1658,8 +1447,7 @@ export async function handleUserUpdatedEvent(
             });
             dispatch(loadRolesIfNeeded(user.roles.split(' ')));
         }
-        const autotranslationIsEnabled =
-            getConfig(state)?.EnableAutoTranslation === 'true';
+        const autotranslationIsEnabled = getConfig(state)?.EnableAutoTranslation === 'true';
         if (autotranslationIsEnabled && user.locale !== currentUser.locale) {
             dispatch(resetReloadPostsInTranslatedChannels());
         }
@@ -1671,9 +1459,7 @@ export async function handleUserUpdatedEvent(
     }
 }
 
-function handleChannelSchemeUpdatedEvent(
-    msg: WebSocketMessages.ChannelSchemeUpdated,
-) {
+function handleChannelSchemeUpdatedEvent(msg: WebSocketMessages.ChannelSchemeUpdated) {
     dispatch(getMyChannelMember(msg.broadcast.channel_id));
 }
 
@@ -1686,9 +1472,7 @@ function handleRoleUpdatedEvent(msg: WebSocketMessages.RoleUpdated) {
     });
 }
 
-function handleChannelCreatedEvent(
-    msg: WebSocketMessages.ChannelCreated,
-): ThunkActionFunc<void> {
+function handleChannelCreatedEvent(msg: WebSocketMessages.ChannelCreated): ThunkActionFunc<void> {
     return async (myDispatch, myGetState) => {
         const channelId = msg.data.channel_id;
         const teamId = msg.data.team_id;
@@ -1713,36 +1497,16 @@ function handleChannelCreatedEvent(
 }
 
 function handleChannelDeletedEvent(msg: WebSocketMessages.ChannelDeleted) {
-    dispatch({
-        type: ChannelTypes.RECEIVED_CHANNEL_DELETED,
-        data: {
-            id: msg.data.channel_id,
-            team_id: msg.broadcast.team_id,
-            deleteAt: msg.data.delete_at,
-            viewArchivedChannels: true,
-        },
-    });
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_DELETED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, deleteAt: msg.data.delete_at, viewArchivedChannels: true}});
 }
 
 function handleChannelUnarchivedEvent(msg: WebSocketMessages.ChannelRestored) {
-    dispatch({
-        type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED,
-        data: {
-            id: msg.data.channel_id,
-            team_id: msg.broadcast.team_id,
-            viewArchivedChannels: true,
-        },
-    });
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL_UNARCHIVED, data: {id: msg.data.channel_id, team_id: msg.broadcast.team_id, viewArchivedChannels: true}});
 }
 
-function handlePreferenceChangedEvent(
-    msg: WebSocketMessages.PreferenceChanged,
-) {
+function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) {
     const preference = JSON.parse(msg.data.preference) as PreferenceType;
-    dispatch({
-        type: PreferenceTypes.RECEIVED_PREFERENCES,
-        data: [preference],
-    });
+    dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
         loadProfilesForDM();
@@ -1753,9 +1517,7 @@ function handlePreferenceChangedEvent(
     }
 }
 
-function handlePreferencesChangedEvent(
-    msg: WebSocketMessages.PreferencesChanged,
-) {
+function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
@@ -1768,27 +1530,17 @@ function handlePreferencesChangedEvent(
     }
 }
 
-function handlePreferencesDeletedEvent(
-    msg: WebSocketMessages.PreferencesChanged,
-) {
+function handlePreferencesDeletedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.DELETED_PREFERENCES, data: preferences});
 }
 
 function addedNewDmUser(preference: PreferenceType) {
-    return (
-        preference.category ===
-            Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW &&
-        preference.value === 'true'
-    );
+    return preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW && preference.value === 'true';
 }
 
 function addedNewGmUser(preference: PreferenceType) {
-    return (
-        preference.category ===
-            Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW &&
-        preference.value === 'true'
-    );
+    return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
 }
 
 export function handleStatusChangedEvent(msg: WebSocketMessages.StatusChanged) {
@@ -1847,9 +1599,7 @@ function handleReactionRemovedEvent(msg: WebSocketMessages.PostReaction) {
     });
 }
 
-function handleMultipleChannelsViewedEvent(
-    msg: WebSocketMessages.MultipleChannelsViewed,
-) {
+function handleMultipleChannelsViewedEvent(msg: WebSocketMessages.MultipleChannelsViewed) {
     if (getCurrentUserId(getState()) === msg.broadcast.user_id) {
         dispatch(markMultipleChannelsAsRead(msg.data.channel_times));
     }
@@ -1875,14 +1625,9 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
     if (user) {
         const roles = msg.data.roles;
         const newRoles = roles.split(' ');
-        const demoted =
-            user.roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN) &&
-            !roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN);
+        const demoted = user.roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN) && !roles.includes(Constants.PERMISSIONS_SYSTEM_ADMIN);
 
-        store.dispatch({
-            type: UserTypes.RECEIVED_PROFILE,
-            data: {...user, roles},
-        });
+        store.dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...user, roles}});
         dispatch(loadRolesIfNeeded(newRoles));
 
         if (demoted && global.location.pathname.startsWith('/admin_console')) {
@@ -1897,43 +1642,30 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
     const newConfig = msg.data.config;
 
     // Check if EnableAutoTranslation changed from enabled to disabled
-    const enableAutoTranslationWasEnabled =
-        currentConfig?.EnableAutoTranslation === 'true';
-    const enableAutoTranslationIsEnabled =
-        newConfig?.EnableAutoTranslation === 'true';
+    const enableAutoTranslationWasEnabled = currentConfig?.EnableAutoTranslation === 'true';
+    const enableAutoTranslationIsEnabled = newConfig?.EnableAutoTranslation === 'true';
 
     if (!enableAutoTranslationWasEnabled && enableAutoTranslationIsEnabled) {
         dispatch(resetReloadPostsInTranslatedChannels());
     }
 
-    store.dispatch({
-        type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
-        data: newConfig,
-    });
+    store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
-    store.dispatch({
-        type: GeneralTypes.CLIENT_LICENSE_RECEIVED,
-        data: msg.data.license,
-    });
+    store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
 }
 
-function handlePluginStatusesChangedEvent(
-    msg: WebSocketMessages.PluginStatusesChanged,
-) {
-    store.dispatch({
-        type: AdminTypes.RECEIVED_PLUGIN_STATUSES,
-        data: msg.data.plugin_statuses,
-    });
+function handlePluginStatusesChangedEvent(msg: WebSocketMessages.PluginStatusesChanged) {
+    store.dispatch({type: AdminTypes.RECEIVED_PLUGIN_STATUSES, data: msg.data.plugin_statuses});
 }
 
 function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
-    const data = msg.data && msg.data.dialog;
-    const dialog = (JSON.parse(data) as OpenDialogRequest) || {};
+    const data = (msg.data && msg.data.dialog);
+    const dialog = JSON.parse(data) as OpenDialogRequest || {};
 
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
 
@@ -1943,46 +1675,39 @@ function handleOpenDialogEvent(msg: WebSocketMessages.OpenDialog) {
         return;
     }
 
-    store.dispatch(
-        openModal({
-            modalId: ModalIdentifiers.INTERACTIVE_DIALOG,
-            dialogType: DialogRouter,
-        }),
-    );
+    store.dispatch(openModal({modalId: ModalIdentifiers.INTERACTIVE_DIALOG, dialogType: DialogRouter}));
 }
 
 function handleGroupUpdatedEvent(msg: WebSocketMessages.ReceivedGroup) {
     const data = JSON.parse(msg.data.group) as Group;
-    dispatch({
-        type: GroupTypes.PATCHED_GROUP,
-        data,
-    });
-}
-
-function handleMyGroupUpdate(groupMember: GroupMember) {
     dispatch(
-        batchActions([
-            {
-                type: GroupTypes.ADD_MY_GROUP,
-                id: groupMember.group_id,
-            },
-            {
-                type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
-                data: groupMember,
-                id: groupMember.group_id,
-            },
-            {
-                type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
-                data: [groupMember],
-                id: groupMember.group_id,
-            },
-        ]),
+        {
+            type: GroupTypes.PATCHED_GROUP,
+            data,
+        },
     );
 }
 
-export function handleGroupAddedMemberEvent(
-    msg: WebSocketMessages.GroupMember,
-): ThunkActionFunc<void> {
+function handleMyGroupUpdate(groupMember: GroupMember) {
+    dispatch(batchActions([
+        {
+            type: GroupTypes.ADD_MY_GROUP,
+            id: groupMember.group_id,
+        },
+        {
+            type: GroupTypes.RECEIVED_MEMBER_TO_ADD_TO_GROUP,
+            data: groupMember,
+            id: groupMember.group_id,
+        },
+        {
+            type: UserTypes.RECEIVED_PROFILES_FOR_GROUP,
+            data: [groupMember],
+            id: groupMember.group_id,
+        },
+    ]));
+}
+
+export function handleGroupAddedMemberEvent(msg: WebSocketMessages.GroupMember): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
@@ -1993,9 +1718,7 @@ export function handleGroupAddedMemberEvent(
             if (group) {
                 handleMyGroupUpdate(groupMember);
             } else {
-                const {error} = await doDispatch(
-                    fetchGroup(groupMember.group_id, true),
-                );
+                const {error} = await doDispatch(fetchGroup(groupMember.group_id, true));
                 if (!error) {
                     handleMyGroupUpdate(groupMember);
                 }
@@ -2004,89 +1727,63 @@ export function handleGroupAddedMemberEvent(
     };
 }
 
-function handleGroupDeletedMemberEvent(
-    msg: WebSocketMessages.GroupMember,
-): ThunkActionFunc<void> {
+function handleGroupDeletedMemberEvent(msg: WebSocketMessages.GroupMember): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const currentUserId = getCurrentUserId(state);
         const data = JSON.parse(msg.data.group_member) as GroupMember;
 
         if (currentUserId === data.user_id) {
-            dispatch(
-                batchActions([
-                    {
-                        type: GroupTypes.REMOVE_MY_GROUP,
-                        data,
-                        id: data.group_id,
-                    },
-                    {
-                        type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
-                        data: [data],
-                        id: data.group_id,
-                    },
-                    {
-                        type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
-                        data,
-                        id: data.group_id,
-                    },
-                ]),
-            );
+            dispatch(batchActions([
+                {
+                    type: GroupTypes.REMOVE_MY_GROUP,
+                    data,
+                    id: data.group_id,
+                },
+                {
+                    type: UserTypes.RECEIVED_PROFILES_LIST_TO_REMOVE_FROM_GROUP,
+                    data: [data],
+                    id: data.group_id,
+                },
+                {
+                    type: GroupTypes.RECEIVED_MEMBER_TO_REMOVE_FROM_GROUP,
+                    data,
+                    id: data.group_id,
+                },
+            ]));
         }
     };
 }
 
-function handleGroupAssociatedToTeamEvent(
-    msg: WebSocketMessages.GroupAssociatedToTeam,
-) {
+function handleGroupAssociatedToTeamEvent(msg: WebSocketMessages.GroupAssociatedToTeam) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_TEAM,
-        data: {
-            teamID: msg.broadcast.team_id,
-            groups: [{id: msg.data.group_id}],
-        },
+        data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupNotAssociatedToTeamEvent(
-    msg: WebSocketMessages.GroupAssociatedToTeam,
-) {
+function handleGroupNotAssociatedToTeamEvent(msg: WebSocketMessages.GroupAssociatedToTeam) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_TEAM,
-        data: {
-            teamID: msg.broadcast.team_id,
-            groups: [{id: msg.data.group_id}],
-        },
+        data: {teamID: msg.broadcast.team_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupAssociatedToChannelEvent(
-    msg: WebSocketMessages.GroupAssociatedToChannel,
-) {
+function handleGroupAssociatedToChannelEvent(msg: WebSocketMessages.GroupAssociatedToChannel) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_ASSOCIATED_TO_CHANNEL,
-        data: {
-            channelID: msg.broadcast.channel_id,
-            groups: [{id: msg.data.group_id}],
-        },
+        data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleGroupNotAssociatedToChannelEvent(
-    msg: WebSocketMessages.GroupAssociatedToChannel,
-) {
+function handleGroupNotAssociatedToChannelEvent(msg: WebSocketMessages.GroupAssociatedToChannel) {
     store.dispatch({
         type: GroupTypes.RECEIVED_GROUP_NOT_ASSOCIATED_TO_CHANNEL,
-        data: {
-            channelID: msg.broadcast.channel_id,
-            groups: [{id: msg.data.group_id}],
-        },
+        data: {channelID: msg.broadcast.channel_id, groups: [{id: msg.data.group_id}]},
     });
 }
 
-function handleSidebarCategoryCreated(
-    msg: WebSocketMessages.SidebarCategoryCreated,
-): ThunkActionFunc<void> {
+function handleSidebarCategoryCreated(msg: WebSocketMessages.SidebarCategoryCreated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -2105,9 +1802,7 @@ function handleSidebarCategoryCreated(
     };
 }
 
-function handleSidebarCategoryUpdated(
-    msg: WebSocketMessages.SidebarCategoryUpdated,
-): ThunkActionFunc<void> {
+function handleSidebarCategoryUpdated(msg: WebSocketMessages.SidebarCategoryUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -2126,9 +1821,7 @@ function handleSidebarCategoryUpdated(
     };
 }
 
-function handleSidebarCategoryDeleted(
-    msg: WebSocketMessages.SidebarCategoryDeleted,
-): ThunkActionFunc<void> {
+function handleSidebarCategoryDeleted(msg: WebSocketMessages.SidebarCategoryDeleted): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
 
@@ -2146,9 +1839,7 @@ function handleSidebarCategoryDeleted(
     };
 }
 
-function handleSidebarCategoryOrderUpdated(
-    msg: WebSocketMessages.SidebarCategoryOrderUpdated,
-) {
+function handleSidebarCategoryOrderUpdated(msg: WebSocketMessages.SidebarCategoryOrderUpdated) {
     return receivedCategoryOrder(msg.broadcast.team_id, msg.data.order);
 }
 
@@ -2166,9 +1857,7 @@ export function handleUserActivationStatusChange(): ThunkActionFunc<void> {
     };
 }
 
-export function handleCloudSubscriptionChanged(
-    msg: WebSocketMessages.CloudSubscriptionChanged,
-): ActionFunc<boolean> {
+export function handleCloudSubscriptionChanged(msg: WebSocketMessages.CloudSubscriptionChanged): ActionFunc<boolean> {
     return (doDispatch, doGetState) => {
         const state = doGetState();
         const license = getLicense(state);
@@ -2202,9 +1891,7 @@ function handleRefreshAppsBindings(): ThunkActionFunc<void> {
         const currentURL = window.location.href;
         let threadIdentifier;
         if (siteURL && currentURL.startsWith(siteURL)) {
-            const parts = currentURL.
-                substr(siteURL.length + (siteURL.endsWith('/') ? 0 : 1)).
-                split('/');
+            const parts = currentURL.substr(siteURL.length + (siteURL.endsWith('/') ? 0 : 1)).split('/');
             if (parts.length === 3 && parts[1] === 'threads') {
                 threadIdentifier = parts[2];
             }
@@ -2215,8 +1902,7 @@ function handleRefreshAppsBindings(): ThunkActionFunc<void> {
             selectedThread = getThread(state, threadIdentifier);
         }
         const rootID = threadIdentifier || rhsPost?.id;
-        const channelID =
-            selectedThread?.post?.channel_id || rhsPost?.channel_id;
+        const channelID = selectedThread?.post?.channel_id || rhsPost?.channel_id;
         if (!rootID) {
             return {data: true};
         }
@@ -2240,21 +1926,12 @@ export function handleAppsPluginDisabled() {
     };
 }
 
-function handleFirstAdminVisitMarketplaceStatusReceivedEvent(
-    msg: WebSocketMessages.FirstAdminVisitMarketplaceStatusReceived,
-) {
-    const receivedData = JSON.parse(
-        msg.data.firstAdminVisitMarketplaceStatus,
-    ) as boolean;
-    store.dispatch({
-        type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED,
-        data: receivedData,
-    });
+function handleFirstAdminVisitMarketplaceStatusReceivedEvent(msg: WebSocketMessages.FirstAdminVisitMarketplaceStatusReceived) {
+    const receivedData = JSON.parse(msg.data.firstAdminVisitMarketplaceStatus) as boolean;
+    store.dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: receivedData});
 }
 
-function handleThreadReadChanged(
-    msg: WebSocketMessages.ThreadReadChanged,
-): ThunkActionFunc<void> {
+function handleThreadReadChanged(msg: WebSocketMessages.ThreadReadChanged): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         if ('thread_id' in msg.data && msg.data.thread_id) {
             const state = doGetState();
@@ -2262,9 +1939,7 @@ function handleThreadReadChanged(
 
             // skip marking the thread as read (when the user is viewing the thread)
             if (thread && !isThreadOpen(state, thread.id)) {
-                doDispatch(
-                    updateThreadLastOpened(thread.id, msg.data.timestamp),
-                );
+                doDispatch(updateThreadLastOpened(thread.id, msg.data.timestamp));
             }
 
             doDispatch(
@@ -2274,33 +1949,22 @@ function handleThreadReadChanged(
                     msg.data.channel_id,
                     {
                         lastViewedAt: msg.data.timestamp,
-                        prevUnreadMentions:
-                            thread?.unread_mentions ??
-                            msg.data.previous_unread_mentions,
+                        prevUnreadMentions: thread?.unread_mentions ?? msg.data.previous_unread_mentions,
                         newUnreadMentions: msg.data.unread_mentions,
-                        prevUnreadReplies:
-                            thread?.unread_replies ??
-                            msg.data.previous_unread_replies,
+                        prevUnreadReplies: thread?.unread_replies ?? msg.data.previous_unread_replies,
                         newUnreadReplies: msg.data.unread_replies,
                     },
                 ),
             );
         } else if (msg.broadcast.channel_id) {
-            doDispatch(
-                handleAllThreadsInChannelMarkedRead(
-                    msg.broadcast.channel_id,
-                    msg.data.timestamp,
-                ),
-            );
+            doDispatch(handleAllThreadsInChannelMarkedRead(msg.broadcast.channel_id, msg.data.timestamp));
         } else {
             doDispatch(handleAllMarkedRead(msg.broadcast.team_id));
         }
     };
 }
 
-function handleThreadUpdated(
-    msg: WebSocketMessages.ThreadUpdated,
-): ThunkActionFunc<void> {
+function handleThreadUpdated(msg: WebSocketMessages.ThreadUpdated): ThunkActionFunc<void> {
     return (doDispatch, doGetState) => {
         let threadData;
         try {
@@ -2322,11 +1986,7 @@ function handleThreadUpdated(
             threadData.is_following = true;
         }
 
-        if (
-            isThreadOpen(state, threadData.id) &&
-            window.isActive &&
-            !isThreadManuallyUnread(state, threadData.id)
-        ) {
+        if (isThreadOpen(state, threadData.id) && window.isActive && !isThreadManuallyUnread(state, threadData.id)) {
             lastViewedAt = Date.now();
 
             // Sometimes `Date.now()` was generating a timestamp before the
@@ -2345,55 +2005,25 @@ function handleThreadUpdated(
             threadData.unread_replies = 0;
 
             // mark thread as read on the server
-            dispatch(
-                updateThreadRead(
-                    currentUserId,
-                    currentTeamId,
-                    threadData.id,
-                    lastViewedAt,
-                ),
-            );
+            dispatch(updateThreadRead(currentUserId, currentTeamId, threadData.id, lastViewedAt));
         }
 
-        handleThreadArrived(
-            doDispatch,
-            doGetState,
-            threadData,
-            msg.broadcast.team_id,
-            msg.data.previous_unread_replies,
-            msg.data.previous_unread_mentions,
-        );
+        handleThreadArrived(doDispatch, doGetState, threadData, msg.broadcast.team_id, msg.data.previous_unread_replies, msg.data.previous_unread_mentions);
     };
 }
 
-function handleThreadFollowChanged(
-    msg: WebSocketMessages.ThreadFollowedChanged,
-): ThunkActionFunc<void> {
+function handleThreadFollowChanged(msg: WebSocketMessages.ThreadFollowedChanged): ThunkActionFunc<void> {
     return async (doDispatch, doGetState) => {
         const state = doGetState();
         const thread = getThread(state, msg.data.thread_id);
         if (!thread && msg.data.state && msg.data.reply_count) {
-            await doDispatch(
-                fetchThread(
-                    getCurrentUserId(state),
-                    msg.broadcast.team_id,
-                    msg.data.thread_id,
-                    true,
-                ),
-            );
+            await doDispatch(fetchThread(getCurrentUserId(state), msg.broadcast.team_id, msg.data.thread_id, true));
         }
-        handleFollowChanged(
-            doDispatch,
-            msg.data.thread_id,
-            msg.broadcast.team_id,
-            msg.data.state,
-        );
+        handleFollowChanged(doDispatch, msg.data.thread_id, msg.broadcast.team_id, msg.data.state);
     };
 }
 
-function handlePostAcknowledgementAdded(
-    msg: WebSocketMessages.PostAcknowledgement,
-) {
+function handlePostAcknowledgementAdded(msg: WebSocketMessages.PostAcknowledgement) {
     const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
@@ -2402,9 +2032,7 @@ function handlePostAcknowledgementAdded(
     };
 }
 
-function handlePostAcknowledgementRemoved(
-    msg: WebSocketMessages.PostAcknowledgement,
-) {
+function handlePostAcknowledgementRemoved(msg: WebSocketMessages.PostAcknowledgement) {
     const data = JSON.parse(msg.data.acknowledgement) as PostAcknowledgement;
 
     return {
@@ -2413,9 +2041,7 @@ function handlePostAcknowledgementRemoved(
     };
 }
 
-function handleUpsertDraftEvent(
-    msg: WebSocketMessages.PostDraft,
-): ThunkActionFunc<void> {
+function handleUpsertDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft) as Draft;
         const {key, value} = transformServerDraft(draft);
@@ -2425,13 +2051,9 @@ function handleUpsertDraftEvent(
     };
 }
 
-function handleCreateScheduledPostEvent(
-    msg: WebSocketMessages.ScheduledPost,
-): ThunkActionFunc<void> {
+function handleCreateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(
-            msg.data.scheduledPost,
-        ) as ScheduledPost;
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
         const state = getState();
         const teamId = getTeamIdByChannelId(state, scheduledPost.channel_id);
 
@@ -2445,13 +2067,9 @@ function handleCreateScheduledPostEvent(
     };
 }
 
-function handleUpdateScheduledPostEvent(
-    msg: WebSocketMessages.ScheduledPost,
-): ThunkActionFunc<void> {
+function handleUpdateScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(
-            msg.data.scheduledPost,
-        ) as ScheduledPost;
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_UPDATED,
@@ -2462,13 +2080,9 @@ function handleUpdateScheduledPostEvent(
     };
 }
 
-function handleDeleteScheduledPostEvent(
-    msg: WebSocketMessages.ScheduledPost,
-): ThunkActionFunc<void> {
+function handleDeleteScheduledPostEvent(msg: WebSocketMessages.ScheduledPost): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const scheduledPost = JSON.parse(
-            msg.data.scheduledPost,
-        ) as ScheduledPost;
+        const scheduledPost = JSON.parse(msg.data.scheduledPost) as ScheduledPost;
 
         doDispatch({
             type: ScheduledPostTypes.SCHEDULED_POST_DELETED,
@@ -2479,26 +2093,20 @@ function handleDeleteScheduledPostEvent(
     };
 }
 
-function handleDeleteDraftEvent(
-    msg: WebSocketMessages.PostDraft,
-): ThunkActionFunc<void> {
+function handleDeleteDraftEvent(msg: WebSocketMessages.PostDraft): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft) as Draft;
         const {key} = transformServerDraft(draft);
 
-        doDispatch(
-            setGlobalItem(key, {
-                message: '',
-                fileInfos: [],
-                uploadsInProgress: [],
-            }),
-        );
+        doDispatch(setGlobalItem(key, {
+            message: '',
+            fileInfos: [],
+            uploadsInProgress: [],
+        }));
     };
 }
 
-function handlePersistentNotification(
-    msg: WebSocketMessages.PersistentNotificationTriggered,
-): ThunkActionFunc<void> {
+function handlePersistentNotification(msg: WebSocketMessages.PersistentNotificationTriggered): ThunkActionFunc<void> {
     return async (doDispatch) => {
         const post = JSON.parse(msg.data.post) as Post;
 
@@ -2506,12 +2114,8 @@ function handlePersistentNotification(
     };
 }
 
-function handleChannelBookmarkCreated(
-    msg: WebSocketMessages.ChannelBookmarkCreated,
-) {
-    const bookmark = JSON.parse(
-        msg.data.bookmark,
-    ) as ChannelBookmarkWithFileInfo;
+function handleChannelBookmarkCreated(msg: WebSocketMessages.ChannelBookmarkCreated) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
@@ -2519,13 +2123,9 @@ function handleChannelBookmarkCreated(
     };
 }
 
-function handleChannelBookmarkUpdated(
-    msg: WebSocketMessages.ChannelBookmarkUpdated,
-): ThunkActionFunc<void> {
+function handleChannelBookmarkUpdated(msg: WebSocketMessages.ChannelBookmarkUpdated): ThunkActionFunc<void> {
     return async (doDispatch) => {
-        const {updated, deleted} = JSON.parse(
-            msg.data.bookmarks,
-        ) as UpdateChannelBookmarkResponse;
+        const {updated, deleted} = JSON.parse(msg.data.bookmarks) as UpdateChannelBookmarkResponse;
 
         if (updated) {
             doDispatch({
@@ -2543,12 +2143,8 @@ function handleChannelBookmarkUpdated(
     };
 }
 
-function handleChannelBookmarkDeleted(
-    msg: WebSocketMessages.ChannelBookmarkDeleted,
-) {
-    const bookmark = JSON.parse(
-        msg.data.bookmark,
-    ) as ChannelBookmarkWithFileInfo;
+function handleChannelBookmarkDeleted(msg: WebSocketMessages.ChannelBookmarkDeleted) {
+    const bookmark = JSON.parse(msg.data.bookmark) as ChannelBookmarkWithFileInfo;
 
     return {
         type: ChannelBookmarkTypes.BOOKMARK_DELETED,
@@ -2556,12 +2152,8 @@ function handleChannelBookmarkDeleted(
     };
 }
 
-function handleChannelBookmarkSorted(
-    msg: WebSocketMessages.ChannelBookmarkSorted,
-) {
-    const bookmarks = JSON.parse(
-        msg.data.bookmarks,
-    ) as ChannelBookmarkWithFileInfo[];
+function handleChannelBookmarkSorted(msg: WebSocketMessages.ChannelBookmarkSorted) {
+    const bookmarks = JSON.parse(msg.data.bookmarks) as ChannelBookmarkWithFileInfo[];
 
     return {
         type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
@@ -2569,30 +2161,21 @@ function handleChannelBookmarkSorted(
     };
 }
 
-export function handleCustomAttributeValuesUpdated(
-    msg: WebSocketMessages.CPAValuesUpdated,
-) {
+export function handleCustomAttributeValuesUpdated(msg: WebSocketMessages.CPAValuesUpdated) {
     return {
         type: UserTypes.RECEIVED_CPA_VALUES,
-        data: {
-            userID: msg.data.user_id,
-            customAttributeValues: msg.data.values,
-        },
+        data: {userID: msg.data.user_id, customAttributeValues: msg.data.values},
     };
 }
 
-export function handleCustomAttributesCreated(
-    msg: WebSocketMessages.CPAFieldCreated,
-) {
+export function handleCustomAttributesCreated(msg: WebSocketMessages.CPAFieldCreated) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_CREATED,
         data: msg.data.field,
     };
 }
 
-export function handleCustomAttributesUpdated(
-    msg: WebSocketMessages.CPAFieldUpdated,
-): ThunkActionFunc<void> {
+export function handleCustomAttributesUpdated(msg: WebSocketMessages.CPAFieldUpdated): ThunkActionFunc<void> {
     return (dispatch) => {
         const {field, delete_values: deleteValues} = msg.data;
 
@@ -2613,27 +2196,21 @@ export function handleCustomAttributesUpdated(
     };
 }
 
-export function handleCustomAttributesDeleted(
-    msg: WebSocketMessages.CPAFieldDeleted,
-) {
+export function handleCustomAttributesDeleted(msg: WebSocketMessages.CPAFieldDeleted) {
     return {
         type: GeneralTypes.CUSTOM_PROFILE_ATTRIBUTE_FIELD_DELETED,
         data: msg.data.field_id,
     };
 }
 
-export function handleContentFlaggingReportValueChanged(
-    msg: WebSocketMessages.ContentFlaggingReportValueUpdated,
-) {
+export function handleContentFlaggingReportValueChanged(msg: WebSocketMessages.ContentFlaggingReportValueUpdated) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
     };
 }
 
-export function handlePostTranslationUpdated(
-    msg: WebSocketMessages.PostTranslationUpdated,
-): ThunkActionFunc<void> {
+export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslationUpdated): ThunkActionFunc<void> {
     return (dispatch, getState) => {
         const locale = getCurrentLocale(getState());
         const t = msg.data.translations[locale];
@@ -2652,9 +2229,7 @@ export function handlePostTranslationUpdated(
     };
 }
 
-export function handleRecapUpdated(
-    msg: WebSocketMessages.RecapUpdated,
-): ThunkActionFunc<void> {
+export function handleRecapUpdated(msg: WebSocketMessages.RecapUpdated): ThunkActionFunc<void> {
     const recapId = msg.data.recap_id;
 
     return async (doDispatch) => {
@@ -2663,18 +2238,9 @@ export function handleRecapUpdated(
     };
 }
 
-export function handleFileDownloadRejected(
-    msg: WebSocketMessages.FileDownloadRejected,
-): ThunkActionFunc<void> {
+export function handleFileDownloadRejected(msg: WebSocketMessages.FileDownloadRejected): ThunkActionFunc<void> {
     return (dispatch, getState) => {
-        const {
-            file_id: fileId,
-            file_name: fileName,
-            rejection_reason: rejectionReason,
-            channel_id: channelId,
-            post_id: postId,
-            download_type: downloadType,
-        } = msg.data;
+        const {file_id: fileId, file_name: fileName, rejection_reason: rejectionReason, channel_id: channelId, post_id: postId, download_type: downloadType} = msg.data;
 
         // Store the rejected file ID in Redux state
         dispatch({
@@ -2706,10 +2272,7 @@ export function handleFileDownloadRejected(
         if (downloadType === FileDownloadTypes.PREVIEW) {
             // Check if the file preview modal is actually open
             const state = getState();
-            const isModalOpen =
-                state.views?.modals?.modalState?.[
-                    ModalIdentifiers.FILE_PREVIEW_MODAL
-                ]?.open;
+            const isModalOpen = state.views?.modals?.modalState?.[ModalIdentifiers.FILE_PREVIEW_MODAL]?.open;
 
             if (!isModalOpen) {
                 // Preview was loaded in channel list (SingleImageView), not in modal
@@ -2730,68 +2293,48 @@ export function handleFileDownloadRejected(
         const intl = getIntl();
 
         const displayMessage = intl.formatMessage(
-            {
-                id: 'file_download.rejected.file',
-                defaultMessage: 'File access blocked: {reason}',
-            },
+            {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
             {reason: rejectionReason},
         );
 
         // Show toast notification using the existing InfoToast system
-        dispatch(
-            openModal({
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, {size: 18}),
+                    message: displayMessage,
+                },
+                position: 'bottom-center',
+                onExited: () => {
+                    // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    };
+}
+
+function handleShowToast(msg: WebSocketMessages.ShowToast): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        const {message, position} = msg.data;
+        if (message) {
+            const toastPosition = position as 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | undefined;
+            doDispatch(openModal({
                 modalId: ModalIdentifiers.INFO_TOAST,
                 dialogType: InfoToast,
                 dialogProps: {
                     content: {
-                        icon: React.createElement(AlertCircleOutlineIcon, {
-                            size: 18,
-                        }),
-                        message: displayMessage,
+                        message,
+                        icon: React.createElement(InformationOutlineIcon, {size: 18}),
                     },
-                    position: 'bottom-center',
+                    position: toastPosition || 'bottom-right',
                     onExited: () => {
-                        // Close the modal when the toast is dismissed
-                        dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                        doDispatch(closeModal(ModalIdentifiers.INFO_TOAST));
                     },
                 },
-            }),
-        );
-    };
-}
-
-function handleShowToast(
-    msg: WebSocketMessages.ShowToast,
-): ThunkActionFunc<void> {
-    return (doDispatch) => {
-        const {message, position} = msg.data;
-        if (message) {
-            const toastPosition = position as
-                | 'top-left'
-                | 'top-center'
-                | 'top-right'
-                | 'bottom-left'
-                | 'bottom-center'
-                | 'bottom-right'
-                | undefined;
-            doDispatch(
-                openModal({
-                    modalId: ModalIdentifiers.INFO_TOAST,
-                    dialogType: InfoToast,
-                    dialogProps: {
-                        content: {
-                            message,
-                            icon: React.createElement(InformationOutlineIcon, {
-                                size: 18,
-                            }),
-                        },
-                        position: toastPosition || 'bottom-right',
-                        onExited: () => {
-                            doDispatch(closeModal(ModalIdentifiers.INFO_TOAST));
-                        },
-                    },
-                }),
-            );
+            }));
         }
     };
 }

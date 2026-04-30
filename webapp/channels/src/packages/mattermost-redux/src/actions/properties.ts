@@ -4,12 +4,12 @@
 import type {
     PropertyField,
     PropertyValue,
-} from "@mattermost/types/properties";
+} from '@mattermost/types/properties';
 
-import { Client4 } from "mattermost-redux/client";
-import type { ActionFuncAsync } from "mattermost-redux/types/actions";
+import {Client4} from 'mattermost-redux/client';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import PropertyTypes from "../action_types/properties";
+import PropertyTypes from '../action_types/properties';
 
 /**
  * Fetches property fields for a given group, object type, and target scope,
@@ -19,7 +19,7 @@ export function fetchPropertyFields(
     groupName: string,
     objectType: string,
     targetType: string,
-    targetId?: string
+    targetId?: string,
 ): ActionFuncAsync<PropertyField[]> {
     return async (dispatch) => {
         let fields: PropertyField[] = [];
@@ -35,7 +35,7 @@ export function fetchPropertyFields(
                 objectType,
                 targetType,
                 targetId,
-                { cursorId, cursorCreateAt }
+                {cursorId, cursorCreateAt},
             );
             fields = fields.concat(page);
 
@@ -51,10 +51,10 @@ export function fetchPropertyFields(
 
         dispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
-            data: { fields },
+            data: {fields},
         });
 
-        return { data: fields };
+        return {data: fields};
     };
 }
 
@@ -63,7 +63,7 @@ export function fetchPropertyFields(
  * dedicated `/system/values` endpoint, then stores them in Redux.
  */
 export function fetchSystemPropertyValues<T = unknown>(
-    groupName: string
+    groupName: string,
 ): ActionFuncAsync<Array<PropertyValue<T>>> {
     return async (dispatch) => {
         const values =
@@ -71,9 +71,9 @@ export function fetchSystemPropertyValues<T = unknown>(
 
         dispatch({
             type: PropertyTypes.RECEIVED_PROPERTY_VALUES,
-            data: { values },
+            data: {values},
         });
 
-        return { data: values };
+        return {data: values};
     };
 }
