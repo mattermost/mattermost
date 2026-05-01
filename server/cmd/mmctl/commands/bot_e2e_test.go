@@ -407,8 +407,10 @@ func (s *MmctlE2ETestSuite) TestBotCreateCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("with-token", true, "")
 
-		err := botCreateCmdF(s.th.Client, cmd, []string{"testbot"})
+		username := model.NewUsername()
+		err := botCreateCmdF(s.th.Client, cmd, []string{username})
 		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "permissions")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
