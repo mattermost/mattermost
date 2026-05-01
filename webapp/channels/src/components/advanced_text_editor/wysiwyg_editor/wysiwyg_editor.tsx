@@ -26,6 +26,13 @@ const lowlight = createLowlight(common);
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
     insertText: (text: string) => void;
+
+    // Parity with the legacy `Textbox` ref so that hooks like
+    // `useTextboxFocus` can drive focus regardless of which composer is
+    // mounted. ProseMirror routes its DOM focus through the contenteditable
+    // element exposed by `editor.view.dom`.
+    focus: () => void;
+    blur: () => void;
 };
 
 type Props = {
@@ -256,6 +263,16 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 const needsSpace = charBefore.length > 0 && !(/\s/).test(charBefore);
                 const content = needsSpace ? ` ${text} ` : `${text} `;
                 editor.chain().focus().insertContent({type: 'text', text: content}).run();
+            }
+        },
+        focus: () => {
+            if (editor && !editor.isDestroyed) {
+                editor.commands.focus();
+            }
+        },
+        blur: () => {
+            if (editor && !editor.isDestroyed) {
+                editor.commands.blur();
             }
         },
     }), [editor]);

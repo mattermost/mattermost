@@ -317,7 +317,7 @@ const AdvancedTextEditor = ({
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
-    const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
+    const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost, wysiwygRef);
     const {
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
