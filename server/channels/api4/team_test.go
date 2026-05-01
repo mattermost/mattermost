@@ -462,6 +462,32 @@ func TestCreateTeamInviteUserPermissionScheme(t *testing.T) {
 
 		assert.Empty(t, rteam.InviteId, "InviteId should be hidden when scheme does not grant InviteUser")
 	})
+
+	t.Run("scheme admin role grants InviteUser but no invite-restricted fields - create succeeds with invite_id", func(t *testing.T) {
+		scheme, _, err := th.SystemAdminClient.CreateScheme(context.Background(), &model.Scheme{
+			DisplayName: "dn_" + model.NewId(),
+			Name:        model.NewId(),
+			Scope:       model.SchemeScopeTeam,
+		})
+		require.NoError(t, err)
+		require.NotEmpty(t, scheme.DefaultTeamAdminRole)
+
+		th.AddPermissionToRole(t, model.PermissionInviteUser.Id, scheme.DefaultTeamAdminRole)
+
+		rteam, resp, err := managerClient.CreateTeam(context.Background(), &model.Team{
+			DisplayName: "Scheme Team Invite Via Defaults Only " + model.NewId(),
+			Name:        GenerateTestTeamName(),
+			Email:       th.GenerateTestEmail(),
+			Type:        model.TeamOpen,
+			SchemeId:    &scheme.Id,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		assert.False(t, rteam.AllowOpenInvite)
+		assert.Empty(t, rteam.AllowedDomains)
+		assert.NotEmpty(t, rteam.InviteId, "InviteId should be returned when scheme grants InviteUser without open invite or domain restrictions")
+	})
 }
 
 func TestGetTeam(t *testing.T) {
