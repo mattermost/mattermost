@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -199,6 +200,35 @@ func IsValidRemoteName(s string) bool {
 		return false
 	}
 	return validRemoteNameChars.MatchString(s)
+}
+
+// CleanRemoteName converts an arbitrary string into a slug compatible with
+// IsValidRemoteName: lowercased, with spaces and other disallowed characters
+// replaced by hyphens. The result is truncated to RemoteNameMaxLength. If
+// the cleaned value is still invalid (e.g. empty input), a new ID is
+// substituted so the caller always receives a valid name.
+func CleanRemoteName(s string) string {
+	s = strings.ToLower(strings.ReplaceAll(s, " ", "-"))
+	s = strings.TrimSpace(s)
+
+	for _, c := range s {
+		char := fmt.Sprintf("%c", c)
+		if !validRemoteNameChars.MatchString(char) {
+			s = strings.ReplaceAll(s, char, "-")
+		}
+	}
+
+	s = strings.Trim(s, "-")
+
+	if len(s) > RemoteNameMaxLength {
+		s = strings.Trim(s[:RemoteNameMaxLength], "-")
+	}
+
+	if !IsValidRemoteName(s) {
+		s = NewId()
+	}
+
+	return s
 }
 
 func (rc *RemoteCluster) PreUpdate() {

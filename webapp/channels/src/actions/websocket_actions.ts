@@ -149,6 +149,7 @@ import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
+import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
@@ -514,6 +515,10 @@ export function handleEvent(msg: WebSocketMessage) {
         dispatch(handleChannelBookmarkSorted(msg));
         break;
 
+    case WebSocketEvents.ChannelAccessControlUpdated:
+        dispatch(handleChannelAccessControlUpdatedEvent(msg));
+        break;
+
     case WebSocketEvents.DirectAdded:
         dispatch(handleDirectAddedEvent(msg));
         break;
@@ -786,6 +791,25 @@ export function handleChannelUpdatedEvent(msg: WebSocketMessages.ChannelUpdated)
             }
             getHistory().replace(channelPath);
         }
+    };
+}
+
+export function handleChannelAccessControlUpdatedEvent(msg: WebSocketMessages.ChannelAccessControlUpdated): ThunkActionFunc<void> {
+    return (doDispatch) => {
+        if (!msg.data.channel) {
+            return;
+        }
+
+        const channel = JSON.parse(msg.data.channel) as Channel;
+
+        // Refresh the channel record so consumers see the latest
+        // policy_enforced flag (and any other access-control-derived fields).
+        doDispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+
+        // Drop any cached access control attributes for this channel so
+        // consumers (e.g. the channel invite modal banner) refetch the
+        // latest attribute set after a policy change.
+        invalidateAccessControlAttributesCache(EntityType.Channel, channel.id);
     };
 }
 

@@ -294,8 +294,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             initialState,
         );
 
-        expect(screen.getByRole('heading', {name: 'Access Rules'})).toBeInTheDocument();
-        expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
+        // Public channels use membership-oriented copy because ABAC on public
+        // channels is advisory, not a hard gate.
+        expect(screen.getByRole('heading', {name: 'Membership Rules'})).toBeInTheDocument();
+        expect(screen.getByText('Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.')).toBeInTheDocument();
     });
 
     test('should call useChannelAccessControlActions hook', async () => {
@@ -497,7 +499,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should show system policy applied message when policies exist but not forcing auto-sync', () => {
@@ -522,7 +524,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             );
 
             expect(screen.getByText('Auto-add members based on access rules')).toBeInTheDocument();
-            expect(screen.getByText('Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.')).toBeInTheDocument();
+            expect(screen.getByText('Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.')).toBeInTheDocument();
         });
 
         test('should toggle auto-sync checkbox when clicked', async () => {
@@ -1750,6 +1752,68 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
 
         // Verify NO confirmation modal is shown (no membership changes)
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
+
+    test('public channel: saves without membership impact confirmation even when sync would add users', async () => {
+        const user = userEvent.setup();
+
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}],
+                total_count: 2,
+            },
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        const publicChannelProps = {
+            ...baseProps,
+            channel: TestHelper.getChannelMock({
+                id: 'channel_id',
+                name: 'public-channel',
+                display_name: 'Public Channel',
+                type: 'O',
+            }),
+        };
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...publicChannelProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+        });
+
+        expect(screen.queryByText('Review membership impact')).not.toBeInTheDocument();
         expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
     });
 
