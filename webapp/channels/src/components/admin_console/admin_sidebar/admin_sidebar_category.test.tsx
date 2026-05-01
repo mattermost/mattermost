@@ -16,7 +16,7 @@ describe('components/AdminSidebarCategory', () => {
                 <AdminSidebarCategory
                     definitionKey='environment'
                     parentLink='/admin_console'
-                    icon={<span data-testid='category-icon' />}
+                    icon={<span data-testid='category-icon'/>}
                     title='Environment'
                 >
                     <AdminSidebarSection
@@ -39,7 +39,7 @@ describe('components/AdminSidebarCategory', () => {
                 <AdminSidebarCategory
                     definitionKey='site'
                     parentLink='/admin_console'
-                    icon={<span data-testid='category-icon' />}
+                    icon={<span data-testid='category-icon'/>}
                     title='Site Configuration'
                 >
                     {null}
