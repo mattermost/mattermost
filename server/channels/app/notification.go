@@ -305,8 +305,29 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					incrementMentions = false
 					updateFollowing = false
 				}
+				// Slack-style auto-follow:
+				// only the replier (post.UserId), the root-post author,
+				// and users who opted into channel-wide "auto-follow threads"
+				// auto-follow. Any mention type (direct/group/@here/@channel/@all)
+				// triggers notifications but does not auto-follow.
+				if updateFollowing {
+					isReplier := userID == post.UserId
+					isRootAuthor := false
+					if parentPostList != nil {
+						rootPost := parentPostList.Posts[parentPostList.Order[0]]
+						isRootAuthor = userID == rootPost.UserId
+					}
+					optedIn := channelMemberNotifyPropsMap[userID][model.ChannelAutoFollowThreads] == model.ChannelAutoFollowThreadsOn
+					if !isReplier && !isRootAuthor && !optedIn {
+						updateFollowing = false
+					}
+				}
 				opts := store.ThreadMembershipOpts{
-					Following:             true,
+					// Use updateFollowing as the desired Following state so that
+					// brand-new ThreadMembership rows created by the store also
+					// honor the auto-follow decision above (the store ignores
+					// UpdateFollowing when inserting a new row).
+					Following:             updateFollowing,
 					IncrementMentions:     incrementMentions,
 					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: false,

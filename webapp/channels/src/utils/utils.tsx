@@ -48,6 +48,7 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
+import {selectPost, selectPostById} from 'actions/views/rhs';
 import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
@@ -1377,7 +1378,10 @@ export async function handleFormattedTextClick(e: React.UIEvent, currentRelative
 
             e.stopPropagation();
 
-            if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
+            const shouldOpenThread = match && match.type === 'permalink' && linkAttribute.value.includes('thread=open');
+            if (shouldOpenThread) {
+                store.dispatch(selectPostById(match!.postId!));
+            } else if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
                 if (isPopoutWindow()) {
                     sendToParent(FOCUS_REPLY_POST, match.postId ?? '', linkAttribute.value);
                 } else {

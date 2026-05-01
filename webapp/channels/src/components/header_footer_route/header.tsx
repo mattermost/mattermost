@@ -24,17 +24,17 @@ const Header = ({alternateLink, backButtonURL, onBackButtonClick}: HeaderProps) 
     const {SiteName} = useSelector(getConfig);
     const license = useSelector(getLicense);
 
-    const ariaLabel = SiteName || 'Mattermost';
+    const ariaLabel = SiteName || 'Tomodev Team';
 
     let freeBanner = null;
     if (license.IsLicensed === 'false') {
-        freeBanner = <><Logo/><span className='freeBadge'>{'TEAM EDITION'}</span></>;
+        freeBanner = <><Logo/><span className='freeBadge'>{'Customized'}</span></>;
     } else if (license.SkuShortName === LicenseSkus.Entry) {
-        freeBanner = <><Logo/><span className='freeBadge'>{'ENTRY EDITION'}</span></>;
+        freeBanner = <><Logo/><span className='freeBadge'>{'Customized'}</span></>;
     }
 
     let title: React.ReactNode = SiteName;
-    if (title === 'Mattermost') {
+    if (title === 'Tomodev Team') {
         if (freeBanner) {
             title = '';
         } else {

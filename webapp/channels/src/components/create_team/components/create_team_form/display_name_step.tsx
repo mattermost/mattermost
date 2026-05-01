@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import Input from 'components/widgets/inputs/input/input';
 
-import logoImage from 'images/logo.png';
+import logoImage from 'images/logo_tomo.png';
 import Constants from 'utils/constants';
 
 export type Props = {

@@ -72,7 +72,7 @@ export class CreateTeam extends React.PureComponent<Props & RouteComponentProps,
             id: 'create_team.pageTitle',
             defaultMessage: 'Create a team - {siteName}',
         }, {
-            siteName: this.props.siteName || 'Mattermost',
+            siteName: this.props.siteName || 'Tomodev Team',
         });
     }
 

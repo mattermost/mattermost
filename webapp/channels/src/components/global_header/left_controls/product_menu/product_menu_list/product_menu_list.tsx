@@ -218,7 +218,7 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
                     id='about'
                     modalId={ModalIdentifiers.ABOUT}
                     dialogType={AboutBuildModal}
-                    text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: siteName})}
+                    text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About Tomodev Team'}, {appTitle: siteName})}
                     icon={<InformationOutlineIcon size={18}/>}
                 />
             </div>

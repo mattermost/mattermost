@@ -45,7 +45,7 @@ export const getSystemInfoMailtoLink = createSelector(
         const {browser, browserVersion} = getBrowserInfo();
         const platformName = getPlatformInfo();
 
-        const subject = `Problem with ${siteName || 'Mattermost'} app`;
+        const subject = `Problem with ${siteName || 'Tomodev Team'} app`;
         const body = `
 System Information:
 - User ID: ${currentUserId}

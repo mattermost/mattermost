@@ -421,7 +421,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         id='about'
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
-                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: this.props.siteName || 'Mattermost'})}
+                        text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About Tomodev Team'}, {appTitle: this.props.siteName || 'Tomodev Team'})}
                         icon={
                             <i
                                 className='icon icon-information-outline'

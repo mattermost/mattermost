@@ -4,23 +4,30 @@
 import classnames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
+import {ArrowRightBoldOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
 import {isPostEphemeral} from 'mattermost-redux/utils/post_utils';
 
+import {openModal} from 'actions/views/modals';
+import {selectPostById} from 'actions/views/rhs';
+
 import ActionsMenu from 'components/actions_menu';
 import CommentIcon from 'components/common/comment_icon';
 import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import DotMenu from 'components/dot_menu';
+import ForwardPostModal from 'components/forward_post_modal';
 import PostFlagIcon from 'components/post_view/post_flag_icon';
 import PostReaction from 'components/post_view/post_reaction';
 import PostRecentReactions from 'components/post_view/post_recent_reactions';
+import WithTooltip from 'components/with_tooltip';
 
-import {Locations, Constants} from 'utils/constants';
+import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
 import {isSystemMessage, fromAutoResponder} from 'utils/post_utils';
 
 import type {PostActionComponent} from 'types/store/plugins';
@@ -63,6 +70,8 @@ type Props = {
 };
 
 const PostOptions = (props: Props): JSX.Element => {
+    const dispatch = useDispatch();
+    const intl = useIntl();
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [showDotMenu, setShowDotMenu] = useState(false);
     const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -128,15 +137,31 @@ const PostOptions = (props: Props): JSX.Element => {
             props.isFirstReply) && props.location === Locations.CENTER));
     const commentIconExtraClass = isMobileView ? '' : 'pull-right';
 
+    const broadcastSourceThreadId = post.props?.broadcast_source_thread_id as string | undefined;
+    const handleCommentClickOverride = useCallback((e: React.MouseEvent) => {
+        if (broadcastSourceThreadId) {
+            e.preventDefault();
+            dispatch(selectPostById(broadcastSourceThreadId));
+            return;
+        }
+        props.handleCommentClick?.(e);
+    }, [broadcastSourceThreadId, dispatch, props.handleCommentClick]);
+
+    const replyInThreadTitle = broadcastSourceThreadId ? intl.formatMessage({
+        id: 'post_info.comment_icon.tooltip.reply_in_thread',
+        defaultMessage: 'Reply in thread',
+    }) : undefined;
+
     let commentIcon;
     if (showCommentIcon) {
         commentIcon = (
             <li>
                 <CommentIcon
-                    handleCommentClick={props.handleCommentClick}
+                    handleCommentClick={handleCommentClickOverride}
                     postId={post.id}
                     extraClass={commentIconExtraClass}
                     commentCount={props.collapsedThreadsEnabled ? 0 : props.replyCount}
+                    title={replyInThreadTitle}
                 />
             </li>
         );
@@ -194,8 +219,41 @@ const PostOptions = (props: Props): JSX.Element => {
         );
     }
 
+    const handleForwardClick = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.FORWARD_POST_MODAL,
+            dialogType: ForwardPostModal,
+            dialogProps: {post},
+        }));
+    }, [dispatch, post]);
+
+    let forwardIcon: ReactNode = null;
+    if (!isMobileView && !isEphemeral && !post.failed && !systemMessage && !channelIsArchived && !isReadOnly && !isBurnOnReadPost && !props.shouldDisplayBurnOnReadConcealed) {
+        forwardIcon = (
+            <li>
+                <WithTooltip
+                    title={
+                        <FormattedMessage
+                            id='forward_post_button.label'
+                            defaultMessage='Forward'
+                        />
+                    }
+                >
+                    <button
+                        id={`${props.location}_forwardIcon_${post.id}`}
+                        aria-label='forward message'
+                        className='post-menu__item'
+                        onClick={handleForwardClick}
+                    >
+                        <ArrowRightBoldOutlineIcon size={16}/>
+                    </button>
+                </WithTooltip>
+            </li>
+        );
+    }
+
     // Action menus
-    const showActionsMenuIcon = props.shouldShowActionsMenu && (isMobileView || hoverLocal);
+    const showActionsMenuIcon = false;
     const actionsMenu = showActionsMenuIcon && (
         <li>
             <ActionsMenu
@@ -301,6 +359,7 @@ const PostOptions = (props: Props): JSX.Element => {
                 {showRecentReactions}
                 {postReaction}
                 {flagIcon}
+                {forwardIcon}
                 {pluginItems}
                 {actionsMenu}
                 {commentIcon}

@@ -16,6 +16,7 @@ type Props = {
     commentCount?: number;
     postId?: string;
     extraClass: string;
+    title?: string;
 }
 
 const CommentIcon = ({
@@ -25,6 +26,7 @@ const CommentIcon = ({
     extraClass = '',
     handleCommentClick,
     postId,
+    title,
 }: Props) => {
     const intl = useIntl();
 
@@ -41,7 +43,7 @@ const CommentIcon = ({
         iconStyle = `${iconStyle} ${searchStyle}`;
     }
 
-    const replyTitle = intl.formatMessage({
+    const replyTitle = title ?? intl.formatMessage({
         id: 'post_info.comment_icon.tooltip.reply',
         defaultMessage: 'Reply',
     });

@@ -41,7 +41,7 @@ function mapStateToProps(state: GlobalState) {
 
     const appDownloadLink = config.AppDownloadLink || '';
     const enableCommands = config.EnableCommands === 'true';
-    const siteName = config.SiteName || 'Mattermost';
+    const siteName = config.SiteName || 'Tomodev Team';
     const enableIncomingWebhooks = config.EnableIncomingWebhooks === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';

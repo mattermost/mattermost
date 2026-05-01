@@ -3713,6 +3713,7 @@
   "post_info.actions.visitMarketplace": "Ghé thăm chợ ứng dụng",
   "post_info.auto_responder": "TỰ ĐỘNG TRẢ LỜI",
   "post_info.comment_icon.tooltip.reply": "Trả lời",
+  "post_info.comment_icon.tooltip.reply_in_thread": "Trả lời trong thread",
   "post_info.copy": "Sao chép văn bản",
   "post_info.del": "Xoá",
   "post_info.edit": "Sửa",
@@ -4710,5 +4711,7 @@
   "workspace_limits.teams_limit_reached.view_upgrade_options": "Xem tùy chọn nâng cấp",
   "workspace_limits.upgrade": "Nâng cấp để tránh giới hạn dữ liệu của {planName}",
   "workspace_limits.upgrade_reasons.free": "{planName} bị hạn chế đối với lịch sử tin nhắn {messagesLimit} và bộ nhớ tệp {storageLimit}. Bạn có thể xóa các mục để giải phóng dung lượng hoặc nâng cấp lên gói trả phí.",
-  "yourcomputer": "Máy tính của bạn"
+  "yourcomputer": "Máy tính của bạn",
+  "advanced_text_editor.broadcast.label": "Gửi vào channel",
+  "advanced_text_editor.broadcast.reply_in_thread_link": "Trả lời trong thread"
 }

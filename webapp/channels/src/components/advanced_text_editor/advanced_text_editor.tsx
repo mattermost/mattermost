@@ -15,11 +15,13 @@ import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/sel
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
+import {submitPost} from 'actions/views/create_comment';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -226,6 +228,11 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [broadcastToChannel, setBroadcastToChannel] = useState(false);
+
+    const currentTeam = useSelector(getCurrentTeam);
+    const isThreadReplyLocation = location === Locations.RHS_COMMENT && Boolean(rootId) && !isInEditMode;
+    const canBroadcastToChannel = isThreadReplyLocation && Boolean(currentTeam?.name);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -432,8 +439,32 @@ const AdvancedTextEditor = ({
             return;
         }
 
+        if (canBroadcastToChannel && broadcastToChannel && draft.message.trim() && currentTeam) {
+            const trimmed = draft.message.trim();
+            const firstLine = trimmed.split('\n').find((line) => line.trim().length > 0) || trimmed;
+            const snippet = firstLine.length > 200 ? `${firstLine.slice(0, 200)}…` : firstLine;
+            const permalink = `/${currentTeam.name}/pl/${rootId}?thread=open`;
+            const replyInThreadLabel = formatMessage({
+                id: 'advanced_text_editor.broadcast.reply_in_thread_link',
+                defaultMessage: 'Reply in thread',
+            });
+            const broadcastBody = `> ${snippet}\n\n→ [${replyInThreadLabel}](${permalink})`;
+
+            dispatch(submitPost(channelId, '', {
+                message: broadcastBody,
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId,
+                rootId: '',
+                createAt: 0,
+                updateAt: 0,
+                props: {broadcast_source_thread_id: rootId},
+            }));
+            setBroadcastToChannel(false);
+        }
+
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, canBroadcastToChannel, broadcastToChannel, currentTeam, channelId, rootId]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -883,6 +914,21 @@ const AdvancedTextEditor = ({
                             </TexteditorActions>
                         )}
                     </div>
+                    {canBroadcastToChannel && (
+                        <div className='AdvancedTextEditor__broadcastRow'>
+                            <label className='AdvancedTextEditor__broadcastLabel'>
+                                <input
+                                    type='checkbox'
+                                    checked={broadcastToChannel}
+                                    onChange={(e) => setBroadcastToChannel(e.target.checked)}
+                                />
+                                <FormattedMessage
+                                    id='advanced_text_editor.broadcast.label'
+                                    defaultMessage='Gửi vào channel'
+                                />
+                            </label>
+                        </div>
+                    )}
                     {showSendTutorialTip && (
                         <SendMessageTour
                             prefillMessage={prefillMessage}

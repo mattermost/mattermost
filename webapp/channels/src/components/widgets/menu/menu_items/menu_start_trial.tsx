@@ -48,7 +48,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
 
     // Determine badge text and description based on license type
     const isEntryLicense = isCurrentLicensed === 'true' && skuShortName === LicenseSkus.Entry;
-    const badgeText = isEntryLicense ? 'ENTRY EDITION' : 'TEAM EDITION';
+    const badgeText = isEntryLicense ? 'ENTRY EDITION' : 'Customized by Tomodev';
 
     return (
         <li
@@ -77,7 +77,7 @@ const MenuStartTrial = (props: Props): JSX.Element | null => {
                     formatMessage(
                         {
                             id: 'navbar_dropdown.versionText',
-                            defaultMessage: 'This is the free <link>unsupported</link> edition of Mattermost.',
+                            defaultMessage: 'This is the chat platform customize by Tomodev team.',
                         },
                         {
                             link: (msg: React.ReactNode) => (

@@ -8,7 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import ExternalLink from 'components/external_link';
-import MattermostLogo from 'components/widgets/icons/mattermost_logo';
+import logoImage from 'images/logo_tomo.png';
 
 import type {GlobalState} from 'types/store';
 
@@ -73,19 +73,23 @@ export default function AboutBuildModalCloud(props: Props) {
                 >
                     <FormattedMessage
                         id='about.title'
-                        values={{appTitle: config.SiteName || 'Mattermost'}}
-                        defaultMessage='About {appTitle}'
+                        values={{appTitle: 'Tomodev Team Chat'}}
+                        defaultMessage='About Tomodev Team Chat'
                     />
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div className='about-modal__content'>
                     <div className='about-modal__logo'>
-                        <MattermostLogo/>
+                         <img
+                               width='120px'
+                               className='team-logo'
+                               src={logoImage}
+                           />
                     </div>
                     <div>
                         <h3 className='about-modal__title'>
-                            <strong>{'Mattermost'} {title}</strong>
+                            <strong>{'Tomodev Team'} {title}</strong>
                         </h3>
                         <p className='subtitle'>{subTitle}</p>
                         <div className='description'>

@@ -251,3 +251,32 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.AdvancedTextEditor__broadcastRow {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px 4px;
+    margin-top: 2px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    .AdvancedTextEditor__broadcastLabel {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 400;
+        user-select: none;
+
+        input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        &:hover {
+            color: rgba(var(--center-channel-color-rgb), 0.9);
+        }
+    }
+}
