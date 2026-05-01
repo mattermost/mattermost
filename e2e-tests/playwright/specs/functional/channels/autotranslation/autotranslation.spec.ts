@@ -12,7 +12,6 @@ import {
     test,
     setMockSourceLanguage,
 } from '@mattermost/playwright-lib';
-import {getRandomId} from 'utils/utils';
 
 const POST_TYPE_AUTOTRANSLATION_CHANGE = 'system_autotranslation';
 
@@ -38,7 +37,7 @@ test(
         });
 
         // # Create a channel and enable autotranslation on it
-        const channelName = `autotranslation-${await getRandomId()}`;
+        const channelName = `autotranslation-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -104,7 +103,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-admin-${await getRandomId()}`;
+        const channelName = `autotranslation-admin-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -147,7 +146,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-system-msg-${await getRandomId()}`;
+        const channelName = `autotranslation-system-msg-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -191,7 +190,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-new-only-${await getRandomId()}`;
+        const channelName = `autotranslation-new-only-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -261,7 +260,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-tooltip-${await getRandomId()}`;
+        const channelName = `autotranslation-tooltip-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -301,7 +300,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-disable-${await getRandomId()}`;
+        const channelName = `autotranslation-disable-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -371,7 +370,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-default-on-${await getRandomId()}`;
+        const channelName = `autotranslation-default-on-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -434,7 +433,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-ephemeral-${await getRandomId()}`;
+        const channelName = `autotranslation-ephemeral-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -478,7 +477,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-revert-${await getRandomId()}`;
+        const channelName = `autotranslation-revert-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -556,7 +555,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-lang-${await getRandomId()}`;
+        const channelName = `autotranslation-lang-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -659,7 +658,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-indicator-${await getRandomId()}`;
+        const channelName = `autotranslation-indicator-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -760,7 +759,7 @@ test.fixme(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-modal-${await getRandomId()}`;
+        const channelName = `autotranslation-modal-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -854,7 +853,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-dotmenu-${await getRandomId()}`;
+        const channelName = `autotranslation-dotmenu-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -947,7 +946,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-toggle-${await getRandomId()}`;
+        const channelName = `autotranslation-toggle-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,
@@ -996,7 +995,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const translatedChannelName = `autotranslation-badge-${await getRandomId()}`;
+        const translatedChannelName = `autotranslation-badge-${pw.random.id()}`;
         const translatedChannel = await adminClient.createChannel({
             team_id: team.id,
             name: translatedChannelName,
@@ -1007,7 +1006,7 @@ test(
         await adminClient.addToChannel(user.id, translatedChannel.id);
         await setUserChannelAutotranslation(userClient, translatedChannel.id, true);
 
-        const noTranslationChannelName = `no-translation-${await getRandomId()}`;
+        const noTranslationChannelName = `no-translation-${pw.random.id()}`;
         const noTranslationChannel = await adminClient.createChannel({
             team_id: team.id,
             name: noTranslationChannelName,
@@ -1047,7 +1046,7 @@ test(
             targetLanguages: ['en', 'es'],
         });
 
-        const channelName = `autotranslation-unsupported-${await getRandomId()}`;
+        const channelName = `autotranslation-unsupported-${pw.random.id()}`;
         const created = await adminClient.createChannel({
             team_id: team.id,
             name: channelName,

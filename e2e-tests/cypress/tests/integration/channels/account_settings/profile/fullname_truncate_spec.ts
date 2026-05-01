@@ -10,11 +10,11 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import {getRandomId} from '../../../../utils';
+import {getRandomId} from '@/utils';
 
 describe('Profile > Profile Settings> Full Name', () => {
-    let firstUser;
-    let secondUser;
+    let firstUser: Cypress.UserProfile;
+    let secondUser: Cypress.UserProfile;
     const firstName = 'This Is a Long Name';
     const lastName = 'That Should Truncate';
 

@@ -1547,6 +1547,20 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Block file metadata (including mini_preview) for users denied download access.
+	// Skipped when the PermissionPolicies feature flag is off to avoid an unnecessary DB fetch.
+	if c.App.Config().FeatureFlags.PermissionPolicies {
+		filePost, filePostErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, includeDeleted)
+		if filePostErr != nil {
+			c.Err = filePostErr
+			return
+		}
+		if !c.App.HasPermissionToFileAction(c.AppContext, c.AppContext.Session().UserId, c.AppContext.Session().Roles, filePost.ChannelId, model.AccessControlPolicyActionDownloadFileAttachment) {
+			c.Err = model.NewAppError("getFileInfosForPost", "api.file.get_file.abac_denied.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+	}
+
 	infos, appErr := c.App.GetFileInfosForPostWithMigration(c.AppContext, c.Params.PostId, includeDeleted)
 	if appErr != nil {
 		c.Err = appErr
@@ -1638,24 +1652,12 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermissionToAccessChannel := false
-	hasJoinedChannel := false
+	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
-	_, channelMemberErr := c.App.GetChannelMember(c.AppContext, channel.Id, userID)
-
-	if channelMemberErr == nil {
-		hasPermissionToAccessChannel = true
-		hasJoinedChannel = true
-	}
-
-	if !hasPermissionToAccessChannel {
-		if channel.Type == model.ChannelTypeOpen {
-			hasPermissionToAccessChannel = true
-		} else if channel.Type == model.ChannelTypePrivate {
-			hasPermissionToAccessChannel, _ = c.App.HasPermissionToChannel(c.AppContext, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
-		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-			hasPermissionToAccessChannel, _ = c.App.HasPermissionToReadChannel(c.AppContext, userID, channel)
-		}
+	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen && !*c.App.Config().ComplianceSettings.Enable {
+		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
+		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
+		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam
 	}
 
 	if !hasPermissionToAccessChannel {

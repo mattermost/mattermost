@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"path"
@@ -472,6 +473,10 @@ func (ss *SqlStore) GetReplica() *sqlxDBWrapper {
 
 	// If all replicas are down, then go with master.
 	return ss.GetMaster()
+}
+
+func (ss *SqlStore) analyticsContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), time.Duration(*ss.settings.AnalyticsQueryTimeout)*time.Second)
 }
 
 func (ss *SqlStore) monitorReplicas() {

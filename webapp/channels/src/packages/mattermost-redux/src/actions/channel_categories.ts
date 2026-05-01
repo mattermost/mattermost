@@ -6,19 +6,24 @@ import {batchActions} from 'redux-batched-actions';
 import type {OrderedChannelCategories, ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
+import type {PropertyValuesUpdated} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
 
-import {ChannelCategoryTypes, ChannelTypes} from 'mattermost-redux/action_types';
+import {ChannelCategoryTypes, ChannelTypes, PropertyTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {CategoryTypes, ManagedCategoryPropertyFieldName, ManagedCategoryPropertyGroupName} from 'mattermost-redux/constants/channel_categories';
 import {
+    areManagedCategoriesEnabled,
     getAllCategoriesByIds,
     getCategory,
-    getCategoryIdsForTeam,
     getCategoryInTeamByType,
     getCategoryInTeamWithChannel,
+    getNonManagedCategoryOrderForTeam,
 } from 'mattermost-redux/selectors/entities/channel_categories';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPropertyFieldById, getPropertyGroupById, getPropertyGroupByName} from 'mattermost-redux/selectors/entities/properties';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {
     ActionFuncAsync,
@@ -127,7 +132,7 @@ function updateCategory(category: ChannelCategory): ActionFuncAsync {
     };
 }
 
-export function fetchMyCategories(teamId: string, isWebSocket?: boolean): ThunkActionFunc<unknown> {
+function fetchNonManagedCategories(teamId: string, isWebSocket?: boolean): ThunkActionFunc<unknown> {
     return async (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -188,6 +193,10 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
                     channel_ids: insertWithoutDuplicates(category.channel_ids, channel.id, 0),
                 })),
             });
+        }
+
+        if (areManagedCategoriesEnabled(state)) {
+            dispatch(fetchChannelManagedCategoryMapping(channel));
         }
 
         // Add the new channel to the Channels category on the channel's team
@@ -367,7 +376,7 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
 export function moveCategory(teamId: string, categoryId: string, newIndex: number): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const order = getCategoryIdsForTeam(state, teamId)!;
+        const order = getNonManagedCategoryOrderForTeam(state, teamId)!;
         const currentUserId = getCurrentUserId(state);
 
         const newOrder = insertWithoutDuplicates(order, categoryId, newIndex);
@@ -460,5 +469,152 @@ export function deleteCategory(categoryId: string): ActionFuncAsync {
         // The category will be deleted from the state after receiving the corresponding websocket event.
 
         return {data: true};
+    };
+}
+
+export function addChannelToManagedCategory(
+    teamId: Team['id'],
+    channelId: Channel['id'],
+    categoryName: string,
+) {
+    return {
+        type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_SET,
+        data: {
+            id: channelId,
+            team_id: teamId,
+            category_name: categoryName,
+        },
+    };
+}
+
+export function removeChannelFromManagedCategory(
+    teamId: Team['id'],
+    channelId: Channel['id'],
+) {
+    return {
+        type: ChannelCategoryTypes.MANAGED_CATEGORY_MAPPING_REMOVED,
+        data: {
+            id: channelId,
+            team_id: teamId,
+        },
+    };
+}
+
+export function fetchChannelManagedCategoryMapping(channel: Channel): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const values = await Client4.getPropertyValues<string>(
+                ManagedCategoryPropertyGroupName,
+                'channel',
+                channel.id,
+            );
+            const categoryValue = values[0];
+            if (categoryValue && channel.team_id) {
+                dispatch(addChannelToManagedCategory(channel.team_id, channel.id, categoryValue.value));
+            }
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+        }
+
+        return {data: true};
+    };
+}
+
+export function handleManagedCategoryPropertyValuesUpdated(parsedPropertyValuesUpdated: PropertyValuesUpdated<string>): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        const state = doGetState();
+        if (!areManagedCategoriesEnabled(state)) {
+            return;
+        }
+
+        if (!parsedPropertyValuesUpdated.target_id) {
+            return;
+        }
+
+        if (!parsedPropertyValuesUpdated.values?.length) {
+            return;
+        }
+
+        const first = parsedPropertyValuesUpdated.values[0];
+        const propertyGroup = getPropertyGroupById(state, first.group_id);
+        const propertyField = getPropertyFieldById(state, first.field_id);
+        if (propertyField?.name !== ManagedCategoryPropertyFieldName || propertyGroup?.name !== ManagedCategoryPropertyGroupName) {
+            return;
+        }
+
+        const categoryName = first.value;
+        const teamId = getChannel(doGetState(), parsedPropertyValuesUpdated.target_id)?.team_id;
+        if (!teamId) {
+            return;
+        }
+
+        if (categoryName) {
+            doDispatch(addChannelToManagedCategory(teamId, parsedPropertyValuesUpdated.target_id, categoryName));
+        } else {
+            doDispatch(removeChannelFromManagedCategory(teamId, parsedPropertyValuesUpdated.target_id));
+        }
+    };
+}
+
+function fetchManagedCategories(teamId: string): ThunkActionFunc<unknown> {
+    return async (dispatch, getState) => {
+        if (!areManagedCategoriesEnabled(getState())) {
+            return {};
+        }
+
+        const state = getState();
+        const propertyGroup = getPropertyGroupByName(state, ManagedCategoryPropertyGroupName);
+        if (!propertyGroup) {
+            try {
+                const fields = await Client4.getPropertyFields(ManagedCategoryPropertyGroupName, 'channel', 'system');
+                if (fields.length === 0) {
+                    return {error: new Error(`No property fields found for ${ManagedCategoryPropertyGroupName}`)};
+                }
+                dispatch(batchActions([
+                    {
+                        type: PropertyTypes.RECEIVED_PROPERTY_FIELDS,
+                        data: {fields},
+                    },
+                    {
+                        type: PropertyTypes.RECEIVED_PROPERTY_GROUP,
+                        data: {
+                            id: fields[0].group_id,
+                            name: ManagedCategoryPropertyGroupName,
+                        },
+                    },
+                ]));
+            } catch (error) {
+                forceLogoutIfNecessary(error, dispatch, getState);
+                dispatch(logError(error));
+                return {error};
+            }
+        }
+
+        try {
+            const managedMappings = await Client4.getManagedCategories(teamId);
+            return dispatch({
+                type: ChannelCategoryTypes.RECEIVED_MANAGED_CATEGORY_MAPPINGS,
+                data: {
+                    team_id: teamId,
+                    mappings: managedMappings,
+                },
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function fetchMyCategories(teamId: string, isWebSocket?: boolean): ThunkActionFunc<unknown> {
+    return async (dispatch) => {
+        const [nonManagedResult] = await Promise.all([
+            dispatch(fetchNonManagedCategories(teamId, isWebSocket)),
+            dispatch(fetchManagedCategories(teamId)),
+        ]);
+
+        return nonManagedResult;
     };
 }

@@ -15,7 +15,7 @@
         border-color: rgba(var(--center-channel-color-rgb), 0.2);
         background: var(--center-channel-bg);
         box-shadow: none;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: var(--center-channel-color);
         transition: none;
 
         &:hover {
@@ -57,6 +57,10 @@
 
     .channels-input__placeholder {
         color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    .channels-input__input-container {
+        color: var(--center-channel-color);
     }
 
     .channels-input__input {
@@ -151,17 +155,15 @@
         }
 
         .channel-name {
-            opacity: 0.5;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
 
             &::before {
                 padding-left: 5px;
                 content: "(";
-                opacity: 0.5;
             }
 
             &::after {
                 content: ")";
-                opacity: 0.5;
             }
         }
     }

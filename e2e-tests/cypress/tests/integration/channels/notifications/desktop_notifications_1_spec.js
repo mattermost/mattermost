@@ -10,14 +10,15 @@
 // Stage: @prod
 // Group: @channels @notifications
 
-import * as MESSAGES from '../../../fixtures/messages';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {spyNotificationAs} from '../../../support/notification';
-
 import {
     changeDesktopNotificationAs,
     changeTeammateNameDisplayAs,
 } from './helper';
+
+import * as MESSAGES from '@/fixtures/messages';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {spyNotificationAs} from '@/support/notification';
+
 
 describe('Desktop notifications', () => {
     let testTeam;

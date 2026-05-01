@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import cloneDeep from 'lodash/cloneDeep';
+
 import {WebSocketEvents} from '@mattermost/client';
 
-import {CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
@@ -23,6 +25,8 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import realConfigureStore from 'store';
 import store from 'stores/redux_store';
 
+import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
@@ -30,6 +34,7 @@ import Constants, {ActionTypes, UserStatuses} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
+    handleChannelAccessControlUpdatedEvent,
     handleEvent,
     handleNewPostEvent,
     handleNewPostEvents,
@@ -112,6 +117,11 @@ jest.mock('actions/views/channel', () => ({
 jest.mock('plugins', () => ({
     ...jest.requireActual('plugins'),
     loadPluginsIfNecessary: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('components/common/hooks/useAccessControlAttributes', () => ({
+    EntityType: {Channel: 'channel'},
+    invalidateAccessControlAttributesCache: jest.fn(),
 }));
 
 let mockState = {
@@ -705,8 +715,58 @@ describe('reconnect', () => {
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName: 'enterprise',
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes: 'true',
+                        },
+                    },
+                },
+            },
+        );
+
         reconnect();
         expect(getCustomProfileAttributeFields).toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
+    });
+
+    test.each([
+        {SkuShortName: 'starter', FeatureFlagCustomProfileAttributes: 'true'},
+        {SkuShortName: 'enterprise', FeatureFlagCustomProfileAttributes: 'false'},
+    ])("should not reload custom profile attribute fields on reconnect if feature isn't available", ({SkuShortName, FeatureFlagCustomProfileAttributes}) => {
+        const clonedMockState = cloneDeep(mockState);
+
+        mockState = mergeObjects(
+            mockState,
+            {
+                entities: {
+                    general: {
+                        license: {
+                            SkuShortName,
+                        },
+                        config: {
+                            FeatureFlagCustomProfileAttributes,
+                        },
+                    },
+                },
+            },
+        );
+
+        reconnect();
+        expect(getCustomProfileAttributeFields).not.toHaveBeenCalled();
+
+        // Restore mock state
+        mockState = clonedMockState;
     });
 });
 
@@ -819,6 +879,47 @@ describe('handleChannelUpdatedEvent', () => {
         testStore.dispatch(handleChannelUpdatedEvent(msg));
 
         expect(getHistory().replace).not.toHaveBeenCalled();
+    });
+});
+
+describe('handleChannelAccessControlUpdatedEvent', () => {
+    beforeEach(() => {
+        invalidateAccessControlAttributesCache.mockClear();
+    });
+
+    test('dispatches RECEIVED_CHANNEL with parsed channel and invalidates attribute cache', () => {
+        const testStore = configureStore({});
+        const channel = {
+            id: 'channel-ac-1',
+            team_id: 'team-1',
+            policy_enforced: true,
+        };
+        const msg = {
+            data: {
+                channel: JSON.stringify(channel),
+            },
+        };
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: ChannelTypes.RECEIVED_CHANNEL,
+                data: channel,
+            },
+        ]);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
+        expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
+    });
+
+    test('returns early when msg.data.channel is missing', () => {
+        const testStore = configureStore({});
+        const msg = {data: {}};
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        expect(testStore.getActions()).toEqual([]);
+        expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
     });
 });
 

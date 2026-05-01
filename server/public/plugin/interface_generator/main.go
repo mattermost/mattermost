@@ -42,6 +42,7 @@ var excludedPluginHooks = []string{
 	"PluginHTTP",
 	"ServeHTTP",
 	"UploadData",
+	"ReceiveSharedChannelAttachmentSyncMsg",
 	"ServeMetrics",
 }
 

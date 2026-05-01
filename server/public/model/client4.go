@@ -45,6 +45,7 @@ const (
 	STATUS                          = "status"
 	StatusOk                        = "OK"
 	StatusFail                      = "FAIL"
+	StatusDisabled                  = "disabled"
 	StatusUnhealthy                 = "UNHEALTHY"
 	StatusRemove                    = "REMOVE"
 	ConnectionId                    = "Connection-Id"
@@ -683,6 +684,10 @@ func (c *Client4) propertyFieldRoute(groupName, objectType, fieldID string) clie
 
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
+}
+
+func (c *Client4) propertySystemValuesRoute(groupName string) clientRoute {
+	return newClientRoute("properties").Join("groups", groupName, PropertyFieldObjectTypeSystem, "values")
 }
 
 func (c *Client4) accessControlPoliciesRoute() clientRoute {
@@ -3014,6 +3019,20 @@ func (c *Client4) SearchAllChannels(ctx context.Context, search *ChannelSearch) 
 	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
 }
 
+// SearchAllChannelsForUserWithOpts searches channels for a regular user with additional filter options.
+// Sends system_console=false so the server applies user-visibility scoping (membership-gated for private channels).
+func (c *Client4) SearchAllChannelsForUserWithOpts(ctx context.Context, search *ChannelSearch) (ChannelListWithTeamData, *Response, error) {
+	values := url.Values{}
+	values.Set("system_console", "false")
+
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.channelsRoute().Join("search"), values, search)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[ChannelListWithTeamData](r)
+}
+
 // SearchAllChannelsForUser search in all the channels for a regular user.
 func (c *Client4) SearchAllChannelsForUser(ctx context.Context, term string) (ChannelListWithTeamData, *Response, error) {
 	values := url.Values{}
@@ -3323,6 +3342,49 @@ func (c *Client4) AddChannelMembers(ctx context.Context, channelId, postRootId s
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[[]*ChannelMember](r)
+}
+
+// SetChannelMembers performs a bulk set (replace) of channel memberships. It accepts the complete
+// desired membership list and reconciles it against the current state. Results are streamed back
+// as NDJSON, one line per batch. The batchSize and batchDelayMs parameters control the processing
+// rate; pass 0 to use server defaults.
+func (c *Client4) SetChannelMembers(ctx context.Context, channelId string, req *SetChannelMembersRequest, batchSize, batchDelayMs int) ([]*SetChannelMembersResponse, *Response, error) {
+	route := c.channelMembersRoute(channelId)
+	routePath, err := route.String()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if batchSize > 0 || batchDelayMs > 0 {
+		params := url.Values{}
+		if batchSize > 0 {
+			params.Set("batch_size", strconv.Itoa(batchSize))
+		}
+		if batchDelayMs > 0 {
+			params.Set("batch_delay_ms", strconv.Itoa(batchDelayMs))
+		}
+		routePath = fmt.Sprintf("%s?%s", routePath, params.Encode())
+	}
+
+	r, err := c.DoAPIPutJSON(ctx, routePath, req)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var results []*SetChannelMembersResponse
+	dec := json.NewDecoder(r.Body)
+	for {
+		var result SetChannelMembersResponse
+		if err := dec.Decode(&result); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return results, BuildResponse(r), err
+		}
+		results = append(results, &result)
+	}
+	return results, BuildResponse(r), nil
 }
 
 // AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
@@ -6160,9 +6222,16 @@ func (c *Client4) GetJobs(ctx context.Context, jobType string, status string, pa
 
 // GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
 func (c *Client4) GetJobsByType(ctx context.Context, jobType string, page int, perPage int) ([]*Job, *Response, error) {
+	return c.GetJobsByTypeForTeam(ctx, jobType, page, perPage, "")
+}
+
+func (c *Client4) GetJobsByTypeForTeam(ctx context.Context, jobType string, page int, perPage int, teamID string) ([]*Job, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
+	if teamID != "" {
+		values.Set("team_id", teamID)
+	}
 	r, err := c.doAPIGetWithQuery(ctx, c.jobsRoute().Join("type", jobType), values, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -8033,6 +8102,38 @@ func (c *Client4) PatchPropertyValues(ctx context.Context, groupName, objectType
 	return DecodeJSONFromResponse[[]*PropertyValue](r)
 }
 
+// GetSystemPropertyValues returns the property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) GetSystemPropertyValues(ctx context.Context, groupName string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {
+	values := url.Values{}
+	if search.PerPage > 0 {
+		values.Set("per_page", strconv.Itoa(search.PerPage))
+	}
+	if search.CursorID != "" && search.CursorCreateAt > 0 {
+		values.Set("cursor_id", search.CursorID)
+		values.Set("cursor_create_at", strconv.FormatInt(search.CursorCreateAt, 10))
+	} else if search.CursorID != "" || search.CursorCreateAt > 0 {
+		return nil, nil, errors.New("both cursor_id and cursor_create_at must be provided together")
+	}
+	r, err := c.doAPIGetWithQuery(ctx, c.propertySystemValuesRoute(groupName), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
+// PatchSystemPropertyValues upserts property values attached to the Mattermost
+// system itself in the given group.
+func (c *Client4) PatchSystemPropertyValues(ctx context.Context, groupName string, items []PropertyValuePatchItem) ([]*PropertyValue, *Response, error) {
+	r, err := c.doAPIPatchJSON(ctx, c.propertySystemValuesRoute(groupName), items)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*PropertyValue](r)
+}
+
 func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
 	r, err := c.doAPIGet(ctx, c.contentFlaggingRoute().Join("post", postId, "field_values"), "")
 	if err != nil {
@@ -8152,7 +8253,15 @@ func (c *Client4) GetChannelsForAccessControlPolicy(ctx context.Context, policyI
 }
 
 func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, policyID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
-	r, err := c.doAPIPostJSON(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), options)
+	return c.SearchChannelsForAccessControlPolicyForTeam(ctx, policyID, "", options)
+}
+
+func (c *Client4) SearchChannelsForAccessControlPolicyForTeam(ctx context.Context, policyID, teamID string, options ChannelSearch) (*ChannelsWithCount, *Response, error) {
+	var query url.Values
+	if teamID != "" {
+		query = url.Values{"team_id": []string{teamID}}
+	}
+	r, err := c.doAPIPostJSONWithQuery(ctx, c.accessControlPolicyRoute(policyID).Join("resources", "channels", "search"), query, options)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

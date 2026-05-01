@@ -133,7 +133,7 @@ func (s *OpensearchInterfaceTestSuite) SetupTest() {
 		s.Require().Nil(appErr)
 	}
 
-	s.Require().Nil(s.CommonTestSuite.ESImpl.Start())
+	s.Require().Nil(s.CommonTestSuite.ESImpl.Start(context.Background()))
 
 	s.Nil(s.CommonTestSuite.ESImpl.PurgeIndexes(s.th.Context))
 	s.NoError(s.RefreshIndexFn())

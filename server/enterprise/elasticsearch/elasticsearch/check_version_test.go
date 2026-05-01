@@ -4,6 +4,7 @@
 package elasticsearch
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -74,7 +75,7 @@ func TestCheckVersion(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			client := newTestClient(t, infoHandler(tc.version))
-			version, major, appErr := checkVersion(client)
+			version, major, appErr := checkVersion(context.Background(), client)
 			if tc.wantErrID != "" {
 				require.NotNil(t, appErr)
 				assert.Equal(t, tc.wantErrID, appErr.Id)
@@ -97,7 +98,7 @@ func TestCheckVersionConnectionError(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, _, appErr := checkVersion(client)
+	_, _, appErr := checkVersion(context.Background(), client)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "ent.elasticsearch.start.get_server_version.app_error", appErr.Id)
 }

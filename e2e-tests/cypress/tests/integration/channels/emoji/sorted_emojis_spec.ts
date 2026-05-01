@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @emoji
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Emoji sorting', () => {
     before(() => {
@@ -40,7 +40,7 @@ describe('Emoji sorting', () => {
                 }
             });
 
-        const emojiList = [];
+        const emojiList: string[] = [];
 
         // # Post a guardsman emoji
         cy.postMessage(':guardsman:');
@@ -57,7 +57,7 @@ describe('Emoji sorting', () => {
         // # Get list of recent emojis based on search text
         cy.findAllByTestId('emojiItem').children('img').each(($el) => {
             const emojiName = $el.get(0);
-            emojiList.push(emojiName.dataset.testid);
+            emojiList.push(emojiName.dataset.testid!);
         }).then(() => {
             // # Comparing list of emojis obtained from search above and making sure order is same as requirement describes
             expect(emojiList).to.deep.equal([

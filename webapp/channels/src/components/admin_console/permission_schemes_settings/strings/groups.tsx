@@ -125,6 +125,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Manage own and others\' outgoing webhooks.',
         },
     }),
+    manage_agents_group: defineMessages({
+        name: {
+            id: 'admin.permissions.group.manage_agents.name',
+            defaultMessage: 'Manage AI Agents',
+        },
+        description: {
+            id: 'admin.permissions.group.manage_agents.description',
+            defaultMessage: 'Manage own and others\' AI agents.',
+        },
+    }),
     manage_slash_commands_group: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_slash_commands.name',

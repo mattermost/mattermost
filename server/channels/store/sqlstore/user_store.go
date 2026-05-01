@@ -2374,9 +2374,13 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 }
 
 func (us SqlUserStore) RefreshPostStatsForUsers() error {
-	if _, err := us.GetMaster().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+	ctx, cancel := us.analyticsContext()
+	defer cancel()
+
+	if _, err := us.GetMaster().ExecContext(ctx, "REFRESH MATERIALIZED VIEW poststats"); err != nil {
 		return errors.Wrap(err, "users_refresh_post_stats_exec")
 	}
+
 	return nil
 }
 

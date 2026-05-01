@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// This file implements the "User Attributes" feature, formerly known as
+// "Custom Profile Attributes" (CPA). Internal identifiers retain the old
+// naming for backward compatibility with REST APIs, WebSocket events,
+// JSON wire formats, and the Property System Architecture (PSA) group name
+// "custom_profile_attributes". See MM-68235.
+
 package model
 
 import (

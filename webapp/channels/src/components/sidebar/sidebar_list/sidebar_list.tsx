@@ -15,6 +15,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
@@ -441,11 +442,16 @@ export class SidebarList extends React.PureComponent<Props, State> {
                 );
             }
 
-            const renderedCategories = categories.map(this.renderCategory);
+            const managedCategories = categories.filter((c) => c.type === CategoryTypes.MANAGED);
+            const nonManagedCategories = categories.filter((c) => c.type !== CategoryTypes.MANAGED);
+
+            const renderedManagedCategories = managedCategories.map(this.renderCategory);
+            const renderedNonManagedCategories = nonManagedCategories.map(this.renderCategory);
 
             channelList = (
                 <>
                     {unreadsCategory}
+                    {renderedManagedCategories}
                     <DragDropContext
                         onDragEnd={this.onDragEnd}
                         onBeforeDragStart={this.onBeforeDragStart}
@@ -463,7 +469,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
                                     >
-                                        {renderedCategories}
+                                        {renderedNonManagedCategories}
                                         {provided.placeholder}
                                     </div>
                                 );

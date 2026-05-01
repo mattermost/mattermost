@@ -7,7 +7,7 @@ test('MM-66937 Invite modal results match the current input state', async ({pw})
     const {adminUser, adminClient, team} = await pw.initSetup();
 
     // # Create two users not on the team whose usernames share a prefix but differ at the end
-    const randomPrefix = await pw.random.id(8);
+    const randomPrefix = pw.random.id(8);
     const user1 = await adminClient.createUser(await pw.random.user(randomPrefix + 'a'), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(randomPrefix + 'b'), '', '');
 
@@ -63,7 +63,7 @@ test('MM-66937 Invite modal results match the current input state when typing in
     const {adminUser, adminClient, team} = await pw.initSetup();
 
     // # Create a users with a Korean name (plus a prefix to avoid interfering test runs)
-    const randomPrefix = await pw.random.id(8);
+    const randomPrefix = pw.random.id(8);
     const user = await adminClient.createUser(
         {
             ...(await pw.random.user(randomPrefix + 'a')),

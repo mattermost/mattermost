@@ -1261,6 +1261,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row "
+                        id="all_users-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row "
+                            id="all_users-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="all_users-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
                         id="all_users-custom_groups"
                       >
                         <div
@@ -3704,6 +3802,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             >
                               Allow users to create posts.
                             </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row  read-only"
+                            id="-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -4950,6 +5146,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row "
+                        id="all_users-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row "
+                            id="all_users-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="all_users-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
                         id="all_users-custom_groups"
                       >
                         <div
@@ -7393,6 +7687,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             >
                               Allow users to create posts.
                             </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row  read-only"
+                            id="-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -8640,6 +9032,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row "
+                        id="all_users-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row "
+                            id="all_users-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="all_users-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
                         id="all_users-custom_groups"
                       >
                         <div
@@ -11083,6 +11573,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             >
                               Allow users to create posts.
                             </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row  read-only"
+                            id="-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -12329,6 +12917,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row "
+                        id="all_users-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="all_users-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row "
+                            id="all_users-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="all_users-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row"
+                              id="all_users-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="all_users-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row "
                         id="all_users-custom_groups"
                       >
                         <div
@@ -14772,6 +15458,104 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                             >
                               Allow users to create posts.
                             </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only"
+                        id="-integrations"
+                      >
+                        <div
+                          class="fa fa-caret-right permission-arrow open"
+                        />
+                        <div
+                          class="permission-check "
+                          data-testid="-integrations-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Integrations & Customizations
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Manage OAuth 2.0, slash commands, webhooks and emoji.
+                        </span>
+                      </div>
+                      <div
+                        class="permission-group-permissions open"
+                      >
+                        <div
+                          class="permission-group"
+                        >
+                          <div
+                            class="permission-group-row  read-only"
+                            id="-integrations-manage_agents_group"
+                          >
+                            <div
+                              class="fa fa-caret-right permission-arrow open"
+                            />
+                            <div
+                              class="permission-check "
+                              data-testid="-integrations-manage_agents_group-checkbox"
+                            />
+                            <span
+                              class="permission-name"
+                            >
+                              Manage AI Agents
+                            </span>
+                            <span
+                              class="permission-description"
+                            >
+                              Manage own and others' AI agents.
+                            </span>
+                          </div>
+                          <div
+                            class="permission-group-permissions open"
+                          >
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_own_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_own_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage own AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage your own AI agents.
+                              </span>
+                            </div>
+                            <div
+                              class="permission-row read-only"
+                              id="-integrations-manage_agents_group-manage_others_agent"
+                            >
+                              <div
+                                class="permission-check "
+                                data-testid="-integrations-manage_agents_group-manage_others_agent-checkbox"
+                              />
+                              <span
+                                class="permission-name"
+                              >
+                                Manage others' AI agents
+                              </span>
+                              <span
+                                class="permission-description"
+                              >
+                                Create and manage AI agents for other users.
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>

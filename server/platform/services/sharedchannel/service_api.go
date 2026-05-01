@@ -63,9 +63,12 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 	if err != nil {
 		return nil, err
 	}
-	// to avoid fetching the channel again, we manually set the shared
-	// flag before notifying the clients
-	channel.Shared = model.NewPointer(true)
+	// we get the channel to get the updated fields, including updateAt
+	// and Shared flag
+	channel, err = scs.server.GetStore().Channel().Get(sc.ChannelId, false)
+	if err != nil {
+		return nil, fmt.Errorf("cannot fetch channel after share: %w", err)
+	}
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return scNew, nil
@@ -90,7 +93,7 @@ func (scs *Service) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedC
 // UnshareChannel unshares the channel by deleting the SharedChannels record and unsets the Channel `shared` flag.
 // Returns true if a shared channel existed and was deleted.
 func (scs *Service) UnshareChannel(channelID string) (bool, error) {
-	channel, err := scs.server.GetStore().Channel().Get(channelID, true)
+	_, err := scs.server.GetStore().Channel().Get(channelID, true)
 	if err != nil {
 		return false, err
 	}
@@ -100,9 +103,12 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	// to avoid fetching the channel again, we manually set the shared
-	// flag before notifying the clients
-	channel.Shared = model.NewPointer(false)
+	// we get the channel to get the updated fields, including updateAt
+	// and Shared flag
+	channel, err := scs.server.GetStore().Channel().Get(channelID, false)
+	if err != nil {
+		return false, fmt.Errorf("cannot fetch channel after unshare: %w", err)
+	}
 
 	scs.notifyClientsForSharedChannelConverted(channel)
 	return deleted, nil
@@ -182,7 +188,7 @@ func (scs *Service) InviteRemoteToChannel(channelID, remoteID, userID string, sh
 // non-deleted remotes for the channel and unshares the channel if
 // there are none. Returns true if the channel was unshared.
 func (scs *Service) unshareChannelIfNoActiveRemotes(channelID string) (bool, error) {
-	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID}
+	opts := model.SharedChannelRemoteFilterOpts{ChannelId: channelID, IncludeUnconfirmed: true}
 	remotes, err := scs.server.GetStore().SharedChannel().GetRemotes(0, 1, opts)
 	if err != nil {
 		return false, fmt.Errorf("failed to check remaining remotes: %w", err)
@@ -252,7 +258,7 @@ func (scs *Service) CheckChannelIsShared(channelID string) error {
 	if _, err := scs.server.GetStore().SharedChannel().Get(channelID); err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
-			return fmt.Errorf("channel is not shared: %w", errNotFound)
+			return fmt.Errorf("%w: %v", model.ErrChannelNotShared, errNotFound)
 		}
 		return fmt.Errorf("cannot check if channel %s is shared: %w", channelID, err)
 	}
@@ -267,7 +273,7 @@ func (scs *Service) CheckCanInviteToSharedChannel(channelId string) error {
 	sc, err := scs.server.GetStore().SharedChannel().Get(channelId)
 	if err != nil {
 		if isNotFoundError(err) {
-			return fmt.Errorf("channel is not shared: %w", err)
+			return fmt.Errorf("%w: %v", model.ErrChannelNotShared, err)
 		}
 		return fmt.Errorf("cannot find channel: %w", err)
 	}

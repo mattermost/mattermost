@@ -871,18 +871,20 @@ func testFileInfoGetStorageUsage(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testGetUptoNSizeFileTime(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
-	t.Skip("MM-53905")
-
 	_, err := ss.FileInfo().GetUptoNSizeFileTime(0)
 	assert.Error(t, err)
 	_, err = ss.FileInfo().GetUptoNSizeFileTime(-1)
 	assert.Error(t, err)
 
-	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis(), 100000)
+	// Delete all existing file infos so parallel tests don't interfere with
+	// the cumulative size calculation (MM-53905).
+	_, err = ss.FileInfo().PermanentDeleteBatch(rctx, model.GetMillis()+3600000, 100000)
 	require.NoError(t, err)
 
+	// Use far-future timestamps so these are always "most recent" even if
+	// parallel tests create file infos concurrently.
 	diff := int64(10000)
-	now := utils.MillisFromTime(time.Now()) + diff
+	now := utils.MillisFromTime(time.Now()) + 3600000 // 1 hour in the future
 
 	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 		PostId:    model.NewId(),

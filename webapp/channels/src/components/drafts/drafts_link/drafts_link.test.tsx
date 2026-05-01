@@ -4,6 +4,7 @@
 import React from 'react';
 import {MemoryRouter, Route} from 'react-router-dom';
 
+import type {GeneralState} from '@mattermost/types/general';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
@@ -199,6 +200,27 @@ describe('components/drafts/drafts_link', () => {
         await waitFor(() => {
             expect(fetchTeamScheduledPosts).toHaveBeenCalledWith('team1', true);
         });
+    });
+
+    it.each<DeepPartial<GeneralState>>([
+        {config: {ScheduledPosts: 'false'}},
+        {license: {IsLicensed: 'false'}},
+    ])('should not fetch scheduled posts when component mounts if disabled', async (partialConf) => {
+        const fetchTeamScheduledPosts = require('mattermost-redux/actions/scheduled_posts').fetchTeamScheduledPosts;
+        const state: DeepPartial<GlobalState> = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                general: {
+                    ...baseState.entities?.general,
+                    ...partialConf,
+                },
+            },
+        };
+
+        renderWithRouter(state);
+
+        expect(fetchTeamScheduledPosts).not.toHaveBeenCalled();
     });
 
     it('should be active when on drafts route', () => {

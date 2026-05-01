@@ -48,8 +48,7 @@ jest.mock('actions/storage', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => ({
-    isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
 

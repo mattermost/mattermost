@@ -5,6 +5,7 @@ import type React from 'react';
 import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
@@ -22,7 +23,6 @@ import * as Keyboard from 'utils/keyboard';
 import {type ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {pasteHandler} from 'utils/paste';
 import {isWithinCodeBlock, postMessageOnKeyPress} from 'utils/post_utils';
-import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';

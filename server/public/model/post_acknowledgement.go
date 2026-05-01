@@ -6,11 +6,11 @@ package model
 import "net/http"
 
 type PostAcknowledgement struct {
-	UserId         string  `json:"user_id"`
-	PostId         string  `json:"post_id"`
-	AcknowledgedAt int64   `json:"acknowledged_at"`
-	ChannelId      string  `json:"channel_id"`
-	RemoteId       *string `json:"remote_id,omitempty"`
+	UserId         string  `json:"user_id" xml:"UserId"`
+	PostId         string  `json:"post_id" xml:"PostId"`
+	AcknowledgedAt int64   `json:"acknowledged_at" xml:"AcknowledgedAt"`
+	ChannelId      string  `json:"channel_id" xml:"ChannelId"`
+	RemoteId       *string `json:"remote_id,omitempty" xml:"RemoteId,omitempty"`
 }
 
 func (o *PostAcknowledgement) IsValid() *AppError {

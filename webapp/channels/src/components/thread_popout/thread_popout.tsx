@@ -6,6 +6,7 @@ import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useLocation, useParams} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {Channel} from '@mattermost/types/channels';
 
 import {fetchChannelsAndMembers, selectChannel} from 'mattermost-redux/actions/channels';
@@ -16,6 +17,7 @@ import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThread} from 'mattermost-redux/actions/threads';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {getChannel, getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -34,7 +36,6 @@ import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
 import usePopoutFocus from 'utils/popouts/use_popout_focus';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
-import {isDesktopApp} from 'utils/user_agent';
 
 import type {GlobalState} from 'types/store';
 
@@ -72,6 +73,7 @@ export default function ThreadPopout() {
         }
         return getThreadOrSynthetic(state, post);
     });
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
 
     usePopoutTitle(getThreadPopoutTitle(channel));
 
@@ -92,10 +94,12 @@ export default function ThreadPopout() {
     useEffect(() => {
         if (teamId) {
             dispatch(fetchChannelsAndMembers(teamId));
-            dispatch(fetchTeamScheduledPosts(teamId, true));
+            if (isScheduledPostEnabled) {
+                dispatch(fetchTeamScheduledPosts(teamId, true));
+            }
             dispatch(selectTeam(teamId));
         }
-    }, [dispatch, teamId]);
+    }, [dispatch, teamId, isScheduledPostEnabled]);
 
     useEffect(() => {
         if (teamId) {

@@ -44,6 +44,7 @@ type OpensearchInterfaceImpl struct {
 	client      *opensearchapi.Client
 	mutex       sync.RWMutex
 	ready       atomic.Int32
+	healthy     atomic.Int32 // 1 = reachable, 0 = unreachable (set by watcher)
 	version     int
 	fullVersion string
 	plugins     []string
@@ -77,6 +78,18 @@ func (os *OpensearchInterfaceImpl) IsActive() bool {
 	return *os.Platform.Config().ElasticsearchSettings.EnableIndexing && os.ready.Load() == 1
 }
 
+func (os *OpensearchInterfaceImpl) IsHealthy() bool {
+	return os.healthy.Load() == 1
+}
+
+func (os *OpensearchInterfaceImpl) SetHealthy(healthy bool) {
+	if healthy {
+		os.healthy.Store(1)
+	} else {
+		os.healthy.Store(0)
+	}
+}
+
 func (os *OpensearchInterfaceImpl) IsIndexingEnabled() bool {
 	return *os.Platform.Config().ElasticsearchSettings.EnableIndexing
 }
@@ -94,8 +107,8 @@ func (os *OpensearchInterfaceImpl) IsIndexingSync() bool {
 }
 
 // fetchServerInfo retrieves and stores the server version and plugins from the given client.
-func (os *OpensearchInterfaceImpl) fetchServerInfo(client *opensearchapi.Client) *model.AppError {
-	version, major, appErr := checkMaxVersion(client)
+func (os *OpensearchInterfaceImpl) fetchServerInfo(ctx context.Context, client *opensearchapi.Client) *model.AppError {
+	version, major, appErr := checkMaxVersion(ctx, client)
 	if appErr != nil {
 		return appErr
 	}
@@ -105,7 +118,7 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(client *opensearchapi.Client)
 
 	// Since we are only retrieving plugins for the Support Packet generation, it doesn't make sense to kill the process if we get an error
 	// Instead, we will log it and move forward
-	resp, err := client.Cat.Plugins(context.Background(), nil)
+	resp, err := client.Cat.Plugins(ctx, nil)
 	if err != nil {
 		os.Platform.Log().Warn("Error retrieving opensearch plugins", mlog.Err(err))
 	} else {
@@ -118,7 +131,7 @@ func (os *OpensearchInterfaceImpl) fetchServerInfo(client *opensearchapi.Client)
 	return nil
 }
 
-func (os *OpensearchInterfaceImpl) Start() *model.AppError {
+func (os *OpensearchInterfaceImpl) Start(ctx context.Context) *model.AppError {
 	if license := os.Platform.License(); license == nil || !*license.Features.Elasticsearch || !*os.Platform.Config().ElasticsearchSettings.EnableIndexing {
 		return nil
 	}
@@ -138,11 +151,9 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(os.client); appErr != nil {
+	if appErr = os.fetchServerInfo(ctx, os.client); appErr != nil {
 		return appErr
 	}
-
-	ctx := context.Background()
 
 	esSettings := os.Platform.Config().ElasticsearchSettings
 	if *esSettings.LiveIndexingBatchSize > 1 {
@@ -237,6 +248,37 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	}
 
 	os.ready.Store(1)
+	os.healthy.Store(1)
+
+	return nil
+}
+
+// snapshotClient returns the current client reference under the read lock,
+// releasing the lock before returning. This lets HealthCheck make a blocking
+// network call without holding the RLock for its full duration.
+// See ElasticsearchInterfaceImpl.snapshotClient for the full rationale.
+func (os *OpensearchInterfaceImpl) snapshotClient() (*opensearchapi.Client, bool) {
+	os.mutex.RLock()
+	defer os.mutex.RUnlock()
+
+	if os.ready.Load() == 0 {
+		return nil, false
+	}
+	return os.client, true
+}
+
+func (os *OpensearchInterfaceImpl) HealthCheck(_ request.CTX) *model.AppError {
+	client, ok := os.snapshotClient()
+	if !ok {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.not_started.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*os.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
+	defer cancel()
+
+	if _, err := client.Cluster.Health(ctx, nil); err != nil {
+		return model.NewAppError("Opensearch.HealthCheck", "ent.elasticsearch.healthcheck.unreachable.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusBadGateway).Wrap(err)
+	}
 
 	return nil
 }
@@ -246,7 +288,7 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 	defer os.mutex.Unlock()
 
 	if os.ready.Load() == 0 {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.stop.already_stopped.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError)
+		return nil
 	}
 
 	// Flushing any pending requests
@@ -259,6 +301,7 @@ func (os *OpensearchInterfaceImpl) Stop() *model.AppError {
 
 	os.client = nil
 	os.ready.Store(0)
+	os.healthy.Store(0)
 
 	return nil
 }
@@ -1638,7 +1681,7 @@ func (os *OpensearchInterfaceImpl) TestConfig(rctx request.CTX, cfg *model.Confi
 		return appErr
 	}
 
-	if appErr = os.fetchServerInfo(client); appErr != nil {
+	if appErr = os.fetchServerInfo(context.Background(), client); appErr != nil {
 		return appErr
 	}
 
@@ -2257,8 +2300,8 @@ func (os *OpensearchInterfaceImpl) DeleteFilesBatch(rctx request.CTX, endTime, l
 	return nil
 }
 
-func checkMaxVersion(client *opensearchapi.Client) (string, int, *model.AppError) {
-	resp, err := client.Info(context.Background(), nil)
+func checkMaxVersion(ctx context.Context, client *opensearchapi.Client) (string, int, *model.AppError) {
+	resp, err := client.Info(ctx, nil)
 	if err != nil {
 		return "", 0, model.NewAppError("Opensearch.checkMaxVersion", "ent.elasticsearch.start.get_server_version.app_error", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
 	}

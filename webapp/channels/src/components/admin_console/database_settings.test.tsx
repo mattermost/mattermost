@@ -35,6 +35,7 @@ describe('components/DatabaseSettings', () => {
                 DisableDatabaseSearch: true,
                 DataSource: 'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10',
                 QueryTimeout: 10,
+                AnalyticsQueryTimeout: 300,
                 ConnMaxLifetimeMilliseconds: 10,
                 ConnMaxIdleTimeMilliseconds: 20,
             },

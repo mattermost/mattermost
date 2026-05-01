@@ -18,10 +18,11 @@
 
 // Group: @channels @system_console @plugin @not_cloud @timeout_error
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {demoPlugin} from '../../../utils/plugins';
-
 import {waitForAlertMessage} from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {demoPlugin} from '@/utils/plugins';
+
 
 describe('Plugins Management', () => {
     before(() => {

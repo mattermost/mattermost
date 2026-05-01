@@ -38,7 +38,7 @@ export default async function externalRequest(arg: ExternalRequestArg): Promise<
             cookieString += nameAndValue + ';';
         });
     } catch (error) {
-        return getErrorResponse(error);
+        return getErrorResponse(error as AxiosError);
     }
 
     try {
@@ -61,7 +61,7 @@ export default async function externalRequest(arg: ExternalRequestArg): Promise<
         };
     } catch (error) {
         // If we have a response for the error, pull out the relevant parts
-        return getErrorResponse(error);
+        return getErrorResponse(error as AxiosError);
     }
 }
 

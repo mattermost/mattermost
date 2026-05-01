@@ -5,6 +5,8 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -19,6 +21,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -59,6 +62,7 @@ function ChannelSettingsAccessRulesTab({
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
@@ -121,12 +125,12 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
-                    // Extract expression from the policy rules
-                    const existingExpression = result.data.rules?.[0]?.expression || '';
+                    const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
                     const existingAutoSync = result.data.active || false;
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
+                    setExistingRules(result.data.rules || []);
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
@@ -205,8 +209,8 @@ function ChannelSettingsAccessRulesTab({
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
         // Get expressions from system policies
         const systemExpressions = systemPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
-            filter((expr) => expr && expr.trim());
+            map((policy) => getMembershipRule(policy.rules)?.expression).
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
 
         // Combine channel expression with system expressions
         const allExpressions = [];
@@ -225,7 +229,7 @@ function ChannelSettingsAccessRulesTab({
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&
@@ -238,6 +242,15 @@ function ChannelSettingsAccessRulesTab({
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
         if (!testExpression.trim()) {
             return true; // No expression, skip validation
+        }
+
+        // Public-channel ABAC is advisory: rules can recommend / auto-add members
+        // but never remove anyone. A non-matching admin cannot lock themselves
+        // out of a public channel, so the self-inclusion check has no purpose
+        // here and just blocks legitimate admin workflows (e.g. configuring a
+        // policy intended for a department the admin doesn't belong to).
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            return true;
         }
 
         if (!currentUser?.id) {
@@ -269,7 +282,7 @@ function ChannelSettingsAccessRulesTab({
             return false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser?.id]);
+    }, [currentUser?.id, channel.type]);
 
     // Check if rules are becoming less restrictive by comparing user matches
     const isBecomingLessRestrictive = useCallback(async (oldExpression: string, newExpression: string): Promise<boolean> => {
@@ -400,14 +413,10 @@ function ChannelSettingsAccessRulesTab({
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
-                rules: expression.trim() ? [{
-                    actions: ['*'],
-                    expression: expression.trim(),
-                }] : [],
+                rules: buildRulesWithMembership(existingRules, expression),
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
@@ -471,6 +480,28 @@ function ChannelSettingsAccessRulesTab({
             const hadRulesBefore = originalExpression.trim().length > 0;
             const hasRulesNow = expression.trim().length > 0;
             const isRemovingAllRules = hadRulesBefore && !hasRulesNow;
+
+            // Public channels use advisory membership policies: members are never removed by sync,
+            // and the impact preview would incorrectly imply removals. Save without confirmation.
+            if (channel.type === Constants.OPEN_CHANNEL) {
+                if (autoSyncMembers && isEmptyRulesState) {
+                    setFormError(formatMessage({
+                        id: 'channel_settings.access_rules.expression_required_for_autosync',
+                        defaultMessage: 'Access rules are required when auto-add members is enabled',
+                    }));
+                    return SAVE_RESULT_ERROR;
+                }
+
+                if (expression.trim()) {
+                    const isValid = await validateSelfExclusion(expression);
+                    if (!isValid) {
+                        return SAVE_RESULT_ERROR;
+                    }
+                }
+
+                const success = await performSave();
+                return success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
+            }
 
             // For empty rules state, check if we need to show warning for removing all rules
             if (isEmptyRulesState) {
@@ -555,7 +586,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -682,10 +713,19 @@ function ChannelSettingsAccessRulesTab({
 
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
-                    {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.title_public',
+                        defaultMessage: 'Membership Rules',
+                    }) : formatMessage({
+                        id: 'channel_settings.access_rules.title',
+                        defaultMessage: 'Access Rules',
+                    })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {formatMessage({
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.subtitle_public',
+                        defaultMessage: 'Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.',
+                    }) : formatMessage({
                         id: 'channel_settings.access_rules.subtitle',
                         defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
                     })}
@@ -705,7 +745,13 @@ function ChannelSettingsAccessRulesTab({
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                         isSystemAdmin={isSystemAdmin}
-                        validateExpressionAgainstRequester={actions.validateExpressionAgainstRequester}
+
+                        // Suppress the live "you would be excluded" banner on
+                        // public channels — public-channel ABAC is advisory and
+                        // can never lock the admin out, so the warning is
+                        // misleading. The save-time guard is also skipped in
+                        // validateSelfExclusion above.
+                        validateExpressionAgainstRequester={channel.type === Constants.OPEN_CHANNEL ? undefined : actions.validateExpressionAgainstRequester}
                     />
                 </div>
             )}
@@ -755,16 +801,30 @@ function ChannelSettingsAccessRulesTab({
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
+                        const isPublic = channel.type === Constants.OPEN_CHANNEL;
                         if (autoSyncMembers) {
+                            if (isPublic) {
+                                return formatMessage({
+                                    id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
+                                    defaultMessage: 'Qualifying users are automatically added as members. Members can still leave on their own — no one is removed based on these rules.',
+                                });
+                            }
                             return formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync_enabled_description',
-                                defaultMessage: 'Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                                defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
+                            });
+                        }
+
+                        if (isPublic) {
+                            return formatMessage({
+                                id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
+                                defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
                             });
                         }
 
                         return formatMessage({
                             id: 'channel_settings.access_rules.auto_sync_disabled_description',
-                            defaultMessage: 'Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.',
+                            defaultMessage: 'Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.',
                         });
                     })()}
                 </p>
