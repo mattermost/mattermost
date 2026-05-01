@@ -216,7 +216,8 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
-    const post = await channelsPage.getLastPost();
+    // Town Square may show join/system posts above the target — select by post id.
+    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
 
     // Re-apply guard immediately before dot-menu: login takes 3-5 s during which a
     // concurrent initSetup() can reset EnableContentFlagging to false.
@@ -295,11 +296,25 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
     // Re-apply guard before UI interaction: a concurrent initSetup() may have reset
-    // EnableContentFlagging between the initial patchConfig and here.
+    // EnableContentFlagging or reviewer settings between the initial patchConfig and here.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {HideFlaggedContent: false},
+            NotificationSettings: {
+                EventTargetMapping: {
+                    assigned: ['reviewers'],
+                    dismissed: ['reporter', 'author', 'reviewers'],
+                    flagged: ['reviewers'],
+                    removed: ['author', 'reporter', 'reviewers'],
+                },
+            },
+            ReviewerSettings: {
+                CommonReviewers: true,
+                SystemAdminsAsReviewers: true,
+                TeamAdminsAsReviewers: true,
+                CommonReviewerIds: [user.id, secondUserID],
+            },
         },
     });
     await pw.waitUntil(async () => {
@@ -309,7 +324,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
 
     // Login as the second user
     const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
-    const post = await channelsPage.getLastPost();
+    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
 
     // Try to flag previously retained post
     await openPostDotMenu(post, channelsPage);

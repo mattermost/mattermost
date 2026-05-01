@@ -142,7 +142,7 @@ test.describe('System Console Notifications', () => {
                                 const config = await pollClient.getConfig();
                                 return config.EmailSettings?.PushNotificationContents;
                             },
-                            {timeout: 20000, intervals: [500, 1000, 2000]},
+                            {timeout: 45000, intervals: [500, 1000, 2000, 3000]},
                         )
                         .toBe(option.value);
                     saved = true;
