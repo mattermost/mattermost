@@ -2279,6 +2279,11 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// GetByIds does not preserve the order of post.FileIds (the SQL store sorts
+	// by CreateAt DESC and the local cache layer interleaves cache hits), so
+	// reorder to match the post's stored attachment order.
+	fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
+
 	firstInaccessibleFileTime, appErr := a.removeInaccessibleContentFromFilesSlice(fileInfos)
 	if appErr != nil {
 		return nil, 0, appErr
@@ -2287,6 +2292,34 @@ func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster
 	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, firstInaccessibleFileTime, nil
+}
+
+func orderFileInfosByID(ids []string, infos []*model.FileInfo) []*model.FileInfo {
+	if len(ids) == 0 || len(infos) < 2 {
+		// No sorting needed for just one file info
+		return infos
+	}
+
+	byID := make(map[string]*model.FileInfo, len(infos))
+	for _, info := range infos {
+		byID[info.Id] = info
+	}
+
+	ordered := make([]*model.FileInfo, 0, len(infos))
+	for _, id := range ids {
+		if info, ok := byID[id]; ok {
+			ordered = append(ordered, info)
+			delete(byID, id)
+		}
+	}
+
+	for _, info := range infos {
+		if _, ok := byID[info.Id]; ok {
+			ordered = append(ordered, info)
+		}
+	}
+
+	return ordered
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
@@ -2655,6 +2688,8 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 		if err != nil {
 			return model.NewAppError("app.populateEditHistoryFileMetadata", "app.file_info.get_by_ids.app_error", map[string]any{"post_id": post.Id}, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		fileInfos = orderFileInfosByID(post.FileIds, fileInfos)
 
 		if post.Metadata == nil {
 			post.Metadata = &model.PostMetadata{}
