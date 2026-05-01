@@ -17,8 +17,8 @@ interface UseBookmarksDndOptions {
 interface UseBookmarksDndResult {
     isDragging: boolean;
     activeId: string | null;
-    forceOverflowOpen: boolean;
-    setForceOverflowOpen: (open: boolean) => void;
+    forceOverflowOpen: boolean | undefined;
+    setForceOverflowOpen: (open: boolean | undefined) => void;
 }
 
 function getDropIndex(
@@ -51,7 +51,7 @@ export function useBookmarksDnd({
 }: UseBookmarksDndOptions): UseBookmarksDndResult {
     const [activeId, setActiveId] = useState<string | null>(null);
     const isDragging = Boolean(activeId);
-    const [forceOverflowOpen, setForceOverflowOpen] = useState(false);
+    const [forceOverflowOpen, setForceOverflowOpen] = useState<boolean | undefined>(undefined);
 
     // Use refs for order arrays so the monitor callback always sees current values
     // without needing to re-register on every order change

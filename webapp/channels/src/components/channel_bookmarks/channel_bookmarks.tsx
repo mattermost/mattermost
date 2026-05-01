@@ -65,7 +65,6 @@ function ChannelBookmarks({channelId}: Props) {
     }, [isDragging, reorderState.isReordering, pauseRecalc]);
 
     // --- Render ---
-    const forceOpen = forceOverflowOpen || (reorderState.isReordering && overflowItems.includes(reorderState.itemId ?? '')) || undefined;
 
     if (!hasBookmarks) {
         return null;
@@ -110,7 +109,7 @@ function ChannelBookmarks({channelId}: Props) {
                     canReorder={canReorder}
                     isDragging={isDragging}
                     canAdd={canAdd}
-                    forceOpen={forceOpen}
+                    forceOpen={forceOverflowOpen}
                     onOpenChange={setForceOverflowOpen}
                     reorderState={reorderState}
                     getItemProps={canReorder ? getItemProps : undefined}

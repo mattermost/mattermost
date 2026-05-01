@@ -91,6 +91,11 @@ export function useKeyboardReorder({
 
         setState({isReordering: true, confirmed: false, itemId: id, originalIndex: index});
 
+        // Hold the menu open for the duration of the reorder.
+        if (overflowItemsRef.current.includes(id)) {
+            onOverflowOpenChange?.(true);
+        }
+
         const name = getName(id);
         readAloud(
             formatMessage(
@@ -101,7 +106,7 @@ export function useKeyboardReorder({
                 {name},
             ),
         );
-    }, [getName, formatMessage, readAloud]);
+    }, [getName, onOverflowOpenChange, formatMessage, readAloud]);
 
     const confirmReorder = useCallback(() => {
         // Keep overflow menu open if item ended in overflow
