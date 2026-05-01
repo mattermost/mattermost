@@ -84,7 +84,7 @@ interface TableEditorProps {
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
 // An attribute is considered available if it doesn't have spaces in its NAME (the CEL identifier —
-// not the display_name). New CPA fields cannot have spaces in name (Phase 1 server validation),
+// not the display_name). New CPA fields cannot have spaces in name
 // so hasSpaces only fires for grandfathered legacy fields.
 // An attribute is considered "safe" (synced from LDAP/SAML, admin-managed, plugin-managed (protected), OR enableUserManagedAttributes is true).
 export const findFirstAvailableAttributeFromList = (

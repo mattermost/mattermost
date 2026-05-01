@@ -144,8 +144,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 const {name} = option;
 
                 // hasSpaces checks the CEL identifier (name), not the display label.
-                // New fields cannot have spaces in name (Phase 1 server validation),
-                // so this branch only fires for grandfathered legacy fields.
+                // New fields cannot have spaces in name but leaving this check for backwards compatibility with grandfathered legacy fields.
                 const hasSpaces = name.includes(' ');
                 const isSynced = option.attrs?.ldap || option.attrs?.saml;
                 const isAdminManaged = option.attrs?.managed === 'admin';
