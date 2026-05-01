@@ -1526,6 +1526,63 @@ func TestGetUserByAuthData(t *testing.T) {
 		})
 	})
 
+	t.Run("returns accepted terms of service for system admin", func(t *testing.T) {
+		tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+		require.Nil(t, appErr)
+		appErr = th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+		require.Nil(t, appErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), authID, "")
+		require.NoError(t, getErr)
+		require.Equal(t, tos.Id, ruser.TermsOfServiceId, "Terms of service ID should match")
+		require.NotZero(t, ruser.TermsOfServiceCreateAt, "Terms of service CreateAt should be populated")
+	})
+
+	t.Run("returns user when auth_data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice. Verify
+		// the route, Client4 path escaping (`@` -> `%40`), and server-side decoding
+		// all round-trip correctly.
+		emailUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, emailUser, team)
+		emailAuth := "user-" + model.NewId() + "@example.com"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), emailUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(emailAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), emailAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, emailUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, emailAuth, *ruser.AuthData)
+	})
+
+	t.Run("preserves case in auth_data", func(t *testing.T) {
+		// auth_data is opaque and case-sensitive (unlike email, which the email
+		// endpoint lowercases). Non-SAML IdPs commonly issue mixed-case identifiers,
+		// so guard against a regression where the handler normalizes the value.
+		mixedUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, mixedUser, team)
+		mixedAuth := "MixedCase-" + model.NewId() + "@Example.COM"
+		_, _, updErr := th.SystemAdminClient.UpdateUserAuth(context.Background(), mixedUser.Id, &model.UserAuth{
+			AuthData:    model.NewPointer(mixedAuth),
+			AuthService: model.UserAuthServiceSaml,
+		})
+		require.NoError(t, updErr)
+
+		ruser, _, getErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), mixedAuth, "")
+		require.NoError(t, getErr)
+		require.Equal(t, mixedUser.Id, ruser.Id)
+		require.NotNil(t, ruser.AuthData)
+		require.Equal(t, mixedAuth, *ruser.AuthData)
+
+		_, resp, lowerErr := th.SystemAdminClient.GetUserByAuthData(context.Background(), strings.ToLower(mixedAuth), "")
+		require.Error(t, lowerErr)
+		CheckNotFoundStatus(t, resp)
+	})
+
 	t.Run("rejects non-system admin", func(t *testing.T) {
 		// `user` is converted to SAML below and can no longer use password login; use
 		// a separate team member to assert the endpoint requires a system admin.

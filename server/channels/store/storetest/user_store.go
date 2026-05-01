@@ -69,6 +69,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
 	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
 	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
+	t.Run("GetByAuth", func(t *testing.T) { testUserStoreGetByAuth(t, rctx, ss) })
 	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
 	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
 	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
@@ -2104,7 +2105,7 @@ func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+func testUserStoreGetByAuth(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamID := model.NewId()
 	auth1 := model.NewId()
 	auth3 := model.NewId()
@@ -2160,17 +2161,6 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 		assert.Equal(t, u3, u)
 	})
 
-	t.Run("GetByAuthData finds user by auth data only", func(t *testing.T) {
-		u, err := ss.User().GetByAuthData(u1.AuthData)
-		require.NoError(t, err)
-		assert.Equal(t, u1.Id, u.Id)
-		assert.Equal(t, "service", u.AuthService)
-
-		u, err = ss.User().GetByAuthData(u3.AuthData)
-		require.NoError(t, err)
-		assert.Equal(t, u3.Id, u.Id)
-	})
-
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
 		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
 		require.Error(t, err)
@@ -2192,6 +2182,90 @@ func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) 
 		require.Error(t, err)
 		var invErr *store.ErrInvalidInput
 		require.True(t, errors.As(err, &invErr))
+	})
+}
+
+func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	auth1 := model.NewId()
+	auth2 := model.NewId()
+
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u1" + model.NewId(),
+		AuthData:    &auth1,
+		AuthService: "service",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u1.Id}, -1)
+	require.NoError(t, nErr)
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:       MakeEmail(),
+		Username:    "u2" + model.NewId(),
+		AuthData:    &auth2,
+		AuthService: "service2",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: u2.Id}, -1)
+	require.NoError(t, nErr)
+
+	t.Run("returns full user when auth data matches", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u1.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u1, u)
+	})
+
+	t.Run("matches regardless of auth service", func(t *testing.T) {
+		u, err := ss.User().GetByAuthData(u2.AuthData)
+		require.NoError(t, err)
+		assert.Equal(t, u2.Id, u.Id)
+		assert.Equal(t, "service2", u.AuthService)
+	})
+
+	t.Run("returns ErrNotFound for unknown auth data", func(t *testing.T) {
+		unknownAuth := model.NewId()
+		_, err := ss.User().GetByAuthData(&unknownAuth)
+		require.Error(t, err)
+		var nfErr *store.ErrNotFound
+		require.True(t, errors.As(err, &nfErr))
+	})
+
+	t.Run("returns ErrInvalidInput for nil auth data", func(t *testing.T) {
+		_, err := ss.User().GetByAuthData(nil)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("returns ErrInvalidInput for empty auth data", func(t *testing.T) {
+		emptyAuth := ""
+		_, err := ss.User().GetByAuthData(&emptyAuth)
+		require.Error(t, err)
+		var invErr *store.ErrInvalidInput
+		require.True(t, errors.As(err, &invErr))
+	})
+
+	t.Run("matches when auth data is an email-shaped value", func(t *testing.T) {
+		// ResetAuthDataToEmailForUsers sets AuthData = Email for whole batches of
+		// users, so email-shaped auth_data values are common in practice.
+		emailAuth := "u3-" + model.NewId() + "@example.com"
+		u3, err := ss.User().Save(rctx, &model.User{
+			Email:       MakeEmail(),
+			Username:    "u3" + model.NewId(),
+			AuthData:    &emailAuth,
+			AuthService: "service",
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
+
+		u, err := ss.User().GetByAuthData(&emailAuth)
+		require.NoError(t, err)
+		assert.Equal(t, u3.Id, u.Id)
+		require.NotNil(t, u.AuthData)
+		assert.Equal(t, emailAuth, *u.AuthData)
 	})
 }
 

@@ -48,7 +48,6 @@ type Params struct {
 	Email                              string
 	Username                           string
 	AuthData                           string
-	AuthService                        string
 	TeamName                           string
 	ChannelName                        string
 	PreferenceName                     string
@@ -173,7 +172,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.Email = props["email"]
 	params.Username = props["username"]
 	params.AuthData = props["auth_data"]
-	params.AuthService = props["auth_service"]
 	params.TeamName = strings.ToLower(props["team_name"])
 	params.ChannelName = strings.ToLower(props["channel_name"])
 	params.Category = props["category"]

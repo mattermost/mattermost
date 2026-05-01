@@ -502,6 +502,19 @@ func getUserByAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.IsSystemAdmin() || c.AppContext.Session().UserId == user.Id {
+		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+		if err != nil && err.StatusCode != http.StatusNotFound {
+			c.Err = err
+			return
+		}
+
+		if userTermsOfService != nil {
+			user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+			user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+		}
+	}
+
 	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
