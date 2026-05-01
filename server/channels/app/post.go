@@ -2678,18 +2678,27 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {
-	// Store the reminder in the DB
+	remindedPost, postErr := a.GetSinglePost(rctx, postID, false)
+	if postErr != nil {
+		return postErr
+	}
+	// Ephemeral ack must use the thread root so CRT/RHS thread views (keyed by root id) show the confirmation.
+	ephemeralRootID := remindedPost.Id
+	if remindedPost.RootId != "" {
+		ephemeralRootID = remindedPost.RootId
+	}
+
+	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	reminder := &model.PostReminder{
 		PostId:     postID,
 		UserId:     userID,
 		TargetTime: targetTime,
 	}
-	err := a.Srv().Store().Post().SetPostReminder(reminder)
-	if err != nil {
-		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	err = a.Srv().Store().Post().SetPostReminder(reminder)
 	if err != nil {
 		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2710,7 +2719,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
-		RootId:    postID,
+		RootId:    ephemeralRootID,
 		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.

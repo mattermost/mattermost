@@ -165,9 +165,12 @@ const MultiValueSelector = ({
                     key='filter_values'
                     id='filter_values'
                     type='text'
-                    placeholder={formatMessage({
+                    placeholder={formatMessage(actualAllowCreateForMenu ? {
                         id: 'admin.access_control.table_editor.selector.filter_or_create',
                         defaultMessage: 'Search or create value...',
+                    } : {
+                        id: 'admin.access_control.table_editor.selector.filter_values',
+                        defaultMessage: 'Search values...',
                     })}
                     className='attribute-selector-search'
                     value={filter}

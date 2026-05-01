@@ -473,9 +473,15 @@ test.describe('ABAC Permission Policies - BOR and Permalink', () => {
         await deniedChannelsPage.goto(team.name, channelName);
         await deniedChannelsPage.toBeVisible();
 
-        // * The permalink preview embeds the referenced post — file must be redacted.
-        // Both the standalone post and the embedded preview should show the placeholder.
+        // * The standalone original post shows the placeholder (files redacted at top level)
         await expect(deniedPage.getByTestId('redactedFilesPlaceholder').first()).toBeVisible({timeout: 15000});
+
+        // * The embedded permalink preview (.post-preview) must ALSO show the placeholder —
+        // this specifically validates that the fix strips files from the embedded post
+        // and sets RedactedFileCount, causing the placeholder to render inside the embed.
+        const permalinkEmbed = deniedPage.locator('.post-preview');
+        await expect(permalinkEmbed).toBeVisible({timeout: 15000});
+        await expect(permalinkEmbed.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 10000});
 
         // * No file attachment card anywhere in the channel view
         await expect(deniedPage.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();

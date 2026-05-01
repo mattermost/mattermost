@@ -1,0 +1,75 @@
+# Weekly Server CI jobs that don't need to run on every push/PR.
+# These are important for compliance and compatibility but have low
+# regression rates, so running them weekly saves significant 8-core
+# runner capacity (9 fewer concurrent 8-core jobs per master push).
+#
+# Schedule: Monday ~1am ET (5am UTC)
+#
+# Jobs moved here from server-ci.yml:
+# - Postgres with binary parameters (1x 8-core)
+# - Postgres FIPS unsharded (1x 8-core) — sharded runs stay in server-ci.yml for PR iteration
+# - mmctl FIPS tests (1x 8-core)
+name: Server CI Weekly
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Monday 5am UTC (~1am ET)
+  push:
+    branches:
+      - 'release-*'
+  workflow_dispatch: # Allow manual trigger for urgent FIPS/binary verification
+
+permissions:
+  contents: read
+
+jobs:
+  go:
+    name: Compute Go Version
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.calculate.outputs.GO_VERSION }}
+    steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Calculate version
+        id: calculate
+        working-directory: server/
+        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
+
+  test-postgres-binary:
+    name: Postgres with binary parameters
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Postgres with binary parameters
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes
+      drivername: postgres
+      logsartifact: postgres-binary-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+
+  test-postgres-normal-fips:
+    name: Postgres FIPS
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Postgres FIPS
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: postgres-server-fips-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: true
+
+  test-mmctl-fips:
+    name: Run mmctl tests (FIPS)
+    needs: go
+    uses: ./.github/workflows/mmctl-test-template.yml
+    secrets: inherit
+    with:
+      name: mmctl
+      datasource: postgres://mmuser:mostest-fips-test@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: mmctl-fips-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: true

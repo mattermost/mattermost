@@ -996,7 +996,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
 			abacChannel.Id,
-			"*",
+			model.AccessControlPolicyActionMembership,
 			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
 				return opts.TeamID == th.BasicTeam.Id &&
 					opts.Limit == 50 &&
@@ -1027,7 +1027,7 @@ func TestGetUsersNotInAbacChannel(t *testing.T) {
 		mockAccessControl.On("QueryUsersForResource",
 			mock.Anything,
 			abacChannel.Id,
-			"*",
+			model.AccessControlPolicyActionMembership,
 			mock.MatchedBy(func(opts model.SubjectSearchOptions) bool {
 				return opts.TeamID == th.BasicTeam.Id &&
 					opts.Limit == 25 &&
