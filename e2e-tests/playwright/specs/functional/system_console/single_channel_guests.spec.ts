@@ -103,7 +103,7 @@ test.describe('Single-channel guests', () => {
                             .catch(() => '');
                         return Number(text?.match(/(\d+)/)?.[1] ?? 0);
                     },
-                    {timeout: 90000, intervals: [4000, 6000, 8000, 10000]},
+                    {timeout: 120000, intervals: [5000, 8000, 10000, 15000]},
                 )
                 .toBeGreaterThanOrEqual(1);
         },

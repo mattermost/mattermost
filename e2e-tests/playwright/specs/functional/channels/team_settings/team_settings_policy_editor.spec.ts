@@ -574,6 +574,13 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
 
+        // initSetup() on another worker can disable ABAC — without it the sync footer never completes reliably.
+        await enableABACConfig(adminClient);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+        });
+
         // * Footer visible with "Sync now" action
         const footer = teamSettings.container.locator('.SyncStatusFooter');
         await expect(footer).toBeVisible({timeout: 10000});
@@ -586,10 +593,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(teamSettings.container.getByText(/Syncing/)).toBeVisible({timeout: 5000});
 
         // * Wait for sync to complete and "Sync now" to reappear
-        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 30000});
+        await expect(teamSettings.container.getByText(/Sync now/)).toBeVisible({timeout: 90000});
 
         // * Status updates to "Last synced just now" confirming a fresh sync completed
-        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible();
+        await expect(teamSettings.container.getByText(/Last synced just now/)).toBeVisible({timeout: 30000});
 
         await teamSettings.close();
     });

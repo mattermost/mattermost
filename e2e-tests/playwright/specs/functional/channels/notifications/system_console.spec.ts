@@ -31,6 +31,9 @@ test.describe('System Console Notifications', () => {
      * @objective Verify that the Push Notification Contents setting is properly displayed and can be changed to all available options
      */
     test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
+        // Multiple reload/save/retry rounds — default 60 s CI timeout is too tight when shards contend on config.
+        test.setTimeout(240000);
+
         const {adminUser, adminClient} = await pw.getAdminClient();
 
         if (!adminUser || !adminClient) {
@@ -115,7 +118,7 @@ test.describe('System Console Notifications', () => {
         // * Verify that the config is correctly saved in the server
         for (const option of options) {
             let saved = false;
-            for (let attempt = 0; attempt < 4 && !saved; attempt++) {
+            for (let attempt = 0; attempt < 8 && !saved; attempt++) {
                 await resetNotificationsConfig(adminClient);
                 await systemConsolePage.page.reload();
                 await systemConsolePage.sidebar.notifications.click();

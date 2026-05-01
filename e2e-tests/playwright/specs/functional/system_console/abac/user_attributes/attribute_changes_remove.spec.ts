@@ -114,6 +114,10 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Wait for attribute change to propagate
         await systemConsolePage.page.waitForTimeout(1000);
 
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+
         // Run sync job
         const __syncJob1 = await runSyncJob(systemConsolePage.page);
         await waitForLatestSyncJob(systemConsolePage.page, undefined, __syncJob1);
@@ -194,6 +198,10 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         // Wait for attribute change to propagate
         await systemConsolePage.page.waitForTimeout(1000);
+
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
 
         // Run sync
         const __syncJob3 = await runSyncJob(systemConsolePage.page);
