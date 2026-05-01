@@ -220,6 +220,22 @@ jobs:
 
           echo "After: docker compose version"
           docker compose version
+      - name: ci/pre-pull-playwright-image
+        # Transient MCR blocks ("The request is blocked") during `docker compose up`
+        # leave the playwright service missing and fail the whole shard. Pull early
+        # with backoff so a later attempt often succeeds before tests start.
+        run: |
+          set -euo pipefail
+          IMAGE="mcr.microsoft.com/playwright:v1.59.1-noble"
+          for attempt in $(seq 1 8); do
+            echo "docker pull ${IMAGE} (attempt ${attempt}/8)"
+            if docker pull "${IMAGE}"; then
+              exit 0
+            fi
+            sleep $((attempt * 20))
+          done
+          echo "::error::Failed to pull Playwright image ${IMAGE} after retries"
+          exit 1
       - name: ci/run-tests
         run: |
           make cloud-init

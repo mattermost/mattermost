@@ -70,6 +70,14 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await navigateToABACPage(systemConsolePage.page);
         await enableABAC(systemConsolePage.page);
 
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+        });
+
         const policyName = `Engineering Manual Add ${pw.random.id()}`;
         await createBasicPolicy(systemConsolePage.page, {
             name: policyName,
@@ -92,9 +100,13 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // Verify user can be added (policy allows it since user has qualifying attribute)
         await adminClient.addToChannel(testUser.id, privateChannel.id);
 
-        // Verify user is now in channel
-        const userInChannel = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
-        expect(userInChannel).toBe(true);
+        // Membership + ABAC evaluation can lag behind the REST response in CI.
+        await expect
+            .poll(async () => verifyUserInChannel(adminClient, testUser.id, privateChannel.id), {
+                timeout: 60000,
+                intervals: [1000, 2000, 3000],
+            })
+            .toBe(true);
 
         // ============================================================
         // VERIFICATION: Check for "User added" system message

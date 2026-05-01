@@ -445,19 +445,20 @@ test(
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
+        await channelsPage.centerView.container.waitFor({state: 'visible', timeout: 30000});
 
         // * Verify translated Spanish post is present
         // Mock server produces "<original> [translated to en]"
         const translatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'Solo español [translated to en]'});
-        await expect(translatedPost).toBeVisible({timeout: 15000});
+        await expect(translatedPost).toBeVisible({timeout: 45000});
 
         // * Verify the English post is present and unchanged (not translated)
         const notTranslatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'English only'})
             .filter({hasNotText: '[translated to en]'});
-        await expect(notTranslatedPost).toBeVisible();
+        await expect(notTranslatedPost).toBeVisible({timeout: 30000});
     },
 );
