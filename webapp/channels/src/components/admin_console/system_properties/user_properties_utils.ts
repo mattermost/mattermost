@@ -299,9 +299,9 @@ export const ValidationWarningOptionsRequired = 'user_properties.validation.opti
 
 const getIncrementedCELName = (desiredName: string, collection: UserPropertyFields) => {
     const names = new Set(
-        Object.values(collection.data)
-            .filter(({delete_at}) => delete_at === 0)
-            .map(({name}) => name.toLowerCase()),
+        Object.values(collection.data).
+            filter(({delete_at: deleteAt}) => deleteAt === 0).
+            map(({name}) => name.toLowerCase()),
     );
     let newName = desiredName;
     let n = 1;
