@@ -46,45 +46,9 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	}
 	channel.Props[model.ChannelPropsBoardLinkedProperties] = []string{statusField.ID, assigneeField.ID}
 
-	// Build kanban column config from status field options
-	statusOptions, ok := statusField.Attrs["options"].([]any)
-	if !ok || len(statusOptions) == 0 {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status field has no options", http.StatusInternalServerError)
-	}
-	var columns []model.KanbanColumn
-	for _, opt := range statusOptions {
-		optMap, ok := opt.(map[string]any)
-		if !ok {
-			continue
-		}
-		optID, _ := optMap["id"].(string)
-		optName, _ := optMap["name"].(string)
-		if optID != "" && optName != "" {
-			columns = append(columns, model.KanbanColumn{
-				ID:        model.NewId(),
-				Name:      optName,
-				OptionIDs: []string{optID},
-			})
-		}
-	}
-
-	kanbanProps := &model.KanbanProps{
-		GroupBy: model.KanbanGroupBy{
-			FieldID: statusField.ID,
-			Columns: columns,
-		},
-	}
-
-	viewProps, err := kanbanProps.ToProps()
-	if err != nil {
-		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "failed to serialize kanban props", http.StatusInternalServerError).Wrap(err)
-	}
-
-	view := &model.View{
-		CreatorId: channel.CreatorId,
-		Type:      model.ViewTypeKanban,
-		Title:     "Board",
-		Props:     viewProps,
+	view, appErr := buildBoardKanbanView(channel.CreatorId, statusField)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// Atomically save channel + view
@@ -145,4 +109,49 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	// Do NOT add to sidebar categories — boards don't appear in sidebar
 
 	return sc, nil
+}
+
+// buildBoardKanbanView constructs the default kanban view for a new board
+// channel, with one column per option on the boards "status" property field.
+func buildBoardKanbanView(creatorID string, statusField *model.PropertyField) (*model.View, *model.AppError) {
+	statusOptions, ok := statusField.Attrs["options"].([]any)
+	if !ok || len(statusOptions) == 0 {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "status field has no options", http.StatusInternalServerError)
+	}
+
+	var columns []model.KanbanColumn
+	for _, opt := range statusOptions {
+		optMap, ok := opt.(map[string]any)
+		if !ok {
+			continue
+		}
+		optID, _ := optMap["id"].(string)
+		optName, _ := optMap["name"].(string)
+		if optID != "" && optName != "" {
+			columns = append(columns, model.KanbanColumn{
+				ID:        model.NewId(),
+				Name:      optName,
+				OptionIDs: []string{optID},
+			})
+		}
+	}
+
+	kanbanProps := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: statusField.ID,
+			Columns: columns,
+		},
+	}
+
+	viewProps, err := kanbanProps.ToProps()
+	if err != nil {
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "failed to serialize kanban props", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &model.View{
+		CreatorId: creatorID,
+		Type:      model.ViewTypeKanban,
+		Title:     "Board",
+		Props:     viewProps,
+	}, nil
 }
