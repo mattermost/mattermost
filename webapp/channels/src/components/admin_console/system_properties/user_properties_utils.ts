@@ -149,24 +149,24 @@ export const useUserPropertyFields = () => {
                     return acc;
                 }
 
-                if (field.name) {
-                    // Lenient grandfather: only validate CEL names after a rename.
-                    // Newly created fields always validate because they have no
-                    // server-persisted identifier to grandfather from.
-                    const originalName = current.data[field.id]?.name;
-                    const nameChanged = field.create_at === 0 || field.name !== originalName;
-
-                    if (nameChanged && validateCPAFieldName(field.name)) {
-                        acc[field.id] = {name: ValidationWarningNameInvalidCEL};
-                        return acc;
-                    }
-                } else {
+                if (!field.name) {
                     // name not provided — suppress for brand-new fields that
                     // haven't been interacted with yet (user just clicked "Add attribute")
                     const hasDisplayName = Boolean(field.attrs?.display_name?.trim());
                     if (field.create_at !== 0 || hasDisplayName) {
                         acc[field.id] = {name: ValidationWarningNameRequired};
                     }
+                    return acc;
+                }
+
+                // Lenient grandfather: only validate CEL names after a rename.
+                // Newly created fields always validate because they have no
+                // server-persisted identifier to grandfather from.
+                const originalName = current.data[field.id]?.name;
+                const nameChanged = field.create_at === 0 || field.name !== originalName;
+
+                if (nameChanged && validateCPAFieldName(field.name)) {
+                    acc[field.id] = {name: ValidationWarningNameInvalidCEL};
                     return acc;
                 }
 

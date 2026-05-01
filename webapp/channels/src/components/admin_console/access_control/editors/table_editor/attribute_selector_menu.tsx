@@ -96,6 +96,13 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
         return availableAttributes.find((attr) => attr.name === currentAttribute);
     }, [currentAttribute, availableAttributes]);
 
+    let selectedAttributeLabel;
+    if (selectedAttributeObject) {
+        selectedAttributeLabel = getUserPropertyFieldLabel(selectedAttributeObject);
+    } else {
+        selectedAttributeLabel = currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'});
+    }
+
     useEffect(() => {
         if (autoOpen && !prevAutoOpen.current) {
             const buttonElement = document.getElementById(buttonId);
@@ -117,9 +124,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                 children: (
                     <>
                         <AttributeIcon attribute={selectedAttributeObject}/>
-                        {selectedAttributeObject ?
-                            getUserPropertyFieldLabel(selectedAttributeObject) :
-                            (currentAttribute || formatMessage({id: 'admin.access_control.table_editor.selector.select_attribute', defaultMessage: 'Select attribute'}))}
+                        {selectedAttributeLabel}
                     </>
                 ),
                 dataTestId: 'attributeSelectorMenuButton',

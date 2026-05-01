@@ -77,21 +77,20 @@ async function getTownSquareRoute(adminClient: Client4) {
     };
 }
 
-function getErrorMessage(error: unknown) {
-    if (error instanceof Error) {
-        return error.message;
-    }
-
-    return String(error);
-}
-
 async function seedLegacyField(adminClient: Client4, uid: number): Promise<UserPropertyField> {
-    return adminClient.createCustomProfileAttributeField({
+    // FIXTURE-ONLY: bypass the CEL-validated CPA route by posting to the generic
+    // PSAv2 property-fields endpoint. Requires the IntegratedBoards feature flag.
+    const url = `${adminClient.getBaseRoute()}/properties/groups/custom_profile_attributes/user/fields`;
+    const body = {
         name: `Legacy Field_${uid}`,
         type: 'text',
-        // FIXTURE-ONLY: used to exercise the grandfathered invalid-name path.
+        target_type: 'system',
         attrs: {sort_order: 99},
-    } as any);
+    };
+    return (adminClient as any).doFetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+    }) as Promise<UserPropertyField>;
 }
 
 test.describe('System Console - User Attributes display names', () => {
@@ -256,13 +255,8 @@ test.describe('System Console - User Attributes display names', () => {
         let legacyField: UserPropertyField | undefined;
 
         try {
-            try {
-                // # Seed a legacy invalid identifier to exercise grandfathered behavior
-                legacyField = await seedLegacyField(adminClient, uid);
-            } catch (error) {
-                test.skip(true, `Legacy field seeding is unavailable in this environment: ${getErrorMessage(error)}`);
-                return;
-            }
+            // # Seed a legacy invalid identifier to exercise grandfathered behavior
+            legacyField = await seedLegacyField(adminClient, uid);
 
             await sp.goto();
 

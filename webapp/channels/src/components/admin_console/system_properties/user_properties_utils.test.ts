@@ -404,6 +404,34 @@ describe('useUserPropertyFields', () => {
         }));
     });
 
+    it('should NOT trigger Required warning for a freshly-created untouched field', async () => {
+        const {result, rerender} = renderHookWithContext(() => useUserPropertyFields(), getBaseState());
+
+        act(() => {
+            jest.runAllTimers();
+        });
+        rerender();
+
+        await waitFor(() => {
+            const [, read] = result.current;
+            expect(read.loading).toBe(false);
+        });
+
+        act(() => {
+            const [,,, ops] = result.current;
+            ops.create();
+        });
+        rerender();
+
+        const [fields] = result.current;
+        const createdId = fields.order[fields.order.length - 1];
+
+        expect(fields.data[createdId].create_at).toBe(0);
+        expect(fields.data[createdId].name).toBe('');
+        expect(fields.data[createdId].attrs?.display_name).toBeUndefined();
+        expect(fields.warnings?.[createdId]).toBeUndefined();
+    });
+
     it('should preserve required warning precedence when multiple names are empty', async () => {
         const {result, rerender} = renderHookWithContext(() => {
             return useUserPropertyFields();

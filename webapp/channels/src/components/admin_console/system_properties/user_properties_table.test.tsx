@@ -502,6 +502,139 @@ describe('UserPropertiesTable input filtering', () => {
         );
         expect(nameUpdateCalls).toHaveLength(0);
     });
+
+    it('auto-fill freezes when Display Name slugifies to a reserved word', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-reserved',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        const nameInput = screen.getByTestId('property-field-input');
+
+        fireEvent.change(displayNameInput, {target: {value: 'function'}});
+        expect(nameInput).toHaveValue('');
+
+        await userEvent.clear(displayNameInput);
+        await userEvent.type(displayNameInput, 'dept');
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('dept');
+        });
+
+        fireEvent.change(displayNameInput, {target: {value: 'true'}});
+        expect(nameInput).toHaveValue('dept');
+    });
+
+    it('auto-fill prepends underscore for leading-digit display names', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-leading-digit',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+        await userEvent.type(displayNameInput, '7Department');
+
+        const nameInput = screen.getByTestId('property-field-input');
+        await waitFor(() => {
+            expect(nameInput).toHaveValue('_7Department');
+        });
+    });
+
+    it('auto-fill truncates display names longer than 255 runes', async () => {
+        const pendingField: UserPropertyField = {
+            id: 'pending-truncate',
+            name: '',
+            type: 'text',
+            group_id: 'custom_profile_attributes',
+            create_at: 0,
+            delete_at: 0,
+            update_at: 0,
+            created_by: '',
+            updated_by: '',
+            target_id: '',
+            target_type: '',
+            object_type: '',
+            attrs: {
+                sort_order: 0,
+                visibility: 'when_set',
+                value_type: '',
+            },
+        };
+
+        renderWithContext(
+            <UserPropertiesTable
+                data={collectionFromArray([pendingField])}
+                canCreate={true}
+                createField={createField}
+                updateField={updateField}
+                deleteField={deleteField}
+                reorderField={reorderField}
+            />,
+        );
+
+        const displayNameInput = screen.getByTestId('property-display-name-input');
+
+        // fireEvent.change bypasses the input's maxLength so the 256-rune value
+        // reaches the onChange handler and exercises the truncation branch.
+        fireEvent.change(displayNameInput, {target: {value: 'a'.repeat(256)}});
+
+        const nameInput = screen.getByTestId('property-field-input') as HTMLInputElement;
+        await waitFor(() => {
+            expect(nameInput.value).toHaveLength(255);
+        });
+    });
 });
 
 describe('useUserPropertiesTable grandfather regression', () => {

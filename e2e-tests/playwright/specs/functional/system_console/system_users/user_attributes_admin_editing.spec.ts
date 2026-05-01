@@ -38,21 +38,23 @@ const testUserAttributes: CustomProfileAttribute[] = [
         },
     },
     {
-        name: 'Work Email',
+        name: 'work_email',
         value: 'work@company.com',
         type: 'text',
         attrs: {
             value_type: 'email',
             visibility: 'when_set', // Ensure it's not synced
+            display_name: 'Work Email',
         },
     },
     {
-        name: 'Personal Website',
+        name: 'personal_website',
         value: 'https://johndoe.com',
         type: 'text',
         attrs: {
             value_type: 'url',
             visibility: 'when_set', // Ensure it's not synced
+            display_name: 'Personal Website',
         },
     },
     {

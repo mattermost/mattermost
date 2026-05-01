@@ -15,7 +15,7 @@ import LoadingScreen from 'components/loading_screen';
 import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
-import {CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier} from 'utils/properties';
+import {CPA_FIELD_NAME_MAX_RUNES, CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier} from 'utils/properties';
 
 import {DangerText, BorderlessInput, LinkButton} from './controls';
 import {useIsFieldOrphaned} from './orphaned_fields_utils';
@@ -118,8 +118,9 @@ export function UserPropertiesTable({
         if (!slug || CPA_FIELD_NAME_RESERVED_WORDS.has(slug)) {
             return null;
         }
-        if ([...slug].length > 255) {
-            slug = [...slug].slice(0, 255).join('');
+        const runes = [...slug];
+        if (runes.length > CPA_FIELD_NAME_MAX_RUNES) {
+            slug = runes.slice(0, CPA_FIELD_NAME_MAX_RUNES).join('');
         }
         return slug;
     }, []);
@@ -212,7 +213,7 @@ export function UserPropertiesTable({
                                 const slug = getAutoFillSlug(row.original.id, value);
                                 updateField({
                                     ...row.original,
-                                    ...(slug !== null ? {name: slug} : {}),
+                                    ...(slug === null ? {} : {name: slug}),
                                     attrs: {
                                         ...row.original.attrs,
                                         display_name: value.trim() || undefined,
