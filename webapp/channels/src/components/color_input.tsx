@@ -6,7 +6,7 @@ import {ChromePicker} from 'react-color';
 import type {ColorResult} from 'react-color';
 import tinycolor from 'tinycolor2';
 
-type Props = {
+export interface ColorInputProps {
     id: string;
     onChange: (color: string) => void;
     value: string;
@@ -18,7 +18,7 @@ const ColorInput = ({
     onChange: onChangeFromProps,
     value: valueFromProps,
     isDisabled,
-}: Props) => {
+}: ColorInputProps) => {
     const colorPicker = useRef<HTMLDivElement>(null);
     const colorInput = useRef<HTMLInputElement>(null);
 
