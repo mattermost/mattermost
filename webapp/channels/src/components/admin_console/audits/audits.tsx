@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useState, memo, useCallback} from 'react';
 import type {CSSProperties} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -23,10 +23,6 @@ type Props = {
     };
 };
 
-type State = {
-    loadingAudits: boolean;
-};
-
 const messages = defineMessages({
     reload: {id: 'admin.audits.reload', defaultMessage: 'Reload User Activity Logs'},
 });
@@ -35,29 +31,28 @@ export const searchableStrings = [
     messages.reload,
 ];
 
-export default class Audits extends React.PureComponent<Props, State> {
-    public constructor(props: Props) {
-        super(props);
+const Audits = ({
+    isLicensed,
+    audits,
+    isDisabled,
+    actions,
+}: Props) => {
+    const [isLoadingAudits, setIsLoadingAudits] = useState(true);
 
-        this.state = {
-            loadingAudits: true,
-        };
-    }
+    useEffect(() => {
+        actions.getAudits().then(() => setIsLoadingAudits(false));
 
-    public componentDidMount() {
-        this.props.actions.getAudits().then(
-            () => this.setState({loadingAudits: false}),
-        );
-    }
+        /* eslint-disable-next-line react-hooks/exhaustive-deps --
+         * This 'useEffect' should only run once during mount.
+         **/
+    }, []);
 
-    private reload = () => {
-        this.setState({loadingAudits: true});
-        this.props.actions.getAudits().then(
-            () => this.setState({loadingAudits: false}),
-        );
-    };
+    const reload = useCallback(() => {
+        setIsLoadingAudits(true);
+        actions.getAudits().then(() => setIsLoadingAudits(false));
+    }, [actions]);
 
-    private activityLogHeader = () => {
+    const activityLogHeader = () => {
         const h4Style: CSSProperties = {
             display: 'inline-block',
             marginBottom: '6px',
@@ -76,7 +71,7 @@ export default class Audits extends React.PureComponent<Props, State> {
                 <button
                     type='submit'
                     className='btn btn-tertiary pull-right'
-                    onClick={this.reload}
+                    onClick={reload}
                 >
                     <ReloadIcon/>
                     <FormattedMessage {...messages.reload}/>
@@ -85,41 +80,41 @@ export default class Audits extends React.PureComponent<Props, State> {
         );
     };
 
-    private renderComplianceReports = () => {
-        if (!this.props.isLicensed) {
+    const renderComplianceReports = () => {
+        if (!isLicensed) {
             return <div/>;
         }
-        return <ComplianceReports readOnly={this.props.isDisabled}/>;
+        return <ComplianceReports readOnly={isDisabled}/>;
     };
 
-    public render() {
-        let content = null;
+    let content = null;
 
-        if (this.state.loadingAudits) {
-            content = <LoadingScreen/>;
-        } else {
-            content = (
-                <div>
-                    <AuditTable
-                        audits={this.props.audits}
-                        showUserId={true}
-                        showIp={true}
-                        showSession={true}
-                    />
-                </div>
-            );
-        }
-
-        return (
+    if (isLoadingAudits) {
+        content = <LoadingScreen/>;
+    } else {
+        content = (
             <div>
-                {this.renderComplianceReports()}
-                <div className='panel compliance-panel'>
-                    {this.activityLogHeader()}
-                    <div className='compliance-panel__table'>
-                        {content}
-                    </div>
-                </div>
+                <AuditTable
+                    audits={audits}
+                    showUserId={true}
+                    showIp={true}
+                    showSession={true}
+                />
             </div>
         );
     }
-}
+
+    return (
+        <div>
+            {renderComplianceReports()}
+            <div className='panel compliance-panel'>
+                {activityLogHeader()}
+                <div className='compliance-panel__table'>
+                    {content}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default memo(Audits);

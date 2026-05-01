@@ -5,9 +5,6 @@
     "13": "postgres:13@sha256:1b154a7bbf474aa1a2e67dc7c976835645fe6c3425320e7ad3f5a926d509e8fc",
     "14": "postgres:14@sha256:1c418702ab77adc7e84c7e726c2ab4f9cb63b8f997341ffcfab56629bab1429d"
   },
-  "mysql": {
-    "8.0.32": "mysql/mysql-server:8.0.32@sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313"
-  },
   "minio": {
     "RELEASE.2019-10-11T00-38-09Z-1": "minio/minio:RELEASE.2019-10-11T00-38-09Z@sha256:0d02f16a1662653f9b961211b21ed7de04bf04492f44c2b7594bacbfcc519eb5",
     "RELEASE.2024-06-22T05-26-45Z": "minio/minio:RELEASE.2024-06-22T05-26-45Z@sha256:dda5e13d3df07fae2c1877701998742bcbe3bbb2b9c24c18ed5b9469cc777761"

@@ -5,6 +5,8 @@ import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
@@ -19,6 +21,7 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
+import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -59,13 +62,13 @@ function ChannelSettingsAccessRulesTab({
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
     const [originalExpression, setOriginalExpression] = useState('');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>([]);
     const [userAttributes, setUserAttributes] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
 
     // Auto-sync members toggle state
     const [autoSyncMembers, setAutoSyncMembers] = useState(false);
     const [originalAutoSyncMembers, setOriginalAutoSyncMembers] = useState(false);
-    const [systemPolicyForcesAutoSync, setSystemPolicyForcesAutoSync] = useState(false);
 
     // SaveChangesPanel state
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
@@ -89,17 +92,6 @@ function ChannelSettingsAccessRulesTab({
 
     // Fetch system policies applied to this channel
     const {policies: systemPolicies, loading: policiesLoading} = useChannelSystemPolicies(channel);
-
-    // Check if system policies force auto-sync to be enabled
-    useEffect(() => {
-        if (systemPolicies && systemPolicies.length > 0) {
-            // System policies force auto-sync when they are active
-            const hasActivePolicies = systemPolicies.some((policy) => policy.active === true);
-            setSystemPolicyForcesAutoSync(hasActivePolicies);
-        } else {
-            setSystemPolicyForcesAutoSync(false);
-        }
-    }, [systemPolicies]);
 
     // Load user attributes on component mount
     useEffect(() => {
@@ -133,17 +125,12 @@ function ChannelSettingsAccessRulesTab({
             try {
                 const result = await actions.getChannelPolicy(channel.id);
                 if (result.data) {
-                    // Extract expression from the policy rules
-                    const existingExpression = result.data.rules?.[0]?.expression || '';
-                    let existingAutoSync = result.data.active || false;
-
-                    // If system policies force auto-sync, override the channel setting
-                    if (systemPolicyForcesAutoSync) {
-                        existingAutoSync = true;
-                    }
+                    const existingExpression = getMembershipRule(result.data.rules)?.expression || '';
+                    const existingAutoSync = result.data.active || false;
 
                     setExpression(existingExpression);
                     setOriginalExpression(existingExpression);
+                    setExistingRules(result.data.rules || []);
                     setAutoSyncMembers(existingAutoSync);
                     setOriginalAutoSyncMembers(existingAutoSync);
                 }
@@ -151,16 +138,11 @@ function ChannelSettingsAccessRulesTab({
                 // If no policy exists (404), that's fine - use defaults
                 setExpression('');
                 setOriginalExpression('');
-
-                // If system policies force auto-sync, enable it even without a channel policy
-                const defaultAutoSync = systemPolicyForcesAutoSync;
-                setAutoSyncMembers(defaultAutoSync);
-                setOriginalAutoSyncMembers(defaultAutoSync);
             }
         };
 
         loadChannelPolicy();
-    }, [channel.id, actions, systemPolicyForcesAutoSync]);
+    }, [channel.id, actions]);
 
     // Update parent component when changes occur
     useEffect(() => {
@@ -198,24 +180,21 @@ function ChannelSettingsAccessRulesTab({
         const hasChannelRules = expression && expression.trim().length > 0;
         const hasSystemPolicies = systemPolicies && systemPolicies.length > 0;
 
-        // Edge case: No channel rules AND no system policies at all (applied or not)
-        return !hasChannelRules && !hasSystemPolicies;
+        // Return true if there are no channel rules or system policies
+        return !(hasChannelRules || hasSystemPolicies);
     }, [expression, systemPolicies]);
 
-    // Auto-sync members toggle logic
+    // Auto-disable auto-sync when there are no system policies and no rules
     useEffect(() => {
-        // Priority 1: System policy forcing (highest priority)
-        // When system policies require auto-sync, it must be enabled
-        if (systemPolicyForcesAutoSync && !autoSyncMembers) {
-            setAutoSyncMembers(true);
-            setOriginalAutoSyncMembers(true); // Update original to prevent "unsaved changes" detection
-        } else if (isEmptyRulesState && autoSyncMembers && !systemPolicyForcesAutoSync) {
-            // Priority 2: Auto-disable when entering empty state (if not forced by system)
-            // When no rules exist and system doesn't force, auto-sync must be disabled
-            setAutoSyncMembers(false);
-            setOriginalAutoSyncMembers(false); // Update original to prevent "unsaved changes" detection
+        if (policiesLoading) {
+            return;
         }
-    }, [systemPolicyForcesAutoSync, isEmptyRulesState, autoSyncMembers]);
+
+        // Only auto-disable if there are no system policies and no rules (empty state)
+        if (isEmptyRulesState && autoSyncMembers) {
+            setAutoSyncMembers(false);
+        }
+    }, [isEmptyRulesState, autoSyncMembers]);
 
     const handleAutoSyncToggle = useCallback(() => {
         // Don't allow toggling if in empty rules state
@@ -223,25 +202,15 @@ function ChannelSettingsAccessRulesTab({
             return;
         }
 
-        // Don't allow toggling if no expression
-        if (!expression.trim()) {
-            return;
-        }
-
-        // Don't allow disabling if system policies force auto-sync
-        if (systemPolicyForcesAutoSync && autoSyncMembers) {
-            return;
-        }
-
         setAutoSyncMembers((prev) => !prev);
-    }, [expression, isEmptyRulesState, systemPolicyForcesAutoSync, autoSyncMembers]);
+    }, [isEmptyRulesState]);
 
     // Helper function to combine system policy expressions with channel expression
     const combineSystemAndChannelExpressions = useCallback((channelExpression: string): string => {
         // Get expressions from system policies
         const systemExpressions = systemPolicies.
-            map((policy) => policy.rules?.[0]?.expression).
-            filter((expr) => expr && expr.trim());
+            map((policy) => getMembershipRule(policy.rules)?.expression).
+            filter((expr): expr is string => Boolean(expr && expr.trim()));
 
         // Combine channel expression with system expressions
         const allExpressions = [];
@@ -260,7 +229,7 @@ function ChannelSettingsAccessRulesTab({
         if (allExpressions.length === 0) {
             return '';
         } else if (allExpressions.length === 1) {
-            return allExpressions[0];
+            return allExpressions[0]!;
         }
 
         // Wrap each expression in parentheses and combine with &&
@@ -273,6 +242,15 @@ function ChannelSettingsAccessRulesTab({
     const validateSelfExclusion = useCallback(async (testExpression: string): Promise<boolean> => {
         if (!testExpression.trim()) {
             return true; // No expression, skip validation
+        }
+
+        // Public-channel ABAC is advisory: rules can recommend / auto-add members
+        // but never remove anyone. A non-matching admin cannot lock themselves
+        // out of a public channel, so the self-inclusion check has no purpose
+        // here and just blocks legitimate admin workflows (e.g. configuring a
+        // policy intended for a department the admin doesn't belong to).
+        if (channel.type === Constants.OPEN_CHANNEL) {
+            return true;
         }
 
         if (!currentUser?.id) {
@@ -304,7 +282,7 @@ function ChannelSettingsAccessRulesTab({
             return false;
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser?.id]);
+    }, [currentUser?.id, channel.type]);
 
     // Check if rules are becoming less restrictive by comparing user matches
     const isBecomingLessRestrictive = useCallback(async (oldExpression: string, newExpression: string): Promise<boolean> => {
@@ -435,14 +413,10 @@ function ChannelSettingsAccessRulesTab({
                 id: channel.id,
                 name: channel.display_name,
                 type: 'channel',
-                version: 'v0.2',
                 active: false, // Always save as false initially, then update separately
                 revision: 1,
                 created_at: Date.now(),
-                rules: expression.trim() ? [{
-                    actions: ['*'],
-                    expression: expression.trim(),
-                }] : [],
+                rules: buildRulesWithMembership(existingRules, expression),
                 imports: systemPolicies.map((p) => p.id), // Include existing parent policies
             };
 
@@ -454,12 +428,11 @@ function ChannelSettingsAccessRulesTab({
 
             // Step 2: Update the active status separately (like System Console does)
             try {
-                await actions.updateAccessControlPolicyActive(channel.id, autoSyncMembers);
+                await actions.updateAccessControlPoliciesActive([{id: channel.id, active: autoSyncMembers}]);
             } catch (activeError) {
+                // Don't fail the entire save operation for this, but log it
                 // eslint-disable-next-line no-console
                 console.error('Failed to update policy active status:', activeError);
-
-                // Don't fail the entire save operation for this, but log it
             }
 
             // Step 3: Create a job to immediately sync channel membership when rules exist
@@ -508,6 +481,28 @@ function ChannelSettingsAccessRulesTab({
             const hasRulesNow = expression.trim().length > 0;
             const isRemovingAllRules = hadRulesBefore && !hasRulesNow;
 
+            // Public channels use advisory membership policies: members are never removed by sync,
+            // and the impact preview would incorrectly imply removals. Save without confirmation.
+            if (channel.type === Constants.OPEN_CHANNEL) {
+                if (autoSyncMembers && isEmptyRulesState) {
+                    setFormError(formatMessage({
+                        id: 'channel_settings.access_rules.expression_required_for_autosync',
+                        defaultMessage: 'Access rules are required when auto-add members is enabled',
+                    }));
+                    return SAVE_RESULT_ERROR;
+                }
+
+                if (expression.trim()) {
+                    const isValid = await validateSelfExclusion(expression);
+                    if (!isValid) {
+                        return SAVE_RESULT_ERROR;
+                    }
+                }
+
+                const success = await performSave();
+                return success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
+            }
+
             // For empty rules state, check if we need to show warning for removing all rules
             if (isEmptyRulesState) {
                 // If removing all rules and channel has history, show activity warning first
@@ -525,7 +520,7 @@ function ChannelSettingsAccessRulesTab({
             }
 
             // Validate expression if auto-sync is enabled
-            if (autoSyncMembers && !expression.trim()) {
+            if (autoSyncMembers && isEmptyRulesState) {
                 setFormError(formatMessage({
                     id: 'channel_settings.access_rules.expression_required_for_autosync',
                     defaultMessage: 'Access rules are required when auto-add members is enabled',
@@ -591,7 +586,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive, channel.type]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -718,10 +713,19 @@ function ChannelSettingsAccessRulesTab({
 
             <div className='ChannelSettingsModal__accessRulesHeader'>
                 <h3 className='ChannelSettingsModal__accessRulesTitle'>
-                    {formatMessage({id: 'channel_settings.access_rules.title', defaultMessage: 'Access Rules'})}
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.title_public',
+                        defaultMessage: 'Membership Rules',
+                    }) : formatMessage({
+                        id: 'channel_settings.access_rules.title',
+                        defaultMessage: 'Access Rules',
+                    })}
                 </h3>
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
-                    {formatMessage({
+                    {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
+                        id: 'channel_settings.access_rules.subtitle_public',
+                        defaultMessage: 'Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.',
+                    }) : formatMessage({
                         id: 'channel_settings.access_rules.subtitle',
                         defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
                     })}
@@ -741,7 +745,13 @@ function ChannelSettingsAccessRulesTab({
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
                         isSystemAdmin={isSystemAdmin}
-                        validateExpressionAgainstRequester={actions.validateExpressionAgainstRequester}
+
+                        // Suppress the live "you would be excluded" banner on
+                        // public channels — public-channel ABAC is advisory and
+                        // can never lock the admin out, so the warning is
+                        // misleading. The save-time guard is also skipped in
+                        // validateSelfExclusion above.
+                        validateExpressionAgainstRequester={channel.type === Constants.OPEN_CHANNEL ? undefined : actions.validateExpressionAgainstRequester}
                     />
                 </div>
             )}
@@ -757,7 +767,7 @@ function ChannelSettingsAccessRulesTab({
                         className='ChannelSettingsModal__autoSyncCheckbox'
                         checked={autoSyncMembers}
                         onChange={handleAutoSyncToggle}
-                        disabled={isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)}
+                        disabled={isEmptyRulesState}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
                     />
@@ -772,14 +782,6 @@ function ChannelSettingsAccessRulesTab({
                                 });
                             }
 
-                            // Show "forced by parent" when system policies force auto-sync (regardless of channel rules)
-                            if (systemPolicyForcesAutoSync) {
-                                return formatMessage({
-                                    id: 'channel_settings.access_rules.auto_sync_forced_by_parent',
-                                    defaultMessage: 'Auto-add is enabled by system policy and cannot be disabled',
-                                });
-                            }
-
                             if (!expression.trim()) {
                                 return formatMessage({
                                     id: 'channel_settings.access_rules.auto_sync_requires_expression',
@@ -789,7 +791,7 @@ function ChannelSettingsAccessRulesTab({
                             return undefined;
                         })()}
                     >
-                        <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState || !expression.trim() || (systemPolicyForcesAutoSync && autoSyncMembers)) ? 'disabled' : ''}`}>
+                        <span className={`ChannelSettingsModal__autoSyncText ${(isEmptyRulesState && systemPolicies.length === 0) ? 'disabled' : ''}`}>
                             {formatMessage({
                                 id: 'channel_settings.access_rules.auto_sync',
                                 defaultMessage: 'Auto-add members based on access rules',
@@ -799,50 +801,30 @@ function ChannelSettingsAccessRulesTab({
                 </div>
                 <p className='ChannelSettingsModal__autoSyncDescription'>
                     {(() => {
-                        // Check for empty state first (no channel rules AND no system policies)
-                        if (isEmptyRulesState) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_empty_state_description',
-                                defaultMessage: 'Auto-add is disabled because no access rules are defined. Channel will use standard Mattermost access controls.',
-                            });
-                        }
-
-                        // Show system policy forced description when policies force auto-sync
-                        if (systemPolicyForcesAutoSync) {
-                            return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_forced_description',
-                                defaultMessage: 'Auto-add is enabled by system policy. Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
-                            });
-                        }
-
-                        // If there are no channel rules (and no system policies forcing)
-                        if (!expression.trim()) {
-                            // Check if system policies are applied (but not forcing auto-sync)
-                            if (systemPolicies && systemPolicies.length > 0) {
+                        const isPublic = channel.type === Constants.OPEN_CHANNEL;
+                        if (autoSyncMembers) {
+                            if (isPublic) {
                                 return formatMessage({
-                                    id: 'channel_settings.access_rules.auto_sync_system_policy_applied_description',
-                                    defaultMessage: 'Auto-add is disabled because no channel-level access rules are defined. Channel access will still be restricted by the applied system policy in addition to standard Mattermost access controls.',
+                                    id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
+                                    defaultMessage: 'Qualifying users are automatically added as members. Members can still leave on their own — no one is removed based on these rules.',
                                 });
                             }
-
-                            // True empty state - no system policies at all
                             return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_no_rules_description',
-                                defaultMessage: 'Define access rules above to enable automatic member synchronization.',
+                                id: 'channel_settings.access_rules.auto_sync_enabled_description',
+                                defaultMessage: 'Qualifying users are automatically added as members, and members who no longer match will be removed.',
                             });
                         }
 
-                        // There are channel rules - show normal behavior
-                        if (autoSyncMembers) {
+                        if (isPublic) {
                             return formatMessage({
-                                id: 'channel_settings.access_rules.auto_sync_enabled_description',
-                                defaultMessage: 'Users who match the configured attribute values will be automatically added as members and those who no longer match will be removed.',
+                                id: 'channel_settings.access_rules.auto_sync_disabled_public_description',
+                                defaultMessage: 'This channel will appear under "Recommended channels" for users who match the rules. Anyone can still join freely.',
                             });
                         }
 
                         return formatMessage({
                             id: 'channel_settings.access_rules.auto_sync_disabled_description',
-                            defaultMessage: 'Access rules will prevent unauthorized users from joining, but will not automatically add qualifying members.',
+                            defaultMessage: 'Access rules will prevent users who do not match from being added, but qualifying users will not be added automatically.',
                         });
                     })()}
                 </p>

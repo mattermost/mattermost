@@ -151,8 +151,14 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if uniqueUserCount > int64(*license.Features.Users) {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
+	// Single-channel guests are free and should not count against licensed seats.
+	effectiveUserCount := uniqueUserCount
+	if scgCount, scgErr := ps.Store.User().AnalyticsGetSingleChannelGuestCount(); scgErr == nil {
+		effectiveUserCount = max(uniqueUserCount-scgCount, 0)
+	}
+
+	if effectiveUserCount > int64(*license.Features.Users) {
+		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]any{"Users": *license.Features.Users, "Count": effectiveUserCount}, "", http.StatusBadRequest)
 	}
 
 	if license.IsExpired() {

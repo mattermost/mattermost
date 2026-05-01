@@ -138,7 +138,7 @@ export default function ChannelNotificationsModal(props: Props) {
                 }
                 description={formatMessage({
                     id: 'channel_notifications.muteChannelDesc',
-                    defaultMessage: 'Turns off notifications for this channel. You\'ll still see badges if you\'re mentioned.',
+                    defaultMessage: 'Turns off notifications for this channel. You’ll still see badges if you’re mentioned.',
                 })}
                 inputFieldValue={settings.mark_unread === 'mention'}
                 inputFieldData={utils.MuteChannelInputFieldData}
@@ -193,7 +193,7 @@ export default function ChannelNotificationsModal(props: Props) {
                     inputFieldTitle={
                         <FormattedMessage
                             id='channel_notifications.checkbox.threadsReplyTitle'
-                            defaultMessage="Notify me about replies to threads I\'m following"
+                            defaultMessage='Notify me about replies to threads I’m following'
                         />
                     }
                     handleChange={(e) => handleChange({desktop_threads: e ? 'all' : 'mention'})}
@@ -262,7 +262,7 @@ export default function ChannelNotificationsModal(props: Props) {
                             inputFieldTitle={
                                 <FormattedMessage
                                     id='channel_notifications.checkbox.threadsReplyTitle'
-                                    defaultMessage="Notify me about replies to threads I\'m following"
+                                    defaultMessage='Notify me about replies to threads I’m following'
                                 />
                             }
                             inputFieldValue={settings.push_threads === 'all'}

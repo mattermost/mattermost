@@ -25,13 +25,14 @@ import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
 
-export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false): InviteState => {
+export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false, canInviteGuestsWithMagicLink = false): InviteState => {
     return deepFreeze({
         inviteType: inviteAsGuest ? InviteType.GUEST : InviteType.MEMBER,
         customMessage: defaultCustomMessage,
         inviteChannels: defaultInviteChannels,
         usersEmails: [],
         usersEmailsSearch: initialSearchValue,
+        canInviteGuestsWithMagicLink,
     });
 };
 
@@ -41,6 +42,7 @@ export type InviteState = {
     inviteChannels: InviteChannels;
     usersEmails: Array<UserProfile | string>;
     usersEmailsSearch: string;
+    canInviteGuestsWithMagicLink: boolean;
 };
 
 export type Props = InviteState & {
@@ -68,6 +70,8 @@ export type Props = InviteState & {
     townSquareDisplayName: string;
     channelToInvite?: Channel;
     onPaste?: (e: ClipboardEvent) => void;
+    useGuestMagicLink: boolean;
+    toggleGuestMagicLink: () => void;
 }
 
 export default function InviteView(props: Props) {
@@ -249,6 +253,22 @@ export default function InviteView(props: Props) {
                         channelToInvite={props.channelToInvite}
                         inviteType={props.inviteType}
                     />
+                )}
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
+                    <div className='InviteView__guestMagicLinkSection'>
+                        <label className='InviteView__guestMagicLinkCheckbox'>
+                            <input
+                                type='checkbox'
+                                checked={props.useGuestMagicLink}
+                                onChange={props.toggleGuestMagicLink}
+                                data-testid='InviteView__guestMagicLinkCheckbox'
+                            />
+                            <FormattedMessage
+                                id='invite_modal.guest_magic_link'
+                                defaultMessage='Allow invited guests to log in with a magic link (without password)'
+                            />
+                        </label>
+                    </div>
                 )}
                 <OverageUsersBannerNotice/>
             </Modal.Body>

@@ -14,7 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Leave channel', () => {
     let testTeam: Team;
@@ -102,9 +102,6 @@ describe('Leave channel', () => {
 
             // * RHS text box should be visible
             cy.uiGetReplyTextBox();
-
-            // * Close tour tip
-            cy.get('#tipNextButton').should('be.visible').click();
 
             // # Archive the channel
             cy.uiLeaveChannel();

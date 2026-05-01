@@ -46,6 +46,8 @@ type Props = {
      * Optional class like for icon
      */
     iconClass?: string;
+
+    overrideGenerateFileDownloadUrl?: (fileId: string) => string;
 }
 
 export default class FilenameOverlay extends React.PureComponent<Props> {
@@ -57,6 +59,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
             fileInfo,
             handleImageClick,
             iconClass,
+            overrideGenerateFileDownloadUrl,
         } = this.props;
 
         const fileName = fileInfo.name;
@@ -75,7 +78,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                         rel='noopener noreferrer'
                     >
                         <AttachmentIcon className='icon'/>
-                        {trimmedFilename}
+                        <span className='post-image__filename'>{trimmedFilename}</span>
                     </a>
                 </WithTooltip>
             );
@@ -86,7 +89,7 @@ export default class FilenameOverlay extends React.PureComponent<Props> {
                         title={defineMessage({id: 'view_image_popover.download', defaultMessage: 'Download'})}
                     >
                         <ExternalLink
-                            href={getFileDownloadUrl(fileInfo.id)}
+                            href={(overrideGenerateFileDownloadUrl || getFileDownloadUrl)(fileInfo.id)}
                             aria-label={localizeMessage({id: 'view_image_popover.download', defaultMessage: 'Download'}).toLowerCase()}
                             className='btn btn-icon btn-sm'
                             download={fileName}

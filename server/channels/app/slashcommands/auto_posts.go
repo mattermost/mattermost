@@ -114,7 +114,7 @@ func (cfg *AutoPostCreator) CreateRandomPostNested(rctx request.CTX, rootID stri
 			post.UserId = cfg.UsersToPostFrom[i]
 		}
 	}
-	rpost, err := cfg.a.CreatePostMissingChannel(rctx, post, true, true)
+	rpost, _, err := cfg.a.CreatePostMissingChannel(rctx, post, true, true)
 	if err != nil {
 		return nil, err
 	}

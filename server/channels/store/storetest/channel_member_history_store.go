@@ -26,6 +26,7 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestPermanentDeleteBatchForRetentionPolicies", func(t *testing.T) { testPermanentDeleteBatchForRetentionPolicies(t, rctx, ss) })
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
 	t.Run("TestDeleteOrphanedRows", func(t *testing.T) { testDeleteOrphanedRows(t, rctx, ss) })
+	t.Run("TestGetMembershipChanges", func(t *testing.T) { testGetMembershipChanges(t, rctx, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -688,4 +689,125 @@ func testDeleteOrphanedRows(t *testing.T, rctx request.CTX, ss store.Store) {
 	deletedCount, err = ss.ChannelMemberHistory().DeleteOrphanedRows(100)
 	require.NoError(t, err)
 	require.Equal(t, int64(0), deletedCount, "No rows should be deleted when no orphans exist")
+}
+
+func testGetMembershipChanges(t *testing.T, rctx request.CTX, ss store.Store) {
+	ch := model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "GetMembershipChanges",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, &ch, 100)
+	require.NoError(t, nErr)
+
+	user1 := model.NewId()
+	user2 := model.NewId()
+	user3 := model.NewId()
+
+	// Set up timeline:
+	// t=1000: user1 joins
+	// t=2000: user2 joins
+	// t=3000: user3 joins
+	// t=4000: user1 leaves
+	// t=5000: user2 leaves
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, 2000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, 3000))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, 4000))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user2, channel.Id, 5000))
+
+	t.Run("returns all events since timestamp zero", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 100)
+		require.NoError(t, err)
+		assert.Len(t, results, 3, "should return all 3 users' history rows")
+	})
+
+	t.Run("filters by since timestamp - joins only", func(t *testing.T) {
+		// since=2500: user3 joined at 3000 (>=2500), user1 left at 4000 (>=2500), user2 left at 5000 (>=2500)
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 2500, 100)
+		require.NoError(t, err)
+		assert.Len(t, results, 3, "user3 join>=2500, user1 leave>=2500, user2 leave>=2500")
+	})
+
+	t.Run("inclusive boundary includes events at exact cursor timestamp", func(t *testing.T) {
+		// since=3000: user3 joined at exactly 3000, should be included (GtOrEq)
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 3000, 100)
+		require.NoError(t, err)
+		userIDs := make(map[string]bool)
+		for _, r := range results {
+			userIDs[r.UserId] = true
+		}
+		assert.True(t, userIDs[user3], "user3 joined at exactly since=3000, should be included")
+		assert.True(t, userIDs[user1], "user1 left at 4000 >= 3000")
+		assert.True(t, userIDs[user2], "user2 left at 5000 >= 3000")
+	})
+
+	t.Run("filters by since timestamp - leaves only", func(t *testing.T) {
+		// since=3500: user1 left at 4000, user2 left at 5000; user3 joined at 3000 (not > 3500)
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 3500, 100)
+		require.NoError(t, err)
+		assert.Len(t, results, 2, "only user1 and user2 have events after 3500")
+	})
+
+	t.Run("respects limit parameter", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 2)
+		require.NoError(t, err)
+		assert.Len(t, results, 2, "should respect limit of 2")
+	})
+
+	t.Run("returns empty for unknown channel", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(model.NewId(), 0, 100)
+		require.NoError(t, err)
+		assert.Empty(t, results)
+	})
+
+	t.Run("returns empty when since is beyond all events", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 999999, 100)
+		require.NoError(t, err)
+		assert.Empty(t, results)
+	})
+
+	t.Run("results are ordered by greatest event time ascending", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 100)
+		require.NoError(t, err)
+		require.Len(t, results, 3)
+
+		// Effective event times: user1=max(1000,4000)=4000, user2=max(2000,5000)=5000, user3=max(3000,0)=3000
+		// Sorted ASC: user3(3000), user1(4000), user2(5000)
+		assert.Equal(t, user3, results[0].UserId, "user3 should be first (effective time 3000)")
+		assert.Equal(t, user1, results[1].UserId, "user1 should be second (effective time 4000)")
+		assert.Equal(t, user2, results[2].UserId, "user2 should be third (effective time 5000)")
+	})
+
+	t.Run("null LeaveTime handled correctly", func(t *testing.T) {
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 100)
+		require.NoError(t, err)
+
+		for _, r := range results {
+			if r.UserId == user3 {
+				assert.Nil(t, r.LeaveTime, "user3 should have nil LeaveTime")
+			}
+			if r.UserId == user1 {
+				require.NotNil(t, r.LeaveTime)
+				assert.Equal(t, int64(4000), *r.LeaveTime)
+			}
+		}
+	})
+
+	t.Run("join-leave-rejoin cycle returns latest row", func(t *testing.T) {
+		// user1 rejoins at t=6000
+		require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 6000))
+
+		// since=0 should now return 4 rows (user1 has 2 history rows, user2 has 1, user3 has 1)
+		results, err := ss.ChannelMemberHistory().GetMembershipChanges(channel.Id, 0, 100)
+		require.NoError(t, err)
+		assert.Len(t, results, 4, "user1 now has 2 history rows")
+
+		// The rejoined row (JoinTime=6000, LeaveTime=nil) should be the last one
+		lastResult := results[len(results)-1]
+		assert.Equal(t, user1, lastResult.UserId)
+		assert.Equal(t, int64(6000), lastResult.JoinTime)
+		assert.Nil(t, lastResult.LeaveTime, "rejoin should have nil LeaveTime")
+	})
 }

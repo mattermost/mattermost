@@ -16,7 +16,7 @@ func TestIsKeywordMultibyte(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Message     string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Groups      map[string]*model.Group
 		Expected    *MentionResults
@@ -123,7 +123,7 @@ func TestCheckForMentionUsers(t *testing.T) {
 
 	for name, tc := range map[string]struct {
 		Word        string
-		Attachments []*model.SlackAttachment
+		Attachments []*model.MessageAttachment
 		Keywords    map[string][]string
 		Expected    *MentionResults
 	}{

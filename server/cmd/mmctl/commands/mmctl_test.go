@@ -50,17 +50,17 @@ func (s *MmctlE2ETestSuite) SetupTest() {
 }
 
 func (s *MmctlE2ETestSuite) TearDownTest() {
-	// if a test helper was used, we run the teardown and remove it
-	// from the structure to avoid reusing the same helper between
-	// tests
-	if s.th != nil {
-		s.th.TearDown()
-		s.th = nil
-	}
+	// Remove the test helper from the structure to avoid reusing the same helper between tests
+	s.th = nil
 }
 
 func (s *MmctlE2ETestSuite) SetupTestHelper() *api4.TestHelper {
 	s.th = api4.Setup(s.T())
+	return s.th
+}
+
+func (s *MmctlE2ETestSuite) SetupTestHelperWithConfig(updateConfig func(cfg *model.Config)) *api4.TestHelper {
+	s.th = api4.SetupConfig(s.T(), updateConfig)
 	return s.th
 }
 
@@ -78,7 +78,7 @@ func (s *MmctlE2ETestSuite) SetupMessageExportTestHelper() *api4.TestHelper {
 	}
 
 	jobs.DefaultWatcherPollingInterval = 100
-	s.th = api4.SetupEnterprise(s.T()).InitBasic()
+	s.th = api4.SetupEnterprise(s.T()).InitBasic(s.T())
 	s.th.App.Srv().SetLicense(model.NewTestLicense("message_export"))
 	s.th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.MessageExportSettings.DownloadExportResults = true

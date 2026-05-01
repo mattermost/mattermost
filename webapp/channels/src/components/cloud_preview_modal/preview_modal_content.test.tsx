@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import PreviewModalContent from './preview_modal_content';
 import type {PreviewModalContentData} from './preview_modal_content_data';
@@ -129,7 +128,7 @@ describe('PreviewModalContent', () => {
         expect(playButton).toHaveClass('custom-play-button');
     });
 
-    it('should hide play button and show controls when play button is clicked', () => {
+    it('should hide play button and show controls when play button is clicked', async () => {
         const content = {
             ...baseContent,
             videoUrl: 'https://example.com/video.mp4',
@@ -142,7 +141,7 @@ describe('PreviewModalContent', () => {
         renderComponent(content);
 
         const playButton = screen.getByLabelText('Play video');
-        fireEvent.click(playButton);
+        await userEvent.click(playButton);
 
         expect(mockPlay).toHaveBeenCalled();
         expect(screen.queryByLabelText('Play video')).not.toBeInTheDocument();

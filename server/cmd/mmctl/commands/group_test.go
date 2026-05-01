@@ -454,7 +454,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -560,7 +560,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupListCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -853,7 +853,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelID, "").
+			GetChannel(context.TODO(), channelID).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1057,7 +1057,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart, "").
+			GetChannel(context.TODO(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 
@@ -1247,7 +1247,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart, "").
+			GetChannel(context.TODO(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1290,7 +1290,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupEnableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart, "").
+			GetChannel(context.TODO(), channelPart).
 			Return(&mockChannel, &model.Response{}, nil).
 			Times(1)
 
@@ -1395,7 +1395,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart, "").
+			GetChannel(context.TODO(), channelPart).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 
@@ -1496,7 +1496,7 @@ func (s *MmctlUnitTestSuite) TestChannelGroupDisableCmdF() {
 
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelPart, "").
+			GetChannel(context.TODO(), channelPart).
 			Return(nil, &model.Response{}, mockError).
 			Times(1)
 

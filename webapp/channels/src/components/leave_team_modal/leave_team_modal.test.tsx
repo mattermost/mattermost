@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import LeaveTeamModal from './leave_team_modal';
@@ -25,44 +25,63 @@ describe('components/LeaveTeamModal', () => {
     };
 
     it('should render the leave team model', () => {
-        const wrapper = shallow(<LeaveTeamModal {...requiredProps}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {baseElement} = renderWithContext(<LeaveTeamModal {...requiredProps}/>);
+        expect(baseElement).toMatchSnapshot();
     });
 
-    it('should hide when cancel is clicked', () => {
-        const wrapper = shallow(<LeaveTeamModal {...requiredProps}/>);
-        const cancel = wrapper.find('.btn-tertiary').first();
+    it('should hide when No is clicked', async () => {
+        renderWithContext(<LeaveTeamModal {...requiredProps}/>);
 
-        cancel.simulate('click');
+        // Modal should be visible initially
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-        expect(wrapper.state('show')).toBe(false);
+        // Click No button
+        await userEvent.click(screen.getByRole('button', {name: 'No'}));
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
-    it('should call leaveTeam and toggleSideBarRightMenu when ok is clicked', () => {
-        const wrapper = shallow(<LeaveTeamModal {...requiredProps}/>);
-        const ok = wrapper.find('.btn-danger').first();
+    it('should call leaveTeam and toggleSideBarRightMenu when Yes is clicked', async () => {
+        const leaveTeam = jest.fn();
+        const toggleSideBarRightMenu = jest.fn();
+        const props = {
+            ...requiredProps,
+            actions: {
+                leaveTeam,
+                toggleSideBarRightMenu,
+            },
+        };
+        renderWithContext(<LeaveTeamModal {...props}/>);
 
-        ok.simulate('click');
-        expect(requiredProps.actions.leaveTeam).toHaveBeenCalledTimes(1);
-        expect(requiredProps.actions.toggleSideBarRightMenu).toHaveBeenCalledTimes(1);
-        expect(requiredProps.actions.leaveTeam).
-            toHaveBeenCalledWith(requiredProps.currentTeamId, requiredProps.currentUserId);
+        // Click Yes button
+        await userEvent.click(screen.getByRole('button', {name: 'Yes'}));
 
-        expect(wrapper.state('show')).toBe(false);
+        expect(leaveTeam).toHaveBeenCalledTimes(1);
+        expect(toggleSideBarRightMenu).toHaveBeenCalledTimes(1);
+        expect(leaveTeam).toHaveBeenCalledWith(props.currentTeamId, props.currentUserId);
+
+        // Modal should be hidden
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
     });
 
     it('should call attach and remove event listeners', () => {
-        document.addEventListener = jest.fn();
-        document.removeEventListener = jest.fn();
+        const addEventListenerSpy = jest.spyOn(document, 'addEventListener');
+        const removeEventListenerSpy = jest.spyOn(document, 'removeEventListener');
 
-        const wrapper = shallow(<LeaveTeamModal {...{...requiredProps, show: true}}/>);
-        const instance = wrapper.instance() as LeaveTeamModal;
+        const {unmount} = renderWithContext(<LeaveTeamModal {...requiredProps}/>);
 
-        expect(document.addEventListener).toHaveBeenCalledTimes(1);
-        expect(document.removeEventListener).not.toBeCalled();
+        expect(addEventListenerSpy).toHaveBeenCalledWith('keypress', expect.any(Function));
 
-        instance.componentWillUnmount();
+        unmount();
 
-        expect(document.removeEventListener).toHaveBeenCalledTimes(1);
+        expect(removeEventListenerSpy).toHaveBeenCalledWith('keypress', expect.any(Function));
+
+        addEventListenerSpy.mockRestore();
+        removeEventListenerSpy.mockRestore();
     });
 });

@@ -19,12 +19,16 @@ import (
 )
 
 const MaxPerPage = 1000
+const DefaultPerPage = 10
 
 // Usually rules are how we define the policy, hence the versioning. For v0.1, we also
 // have the imports field which is used to link with the parent policy.
 type accessControlPolicyV0_1 struct {
 	Imports []string                        `json:"imports"`
 	Rules   []model.AccessControlPolicyRule `json:"rules"`
+	Roles   []string                        `json:"roles,omitempty"`
+	Scope   string                          `json:"scope,omitempty"`
+	ScopeID string                          `json:"scope_id,omitempty"`
 }
 
 // These are the fields that meant to be unchanged with the policy versions.
@@ -53,16 +57,22 @@ func (s *storeAccessControlPolicy) toModel() (*model.AccessControlPolicy, error)
 		Version:  s.Version,
 	}
 
-	var p accessControlPolicyV0_1
-	if err := json.Unmarshal(s.Data, &p); err != nil {
-		return nil, err
+	if len(s.Data) > 0 {
+		var p accessControlPolicyV0_1
+		if err := json.Unmarshal(s.Data, &p); err != nil {
+			return nil, err
+		}
+		policy.Imports = p.Imports
+		policy.Rules = p.Rules
+		policy.Roles = p.Roles
+		policy.Scope = p.Scope
+		policy.ScopeID = p.ScopeID
 	}
 
-	policy.Imports = p.Imports
-	policy.Rules = p.Rules
-
-	if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
-		return nil, err
+	if len(s.Props) > 0 {
+		if err := json.Unmarshal(s.Props, &policy.Props); err != nil {
+			return nil, err
+		}
 	}
 
 	return policy, nil
@@ -72,6 +82,9 @@ func fromModel(policy *model.AccessControlPolicy) (*storeAccessControlPolicy, er
 	data, err := json.Marshal(&accessControlPolicyV0_1{
 		Imports: policy.Imports,
 		Rules:   policy.Rules,
+		Roles:   policy.Roles,
+		Scope:   policy.Scope,
+		ScopeID: policy.ScopeID,
 	})
 	if err != nil {
 		return nil, err
@@ -208,10 +221,27 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 		}
 
 		// Check if the policy has actually changed
-		// We compare data, name, and version fields, and ensure type hasn't changed
+		// We compare data and version fields. Name changes are cosmetic
+		// and should not create a new revision in history.
 		if bytes.Equal(storePolicy.Data, tmp.Data) &&
-			storePolicy.Name == tmp.Name &&
 			storePolicy.Version == tmp.Version {
+			// Update name in place if it changed, without bumping revision
+			if storePolicy.Name != tmp.Name {
+				nameUpdate := s.getQueryBuilder().
+					Update("AccessControlPolicies").
+					Set("Name", storePolicy.Name).
+					Where(sq.Eq{"ID": policy.ID})
+				if _, err = tx.ExecBuilder(nameUpdate); err != nil {
+					if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+						return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+					}
+					return nil, errors.Wrapf(err, "failed to update name for policy with id=%s", policy.ID)
+				}
+				existingPolicy.Name = storePolicy.Name
+				if err = tx.Commit(); err != nil {
+					return nil, errors.Wrap(err, "commit_transaction")
+				}
+			}
 			return existingPolicy, nil
 		}
 
@@ -254,6 +284,9 @@ func (s *SqlAccessControlPolicyStore) Save(rctx request.CTX, policy *model.Acces
 
 	_, err = tx.ExecBuilder(query)
 	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "idx_accesscontrolpolicies_name_type"}) {
+			return nil, store.NewErrConflict("AccessControlPolicy", err, "name="+policy.Name)
+		}
 		return nil, errors.Wrapf(err, "failed to save policy with id=%s", policy.ID)
 	}
 
@@ -358,12 +391,7 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 
 	if existingPolicy.Type == model.AccessControlPolicyTypeParent {
 		// if the policy is a parent, we need to update the child policies
-		var expr sq.Sqlizer
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			expr = sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
-		} else {
-			expr = sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", id))
-		}
+		expr := sq.Expr("Data->'imports' @> ?::jsonb", fmt.Sprintf("%q", id))
 		query, args, err = s.getQueryBuilder().Update("AccessControlPolicies").Set("Active", active).Where(expr).ToSql()
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to build query for policy with id=%s", id)
@@ -379,6 +407,85 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 	}
 
 	return existingPolicy, nil
+}
+
+func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	// Group by active status for batch updates
+	activeTrue := []string{}
+	activeFalse := []string{}
+	ids := make([]any, 0, len(list))
+	for _, entry := range list {
+		ids = append(ids, entry.ID)
+		if entry.Active {
+			activeTrue = append(activeTrue, entry.ID)
+			continue
+		}
+		activeFalse = append(activeFalse, entry.ID)
+	}
+
+	// Update active=true policies
+	if len(activeTrue) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", true).
+			Where(sq.Eq{"ID": activeTrue}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=true update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=true policies")
+		}
+	}
+
+	// Update active=false policies
+	if len(activeFalse) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", false).
+			Where(sq.Eq{"ID": activeFalse}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=false update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=false policies")
+		}
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Eq{"ID": ids})
+
+	err = tx.SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies with ids=%v", ids)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return policies, nil
 }
 
 func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.AccessControlPolicy, error) {
@@ -461,11 +568,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 	query := s.selectQueryBuilder
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
-		} else {
-			query = query.Where(sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID)))
-		}
+		query = query.Where(sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID)))
 	}
 
 	if opts.Type != "" {
@@ -482,7 +585,7 @@ func (s *SqlAccessControlPolicyStore) GetAll(_ request.CTX, opts model.GetAccess
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
@@ -519,19 +622,11 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var query sq.SelectBuilder
 	if opts.IncludeChildren && opts.ParentID == "" {
 		columns := accessControlPolicySliceColumns("p")
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+		childIDs := `COALESCE((SELECT JSON_AGG(c.ID)
      FROM AccessControlPolicies c
-	 WHERE c.Type != 'parent' 
+	 WHERE c.Type != 'parent'
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-			columns = append(columns, childIDs)
-		} else {
-			childIDs := `COALESCE((SELECT JSON_ARRAYAGG(c.ID) 
-     FROM AccessControlPolicies c
-     WHERE c.Type != 'parent' 
-     AND JSON_SEARCH(c.Data->'$.imports', 'one', p.ID) IS NOT NULL), JSON_ARRAY()) AS ChildIDs`
-			columns = append(columns, childIDs)
-		}
+		columns = append(columns, childIDs)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -540,7 +635,8 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	count := s.getQueryBuilder().Select("COUNT(*)").From("AccessControlPolicies")
 
 	if opts.Term != "" {
-		condition := sq.Like{"Name": fmt.Sprintf("%%%s%%", opts.Term)}
+		safeTerm := sanitizeSearchTerm(opts.Term, "*")
+		condition := sq.Expr("LOWER(Name) LIKE LOWER(?) ESCAPE '*'", fmt.Sprintf("%%%s%%", safeTerm))
 		query = query.Where(condition)
 		count = count.Where(condition)
 	}
@@ -552,15 +648,21 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
-		} else {
-			condition := sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
+		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+		query = query.Where(condition)
+		count = count.Where(condition)
+	}
+
+	if len(opts.Actions) > 0 {
+		or := sq.Or{}
+		for _, action := range opts.Actions {
+			or = append(or, sq.Expr(
+				"EXISTS (SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(Data->'rules') = 'array' THEN Data->'rules' ELSE '[]'::jsonb END) AS rule WHERE rule->'actions' @> ?::jsonb)",
+				fmt.Sprintf("%q", action),
+			))
 		}
+		query = query.Where(or)
+		count = count.Where(or)
 	}
 
 	if opts.Active {
@@ -574,6 +676,48 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 		count = count.Where(condition)
 	}
 
+	// Scope/ScopeID filter policies by their persisted scope in the Data JSONB.
+	// Both must be provided together — a partial match is not meaningful.
+	if opts.Scope != "" && opts.ScopeID != "" {
+		scopeCondition := sq.And{
+			sq.Expr("Data->>'scope' = ?", opts.Scope),
+			sq.Expr("Data->>'scope_id' = ?", opts.ScopeID),
+		}
+		query = query.Where(scopeCondition)
+		count = count.Where(scopeCondition)
+	}
+
+	// TeamID filters to parent policies whose assigned channels ALL belong to the
+	// specified team. Policies with channels spanning multiple teams will NOT match
+	// even if one channel is in the requested team (COUNT(DISTINCT TeamId) = 1
+	// enforces single-team scope). This only applies to parent policies; the type
+	// is forced to 'parent' when TeamID is set.
+	if opts.TeamID != "" {
+		if opts.Type == model.AccessControlPolicyTypeChannel {
+			condition := sq.Expr(`Id IN (SELECT Id FROM Channels WHERE TeamId = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		} else {
+			if opts.Type == "" {
+				parentCondition := sq.Eq{"Type": model.AccessControlPolicyTypeParent}
+				query = query.Where(parentCondition)
+				count = count.Where(parentCondition)
+			}
+
+			condition := sq.Expr(`Id IN (
+			SELECT parent_id FROM (
+				SELECT ch.TeamId, jsonb_array_elements_text(cp.Data -> 'imports') AS parent_id
+				FROM AccessControlPolicies cp
+				JOIN Channels ch ON ch.Id = cp.Id
+				WHERE cp.Type = 'channel'
+			) team_children
+			GROUP BY parent_id
+			HAVING COUNT(DISTINCT TeamId) = 1 AND MIN(TeamId) = ?)`, opts.TeamID)
+			query = query.Where(condition)
+			count = count.Where(condition)
+		}
+	}
+
 	cursor := opts.Cursor
 
 	if !cursor.IsEmpty() {
@@ -582,12 +726,13 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	limit := uint64(opts.Limit)
 	if limit < 1 {
-		limit = 1
+		limit = DefaultPerPage
 	} else if limit > MaxPerPage {
 		limit = MaxPerPage
 	}
 
 	query = query.Limit(limit)
+	query = query.OrderBy("Id ASC")
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
@@ -630,4 +775,37 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	return policies, total, nil
+}
+
+// GetPoliciesByFieldID finds all policies whose CEL rule expressions reference the
+// given property field ID. It performs a text search on the serialized JSONB Data
+// column for the pattern "id_<fieldID>", which is how property fields are referenced
+// in CEL expressions (e.g., user.attributes.id_<fieldID>).
+//
+// This is a sequential scan over the policies table. At the expected scale (hundreds
+// to low thousands of admin-configured policies) this is well under 1ms.
+// If the table grows beyond ~10K rows or this query lands on a hot path, a GIN
+// trigram index on (Data::text) can accelerate it with no query changes.
+func (s *SqlAccessControlPolicyStore) GetPoliciesByFieldID(_ request.CTX, fieldID string) ([]*model.AccessControlPolicy, error) {
+	if !model.IsValidId(fieldID) {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "fieldID", fieldID)
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Expr("Data::text LIKE ?", fmt.Sprintf("%%id\\_%s%%", fieldID)))
+
+	err := s.GetReplica().SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies referencing field id=%s", fieldID)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	return policies, nil
 }

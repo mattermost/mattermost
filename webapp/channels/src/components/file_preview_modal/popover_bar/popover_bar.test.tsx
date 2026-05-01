@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import PopoverBar from 'components/file_preview_modal/popover_bar/popover_bar';
+
+import {render} from 'tests/react_testing_utils';
 
 describe('components/file_preview_modal/popover_bar/PopoverBar', () => {
     const defaultProps = {
@@ -17,7 +18,7 @@ describe('components/file_preview_modal/popover_bar/PopoverBar', () => {
             showZoomControls: true,
         };
 
-        const wrapper = shallow(<PopoverBar {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+        const {container} = render(<PopoverBar {...props}/>);
+        expect(container).toMatchSnapshot();
     });
 });

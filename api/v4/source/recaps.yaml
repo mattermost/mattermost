@@ -1,0 +1,240 @@
+  "/api/v4/recaps":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Create a channel recap
+      description: >
+        Create a new AI-powered recap for the specified channels. The recap will
+        summarize unread messages in the selected channels, extracting highlights
+        and action items. This creates a background job that processes the recap
+        asynchronously. The recap is created for the authenticated user.
+
+        ##### Permissions
+
+        Must be authenticated. User must be a member of all specified channels.
+
+        __Minimum server version__: 11.2
+      operationId: CreateRecap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_ids
+                - title
+                - agent_id
+              properties:
+                title:
+                  type: string
+                  description: Title for the recap
+                channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  description: List of channel IDs to include in the recap
+                  minItems: 1
+                agent_id:
+                  type: string
+                  description: ID of the AI agent to use for generating the recap
+        description: Recap creation request
+        required: true
+      responses:
+        "201":
+          description: Recap creation successful. The recap will be processed asynchronously.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    get:
+      tags:
+        - recaps
+        - ai
+      summary: Get current user's recaps
+      description: >
+        Get a paginated list of recaps created by the authenticated user.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: GetRecapsForUser
+      parameters:
+        - name: page
+          in: query
+          description: The page to select.
+          schema:
+            type: integer
+            default: 0
+        - name: per_page
+          in: query
+          description: The number of recaps per page.
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: Recaps retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recap"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  "/api/v4/recaps/{recap_id}":
+    get:
+      tags:
+        - recaps
+        - ai
+      summary: Get a specific recap
+      description: >
+        Get a recap by its ID, including all channel summaries. Only the authenticated
+        user who created the recap can retrieve it.
+
+        ##### Permissions
+
+        Must be authenticated. Can only retrieve recaps created by the current user.
+
+        __Minimum server version__: 11.2
+      operationId: GetRecap
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - recaps
+        - ai
+      summary: Delete a recap
+      description: >
+        Delete a recap by its ID. Only the authenticated user who created the recap
+        can delete it.
+
+        ##### Permissions
+
+        Must be authenticated. Can only delete recaps created by the current user.
+
+        __Minimum server version__: 11.2
+      operationId: DeleteRecap
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/recaps/{recap_id}/read":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Mark a recap as read
+      description: >
+        Mark a recap as read by the authenticated user. This updates the recap's
+        read status and timestamp.
+
+        ##### Permissions
+
+        Must be authenticated. Can only mark recaps created by the current user as read.
+
+        __Minimum server version__: 11.2
+      operationId: MarkRecapAsRead
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/recaps/{recap_id}/regenerate":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Regenerate a recap
+      description: >
+        Regenerate a recap by its ID. This creates a new background job to
+        regenerate the AI-powered recap with the latest messages from the
+        specified channels.
+
+        ##### Permissions
+
+        Must be authenticated. Can only regenerate recaps created by the current user.
+
+        __Minimum server version__: 11.2
+      operationId: RegenerateRecap
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap regeneration initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+

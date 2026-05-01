@@ -67,8 +67,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 
 func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	const maxFailedLoginAttempts = 3
 	const concurrentAttempts = maxFailedLoginAttempts + 1
@@ -77,7 +76,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		*cfg.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
-	password := "newpassword1"
+	password := model.NewTestPassword()
 	appErr := th.App.UpdatePassword(th.Context, th.BasicUser, password)
 	require.Nil(t, appErr)
 
@@ -108,7 +107,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 		}{
 			{
 				name:          "should not breach max. login attempts when password is wrong",
-				password:      "wrong password",
+				password:      model.NewTestPassword(),
 				expectedErrID: "api.user.check_user_password.invalid.app_error",
 			},
 			{
@@ -161,8 +160,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
 
 	// update config
 	const maxFailedLoginAttempts = 3
@@ -188,6 +186,9 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 	require.Nil(t, appErr)
 	user.AuthData = &authData
 
+	validPassword := model.NewTestPassword()
+	wrongPassword := model.NewTestPassword()
+
 	testCases := []struct {
 		name          string
 		password      string
@@ -196,26 +197,26 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 	}{
 		{
 			name:          "valid password",
-			password:      "password",
+			password:      validPassword,
 			expectedErrID: "",
 			mockDoLogin: func() {
-				mockLdap.Mock.On("DoLogin", th.Context, authData, "password").Return(user, nil)
+				mockLdap.Mock.On("DoLogin", th.Context, authData, validPassword).Return(user, nil)
 			},
 		},
 		{
 			name:          "invalid password",
-			password:      "wrongpassword",
+			password:      wrongPassword,
 			expectedErrID: "api.user.check_user_password.invalid.app_error",
 			mockDoLogin: func() {
-				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
+				mockLdap.Mock.On("DoLogin", th.Context, authData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
 			},
 		},
 		{
 			name:          "too many login attempts",
-			password:      "wrongpassword",
+			password:      wrongPassword,
 			expectedErrID: "api.user.check_user_login_attempts.too_many_ldap.app_error",
 			mockDoLogin: func() {
-				mockLdap.Mock.On("DoLogin", th.Context, authData, "wrongpassword").Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"}).Once()
+				mockLdap.Mock.On("DoLogin", th.Context, authData, wrongPassword).Return(nil, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"}).Once()
 			},
 		},
 	}
@@ -233,7 +234,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 			// Simulate failed login attempts if necessary
 			if tc.expectedErrID == "api.user.check_user_login_attempts.too_many_ldap.app_error" {
 				for range maxFailedLoginAttempts - 1 {
-					_, appErr = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, ldapUser, "wrongpassword", "")
+					_, appErr = th.App.checkLdapUserPasswordAndAllCriteria(th.Context, ldapUser, wrongPassword, "")
 					require.NotNil(t, appErr)
 					require.Equal(t, "ent.ldap.do_login.invalid_password.app_error", appErr.Id)
 				}
@@ -258,8 +259,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
 
 	// update config
 	const maxFailedLoginAttempts = 1
@@ -294,6 +294,9 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 	require.Nil(t, appErr)
 	user.AuthData = &authData
 
+	wrongPassword := model.NewTestPassword()
+	validPassword := model.NewTestPassword()
+
 	t.Run("validate concurrent failed attempts to bypass checks", func(t *testing.T) {
 		testCases := []struct {
 			name                 string
@@ -304,14 +307,14 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 		}{
 			{
 				name:                 "should not breach max. login attempts when password is wrong",
-				password:             "wrong password",
+				password:             wrongPassword,
 				mfaToken:             "",
 				doLoginExpectedErrID: "ent.ldap.do_login.invalid_password.app_error",
 				expectedErrID:        "ent.ldap.do_login.invalid_password.app_error",
 			},
 			{
 				name:                 "should not breach max. login attempts when MFA is wrong",
-				password:             "password",
+				password:             validPassword,
 				mfaToken:             "123456",
 				doLoginExpectedErrID: "",
 				expectedErrID:        "api.user.check_user_mfa.bad_code.app_error",
@@ -369,10 +372,9 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 }
 
 func TestCheckUserPassword(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	pwd := "testPassword123$"
+	pwd := model.NewTestPassword()
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	require.NoError(t, err)
 	pwdBcrypt := string(pwdBcryptBytes)
@@ -382,7 +384,7 @@ func TestCheckUserPassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)
@@ -408,10 +410,12 @@ func TestCheckUserPassword(t *testing.T) {
 		require.Nil(t, err)
 	})
 
+	wrongPassword := model.NewTestPassword()
+
 	t.Run("invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdPBKDF2)
 
-		err := th.App.checkUserPassword(user, "wrongpassword", false)
+		err := th.App.checkUserPassword(user, wrongPassword, false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
 
@@ -441,7 +445,7 @@ func TestCheckUserPassword(t *testing.T) {
 	t.Run("password migration fails with invalid password", func(t *testing.T) {
 		user := createUserWithHash(pwdBcrypt)
 
-		err := th.App.checkUserPassword(user, "wrongpassword", false)
+		err := th.App.checkUserPassword(user, wrongPassword, false)
 		require.NotNil(t, err)
 		require.Equal(t, "api.user.check_user_password.invalid.app_error", err.Id)
 
@@ -473,7 +477,7 @@ func TestCheckUserPassword(t *testing.T) {
 	})
 
 	t.Run("successful migration from PBKDF2 with old parameter to new parameter", func(t *testing.T) {
-		// Create a PBKDF2 hasher with work factor = 10000 instead of the default 60000
+		// Create a PBKDF2 hasher with work factor = 10000 instead of the default
 		oldParamPBKDF2, err := hashers.NewPBKDF2(10000, 32)
 		require.NoError(t, err)
 
@@ -492,8 +496,8 @@ func TestCheckUserPassword(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotEqual(t, pwdBcrypt, updatedUser.Password)
 		require.Contains(t, updatedUser.Password, "$pbkdf2")
-		// The new user hash contains the new parameter
-		require.Contains(t, updatedUser.Password, "w=60000")
+		// The new user hash should NOT contain the old parameter
+		require.NotContains(t, updatedUser.Password, "w=10000")
 
 		// Re-check with updated password
 		appErr = th.App.checkUserPassword(user, pwd, false)
@@ -502,10 +506,9 @@ func TestCheckUserPassword(t *testing.T) {
 }
 
 func TestMigratePassword(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	pwd := "testPassword123$"
+	pwd := model.NewTestPassword()
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
 	require.NoError(t, err)
 	pwdBcrypt := string(pwdBcryptBytes)
@@ -513,7 +516,7 @@ func TestMigratePassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)

@@ -69,7 +69,6 @@ func AssertChannelCount(t *testing.T, a *App, channelType model.ChannelType, exp
 func TestImportImportLine(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Try import line with an invalid type.
 	line := imports.LineImportData{
@@ -118,7 +117,6 @@ func TestImportImportLine(t *testing.T) {
 func TestStopOnError(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	assert.True(t, stopOnError(th.Context, imports.LineImportWorkerError{
 		Error:      model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
@@ -149,7 +147,6 @@ func TestStopOnError(t *testing.T) {
 func TestImportBulkImport(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
@@ -607,7 +604,6 @@ func TestProcessAttachments(t *testing.T) {
 
 func BenchmarkBulkImport(b *testing.B) {
 	th := Setup(b)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -638,7 +634,6 @@ func BenchmarkBulkImport(b *testing.B) {
 func TestImportBulkImportWithAttachments(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
 
@@ -655,7 +650,7 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	var jsonFile io.ReadCloser
 	for _, f := range importZipReader.File {
-		if filepath.Ext(f.Name) != ".jsonl" {
+		if !imports.IsRootJsonlFile(f.Name) {
 			continue
 		}
 
@@ -678,9 +673,42 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 	require.Len(t, files, 11)
 }
 
+func TestImportBulkImportWithNestedJsonl(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	testsDir, _ := fileutils.FindDir("tests")
+
+	importFile, err := os.Open(testsDir + "/export_test_with_nested_jsonl.zip")
+	require.NoError(t, err)
+	defer importFile.Close()
+
+	info, err := importFile.Stat()
+	require.NoError(t, err)
+
+	importZipReader, err := zip.NewReader(importFile, info.Size())
+	require.NoError(t, err)
+	require.NotNil(t, importZipReader)
+
+	var jsonFile io.ReadCloser
+	for _, f := range importZipReader.File {
+		if !imports.IsRootJsonlFile(f.Name) {
+			continue
+		}
+
+		jsonFile, err = f.Open()
+		require.NoError(t, err)
+		defer jsonFile.Close()
+		break
+	}
+	require.NotNil(t, jsonFile)
+
+	_, appErr := th.App.BulkImportWithPath(th.Context, jsonFile, importZipReader, false, true, 1, model.ExportDataDir)
+	require.Nil(t, appErr)
+}
+
 func TestDeleteImport(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	importDir := filepath.Join(th.tempWorkspace, "data", "import")
 	err := os.MkdirAll(importDir, os.ModePerm)

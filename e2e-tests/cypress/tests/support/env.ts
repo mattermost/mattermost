@@ -11,15 +11,15 @@ export interface User {
 
 export function getAdminAccount() {
     return {
-        username: Cypress.env('adminUsername'),
-        password: Cypress.env('adminPassword'),
-        email: Cypress.env('adminEmail'),
+        username: Cypress.expose('adminUsername'),
+        password: Cypress.expose('adminPassword'),
+        email: Cypress.expose('adminEmail'),
     } as UserProfile;
 }
 
 export function getDBConfig() {
     return {
-        client: Cypress.env('dbClient'),
-        connection: Cypress.env('dbConnection'),
+        client: Cypress.expose('dbClient'),
+        connection: Cypress.expose('dbConnection'),
     };
 }

@@ -9,6 +9,7 @@ import {scheduledPostFromPost} from '@mattermost/types/schedule_post';
 import type {CreatePostReturnType, SubmitReactionReturnType} from 'mattermost-redux/actions/posts';
 import {addMessageIntoHistory} from 'mattermost-redux/actions/posts';
 import {Permissions} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -27,6 +28,7 @@ import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
 
 import EmojiMap from 'utils/emoji_map';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
@@ -50,6 +52,9 @@ export function submitPost(
 
         const time = Utils.getTimestamp();
 
+        const isBorEnabled = isBurnOnReadEnabled(state);
+        const postType = (isBorEnabled && draft.type === PostTypes.BURN_ON_READ) ? PostTypes.BURN_ON_READ : undefined;
+
         let post = {
             file_ids: [],
             message: draft.message,
@@ -58,7 +63,10 @@ export function submitPost(
             pending_post_id: `${userId}:${time}`,
             user_id: userId,
             create_at: time,
-            metadata: {...draft.metadata},
+            type: postType,
+            metadata: {
+                ...(draft.metadata?.priority && {priority: draft.metadata.priority}),
+            },
             props: {...draft.props},
         } as unknown as Post;
 

@@ -12,11 +12,12 @@
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC jest --updateSnapshot",
-    "test-ci": "cross-env TZ=Etc/UTC jest",
+    "test-ci": "cross-env TZ=Etc/UTC jest --ci --forceExit --detectOpenHandles --maxWorkers=100% --logHeapUsage",
     "clean": "rm -rf dist node_modules tsconfig.tsbuildinfo .rollup.cache"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.17.0",
+    "jest-environment-jsdom": "30.1.0",
     "@rollup/plugin-babel": "^5.3.1",
     "@rollup/plugin-commonjs": "^21.0.2",
     "@rollup/plugin-node-resolve": "^13.1.3",
@@ -39,7 +40,7 @@
   },
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
-    "@mattermost/compass-icons": "0.1.52",
+    "@mattermost/compass-icons": "0.1.53",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",

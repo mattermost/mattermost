@@ -236,7 +236,7 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {page, loading} = this.state;
+        const {loading} = this.state;
         const {term, role, usersToAdd, usersToRemove, readOnly} = this.props;
         const {startCount, endCount, total} = this.getPaginationProps();
         return (
@@ -272,7 +272,6 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
                     columns={this.getColumns()}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
-                    page={page}
                     startCount={startCount}
                     endCount={endCount}
                     loading={loading}

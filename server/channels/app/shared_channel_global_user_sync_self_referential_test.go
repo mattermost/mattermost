@@ -40,8 +40,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		cfg.ConnectedWorkspacesSettings.GlobalUserSyncBatchSize = &defaultBatchSize
 		// Enable the feature flag for global user sync
 		cfg.FeatureFlags.EnableSyncAllUsersForRemoteCluster = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	ss := th.App.Srv().Store()
 
@@ -61,11 +60,6 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 	rcService := th.App.Srv().GetRemoteClusterService()
 	if rcService != nil {
 		_ = rcService.Start()
-
-		// Force the service to be active in test environment
-		if rc, ok := rcService.(*remotecluster.Service); ok {
-			rc.SetActive(true)
-		}
 
 		// Verify it's active
 		if !rcService.Active() {
@@ -119,7 +113,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}
 
 		// Create a new user to sync
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Ensure user has a recent update time for cursor-based sync
 		user.UpdateAt = model.GetMillis()
@@ -190,7 +184,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		baseTime := model.GetMillis()
 
 		// Create user with old timestamp
-		userWithOldTimestamp := th.CreateUser()
+		userWithOldTimestamp := th.CreateUser(t)
 		userWithOldTimestamp.UpdateAt = 1
 		_, err = ss.User().Update(th.Context, userWithOldTimestamp, false)
 		require.NoError(t, err)
@@ -203,14 +197,14 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Create regular users
 		regularUsers := make([]*model.User, 3)
 		for i := range 3 {
-			regularUsers[i] = th.CreateUser()
+			regularUsers[i] = th.CreateUser(t)
 			regularUsers[i].UpdateAt = baseTime + int64(i*100)
 			_, err = ss.User().Update(th.Context, regularUsers[i], true)
 			require.NoError(t, err)
 		}
 
 		// Create bot
-		bot := th.CreateBot()
+		bot := th.CreateBot(t)
 		botUser, appErr := th.App.GetUser(bot.UserId)
 		require.Nil(t, appErr)
 		botUser.UpdateAt = baseTime + 300
@@ -218,7 +212,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create system admin
-		systemAdmin := th.CreateUser()
+		systemAdmin := th.CreateUser(t)
 		_, appErr = th.App.UpdateUserRoles(th.Context, systemAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
 		require.Nil(t, appErr)
 		systemAdmin.UpdateAt = baseTime + 400
@@ -226,20 +220,20 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create guest user
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 		guest.UpdateAt = baseTime + 500
 		_, err = ss.User().Update(th.Context, guest, true)
 		require.NoError(t, err)
 
 		// Create remote user (should NOT be synced)
-		remoteUser := th.CreateUser()
-		remoteUser.RemoteId = &selfCluster.RemoteId
+		remoteUser := th.CreateUser(t)
+		remoteUser = th.SetUserRemoteID(t, remoteUser.Id, selfCluster.RemoteId)
 		remoteUser.UpdateAt = baseTime + 600
 		_, err = ss.User().Update(th.Context, remoteUser, true)
 		require.NoError(t, err)
 
 		// Create inactive user (should NOT be synced)
-		inactiveUser := th.CreateUser()
+		inactiveUser := th.CreateUser(t)
 		inactiveUser.UpdateAt = baseTime + 700
 		inactiveUser.DeleteAt = model.GetMillis()
 		_, err = ss.User().Update(th.Context, inactiveUser, true)
@@ -405,7 +399,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// Create users to sync
 		users := make([]*model.User, 5)
 		for i := range 5 {
-			users[i] = th.CreateUser()
+			users[i] = th.CreateUser(t)
 			users[i].UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, users[i], true)
 			require.NoError(t, err)
@@ -454,7 +448,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Cursor updates only when sync is successful
 		EnsureCleanState(t, th, ss)
 
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var failureMode atomic.Bool
 		failureMode.Store(false)
 		var syncHandler *SelfReferentialSyncHandler
@@ -463,7 +457,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/api/v4/remotecluster/msg":
-				atomic.AddInt32(&syncAttempts, 1)
+				syncAttempts.Add(1)
 
 				if failureMode.Load() {
 					w.WriteHeader(http.StatusInternalServerError)
@@ -504,8 +498,8 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Create first batch of users
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
 
 		// Set update times
 		user1.UpdateAt = model.GetMillis()
@@ -521,7 +515,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > 0
+			return syncAttempts.Load() > 0
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was updated
@@ -534,19 +528,19 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		failureMode.Store(true)
 
 		// Create a new user after cursor
-		user3 := th.CreateUser()
+		user3 := th.CreateUser(t)
 		user3.UpdateAt = model.GetMillis()
 		_, err = ss.User().Update(th.Context, user3, true)
 		require.NoError(t, err)
 
 		// Second sync - should fail
-		initialAttempts := atomic.LoadInt32(&syncAttempts)
+		initialAttempts := syncAttempts.Load()
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err) // The method itself shouldn't error, just the remote call
 
 		// Wait for failed sync attempt
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > initialAttempts
+			return syncAttempts.Load() > initialAttempts
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was NOT updated on failure
@@ -558,13 +552,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		failureMode.Store(false)
 
 		// Third sync - should succeed and update cursor
-		preSuccessAttempts := atomic.LoadInt32(&syncAttempts)
+		preSuccessAttempts := syncAttempts.Load()
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Wait for successful sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) > preSuccessAttempts
+			return syncAttempts.Load() > preSuccessAttempts
 		}, 5*time.Second, 100*time.Millisecond, "Should have attempted sync")
 
 		// Verify cursor was updated after successful sync
@@ -580,12 +574,12 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Ensures cursor is only updated when flag is enabled
 		EnsureCleanState(t, th, ss)
 
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 
 		// Create test HTTP server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncMessageCount, 1)
+				syncMessageCount.Add(1)
 			}
 			writeOKResponse(w)
 		}))
@@ -608,7 +602,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create users
 		for i := range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
 			require.NoError(t, err)
@@ -623,13 +617,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Verify no sync messages were sent
 		require.Never(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 2*time.Second, 100*time.Millisecond, "No sync should occur with feature flag disabled")
 
 		// Verify cursor was not updated
@@ -646,13 +640,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		err = th.App.ReloadConfig()
 		require.NoError(t, err)
 
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
 		require.NoError(t, err)
 
 		// Verify sync messages were sent
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncMessageCount) > 0
+			return syncMessageCount.Load() > 0
 		}, 5*time.Second, 100*time.Millisecond, "Sync should occur with feature flag enabled")
 
 		// Verify cursor was updated
@@ -668,13 +662,13 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - Tests cursor updates in both scenarios
 		EnsureCleanState(t, th, ss)
 
-		var syncMessageCount int32
+		var syncMessageCount atomic.Int32
 		var connectionOpenSyncOccurred atomic.Bool
 
 		// Create test HTTP server
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncMessageCount, 1)
+				syncMessageCount.Add(1)
 
 				// Parse message to check if it's a user sync
 				bodyBytes, _ := io.ReadAll(r.Body)
@@ -692,7 +686,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create users before creating remote cluster
 		for i := range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
 			require.NoError(t, err)
@@ -725,12 +719,12 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Verify no automatic sync occurs within a reasonable time
 		require.Never(t, func() bool {
-			return connectionOpenSyncOccurred.Load() || atomic.LoadInt32(&syncMessageCount) > 0
+			return connectionOpenSyncOccurred.Load() || syncMessageCount.Load() > 0
 		}, 2*time.Second, 100*time.Millisecond, "No automatic sync should occur when config is disabled")
 
 		// Test 2: Connection open with sync enabled
 		// Reset counters
-		atomic.StoreInt32(&syncMessageCount, 0)
+		syncMessageCount.Store(0)
 		connectionOpenSyncOccurred.Store(false)
 
 		// Enable config option
@@ -768,7 +762,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}, 5*time.Second, 100*time.Millisecond, "Automatic sync should occur when config is enabled")
 
 		// Verify sync occurred
-		assert.Greater(t, atomic.LoadInt32(&syncMessageCount), int32(0), "Should have sync messages when config enabled")
+		assert.Greater(t, syncMessageCount.Load(), int32(0), "Should have sync messages when config enabled")
 
 		// Verify cursor was updated
 		updatedCluster, err2 := ss.RemoteCluster().Get(selfCluster2.RemoteId, true)
@@ -817,7 +811,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create some users to sync
 		for i := range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
 			require.NoError(t, err)
@@ -850,7 +844,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		// - No partial data should be persisted
 		EnsureCleanState(t, th, ss)
 
-		var syncAttempts int32
+		var syncAttempts atomic.Int32
 		var serverOnline atomic.Bool
 		serverOnline.Store(true)
 
@@ -863,9 +857,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 			}
 
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
-				atomic.AddInt32(&syncAttempts, 1)
+				syncAttempts.Add(1)
 				// On second attempt, go offline
-				if atomic.LoadInt32(&syncAttempts) >= 2 {
+				if syncAttempts.Load() >= 2 {
 					serverOnline.Store(false)
 					w.WriteHeader(http.StatusServiceUnavailable)
 					return
@@ -892,7 +886,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create users to sync
 		for i := range 5 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			user.UpdateAt = model.GetMillis() + int64(i)
 			_, err = ss.User().Update(th.Context, user, true)
 			require.NoError(t, err)
@@ -904,7 +898,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for first sync
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 1
+			return syncAttempts.Load() >= 1
 		}, 5*time.Second, 100*time.Millisecond)
 
 		// Get cursor after first sync
@@ -915,7 +909,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Create more users
 		for i := range 3 {
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 			user.UpdateAt = model.GetMillis() + int64(100+i)
 			_, err = ss.User().Update(th.Context, user, true)
 			require.NoError(t, err)
@@ -927,7 +921,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Wait for second sync attempt
 		require.Eventually(t, func() bool {
-			return atomic.LoadInt32(&syncAttempts) >= 2
+			return syncAttempts.Load() >= 2
 		}, 5*time.Second, 100*time.Millisecond)
 
 		// Verify cursor was not updated after failed sync
@@ -987,14 +981,14 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		}
 
 		// Create users
-		user1 := th.CreateUser()
-		user2 := th.CreateUser()
-		user3 := th.CreateUser()
+		user1 := th.CreateUser(t)
+		user2 := th.CreateUser(t)
+		user3 := th.CreateUser(t)
 
 		// Add users to team
-		th.LinkUserToTeam(user1, th.BasicTeam)
-		th.LinkUserToTeam(user2, th.BasicTeam)
-		th.LinkUserToTeam(user3, th.BasicTeam)
+		th.LinkUserToTeam(t, user1, th.BasicTeam)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		th.LinkUserToTeam(t, user3, th.BasicTeam)
 
 		// Update timestamps
 		user1.UpdateAt = model.GetMillis()
@@ -1008,9 +1002,9 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create multiple shared channels
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel3 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
+		channel3 := th.CreateChannel(t, th.BasicTeam)
 
 		// Make channels shared
 		sc1 := &model.SharedChannel{
@@ -1054,16 +1048,16 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 
 		// Add users to multiple shared channels
 		// user1 in all channels
-		th.AddUserToChannel(user1, channel1)
-		th.AddUserToChannel(user1, channel2)
-		th.AddUserToChannel(user1, channel3)
+		th.AddUserToChannel(t, user1, channel1)
+		th.AddUserToChannel(t, user1, channel2)
+		th.AddUserToChannel(t, user1, channel3)
 
 		// user2 in two channels
-		th.AddUserToChannel(user2, channel1)
-		th.AddUserToChannel(user2, channel2)
+		th.AddUserToChannel(t, user2, channel1)
+		th.AddUserToChannel(t, user2, channel2)
 
 		// user3 in one channel
-		th.AddUserToChannel(user3, channel3)
+		th.AddUserToChannel(t, user3, channel3)
 
 		// Start the sync - this will trigger the first batch
 		err = service.HandleSyncAllUsersForTesting(selfCluster)
@@ -1156,7 +1150,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		defer serverB.Close()
 
 		// Step 1: Create "Server A" user and sync to "Server B"
-		originalUser := th.CreateUser()
+		originalUser := th.CreateUser(t)
 		originalUser.UpdateAt = model.GetMillis()
 		_, err = ss.User().Update(th.Context, originalUser, true)
 		require.NoError(t, err)
@@ -1193,7 +1187,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		syncedUserOnB := &model.User{
 			Email:    model.NewId() + "@example.com",
 			Username: originalUser.Username + "_" + clusterB.Name, // Munged username
-			Password: "password",
+			Password: model.NewTestPassword(),
 			RemoteId: &clusterB.RemoteId, // This would be A's cluster ID on the actual B server
 			UpdateAt: model.GetMillis(),
 		}
@@ -1265,7 +1259,7 @@ func TestSharedChannelGlobalUserSyncSelfReferential(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create a user
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		user.UpdateAt = model.GetMillis()
 		_, err = ss.User().Update(th.Context, user, true)
 		require.NoError(t, err)

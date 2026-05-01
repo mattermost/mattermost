@@ -1832,10 +1832,6 @@
     "translation": "جستجوی الاستیک غیرفعال است."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "جستجوی الاستیک از قبل متوقف شده است."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },
@@ -4360,10 +4356,6 @@
     "translation": "مجوز تجاری Mattermost غیرفعال شده است."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "مجوز تجاری شما منقضی شده است و برخی از ویژگی ها ممکن است غیرفعال شوند. لطفا اشتراکتان را تمدید کنید."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "سوالات؟"
   },
@@ -5532,10 +5524,6 @@
     "translation": "کاربر Slack با یک کاربر موجود Mattermost با ایمیل منطبق {{.Email}} و نام کاربری {{.Username}} ادغام شد.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "کاربر Slack با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nکاربران ایجاد کردند:\n"
   },
@@ -5558,10 +5546,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "وارد کردن کاربر یکپارچه سازی / Slack Bot {{.Username}} امکان پذیر نیست.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "کاربر ادغام / Slack Bot با ایمیل {{.Email}} و رمز عبور {{.Password}} وارد شده است.\n"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -6941,10 +6925,6 @@
     "translation": "ارتباط امن"
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "کانال {{.Channel}} بیصدا نمی شود زیرا عضو آن نیستید."
-  },
-  {
     "id": "api.command_mute.no_channel.error",
     "translation": "کانال مشخص شده یافت نشد. برای شناسایی کانال ها لطفاً از [هندل کانال](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) استفاده کنید."
   },
@@ -7175,10 +7155,6 @@
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
     "translation": "invalid_request: بد grant_type."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: گم شده client_secret."
   },
   {
     "id": "api.command_invite.channel.app_error",

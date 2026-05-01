@@ -4,8 +4,6 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import type {Either} from '@mattermost/types/utilities';
-
 import BlockableButton from 'components/admin_console/blockable_button';
 import BlockableLink from 'components/admin_console/blockable_link';
 import SaveButton from 'components/save_button';
@@ -17,11 +15,11 @@ type Props = {
     serverError?: JSX.Element | string;
     isDisabled?: boolean;
     savingMessage?: string;
-} & Either<{
-    cancelLink: string;
-}, {
-    onCancel: () => void;
-}>;
+} & (
+    | {cancelLink: string; onCancel?: never}
+    | {cancelLink?: never; onCancel: () => void}
+    | {cancelLink?: never; onCancel?: never}
+); // allow a cancelLink or an onCancel handler, or neither
 
 const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
     const {formatMessage} = useIntl();

@@ -71,7 +71,7 @@ const FeatureRestrictedModal = ({
     const [notifyAdminBtnText, notifyAdmin, notifyRequestStatus] = useNotifyAdmin({
         ctaText: formatMessage({
             id: 'feature_restricted_modal.button.notify',
-            defaultMessage: 'Notify Admin',
+            defaultMessage: 'Notify admin',
         }),
     }, {
         required_feature: feature || '',
@@ -152,7 +152,7 @@ const FeatureRestrictedModal = ({
                     <p className='FeatureRestrictedModal__terms'>
                         <FormattedMessage
                             id='feature_restricted_modal.agreement'
-                            defaultMessage='By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.'
+                            defaultMessage='By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.'
                             values={{
                                 trialLength: FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS,
                                 highlight: (msg: React.ReactNode) => (

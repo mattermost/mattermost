@@ -6,7 +6,7 @@ import React from 'react';
 import {EmojiIndicesByAlias, Emojis} from 'utils/emoji';
 import {TestHelper as TH} from 'utils/test_helper';
 
-import {compareEmojis, convertEmojiSkinTone, wrapEmojis} from './emoji_utils';
+import {compareEmojis, convertEmojiSkinTone, unifiedToUnicode, wrapEmojis} from './emoji_utils';
 
 describe('compareEmojis', () => {
     test('should sort an array of emojis alphabetically', () => {
@@ -390,6 +390,24 @@ describe('convertEmojiSkinTone', () => {
         expect(convertEmojiSkinTone(emoji, '1F3FD')).toBe(emoji);
         expect(convertEmojiSkinTone(emoji, '1F3FE')).toBe(emoji);
         expect(convertEmojiSkinTone(emoji, '1F3FF')).toBe(emoji);
+    });
+});
+
+describe('unifiedToUnicode', () => {
+    test('should convert a single codepoint', () => {
+        expect(unifiedToUnicode('1F600')).toBe('\uD83D\uDE00'); // 😀
+    });
+
+    test('should convert multi-codepoint emoji', () => {
+        expect(unifiedToUnicode('1F468-200D-1F469-200D-1F467')).toBe('\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67');
+    });
+
+    test('should convert skin tone variant', () => {
+        expect(unifiedToUnicode('1F64C-1F3FD')).toBe('\uD83D\uDE4C\uD83C\uDFFD');
+    });
+
+    test('should handle basic ASCII-range codepoints', () => {
+        expect(unifiedToUnicode('23-FE0F-20E3')).toBe('#\uFE0F\u20E3'); // #️⃣
     });
 });
 

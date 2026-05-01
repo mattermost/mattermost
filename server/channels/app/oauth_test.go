@@ -26,8 +26,7 @@ import (
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("BasicFlow_Success", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
@@ -240,7 +239,6 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -259,7 +257,6 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 func TestOAuthDeleteApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
@@ -354,7 +351,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("not enabled", func(t *testing.T) {
 		th := setup(t, false, true, true, "")
-		defer th.TearDown()
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, nil, nil, model.ServiceGitlab, "", "", "")
 		require.NotNil(t, err)
@@ -363,7 +359,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an improperly encoded state", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		state := "!"
 
@@ -374,7 +369,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without a stored token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": model.NewId(),
@@ -388,7 +382,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -403,7 +396,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with email missing when changing login types", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		email := ""
 		action := model.OAuthActionEmailToSSO
@@ -425,7 +417,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without an OAuth cookie", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest("")
@@ -438,7 +429,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an invalid token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 
@@ -455,7 +445,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an incorrect token endpoint", func(t *testing.T) {
 		th := setup(t, true, false, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -473,7 +462,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -493,7 +481,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -516,7 +503,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -538,7 +524,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -560,7 +545,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, false, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -589,7 +573,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -620,7 +603,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -633,7 +615,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with error in GetSSOSettings", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.OpenIdSettings.Enable = true
@@ -679,7 +660,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				defer server.Close()
 
 				th := setup(t, true, true, true, server.URL)
-				defer th.TearDown()
 
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
@@ -718,7 +698,6 @@ func TestGetAuthorizationCode(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = false
@@ -732,7 +711,6 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = true
@@ -774,8 +752,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -817,8 +794,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 
 func TestDeactivatedUserOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -862,8 +838,7 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 
 func TestRegisterOAuthClient(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
@@ -943,7 +918,6 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Enable OAuth service provider and set SiteURL
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -990,8 +964,7 @@ func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 
 func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -1427,6 +1400,64 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			require.Contains(t, appErr.Id, "resource_mismatch")
 		})
 	})
+
+	t.Run("DifferentClient_CannotRedeemCode", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appB.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("DifferentClient_CannotUseRefreshToken", func(t *testing.T) {
+		appA := createConfidentialOAuthApp("TestClientA")
+		appB := createConfidentialOAuthApp("TestClientB")
+		code := getAuthorizationCode(appA, "")
+
+		// Get a valid refresh token for appA
+		tokenResp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appA.Id,
+			model.AccessTokenGrantType,
+			appA.CallbackUrls[0],
+			code,
+			appA.ClientSecret,
+			"",
+			"",
+			"",
+		)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, tokenResp.RefreshToken)
+
+		// Try to use appA's refresh token with appB's credentials
+		_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			appB.Id,
+			model.RefreshTokenGrantType,
+			appB.CallbackUrls[0],
+			"",
+			appB.ClientSecret,
+			tokenResp.RefreshToken,
+			"",
+			"",
+		)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "client_id_mismatch")
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
 }
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
@@ -1476,7 +1507,6 @@ func TestParseOAuthStateTokenExtra(t *testing.T) {
 func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	mockProvider := &mocks.OAuthProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceOpenid, mockProvider)
@@ -1613,4 +1643,237 @@ func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
 	})
+}
+
+// TestLoginByIntune_InterfaceNotAvailable tests that LoginByIntune returns proper error when enterprise not compiled
+func TestLoginByIntune_InterfaceNotAvailable(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	// Intune interface should be nil in non-enterprise setup
+	require.Nil(t, th.App.Intune())
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "fake-token")
+
+	// Should return error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.not_available.app_error", appErr.Id)
+	assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+}
+
+// TestLoginByIntune_NotConfigured tests that LoginByIntune returns proper error when Intune not configured
+func TestLoginByIntune_NotConfigured(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(false)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "fake-token")
+
+	// Should return error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.not_configured.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_Success_Office365 tests successful login with Office365 auth service
+func TestLoginByIntune_Success_Office365(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create test user with Office365 auth
+	testUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "office365user@example.com",
+		Username:      "office365user",
+		AuthService:   model.ServiceOffice365,
+		AuthData:      model.NewPointer("test-oid-123"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "valid-token").Return(testUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "valid-token")
+
+	// Should succeed
+	require.Nil(t, appErr)
+	require.NotNil(t, user)
+	assert.Equal(t, testUser.Id, user.Id)
+	assert.Equal(t, model.ServiceOffice365, user.AuthService)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_Success_SAML tests successful login with SAML auth service
+func TestLoginByIntune_Success_SAML(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create test user with SAML auth
+	testUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "samluser@example.com",
+		Username:      "samluser",
+		AuthService:   model.UserAuthServiceSaml,
+		AuthData:      model.NewPointer("test@example.com"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "valid-token").Return(testUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "valid-token")
+
+	// Should succeed
+	require.Nil(t, appErr)
+	require.NotNil(t, user)
+	assert.Equal(t, testUser.Id, user.Id)
+	assert.Equal(t, model.UserAuthServiceSaml, user.AuthService)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_BotAccountBlocked tests that bot accounts cannot login via Intune
+func TestLoginByIntune_BotAccountBlocked(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create bot account
+	bot := th.CreateBot(t)
+	botUser, appErr := th.App.GetUser(bot.UserId)
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface that returns bot user
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "bot-token").Return(botUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "bot-token")
+
+	// Should be blocked
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.bot_login_forbidden.app_error", appErr.Id)
+	assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_AccountLocked tests that deleted/locked accounts cannot login
+func TestLoginByIntune_AccountLocked(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create user and then soft delete it
+	deletedUser, appErr := th.App.CreateUser(th.Context, &model.User{
+		Email:         "deleteduser@example.com",
+		Username:      "deleteduser",
+		AuthService:   model.ServiceOffice365,
+		AuthData:      model.NewPointer("deleted-oid-123"),
+		EmailVerified: true,
+	})
+	require.Nil(t, appErr)
+
+	// Soft delete the user (deactivate)
+	_, appErr = th.App.UpdateActive(th.Context, deletedUser, false)
+	require.Nil(t, appErr)
+
+	// Reload user to get updated DeleteAt
+	deletedUser, appErr = th.App.GetUser(deletedUser.Id)
+	require.Nil(t, appErr)
+
+	// Create mock Intune interface that returns deleted user
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "deleted-token").Return(deletedUser, nil)
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "deleted-token")
+
+	// Should be blocked
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.user.login_by_intune.account_locked.app_error", appErr.Id)
+	assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
+}
+
+// TestLoginByIntune_TokenValidationFailure tests that invalid tokens are rejected
+func TestLoginByIntune_TokenValidationFailure(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	// Create mock Intune interface that returns validation error
+	mockIntune := &mocks.IntuneInterface{}
+	mockIntune.On("IsConfigured").Return(true)
+	mockIntune.On("Login", mock.Anything, "invalid-token").Return(nil, model.NewAppError(
+		"IntuneInterface.Login",
+		"ent.intune.validate_token.invalid_token.app_error",
+		nil,
+		"token validation failed",
+		http.StatusBadRequest,
+	))
+
+	// Replace Intune interface with mock
+	originalIntune := th.App.ch.Intune
+	th.App.ch.Intune = mockIntune
+	defer func() {
+		th.App.ch.Intune = originalIntune
+	}()
+
+	// Attempt login
+	user, appErr := th.App.LoginByIntune(th.Context, "invalid-token")
+
+	// Should return validation error
+	require.Nil(t, user)
+	require.NotNil(t, appErr)
+	assert.Equal(t, "ent.intune.validate_token.invalid_token.app_error", appErr.Id)
+	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+	mockIntune.AssertExpectations(t)
 }

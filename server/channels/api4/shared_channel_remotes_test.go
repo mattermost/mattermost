@@ -18,8 +18,7 @@ import (
 )
 
 func TestGetSharedChannelRemotes(t *testing.T) {
-	th := setupForSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupForSharedChannels(t).InitBasic(t)
 
 	// Create remote clusters
 	remote1 := &model.RemoteCluster{
@@ -45,7 +44,7 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Create shared channel
-	channel1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	channel1 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc1 := &model.SharedChannel{
 		ChannelId:        channel1.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -104,14 +103,21 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	assert.Equal(t, remote1.DisplayName, result[0].DisplayName)
 	assert.Equal(t, remote2.DisplayName, result[1].DisplayName)
 
-	// Should also contain other fields
+	// Should also contain other fields including remote_id for invite/uninvite
+	assert.NotEmpty(t, result[0].RemoteId)
+	assert.NotEmpty(t, result[1].RemoteId)
+	assert.Equal(t, remote1.RemoteId, result[0].RemoteId)
+	assert.Equal(t, remote2.RemoteId, result[1].RemoteId)
 	assert.NotEmpty(t, result[0].Name)
 	assert.NotEmpty(t, result[1].Name)
+	// Verify the Name matches the actual remote cluster name
+	assert.Equal(t, remote1.Name, result[0].Name)
+	assert.Equal(t, remote2.Name, result[1].Name)
 	assert.NotZero(t, result[0].LastPingAt)
 	assert.NotZero(t, result[1].LastPingAt)
 
 	// Test access control - user without permissions should not be able to access
-	user2 := th.CreateUser()
+	user2 := th.CreateUser(t)
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	_, _, err = th.Client.Login(context.Background(), user2.Email, user2.Password)
@@ -120,4 +126,24 @@ func TestGetSharedChannelRemotes(t *testing.T) {
 	resp, err = th.Client.DoAPIGet(context.Background(), url, "")
 	require.Error(t, err)
 	require.Equal(t, http.StatusForbidden, resp.StatusCode)
+}
+
+func TestGetSharedChannelRemotes_ReturnsEmptyForNonSharedChannel(t *testing.T) {
+	th := setupForSharedChannels(t).InitBasic(t)
+
+	// Create a channel that is NOT shared
+	channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	// Request remotes for non-shared channel - should return empty array, not error
+	url := fmt.Sprintf("/sharedchannels/%s/remotes", channel.Id)
+	resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result []*model.RemoteClusterInfo
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	require.NotNil(t, result)
+	require.Empty(t, result)
 }

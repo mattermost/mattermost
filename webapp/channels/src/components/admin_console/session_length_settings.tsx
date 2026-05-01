@@ -39,14 +39,14 @@ const messages = defineMessages({
     extendSessionLengthActivity_label: {id: 'admin.service.extendSessionLengthActivity.label', defaultMessage: 'Extend session length with activity: '},
     extendSessionLengthActivity_helpText: {id: 'admin.service.extendSessionLengthActivity.helpText', defaultMessage: 'When true, sessions will be automatically extended when the user is active in their Mattermost client. Users sessions will only expire if they are not active in their Mattermost client for the entire duration of the session lengths defined in the fields below. When false, sessions will not extend with activity in Mattermost. User sessions will immediately expire at the end of the session length or idle timeouts defined below. '},
     terminateSessionsOnPasswordChange_label: {id: 'admin.service.terminateSessionsOnPasswordChange.label', defaultMessage: 'Terminate Sessions on Password Change: '},
-    terminateSessionsOnPasswordChange_helpText: {id: 'admin.service.terminateSessionsOnPasswordChange.helpText', defaultMessage: 'When true, all sessions of a user will expire if their password is changed by themselves or an administrator.'},
+    terminateSessionsOnPasswordChange_helpText: {id: 'admin.service.terminateSessionsOnPasswordChange.helpText', defaultMessage: 'When true, all sessions of a user will expire if their password is changed by themselves or an administrator. If password change is initiated by user, their current session is not terminated.'},
     webSessionHours: {id: 'admin.service.webSessionHours', defaultMessage: 'Session Length AD/LDAP and Email (hours):'},
     mobileSessionHours: {id: 'admin.service.mobileSessionHours', defaultMessage: 'Session Length Mobile (hours):'},
     ssoSessionHours: {id: 'admin.service.ssoSessionHours', defaultMessage: 'Session Length SSO (hours):'},
     sessionCache: {id: 'admin.service.sessionCache', defaultMessage: 'Session Cache (minutes):'},
     sessionCacheDesc: {id: 'admin.service.sessionCacheDesc', defaultMessage: 'The number of minutes to cache a session in memory:'},
     sessionHoursEx: {id: 'admin.service.sessionHoursEx', defaultMessage: 'E.g.: "720"'},
-    sessionIdleTimeoutDesc: {id: 'admin.service.sessionIdleTimeoutDesc', defaultMessage: "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited. Applies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement."},
+    sessionIdleTimeoutDesc: {id: 'admin.service.sessionIdleTimeoutDesc', defaultMessage: "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited.\n \nApplies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement."}, // eslint-disable-line formatjs/no-multiple-whitespaces
 });
 
 export const searchableStrings = [

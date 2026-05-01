@@ -3156,10 +3156,6 @@
     "translation": "Az Elasticsearch le van tiltva."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Az Elasticsearch már leállt."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Nem sikerült értelmezni az Elasticsearch szerver verzióját."
   },
@@ -4944,10 +4940,6 @@
     "translation": "A Mattermost Enterprise licensz le van tiltva."
   },
   {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Az Enterprise Edition licencje lejárt, és egyes funkciók le vannak tiltva. Kérjük, újítsa meg a licencét most."
-  },
-  {
     "id": "api.templates.questions_footer.title",
     "translation": "Kérdése van?"
   },
@@ -5432,10 +5424,6 @@
     "translation": "Slack felhasználó összevonva egy létező Mattermost felhasználóval egyező e-mail címmel {{.Email}} és felhasználónévvel {{.Username}}.\n"
   },
   {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack felhasználó a {{.Email}} e-mail címmel és {{.Password}} jelszóval sikeresen importálva.\n"
-  },
-  {
     "id": "api.slackimport.slack_add_users.created",
     "translation": "\nLétrehozott felhasználók:\n"
   },
@@ -5458,10 +5446,6 @@
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
     "translation": "Nem lehet importálni az integráció/Slack Bot felhasználót {{.Username}}.\n"
-  },
-  {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Az integráció/Slack Bot felhasználó ezzel az emaillel {{.Email}} és jelszóval {{.Password}} sikeresen importálva.\n"
   },
   {
     "id": "api.user.send_deactivate_email_and_forget.failed.error",
@@ -7117,10 +7101,6 @@
     "translation": "invalid_request: Hibás grant_type."
   },
   {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Hiányzó client_secret."
-  },
-  {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Hibás client_id."
   },
@@ -7367,10 +7347,6 @@
   {
     "id": "api.command_mute.success_mute",
     "translation": "Nem fog kapni értesítéseket a {{.Channel}} csatornán, amíg a csatorna el van némítva."
-  },
-  {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Nem tudta elnémítani a {{.Channel}} csatornát, mivel Ön nem tagja annak."
   },
   {
     "id": "api.command_mute.no_channel.error",
@@ -8424,7 +8400,7 @@
   },
   {
     "id": "api.acknowledgement.save.archived_channel.app_error",
-    "translation": "Egy archivált csatornán nem lehet visszaigazolni."
+    "translation": "Az archivált csatornában nem lehet visszaigazolást menteni."
   },
   {
     "id": "api.admin.syncables_error",

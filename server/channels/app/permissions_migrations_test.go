@@ -4,14 +4,120 @@
 package app
 
 import (
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
+	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
+
+func TestRestoreManageOAuthPermissionMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getRestoreManageOAuthPermissionMigration()
+	require.NoError(t, err)
+
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystemWideOAuth.Id},
+	}
+	systemUserRole := &model.Role{
+		Name:        model.SystemUserRoleId,
+		Permissions: []string{model.PermissionCreateDirectChannel.Id},
+	}
+	roles := []*model.Role{systemAdminRole, systemUserRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyRestoreManageOAuthPermission).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyRestoreManageOAuthPermission).
+		Return(&model.System{Name: model.MigrationKeyRestoreManageOAuthPermission, Value: "true"}, nil).Once()
+	systemStore.On("SaveOrUpdate", mock.MatchedBy(func(system *model.System) bool {
+		return system.Name == model.MigrationKeyRestoreManageOAuthPermission && system.Value == "true"
+	})).Return(nil).Once()
+
+	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
+
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionManageOAuth.Id)
+	assert.NotContains(t, systemUserRole.Permissions, model.PermissionManageOAuth.Id)
+	assert.Len(t, systemAdminRole.Permissions, 2)
+
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyRestoreManageOAuthPermission, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Len(t, systemAdminRole.Permissions, 2)
+
+	roleStore.AssertNumberOfCalls(t, "Save", 2)
+	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
+
+func TestAddManageAgentPermissionsMigration(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+
+	migrationMap, err := th.App.getAddManageAgentPermissionsMigration()
+	require.NoError(t, err)
+
+	systemAdminRole := &model.Role{
+		Name:        model.SystemAdminRoleId,
+		Permissions: []string{model.PermissionManageSystem.Id},
+	}
+	systemUserRole := &model.Role{
+		Name:        model.SystemUserRoleId,
+		Permissions: []string{model.PermissionCreateDirectChannel.Id},
+	}
+	roles := []*model.Role{systemAdminRole, systemUserRole}
+
+	mockStore := th.App.Srv().Store().(*mocks.Store)
+	roleStore := mocks.RoleStore{}
+	systemStore := mocks.SystemStore{}
+
+	mockStore.On("Role").Return(&roleStore)
+	mockStore.On("System").Return(&systemStore)
+
+	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).
+		Return(nil, model.NewAppError("test", "missing", nil, "", 404)).Once()
+	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).
+		Return(&model.System{Name: model.MigrationKeyAddManageAgentPermissions, Value: "true"}, nil).Once()
+	systemStore.On("SaveOrUpdate", mock.MatchedBy(func(system *model.System) bool {
+		return system.Name == model.MigrationKeyAddManageAgentPermissions && system.Value == "true"
+	})).Return(nil).Once()
+
+	roleStore.On("Save", mock.AnythingOfType("*model.Role")).
+		Return(func(role *model.Role) *model.Role { return role }, nil).Twice()
+
+	appErr := th.App.Srv().doPermissionsMigration(model.MigrationKeyAddManageAgentPermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionManageOwnAgent.Id)
+	assert.Contains(t, systemAdminRole.Permissions, model.PermissionManageOthersAgent.Id)
+	assert.Contains(t, systemUserRole.Permissions, model.PermissionManageOwnAgent.Id)
+	assert.NotContains(t, systemUserRole.Permissions, model.PermissionManageOthersAgent.Id)
+	assert.Len(t, systemAdminRole.Permissions, 3)
+	assert.Len(t, systemUserRole.Permissions, 2)
+
+	appErr = th.App.Srv().doPermissionsMigration(model.MigrationKeyAddManageAgentPermissions, migrationMap, roles)
+	require.Nil(t, appErr)
+	assert.Len(t, systemAdminRole.Permissions, 3, "system_admin should still have 3 permissions after idempotent run")
+	assert.Len(t, systemUserRole.Permissions, 2, "system_user should still have 2 permissions after idempotent run")
+
+	roleStore.AssertNumberOfCalls(t, "Save", 2)
+	systemStore.AssertNumberOfCalls(t, "SaveOrUpdate", 1)
+}
 
 func TestApplyPermissionsMap(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -200,8 +306,7 @@ func TestApplyPermissionsMap(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			result := applyPermissionsMap(&model.Role{Name: "system_admin"}, tc.RoleMap, tc.TranslationMap)
-			sort.Strings(result)
-			assert.Equal(t, tc.ExpectedResult, result)
+			assert.ElementsMatch(t, tc.ExpectedResult, result)
 		})
 	}
 }
@@ -272,8 +377,7 @@ func TestApplyPermissionsMapToSchemeRole(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
 			result := applyPermissionsMap(&model.Role{Name: schemeRoleName, DisplayName: sqlstore.SchemeRoleDisplayNameTeamAdmin}, tc.RoleMap, tc.TranslationMap)
-			sort.Strings(result)
-			assert.Equal(t, tc.ExpectedResult, result)
+			assert.ElementsMatch(t, tc.ExpectedResult, result)
 		})
 	}
 }

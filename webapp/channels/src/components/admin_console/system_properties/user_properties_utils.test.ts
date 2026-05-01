@@ -56,6 +56,11 @@ describe('useUserPropertyFields', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
+        target_id: '',
+        target_type: '',
+        object_type: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set' as const,
@@ -78,7 +83,7 @@ describe('useUserPropertyFields', () => {
         const [fields1, read1] = result.current;
         expect(read1.loading).toBe(true);
         expect(read1.error).toBe(undefined);
-        expect(getFields).toBeCalledTimes(1);
+        expect(getFields).toHaveBeenCalledTimes(1);
         expect(fields1.data).toEqual({});
         expect(fields1.order).toEqual([]);
 

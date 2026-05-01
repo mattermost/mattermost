@@ -6,7 +6,7 @@ import React from 'react';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {scheduledPosts} from 'utils/constants';
 
 import RecentUsedCustomDate from './recent_used_custom_date';
@@ -51,7 +51,6 @@ describe('CoreMenuOptions Component', () => {
     let nextMonday: number;
 
     beforeEach(() => {
-        jest.clearAllMocks();
         handleOnSelect.mockReset();
         now = DateTime.fromISO('2024-11-01T10:00:00', {zone: userCurrentTimezone});
         jest.useFakeTimers();
@@ -134,6 +133,8 @@ describe('CoreMenuOptions Component', () => {
         renderComponent(state, handleOnSelectMock);
 
         const recentCustomOption = screen.getByText(recentUsedCustomDateString);
+
+        // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(recentCustomOption);
 
         expect(handleOnSelectMock).toHaveBeenCalledWith(expect.anything(), recentTimestamp);

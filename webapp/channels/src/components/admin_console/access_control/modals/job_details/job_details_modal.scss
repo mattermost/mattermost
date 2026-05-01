@@ -92,12 +92,30 @@
 
     .error-status-content {
         display: flex;
+        min-width: 0; // allow the code block to respect the modal width
         height: 100%;
         flex-direction: column;
         padding: 0px 32px 32px;
 
         &__title {
             color: var(--error-text);
+        }
+
+        // Sync-job errors often contain long identifiers and paths inside a
+        // single JSON string. Without wrapping, one line can stretch the
+        // modal far beyond the viewport. Scope the wrap behavior to this
+        // specific code block so we don't alter the global post code styles
+        // used in message posts.
+        .post-code {
+            max-width: 100%;
+            overflow-x: auto;
+
+            code,
+            .hljs {
+                overflow-wrap: anywhere;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
         }
     }
 

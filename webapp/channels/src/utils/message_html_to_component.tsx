@@ -9,6 +9,7 @@ import AtMention from 'components/at_mention';
 import AtPlanMention from 'components/at_plan_mention';
 import AtSumOfMembersMention from 'components/at_sum_members_mention';
 import CodeBlock from 'components/code_block/code_block';
+import InlineEntityLink from 'components/inline_entity_link';
 import LatexBlock from 'components/latex_block';
 import LatexInline from 'components/latex_inline';
 import MarkdownImage from 'components/markdown_image';
@@ -107,6 +108,33 @@ export default function messageHtmlToComponent(html: string, options: Options = 
             },
         },
     ];
+
+    processingInstructions.push({
+        replaceChildren: false,
+        shouldProcessNode: (node: any) => {
+            if (node.type !== 'tag' || node.name !== 'a' || !node.attribs.href) {
+                return false;
+            }
+            const url = node.attribs.href;
+
+            try {
+                // Use dummy base for relative URLs
+                const urlObj = new URL(url, 'http://mattermost.com');
+                return urlObj.searchParams.get('view') === 'citation';
+            } catch (e) {
+                return false;
+            }
+        },
+        processNode: (node: any, children: any, index?: number) => {
+            return (
+                <InlineEntityLink
+                    key={`inline-entity-${index}`}
+                    url={node.attribs.href}
+                    text={children}
+                />
+            );
+        },
+    });
 
     if (options.hasPluginTooltips) {
         processingInstructions.push({

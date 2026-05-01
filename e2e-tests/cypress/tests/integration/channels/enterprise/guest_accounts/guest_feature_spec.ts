@@ -74,7 +74,7 @@ describe('Guest Accounts', () => {
         checkUserListStatus(guestUser, 'Deactivated');
     });
 
-    function checkUserListStatus(user, status) {
+    function checkUserListStatus(user: Cypress.UserProfile, status: string) {
         // # Go to System Console ➜ Users.
         cy.visit('/admin_console/user_management/users');
 

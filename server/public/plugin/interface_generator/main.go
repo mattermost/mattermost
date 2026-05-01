@@ -23,7 +23,9 @@ import (
 )
 
 var excludedPluginHooks = []string{
+	"ChannelMemberWillBeAdded",
 	"FileWillBeUploaded",
+	"TeamMemberWillBeAdded",
 	"Implemented",
 	"LoadPluginConfiguration",
 	"InstallPlugin",
@@ -40,6 +42,7 @@ var excludedPluginHooks = []string{
 	"PluginHTTP",
 	"ServeHTTP",
 	"UploadData",
+	"ReceiveSharedChannelAttachmentSyncMsg",
 	"ServeMetrics",
 }
 

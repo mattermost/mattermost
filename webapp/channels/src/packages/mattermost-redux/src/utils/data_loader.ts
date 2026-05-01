@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+export type Comparator = (a: any, b: any) => boolean;
+
 /**
  * A DataLoader is an object that can be used to batch requests for fetching objects from the server for performance
  * reasons.
@@ -8,15 +10,18 @@
 abstract class DataLoader<Identifier, Result = unknown> {
     protected readonly fetchBatch: (identifiers: Identifier[]) => Result;
     private readonly maxBatchSize: number;
+    private readonly comparator?: Comparator;
 
     protected readonly pendingIdentifiers = new Set<Identifier>();
 
     constructor(args: {
         fetchBatch: (identifiers: Identifier[]) => Result;
         maxBatchSize: number;
+        comparator?: Comparator;
     }) {
         this.fetchBatch = args.fetchBatch;
         this.maxBatchSize = args.maxBatchSize;
+        this.comparator = args.comparator;
     }
 
     public queue(identifiersToLoad: Identifier[]): void {
@@ -25,7 +30,22 @@ abstract class DataLoader<Identifier, Result = unknown> {
                 continue;
             }
 
-            this.pendingIdentifiers.add(identifier);
+            // If a custom comparator is provided, manually check for duplicates
+            if (this.comparator) {
+                let exists = false;
+                for (const existing of this.pendingIdentifiers) {
+                    if (this.comparator(existing, identifier)) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    this.pendingIdentifiers.add(identifier);
+                }
+            } else {
+                // Without a comparator, Set automatically handles uniqueness
+                this.pendingIdentifiers.add(identifier);
+            }
         }
     }
 
@@ -37,12 +57,12 @@ abstract class DataLoader<Identifier, Result = unknown> {
     protected prepareBatch(): {identifiers: Identifier[]; moreToLoad: boolean} {
         let nextBatch;
 
-        // Since we can only fetch a defined number of user statuses at a time, we need to batch the requests
+        // Since we can only fetch a defined number of identifiers at a time, we need to batch the requests
         if (this.pendingIdentifiers.size >= this.maxBatchSize) {
             nextBatch = [];
 
             // We use temp buffer here to store up until max buffer size
-            // and clear out processed user ids
+            // and clear out processed identifiers
             for (const identifier of this.pendingIdentifiers) {
                 nextBatch.push(identifier);
                 this.pendingIdentifiers.delete(identifier);
@@ -52,7 +72,7 @@ abstract class DataLoader<Identifier, Result = unknown> {
                 }
             }
         } else {
-            // If we have less than max buffer size, we can directly fetch the statuses
+            // If we have less than max buffer size, we can directly fetch the data
             nextBatch = Array.from(this.pendingIdentifiers);
             this.pendingIdentifiers.clear();
         }
@@ -136,6 +156,7 @@ export class DelayedDataLoader<Identifier> extends DataLoader<Identifier, Promis
         fetchBatch: (identifiers: Identifier[]) => Promise<unknown>;
         maxBatchSize: number;
         wait: number;
+        comparator?: Comparator;
     }) {
         super(args);
 

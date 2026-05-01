@@ -1,0 +1,48 @@
+---
+name: PR Test Analysis
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - master
+      - 'release-*'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to analyze'
+        required: true
+        type: number
+      claude_model:
+        description: 'Claude model to use (default: claude-sonnet-4-6)'
+        required: false
+        type: string
+
+concurrency:
+  group: test-analyzer-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+      id-token: write
+    # pull_request: skip drafts and forks (drafts are not ready for analysis;
+    # fork runs do not receive this repo's Actions secrets).
+    # workflow_dispatch: always allowed — runs in this repo with secrets, so you can pass a fork PR number manually.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.draft == false &&
+       github.event.pull_request.head.repo.full_name == 'mattermost/mattermost')
+    # Pin to a commit SHA once the reusable workflow is stable. Using @main during initial rollout.
+    uses: mattermost/mattermost-test-automation-toolkit/.github/workflows/pr-test-analysis.yml@main
+    with:
+      pr_number: ${{ github.event.pull_request.number || inputs.pr_number }}
+      target_repo: mattermost/mattermost
+      claude_model: ${{ inputs.claude_model || vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}
+    secrets:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL_TEST_PR_ANALYSIS_HUB }}

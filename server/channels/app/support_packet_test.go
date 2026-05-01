@@ -11,11 +11,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -24,7 +25,6 @@ import (
 func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -35,6 +35,9 @@ func TestGenerateSupportPacket(t *testing.T) {
 		err = os.RemoveAll(dir)
 		assert.NoError(t, err)
 	})
+
+	// Override log root path to allow log file reads from our temp directory
+	th.App.Srv().Platform().SetLogRootPathOverride(dir)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.LogSettings.FileLocation = dir
@@ -272,7 +275,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 func TestGetPluginsFile(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	getJobList := func(t *testing.T) *model.SupportPacketPluginList {
 		t.Helper()
@@ -336,14 +338,13 @@ func TestGetPluginsFile(t *testing.T) {
 
 func TestGetSupportPacketStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t)
 
-	generateStats := func(t *testing.T) *model.SupportPacketStats {
+	generateStats := func(t *testing.T, rctx request.CTX, a *App) *model.SupportPacketStats {
 		t.Helper()
 
-		require.NoError(t, th.App.Srv().Store().Post().RefreshPostStats())
+		require.NoError(t, a.Srv().Store().Post().RefreshPostStats())
 
-		fileData, err := th.App.getSupportPacketStats(th.Context)
+		fileData, err := a.getSupportPacketStats(rctx)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "stats.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
@@ -356,8 +357,10 @@ func TestGetSupportPacketStats(t *testing.T) {
 		return &packet
 	}
 
+	th := Setup(t)
+
 	t.Run("fresh server", func(t *testing.T) {
-		sp := generateStats(t)
+		sp := generateStats(t, th.Context, th.App)
 
 		assert.Equal(t, int64(0), sp.RegisteredUsers)
 		assert.Equal(t, int64(0), sp.ActiveUsers)
@@ -365,6 +368,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(0), sp.DeactivatedUsers)
 		assert.Equal(t, int64(0), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(0), sp.BotAccounts)
 		assert.Equal(t, int64(0), sp.Posts)
 		assert.Equal(t, int64(0), sp.Channels)
@@ -377,29 +381,29 @@ func TestGetSupportPacketStats(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		var user *model.User
 		for range 4 {
-			user = th.CreateUser()
+			user = th.CreateUser(t)
 		}
 		th.BasicUser = user
 
 		for range 3 {
-			deactivatedUser := th.CreateUser()
+			deactivatedUser := th.CreateUser(t)
 			require.NotNil(t, deactivatedUser)
 			_, appErr := th.App.UpdateActive(th.Context, deactivatedUser, false)
 			require.Nil(t, appErr)
 		}
 
 		for range 2 {
-			guest := th.CreateGuest()
+			guest := th.CreateGuest(t)
 			require.NotNil(t, guest)
 		}
 
-		th.CreateBot()
+		th.CreateBot(t)
 
-		team := th.CreateTeam()
-		channel := th.CreateChannel(th.Context, team)
+		team := th.CreateTeam(t)
+		channel := th.CreateChannel(t, team)
 
 		for range 3 {
-			p := th.CreatePost(channel)
+			p := th.CreatePost(t, channel)
 			require.NotNil(t, p)
 		}
 
@@ -426,7 +430,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, webhookOut)
 
-		sp := generateStats(t)
+		sp := generateStats(t, th.Context, th.App)
 
 		assert.Equal(t, int64(9), sp.RegisteredUsers)
 		assert.Equal(t, int64(6), sp.ActiveUsers)
@@ -434,6 +438,7 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(0), sp.MonthlyActiveUsers)
 		assert.Equal(t, int64(3), sp.DeactivatedUsers)
 		assert.Equal(t, int64(2), sp.Guests)
+		assert.Equal(t, int64(0), sp.SingleChannelGuests)
 		assert.Equal(t, int64(1), sp.BotAccounts)
 		assert.Equal(t, int64(4), sp.Posts)    // 1 from the bot creation and 3 created directly
 		assert.Equal(t, int64(3), sp.Channels) // 2 from the team creation and 1 created directly
@@ -443,31 +448,39 @@ func TestGetSupportPacketStats(t *testing.T) {
 		assert.Equal(t, int64(1), sp.OutgoingWebhooks)
 	})
 
-	// Reset test server
-	th.TearDown()
-	th = Setup(t).InitBasic()
-	defer th.TearDown()
+	t.Run("single channel guests are counted when a guest is in exactly one channel", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		channel := th.CreateChannel(t, th.BasicTeam)
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, channel)
+
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(1), sp.SingleChannelGuests)
+	})
 
 	t.Run("post count should be present if number of users extends AnalyticsSettings.MaxUsersForStatistics", func(t *testing.T) {
+		// Setup a new test helper
+		th := Setup(t).InitBasic(t)
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.AnalyticsSettings.MaxUsersForStatistics = model.NewPointer(1)
 		})
 
 		for range 5 {
-			p := th.CreatePost(th.BasicChannel)
+			p := th.CreatePost(t, th.BasicChannel)
 			require.NotNil(t, p)
 		}
 
-		// InitBasic() already creats 5 posts
-		packet := generateStats(t)
-		assert.Equal(t, int64(10), packet.Posts)
+		// InitBasic(t) already creats 5 posts
+		sp := generateStats(t, th.Context, th.App)
+		assert.Equal(t, int64(10), sp.Posts)
 	})
 }
 
 func TestGetSupportPacketJobList(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	getJobList := func(t *testing.T) *model.SupportPacketJobList {
 		t.Helper()
@@ -574,8 +587,7 @@ func TestGetSupportPacketJobList(t *testing.T) {
 
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
@@ -599,7 +611,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("No custom permissions", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 23)
+		assert.Len(t, permissions.Roles, 24)
 		assert.Empty(t, permissions.Schemes)
 	})
 
@@ -613,7 +625,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	t.Run("with custom scheme", func(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
-		assert.Len(t, permissions.Roles, 33) // 23 default roles + 10 custom roles from the scheme
+		assert.Len(t, permissions.Roles, 34) // 24 default roles + 10 custom roles from the scheme
 		require.Len(t, permissions.Schemes, 1)
 		assert.Equal(t, scheme.Id, permissions.Schemes[0].Id)
 		assert.Equal(t, model.FakeSetting, permissions.Schemes[0].Name, "Name should be obfuscated")
@@ -635,7 +647,7 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 		permissions := generatePermissionInfo(t)
 
 		require.Len(t, permissions.Schemes, 1)
-		require.Len(t, permissions.Roles, 34) // 23 default roles + 10 custom roles from the scheme + 1 custom role
+		require.Len(t, permissions.Roles, 35) // 24 default roles + 10 custom roles from the scheme + 1 custom role
 		found := false
 		for _, r := range permissions.Roles {
 			// Confirm that sensitive fields are obfuscated
@@ -662,7 +674,6 @@ func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 func TestGetSupportPacketMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("Happy path", func(t *testing.T) {
 		fileData, err := th.App.getSupportPacketMetadata(th.Context)
@@ -683,7 +694,6 @@ func TestGetSupportPacketMetadata(t *testing.T) {
 
 func TestGetSupportPacketDatabaseSchema(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Mock store for testing
 	mockStore := &smocks.Store{}

@@ -51,10 +51,8 @@ func newSqlAttributesStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterf
 }
 
 func (s *SqlAttributesStore) RefreshAttributes() error {
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
-			return errors.Wrap(err, "error refreshing materialized view AttributeView")
-		}
+	if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW AttributeView"); err != nil {
+		return errors.Wrap(err, "error refreshing materialized view AttributeView")
 	}
 
 	return nil
@@ -98,8 +96,15 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	count := s.getQueryBuilder().Select("COUNT(*)").From("Users").LeftJoin("AttributeView ON Users.Id = AttributeView.TargetID")
 
 	if opts.Query != "" {
-		query = query.Where(sq.Expr(opts.Query, opts.Args...))
-		count = count.Where(sq.Expr(opts.Query, opts.Args...))
+		// Wrap the CEL-derived expression in parentheses so that any top-level
+		// OR (e.g. produced by "has any of [a, b]") does not bind across the
+		// AND-joined WHERE clauses appended below (SubjectID, DeleteAt,
+		// TeamID, ExcludeChannelMembers, Cursor, Term). Without these
+		// parens, "A OR B AND Users.Id = $X" would be parsed as
+		// "A OR (B AND Users.Id = $X)" because AND binds tighter than OR.
+		wrapped := "(" + opts.Query + ")"
+		query = query.Where(sq.Expr(wrapped, opts.Args...))
+		count = count.Where(sq.Expr(wrapped, opts.Args...))
 	}
 
 	argCount := len(opts.Args)
@@ -143,8 +148,8 @@ func (s *SqlAttributesStore) SearchUsers(rctx request.CTX, opts model.SubjectSea
 	}
 
 	if term := opts.Term; strings.TrimSpace(term) != "" {
-		_, query = generateSearchQueryForExpression(query, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
-		_, count = generateSearchQueryForExpression(count, strings.Fields(term), searchFields, s.DriverName() == model.DatabaseDriverPostgres, argCount)
+		_, query = generateSearchQueryForExpression(query, strings.Fields(term), searchFields, argCount)
+		_, count = generateSearchQueryForExpression(count, strings.Fields(term), searchFields, argCount)
 	}
 
 	q, args, err := query.ToSql()
@@ -211,25 +216,17 @@ func (s *SqlAttributesStore) GetChannelMembersToRemove(rctx request.CTX, channel
 	return members, nil
 }
 
-func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, isPostgreSQL bool, prevArgs int) (int, sq.SelectBuilder) {
+func generateSearchQueryForExpression(query sq.SelectBuilder, terms []string, fields []string, prevArgs int) (int, sq.SelectBuilder) {
 	for _, term := range terms {
 		searchFields := []string{}
 		termArgs := []any{}
 		for _, field := range fields {
-			if isPostgreSQL {
-				prevArgs++
-				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
-			} else {
-				searchFields = append(searchFields, fmt.Sprintf("%s LIKE ? escape '*' ", field))
-			}
+			prevArgs++
+			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", field, prevArgs))
 			termArgs = append(termArgs, fmt.Sprintf("%%%s%%", strings.TrimLeft(term, "@")))
 		}
-		if isPostgreSQL {
-			prevArgs++
-			searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
-		} else {
-			searchFields = append(searchFields, "Id = ?")
-		}
+		prevArgs++
+		searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower($%d) escape '*' ", "Id", prevArgs))
 		termArgs = append(termArgs, strings.TrimLeft(term, "@"))
 		query = query.Where(fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")), termArgs...)
 	}

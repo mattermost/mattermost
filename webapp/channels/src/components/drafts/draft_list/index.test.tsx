@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {Props as AutoSizerProps} from 'react-virtualized-auto-sizer';
 
 import type {Draft} from 'selectors/drafts';
 
@@ -12,8 +11,6 @@ import {TestHelper} from 'utils/test_helper';
 import type {PostDraft} from 'types/store/draft';
 
 import DraftList from './index';
-
-jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100, scaledHeight: 100, scaledWidth: 100}));
 
 jest.mock('components/drafts/draft_row', () => {
     return function MockDraftRow(props: {item: PostDraft}) {

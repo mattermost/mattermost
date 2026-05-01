@@ -17,7 +17,7 @@ type OptionType = {
     value: string;
 }
 
-type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange' | 'onInputChange' | 'isMulti' | 'placeholder'> & {
+type Props<T extends OptionType> = Omit<SelectProps<T, false>, 'onChange' | 'onInputChange' | 'isMulti' | 'placeholder'> & {
     value: T;
     legend?: string | MessageDescriptor;
     error?: string;
@@ -73,7 +73,7 @@ const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
     </div>
 );
 
-const Option = <T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>) => (
+const Option = <T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>): JSX.Element => (
     <div
         className={classNames('DropdownInput__option', {
             selected: props.isSelected,

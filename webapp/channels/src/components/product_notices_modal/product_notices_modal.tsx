@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {isDesktopApp, getDesktopVersion} from '@mattermost/shared/utils/user_agent';
 import type {ProductNotices, ProductNotice} from '@mattermost/types/product_notices';
 
 import ExternalLink from 'components/external_link';
@@ -12,8 +13,6 @@ import Markdown from 'components/markdown';
 import AdminEyeIcon from 'components/widgets/icons/admin_eye_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
-
-import {isDesktopApp, getDesktopVersion} from 'utils/user_agent';
 
 import type {PropsFromRedux} from './index';
 
@@ -79,7 +78,9 @@ export default class ProductNoticesModal extends React.PureComponent<Props, Stat
                 noticesData: data,
             });
             if (data.length) {
-                const presentNoticeInfo = this.state.noticesData[this.state.presentNoticeIndex];
+                const safeIndex = Math.min(this.state.presentNoticeIndex, data.length - 1);
+                const presentNoticeInfo = data[safeIndex];
+                this.setState({presentNoticeIndex: safeIndex});
                 this.props.actions.updateNoticesAsViewed([presentNoticeInfo.id]);
             }
         }

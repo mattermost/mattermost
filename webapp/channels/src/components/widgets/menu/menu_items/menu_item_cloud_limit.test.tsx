@@ -2,10 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {FileSizes} from 'utils/file_utils';
 import {limitThresholds} from 'utils/limits';
 
@@ -117,9 +115,8 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        expect(container.querySelector('li')).toBeNull();
     });
 
     test('Does not render if free trial', () => {
@@ -136,9 +133,8 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(false);
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        expect(container.querySelector('li')).toBeNull();
     });
 
     test('Does not render if no highest limit', () => {
@@ -153,10 +149,9 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: zeroUsage,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
 
-        expect(wrapper.find('li').exists()).toEqual(false);
+        expect(container.querySelector('li')).toBeNull();
     });
 
     test('renders when a limit needs attention', () => {
@@ -171,9 +166,8 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 usage: usageWarnMessages,
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').exists()).toEqual(true);
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        expect(container.querySelector('li')).not.toBeNull();
     });
 
     test('shows more attention grabbing UI and notify admin CTA if a limit is very close for non admin users', () => {
@@ -191,10 +185,9 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').prop('className')).toContain('critical');
-        expect(wrapper.find('NotifyAdminCTA')).toHaveLength(1);
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        expect(container.querySelector('li')?.className).toContain('critical');
+        expect(container).toMatchSnapshot();
     });
 
     test('shows more attention grabbing UI if a limit is very close for admins', () => {
@@ -217,11 +210,10 @@ describe('components/widgets/menu/menu_items/menu_item_cloud_limit', () => {
                 },
             },
         };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuItemCloudLimit id={id}/></Provider>);
-        expect(wrapper.find('li').prop('className')).toContain('critical');
-        expect(wrapper.find('a')).toHaveLength(1);
-        expect(wrapper.find('a').text()).toEqual('View upgrade options.');
+        const {container} = renderWithContext(<MenuItemCloudLimit id={id}/>, state);
+        expect(container.querySelector('li')?.className).toContain('critical');
+        const link = container.querySelector('a');
+        expect(link).not.toBeNull();
+        expect(link?.textContent).toEqual('View upgrade options.');
     });
 });
-

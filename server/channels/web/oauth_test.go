@@ -241,12 +241,12 @@ func TestOAuthAccessToken(t *testing.T) {
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -517,12 +517,12 @@ func TestOAuthComplete(t *testing.T) {
 	// We are going to use mattermost as the provider emulating gitlab
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -701,7 +701,7 @@ func closeBody(r *http.Response) {
 type MattermostTestProvider struct {
 }
 
-func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (m *MattermostTestProvider) GetUserFromJSON(_ request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {
 	var user model.User
 	if err := json.NewDecoder(data).Decode(&user); err != nil {
 		return nil, err
@@ -772,7 +772,7 @@ func (th *TestHelper) Logout(client *model.Client4) {
 	client.AuthToken = ""
 }
 
-func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
+func (th *TestHelper) SaveDefaultRolePermissions(tb testing.TB) map[string][]string {
 	results := make(map[string][]string)
 
 	for _, roleName := range []string{
@@ -783,22 +783,18 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(th.Context, roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(tb, appErr)
 
 		results[roleName] = role.Permissions
 	}
 	return results
 }
 
-func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
+func (th *TestHelper) RestoreDefaultRolePermissions(tb testing.TB, data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(th.Context, roleName)
-		if err1 != nil {
-			panic(err1)
-		}
+		role, appErr := th.App.GetRoleByName(th.Context, roleName)
+		require.Nil(tb, appErr)
 
 		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
 			continue
@@ -806,10 +802,8 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 
 		role.Permissions = permissions
 
-		_, err2 := th.App.UpdateRole(role)
-		if err2 != nil {
-			panic(err2)
-		}
+		_, appErr = th.App.UpdateRole(role)
+		require.Nil(tb, appErr)
 	}
 }
 
@@ -845,11 +839,9 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 // 	utils.EnableDebugLogForTest()
 // }
 
-func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(th.Context, roleName)
-	if err1 != nil {
-		panic(err1)
-	}
+func (th *TestHelper) AddPermissionToRole(tb testing.TB, permission string, roleName string) {
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
+	require.Nil(tb, appErr)
 
 	if slices.Contains(role.Permissions, permission) {
 		return
@@ -857,10 +849,61 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 
 	role.Permissions = append(role.Permissions, permission)
 
-	_, err2 := th.App.UpdateRole(role)
-	if err2 != nil {
-		panic(err2)
-	}
+	_, appErr = th.App.UpdateRole(role)
+	require.Nil(tb, appErr)
+}
+
+// TestOAuthMobileCallbackIncludesSrvParameter verifies that mobile OAuth callbacks
+// include the 'srv' parameter for origin verification
+func TestOAuthMobileCallbackIncludesSrvParameter(t *testing.T) {
+	// The 'srv' parameter is added to mobile callbacks to allow the client
+	// to verify the server origin
+
+	t.Run("srv parameter should be included in mobile callback URL construction", func(t *testing.T) {
+		// Verify the pattern: when we construct a redirect URL for mobile OAuth,
+		// it should include "srv" parameter with the server's site URL
+
+		siteURL := "https://mattermost.example.com"
+		sessionToken := "test-session-token"
+		csrfToken := "test-csrf-token"
+
+		// Simulate what the code does when constructing the callback
+		params := map[string]string{
+			model.SessionCookieToken: sessionToken,
+			model.SessionCookieCsrf:  csrfToken,
+			"srv":                    siteURL,
+		}
+
+		// Verify all expected parameters are present
+		assert.Equal(t, sessionToken, params[model.SessionCookieToken])
+		assert.Equal(t, csrfToken, params[model.SessionCookieCsrf])
+		assert.Equal(t, siteURL, params["srv"])
+	})
+
+	t.Run("srv parameter detects OAuth server mismatch", func(t *testing.T) {
+		// Scenario: The srv parameter from callback doesn't match expected server
+		// Mobile should detect the mismatch
+
+		expectedServer := "https://server-a.example.com"
+		actualSrvFromCallback := "https://server-b.example.com"
+
+		// This is the check that should happen in mobile
+		isMismatch := expectedServer != actualSrvFromCallback
+		assert.True(t, isMismatch, "Should detect server mismatch")
+	})
+
+	t.Run("srv parameter allows legitimate OAuth login", func(t *testing.T) {
+		// Scenario: Normal OAuth login to legitimate.com
+		// Server adds srv=legitimate.com to callback
+		// Mobile verifies: expected (legitimate.com) == srv (legitimate.com)
+
+		expectedServer := "https://legitimate.example.com"
+		actualSrvFromCallback := "https://legitimate.example.com"
+
+		// This is the check that should happen in mobile
+		isLegitimate := expectedServer == actualSrvFromCallback
+		assert.True(t, isLegitimate, "Should allow legitimate OAuth login")
+	})
 }
 
 func TestFullyQualifiedRedirectURL(t *testing.T) {

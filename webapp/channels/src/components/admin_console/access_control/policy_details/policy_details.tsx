@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -15,7 +16,6 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import BooleanSetting from 'components/admin_console/boolean_setting';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -26,16 +26,16 @@ import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
+import Constants from 'utils/constants';
 
 import ChannelList from './channel_list';
 
 import CELEditor from '../editors/cel_editor/editor';
+import {hasUsableAttributes, isSimpleExpression} from '../editors/shared';
 import TableEditor from '../editors/table_editor/table_editor';
 import PolicyConfirmationModal from '../modals/confirmation/confirmation_modal';
 
 import './policy_details.scss';
-
-const DEFAULT_PAGE_SIZE = 10;
 
 interface PolicyActions {
     fetchPolicy: (id: string) => Promise<ActionResult>;
@@ -46,7 +46,7 @@ interface PolicyActions {
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
-    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
+    updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -62,6 +62,11 @@ interface ChannelChanges {
     removedCount: number;
 }
 
+interface PolicyActiveStatus {
+    id: string;
+    active: boolean;
+}
+
 function PolicyDetails({
     policy,
     policyId,
@@ -69,7 +74,8 @@ function PolicyDetails({
     accessControlSettings,
 }: PolicyDetailsProps): JSX.Element {
     const [policyName, setPolicyName] = useState(policy?.name || '');
-    const [expression, setExpression] = useState(policy?.rules?.[0]?.expression || '');
+    const [expression, setExpression] = useState(getMembershipRule(policy?.rules)?.expression || '');
+    const [existingRules, setExistingRules] = useState<AccessControlPolicyRule[]>(policy?.rules || []);
     const [autoSyncMembership, setAutoSyncMembership] = useState(policy?.active || false);
     const [serverError, setServerError] = useState<string | undefined>(undefined);
     const [addChannelOpen, setAddChannelOpen] = useState(false);
@@ -79,8 +85,14 @@ function PolicyDetails({
         added: {},
         removedCount: 0,
     });
+    const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [saveNeeded, setSaveNeeded] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
+
+    // Map of saved channelId → channel type. Lets the confirmation modal show
+    // the right messaging for mixed / public-only / private-only policies.
+    const [savedChannelTypes, setSavedChannelTypes] = useState<Record<string, string>>({});
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -89,29 +101,29 @@ function PolicyDetails({
 
     const abacActions = useChannelAccessControlActions();
 
+    // Memoize the custom no options message to avoid recreating it on every render
+    const customNoChannelsMessage = useMemo(() => (
+        <div
+            key='no-channels-available'
+            className='no-channel-message'
+        >
+            <p className='primary-message'>
+                <FormattedMessage
+                    id='admin.access_control.policy.edit_policy.no_channels_available'
+                    defaultMessage='There are no channels available to add to this policy.'
+                />
+            </p>
+        </div>
+    ), []);
+
+    // Check if there are any usable attributes for ABAC
+    const noUsableAttributes = attributesLoaded && !hasUsableAttributes(autocompleteResult, accessControlSettings.EnableUserManagedAttributes);
+
     useEffect(() => {
         loadPage();
     }, [policyId]);
 
-    // Check if expression is simple enough for table mode
-    const isSimpleExpression = (expr: string): boolean => {
-        if (!expr) {
-            return true;
-        }
-
-        // Expression is simple if it only contains user.attributes.X == "Y" or user.attributes.X in ["Y", "Z"]
-        // or user.attributes.X.startsWith/endsWith/contains("Y")
-        // or ["Y", "Z"] in user.attributes.X (for multiselect attributes)
-        return expr.split('&&').every((condition) => {
-            const trimmed = condition.trim();
-            return trimmed.match(/^user\.attributes\.\w+\s*(==|!=)\s*['"][^'"]*['"]$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\s+in\s+\[.*?\]$/) ||
-                   trimmed.match(/^((\[.*?\])||['"][^'"]*['"].*?)\s+in\s+user\.attributes\.\w+$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.startsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.endsWith\(['"][^'"]*['"].*?\)$/) ||
-                   trimmed.match(/^user\.attributes\.\w+\.contains\(['"][^'"]*['"].*?\)$/);
-        });
-    };
+    // isSimpleExpression imported from ../editors/shared
 
     const loadPage = async (): Promise<void> => {
         // Fetch autocomplete fields first, as they are general and needed for both new and existing policies.
@@ -126,12 +138,18 @@ function PolicyDetails({
             // For existing policies, fetch policy details and channels
             const policyPromise = actions.fetchPolicy(policyId).then((result) => {
                 setPolicyName(result.data?.name || '');
-                setExpression(result.data?.rules?.[0]?.expression || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
                 setAutoSyncMembership(result.data?.active || false);
             });
 
-            const channelsPromise = actions.searchChannels(policyId, '', {per_page: DEFAULT_PAGE_SIZE}).then((result) => {
+            // Fetch the full assigned-channel list (not just a page) to know
+            // the public/private split for the confirmation modal. The policy
+            // assignment permission limits this to 1000; match that ceiling.
+            const channelsPromise = actions.searchChannels(policyId, '', {per_page: 1000}).then((result) => {
+                const channels: ChannelWithTeamData[] = result.data?.channels || [];
                 setChannelsCount(result.data?.total_count || 0);
+                setSavedChannelTypes(Object.fromEntries(channels.map((ch) => [ch.id, ch.type])));
             });
 
             // Wait for all fetches for an existing policy
@@ -163,91 +181,102 @@ function PolicyDetails({
     };
 
     const handleSubmit = async (apply = false) => {
-        let success = true;
-        let currentPolicyId = policyId;
-
-        // --- Step 1: Create/Update Policy ---
-        await actions.createPolicy({
-            id: currentPolicyId || '',
-            name: policyName,
-            rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
-            type: 'parent',
-            version: 'v0.2',
-        }).then((result) => {
-            if (result.error) {
-                setServerError(result.error.message);
-                setShowConfirmationModal(false);
-                success = false;
-                return;
-            }
-            currentPolicyId = result.data?.id;
-            setPolicyName(result.data?.name || '');
-            setExpression(result.data?.rules?.[0]?.expression || '');
-            setAutoSyncMembership(result.data?.active || false);
-        });
-
-        if (!currentPolicyId || !success) {
-            setShowConfirmationModal(false);
-            return;
-        }
-
-        // --- Step 2: Update Policy Active ---
+        setSaving(true);
         try {
-            await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
-        } catch (error) {
-            setServerError(formatMessage({
-                id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                defaultMessage: 'Error updating policy active status: {error}',
-            }, {error: error.message}));
+            let success = true;
+            let currentPolicyId = policyId;
+
+            // --- Step 1: Create/Update Policy ---
+            await actions.createPolicy({
+                id: currentPolicyId || '',
+                name: policyName,
+                rules: buildRulesWithMembership(existingRules, expression),
+                type: 'parent',
+            }).then((result) => {
+                if (result.error) {
+                    if (result.error.server_error_id === 'app.pap.save_policy.name_exists.app_error') {
+                        setServerError(formatMessage({id: 'admin.access_control.edit_policy.name_exists', defaultMessage: 'A policy with this name already exists. Please choose a different name.'}));
+                    } else {
+                        setServerError(result.error.message);
+                    }
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+                currentPolicyId = result.data?.id;
+                setPolicyName(result.data?.name || '');
+                setExpression(getMembershipRule(result.data?.rules)?.expression || '');
+                setExistingRules(result.data?.rules || []);
+                setAutoSyncMembership(result.data?.active || false);
+            });
+
+            if (!currentPolicyId || !success) {
+                setShowConfirmationModal(false);
+                return;
+            }
+
+            // --- Step 2: Assign Channels ---
+            if (success) {
+                try {
+                    if (channelChanges.removedCount > 0) {
+                        await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
+                    }
+                    if (Object.keys(channelChanges.added).length > 0) {
+                        await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
+                    }
+
+                    setChannelChanges({removed: {}, added: {}, removedCount: 0});
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.assign_channels',
+                        defaultMessage: 'Error assigning channels: {error}',
+                    }, {error: error.message}));
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+            }
+
+            // --- Step 3: Handle Policy Active Status Changes ---
+            if (success && policyActiveStatusChanges.length > 0) {
+                try {
+                    await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                        defaultMessage: 'Error updating policy active status: {error}',
+                    }, {error: error.message}));
+                    success = false;
+                    return;
+                }
+                setPolicyActiveStatusChanges([]);
+            }
+
+            // --- Step 4: Create Job if necessary ---
+            if (apply) {
+                try {
+                    await abacActions.createAccessControlSyncJob({
+                        policy_id: currentPolicyId,
+                    });
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.create_job',
+                        defaultMessage: 'Error creating job: {error}',
+                    }, {error: error.message}));
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+            }
+
+            // --- Step 5: Navigate lastly ---
+            setSaveNeeded(false);
             setShowConfirmationModal(false);
-            success = false;
-            return;
+            actions.setNavigationBlocked(false);
+            getHistory().push('/admin_console/system_attributes/membership_policies');
+        } finally {
+            setSaving(false);
         }
-
-        // --- Step 3: Assign Channels ---
-        if (success) {
-            try {
-                if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
-                }
-                if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
-                }
-
-                setChannelChanges({removed: {}, added: {}, removedCount: 0});
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
-                    defaultMessage: 'Error assigning channels: {error}',
-                }, {error: error.message}));
-                setShowConfirmationModal(false);
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 4: Create Job if necessary ---
-        if (apply) {
-            try {
-                await abacActions.createAccessControlSyncJob({
-                    policy_id: currentPolicyId,
-                });
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.create_job',
-                    defaultMessage: 'Error creating job: {error}',
-                }, {error: error.message}));
-                setShowConfirmationModal(false);
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 5: Navigate lastly ---
-        setSaveNeeded(false);
-        setShowConfirmationModal(false);
-        actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -283,7 +312,7 @@ function PolicyDetails({
         }
 
         if (success) {
-            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+            getHistory().push('/admin_console/system_attributes/membership_policies');
         }
     };
 
@@ -319,6 +348,12 @@ function PolicyDetails({
         actions.setNavigationBlocked(true);
     };
 
+    const handlePolicyActiveStatusChange = (changes: PolicyActiveStatus[]) => {
+        setPolicyActiveStatusChanges(changes);
+        setSaveNeeded(true);
+        actions.setNavigationBlocked(true);
+    };
+
     const hasChannels = () => {
         // If there are channels on the server (minus any pending removals) or newly added channels
         return (
@@ -332,12 +367,12 @@ function PolicyDetails({
             <AdminHeader withBackButton={true}>
                 <div>
                     <BlockableLink
-                        to='/admin_console/system_attributes/attribute_based_access_control'
+                        to='/admin_console/system_attributes/membership_policies'
                         className='fa fa-angle-left back'
                     />
                     <FormattedMessage
                         id='admin.access_control.policy.edit_policy.title'
-                        defaultMessage='Edit Access Control Policy'
+                        defaultMessage='Edit Membership Policy'
                     />
                 </div>
             </AdminHeader>
@@ -349,7 +384,7 @@ function PolicyDetails({
                             label={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.policyName'
-                                    defaultMessage='Access control policy name:'
+                                    defaultMessage='Membership policy name:'
                                 />
                             }
                             value={policyName}
@@ -366,32 +401,8 @@ function PolicyDetails({
                             inputClassName='col-sm-8'
                             autoFocus={policyId === undefined}
                         />
-                        <BooleanSetting
-                            id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                            label={
-                                <div className='vertically-centered-label'>
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                                        defaultMessage='Auto-add members based on access rules:'
-                                    />
-                                </div>
-                            }
-                            value={autoSyncMembership}
-                            onChange={(_, value) => {
-                                setAutoSyncMembership(value);
-                                setSaveNeeded(true);
-                                actions.setNavigationBlocked(true);
-                            }}
-                            setByEnv={false}
-                            helpText={
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.autoSyncMembership.description'
-                                    defaultMessage='Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync.'
-                                />
-                            }
-                        />
                     </div>
-                    {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
+                    {noUsableAttributes && (<div className='admin-console__warning-notice'>
                         <SectionNotice
                             type='warning'
                             title={
@@ -424,13 +435,13 @@ function PolicyDetails({
                                 title={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.title'
-                                        defaultMessage='Attribute-based access rules'
+                                        defaultMessage='Attribute-based membership rules'
                                     />
                                 }
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.subtitle'
-                                        defaultMessage='Select user attributes and values as rules to restrict channel membership.'
+                                        defaultMessage='Select user attributes and values as rules to determine who should be in the channels this policy applies to.'
                                     />
                                 }
                                 buttonText={
@@ -447,15 +458,22 @@ function PolicyDetails({
                                     )
                                 }
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
-                                isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
-                                tooltipText={
-                                    editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        formatMessage({
+                                isDisabled={noUsableAttributes || (editorMode === 'cel' && !isSimpleExpression(expression))}
+                                tooltipText={(() => {
+                                    if (noUsableAttributes) {
+                                        return formatMessage({
+                                            id: 'admin.access_control.policy.edit_policy.no_usable_attributes_tooltip',
+                                            defaultMessage: 'Please configure user attributes to use the editor.',
+                                        });
+                                    }
+                                    if (editorMode === 'cel' && !isSimpleExpression(expression)) {
+                                        return formatMessage({
                                             id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
                                             defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
-                                        }) :
-                                        undefined
-                                }
+                                        });
+                                    }
+                                    return undefined;
+                                })()}
                             />
                         </Card.Header>
                         <Card.Body>
@@ -468,12 +486,16 @@ function PolicyDetails({
                                         actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult.
                                         filter((attr) => {
                                             if (accessControlSettings.EnableUserManagedAttributes) {
                                                 return true;
                                             }
-                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isAdminManaged = attr.attrs?.managed === 'admin';
+                                            const isProtected = attr.attrs?.protected;
+                                            return isSynced || isAdminManaged || isProtected;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,
@@ -489,6 +511,7 @@ function PolicyDetails({
                                         actions.setNavigationBlocked(true);
                                     }}
                                     onValidate={() => {}}
+                                    disabled={noUsableAttributes}
                                     userAttributes={autocompleteResult}
                                     onParseError={() => {
                                         setEditorMode('cel');
@@ -515,7 +538,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.channel_selector.subtitle'
-                                        defaultMessage='Add channels that this attribute-based access policy will apply to.'
+                                        defaultMessage='Add channels that this membership policy will apply to.'
                                     />
                                 }
                                 buttonText={
@@ -533,6 +556,9 @@ function PolicyDetails({
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
+                                policyActiveStatusChanges={policyActiveStatusChanges}
+                                onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
+                                saving={saving}
                             />
                         </Card.Body>
                     </Card>
@@ -588,18 +614,47 @@ function PolicyDetails({
                     onChannelsSelected={(channels) => addToNewChannels(channels)}
                     groupID={''}
                     alreadySelected={Object.values(channelChanges.added).map((channel) => channel.id)}
-                    excludeTypes={['O', 'D', 'G']}
+                    excludeTypes={['D', 'G']}
+                    customNoOptionsMessage={customNoChannelsMessage}
+                    excludeGroupConstrained={true}
+                    excludeDefaultChannels={true}
                 />
             )}
 
-            {showConfirmationModal && (
-                <PolicyConfirmationModal
-                    active={autoSyncMembership}
-                    onExited={() => setShowConfirmationModal(false)}
-                    onConfirm={handleSubmit}
-                    channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
-                />
-            )}
+            {showConfirmationModal && (() => {
+                // Effective channel mix = (saved - removed) + added. The
+                // confirmation modal messages the user differently for mixed,
+                // private-only, and public-only selections.
+                let publicCount = 0;
+                let privateCount = 0;
+                for (const [id, type] of Object.entries(savedChannelTypes)) {
+                    if (channelChanges.removed[id]) {
+                        continue;
+                    }
+                    if (type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                for (const ch of Object.values(channelChanges.added)) {
+                    if (ch.type === Constants.OPEN_CHANNEL) {
+                        publicCount++;
+                    } else if (ch.type === Constants.PRIVATE_CHANNEL) {
+                        privateCount++;
+                    }
+                }
+                return (
+                    <PolicyConfirmationModal
+                        active={autoSyncMembership}
+                        onExited={() => setShowConfirmationModal(false)}
+                        onConfirm={handleSubmit}
+                        channelsAffected={(channelsCount - channelChanges.removedCount) + Object.keys(channelChanges.added).length}
+                        publicChannelsAffected={publicCount}
+                        privateChannelsAffected={privateCount}
+                    />
+                );
+            })()}
 
             {showDeleteConfirmationModal && (
                 <GenericModal
@@ -632,6 +687,7 @@ function PolicyDetails({
             <div className='admin-console-save'>
                 <SaveButton
                     disabled={!saveNeeded}
+                    saving={saving}
                     onClick={() => {
                         if (!preSaveCheck()) {
                             return;
@@ -651,7 +707,7 @@ function PolicyDetails({
                 />
                 <BlockableLink
                     className='btn btn-quaternary'
-                    to='/admin_console/system_attributes/attribute_based_access_control'
+                    to='/admin_console/system_attributes/membership_policies'
                 >
                     <FormattedMessage
                         id='admin.access_control.edit_policy.cancel'

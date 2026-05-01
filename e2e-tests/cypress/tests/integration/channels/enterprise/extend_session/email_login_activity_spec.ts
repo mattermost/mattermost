@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getAdminAccount} from '../../../../support/env';
+import {getAdminAccount} from '@/support/env';
 
 // ***************************************************************
 // - [#] indicates a test step (e.g. # Go to a page)
@@ -13,10 +13,10 @@ import {getAdminAccount} from '../../../../support/env';
 // Group: @channels @enterprise @not_cloud @extend_session
 
 describe('MM-T2575 Extend Session - Email Login', () => {
-    let offTopicUrl;
+    let offTopicUrl: string;
     const oneDay = 24 * 60 * 60 * 1000;
     const admin = getAdminAccount();
-    let testUser;
+    let testUser: Cypress.UserProfile;
 
     before(() => {
         cy.shouldNotRunOnCloudEdition();
@@ -96,9 +96,9 @@ describe('MM-T2575 Extend Session - Email Login', () => {
         cy.url().should('include', offTopicUrl);
     };
 
-    const postAMessage = (now) => {
-        cy.postMessage(now);
-        cy.getLastPost().should('contain', now);
+    const postAMessage = (now: number) => {
+        cy.postMessage(String(now));
+        cy.getLastPost().should('contain', String(now));
     };
 
     const testCases = [{

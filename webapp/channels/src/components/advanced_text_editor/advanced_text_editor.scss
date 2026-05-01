@@ -175,7 +175,8 @@
     &__footer {
         position: relative;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        justify-content: space-between;
         padding: 0 24px;
         font-size: 12px;
 
@@ -193,6 +194,14 @@
             margin: 4px 0 0 0;
             color: var(--error-text);
         }
+    }
+
+    &__labels {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-left: 16px;
+        gap: 8px;
     }
 
 }

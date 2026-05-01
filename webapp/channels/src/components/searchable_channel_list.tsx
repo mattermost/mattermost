@@ -6,10 +6,9 @@ import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
-
-import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
 import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
@@ -19,10 +18,9 @@ import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
-import {isArchivedChannel} from 'utils/channel_utils';
+import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -45,6 +43,7 @@ interface Props extends WrappedComponentProps {
     rememberHideJoinedChannelsChecked: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
+    showRecommendedFilter?: boolean;
 }
 
 type State = {
@@ -123,15 +122,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
     createChannelRow = (channel: Channel) => {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
-        let channelTypeIcon;
-
-        if (isArchivedChannel(channel)) {
-            channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
-        } else if (isPrivateChannel(channel)) {
-            channelTypeIcon = <LockOutlineIcon size={18}/>;
-        } else {
-            channelTypeIcon = <GlobeIcon size={18}/>;
-        }
+        const ChannelIcon = getChannelIconComponent(channel);
+        const channelTypeIcon = <ChannelIcon size={18}/>;
         let memberCount = 0;
         if (this.props.channelsMemberCount?.[channel.id]) {
             memberCount = this.props.channelsMemberCount[channel.id];
@@ -289,7 +281,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.noMore'
                     tagName='strong'
-                    defaultMessage='No results for {text}'
+                    defaultMessage='No results for "{text}"'
                     values={{text: this.state.channelSearchValue}}
                 />
             );
@@ -317,6 +309,14 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     id={'more_channels.noPublic'}
                     tagName='strong'
                     defaultMessage={'No public channels'}
+                />
+            );
+        case Filter.Recommended:
+            return (
+                <FormattedMessage
+                    id={'more_channels.noRecommended'}
+                    tagName='strong'
+                    defaultMessage={'No recommended channels'}
                 />
             );
         default:
@@ -350,6 +350,13 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='more_channels.show_private_channels'
                     defaultMessage='Channel Type: Private'
+                />
+            );
+        case Filter.Recommended:
+            return (
+                <FormattedMessage
+                    id='more_channels.show_recommended_channels'
+                    defaultMessage='Recommended channels'
                 />
             );
         default:
@@ -439,7 +446,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                     clearable={true}
                     onClear={this.handleClear}
                     value={this.state.channelSearchValue}
-                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search Channels'})}
+                    aria-label={this.props.intl.formatMessage({id: 'filtered_channels_list.search.label', defaultMessage: 'Search Channels'})}
                 />
             </div>
         );
@@ -494,6 +501,26 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 aria-label={this.props.intl.formatMessage({id: 'suggestion.private', defaultMessage: 'Private channels'})}
             />,
         ];
+
+        if (this.props.showRecommendedFilter) {
+            channelDropdownItems.push(
+                <Menu.Separator key='channelsMoreDropdownRecommendedSeparator'/>,
+                <Menu.Item
+                    key='channelsMoreDropdownRecommended'
+                    id='channelsMoreDropdownRecommended'
+                    onClick={() => this.filterChange(Filter.Recommended)}
+                    leadingElement={<GlobeCheckedIcon size={16}/>}
+                    labels={
+                        <FormattedMessage
+                            id='suggestion.recommended'
+                            defaultMessage='Recommended channels'
+                        />
+                    }
+                    trailingElements={this.props.filter === Filter.Recommended ? checkIcon : null}
+                    aria-label={this.props.intl.formatMessage({id: 'suggestion.recommended', defaultMessage: 'Recommended channels'})}
+                />,
+            );
+        }
 
         channelDropdownItems.push(
             <Menu.Separator key='channelsMoreDropdownSeparator'/>,
@@ -646,7 +673,7 @@ const messages = defineMessages({
     },
     noMore: {
         id: 'more_channels.noMore',
-        defaultMessage: 'No results for {text}',
+        defaultMessage: 'No results for "{text}"',
     },
 });
 

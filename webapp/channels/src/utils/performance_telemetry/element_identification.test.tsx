@@ -3,7 +3,6 @@
 
 import {createMemoryHistory} from 'history';
 import React from 'react';
-import type {Props as AutoSizerProps} from 'react-virtualized-auto-sizer';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -13,8 +12,6 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {identifyElementRegion} from './element_identification';
-
-jest.mock('react-virtualized-auto-sizer', () => (props: AutoSizerProps) => props.children({height: 100, width: 100, scaledHeight: 100, scaledWidth: 100}));
 
 describe('identifyElementRegion', () => {
     // This test has become increasingly unreliable since we upgraded to React 18, so disable it for the time being

@@ -129,6 +129,7 @@
         font-family: Metropolis, sans-serif;
         font-size: 1.6rem;
         font-weight: 600;
+        line-height: 1;
 
         @include mixins.clearfix;
         h2 {

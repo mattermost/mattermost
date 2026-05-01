@@ -1,415 +1,228 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_search_result/FileSearchResultItem should match snapshot 1`] = `
-<div
-  className="search-item__container"
-  data-testid="search-item-container"
->
-  <button
-    className="FileSearchResultItem"
-    onClick={[Function]}
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
   >
-    <Connect(Component)
-      fileInfo={
-        Object {
-          "archived": false,
-          "channel_id": "channel_id",
-          "clientId": "client_id",
-          "create_at": 1,
-          "delete_at": 1,
-          "extension": "jpg",
-          "has_preview_image": true,
-          "height": 200,
-          "id": "file_info_id",
-          "mime_type": "mime_type",
-          "name": "name",
-          "size": 1,
-          "update_at": 1,
-          "user_id": "user_id",
-          "width": 350,
-        }
-      }
-    />
-    <div
-      className="fileData"
+    <button
+      class="FileSearchResultItem"
     >
       <div
-        className="fileDataName"
-      >
-        name
-      </div>
+        class="post-image normal"
+        style="background-image: url(\\"/api/v4/files/file_info_id/thumbnail\\"); background-size: cover;"
+      />
       <div
-        className="fileMetadata"
+        class="fileData"
       >
-        <span>
-          1B
-        </span>
-        <span>
-           • 
-        </span>
-        <Connect(injectIntl(Timestamp))
-          ranges={
-            Array [
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Today"
-                  id="date_separator.today"
-                />,
-                "equals": Array [
-                  "day",
-                  0,
-                ],
-              },
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Yesterday"
-                  id="date_separator.yesterday"
-                />,
-                "equals": Array [
-                  "day",
-                  -1,
-                ],
-              },
-            ]
-          }
-          value={1}
-        />
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
       </div>
-    </div>
-    <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
-    >
       <a
-        className="action-icon download-icon btn btn-icon btn-sm"
+        class="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
-        onClick={[Function]}
       >
         <i
-          className="icon icon-download-outline"
+          class="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
-  </button>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/file_search_result/FileSearchResultItem should match snapshot with DM 1`] = `
-<div
-  className="search-item__container"
-  data-testid="search-item-container"
->
-  <button
-    className="FileSearchResultItem"
-    onClick={[Function]}
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
   >
-    <Connect(Component)
-      fileInfo={
-        Object {
-          "archived": false,
-          "channel_id": "channel_id",
-          "clientId": "client_id",
-          "create_at": 1,
-          "delete_at": 1,
-          "extension": "jpg",
-          "has_preview_image": true,
-          "height": 200,
-          "id": "file_info_id",
-          "mime_type": "mime_type",
-          "name": "name",
-          "size": 1,
-          "update_at": 1,
-          "user_id": "user_id",
-          "width": 350,
-        }
-      }
-    />
-    <div
-      className="fileData"
+    <button
+      class="FileSearchResultItem"
     >
       <div
-        className="fileDataName"
-      >
-        name
-      </div>
+        class="post-image normal"
+        style="background-image: url(\\"/api/v4/files/file_info_id/thumbnail\\"); background-size: cover;"
+      />
       <div
-        className="fileMetadata"
+        class="fileData"
       >
-        <Memo(Tag)
-          className="file-search-channel-name"
-          text={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Direct Message"
-              id="search_item.file_tag.direct_message"
-            />
-          }
-        />
-        <span>
-          1B
-        </span>
-        <span>
-           • 
-        </span>
-        <Connect(injectIntl(Timestamp))
-          ranges={
-            Array [
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Today"
-                  id="date_separator.today"
-                />,
-                "equals": Array [
-                  "day",
-                  0,
-                ],
-              },
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Yesterday"
-                  id="date_separator.yesterday"
-                />,
-                "equals": Array [
-                  "day",
-                  -1,
-                ],
-              },
-            ]
-          }
-          value={1}
-        />
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              Direct Message
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
       </div>
-    </div>
-    <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
-    >
       <a
-        className="action-icon download-icon btn btn-icon btn-sm"
+        class="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
-        onClick={[Function]}
       >
         <i
-          className="icon icon-download-outline"
+          class="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
-  </button>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/file_search_result/FileSearchResultItem should match snapshot with GM 1`] = `
-<div
-  className="search-item__container"
-  data-testid="search-item-container"
->
-  <button
-    className="FileSearchResultItem"
-    onClick={[Function]}
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
   >
-    <Connect(Component)
-      fileInfo={
-        Object {
-          "archived": false,
-          "channel_id": "channel_id",
-          "clientId": "client_id",
-          "create_at": 1,
-          "delete_at": 1,
-          "extension": "jpg",
-          "has_preview_image": true,
-          "height": 200,
-          "id": "file_info_id",
-          "mime_type": "mime_type",
-          "name": "name",
-          "size": 1,
-          "update_at": 1,
-          "user_id": "user_id",
-          "width": 350,
-        }
-      }
-    />
-    <div
-      className="fileData"
+    <button
+      class="FileSearchResultItem"
     >
       <div
-        className="fileDataName"
-      >
-        name
-      </div>
+        class="post-image normal"
+        style="background-image: url(\\"/api/v4/files/file_info_id/thumbnail\\"); background-size: cover;"
+      />
       <div
-        className="fileMetadata"
+        class="fileData"
       >
-        <Memo(Tag)
-          className="file-search-channel-name"
-          text={
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Group Message"
-              id="search_item.file_tag.group_message"
-            />
-          }
-        />
-        <span>
-          1B
-        </span>
-        <span>
-           • 
-        </span>
-        <Connect(injectIntl(Timestamp))
-          ranges={
-            Array [
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Today"
-                  id="date_separator.today"
-                />,
-                "equals": Array [
-                  "day",
-                  0,
-                ],
-              },
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Yesterday"
-                  id="date_separator.yesterday"
-                />,
-                "equals": Array [
-                  "day",
-                  -1,
-                ],
-              },
-            ]
-          }
-          value={1}
-        />
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              Group Message
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
       </div>
-    </div>
-    <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
-    >
       <a
-        className="action-icon download-icon btn btn-icon btn-sm"
+        class="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
-        onClick={[Function]}
       >
         <i
-          className="icon icon-download-outline"
+          class="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
-  </button>
+    </button>
+  </div>
 </div>
 `;
 
 exports[`components/file_search_result/FileSearchResultItem should match snapshot with channel name 1`] = `
-<div
-  className="search-item__container"
-  data-testid="search-item-container"
->
-  <button
-    className="FileSearchResultItem"
-    onClick={[Function]}
+<div>
+  <div
+    class="search-item__container"
+    data-testid="search-item-container"
   >
-    <Connect(Component)
-      fileInfo={
-        Object {
-          "archived": false,
-          "channel_id": "channel_id",
-          "clientId": "client_id",
-          "create_at": 1,
-          "delete_at": 1,
-          "extension": "jpg",
-          "has_preview_image": true,
-          "height": 200,
-          "id": "file_info_id",
-          "mime_type": "mime_type",
-          "name": "name",
-          "size": 1,
-          "update_at": 1,
-          "user_id": "user_id",
-          "width": 350,
-        }
-      }
-    />
-    <div
-      className="fileData"
+    <button
+      class="FileSearchResultItem"
     >
       <div
-        className="fileDataName"
-      >
-        name
-      </div>
+        class="post-image normal"
+        style="background-image: url(\\"/api/v4/files/file_info_id/thumbnail\\"); background-size: cover;"
+      />
       <div
-        className="fileMetadata"
+        class="fileData"
       >
-        <Memo(Tag)
-          className="file-search-channel-name"
-          text="test"
-        />
-        <span>
-          1B
-        </span>
-        <span>
-           • 
-        </span>
-        <Connect(injectIntl(Timestamp))
-          ranges={
-            Array [
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Today"
-                  id="date_separator.today"
-                />,
-                "equals": Array [
-                  "day",
-                  0,
-                ],
-              },
-              Object {
-                "display": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Yesterday"
-                  id="date_separator.yesterday"
-                />,
-                "equals": Array [
-                  "day",
-                  -1,
-                ],
-              },
-            ]
-          }
-          value={1}
-        />
+        <div
+          class="fileDataName"
+        >
+          name
+        </div>
+        <div
+          class="fileMetadata"
+        >
+          <div
+            class="TagWrapper-kezsCu gCuUKH Tag Tag--xs file-search-channel-name"
+          >
+            <span
+              class="TagText-bWoQAI beIloY"
+            >
+              test
+            </span>
+          </div>
+          <span>
+            1B
+          </span>
+          <span>
+             • 
+          </span>
+          <time
+            datetime="1970-01-01T00:00:00.001"
+          >
+            January 01, 1970 at 12:00 AM
+          </time>
+        </div>
       </div>
-    </div>
-    <WithTooltip
-      title={
-        Object {
-          "defaultMessage": "Download",
-          "id": "file_search_result_item.download",
-        }
-      }
-    >
       <a
-        className="action-icon download-icon btn btn-icon btn-sm"
+        class="action-icon download-icon btn btn-icon btn-sm"
         href="/api/v4/files/file_info_id?download=1"
-        onClick={[Function]}
       >
         <i
-          className="icon icon-download-outline"
+          class="icon icon-download-outline"
         />
       </a>
-    </WithTooltip>
-  </button>
+    </button>
+  </div>
 </div>
 `;

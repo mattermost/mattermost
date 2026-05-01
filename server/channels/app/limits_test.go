@@ -18,8 +18,7 @@ func TestGetServerLimits(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("unlicensed server shows hard-coded limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -33,8 +32,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -43,7 +41,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newUser := th.CreateUser()
+		newUser := th.CreateUser(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -57,8 +55,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on permanently deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -67,7 +64,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newGuestUser := th.CreateGuest()
+		newGuestUser := th.CreateGuest(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -81,8 +78,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new user and decrease on soft deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -91,7 +87,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newUser := th.CreateUser()
+		newUser := th.CreateUser(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -106,8 +102,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should increase on creating new guest user and decrease on soft deleting", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -116,7 +111,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new user
-		newGuestUser := th.CreateGuest()
+		newGuestUser := th.CreateGuest(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -131,8 +126,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("user count should not change on creating or deleting bots", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -141,7 +135,7 @@ func TestGetServerLimits(t *testing.T) {
 		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
 
 		// now we create a new bot
-		newBot := th.CreateBot()
+		newBot := th.CreateBot(t)
 
 		serverLimits, appErr = th.App.GetServerLimits()
 		require.Nil(t, appErr)
@@ -155,8 +149,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server without seat count enforcement shows no limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = false
@@ -171,8 +164,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server with seat count enforcement shows license limits with configurable extra users", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		userLimit := 100
 		extraUsers := 10
@@ -192,8 +184,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server with seat count enforcement and no ExtraUsers configured defaults to zero", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		userLimit := 100
 		license := model.NewTestLicense("")
@@ -212,8 +203,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server with seat count enforcement and zero ExtraUsers creates hard cap", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		userLimit := 100
 		extraUsers := 0
@@ -233,8 +223,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server with seat count enforcement but no Users feature shows no limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.IsSeatCountEnforced = true
@@ -250,8 +239,7 @@ func TestGetServerLimits(t *testing.T) {
 	})
 
 	t.Run("licensed server with seat count enforcement and zero Users shows zero limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		userLimit := 0
 		license := model.NewTestLicense("")
@@ -274,12 +262,12 @@ func TestIsAtUserLimit(t *testing.T) {
 	t.Run("unlicensed server", func(t *testing.T) {
 		t.Run("below hard limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(200), nil) // Under hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -290,12 +278,12 @@ func TestIsAtUserLimit(t *testing.T) {
 
 		t.Run("at hard limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(250), nil) // At hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -306,12 +294,12 @@ func TestIsAtUserLimit(t *testing.T) {
 
 		t.Run("above hard limit", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			th.App.Srv().SetLicense(nil)
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(300), nil) // Over hard limit of 250
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -323,8 +311,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 	t.Run("licensed server with seat count enforcement", func(t *testing.T) {
 		t.Run("below base limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -339,8 +326,7 @@ func TestIsAtUserLimit(t *testing.T) {
 		})
 
 		t.Run("at base limit but below hard limit with extra users", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			userLimit := 5
 			extraUsers := 2
@@ -351,8 +337,8 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 2 additional users to have 5 total (at base limit of 5, but below hard limit of 7)
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -361,7 +347,6 @@ func TestIsAtUserLimit(t *testing.T) {
 
 		t.Run("at hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			userLimit := 5
 			extraUsers := 1
@@ -373,6 +358,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(6), nil) // At hard limit of 6 (5 + 1)
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -383,7 +369,6 @@ func TestIsAtUserLimit(t *testing.T) {
 
 		t.Run("above hard limit with extra users", func(t *testing.T) {
 			th := SetupWithStoreMock(t)
-			defer th.TearDown()
 
 			userLimit := 5
 			extraUsers := 1
@@ -395,6 +380,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 			mockUserStore := storemocks.UserStore{}
 			mockUserStore.On("Count", mock.Anything).Return(int64(7), nil) // Above hard limit of 6
+			mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 			mockStore := th.App.Srv().Store().(*storemocks.Store)
 			mockStore.On("User").Return(&mockUserStore)
 
@@ -406,8 +392,7 @@ func TestIsAtUserLimit(t *testing.T) {
 
 	t.Run("licensed server without seat count enforcement", func(t *testing.T) {
 		t.Run("below unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -416,8 +401,8 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 2 additional users to have 3 total (below limit of 5)
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -425,8 +410,7 @@ func TestIsAtUserLimit(t *testing.T) {
 		})
 
 		t.Run("at unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -435,10 +419,10 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 4 additional users to have 5 total (at limit of 5)
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -446,8 +430,7 @@ func TestIsAtUserLimit(t *testing.T) {
 		})
 
 		t.Run("above unenforced limit", func(t *testing.T) {
-			th := Setup(t).InitBasic()
-			defer th.TearDown()
+			th := Setup(t).InitBasic(t)
 
 			userLimit := 5
 			license := model.NewTestLicense("")
@@ -456,11 +439,11 @@ func TestIsAtUserLimit(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 
 			// Create 5 additional users to have 6 total (above limit of 5)
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
-			th.CreateUser()
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
+			th.CreateUser(t)
 
 			atLimit, appErr := th.App.isAtUserLimit()
 			require.Nil(t, appErr)
@@ -519,8 +502,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				th := Setup(t).InitBasic()
-				defer th.TearDown()
+				th := Setup(t).InitBasic(t)
 
 				license := model.NewTestLicense("")
 				license.IsSeatCountEnforced = true
@@ -538,8 +520,7 @@ func TestExtraUsersBehavior(t *testing.T) {
 	})
 
 	t.Run("unlicensed server has no extra users", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -556,8 +537,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("unlicensed server has no post history limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -570,8 +550,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 	})
 
 	t.Run("licensed server without post history limits", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.Limits = nil // No limits configured
@@ -586,8 +565,7 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 	})
 
 	t.Run("licensed server with zero post history limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.Limits = &model.LicenseLimits{
@@ -605,12 +583,12 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 
 	t.Run("licensed server with positive post history limit and successful GetLastAccessiblePostTime", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		// Mock user store for existing functionality
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store for GetLastAccessiblePostTime
@@ -639,12 +617,12 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 
 	t.Run("licensed server with post history limit but GetLastAccessiblePostTime fails", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		// Mock user store for existing functionality
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store to return error
@@ -666,12 +644,12 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 
 	t.Run("licensed server with post history limit but no system value found", func(t *testing.T) {
 		th := SetupWithStoreMock(t)
-		defer th.TearDown()
 
 		// Mock user store for existing functionality
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockUserStore := storemocks.UserStore{}
 		mockUserStore.On("Count", mock.Anything).Return(int64(5), nil)
+		mockUserStore.On("AnalyticsGetSingleChannelGuestCount").Return(int64(0), nil)
 		mockStore.On("User").Return(&mockUserStore)
 
 		// Mock system store to return ErrNotFound (all posts accessible)
@@ -695,12 +673,108 @@ func TestGetServerLimitsWithPostHistory(t *testing.T) {
 		require.Equal(t, int64(5), serverLimits.ActiveUserCount)
 	})
 }
+func TestShouldTrackSingleChannelGuests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("returns false for unlicensed server", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.Srv().SetLicense(nil)
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns false for Entry SKU license", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		th.App.Srv().SetLicense(license)
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns true when license GuestAccounts feature is disabled but config is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		license.Features.GuestAccounts = model.NewPointer(false)
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		require.True(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns false when config GuestAccountsSettings.Enable is false", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
+
+		require.False(t, th.App.shouldTrackSingleChannelGuests())
+	})
+
+	t.Run("returns true for non-Entry license with guest accounts enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicense("")
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		require.True(t, th.App.shouldTrackSingleChannelGuests())
+	})
+}
+
+func TestGetServerLimitsWithSingleChannelGuests(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("populates single channel guest fields when tracking is enabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		userLimit := 100
+		license := model.NewTestLicense("")
+		license.Features.Users = &userLimit
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		guest := th.CreateGuest(t)
+		th.LinkUserToTeam(t, guest, th.BasicTeam)
+		th.AddUserToChannel(t, guest, th.BasicChannel)
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		require.Greater(t, serverLimits.SingleChannelGuestCount, int64(0))
+		require.Equal(t, int64(userLimit), serverLimits.SingleChannelGuestLimit)
+		require.Equal(t, serverLimits.ActiveUserCount, int64(4)-serverLimits.SingleChannelGuestCount)
+	})
+
+	t.Run("does not populate single channel guest fields for Entry SKU", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
+		th.App.Srv().SetLicense(license)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+
+		serverLimits, appErr := th.App.GetServerLimits()
+		require.Nil(t, appErr)
+
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestCount)
+		require.Equal(t, int64(0), serverLimits.SingleChannelGuestLimit)
+		require.Equal(t, int64(3), serverLimits.ActiveUserCount)
+	})
+}
+
 func TestGetPostHistoryLimit(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("unlicensed server returns zero limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.Srv().SetLicense(nil)
 
@@ -709,8 +783,7 @@ func TestGetPostHistoryLimit(t *testing.T) {
 	})
 
 	t.Run("licensed server with no Limits returns zero", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.Limits = nil // No limits configured
@@ -721,8 +794,7 @@ func TestGetPostHistoryLimit(t *testing.T) {
 	})
 
 	t.Run("licensed server with zero PostHistory returns zero", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.Limits = &model.LicenseLimits{
@@ -735,8 +807,7 @@ func TestGetPostHistoryLimit(t *testing.T) {
 	})
 
 	t.Run("licensed server with positive PostHistory returns exact value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicense("")
 		license.Limits = &model.LicenseLimits{
@@ -749,8 +820,7 @@ func TestGetPostHistoryLimit(t *testing.T) {
 	})
 
 	t.Run("Entry license with PostHistory returns exact value", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuMattermostEntry)
 

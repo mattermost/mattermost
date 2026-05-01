@@ -14,15 +14,15 @@
  * Note: This test requires Enterprise license to be uploaded
  */
 
-import {getRandomId} from '../../../../utils';
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-
 import {
     changeGuestFeatureSettings,
     invitePeople,
     verifyInvitationError,
     verifyInvitationSuccess,
 } from './helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Guest Account - Guest User Invitation Flow', () => {
     let testTeam: Cypress.Team;
@@ -134,9 +134,9 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             cy.findByText('Update email').should('be.visible').click();
 
             // * Update email outside whitelisted domain and verify error message
-            cy.findByTestId('resetEmailModal').should('be.visible').within(() => {
-                cy.findByTestId('resetEmailForm').should('be.visible').get('input').type(email);
-                cy.findByTestId('resetEmailButton').click();
+            cy.get('#resetEmailModal').should('be.visible').within(() => {
+                cy.get('input[type="email"]').type(email);
+                cy.get('button.btn-primary.confirm').click();
                 cy.get('.error').should('be.visible').and('have.text', 'The email you provided does not belong to an accepted domain for guest accounts. Please contact your administrator or sign up with a different email.');
                 cy.get('.close').click();
             });

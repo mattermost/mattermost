@@ -4,7 +4,7 @@
 import React from 'react';
 
 import {withIntl} from 'tests/helpers/intl-test-helper';
-import {fireEvent, render, screen} from 'tests/react_testing_utils';
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 
 import InviteMembersLink from './invite_members_link';
 
@@ -63,7 +63,7 @@ describe('components/preparing-workspace/invite_members_link', () => {
         expect(button).toBeInTheDocument();
     });
 
-    it('changes the button text to "Link Copied" when the URL is copied', () => {
+    it('changes the button text to "Link Copied" when the URL is copied', async () => {
         const component = withIntl(<InviteMembersLink inviteURL={inviteURL}/>);
         render(component);
         const button = screen.getByRole('button', {name: /copy link/i});
@@ -71,7 +71,7 @@ describe('components/preparing-workspace/invite_members_link', () => {
         const linkCopiedText = 'Link Copied';
         expect(button).toHaveTextContent(originalText);
 
-        fireEvent.click(button);
+        await userEvent.click(button);
 
         expect(button).toHaveTextContent(linkCopiedText);
     });

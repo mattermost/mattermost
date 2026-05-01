@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {stubClipboard} from '../../../utils';
+import {stubClipboard} from '@/utils';
 
 describe('Permalink message edit', () => {
     before(() => {

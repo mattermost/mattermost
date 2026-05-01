@@ -40,10 +40,6 @@ describe('ListItem', () => {
         onUnmount: jest.fn(),
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('renders the item content correctly', () => {
         render(<ListItem {...defaultProps}/>);
 

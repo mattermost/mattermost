@@ -75,8 +75,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         }
     }, []);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const onHeightChange = (width: number, height: number) => {
+    const onHeightChange = () => {
         if (bodyRef.current) {
             setBodyHeight(bodyRef.current.getBoundingClientRect().height);
         }
@@ -162,7 +161,6 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                     defaultMessage='This message is from a private conversation and can only be shared with {participants}'
                     values={{
                         participants: <FormattedList value={participants}/>,
-                        strong: (x: React.ReactNode) => <strong>{x}</strong>,
                     }}
                 />
             );

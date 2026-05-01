@@ -48,10 +48,10 @@ services:
     extends:
         file: docker-compose.common.yml
         service: loki
-  promtail:
+  otel-collector:
     extends:
         file: docker-compose.common.yml
-        service: promtail
+        service: otel-collector
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest

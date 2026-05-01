@@ -6,7 +6,6 @@ import React from 'react';
 import Markdown from 'components/markdown';
 
 type Props = {
-    id?: string;
     value: string;
 };
 

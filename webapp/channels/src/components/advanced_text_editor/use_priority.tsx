@@ -30,6 +30,7 @@ const usePriority = (
     handleDraftChange: ((draft: PostDraft, options: { instant?: boolean; show?: boolean }) => void),
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
+    showIndividualCloseButton = true,
 ) => {
     const dispatch = useDispatch();
     const rootId = draft.rootId;
@@ -87,6 +88,7 @@ const usePriority = (
 
         if (settings?.priority || settings?.requested_ack) {
             updatedDraft.metadata = {
+                ...updatedDraft.metadata,
                 priority: {
                     ...settings,
                     priority: settings!.priority || '',
@@ -94,7 +96,10 @@ const usePriority = (
                 },
             };
         } else {
-            updatedDraft.metadata = {};
+            // Remove priority but keep other metadata
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {priority, ...restMetadata} = updatedDraft.metadata || {};
+            updatedDraft.metadata = restMetadata;
         }
 
         handleDraftChange(updatedDraft, {instant: true});
@@ -137,7 +142,7 @@ const usePriority = (
     const labels = useMemo(() => (
         (hasPrioritySet && !rootId) ? (
             <PriorityLabels
-                canRemove={!shouldShowPreview}
+                canRemove={showIndividualCloseButton && !shouldShowPreview}
                 hasError={!isValidPersistentNotifications}
                 specialMentions={specialMentions}
                 onRemove={handleRemovePriority}
@@ -146,7 +151,7 @@ const usePriority = (
                 requestedAck={draft!.metadata!.priority?.requested_ack}
             />
         ) : undefined
-    ), [hasPrioritySet, rootId, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
+    ), [hasPrioritySet, rootId, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
 
     const additionalControl = useMemo(() =>
         !rootId && isPostPriorityEnabled && (
@@ -164,6 +169,7 @@ const usePriority = (
         additionalControl,
         isValidPersistentNotifications,
         onSubmitCheck,
+        handleRemovePriority,
     };
 };
 

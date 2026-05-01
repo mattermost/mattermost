@@ -60,6 +60,15 @@ jest.mock('mattermost-redux/actions/users', () => ({
     getProfiles: jest.fn().mockReturnValue(() => ({type: 'GET_PROFILES'})),
 }));
 
+const mockMarkThreadAsRead = jest.fn().mockReturnValue(() => ({type: 'MARK_THREAD_AS_READ'}));
+jest.mock('actions/views/threads', () => ({
+    markThreadAsRead: jest.fn((...args) => mockMarkThreadAsRead(...args)),
+}));
+
+jest.mock('utils/popouts/popout_windows', () => ({
+    isThreadPopoutWindow: jest.fn().mockReturnValue(true),
+}));
+
 describe('ThreadPopout', () => {
     const mockPost = {
         id: 'post-123',
@@ -101,11 +110,33 @@ describe('ThreadPopout', () => {
                     'post-123': mockPost,
                 },
             },
+            threads: {
+                threads: {
+                    'post-123': {
+                        id: 'post-123',
+                        last_reply_at: 1000,
+                    },
+                },
+            },
+        },
+        views: {
+            threads: {
+                manuallyUnread: {},
+            },
         },
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        Object.defineProperty(window, 'isActive', {
+            writable: true,
+            value: false,
+        });
+        jest.spyOn(window, 'addEventListener').mockImplementation();
+        jest.spyOn(window, 'removeEventListener').mockImplementation();
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should render nothing when thread is not available', () => {
@@ -180,5 +211,72 @@ describe('ThreadPopout', () => {
         );
 
         expect(container.firstChild).toBeNull();
+    });
+
+    describe('window focus and blur events', () => {
+        it('should set window.isActive to true and call markThreadAsRead on focus', () => {
+            let focusHandler: (() => void) | undefined;
+            (window.addEventListener as jest.Mock).mockImplementation((event, handler) => {
+                if (event === 'focus') {
+                    focusHandler = handler;
+                }
+            });
+
+            renderWithContext(
+                <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+                    <Route
+                        path='/_popout/thread/:team/:postId'
+                        component={ThreadPopout}
+                    />
+                </MemoryRouter>,
+                baseState,
+            );
+
+            expect(screen.getByTestId('thread-pane')).toBeInTheDocument();
+            expect(focusHandler).toBeDefined();
+
+            if (focusHandler) {
+                Object.defineProperty(window, 'isActive', {
+                    writable: true,
+                    value: false,
+                });
+                focusHandler();
+            }
+
+            expect((window as Window & {isActive?: boolean}).isActive).toBe(true);
+            expect(mockMarkThreadAsRead).toHaveBeenCalledWith('post-123');
+        });
+
+        it('should set window.isActive to false on blur', () => {
+            let blurHandler: (() => void) | undefined;
+            (window.addEventListener as jest.Mock).mockImplementation((event, handler) => {
+                if (event === 'blur') {
+                    blurHandler = handler;
+                }
+            });
+
+            renderWithContext(
+                <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+                    <Route
+                        path='/_popout/thread/:team/:postId'
+                        component={ThreadPopout}
+                    />
+                </MemoryRouter>,
+                baseState,
+            );
+
+            expect(screen.getByTestId('thread-pane')).toBeInTheDocument();
+            expect(blurHandler).toBeDefined();
+
+            if (blurHandler) {
+                Object.defineProperty(window, 'isActive', {
+                    writable: true,
+                    value: true,
+                });
+                blurHandler();
+            }
+
+            expect((window as Window & {isActive?: boolean}).isActive).toBe(false);
+        });
     });
 });

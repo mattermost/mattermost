@@ -16,6 +16,7 @@ import (
 func (api *API) InitLicenseLocal() {
 	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localAddLicense, handlerParamFileAPI)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/license", api.APILocal(localRemoveLicense)).Methods(http.MethodDelete)
+	api.BaseRoutes.APIRoot.Handle("/license/client", api.APILocal(localGetClientLicense)).Methods(http.MethodGet)
 }
 
 func localAddLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -93,4 +94,24 @@ func localRemoveLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("success")
 
 	ReturnStatusOK(w)
+}
+
+func localGetClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
+	format := r.URL.Query().Get("format")
+
+	if format == "" {
+		c.Err = model.NewAppError("localGetClientLicense", "api.license.client.old_format.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if format != "old" {
+		c.SetInvalidParam("format")
+		return
+	}
+
+	clientLicense := c.App.Srv().ClientLicense()
+
+	if _, err := w.Write([]byte(model.MapToJSON(clientLicense))); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

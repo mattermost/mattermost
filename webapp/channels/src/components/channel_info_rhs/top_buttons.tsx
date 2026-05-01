@@ -44,6 +44,11 @@ const Button = styled.button`
         }
     }
 
+    &:disabled {
+        opacity: 0.32;
+        cursor: default;
+    }
+
     & i {
         color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
         font-size: 24px;
@@ -83,6 +88,8 @@ export interface Props {
     isFavorite: boolean;
     isMuted: boolean;
     isInvitingPeople: boolean;
+    isArchived?: boolean;
+    isInManagedCategory: boolean;
 
     canAddPeople: boolean;
 
@@ -99,6 +106,8 @@ export default function TopButtons({
     isFavorite,
     isMuted,
     isInvitingPeople,
+    isArchived = false,
+    isInManagedCategory,
     canAddPeople: propsCanAddPeople,
     actions,
 }: Props) {
@@ -109,7 +118,7 @@ export default function TopButtons({
         successCopyTimeout: 1000,
     });
 
-    const canAddPeople = ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL;
+    const canAddPeople = !isArchived && (([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL);
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
@@ -129,15 +138,23 @@ export default function TopButtons({
         <ChannelInfoRhsTopButtons>
             <WithTooltip
                 title={
-                    <FormattedMessage
-                        id='channel_info_rhs.top_buttons.favorite.tooltip'
-                        defaultMessage='Add this channel to favorites'
-                    />
+                    isInManagedCategory ? (
+                        <FormattedMessage
+                            id='channelHeader.managedCategoryFavoriteDisabled'
+                            defaultMessage='Channels in managed categories cannot be favorited.'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='channel_info_rhs.top_buttons.favorite.tooltip'
+                            defaultMessage='Add this channel to favorites'
+                        />
+                    )
                 }
             >
                 <Button
                     onClick={actions.toggleFavorite}
                     className={isFavorite ? 'active' : ''}
+                    disabled={isInManagedCategory}
                     aria-label={favoriteText}
                     id='channelInfoRHSAddFavoriteButton'
                 >

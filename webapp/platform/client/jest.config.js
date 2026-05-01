@@ -7,5 +7,13 @@ module.exports = {
     moduleNameMapper: {
         '^@mattermost/types/(.*)$': '<rootDir>/../types/src/$1',
     },
+    testPathIgnorePatterns: ['/node_modules/', '/lib/'],
     setupFiles: ['<rootDir>/setup_jest.ts'],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+    ],
+    coveragePathIgnorePatterns: [
+        '/node_modules/',
+    ],
+    coverageReporters: ['json', 'lcov', 'text-summary'],
 };

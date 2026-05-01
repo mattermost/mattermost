@@ -4,12 +4,12 @@
 package awsmeter
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering/marketplacemeteringiface"
+	"github.com/aws/aws-sdk-go-v2/service/marketplacemetering"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -19,20 +19,20 @@ import (
 )
 
 type mockMarketplaceMeteringClient struct {
-	marketplacemeteringiface.MarketplaceMeteringAPI
+	MeteringService
 }
 
-func (m *mockMarketplaceMeteringClient) MeterUsage(input *marketplacemetering.MeterUsageInput) (*marketplacemetering.MeterUsageOutput, error) {
+func (m *mockMarketplaceMeteringClient) MeterUsage(ctx context.Context, input *marketplacemetering.MeterUsageInput, optFns ...func(*marketplacemetering.Options)) (*marketplacemetering.MeterUsageOutput, error) {
 	return &marketplacemetering.MeterUsageOutput{
 		MeteringRecordId: model.NewPointer("1"),
 	}, nil
 }
 
 type mockMarketplaceMeteringClientWithError struct {
-	marketplacemeteringiface.MarketplaceMeteringAPI
+	MeteringService
 }
 
-func (m *mockMarketplaceMeteringClientWithError) MeterUsage(input *marketplacemetering.MeterUsageInput) (*marketplacemetering.MeterUsageOutput, error) {
+func (m *mockMarketplaceMeteringClientWithError) MeterUsage(ctx context.Context, input *marketplacemetering.MeterUsageInput, optFns ...func(*marketplacemetering.Options)) (*marketplacemetering.MeterUsageOutput, error) {
 	return nil, errors.New("error")
 }
 
@@ -42,7 +42,7 @@ func TestAwsMeterUsage(t *testing.T) {
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(2), nil)
+	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int32(2), nil)
 
 	storeMock := mocks.Store{}
 	storeMock.On("User").Return(&userStoreMock)
@@ -78,7 +78,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		assert.Equal(t, reports[0].Value, resultReports[0].Value)
 		assert.Equal(t, reports[0].Timestamp, resultReports[0].Timestamp)
 
-		err := awsmeter.ReportUserCategoryUsage(resultReports)
+		err := awsmeter.ReportUserCategoryUsage(context.Background(), resultReports)
 		require.NoError(t, err)
 	})
 
@@ -87,7 +87,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		resultReports := awsmeter.GetUserCategoryUsage(dimensions, startTime, endTime)
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 1, len(resultReports))
-		err := awsmeter.ReportUserCategoryUsage(resultReports)
+		err := awsmeter.ReportUserCategoryUsage(context.Background(), resultReports)
 		require.Error(t, err)
 	})
 
@@ -97,7 +97,7 @@ func TestAwsMeterUsage(t *testing.T) {
 		resultReports := awsmeter.GetUserCategoryUsage(dimensions, startTime, endTime)
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
-		err := awsmeter.ReportUserCategoryUsage(resultReports)
+		err := awsmeter.ReportUserCategoryUsage(context.Background(), resultReports)
 		require.NoError(t, err)
 	})
 }
@@ -108,7 +108,7 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 	dimensions := []string{model.AwsMeteringDimensionUsageHrs}
 
 	userStoreMock := mocks.UserStore{}
-	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int64(0), errors.New("error"))
+	userStoreMock.On("AnalyticsActiveCountForPeriod", model.GetMillisForTime(startTime), model.GetMillisForTime(endTime), mock.AnythingOfType("model.UserCountOptions")).Return(int32(0), errors.New("error"))
 
 	storeMock := mocks.Store{}
 	storeMock.On("User").Return(&userStoreMock)
@@ -140,7 +140,7 @@ func TestAwsMeterUsageWithDBError(t *testing.T) {
 		resultReports := awsmeter.GetUserCategoryUsage(dimensions, startTime, endTime)
 		require.NotNil(t, resultReports)
 		assert.Equal(t, 0, len(resultReports))
-		err := awsmeter.ReportUserCategoryUsage(resultReports)
+		err := awsmeter.ReportUserCategoryUsage(context.Background(), resultReports)
 		require.NoError(t, err)
 	})
 }

@@ -83,6 +83,12 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	team.Email = strings.ToLower(team.Email)
 
+	license := c.App.Channels().License()
+
+	if model.SafeDereference(c.App.Config().PrivacySettings.UseAnonymousURLs) && model.MinimumEnterpriseAdvancedLicense(license) {
+		team.Name = model.NewId()
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateTeam, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", &team)
@@ -120,13 +126,22 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Setting AllowOpenInvite or AllowedDomains requires PermissionInviteUser, matching updateTeam/patchTeam.
+	if (team.AllowOpenInvite || team.AllowedDomains != "") && !creatorCanInviteUsersOnTeam(c, &team) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+	// The creator's session doesn't yet reflect their team_admin role, so check the team's default roles directly.
+	if !creatorCanInviteUsersOnTeam(c, rteam) {
+		rteam.InviteId = ""
+	}
 
 	auditRec.Success()
 	auditRec.AddEventResultState(&team)
@@ -136,6 +151,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// creatorCanInviteUsersOnTeam checks whether the creator will have PermissionInviteUser on the new team,
+// using the team's scheme (if any) or the built-in team roles as defaults.
+func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
+		return true
+	}
+
+	if team.SchemeId != nil && *team.SchemeId != "" {
+		scheme, appErr := c.App.GetScheme(*team.SchemeId)
+		if appErr != nil {
+			c.Logger.Warn("Failed to fetch scheme while checking invite permission for new team",
+				mlog.String("scheme_id", *team.SchemeId),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+
+		return c.App.RolesGrantPermission([]string{scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}, model.PermissionInviteUser.Id)
+	}
+
+	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -151,7 +189,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isContentReviewer := false
-	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get("as_content_reviewer"))
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get(model.AsContentReviewerParam))
 	if asContentReviewer {
 		requireContentFlaggingEnabled(c)
 		if c.Err != nil {
@@ -262,6 +300,20 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetPermissionError(model.PermissionManageTeam)
 		return
 	}
+
+	oldTeam, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Updating AllowOpenInvite or AllowedDomains requires InviteUser permission
+	if (team.AllowOpenInvite != oldTeam.AllowOpenInvite || team.AllowedDomains != oldTeam.AllowedDomains) && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteUser) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
+	auditRec.AddEventPriorState(oldTeam)
 
 	updatedTeam, err := c.App.UpdateTeam(&team)
 	if err != nil {
@@ -631,6 +683,10 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		team.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
+
 	if err := json.NewEncoder(w).Encode(team); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -667,6 +723,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -706,6 +769,13 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	for _, m := range members {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), m.TeamId, model.PermissionManageTeamRoles) {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -749,6 +819,13 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range members {
+			m.SanitizeRoleData(currentUserId)
+		}
 	}
 
 	js, err := json.Marshal(members)
@@ -856,6 +933,10 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(tm)
 	auditRec.AddEventObjectType("team_member") // TODO verify this is the final state. should it be the team instead?
 	auditRec.Success()
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		tm.SanitizeRoleData(c.AppContext.Session().UserId)
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(tm); err != nil {
@@ -1009,6 +1090,15 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	currentUserId := c.AppContext.Session().UserId
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionManageTeamRoles) {
+		for _, m := range membersWithErrors {
+			if m.Member != nil {
+				m.Member.SanitizeRoleData(currentUserId)
+			}
+		}
 	}
 
 	var (
@@ -1577,6 +1667,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 	graceful := r.URL.Query().Get("graceful") != ""
+
 	if c.App.Channels().License() == nil {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
 		return
@@ -1584,6 +1675,12 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if !*c.App.Config().GuestAccountsSettings.Enable {
 		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	guestMagicLink := r.URL.Query().Get("guest_magic_link") == "true"
+	if guestMagicLink && !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.guest_magic_link_disabled.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1595,6 +1692,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteGuestsToChannels, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
+	if guestMagicLink {
+		auditRec.AddMeta("guest_magic_link", true)
+	}
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest) {
 		c.SetPermissionError(model.PermissionInviteGuest)
@@ -1635,7 +1735,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var appErr *model.AppError
 
 		if guestsInvite.Emails != nil {
-			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
+			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, guestMagicLink)
 		}
 
 		if appErr != nil {
@@ -1658,7 +1758,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	} else {
-		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
+		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, guestMagicLink)
 		if appErr != nil {
 			c.Err = appErr
 			return

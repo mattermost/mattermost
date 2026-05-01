@@ -96,6 +96,7 @@
         "EnableLocalMode": false,
         "LocalModeSocketLocation": "/var/tmp/mattermost_local.socket",
         "EnableAWSMetering": false,
+        "AWSMeteringTimeoutSeconds": 30,
         "SplitKey": "",
         "FeatureFlagSyncIntervalSeconds": 30,
         "DebugSplit": false,
@@ -140,7 +141,7 @@
         "IosMinVersion": ""
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
+        "MinimumLength": 14,
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
@@ -291,6 +292,7 @@
         "PublicCertificateFile": "",
         "PrivateKeyFile": "",
         "QueryTimeout": 60,
+        "AnalyticsQueryTimeout": 300,
         "MaxPageSize": 500,
         "LoginFieldName": "",
         "LoginButtonColor": "#0000",

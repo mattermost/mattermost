@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`InviteMembers component should match snapshot 1`] = `
 <div>
@@ -107,7 +107,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
           class="PreparingWorkspaceDescription"
         >
           <span>
-            Collaboration is tough by yourself. Invite a few team members. Separate each email address with a space or comma.
+            Collaboration is tough by yourself. Invite a few team members. Separate each email address with a comma or semicolon.
           </span>
         </p>
         <div
@@ -146,7 +146,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
               class="users-emails-input__control users-emails-input__control--is-focused users-emails-input__control--menu-is-open css-t3ipsp-control"
             >
               <div
-                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-hlgwow"
+                class="users-emails-input__value-container users-emails-input__value-container--is-multi css-7rvhdx"
               >
                 <div
                   class="users-emails-input__placeholder css-10imb99-placeholder"
@@ -155,7 +155,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
                   Enter email addresses
                 </div>
                 <div
-                  class="users-emails-input__input-container css-11wvis5"
+                  class="users-emails-input__input-container css-18awvv8"
                   data-value=""
                 >
                   <input
@@ -173,7 +173,7 @@ exports[`InviteMembers component should match snapshot when it is cloud 1`] = `
                     id="react-select-2-input"
                     role="combobox"
                     spellcheck="false"
-                    style="opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
+                    style="color: inherit; background: 0px; opacity: 1; width: 100%; grid-area: 1 / 2; min-width: 2px; border: 0px; margin: 0px; outline: 0; padding: 0px;"
                     tabindex="0"
                     type="text"
                     value=""

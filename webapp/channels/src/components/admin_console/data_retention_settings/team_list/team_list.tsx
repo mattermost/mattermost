@@ -26,7 +26,6 @@ type Props = {
     policyId?: string;
 
     onRemoveCallback: (user: Team) => void;
-    onAddCallback: (users: Team[]) => void;
     teamsToRemove: Record<string, Team>;
     teamsToAdd: Record<string, Team>;
 
@@ -249,7 +248,6 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}
-                    page={this.state.page}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
                     startCount={startCount}

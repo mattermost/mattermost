@@ -5,7 +5,6 @@ package sqlstore
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -31,8 +30,7 @@ func newSqlRetentionPolicyStore(sqlStore *SqlStore, metrics einterfaces.MetricsI
 	}
 }
 
-// executePossiblyEmptyQuery only executes the query if it is non-empty. This helps avoid
-// having to check for MySQL, which, unlike Postgres, does not allow empty queries.
+// executePossiblyEmptyQuery only executes the query if it is non-empty.
 func executePossiblyEmptyQuery(txn *sqlxTxWrapper, query string, args ...any) (sql.Result, error) {
 	if query == "" {
 		return nil, nil
@@ -641,15 +639,11 @@ func subQueryIN(property string, query sq.SelectBuilder) sq.Sqlizer {
 // DeleteOrphanedRows removes entries from RetentionPoliciesChannels and RetentionPoliciesTeams
 // where a channel or team no longer exists.
 func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, err error) {
-	// We need the extra level of nesting to deal with MySQL's locking
-	rpcSubQuery := sq.Select("ChannelId").FromSelect(
-		sq.Select("ChannelId").
-			From("RetentionPoliciesChannels").
-			LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
-			Where("Channels.Id IS NULL").
-			Limit(uint64(limit)),
-		"A",
-	)
+	rpcSubQuery := sq.Select("ChannelId").
+		From("RetentionPoliciesChannels").
+		LeftJoin("Channels ON RetentionPoliciesChannels.ChannelId = Channels.Id").
+		Where("Channels.Id IS NULL").
+		Limit(uint64(limit))
 
 	rpcDeleteQuery, rpcArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesChannels").
@@ -659,15 +653,11 @@ func (s *SqlRetentionPolicyStore) DeleteOrphanedRows(limit int) (deleted int64, 
 		return int64(0), errors.Wrap(err, "retention_policies_channels_tosql")
 	}
 
-	// We need the extra level of nesting to deal with MySQL's locking
-	rptSubQuery := sq.Select("TeamId").FromSelect(
-		sq.Select("TeamId").
-			From("RetentionPoliciesTeams").
-			LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
-			Where("Teams.Id IS NULL").
-			Limit(uint64(limit)),
-		"A",
-	)
+	rptSubQuery := sq.Select("TeamId").
+		From("RetentionPoliciesTeams").
+		LeftJoin("Teams ON RetentionPoliciesTeams.TeamId = Teams.Id").
+		Where("Teams.Id IS NULL").
+		Limit(uint64(limit))
 
 	rptDeleteQuery, rptArgs, err := s.getQueryBuilder().
 		Delete("RetentionPoliciesTeams").
@@ -817,26 +807,14 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
-func scanRetentionIdsForDeletion(rows *sql.Rows, isPostgres bool) ([]*model.RetentionIdsForDeletion, error) {
+func scanRetentionIdsForDeletion(rows *sql.Rows) ([]*model.RetentionIdsForDeletion, error) {
 	idsForDeletion := []*model.RetentionIdsForDeletion{}
 	for rows.Next() {
 		var row model.RetentionIdsForDeletion
-		if isPostgres {
-			if err := rows.Scan(
-				&row.Id, &row.TableName, pq.Array(&row.Ids),
-			); err != nil {
-				return nil, errors.Wrap(err, "unable to scan columns")
-			}
-		} else {
-			var ids []byte
-			if err := rows.Scan(
-				&row.Id, &row.TableName, &ids,
-			); err != nil {
-				return nil, errors.Wrap(err, "unable to scan columns")
-			}
-			if err := json.Unmarshal(ids, &row.Ids); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal ids")
-			}
+		if err := rows.Scan(
+			&row.Id, &row.TableName, pq.Array(&row.Ids),
+		); err != nil {
+			return nil, errors.Wrap(err, "unable to scan columns")
 		}
 
 		idsForDeletion = append(idsForDeletion, &row)
@@ -867,8 +845,7 @@ func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string,
 	}
 	defer rows.Close()
 
-	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
-	idsForDeletion, err := scanRetentionIdsForDeletion(rows, isPostgres)
+	idsForDeletion, err := scanRetentionIdsForDeletion(rows)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to scan ids for deletion")
 	}
@@ -880,18 +857,8 @@ func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsFo
 	row.PreSave()
 	insertBuilder := s.getQueryBuilder().
 		Insert("RetentionIdsForDeletion").
-		Columns("Id", "TableName", "Ids")
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		insertBuilder = insertBuilder.
-			Values(row.Id, row.TableName, pq.Array(row.Ids))
-	} else {
-		jsonIds, err := json.Marshal(row.Ids)
-		if err != nil {
-			return err
-		}
-		insertBuilder = insertBuilder.
-			Values(row.Id, row.TableName, jsonIds)
-	}
+		Columns("Id", "TableName", "Ids").
+		Values(row.Id, row.TableName, pq.Array(row.Ids))
 	insertQuery, insertArgs, err := insertBuilder.ToSql()
 	if err != nil {
 		return err

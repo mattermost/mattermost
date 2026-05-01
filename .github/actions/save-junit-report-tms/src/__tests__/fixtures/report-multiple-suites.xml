@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="2" errors="1" skipped="1" time="25.75">
+  <testsuite name="Authentication Tests" tests="5" failures="1" errors="0" skipped="0" time="12.5" timestamp="2024-01-15T10:00:00Z">
+    <testcase name="MM-T2001 Admin can login" classname="auth" time="2.5"/>
+    <testcase name="MM-T2002 Guest can login" classname="auth" time="2.0"/>
+    <testcase name="MM-T2003 Invalid credentials rejected" classname="auth" time="3.5">
+      <failure message="Test assertion failed">Expected rejection but got acceptance</failure>
+    </testcase>
+    <testcase name="MM-T2004 Session expires correctly" classname="auth" time="2.5"/>
+    <testcase name="MM-T2005 Token refresh works" classname="auth" time="2.0"/>
+  </testsuite>
+  <testsuite name="Channel Tests" tests="5" failures="1" errors="1" skipped="1" time="13.25" timestamp="2024-01-15T10:05:00Z">
+    <testcase name="MM-T3001 Create channel" classname="channel" time="1.5"/>
+    <testcase name="MM-T3002 Delete channel" classname="channel" time="2.0">
+      <failure message="Channel not deleted">Expected channel to be deleted</failure>
+    </testcase>
+    <testcase name="MM-T3003 Archive channel" classname="channel" time="1.75">
+      <error message="Unexpected error">NullPointerException at line 45</error>
+    </testcase>
+    <testcase name="MM-T3004 Restore channel" classname="channel" time="3.0">
+      <skipped message="Feature not ready"/>
+    </testcase>
+    <testcase name="MM-T3005 Rename channel" classname="channel" time="5.0"/>
+  </testsuite>
+</testsuites>

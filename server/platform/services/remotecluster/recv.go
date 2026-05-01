@@ -32,7 +32,7 @@ func (rcs *Service) ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.Remote
 
 	for _, l := range listeners {
 		if err := callback(l, msg, &rcSanitized, &response); err != nil {
-			rcs.server.Log().Log(mlog.LvlRemoteClusterServiceError, "Error from remote cluster message listener",
+			rcs.server.Log().LogM(mlog.MlvlRemoteClusterServiceError, "Error from remote cluster message listener",
 				mlog.String("msgId", msg.Id), mlog.String("topic", msg.Topic), mlog.String("remote", rc.DisplayName), mlog.Err(err))
 
 			response.Status = ResponseStatusFail
@@ -71,6 +71,9 @@ func (rcs *Service) ReceiveInviteConfirmation(confirm model.RemoteClusterInvite)
 
 	// If the accepting cluster sent a RefreshedToken (its RemoteToken), set it as our Token
 	if confirm.Version >= 2 && confirm.RefreshedToken != "" {
+		if confirm.RefreshedToken == rc.Token {
+			return nil, fmt.Errorf("cannot accept invite confirmation for remote %s: RefreshedToken must be different from the original invite token", confirm.RemoteId)
+		}
 		rc.Token = confirm.RefreshedToken
 	} else {
 		// For older versions or if no RefreshedToken was provided, generate a new token

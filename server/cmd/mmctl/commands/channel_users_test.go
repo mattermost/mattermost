@@ -87,7 +87,7 @@ func (s *MmctlUnitTestSuite) TestChannelUsersAddCmdF() {
 			Times(1)
 		s.client.
 			EXPECT().
-			GetChannel(context.TODO(), channelName, "").
+			GetChannel(context.TODO(), channelName).
 			Return(nil, &model.Response{}, nil).
 			Times(1)
 

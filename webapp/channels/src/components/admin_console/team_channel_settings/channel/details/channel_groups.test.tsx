@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
+
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import {ChannelGroups} from './channel_groups';
 
@@ -24,7 +25,7 @@ describe('admin_console/team_channel_settings/channel/ChannelGroups', () => {
             group_constrained: false,
             name: 'DN',
         };
-        const wrapper = shallow(
+        const {container} = renderWithContext(
             <ChannelGroups
                 synced={true}
                 onAddCallback={jest.fn()}
@@ -37,6 +38,6 @@ describe('admin_console/team_channel_settings/channel/ChannelGroups', () => {
                 isDisabled={false}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

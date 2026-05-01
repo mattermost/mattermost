@@ -43,16 +43,27 @@ export default function AppBar() {
     }
 
     const coreProductsPluginIds = [suitePluginIds.focalboard, suitePluginIds.playbooks];
+    const agentsPluginId = suitePluginIds.agents;
 
+    // Partition app bar components: Playbooks/Boards vs other plugins
     const [coreProductComponents, pluginComponents] = partition(appBarPluginComponents, ({pluginId}) => {
         return coreProductsPluginIds.includes(pluginId);
     });
 
+    // Partition channel header components: Agents vs others
+    const [agentsComponents, otherChannelHeaderComponents] = partition(channelHeaderComponents, ({pluginId}) => {
+        return pluginId === agentsPluginId;
+    });
+
     const items = [
+        ...agentsComponents,
         ...coreProductComponents,
-        getDivider(coreProductComponents.length, (pluginComponents.length + channelHeaderComponents.length + appBarBindings.length)),
+        getDivider(
+            agentsComponents.length + coreProductComponents.length,
+            pluginComponents.length + otherChannelHeaderComponents.length + appBarBindings.length,
+        ),
         ...pluginComponents,
-        ...channelHeaderComponents,
+        ...otherChannelHeaderComponents,
         ...appBarBindings,
     ].map((x) => {
         if (!x) {

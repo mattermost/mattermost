@@ -19,10 +19,11 @@ import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer
 import './properties_card_view.scss';
 
 export type PostPreviewFieldMetadata = {
-    getPost?: (postId: string) => Promise<Post>;
+    post?: Post;
     fetchDeletedPost?: boolean;
-    getChannel?: (channelId: string) => Promise<Channel>;
-    getTeam?: (teamId: string) => Promise<Team>;
+    channel?: Channel;
+    team?: Team;
+    generateFileDownloadUrl?: (fileId: string) => string;
 };
 
 export type UserPropertyMetadata = {
@@ -35,11 +36,11 @@ export type TextFieldMetadata = {
 };
 
 export type ChannelFieldMetadata = {
-    getChannel?: (channelId: string) => Promise<Channel>;
+    channel?: Channel;
 };
 
 export type TeamFieldMetadata = {
-    getTeam?: (teamId: string) => Promise<Team>;
+    team?: Team;
 };
 
 export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserPropertyMetadata | ChannelFieldMetadata | TeamFieldMetadata;
@@ -76,7 +77,7 @@ const fieldNameMessages = defineMessages({
     },
     reporting_user_id: {
         id: 'property_card.field.reporting_user_id.label',
-        defaultMessage: 'Flagged by',
+        defaultMessage: 'Quarantined by',
     },
     reporting_comment: {
         id: 'property_card.field.reporting_comment.label',
@@ -100,7 +101,7 @@ const fieldNameMessages = defineMessages({
     },
     reporting_time: {
         id: 'property_card.field.reporting_time.label',
-        defaultMessage: 'Flagged at',
+        defaultMessage: 'Quarantined at',
     },
     actor_user_id: {
         id: 'property_card.field.actor_user_id.label',

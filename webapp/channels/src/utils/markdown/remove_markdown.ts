@@ -5,6 +5,8 @@ import marked from 'marked';
 
 import * as TextFormatting from 'utils/text_formatting';
 
+import {decodeHtmlEntities} from './decode_html_entities';
+
 export default class RemoveMarkdown extends marked.Renderer {
     public code(text: string) {
         // We need to escape the input here because our version of marked does this in the renderer. Every other node
@@ -77,6 +79,6 @@ export default class RemoveMarkdown extends marked.Renderer {
     }
 
     public text(text: string) {
-        return text.replace('\n', ' ');
+        return decodeHtmlEntities(text.replace('\n', ' '));
     }
 }

@@ -64,7 +64,6 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("returns not found when plugins environment is nil", func(t *testing.T) {
 		th := Setup(t)
-		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		req, err := http.NewRequest(http.MethodGet, "/plugins/plugin_id/public/file.txt", nil)
@@ -79,7 +78,6 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("resolves path for valid plugin", func(t *testing.T) {
 		th := Setup(t)
-		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		path, _ := fileutils.FindDir("tests")
@@ -102,11 +100,11 @@ func TestServePluginPublicRequest(t *testing.T) {
 	})
 
 	t.Run("resolves path for valid plugin when subpath configured", func(t *testing.T) {
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
-		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-
-		th := Setup(t)
-		t.Cleanup(th.TearDown)
+		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
+		// Using UpdateConfig after Setup would not rebuild the Router.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
+		})
 
 		installPlugin(t, th, "testplugin")
 
@@ -124,7 +122,6 @@ func TestServePluginPublicRequest(t *testing.T) {
 
 	t.Run("fails for invalid plugin", func(t *testing.T) {
 		th := Setup(t)
-		t.Cleanup(th.TearDown)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 		req, err := http.NewRequest(http.MethodGet, "/plugins/invalidplugin/public/file.txt", nil)
@@ -137,11 +134,11 @@ func TestServePluginPublicRequest(t *testing.T) {
 	})
 
 	t.Run("fails attempting to break out of path", func(t *testing.T) {
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://localhost:8065/subpath")
-		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-
-		th := Setup(t)
-		t.Cleanup(th.TearDown)
+		// SiteURL must be set before server init so the Router is created with the correct subpath prefix.
+		// Using UpdateConfig after Setup would not rebuild the Router.
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = model.NewPointer("http://localhost:8065/subpath")
+		})
 
 		installPlugin(t, th, "testplugin")
 		installPlugin(t, th, "testplugin2")
@@ -160,7 +157,6 @@ func TestServePluginPublicRequest(t *testing.T) {
 // TestUnauthRequestsMFAWarningFix tests the fix for https://mattermost.atlassian.net/browse/MM-63805.
 func TestUnauthRequestsMFAWarningFix(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Enable MFA and require it
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -210,8 +206,7 @@ func TestUnauthRequestsMFAWarningFix(t *testing.T) {
 
 func TestServePluginRequest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	session, err := th.App.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
@@ -540,7 +535,6 @@ func TestServePluginRequest(t *testing.T) {
 
 func TestValidateCSRFForPluginRequest(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("skip CSRF for non-cookie auth", func(t *testing.T) {
 		session := &model.Session{Id: "sessionid", UserId: "userid", Token: "token"}
