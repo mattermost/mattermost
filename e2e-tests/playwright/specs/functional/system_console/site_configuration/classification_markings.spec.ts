@@ -322,8 +322,14 @@ test.describe('System Console - Classification markings', () => {
             await dropdownMenu.getByText('NATO UNCLASSIFIED', {exact: true}).click();
 
             // # Save
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+
+            // Wait for the save to fully complete: the button becomes disabled once
+            // the async persistLevels flow finishes and hasChanges resets to false.
+            // networkidle alone is unreliable because there is a JS processing gap
+            // between the re-fetch GETs and the subsequent POST/PATCH calls.
+            await expect(saveButton).toBeDisabled({timeout: 30000});
 
             // * No save error
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
@@ -379,8 +385,9 @@ test.describe('System Console - Classification markings', () => {
 
             // # Switch placement to "top_and_bottom" and save
             await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+            await expect(saveButton).toBeDisabled({timeout: 30000});
 
             // * No server error
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();
@@ -388,7 +395,9 @@ test.describe('System Console - Classification markings', () => {
             // # Reload and verify the new placement persisted
             await page.reload();
             await page.waitForLoadState('networkidle');
-            await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked();
+            await expect(page.locator('input[name="globalBannerPlacement"][value="false"]')).toBeChecked({
+                timeout: 30000,
+            });
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -439,8 +448,9 @@ test.describe('System Console - Classification markings', () => {
             await dropdownMenu.getByText('CONFIDENTIAL', {exact: true}).click();
 
             // # Save again
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveButton = page.getByRole('button', {name: 'Save', exact: true});
+            await saveButton.click();
+            await expect(saveButton).toBeDisabled({timeout: 30000});
 
             // * No save error and banner now references the replacement level
             await expect(page.locator('.admin-console-save .error-message')).toBeEmpty();

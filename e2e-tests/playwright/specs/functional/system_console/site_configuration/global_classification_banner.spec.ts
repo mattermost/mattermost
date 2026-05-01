@@ -265,8 +265,9 @@ test.describe('Global Classification Banner', () => {
 
             // Disable the global banner
             await page.locator('input[name="globalBannerEnabled"][value="false"]').click();
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveBtn = page.getByRole('button', {name: 'Save', exact: true});
+            await saveBtn.click();
+            await expect(saveBtn).toBeDisabled({timeout: 30000});
 
             // Banner should no longer be visible
             await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
@@ -303,8 +304,9 @@ test.describe('Global Classification Banner', () => {
 
             // Switch placement to top_and_bottom and save
             await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveBtn2 = page.getByRole('button', {name: 'Save', exact: true});
+            await saveBtn2.click();
+            await expect(saveBtn2).toBeDisabled({timeout: 30000});
 
             // Both banners should now be visible
             await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
@@ -343,8 +345,9 @@ test.describe('Global Classification Banner', () => {
 
             // Disable classification markings entirely
             await page.locator('input[name="classificationEnabled"][value="false"]').click();
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
-            await page.waitForLoadState('networkidle');
+            const saveBtn3 = page.getByRole('button', {name: 'Save', exact: true});
+            await saveBtn3.click();
+            await expect(saveBtn3).toBeDisabled({timeout: 30000});
 
             // Banners should be gone
             await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
