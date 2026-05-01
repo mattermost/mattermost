@@ -355,6 +355,54 @@ test.describe('Global Classification Banner', () => {
     );
 
     /**
+     * @objective Changes made by an admin propagate to a non-admin user's banner
+     * in real-time without requiring a page reload.
+     */
+    test(
+        'MM-T6230 global banner: propagates to non-admin users via websocket',
+        {tag: ['@classification_markings', '@global_banner']},
+        async ({pw}) => {
+            const {adminClient, user} = await pw.initSetup();
+
+            await setClassificationMarkingsFeatureFlag(adminClient, true);
+
+            await setupClassificationFieldWithGlobalBanner(
+                adminClient,
+                [
+                    {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {name: 'SECRET', color: '#C8102E', rank: 2},
+                ],
+                {levelName: 'UNCLASSIFIED', enabled: true, placement: 'top'},
+            );
+
+            // Login the non-admin user
+            const {channelsPage: userChannelsPage} = await pw.testBrowser.login(user);
+            await userChannelsPage.goto();
+            await userChannelsPage.toBeVisible();
+
+            const userTopBanner = userChannelsPage.page.locator(TOP_BANNER_SELECTOR);
+            await expect(userTopBanner).toBeVisible();
+            await expect(userTopBanner).toContainText('UNCLASSIFIED');
+
+            // Admin changes the banner level
+            await setupClassificationFieldWithGlobalBanner(
+                adminClient,
+                [
+                    {name: 'UNCLASSIFIED', color: '#007A33', rank: 1},
+                    {name: 'SECRET', color: '#C8102E', rank: 2},
+                ],
+                {levelName: 'SECRET', enabled: true, placement: 'top'},
+            );
+
+            // The non-admin user should see the updated banner via websocket
+            await expect(userTopBanner).toContainText('SECRET');
+            await expect(userTopBanner).toHaveCSS('background-color', 'rgb(200, 16, 46)');
+
+            await deleteClassificationMarkingsFieldIfExists(adminClient);
+        },
+    );
+
+    /**
      * @objective Text color adapts for readability: dark text on light background,
      * white text on dark background.
      * Color is now derived from the level's color in attrs.options (not stored separately).

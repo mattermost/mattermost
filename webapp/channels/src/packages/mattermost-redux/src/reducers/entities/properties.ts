@@ -45,7 +45,7 @@ function fieldsReducer(
         let changed = false;
 
         for (const field of fields) {
-            if (isPSAv1PropertyField(field) || field.delete_at > 0) {
+            if (isPSAv1PropertyField(field)) {
                 continue;
             }
 
@@ -77,7 +77,11 @@ function fieldsReducer(
                 };
             }
 
-            nextByObjectType[objectType][groupId][field.id] = field;
+            if (field.delete_at > 0) {
+                Reflect.deleteProperty(nextByObjectType[objectType][groupId], field.id);
+            } else {
+                nextByObjectType[objectType][groupId][field.id] = field;
+            }
         }
 
         if (!changed) {

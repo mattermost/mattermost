@@ -38,22 +38,25 @@ export async function setClassificationMarkingsFeatureFlag(adminClient: Client4,
  * (clean slate for E2E). Linked field is deleted first to avoid deletion-protection errors.
  */
 export async function deleteClassificationMarkingsFieldIfExists(adminClient: Client4) {
-    try {
-        // Delete the linked system field first (deletion protection requires this order).
-        const linkedFields = await adminClient.getPropertyFields(
-            PROPERTY_GROUP,
-            LINKED_OBJECT_TYPE,
-            TARGET_TYPE,
-            SYSTEM_FIELD_TARGET_ID,
-        );
-        const matchingLinkedFields = linkedFields.filter(
-            (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
-        );
-        for (const f of matchingLinkedFields) {
-            await adminClient.deletePropertyField(PROPERTY_GROUP, LINKED_OBJECT_TYPE, f.id);
+    // Clean up both the current 'system' object type and the legacy 'user' object type
+    // to handle stale data from earlier versions of the feature.
+    for (const objectType of [LINKED_OBJECT_TYPE, 'user'] as const) {
+        try {
+            const linkedFields = await adminClient.getPropertyFields(
+                PROPERTY_GROUP,
+                objectType,
+                TARGET_TYPE,
+                SYSTEM_FIELD_TARGET_ID,
+            );
+            const matchingLinkedFields = linkedFields.filter(
+                (f) => f.name === LINKED_CLASSIFICATION_FIELD_NAME && f.delete_at === 0 && f.linked_field_id,
+            );
+            for (const f of matchingLinkedFields) {
+                await adminClient.deletePropertyField(PROPERTY_GROUP, objectType, f.id);
+            }
+        } catch {
+            // Linked field may not exist; ignore.
         }
-    } catch {
-        // Linked field may not exist; ignore.
     }
     try {
         const fields = await adminClient.getPropertyFields(PROPERTY_GROUP, OBJECT_TYPE, TARGET_TYPE);

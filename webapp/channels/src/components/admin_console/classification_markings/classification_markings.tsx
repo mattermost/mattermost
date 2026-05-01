@@ -373,9 +373,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                     const savedValues = await saveUpsertSystemValue(savedLinked.id, optionId);
                     dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
                 }
-            }
 
-            savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
+                savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
+            }
 
             // Push saved fields into Redux eagerly so the banner updates
             // atomically rather than waiting for out-of-order WS events.

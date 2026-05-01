@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
@@ -68,7 +68,6 @@ export default function GlobalClassificationBanner({position}: Props) {
         }
         return getPropertyValueForTargetField(state, SYSTEM_VALUE_TARGET_ID, linkedField.id) as PropertyValue<string> | undefined;
     });
-    const bannerRef = useRef<HTMLDivElement>(null);
 
     // Bootstrap: fetch template fields, the linked system field, and system property values.
     // WebSocket events (property_field_created/updated and property_values_updated) keep
@@ -96,15 +95,18 @@ export default function GlobalClassificationBanner({position}: Props) {
     const shouldRenderTop = actions.includes(DISPLAY_BANNER_TOP);
     const shouldRenderBottom = actions.includes(DISPLAY_BANNER_BOTTOM);
 
-    // The level is identified by the option ID stored in the property value.
+    // Resolve the selected level from the linked field's inherited options.
+    // Linked fields inherit attrs.options from the template, and unlike the
+    // template (which is treated as PSAv1 and skipped by the reducer), linked
+    // field updates propagate to all clients via WebSocket.
     const optionId = systemValue?.value ?? '';
     const levelOption = useMemo((): PropertyFieldOption | undefined => {
-        if (!optionId || !templateField) {
+        if (!optionId || !linkedField) {
             return undefined;
         }
-        const options = templateField.attrs?.options as PropertyFieldOption[] | undefined;
+        const options = linkedField.attrs?.options as PropertyFieldOption[] | undefined;
         return findOptionById(options ?? [], optionId);
-    }, [templateField, optionId]);
+    }, [linkedField, optionId]);
 
     const levelName = levelOption?.name ?? '';
     const color = levelOption?.color ?? '';
@@ -145,7 +147,6 @@ export default function GlobalClassificationBanner({position}: Props) {
 
     return (
         <div
-            ref={bannerRef}
             className={`global-classification-banner global-classification-banner--${position}`}
             style={{backgroundColor: color || undefined, color: textColor || undefined}}
             data-testid={`global-classification-banner-${position}`}
