@@ -20,17 +20,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-const flaggedPostReportTempPattern = "mm-flag-report-*.zip"
-
-// flaggedPostReportContext bundles the entities needed to build the report so
-// the per-section writers can be unit-tested in isolation.
-type flaggedPostReportContext struct {
-	post        *model.Post
-	channel     *model.Channel
-	team        *model.Team
-	author      *model.User
-	editHistory []*model.Post
-}
+const (
+	flaggedPostReportPostDir           = "post"
+	flaggedPostReportEditHistoryDir    = "edit_history"
+	flaggedPostReportAttachmentsDir    = "attachments"
+	flaggedPostReportPostYAMLFile      = "post.yaml"
+	flaggedPostReportContentReviewFile = "content_review.yaml"
+	flaggedPostReportMetadataFile      = "report_metadata.yaml"
+	flaggedPostReportTempPattern       = "mm-flag-report-*.zip"
+)
 
 // GenerateFlaggedPostReport builds a ZIP archive of a flagged post's data into a
 // temporary file and returns the file path. The caller is responsible for
@@ -87,7 +85,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	if appErr := a.writeEditHistorySection(rctx, zw, rc, seenFiles); appErr != nil {
 		return appErr
 	}
-	if appErr := a.writeContentReviewEntry(rctx, zw, rc.post); appErr != nil {
+	if appErr := a.writeContentReviewEntry(rctx, zw, rc.Post); appErr != nil {
 		return appErr
 	}
 	if appErr := a.writeReportMetadataEntry(zw, generatedByUserID); appErr != nil {
@@ -97,7 +95,7 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 	return nil
 }
 
-func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*flaggedPostReportContext, *model.AppError) {
+func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*model.FlaggedPostReportContext, *model.AppError) {
 	post, appErr := a.GetSinglePost(rctx, postID, true)
 	if appErr != nil {
 		return nil, appErr
@@ -128,39 +126,41 @@ func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*fl
 		editHistory = nil
 	}
 
-	return &flaggedPostReportContext{
-		post:        post,
-		channel:     channel,
-		team:        team,
-		author:      author,
-		editHistory: editHistory,
+	return &model.FlaggedPostReportContext{
+		Post:        post,
+		Channel:     channel,
+		Team:        team,
+		Author:      author,
+		EditHistory: editHistory,
 	}, nil
 }
 
-func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *flaggedPostReportContext, seen map[string]bool) *model.AppError {
-	editOrder := make([]string, 0, len(rc.editHistory))
-	for _, e := range rc.editHistory {
+func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool) *model.AppError {
+	editOrder := make([]string, 0, len(rc.EditHistory))
+	for _, e := range rc.EditHistory {
 		editOrder = append(editOrder, e.Id)
 	}
 
-	yamlPayload := buildPostYAML(rc.post, rc.channel, rc.team, rc.author, editOrder)
-	if err := writeYAMLEntry(zw, "post/post.yaml", yamlPayload); err != nil {
+	yamlPayload := buildPostYAML(rc.Post, rc.Channel, rc.Team, rc.Author, editOrder)
+	postYAMLPath := path.Join(flaggedPostReportPostDir, flaggedPostReportPostYAMLFile)
+	if err := writeYAMLEntry(zw, postYAMLPath, yamlPayload); err != nil {
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_post_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.post, false, true)
+	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.Post, false, true)
 	if appErr != nil {
 		// Missing base attachments are logged, not fatal.
-		rctx.Logger().Warn("Failed to fetch base post file infos for flagged post report", mlog.String("post_id", rc.post.Id), mlog.Err(appErr))
+		rctx.Logger().Warn("Failed to fetch base post file infos for flagged post report", mlog.String("post_id", rc.Post.Id), mlog.Err(appErr))
 		baseFiles = nil
 	}
-	return a.writeAttachments(rctx, zw, "post/attachments", baseFiles, seen)
+	attachmentsDir := path.Join(flaggedPostReportPostDir, flaggedPostReportAttachmentsDir)
+	return a.writeAttachments(rctx, zw, attachmentsDir, baseFiles, seen)
 }
 
-func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *flaggedPostReportContext, seen map[string]bool) *model.AppError {
-	for _, edit := range rc.editHistory {
-		yamlPayload := buildPostYAML(edit, rc.channel, rc.team, rc.author, nil)
-		entryPath := path.Join("edit_history", edit.Id, "post.yaml")
+func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *model.FlaggedPostReportContext, seen map[string]bool) *model.AppError {
+	for _, edit := range rc.EditHistory {
+		yamlPayload := buildPostYAML(edit, rc.Channel, rc.Team, rc.Author, nil)
+		entryPath := path.Join(flaggedPostReportEditHistoryDir, edit.Id, flaggedPostReportPostYAMLFile)
 		if err := writeYAMLEntry(zw, entryPath, yamlPayload); err != nil {
 			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_edit_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -172,7 +172,7 @@ func (a *App) writeEditHistorySection(rctx request.CTX, zw *zip.Writer, rc *flag
 			editFiles = edit.Metadata.Files
 		}
 
-		dir := path.Join("edit_history", edit.Id, "attachments")
+		dir := path.Join(flaggedPostReportEditHistoryDir, edit.Id, flaggedPostReportAttachmentsDir)
 		if appErr := a.writeAttachments(rctx, zw, dir, editFiles, seen); appErr != nil {
 			return appErr
 		}
@@ -185,7 +185,7 @@ func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *mo
 	if appErr != nil {
 		return appErr
 	}
-	if err := writeYAMLEntry(zw, "content_review.yaml", payload); err != nil {
+	if err := writeYAMLEntry(zw, flaggedPostReportContentReviewFile, payload); err != nil {
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_review_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -202,7 +202,7 @@ func (a *App) writeReportMetadataEntry(zw *zip.Writer, generatedByUserID string)
 		Timestamp:           model.GetMillis(),
 		ReportVersion:       model.FlaggedPostReportVersion,
 	}
-	if err := writeYAMLEntry(zw, "report_metadata.yaml", payload); err != nil {
+	if err := writeYAMLEntry(zw, flaggedPostReportMetadataFile, payload); err != nil {
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_metadata_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
@@ -210,17 +210,8 @@ func (a *App) writeReportMetadataEntry(zw *zip.Writer, generatedByUserID string)
 
 func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, author *model.User, editHistoryOrder []string) model.FlaggedPostReportPost {
 	out := model.FlaggedPostReportPost{
-		ID:                 post.Id,
-		AuthorID:           post.UserId,
-		Message:            post.Message,
-		ChannelID:          post.ChannelId,
+		Post:               post,
 		ChannelDisplayName: channel.DisplayName,
-		CreateAt:           post.CreateAt,
-		UpdateAt:           post.UpdateAt,
-		IsPinned:           post.IsPinned,
-		RootID:             post.RootId,
-		Props:              post.GetProps(),
-		Metadata:           post.Metadata,
 		EditHistoryOrder:   editHistoryOrder,
 	}
 
@@ -234,7 +225,7 @@ func buildPostYAML(post *model.Post, channel *model.Channel, team *model.Team, a
 	}
 	if post.RootId == "" {
 		replyCount := post.ReplyCount
-		out.ReplyCount = &replyCount
+		out.ReplyCountPtr = &replyCount
 	}
 
 	return out
@@ -291,10 +282,7 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.
 
 	// Reviewer details: prefer the actor (the one who took the keep/remove action)
 	// when present, otherwise fall back to the assigned reviewer.
-	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorUserID)
-	if reviewerID == "" {
-		reviewerID = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
-	}
+	reviewerID := decodePropertyString(rctx, byName, contentFlaggingPropertyNameReviewerUserID)
 	out.ReviewerUserID = reviewerID
 	out.ReviewerComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameActorComment)
 	out.ActionTime = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameActionTime)
