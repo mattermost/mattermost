@@ -227,12 +227,12 @@ jobs:
         run: |
           set -euo pipefail
           IMAGE="mcr.microsoft.com/playwright:v1.59.1-noble"
-          for attempt in $(seq 1 8); do
-            echo "docker pull ${IMAGE} (attempt ${attempt}/8)"
+          for attempt in $(seq 1 12); do
+            echo "docker pull ${IMAGE} (attempt ${attempt}/12)"
             if docker pull "${IMAGE}"; then
               exit 0
             fi
-            sleep $((attempt * 20))
+            sleep $((attempt * 25))
           done
           echo "::error::Failed to pull Playwright image ${IMAGE} after retries"
           exit 1

@@ -729,9 +729,11 @@ export async function createAdvancedPolicy(
     await nameInput.waitFor({state: 'visible', timeout: 10000});
     await nameInput.fill(options.name);
 
-    // Switch to Advanced mode
+    // Switch to Advanced mode — the button can stay disabled until the policy editor
+    // finishes loading (slow under parallel CI); wait instead of racing a 2s visibility check.
     const advancedModeButton = page.getByRole('button', {name: /advanced/i});
-    if (await advancedModeButton.isVisible({timeout: 2000})) {
+    if (await advancedModeButton.isVisible({timeout: 5000}).catch(() => false)) {
+        await expect(advancedModeButton).toBeEnabled({timeout: 60_000});
         await advancedModeButton.click();
         await page.waitForTimeout(1000);
     }

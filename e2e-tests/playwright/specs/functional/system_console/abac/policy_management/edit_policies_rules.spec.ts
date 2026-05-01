@@ -413,15 +413,16 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         if (await policySearchInput.isVisible({timeout: 3000})) {
             await policySearchInput.fill(policyName);
         }
-        // Re-bind locator after the grid refreshes so we don't hold a stale reference.
+        const policyRow = () => page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
         await expect
-            .poll(() => policyRowLocator.isVisible(), {
-                timeout: 20_000,
+            .poll(() => policyRow().isVisible(), {
+                timeout: 45_000,
+                intervals: [500, 1000, 2000, 3000],
                 message: `policy "${policyName}" should appear in grid after search`,
             })
             .toBe(true);
     }
-    await policyRowLocator.click();
+    await page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first().click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
@@ -441,7 +442,8 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
 
     if (!isMonacoVisible) {
         const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
-        if (await advancedModeButton.isVisible({timeout: 5000})) {
+        if (await advancedModeButton.isVisible({timeout: 5000}).catch(() => false)) {
+            await expect(advancedModeButton).toBeEnabled({timeout: 60_000});
             await advancedModeButton.click();
             await page.waitForTimeout(2000);
         }
