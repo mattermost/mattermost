@@ -9,11 +9,9 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import {
-    deleteCustomProfileAttributes,
     setupCustomProfileAttributeValuesForUser,
 } from '../../channels/custom_profile_attributes/helpers';
 
-type FieldsMap = Record<string, UserPropertyField>;
 type AdminUser = UserProfile & {password: string};
 
 const IDENTIFIER_VALIDATION_MESSAGE =
@@ -36,14 +34,6 @@ async function createAdminClient(): Promise<{adminClient: Client4; adminUser: Ad
     } as AdminUser;
 
     return {adminClient, adminUser};
-}
-
-async function getFieldsMap(client: Client4): Promise<FieldsMap> {
-    const fields = await client.getCustomProfileAttributeFields();
-    return fields.reduce<FieldsMap>((acc, field) => {
-        acc[field.id] = field;
-        return acc;
-    }, {});
 }
 
 async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
