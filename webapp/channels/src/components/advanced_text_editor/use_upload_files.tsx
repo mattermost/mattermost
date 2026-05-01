@@ -19,6 +19,8 @@ import type TextboxClass from 'components/textbox/textbox';
 
 import type {PostDraft} from 'types/store/draft';
 
+import type {WysiwygEditorHandle} from './wysiwyg_editor/wysiwyg_editor';
+
 const getFileCount = (draft: PostDraft) => {
     return draft.fileInfos.length + draft.uploadsInProgress.length;
 };
@@ -35,6 +37,7 @@ const useUploadFiles = (
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & { submittedMessage?: string }) | null) => void,
     isPostBeingEdited?: boolean,
+    wysiwygRef?: React.RefObject<WysiwygEditorHandle>,
 ): [React.ReactNode, React.ReactNode] => {
     const locale = useSelector(getCurrentLocale);
 
@@ -47,8 +50,14 @@ const useUploadFiles = (
     }, [focusTextbox]);
 
     const getFileUploadTarget = useCallback(() => {
+        // FileUpload listens for paste/drop on this element. Pick whichever
+        // composer is mounted (only one will be at a time).
+        const wysiwygTarget = wysiwygRef?.current?.getInputBox() ?? null;
+        if (wysiwygTarget) {
+            return wysiwygTarget as unknown as HTMLInputElement;
+        }
         return (textboxRef.current?.getInputBox() as HTMLInputElement | undefined) ?? null;
-    }, [textboxRef]);
+    }, [textboxRef, wysiwygRef]);
 
     const handleUploadProgress = useCallback((filePreviewInfo: FilePreviewInfo) => {
         setUploadsProgressPercent((prev) => ({

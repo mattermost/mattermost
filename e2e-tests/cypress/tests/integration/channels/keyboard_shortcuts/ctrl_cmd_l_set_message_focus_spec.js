@@ -13,6 +13,12 @@
 describe('Keyboard Shortcuts', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             // # Visit a test channel
             cy.visit(channelUrl);
         });
@@ -27,7 +33,7 @@ describe('Keyboard Shortcuts', () => {
             cy.findByText('Reply').click();
 
             // * Confirm that reply text box has focus
-            cy.uiGetReplyTextBox().uiExpectComposerFocused();
+            cy.uiGetReplyTextBox().should('be.focused');
 
             // * Confirm the RHS is shown
             cy.get('#rhsCloseButton').should('exist');
@@ -36,7 +42,7 @@ describe('Keyboard Shortcuts', () => {
             cy.get('body').cmdOrCtrlShortcut('{shift}L');
 
             // * Confirm the message box has focus
-            cy.uiGetPostTextBox().uiExpectComposerFocused();
+            cy.uiGetPostTextBox().should('be.focused');
         });
     });
 
@@ -52,6 +58,6 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').cmdOrCtrlShortcut('{shift}L');
 
         // * Confirm the message box has focus
-        cy.uiGetPostTextBox().uiExpectComposerFocused();
+        cy.uiGetPostTextBox().should('be.focused');
     });
 });

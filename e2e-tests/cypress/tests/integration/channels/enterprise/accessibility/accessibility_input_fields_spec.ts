@@ -24,6 +24,12 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.apiRequireLicenseForFeature('GuestAccounts');
 
         cy.apiInitSetup().then(({team}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testTeam = team;
         });
     });
@@ -122,9 +128,8 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.apiCreateUser().then(({user}) => {
             cy.apiAddUserToTeam(testTeam.id, user.id).then(() => {
                 cy.apiAddUserToChannel(testChannel.id, user.id).then(() => {
-                    // * Verify Accessibility support in post input field. The WYSIWYG editor
-                    // exposes its placeholder via `data-placeholder` (rendered through CSS).
-                    cy.uiGetPostTextBox().should('have.attr', 'data-placeholder', `Write to ${testChannel.display_name}`).clear().focus();
+                    // * Verify Accessibility support in post input field
+                    cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).clear().focus();
 
                     // # Ensure User list is cached once in UI
                     cy.uiGetPostTextBox().type('@').wait(TIMEOUTS.ONE_SEC);
@@ -169,16 +174,14 @@ describe('Verify Accessibility Support in different input fields', () => {
 
     it('MM-T1458 Verify Accessibility Support in Main Post Input', () => {
         cy.get('#advancedTextEditorCell').within(() => {
-            // * Verify Accessibility Support in Main Post input. The WYSIWYG
-            // editor exposes its placeholder via `data-placeholder` and
-            // ProseMirror sets role="textbox".
-            cy.uiGetPostTextBox().
-                should('have.attr', 'data-placeholder', `Write to ${testChannel.display_name}`).
-                and('have.attr', 'role', 'textbox').
-                clear().focus().type('test');
+            // * Verify Accessibility Support in Main Post input
+            cy.uiGetPostTextBox().should('have.attr', 'placeholder', `Write to ${testChannel.display_name}`).and('have.attr', 'role', 'textbox').clear().focus().type('test');
 
-            // # Set a11y focus on the bold button (no preview button in WYSIWYG mode)
-            cy.get('#FormattingControl_bold').focus();
+            // # Set a11y focus on the textbox
+            cy.get('#FormattingControl_bold').focus().tab({shift: true});
+
+            // * Verify if the focus is on the preview button
+            cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
 
             // * Verify if the focus is on the bold button
             cy.get('#FormattingControl_bold').should('be.focused').and('have.attr', 'aria-label', 'bold').tab();
@@ -237,16 +240,11 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
 
         cy.get('#rhsContainer').within(() => {
-            // * Verify Accessibility Support in RHS input. The WYSIWYG editor
-            // exposes its placeholder via `data-placeholder` and ProseMirror
-            // sets role="textbox".
-            cy.uiGetReplyTextBox().
-                should('have.attr', 'data-placeholder', 'Reply to this thread...').
-                and('have.attr', 'role', 'textbox').
-                focus().type('test');
+            // * Verify Accessibility Support in RHS input
+            cy.uiGetReplyTextBox().should('have.attr', 'placeholder', 'Reply to this thread...').and('have.attr', 'role', 'textbox').focus().type('test').tab();
 
-            // # Set a11y focus on the bold button (no preview button in WYSIWYG mode)
-            cy.get('#FormattingControl_bold').focus();
+            // * Verify if the focus is on the preview button
+            cy.get('#PreviewInputTextButton').should('be.focused').and('have.attr', 'aria-label', 'preview').tab();
 
             // * Verify if the focus is on the bold button
             cy.get('#FormattingControl_bold').should('be.focused').and('have.attr', 'aria-label', 'bold').tab();

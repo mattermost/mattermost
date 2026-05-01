@@ -21,6 +21,12 @@ describe('Verify Accessibility Support in Post', () => {
 
     before(() => {
         cy.apiInitSetup().then(({team, channel, user}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testUser = user;
             testTeam = team;
             testChannel = channel;

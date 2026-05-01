@@ -73,45 +73,13 @@ function postMessageReplyInRHS(message: string): ChainableT<boolean> {
 }
 Cypress.Commands.add('postMessageReplyInRHS', postMessageReplyInRHS);
 
-// The composer renders either as a `<textarea>` or as a ProseMirror-based
-// `contenteditable` element (WYSIWYG editor). These small helpers keep all the
-// branching in this file so spec files do not need to know the difference.
-function isWysiwygComposer(el: HTMLElement): boolean {
-    return el.getAttribute('contenteditable') === 'true';
-}
-
-function readComposerText(el: HTMLElement): string {
-    if (isWysiwygComposer(el)) {
-        return el.textContent || '';
-    }
-    return (el as HTMLTextAreaElement).value || '';
-}
-
-function isComposerEmpty(el: HTMLElement): boolean {
-    const text = readComposerText(el).trim();
-    return text === '' || text === '\n';
-}
-
-// Some messages (slash commands, mentions, channels, emoji) open an
-// autocomplete popover whose first item is selected by default. {enter} would
-// pick that suggestion instead of submitting, so dismiss the popover first.
-function submitKeysFor(message: string): string {
-    return /^[/~@:]/.test(message) ? '{esc}{enter}' : '{enter}';
-}
-
 Cypress.Commands.add('uiPostMessageQuickly', (message) => {
-    cy.uiGetPostTextBox().should('be.visible').then((el) => {
-        if (isWysiwygComposer(el[0])) {
-            // Newlines must be entered as soft breaks in the WYSIWYG editor
-            // because a literal {enter} would submit the message.
-            const safe = message.replace(/\n/g, '{shift}{enter}');
-            cy.wrap(el).clear().type(safe).wait(TIMEOUTS.HALF_SEC).type(submitKeysFor(message));
-        } else {
-            cy.wrap(el).clear().invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
-        }
-    });
+    cy.uiGetPostTextBox().should('be.visible').clear().
+        invoke('val', message).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}');
     cy.waitUntil(() => {
-        return cy.uiGetPostTextBox().then((el) => isComposerEmpty(el[0]));
+        return cy.uiGetPostTextBox().then((el) => {
+            return el[0].textContent === '';
+        });
     });
 });
 
@@ -122,33 +90,24 @@ function postMessageAndWait(textboxSelector: string, message: string, isComment 
     cy.get(textboxSelector, {timeout: TIMEOUTS.HALF_MIN}).should('be.visible');
 
     // # Type then wait for a while for the draft to be saved (async) into the local storage
-    cy.get(textboxSelector).then((el) => {
-        const safe = isWysiwygComposer(el[0]) ? message.replace(/\n/g, '{shift}{enter}') : message;
-        cy.wrap(el).clear().type(safe);
-    });
-    cy.wait(TIMEOUTS.ONE_SEC);
+    cy.get(textboxSelector).clear().type(message).wait(TIMEOUTS.ONE_SEC);
 
     // If posting a comment, wait for comment draft from localforage before hitting enter
     if (isComment) {
         waitForCommentDraft(message);
     }
 
-    cy.get(textboxSelector).then((el) => {
-        if (isWysiwygComposer(el[0])) {
-            cy.wrap(el).focus().type(submitKeysFor(message)).wait(TIMEOUTS.HALF_SEC);
-        } else {
-            cy.wrap(el).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
+    cy.get(textboxSelector).should('have.value', message).focus().type('{enter}').wait(TIMEOUTS.HALF_SEC);
 
-            cy.get(textboxSelector).invoke('val').then((value) => {
-                if (typeof value === 'string' && value.length > 0 && value === message) {
-                    cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
-                }
-            });
+    cy.get(textboxSelector).invoke('val').then((value) => {
+        if (typeof value === 'string' && value.length > 0 && value === message) {
+            cy.get(textboxSelector).type('{enter}').wait(TIMEOUTS.HALF_SEC);
         }
     });
-
     return cy.waitUntil(() => {
-        return cy.get(textboxSelector).then((el) => isComposerEmpty(el[0]));
+        return cy.get(textboxSelector).then((el) => {
+            return el[0].textContent === '';
+        });
     });
 }
 
@@ -246,19 +205,7 @@ Cypress.Commands.add('uiGetNthPost', uiGetNthPost);
 
 function postMessageFromFile(file: string, target = '#post_textbox') {
     return cy.fixture(file, 'utf-8').then((text) => {
-        return cy.get(target).then((el) => {
-            if (isWysiwygComposer(el[0])) {
-                // Use a synthetic paste so ProseMirror handles the multiline text
-                // through its own pipeline; submit with {esc}{enter} to dismiss
-                // any input-rule popovers that may have opened.
-                el[0].focus();
-                const dt = new DataTransfer();
-                dt.setData('text/plain', text);
-                el[0].dispatchEvent(new ClipboardEvent('paste', {clipboardData: dt, bubbles: true, cancelable: true}));
-                return cy.wrap(el).wait(TIMEOUTS.HALF_SEC).type('{esc}{enter}').should('have.text', '');
-            }
-            return cy.wrap(el).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
-        });
+        return cy.get(target).clear().invoke('val', text).wait(TIMEOUTS.HALF_SEC).type(' {backspace}{enter}').should('have.text', '');
     });
 }
 Cypress.Commands.add('postMessageFromFile', postMessageFromFile);

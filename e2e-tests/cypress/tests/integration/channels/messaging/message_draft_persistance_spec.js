@@ -22,6 +22,12 @@ describe('Message Draft Persistance', () => {
     before(() => {
         // # Create new team and new user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then((out) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testChannel = out.channel;
 
             offTopicUrl = out.offTopicUrl;
@@ -62,7 +68,7 @@ describe('Message Draft Persistance', () => {
         cy.get(`#sidebarItem_${testChannel.name}`).click();
 
         // * Ensure the post textbox was cleared
-        cy.uiGetPostTextBox().uiExpectComposerEmpty();
+        cy.uiGetPostTextBox().should('be.empty');
 
         // * Ensure Off-Topic has the draft icon
         verifyDraftIcon('off-topic', true);
@@ -72,7 +78,7 @@ describe('Message Draft Persistance', () => {
         cy.wait(500).reload();
 
         // * Ensure the post textbox is still empty
-        cy.uiGetPostTextBox().uiExpectComposerEmpty();
+        cy.uiGetPostTextBox().should('be.empty');
 
         // * Ensure Off-Topic still has the draft icon
         cy.get('#sidebarItem_off-topic').

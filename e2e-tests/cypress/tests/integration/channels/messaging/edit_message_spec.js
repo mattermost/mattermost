@@ -18,6 +18,12 @@ describe('Edit Message', () => {
     before(() => {
         // # Login as test user
         cy.apiInitSetup({loginAfter: true}).then((out) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             offTopicUrl = out.offTopicUrl;
         });
     });
@@ -44,7 +50,7 @@ describe('Edit Message', () => {
         cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).focus().type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('#edit_textbox').uiExpectComposerText('Hello World! @');
+        cy.get('#edit_textbox').should('have.value', 'Hello World! @');
 
         // * Assert user autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');
@@ -59,7 +65,7 @@ describe('Edit Message', () => {
         cy.get('#edit_textbox').wait(TIMEOUTS.HALF_SEC).type('{esc}');
 
         // * Check if the textbox contains expected text
-        cy.get('#edit_textbox').uiExpectComposerText('Hello World! @ ~');
+        cy.get('#edit_textbox').should('have.value', 'Hello World! @ ~');
 
         // * Assert channel autocomplete is not visible
         cy.get('#suggestionList').should('not.exist');

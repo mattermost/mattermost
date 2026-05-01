@@ -14,6 +14,12 @@ describe('Messaging', () => {
     before(() => {
         // # Login as test user and visit Off-Topic
         cy.apiInitSetup({loginAfter: true}).then(({team}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             cy.visit(`/${team.name}/channels/off-topic`);
             cy.postMessage('hello');
         });

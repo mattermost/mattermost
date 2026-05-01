@@ -19,6 +19,12 @@ describe('Messaging', () => {
     before(() => {
         // # Log in as test user, go to test channel and post several messages
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             cy.visit(`/${team.name}/channels/${channel.name}`);
 
             Cypress._.times(30, (i) => {

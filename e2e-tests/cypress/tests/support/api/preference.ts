@@ -473,6 +473,50 @@ Cypress.Commands.add('apiSaveJoinLeaveMessagesPreference', apiSaveJoinLeaveMessa
 /**
  * Disables tutorials for user by marking them finished
  */
+/**
+ * Force the legacy <textarea>-based message composer (Textbox) to render for
+ * the current user by setting the WYSIWYG editor user preference to false.
+ *
+ * Use this in `before()` of any spec that exercises legacy textarea behavior
+ * (selectionStart/End, native :disabled/:focused selectors, formatting bar
+ * preview button, slash/mention autocomplete via `<textarea>`-targeted code,
+ * etc.). Without it the spec runs against the WYSIWYG ProseMirror editor by
+ * default (see `getWysiwygEditorPreference`), where those assertions do not
+ * apply.
+ *
+ * @example
+ *   before(() => {
+ *       cy.apiInitSetup({loginAfter: true}).then(() => cy.apiRequireLegacyEditor());
+ *   });
+ */
+function apiRequireLegacyEditor(): ChainableT<Cypress.Response<unknown>> {
+    // Resolve the current user id at call-time so this works whether it is
+    // invoked before or after `apiInitSetup({loginAfter: true})`. We prefer
+    // the cookie (cheap) and fall back to /api/v4/users/me (one extra request
+    // when the cookie is absent, e.g. when called from a `before()` that runs
+    // prior to login).
+    return cy.getCookie('MMUSERID').then((cookie) => {
+        if (cookie?.value) {
+            return saveLegacyEditorPreference(cookie.value);
+        }
+        return cy.request('/api/v4/users/me').then((res) => {
+            return saveLegacyEditorPreference((res.body as {id: string}).id);
+        });
+    });
+}
+
+function saveLegacyEditorPreference(userId: string) {
+    const preference = {
+        user_id: userId,
+        category: 'display_settings',
+        name: 'wysiwyg_editor',
+        value: 'false',
+    };
+    return cy.apiSaveUserPreference([preference], userId);
+}
+
+Cypress.Commands.add('apiRequireLegacyEditor', apiRequireLegacyEditor);
+
 function apiDisableTutorials(userId: string) {
     const preferences = [
         {
@@ -545,6 +589,7 @@ declare global {
             apiBoardsWelcomePageViewed: typeof apiBoardsWelcomePageViewed;
             apiSaveJoinLeaveMessagesPreference: typeof apiSaveJoinLeaveMessagesPreference;
             apiDisableTutorials: typeof apiDisableTutorials;
+            apiRequireLegacyEditor: typeof apiRequireLegacyEditor;
         }
     }
 }

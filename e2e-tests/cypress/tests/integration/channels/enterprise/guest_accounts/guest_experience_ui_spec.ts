@@ -45,6 +45,12 @@ describe('Guest Account - Guest User Experience', () => {
         });
 
         cy.apiInitSetup({userPrefix: 'guest'}).then(({user, team, channel}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             guestUser = user;
 
             // # Create new team and visit its URL

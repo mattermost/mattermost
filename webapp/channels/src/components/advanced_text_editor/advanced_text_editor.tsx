@@ -335,6 +335,7 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         isInEditMode,
+        wysiwygRef,
     );
 
     const insertWysiwygText = useCallback((text: string) => {

@@ -20,6 +20,12 @@ describe('Keyboard Shortcuts', () => {
 
     before(() => {
         cy.apiInitSetup().then(({team, channel, user}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testTeam = team;
             testChannel = channel;
             testUser = user;
@@ -273,7 +279,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('#edit_textbox').should('be.visible');
 
         // * Verify that edit box have value of previous regular message
-        cy.get('#edit_textbox').uiExpectComposerText(message);
+        cy.get('#edit_textbox').should('have.value', message);
     });
 
     it('MM-T1270 UP - Edit message with attachment but no text', () => {

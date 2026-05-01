@@ -11,6 +11,7 @@
 // Group: @channels @messaging @smoke
 
 import {getAdminAccount} from '@/support/env';
+import * as MESSAGES from '@/fixtures/messages';
 import timeouts from '@/fixtures/timeouts';
 
 describe('Message', () => {
@@ -21,6 +22,12 @@ describe('Message', () => {
     before(() => {
         // # Create new team and new user and visit Off-Topic channel
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testTeam = team;
             testChannel = channel;
             cy.visit(`/${testTeam.name}/channels/off-topic`);
@@ -157,6 +164,24 @@ describe('Message', () => {
         });
     });
 
+    it('MM-T3307 Focus remains in the RHS text box', () => {
+        cy.postMessage(MESSAGES.MEDIUM);
+
+        // # Open reply thread (RHS)
+        cy.clickPostCommentIcon();
+
+        // # Add some text to RHS text box
+        cy.uiGetReplyTextBox().type(MESSAGES.TINY);
+
+        // # Click on Preview
+        cy.get('#PreviewInputTextButton').click();
+
+        // # Click on Reply
+        cy.uiReply();
+
+        // * Focus to remain in the RHS text box
+        cy.uiGetReplyTextBox().should('be.focused');
+    });
 });
 
 function shouldHavePostProfileImageVisible(isVisible = true) {

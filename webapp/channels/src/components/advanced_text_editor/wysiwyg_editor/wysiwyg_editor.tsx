@@ -28,11 +28,16 @@ export type WysiwygEditorHandle = {
     insertText: (text: string) => void;
 
     // Parity with the legacy `Textbox` ref so that hooks like
-    // `useTextboxFocus` can drive focus regardless of which composer is
-    // mounted. ProseMirror routes its DOM focus through the contenteditable
-    // element exposed by `editor.view.dom`.
+    // `useTextboxFocus`, `useUploadFiles`, etc. can drive the composer
+    // regardless of which one is mounted. ProseMirror routes its DOM focus
+    // through the contenteditable element exposed by `editor.view.dom`.
     focus: () => void;
     blur: () => void;
+
+    // Returns the underlying contenteditable DOM element (the ProseMirror
+    // root), or null if the editor isn't ready. This is what `<FileUpload>`,
+    // paste-image listeners and selection helpers attach to.
+    getInputBox: () => HTMLElement | null;
 };
 
 type Props = {
@@ -138,6 +143,17 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             attributes: {
                 ...(id ? {id, 'data-testid': id} : {}),
                 'data-channel-id': channelId,
+
+                // Match the legacy <textarea> for accessibility tooling (screen
+                // readers, tests, browser extensions) and for parity with the
+                // role/placeholder contract that the rest of the app expects.
+                role: 'textbox',
+                ...(placeholderText ? {placeholder: placeholderText, 'aria-placeholder': placeholderText} : {}),
+
+                // Contenteditable elements are neither :enabled nor :disabled,
+                // so expose the disabled state via aria-disabled and a
+                // data-disabled attribute that mirrors the textarea's behavior.
+                ...(disabled ? {'aria-disabled': 'true', 'data-disabled': 'true'} : {'aria-disabled': 'false'}),
             },
             handlePaste: (_view, event) => {
                 const text = event.clipboardData?.getData('text/plain');
@@ -275,6 +291,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 editor.commands.blur();
             }
         },
+        getInputBox: () => {
+            if (editor && !editor.isDestroyed) {
+                return editor.view.dom as HTMLElement;
+            }
+            return null;
+        },
     }), [editor]);
 
     const lastValueRef = useRef(value);
@@ -289,6 +311,30 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             editor.commands.clearContent();
         }
     }, [value, editor]);
+
+    // Keep the contenteditable root's DOM attributes (placeholder,
+    // aria-placeholder, aria-disabled, data-disabled) in sync with props.
+    // useEditor's `attributes` are evaluated only when the editor is created,
+    // so we update them imperatively on each prop change.
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) {
+            return;
+        }
+        const dom = editor.view.dom as HTMLElement;
+        if (placeholderText) {
+            dom.setAttribute('placeholder', placeholderText);
+            dom.setAttribute('aria-placeholder', placeholderText);
+        } else {
+            dom.removeAttribute('placeholder');
+            dom.removeAttribute('aria-placeholder');
+        }
+        dom.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        if (disabled) {
+            dom.setAttribute('data-disabled', 'true');
+        } else {
+            dom.removeAttribute('data-disabled');
+        }
+    }, [editor, placeholderText, disabled]);
 
     useEffect(() => {
         if (editor && !editor.isDestroyed) {

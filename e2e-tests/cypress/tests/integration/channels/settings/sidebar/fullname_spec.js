@@ -22,6 +22,12 @@ describe('Settings > Sidebar > General', () => {
 
     before(() => {
         cy.apiInitSetup().then(({team, user, offTopicUrl: url}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             testUser = user;
             offTopicUrl = url;
 
@@ -62,7 +68,7 @@ describe('Settings > Sidebar > General', () => {
         cy.uiGetPostTextBox().tab();
 
         // * Verify that after enter user's username match
-        cy.uiGetPostTextBox().uiExpectComposerText(`@${username} `);
+        cy.uiGetPostTextBox().should('have.value', `@${username} `);
 
         // # Click enter in post textbox
         cy.uiGetPostTextBox().type('{enter}');

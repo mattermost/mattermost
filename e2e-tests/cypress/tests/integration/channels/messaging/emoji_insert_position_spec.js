@@ -13,6 +13,12 @@ describe('Messaging', () => {
     before(() => {
         // # Login as test user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             cy.visit(offTopicUrl);
         });
     });
@@ -31,7 +37,7 @@ describe('Messaging', () => {
         cy.clickEmojiInEmojiPicker('grinning');
 
         // * The emoji should be inserted as a Unicode character where the cursor is at the time of selection.
-        cy.uiGetPostTextBox().uiExpectComposerText('Hello\uD83D\uDE00World!');
+        cy.uiGetPostTextBox().should('have.value', 'Hello\uD83D\uDE00World!');
         cy.uiGetPostTextBox().type('{enter}');
 
         // * The emoji should be displayed in the post at the position inserted.

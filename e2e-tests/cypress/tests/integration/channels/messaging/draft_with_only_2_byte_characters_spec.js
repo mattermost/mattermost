@@ -19,6 +19,12 @@ describe('Messaging', () => {
     before(() => {
         // # Login as test user
         cy.apiInitSetup().then(({team, channel, user}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             receiver = user;
             testTeam = team;
             testChannel = channel;
@@ -52,6 +58,6 @@ describe('Messaging', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // * Assert that the message textbox is empty
-        cy.uiGetPostTextBox().uiExpectComposerEmpty();
+        cy.uiGetPostTextBox().should('have.value', '');
     });
 });

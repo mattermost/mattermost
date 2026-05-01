@@ -31,6 +31,12 @@ describe('Upload Files - Settings', () => {
 
         // # Create new team and new user and visit test channel
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl: url}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             channelUrl = url;
         });
     });

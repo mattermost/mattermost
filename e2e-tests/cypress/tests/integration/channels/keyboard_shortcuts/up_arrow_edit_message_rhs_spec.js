@@ -13,6 +13,12 @@
 describe('Keyboard Shortcuts', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             // # Visit a test channel
             cy.visit(channelUrl);
         });
@@ -37,7 +43,7 @@ describe('Keyboard Shortcuts', () => {
             cy.get('#edit_textbox').should('be.visible');
 
             // * Verify that edit box have value of edited message
-            cy.get('#edit_textbox').uiExpectComposerText(replyMessage);
+            cy.get('#edit_textbox').should('have.value', replyMessage);
         });
     });
 });

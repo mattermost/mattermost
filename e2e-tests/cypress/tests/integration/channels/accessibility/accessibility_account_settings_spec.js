@@ -59,7 +59,6 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         ],
         advanced: [
             {key: 'advancedCtrlSend', label: `Send Messages on ${isMac() ? '⌘+ENTER' : 'CTRL+ENTER'}`, type: 'radio'},
-            {key: 'wysiwygEditor', label: 'WYSIWYG Editor (Beta)', type: 'radio'},
             {key: 'formatting', label: 'Enable Post Formatting', type: 'radio'},
             {key: 'joinLeave', label: 'Enable Join/Leave Messages', type: 'radio'},
         ],
@@ -78,6 +77,12 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
         // # Login as test user and visit off-topic
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             url = offTopicUrl;
             cy.visit(offTopicUrl);
             cy.postMessage('hello');

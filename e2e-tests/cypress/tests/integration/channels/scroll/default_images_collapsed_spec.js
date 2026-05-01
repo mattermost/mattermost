@@ -13,6 +13,12 @@ describe('Scroll', () => {
     before(() => {
         // # Create new team and new user and visit Town Square channel
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             // # Switch the settings for the test user to have images collapsed by default
             cy.apiSaveCollapsePreviewsPreference('true');
 

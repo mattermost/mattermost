@@ -16,6 +16,12 @@ describe('Settings > Display > Theme > Custom Theme Colors', () => {
     before(() => {
         // # Login as new user, visit off-topic and post a message
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
+            // Force the legacy <textarea> composer (Textbox). This spec
+            // asserts behavior (native :focused/:disabled, selectionStart/End,
+            // formatting bar layout, etc.) that does not apply to the WYSIWYG
+            // editor, which is the default user preference now.
+            cy.apiRequireLegacyEditor();
+
             cy.visit(offTopicUrl);
             cy.postMessage('```\ncode\n```');
         });
