@@ -161,9 +161,12 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo)
 		require.NoError(t, err)
 
+		// Persist FileIds directly via the store. UpdatePost would route through
+		// AttachToPost, which is a no-op here because the FileInfo row already has
+		// PostId set, leaving post.FileIds empty in the DB.
 		post.FileIds = []string{fileInfo.Id}
-		_, _, appErr = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
-		require.Nil(t, appErr)
+		_, err = th.App.Srv().Store().Post().Overwrite(th.Context, post)
+		require.NoError(t, err)
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",

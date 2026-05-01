@@ -2246,39 +2246,27 @@ func (a *App) FilterPostsByChannelPermissions(rctx request.CTX, postList *model.
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.StoreResult[*model.Post], 1)
 	post, err := a.Srv().Store().Post().GetSingle(rctx, postID, includeDeleted)
-
-	go func() {
-		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
-		close(pchan)
-	}()
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
 
 	infos, firstInaccessibleFileTime, appErr := a.GetFileInfosForPost(rctx, post, false, includeDeleted)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if len(infos) == 0 && firstInaccessibleFileTime == 0 {
-		// No FileInfos were returned so check if they need to be created for this post
-		result := <-pchan
-		if result.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result.NErr, &nfErr):
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusNotFound).Wrap(result.NErr)
-			default:
-				return nil, model.NewAppError("GetFileInfosForPostWithMigration", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
-			}
-		}
-		post := result.Data
-
-		if len(post.Filenames) > 0 {
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
-			a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
-			// The post has Filenames that need to be replaced with FileInfos
-			infos = a.MigrateFilenamesToFileInfos(rctx, post)
-		}
+	if len(infos) == 0 && firstInaccessibleFileTime == 0 && len(post.Filenames) > 0 {
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
+		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, true)
+		// The post has Filenames that need to be replaced with FileInfos
+		infos = a.MigrateFilenamesToFileInfos(rctx, post)
 	}
 
 	return infos, nil
