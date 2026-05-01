@@ -1,0 +1,50 @@
+@use 'sass:color';
+
+// Color Variables
+$primary-color: #166de0;
+$primary-color--hover: color.adjust($primary-color, $lightness: -10%);
+$bg--gray: rgb(245, 245, 245);
+$white: rgb(255, 255, 255);
+$black: rgb(0, 0, 0);
+$red: rgb(214, 73, 70);
+$yellow: rgb(255, 255, 0);
+$light-gray: rgba(0, 0, 0, 0.15);
+$gray: rgba(0, 0, 0, 0.3);
+$dark-gray: rgba(0, 0, 0, 0.5);
+$link-color: rgb(35, 137, 215);
+$transparent: rgba(0, 0, 0, 0);
+$highlight-color: #fcea8d;
+
+// Typography
+$font-weight--semibold: 600;
+
+// Page Variables
+$border-gray: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+$announcement-bar-height: 40px;
+$channel-banner-height: 24px;
+$backstage-bar-height: 43px;
+
+// Random variables
+$emoji-per-row: 9; // needs to match variable `EMOJI_PER_ROW` in components/emoji_picker/constants/index.ts
+
+// Transition timing defaults
+$transition-quick: 0.12s;
+
+// Elevations
+$elevation-1: var(--elevation-1);
+$elevation-2: var(--elevation-2);
+$elevation-3: var(--elevation-3);
+$elevation-4: var(--elevation-4);
+$elevation-5: var(--elevation-5);
+$elevation-6: var(--elevation-6);
+
+// Z-indices (see _css_variables.scss for more details
+$z-index-tooltip: var(--z-index-tooltip);
+$z-index-tour-tips-popover: var(--z-index-tour-tips-popover);
+$z-index-tour-tips-backdrop: var(--z-index-tour-tips-backdrop);
+$z-index-menu: var(--z-index-menu);
+$z-index-modal: var(--z-index-modal);
+$z-index-popover: var(--z-index-popover);
+$z-index-user-group-popover: var(--z-index-user-group-popover);
+$z-index-global-header: var(--z-index-global-header);
+$z-index-channel-header: var(--z-index-channel-header);

@@ -1,0 +1,316 @@
+.get-app {
+    min-height: 100vh;
+    background-color: #fff;
+}
+
+.get-app__header {
+    display: flex;
+    width: 100%;
+    height: 102px;
+    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.2);
+
+    .get-app__logo {
+        width: 255px;
+        height: auto;
+        margin: 30px 40px;
+    }
+
+    .get-app__custom-logo {
+        max-width: 240px;
+        max-height: 40px;
+        align-self: center;
+        margin-left: 40px;
+    }
+
+    .get-app__custom-site-name {
+        align-self: center;
+        margin-left: 40px;
+
+        > span {
+            color: #000;
+            font-family: "Open Sans";
+            font-size: 40px;
+            font-weight: bold;
+            line-height: 40px;
+            opacity: 0.8;
+        }
+    }
+
+    .get-app__custom-logo + .get-app__custom-site-name {
+        margin-left: 8px;
+    }
+}
+
+.get-app__dialog {
+    display: flex;
+    width: 1280px;
+    justify-content: center;
+    margin: 80px auto;
+}
+
+.get-app__graphic {
+    flex: 0 0 600px;
+    background-color: var(--sidebar-bg);
+
+    &.mobile {
+        flex: 0 1 300px;
+    }
+
+    > img {
+        max-width: 100%;
+    }
+}
+
+.get-app__dialog-body {
+    flex: 0 1 600px;
+    margin-top: 60px;
+    margin-left: 60px;
+}
+
+.get-app__launching > span {
+    color: #000;
+    font-family: "Open Sans";
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 43px;
+    opacity: 0.8;
+}
+
+.get-app__alternative {
+    margin-top: 8px;
+
+    span {
+        font-family: "Open Sans";
+        font-size: 20px;
+        line-height: 27px;
+        opacity: 0.8;
+    }
+
+    > a {
+        color: #145dbf;
+        text-decoration: none;
+    }
+
+    > span {
+        color: #000;
+    }
+
+    &.redirect-page {
+        margin-top: 24px;
+        margin-bottom: 32px;
+
+        > br.mobile-only {
+            display: none;
+        }
+    }
+}
+
+.get-app__buttons {
+    margin-top: 28px;
+}
+
+.get-app__status {
+    display: inline-block;
+    margin-right: 20px;
+    font-family: "Open Sans";
+
+    > a {
+        padding: 13px 30px;
+        border-radius: 4px;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 22px;
+    }
+}
+
+.get-app__preference {
+    display: flex;
+    margin-top: 23px;
+    cursor: pointer;
+
+    > span {
+        margin-top: 1px;
+        color: #000;
+        font-family: "Open Sans";
+        font-size: 16px;
+        font-weight: normal;
+        line-height: 22px;
+        opacity: 0.8;
+    }
+
+    .get-app__checkbox {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        margin-right: 7px;
+    }
+}
+
+.get-app__download-link {
+    margin-top: 40px;
+    color: #000;
+    font-family: "Open Sans";
+    font-size: 16px;
+    line-height: 22px;
+    opacity: 0.8;
+
+    > span > a {
+        color: #145dbf;
+        text-decoration: none;
+    }
+
+    > br {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1280px) {
+    .get-app__dialog {
+        width: 100%;
+        align-items: center;
+        padding: 0 80px 0 0;
+        margin: 80px 0;
+    }
+
+    .get-app__dialog-body {
+        align-self: baseline;
+        margin-top: 40px;
+    }
+
+    .get-app__graphic {
+        flex-shrink: 1;
+    }
+}
+
+@media only screen and (max-width: 1082px) {
+    .get-app__dialog {
+        flex-direction: column-reverse;
+        padding: 0;
+        margin: 40px 0 0 0;
+        text-align: center;
+    }
+
+    .get-app__dialog-body {
+        display: flex;
+        flex: 0 1 270px;
+        flex-direction: column;
+        align-self: center;
+        margin-top: 0;
+        margin-left: 0;
+    }
+
+    .get-app__preference {
+        align-self: center;
+    }
+
+    .get-app__graphic {
+        flex: 0 1 500px;
+        margin-top: 40px;
+
+        &.mobile {
+            flex: 0 1 347px;
+        }
+
+        > img {
+            max-height: 100%;
+        }
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .get-app__header {
+        height: 52px;
+        justify-content: center;
+        box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.2);
+
+        .get-app__logo {
+            display: block;
+            width: 170px;
+            height: auto;
+            margin: 0 auto;
+        }
+
+        .get-app__custom-logo {
+            margin-left: 0;
+        }
+
+        .get-app__custom-site-name {
+            margin-left: 0;
+
+            > span {
+                font-size: 24px;
+                font-weight: bold;
+                line-height: 24px;
+            }
+        }
+
+        .get-app__custom-logo + .get-app__custom-site-name {
+            margin-left: 4px;
+        }
+    }
+
+    .get-app__dialog {
+        height: auto;
+        flex-direction: column-reverse;
+        margin: 32px auto;
+    }
+
+    .get-app__graphic {
+        flex-basis: unset !important;
+        margin: 16px 40px 0 40px;
+    }
+
+    .get-app__dialog-body {
+        margin-left: 0;
+    }
+
+    .get-app__launching {
+        padding: 0 24px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .get-app__alternative {
+        display: none;
+
+        span {
+            font-size: 16px;
+            line-height: 22px;
+        }
+
+        &.redirect-page {
+            display: block;
+
+            > br.mobile-only {
+                display: block;
+            }
+        }
+    }
+
+    .get-app__buttons {
+        margin-top: 25px;
+        margin-bottom: 25px;
+    }
+
+    .get-app__preference {
+        margin-top: 0;
+    }
+
+    .get-app__status {
+        display: block;
+        margin-right: 0;
+        margin-bottom: 20px;
+
+        > a {
+            width: 219px;
+        }
+    }
+
+    .get-app__download-link {
+        padding: 0 24px;
+
+        > br {
+            display: block;
+        }
+    }
+}

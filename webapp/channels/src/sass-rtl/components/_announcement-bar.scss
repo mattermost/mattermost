@@ -1,0 +1,146 @@
+@use "utils/variables";
+
+.announcement-bar {
+    display: flex;
+    overflow: hidden;
+    width: 100vw;
+    min-height: variables.$announcement-bar-height;
+    max-height: variables.$announcement-bar-height;
+    align-items: center;
+    justify-content: center;
+    background-color: #579eff;
+    color: variables.$white;
+    text-align: center;
+
+    .announcement-bar__text {
+        display: flex;
+        overflow: hidden;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: 0 32px;
+        white-space: nowrap;
+
+        > span {
+            overflow: hidden;
+            padding: 0 8px;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: 20px;
+            text-overflow: ellipsis;
+
+            .announcement-bar__configuration {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            &::after {
+                display: block;
+                content: '';
+            }
+        }
+
+        .annnouncementBar__purchaseNow,
+        .annnouncementBar__renewLicense {
+            margin-top: 0;
+        }
+
+        .annnouncementBar__renewLicense {
+            border-color: variables.$white;
+        }
+    }
+
+    a {
+        color: inherit !important;
+        text-decoration: underline;
+
+        &:hover,
+        &:active,
+        &:focus {
+            color: inherit !important;
+        }
+
+        &.announcement-bar__close {
+            top: 5px;
+            right: 0;
+            padding: 0 10px;
+            color: variables.$white;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            text-decoration: none;
+
+            &:hover {
+                color: variables.$white;
+                text-decoration: none;
+            }
+        }
+    }
+
+    .fa-wrapper {
+        margin: 0 5px;
+    }
+
+    .resend-verification-wrapper::before {
+        content: "\00a0 ";
+    }
+
+    .icon {
+        font-size: 16px;
+    }
+
+    .btn.btn-tertiary.btn-xs.btn-inverted {
+        background-color: rgba(variables.$white, 0.16);
+        color: variables.$white;
+
+        &:hover {
+            background-color: rgba(variables.$white, 0.24);
+        }
+    }
+}
+
+.announcement-bar-critical {
+    background-color: #f74343;
+}
+
+.announcement-bar-success {
+    background-color: #06d6a0;
+}
+
+.announcement-bar-advisor {
+    background-color: #579eff;
+}
+
+.announcement-bar-advisor-ack {
+    background-color: #06d6a0;
+}
+
+.announcement-bar-general {
+    background-color: #3d3c40;
+}
+
+.announcement-bar-warning {
+    background-color: var(--yellow-400);
+    color: var(--neutral-900);
+    .announcement-bar__text {
+        .btn.btn-tertiary.btn-xs.btn-inverted {
+            border-color: var(--neutral-900);
+            
+            color: var(--neutral-900);
+        }
+    }
+}
+
+.announcement-bar__link {
+    margin-left: 4px;
+}
+
+.advisor-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    margin-bottom: 2px;
+    margin-left: 8px;
+}

@@ -1,0 +1,147 @@
+@use "utils/functions";
+@use "utils/variables";
+@use "utils/mixins";
+
+.post {
+    // Container for both video and thumbnail
+    .video-div {
+        position: relative;
+        overflow: hidden; // Ensure hover effects stay contained
+        width: 100%;
+        max-width: 480px;
+        max-height: 270px;
+        margin-bottom: 8px;
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: block;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: var(--radius-s);
+            aspect-ratio: 16/9; // Always use 16:9
+            background-color: #000;
+        }
+
+        // Container for thumbnails
+        .video-thumbnail__container {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            border-radius: var(--radius-s);
+            aspect-ratio: 16/9; // Always use 16:9
+            background-color: #000;
+            outline: none; // Remove default focus outline
+
+            // Use existing button focus mixin
+            @include mixins.button-focus;
+
+            // Darkening overlay on hover
+            &::after {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0);
+                content: '';
+                pointer-events: none;
+                transition: background-color 0.2s ease;
+            }
+
+            &:hover,
+            &:focus-visible {
+                &::after {
+                    background-color: rgba(0, 0, 0, 0.16);
+                }
+
+                .play-button {
+                    background-color: #FF0033; //youtube red
+                    transform: scale(1.08);
+                }
+            }
+        }
+
+        // Playing state container
+        .video-playing {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            aspect-ratio: 16/9; // Always use 16:9
+        }
+
+        // Thumbnail image
+        .video-thumbnail {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            object-fit: cover;
+        }
+
+        // Play button container
+        .play-button {
+            position: absolute;
+            top: calc(50% - 28px);
+            left: calc(50% - 40px);
+            display: flex;
+            width: 80px;
+            height: 56px;
+            align-items: center;
+            justify-content: center;      
+            border-radius: var(--radius-m);
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+
+            i.icon-play {
+                position: relative;
+                top: -1px;
+                left: -1px;
+                color: #fff;
+                font-size: 48px;
+                line-height: 1;
+            }
+        }
+    }
+
+    // Video title and type
+    .video-type {
+        padding: 0;
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .video-title {
+        margin-top: 3px;
+        font-size: 15px;
+    }
+
+    .img-div {
+        position: relative;
+        max-width: 480px;
+        max-height: 350px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        -moz-force-broken-image-icon: 1;
+        transition: all 0.1s linear;
+
+        &:hover {
+            box-shadow: 0 2px 5px 0 rgba(variables.$black, 0.1), 0 2px 10px 0 rgba(variables.$black, 0.1);
+        }
+
+        &.placeholder {
+            height: 350px;
+        }
+
+        .sidebar--right & {
+            max-width: 100%;
+        }
+    }
+
+    .video-loading {
+        height: 368px;
+    }
+}

@@ -1,0 +1,37 @@
+::-webkit-scrollbar {
+    width: 6px;  // for vertical scrollbars
+    height: 6px; // for horizontal scrollbars
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0);
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-s);
+    background: rgba(var(--center-channel-color-rgb), 0.4);
+}
+
+body {
+    &.app__body {
+        scrollbar-3dlight-color: #7d7e94;
+        scrollbar-arrow-color: #c1c1d1;
+        scrollbar-darkshadow-color: #2d2c4d;
+        scrollbar-face-color: rgba(var(--center-channel-bg-rgb), 0.1);
+        scrollbar-highlight-color: #7d7e94;
+        scrollbar-shadow-color: #2d2c4d;
+        scrollbar-track-color: rgba(var(--center-channel-bg-rgb), 0.1);
+    }
+}
+
+.scrollbar--vertical--RHS {
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    border-radius: 3px;
+    margin-right: 3px;
+}
+
+.scrollbar--thumb--RHS {
+    background-color: rgba(var(--center-channel-color-rgb), 0.32);
+}

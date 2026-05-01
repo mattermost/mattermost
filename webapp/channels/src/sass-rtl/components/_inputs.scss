@@ -1,0 +1,271 @@
+@use "utils/mixins";
+@use "utils/variables";
+
+.help-text {
+    display: block;
+    margin: 10px 0 0;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+
+    ul,
+    ol {
+        padding-left: 23px;
+    }
+
+    a {
+        opacity: 0.5;
+    }
+
+    .help-link {
+        margin-right: 5px;
+    }
+
+    .btn {
+        font-size: 13px;
+    }
+
+    &.remove-filename {
+        position: relative;
+        top: -2px;
+        margin-bottom: 5px;
+    }
+}
+
+.form-control {
+    border-radius: var(--radius-xs);
+    text-align: left;
+
+    &:focus {
+        box-shadow: none;
+    }
+
+    &.no-padding {
+        padding: 0;
+        line-height: 32px;
+    }
+
+    &.no-resize {
+        resize: none;
+    }
+
+    &[disabled],
+    [readonly] {
+        @include mixins.alpha-property(background, variables.$white, 0.1);
+
+        color: inherit;
+        cursor: auto;
+    }
+}
+
+fieldset {
+    &[disabled] {
+        .form-control {
+            @include mixins.alpha-property(background, variables.$white, 0.1);
+
+            color: inherit;
+            cursor: auto;
+        }
+    }
+}
+
+.app__body {
+    fieldset[disabled] {
+        color: var(--center-channel-color);
+    }
+}
+
+.admin-textarea {
+    resize: none;
+}
+
+input {
+    &[type='radio'],
+    &[type='checkbox'] {
+        margin-top: 3px;
+        font-size: 14px;
+    }
+}
+
+input::-webkit-file-upload-button {
+    display: none;
+}
+
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: inherit;
+    opacity: 0.5;
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+    color: inherit;
+    opacity: 0.5;
+}
+
+:-ms-input-placeholder { /* IE 10+ */
+    color: inherit;
+    opacity: 0.5;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+    color: inherit;
+    opacity: 0.5;
+}
+
+.input-group-addon {
+    color: var(--center-channel-color);
+}
+
+// This class is used to make the input field look like a dropdown to be used in menus
+.inputWithMenu {
+    cursor: pointer;
+
+    input.form-control {
+        width: 100px;
+        cursor: pointer;
+
+        &:read-only {
+            background-color: variables.$white;
+        }
+    }
+}
+
+.date-time-input {
+    position: relative;
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid var(--center-channel-color-24);
+    border-radius: 4px;
+    background-color: var(--center-channel-bg);
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out;
+
+    &:hover {
+        border-color: var(--center-channel-color-40);
+    }
+
+    &:focus,
+    &--open {
+        border-color: var(--button-bg);
+        box-shadow: 0 0 0 1px var(--button-bg);
+        outline: none;
+    }
+
+    &__label {
+        position: absolute;
+        top: -8px;
+        left: 12px;
+        padding: 0 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color-75);
+        font-size: 10px;
+    }
+
+    &__icon {
+        flex-shrink: 0;
+        margin-right: 8px;
+        color: var(--center-channel-color-64);
+        
+        i {
+            font-size: 16px;
+        }
+    }
+
+    &__value {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+// Date Time layout
+.dateTime {
+    display: flex;
+    margin: 0 0 8px 0;
+    gap: 24px;
+
+    &__date {
+        flex: 1;
+    }
+
+    &__time {
+        flex: 1;
+        
+        // Ensure Menu.Container and its button take full width
+        .date-time-input {
+            width: 100%;
+        }
+    }
+}
+
+// Modal-specific dateTime layout
+.modal {
+    .dateTime {
+        width: 100%;
+        
+        &__date,
+        &__time {
+            width: 100%;
+        }
+        
+        // Ensure all nested elements take full width
+        .date-time-input,
+        .date-picker__wrapper,
+        > div {
+            width: 100%;
+        }
+    }
+}
+
+// Scrollable time menu
+.time-menu-scrollable {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+// Ensure "(optional)" text in date/datetime field labels is not bold
+.form-group {
+    .control-label {
+        .light {
+            font-weight: normal;
+        }
+    }
+}
+
+// Manual time entry styles
+.date-time-input-manual {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .date-time-input__label {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .date-time-input__text-input {
+        padding: 8px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 14px;
+
+        &:focus {
+            border-color: var(--button-bg);
+            box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.12);
+            outline: none;
+        }
+
+        &.error {
+            border-color: var(--error-text);
+            box-shadow: 0 0 0 2px rgba(var(--error-text-color-rgb), 0.12);
+        }
+
+        &::placeholder {
+            color: rgba(var(--center-channel-color-rgb), 0.48);
+        }
+    }
+}
