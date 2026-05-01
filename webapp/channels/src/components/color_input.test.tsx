@@ -41,7 +41,7 @@ describe('components/ColorInput', () => {
         expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
     });
 
-    test('should toggle color picker when color picker button is clicked', async () => {
+    test('should show color picker when color picker button is clicked', async () => {
         const {getByTestId} = renderWithContext(<ColorInputWrapper {...baseProps}/>);
 
         const colorPickerToggleButton = getByTestId('color-togglerButton');
@@ -54,7 +54,7 @@ describe('components/ColorInput', () => {
         expect(colorPopover).toBeVisible();
         expect(document.activeElement).toBe(getByTestId('color-inputColorValue'));
 
-        await userEvent.click(colorPickerToggleButton);
+        await userEvent.click(document.body);
 
         expect(screen.queryByTestId('color-popover')).not.toBeInTheDocument();
     });

@@ -19,7 +19,7 @@ const ColorInput = ({
     value: valueFromProps,
     isDisabled,
 }: ColorInputProps) => {
-    const colorPicker = useRef<HTMLDivElement>(null);
+    const container = useRef<HTMLDivElement>(null);
     const colorInput = useRef<HTMLInputElement>(null);
 
     const [isFocused, setIsFocused] = useState(false);
@@ -31,36 +31,26 @@ const ColorInput = ({
     }
 
     useEffect(() => {
+        if (!isOpened) {
+            return () => {};
+        }
+
         const checkClick = (e: MouseEvent): void => {
-            if (!colorPicker.current || !colorPicker.current.contains(e.target as Element)) {
+            if (!container.current || !container.current.contains(e.target as Element)) {
                 setIsOpened(false);
             }
         };
 
-        /**
-         * Since 'isOpened' is changed by a click event, this 'useEffect' runs before the screen is painted
-         * therefore, 'checkClick' is fired before the component is mounted which in turn calls 'setIsOpened(false)'.
-         * It's not possible to update the state of an unmounted component. 'setTimeout' ensures the event listener is
-         * added after the screen is painted and the component mounted. The delay (1) is just the smallest number possible
-         * so the listeners are attached as soon as possible.
-         * https://react.dev/reference/react/useEffect#:~:text=If%20your%20Effect%20is%20caused%20by%20an%20interaction%20(like%20a%20click)%2C%20React%20may%20run%20your%20Effect%20before%20the%20browser%20paints%20the%20updated%20screen.
-         * */
-        setTimeout(() => {
-            if (isOpened) {
-                document.addEventListener('click', checkClick, {capture: true});
-            }
-        }, 1);
+        document.addEventListener('mousedown', checkClick);
 
         return () => {
-            document.removeEventListener('click', checkClick);
+            document.removeEventListener('mousedown', checkClick);
         };
     }, [isOpened]);
 
     const togglePicker = () => {
-        if (!isOpened && colorInput.current) {
-            colorInput.current.focus();
-        }
-        setIsOpened(!isOpened);
+        colorInput.current?.focus();
+        setIsOpened(true);
     };
 
     const handleColorChange = (newColorData: ColorResult) => {
@@ -114,7 +104,10 @@ const ColorInput = ({
     };
 
     return (
-        <div className='color-input input-group'>
+        <div
+            className='color-input input-group'
+            ref={container}
+        >
             <input
                 id={`${id}-inputColorValue`}
                 ref={colorInput}
@@ -148,7 +141,6 @@ const ColorInput = ({
             }
             {isOpened && (
                 <div
-                    ref={colorPicker}
                     className='color-popover'
                     id={`${id}-ChromePickerModal`}
                     data-testid='color-popover'
