@@ -336,6 +336,55 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	return _returnsA
 }
 
+func (hooks *hooksTimerLayer) ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ChannelWillBeUpdated(c, newChannel, oldChannel)
+	hooks.recordTime(startTime, "ChannelWillBeUpdated", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeMoved(c *Context, channel *model.Channel, fromTeamID, toTeamID string) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ChannelWillBeMoved(c, channel, fromTeamID, toTeamID)
+	hooks.recordTime(startTime, "ChannelWillBeMoved", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeRestored(c *Context, channel *model.Channel) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ChannelWillBeRestored(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeRestored", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ScheduledPostWillBeCreated(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.ScheduledPostWillBeCreated(c, scheduledPost)
+	hooks.recordTime(startTime, "ScheduledPostWillBeCreated", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft) (*model.Draft, string) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.DraftWillBeUpserted(c, draft)
+	hooks.recordTime(startTime, "DraftWillBeUpserted", true)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) RecapWillBeProcessed(c *Context, channel *model.Channel) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.RecapWillBeProcessed(c, channel)
+	hooks.recordTime(startTime, "RecapWillBeProcessed", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) MessageWillBeRewrittenByAI(c *Context, post *model.Post, action string) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessageWillBeRewrittenByAI(c, post, action)
+	hooks.recordTime(startTime, "MessageWillBeRewrittenByAI", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -592,5 +641,54 @@ func (hooks *hooksTimerLayer) OnSAMLLoginWithRPCErr(c *Context, user *model.User
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSAMLLoginWithRPCErr(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLoginWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeUpdatedWithRPCErr(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeUpdatedWithRPCErr(c, newChannel, oldChannel)
+	hooks.recordTime(startTime, "ChannelWillBeUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeMovedWithRPCErr(c *Context, channel *model.Channel, fromTeamID, toTeamID string) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeMovedWithRPCErr(c, channel, fromTeamID, toTeamID)
+	hooks.recordTime(startTime, "ChannelWillBeMovedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeRestoredWithRPCErr(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeRestoredWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ScheduledPostWillBeCreatedWithRPCErr(c *Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ScheduledPostWillBeCreatedWithRPCErr(c, scheduledPost)
+	hooks.recordTime(startTime, "ScheduledPostWillBeCreatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
+	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) RecapWillBeProcessedWithRPCErr(c *Context, channel *model.Channel) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.RecapWillBeProcessedWithRPCErr(c, channel)
+	hooks.recordTime(startTime, "RecapWillBeProcessedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) MessageWillBeRewrittenByAIWithRPCErr(c *Context, post *model.Post, action string) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.MessageWillBeRewrittenByAIWithRPCErr(c, post, action)
+	hooks.recordTime(startTime, "MessageWillBeRewrittenByAIWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsRPCErr
 }

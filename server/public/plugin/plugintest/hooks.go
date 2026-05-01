@@ -75,6 +75,72 @@ func (_m *Hooks) ChannelWillBeArchived(c *plugin.Context, channel *model.Channel
 	return r0
 }
 
+// ChannelWillBeMoved provides a mock function with given fields: c, channel, fromTeamID, toTeamID
+func (_m *Hooks) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID string, toTeamID string) string {
+	ret := _m.Called(c, channel, fromTeamID, toTeamID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelWillBeMoved")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel, string, string) string); ok {
+		r0 = rf(c, channel, fromTeamID, toTeamID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// ChannelWillBeRestored provides a mock function with given fields: c, channel
+func (_m *Hooks) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
+	ret := _m.Called(c, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelWillBeRestored")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel) string); ok {
+		r0 = rf(c, channel)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// ChannelWillBeUpdated provides a mock function with given fields: c, newChannel, oldChannel
+func (_m *Hooks) ChannelWillBeUpdated(c *plugin.Context, newChannel *model.Channel, oldChannel *model.Channel) (*model.Channel, string) {
+	ret := _m.Called(c, newChannel, oldChannel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ChannelWillBeUpdated")
+	}
+
+	var r0 *model.Channel
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel, *model.Channel) (*model.Channel, string)); ok {
+		return rf(c, newChannel, oldChannel)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel, *model.Channel) *model.Channel); ok {
+		r0 = rf(c, newChannel, oldChannel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Channel)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Channel, *model.Channel) string); ok {
+		r1 = rf(c, newChannel, oldChannel)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
 // ConfigurationWillBeSaved provides a mock function with given fields: newCfg
 func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	ret := _m.Called(newCfg)
@@ -100,6 +166,36 @@ func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, 
 		r1 = rf(newCfg)
 	} else {
 		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// DraftWillBeUpserted provides a mock function with given fields: c, draft
+func (_m *Hooks) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+	ret := _m.Called(c, draft)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DraftWillBeUpserted")
+	}
+
+	var r0 *model.Draft
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Draft) (*model.Draft, string)); ok {
+		return rf(c, draft)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Draft) *model.Draft); ok {
+		r0 = rf(c, draft)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Draft) string); ok {
+		r1 = rf(c, draft)
+	} else {
+		r1 = ret.Get(1).(string)
 	}
 
 	return r0, r1
@@ -318,6 +414,24 @@ func (_m *Hooks) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mode
 	}
 
 	return r0, r1
+}
+
+// MessageWillBeRewrittenByAI provides a mock function with given fields: c, post, action
+func (_m *Hooks) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+	ret := _m.Called(c, post, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MessageWillBeRewrittenByAI")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post, string) string); ok {
+		r0 = rf(c, post, action)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // MessageWillBeUpdated provides a mock function with given fields: c, newPost, oldPost
@@ -612,6 +726,24 @@ func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.React
 	_m.Called(c, reaction)
 }
 
+// RecapWillBeProcessed provides a mock function with given fields: c, channel
+func (_m *Hooks) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
+	ret := _m.Called(c, channel)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RecapWillBeProcessed")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel) string); ok {
+		r0 = rf(c, channel)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // RunDataRetention provides a mock function with given fields: nowTime, batchSize
 func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error) {
 	ret := _m.Called(nowTime, batchSize)
@@ -635,6 +767,36 @@ func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error)
 		r1 = rf(nowTime, batchSize)
 	} else {
 		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ScheduledPostWillBeCreated provides a mock function with given fields: c, scheduledPost
+func (_m *Hooks) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+	ret := _m.Called(c, scheduledPost)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ScheduledPostWillBeCreated")
+	}
+
+	var r0 *model.ScheduledPost
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ScheduledPost) (*model.ScheduledPost, string)); ok {
+		return rf(c, scheduledPost)
+	}
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ScheduledPost) *model.ScheduledPost); ok {
+		r0 = rf(c, scheduledPost)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ScheduledPost)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.ScheduledPost) string); ok {
+		r1 = rf(c, scheduledPost)
+	} else {
+		r1 = ret.Get(1).(string)
 	}
 
 	return r0, r1

@@ -3191,3 +3191,423 @@ func TestHookChannelWillBeArchived(t *testing.T) {
 		assert.NotEqual(t, int64(0), ch.DeleteAt)
 	})
 }
+
+func TestHookRPCChannelWillBeUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				return nil, "rpc test rejected"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		newCh := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, DisplayName: "new"}
+		oldCh := &model.Channel{Id: newCh.Id, TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, DisplayName: "old"}
+		replacement, reason := hooks.ChannelWillBeUpdated(&plugin.Context{}, newCh, oldCh)
+		require.Equal(t, "rpc test rejected", reason)
+		require.Nil(t, replacement)
+	})
+
+	t.Run("modify", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				newChannel.DisplayName = "modified-by-plugin"
+				return newChannel, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		newCh := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, DisplayName: "new"}
+		oldCh := &model.Channel{Id: newCh.Id, TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, DisplayName: "old"}
+		replacement, reason := hooks.ChannelWillBeUpdated(&plugin.Context{}, newCh, oldCh)
+		require.Equal(t, "", reason)
+		require.NotNil(t, replacement)
+		require.Equal(t, "modified-by-plugin", replacement.DisplayName)
+	})
+}
+
+func TestHookRPCChannelWillBeMoved(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID, toTeamID string) string {
+			return "rpc test rejected"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+	require.NoError(t, err)
+
+	ch := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, DisplayName: "moved"}
+	reason := hooks.ChannelWillBeMoved(&plugin.Context{}, ch, "fromTeamA", "toTeamB")
+	require.Equal(t, "rpc test rejected", reason)
+}
+
+func TestHookRPCChannelWillBeRestored(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
+			return "rpc test rejected"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+	require.NoError(t, err)
+
+	ch := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, DisplayName: "restore"}
+	reason := hooks.ChannelWillBeRestored(&plugin.Context{}, ch)
+	require.Equal(t, "rpc test rejected", reason)
+}
+
+func TestHookRPCScheduledPostWillBeCreated(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				return nil, "rpc test rejected"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		sp := &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    model.NewId(),
+				ChannelId: model.NewId(),
+				Message:   "scheduled hi",
+			},
+			Id:          model.NewId(),
+			ScheduledAt: 1234567890,
+		}
+		replacement, reason := hooks.ScheduledPostWillBeCreated(&plugin.Context{}, sp)
+		require.Equal(t, "rpc test rejected", reason)
+		require.Nil(t, replacement)
+	})
+
+	t.Run("modify", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				scheduledPost.Message = "modified-by-plugin"
+				return scheduledPost, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		sp := &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    model.NewId(),
+				ChannelId: model.NewId(),
+				Message:   "original",
+			},
+			Id:          model.NewId(),
+			ScheduledAt: 1234567890,
+		}
+		replacement, reason := hooks.ScheduledPostWillBeCreated(&plugin.Context{}, sp)
+		require.Equal(t, "", reason)
+		require.NotNil(t, replacement)
+		require.Equal(t, "modified-by-plugin", replacement.Message)
+	})
+}
+
+func TestHookRPCDraftWillBeUpserted(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+				return nil, "rpc test rejected"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		draft := &model.Draft{
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "draft hi",
+		}
+		replacement, reason := hooks.DraftWillBeUpserted(&plugin.Context{}, draft)
+		require.Equal(t, "rpc test rejected", reason)
+		require.Nil(t, replacement)
+	})
+
+	t.Run("modify", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+				draft.Message = "modified-by-plugin"
+				return draft, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, pluginIDs, 1)
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+		require.NoError(t, err)
+
+		draft := &model.Draft{
+			UserId:    model.NewId(),
+			ChannelId: model.NewId(),
+			Message:   "original",
+		}
+		replacement, reason := hooks.DraftWillBeUpserted(&plugin.Context{}, draft)
+		require.Equal(t, "", reason)
+		require.NotNil(t, replacement)
+		require.Equal(t, "modified-by-plugin", replacement.Message)
+	})
+}
+
+func TestHookRPCRecapWillBeProcessed(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
+			return "rpc test rejected"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+	require.NoError(t, err)
+
+	ch := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypePrivate, DisplayName: "recap"}
+	reason := hooks.RecapWillBeProcessed(&plugin.Context{}, ch)
+	require.Equal(t, "rpc test rejected", reason)
+}
+
+func TestHookRPCMessageWillBeRewrittenByAI(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+			return "rpc test rejected"
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
+	require.NoError(t, err)
+
+	post := &model.Post{Id: model.NewId(), ChannelId: model.NewId(), Message: "hi"}
+	reason := hooks.MessageWillBeRewrittenByAI(&plugin.Context{}, post, "summarize")
+	require.Equal(t, "rpc test rejected", reason)
+}
