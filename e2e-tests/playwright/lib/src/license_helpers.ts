@@ -36,3 +36,20 @@ export function hasSharedChannelsLicense(license: ClientLicense | null | undefin
 export function hasCustomPermissionsSchemesLicense(license: ClientLicense | null | undefined): boolean {
     return license?.CustomPermissionsSchemes === 'true';
 }
+
+/**
+ * Mirrors webapp `getLicenseTier` (utils/constants) for client `SkuShortName` values.
+ */
+export function licenseTier(skuShortName: string): number {
+    switch (skuShortName) {
+        case 'professional':
+            return 10;
+        case 'enterprise':
+            return 20;
+        case 'entry':
+        case 'advanced':
+            return 30;
+        default:
+            return 0;
+    }
+}

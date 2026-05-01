@@ -1832,10 +1832,6 @@
     "translation": "جستجوی الاستیک غیرفعال است."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "جستجوی الاستیک از قبل متوقف شده است."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "تجزیه نسخه سرور جستجوی الاستیک انجام نشد."
   },

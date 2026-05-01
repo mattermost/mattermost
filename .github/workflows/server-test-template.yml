@@ -175,6 +175,14 @@ jobs:
 
           echo "$ALL_PKGS" > all-packages.txt
 
+          # ── Create go.work for test discovery ──
+          # Without it, `go test -list` in shard-split.js resolves
+          # github.com/mattermost/mattermost/server/public against the published
+          # module version from server/go.mod, which lags HEAD and causes build
+          # failures when heavy packages reference new symbols in ./public.
+          go work init
+          go work use . ./public
+
           # ── Run shard solver ──
           node scripts/shard-split.js
 

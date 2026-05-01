@@ -3494,10 +3494,6 @@
     "translation": "Phải là một thời gian hợp lệ"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch đã bị dừng"
-  },
-  {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
     "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa."
   },

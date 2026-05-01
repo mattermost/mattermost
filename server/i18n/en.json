@@ -616,6 +616,10 @@
     "translation": "Policy enforced channels cannot be updated."
   },
   {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "This channel has an attribute-based membership policy applied. Remove the policy before converting between public and private."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}."
   },
@@ -3147,6 +3151,10 @@
     "translation": "Unable to update sidebar to match updated preferences"
   },
   {
+    "id": "api.property.v2_group_not_found.app_error",
+    "translation": "The specified property group was not found."
+  },
+  {
     "id": "api.property_field.create.invalid_target_type.app_error",
     "translation": "The provided target type is not valid."
   },
@@ -3173,10 +3181,6 @@
   {
     "id": "api.property_field.get.target_id_required.app_error",
     "translation": "A target_id is required when querying by channel or team target_type."
-  },
-  {
-    "id": "api.property_field.invalid_group_name.app_error",
-    "translation": "The specified property group was not found."
   },
   {
     "id": "api.property_field.invalid_patch.app_error",
@@ -3219,8 +3223,8 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
-    "id": "api.property_value.invalid_group_name.app_error",
-    "translation": "The provided group name is not valid or does not exist."
+    "id": "api.property_value.field_object_type_mismatch.app_error",
+    "translation": "One or more property fields do not match the route's object type."
   },
   {
     "id": "api.property_value.invalid_object_type.app_error",
@@ -3245,6 +3249,10 @@
   {
     "id": "api.property_value.patch.too_many_items.request_error",
     "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "System values must use the dedicated system values endpoint."
   },
   {
     "id": "api.property_value.target_user.forbidden.app_error",
@@ -5327,6 +5335,10 @@
     "translation": "Unable to update the bot."
   },
   {
+    "id": "app.bot.update.internal_error",
+    "translation": "Unable to update the bot."
+  },
+  {
     "id": "app.burn_post.not_burn_on_read.app_error",
     "translation": "This post is not a burn-on-read post and cannot be burned."
   },
@@ -6407,8 +6419,16 @@
     "translation": "Some users not found"
   },
   {
+    "id": "app.import.import_bot.lookup_error",
+    "translation": "Failed to look up existing bot"
+  },
+  {
     "id": "app.import.import_bot.owner_could_not_found.error",
     "translation": "Unable to find owner of the bot"
+  },
+  {
+    "id": "app.import.import_bot.user_not_found.error",
+    "translation": "User for bot not found"
   },
   {
     "id": "app.import.import_channel.deleting.app_error",
@@ -7283,16 +7303,20 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Membership policies cannot be applied to team default channels."
+  },
+  {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Access control policies can only be applied to private channels."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Access control policies can only be applied to public or private channels."
   },
   {
     "id": "app.pap.access_control.insufficient_channel_permissions",
@@ -7973,6 +7997,10 @@
   {
     "id": "app.property_field.update.type_change_with_dependents.app_error",
     "translation": "Cannot change type of a field with active linked dependents."
+  },
+  {
+    "id": "app.property_field.version_mismatch.app_error",
+    "translation": "The property field and group versions are incompatible."
   },
   {
     "id": "app.property_group.get.app_error",
@@ -8763,6 +8791,10 @@
   {
     "id": "app.upload.create.save.app_error",
     "translation": "Failed to save upload."
+  },
+  {
+    "id": "app.upload.gen_file_info.invalid_filename.app_error",
+    "translation": "Invalid filename."
   },
   {
     "id": "app.upload.get.app_error",
@@ -10633,6 +10665,10 @@
     "translation": "ClusterName must be set."
   },
   {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL must be set."
+  },
+  {
     "id": "model.cluster.is_valid.type.app_error",
     "translation": "Type must be set."
   },
@@ -11485,6 +11521,10 @@
     "translation": "Invalid value for id."
   },
   {
+    "id": "model.file_info.is_valid.name.app_error",
+    "translation": "Invalid value for name."
+  },
+  {
     "id": "model.file_info.is_valid.path.app_error",
     "translation": "Invalid value for path."
   },
@@ -11999,6 +12039,10 @@
   {
     "id": "model.property_field.is_valid.app_error",
     "translation": "Invalid property field: {{.FieldName}} ({{.Reason}})."
+  },
+  {
+    "id": "model.property_group.is_valid.app_error",
+    "translation": "Invalid property group: {{.FieldName}} ({{.Reason}})."
   },
   {
     "id": "model.property_value.is_valid.app_error",

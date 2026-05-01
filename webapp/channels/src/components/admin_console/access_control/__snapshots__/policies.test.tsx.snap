@@ -12,10 +12,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
@@ -117,10 +117,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
@@ -331,10 +331,10 @@ exports[`components/admin_console/access_control/PolicyList should match snapsho
         class="policy-header-text"
       >
         <h1>
-          Access Control Policies
+          Membership Policies
         </h1>
         <p>
-          Create policies containing attribute based access rules and the resources they apply to.
+          Create policies containing attribute-based membership rules and the channels they apply to.
         </p>
       </div>
       <button
