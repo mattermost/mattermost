@@ -206,7 +206,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
             });
 
-            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
 
             await waitFor(() => {
                 expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
@@ -407,7 +407,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
             });
 
-            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
 
             await waitFor(() => {
                 const errorElement = screen.getByTestId(
