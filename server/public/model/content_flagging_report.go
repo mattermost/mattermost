@@ -5,8 +5,6 @@ package model
 
 const FlaggedPostReportVersion = "1.0"
 
-// FlaggedPostReportContext bundles the entities needed to build a flagged
-// post report so the per-section writers can be unit-tested in isolation.
 type FlaggedPostReportContext struct {
 	Post        *Post
 	Channel     *Channel
@@ -15,8 +13,7 @@ type FlaggedPostReportContext struct {
 	EditHistory []*Post
 }
 
-// FlaggedPostReportPost is the on-disk shape for post/post.yaml and
-// edit_history/<id>/post.yaml inside a flagged post report archive. It
+// FlaggedPostReportPost is the on-disk shape for post.yaml. It
 // embeds *Post to reuse common fields; the wire format is fixed by the
 // MarshalYAML method below so the report layout does not depend on Post's
 // own field tags.
