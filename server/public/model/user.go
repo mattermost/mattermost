@@ -45,9 +45,10 @@ const (
 	FirstNameNotifyProp            = "first_name"
 	AutoResponderActiveNotifyProp  = "auto_responder_active"
 	AutoResponderMessageNotifyProp = "auto_responder_message"
-	DesktopThreadsNotifyProp       = "desktop_threads"
-	PushThreadsNotifyProp          = "push_threads"
-	EmailThreadsNotifyProp         = "email_threads"
+	DesktopThreadsNotifyProp                  = "desktop_threads"
+	PushThreadsNotifyProp                     = "push_threads"
+	EmailThreadsNotifyProp                    = "email_threads"
+	ChannelMentionAutoFollowThreadsProp       = "channel_mention_auto_follow_threads"
 
 	DefaultLocale        = "en"
 	UserAuthServiceEmail = "email"
@@ -595,6 +596,7 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps[DesktopThreadsNotifyProp] = UserNotifyAll
 	u.NotifyProps[EmailThreadsNotifyProp] = UserNotifyAll
 	u.NotifyProps[PushThreadsNotifyProp] = UserNotifyAll
+	u.NotifyProps[ChannelMentionAutoFollowThreadsProp] = "true"
 }
 
 func (u *User) UpdateMentionKeysFromUsername(oldUsername string) {

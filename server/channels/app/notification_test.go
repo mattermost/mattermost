@@ -3043,10 +3043,7 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("channel mention auto-follow enabled (default)", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.ChannelMentionAutoFollowThreads = model.NewPointer(true)
-		})
-
+		// u2 has default notify props (channel_mention_auto_follow_threads = "true")
 		replyPost := &model.Post{
 			ChannelId: c1.Id,
 			Message:   "@channel reply by user1",
@@ -3056,17 +3053,18 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		// u2 should be auto-following because they are mentioned via @channel
+		// u2 should be auto-following because channel_mention_auto_follow_threads is enabled
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
 	})
 
-	t.Run("channel mention auto-follow disabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.ChannelMentionAutoFollowThreads = model.NewPointer(false)
-		})
+	t.Run("channel mention auto-follow disabled for user", func(t *testing.T) {
+		// Disable auto-follow for u2
+		u2.NotifyProps[model.ChannelMentionAutoFollowThreadsProp] = "false"
+		u2, appErr = th.App.UpdateUser(th.Context, u2, false)
+		require.Nil(t, appErr)
 
 		// Reset u2 membership so the prior sub-test doesn't interfere
 		_, err := th.App.Srv().Store().Thread().MaintainMembership(u2.Id, rpost.Id, store.ThreadMembershipOpts{
@@ -3084,7 +3082,7 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 		_, _, appErr = th.App.CreatePost(th.Context, replyPost, c1, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		// u2 should NOT be auto-following even though @channel was used
+		// u2 should NOT be auto-following because they opted out
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
 		if threadMembership != nil {
