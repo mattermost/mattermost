@@ -616,6 +616,10 @@
     "translation": "Policy enforced channels cannot be updated."
   },
   {
+    "id": "api.channel.update_channel.policy_enforced_type_conversion.app_error",
+    "translation": "This channel has an attribute-based membership policy applied. Remove the policy before converting between public and private."
+  },
+  {
     "id": "api.channel.update_channel.tried.app_error",
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}."
   },
@@ -3219,6 +3223,10 @@
     "translation": "Cannot update a protected property field via API."
   },
   {
+    "id": "api.property_value.field_object_type_mismatch.app_error",
+    "translation": "One or more property fields do not match the route's object type."
+  },
+  {
     "id": "api.property_value.invalid_object_type.app_error",
     "translation": "The provided object type is not valid."
   },
@@ -3241,6 +3249,10 @@
   {
     "id": "api.property_value.patch.too_many_items.request_error",
     "translation": "Unable to update that many property values. Only {{.Max}} property values can be updated at once."
+  },
+  {
+    "id": "api.property_value.system_use_dedicated_route.app_error",
+    "translation": "System values must use the dedicated system values endpoint."
   },
   {
     "id": "api.property_value.target_user.forbidden.app_error",
@@ -7291,16 +7303,20 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.pap.access_control.channel_default",
+    "translation": "Membership policies cannot be applied to team default channels."
+  },
+  {
     "id": "app.pap.access_control.channel_group_constrained",
     "translation": "Channel is group constrained and cannot have access control policies applied."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Access control policies can only be applied to private channels."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_type_not_supported",
+    "translation": "Access control policies can only be applied to public or private channels."
   },
   {
     "id": "app.pap.access_control.insufficient_channel_permissions",
@@ -10647,6 +10663,10 @@
   {
     "id": "model.cluster.is_valid.name.app_error",
     "translation": "ClusterName must be set."
+  },
+  {
+    "id": "model.cluster.is_valid.site_url.app_error",
+    "translation": "SiteURL must be set."
   },
   {
     "id": "model.cluster.is_valid.type.app_error",

@@ -199,14 +199,23 @@ export type DialogElement = {
 
     // Date/datetime configuration
     datetime_config?: {
+        min_date?: string;
+        max_date?: string;
         time_interval?: number;
         location_timezone?: string;
+        manual_time_entry?: boolean;
+
+        /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
         allow_manual_time_entry?: boolean;
     };
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
     min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
     max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
 };
 

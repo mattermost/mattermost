@@ -437,6 +437,25 @@
             group constrains.
           schema:
             type: boolean
+        - name: abac_match_only
+          in: query
+          description: >
+            When used with `not_in_channel`, restricts the result to users whose
+            attributes satisfy the channel's Attribute-Based Access Control
+            (ABAC) membership policy.
+
+
+            On private channels with an ABAC policy this filter is always
+            applied regardless of this parameter (hard gate). On public channels
+            with an advisory ABAC policy the full not_in_channel candidate list
+            is returned by default; set this to `true` to fetch only the
+            matching subset of candidates (for example to annotate recommended
+            members in the invite UI).
+
+
+            __Minimum server version__: 11.8
+          schema:
+            type: boolean
         - name: without_team
           in: query
           description: Whether or not to list users that are not on any team. This option

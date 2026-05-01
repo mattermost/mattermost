@@ -353,13 +353,13 @@ export default function PolicyList(props: Props): JSX.Element {
                         <h1>
                             <FormattedMessage
                                 id='admin.access_control.policies.title'
-                                defaultMessage='Access Control Policies'
+                                defaultMessage='Membership Policies'
                             />
                         </h1>
                         <p>
                             <FormattedMessage
                                 id='admin.access_control.policies.description'
-                                defaultMessage='Create policies containing attribute based access rules and the resources they apply to.'
+                                defaultMessage='Create policies containing attribute-based membership rules and the channels they apply to.'
                             />
                         </p>
                     </div>

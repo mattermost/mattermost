@@ -995,6 +995,53 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/teams/{team_id}/channels/recommended":
+    get:
+      tags:
+        - channels
+      summary: Get recommended public channels for the current user
+      description: |
+        Return the public channels on a team that have a membership policy
+        assigned, where the requesting user's attributes match to the policy.
+
+        Membership policies on public channels are advisory: anyone can still join
+        these channels. This endpoint surfaces them as "Recommended channels"
+        for the requester.
+
+        Returns an empty list if the Enterprise Advanced license is not
+        active, if `AccessControlSettings.EnableAttributeBasedAccessControl`
+        is `false`, or if the user's attributes do not match any active
+        public-channel policy in the team.
+
+        __Minimum server version__: 11.8
+
+        ##### Permissions
+        Must be authenticated and have `list_team_channels` on the team.
+      operationId: GetRecommendedChannelsForTeam
+      parameters:
+        - name: team_id
+          in: path
+          description: Team GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recommended channels retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Channel"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/teams/{team_id}/channels/deleted":
     get:
       tags:
