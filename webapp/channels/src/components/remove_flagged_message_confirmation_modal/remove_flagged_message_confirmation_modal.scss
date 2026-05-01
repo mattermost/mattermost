@@ -18,59 +18,12 @@
         flex-direction: column;
         gap: 24px;
 
-        .section {
-            &.comment_section {
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            &.message_body {
-                p {
-                    margin: 0 0 12px;
-
-                    &:last-child {
-                        margin-bottom: 0;
-                    }
-                }
-            }
-
-            .section_title {
-                color: var(--center-channel-color);
-                font-size: 14px;
-                font-weight: 600;
-            }
-        }
-
-        button#PreviewInputTextButton {
-            position: absolute;
-            z-index: 2;
-            top: 8px;
-            right: 8px;
-        }
-
-        textarea#RemoveFlaggedMessageConfirmationModal__comment {
-            min-height: 90px !important;
-            max-height: 400px;
-        }
-
         .request_error {
             display: flex;
             width: 90%;
             align-items: center;
             color: var(--error-text);
             font-size: 12px;
-        }
-
-
-        .ErrorStepBody {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-
-            .errorRetryBtn {
-                width: min-content;
-            }
         }
     }
 
@@ -81,10 +34,6 @@
         justify-content: space-between;
         gap: 8px;
 
-        &.ModalFooterRow--end {
-            justify-content: flex-end;
-        }
-
         &__left,
         &__right {
             display: flex;
@@ -92,97 +41,9 @@
             gap: 8px;
         }
 
-        .skipReportBtn, .skipReportBtn:hover {
+        .skipReportBtn,
+        .skipReportBtn:hover {
             color: var(--error-text);
-        }
-    }
-
-    .download_report_checkbox {
-        display: flex;
-        align-items: center;
-        margin: 0;
-        cursor: pointer;
-        font-size: 16px;
-        font-weight: 400;
-        gap: 10px;
-
-        input[type='checkbox'] {
-            width: 20px;
-            height: 20px;
-            margin: 0;
-            cursor: pointer;
-        }
-    }
-
-    .ReportNotice {
-        display: flex;
-        align-items: flex-start;
-        padding: 16px;
-        border: 1px solid;
-        border-radius: 4px;
-        gap: 12px;
-
-        &__icon {
-            display: flex;
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            align-items: center;
-            justify-content: center;
-
-            .icon {
-                font-size: 20px;
-                line-height: 1;
-            }
-        }
-
-        &__body {
-            display: flex;
-            min-width: 0;
-            flex: 1 1 0;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        &__title {
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 20px;
-        }
-
-        &__text {
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 20px;
-        }
-
-        &--info {
-            border-color: rgba(var(--sidebar-text-active-border-rgb), 0.16);
-            background: rgba(var(--button-bg-rgb), 0.04);
-
-            .ReportNotice__icon {
-                color: var(--button-bg);
-            }
-        }
-
-        &--success {
-            border-color: rgba(var(--online-indicator-rgb), 0.16);
-            background: rgba(var(--online-indicator-rgb), 0.08);
-
-            .ReportNotice__icon {
-                color: var(--online-indicator);
-            }
-        }
-
-        &--danger {
-            border-color: rgba(var(--away-indicator-rgb), 0.16);
-            background: rgba(var(--away-indicator-rgb), 0.08);
-
-            .ReportNotice__icon {
-                color: var(--away-indicator);
-            }
         }
     }
 }

@@ -15,11 +15,16 @@ import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingConfig} from 'components/common/hooks/useContentFlaggingFields';
 import type {TextboxElement} from 'components/textbox';
 
-import {ErrorStepBody, ErrorStepFooter} from './error_step';
-import {FormStepBody, FormStepFooter} from './form_step';
-import {GeneratedStepBody, GeneratedStepFooter} from './generated_step';
-import {GeneratingStepBody, GeneratingStepFooter} from './generating_step';
-import {SkipConfirmStepBody, SkipConfirmStepFooter} from './skip_confirm_step';
+import ErrorStepBody from './error_step/error_step_body';
+import ErrorStepFooter from './error_step/error_step_footer';
+import {FormStepBody} from './form_step/form_step_body';
+import {FormStepFooter} from './form_step/form_step_footer';
+import GeneratedStepBody from './generated_step/generated_step_body';
+import GeneratedStepFooter from './generated_step/generated_step_footer';
+import {GeneratingStepBody} from './generating_step/generating_step_body';
+import {GeneratingStepFooter} from './generating_step/generating_step_footer';
+import {SkipConfirmStepBody} from './skip_confirm_step/skip_confirm_step_body';
+import {SkipConfirmStepFooter} from './skip_confirm_step/skip_confirm_step_footer';
 
 import './remove_flagged_message_confirmation_modal.scss';
 

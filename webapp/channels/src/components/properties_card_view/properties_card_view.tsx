@@ -167,6 +167,22 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
             filter((row): row is OrderedRow => row !== null);
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
 
+    const actionRowsMemo = useMemo(() => {
+        return actionRows?.map(({label, content, testId}, idx) => (
+            content ? (
+                <div
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={idx}
+                    className='row'
+                    data-testid={testId}
+                >
+                    <div className='field'>{label}</div>
+                    <div className='value'>{content}</div>
+                </div>
+            ) : null
+        ));
+    }, [actionRows]);
+
     return (
         <div
             className='PropertyCardView'
@@ -206,20 +222,7 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                     })
                 }
 
-                {mode === 'full' && actionRows?.map(({label, content, testId}, idx) => (
-                    content ? (
-                        <div
-                            // eslint-disable-next-line react/no-array-index-key
-                            key={idx}
-                            className='row'
-                            data-testid={testId}
-                        >
-                            <div className='field'>{label}</div>
-                            <div className='value'>{content}</div>
-                        </div>
-                    ) : null
-                ))}
-
+                {mode === 'full' && actionRowsMemo}
                 {footer}
             </div>
         </div>

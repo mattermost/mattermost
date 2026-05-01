@@ -22,6 +22,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
     const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
+        // Cleanup function to cancel in-progress API calls
         return () => {
             abortControllerRef.current?.abort();
         };
@@ -38,8 +39,10 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
 
         setStatus('generating');
 
+        const url = Client4.getFlaggedPostReportUrl(flaggedPostId);
+        let blob: Blob | undefined;
+
         try {
-            const url = Client4.getFlaggedPostReportUrl(flaggedPostId);
             const response = await fetch(url, {credentials: 'include', signal: controller.signal});
             if (controller.signal.aborted) {
                 return;
@@ -48,21 +51,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
                 setStatus('error');
                 return;
             }
-            const blob = await response.blob();
-            if (controller.signal.aborted) {
-                return;
-            }
-
-            const downloadUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = downloadUrl;
-            a.download = `flagged-post-${flaggedPostId}-${Date.now()}.zip`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(downloadUrl);
-
-            setStatus('idle');
+            blob = await response.blob();
         } catch (err) {
             if (controller.signal.aborted) {
                 return;
@@ -72,6 +61,21 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
             console.error(err);
             setStatus('error');
         }
+
+        if (controller.signal.aborted || !blob) {
+            return;
+        }
+
+        const downloadUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `flagged-post-${flaggedPostId}-${Date.now()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(downloadUrl);
+
+        setStatus('idle');
     }, [flaggedPostId, status]);
 
     let icon;

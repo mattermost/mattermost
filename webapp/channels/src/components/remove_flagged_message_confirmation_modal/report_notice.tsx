@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import './report_notice.scss';
+
 type Props = {
     variant: 'info' | 'success' | 'danger';
     icon: React.ReactNode;

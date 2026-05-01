@@ -14,20 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-var x = 0
-
 func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Request) {
-	//if x == 0 {
-	//	x = 1
-	//	time.Sleep(10 * time.Second)
-	//} else if x == 1 {
-	//	x = 2
-	//	c.Err = model.NewAppError("generateFlaggedPostReport", "api.data_spillage.report.open.app_error", nil, "", http.StatusInternalServerError)
-	//	return
-	//} else {
-	//	x = 0
-	//}
-
 	if c.Err != nil {
 		return
 	}
