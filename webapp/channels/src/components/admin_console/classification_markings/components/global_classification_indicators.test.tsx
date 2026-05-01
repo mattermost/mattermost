@@ -15,8 +15,8 @@ const LEVELS = [
     {id: 'lvl-3', name: 'TOP SECRET', color: '#FF8C00', rank: 3},
 ];
 
-const DEFAULT_BANNER: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: ''};
-const ENABLED_BANNER: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'UNCLASSIFIED'};
+const DEFAULT_BANNER: GlobalBannerConfig = {enabled: false, placement: 'top', level_id: ''};
+const ENABLED_BANNER: GlobalBannerConfig = {enabled: true, placement: 'top', level_id: 'lvl-1'};
 
 function makeProps(overrides: Record<string, unknown> = {}) {
     return {
@@ -113,7 +113,7 @@ describe('GlobalClassificationIndicators', () => {
     });
 
     test('shows inline error when banner is enabled and the selected level no longer exists', () => {
-        const banner: GlobalBannerConfig = {enabled: true, placement: 'top', level_name: 'RENAMED OR DELETED'};
+        const banner: GlobalBannerConfig = {enabled: true, placement: 'top', level_id: 'deleted-id'};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
 
         expect(
@@ -121,8 +121,7 @@ describe('GlobalClassificationIndicators', () => {
         ).toBeInTheDocument();
     });
 
-    test('shows inline error when the referenced level was renamed', () => {
-        // Banner references "UNCLASSIFIED" but the level has been renamed to "DECLASSIFIED".
+    test('does not show missing-level error when the referenced level was renamed but ID still matches', () => {
         const renamedLevels = [
             {id: 'lvl-1', name: 'DECLASSIFIED', color: '#007A33', rank: 1},
             {id: 'lvl-2', name: 'SECRET', color: '#C8102E', rank: 2},
@@ -134,8 +133,8 @@ describe('GlobalClassificationIndicators', () => {
         );
 
         expect(
-            screen.getByText(/The previously selected level no longer exists/),
-        ).toBeInTheDocument();
+            screen.queryByText(/The previously selected level no longer exists/),
+        ).not.toBeInTheDocument();
     });
 
     test('does not show the missing-level error when the selected level still exists', () => {
@@ -147,7 +146,7 @@ describe('GlobalClassificationIndicators', () => {
     });
 
     test('does not show the missing-level error when the banner is disabled', () => {
-        const banner: GlobalBannerConfig = {enabled: false, placement: 'top', level_name: 'missing-name'};
+        const banner: GlobalBannerConfig = {enabled: false, placement: 'top', level_id: 'missing-id'};
         renderWithContext(<GlobalClassificationIndicators {...makeProps({globalBanner: banner})}/>);
 
         expect(

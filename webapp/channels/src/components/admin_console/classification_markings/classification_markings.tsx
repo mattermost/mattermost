@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {ClientError} from '@mattermost/client';
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {PropertyField, PropertyFieldOption} from '@mattermost/types/properties';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -40,8 +40,6 @@ import {
     fetchClassificationField,
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
-    findOptionById,
-    findOptionIdByName,
     processClassificationField,
     saveCreateField,
     saveCreateLinkedField,
@@ -121,7 +119,7 @@ export default function ClassificationMarkings({disabled}: Props) {
         if (
             globalBanner.enabled !== initialGlobalBanner.enabled ||
             globalBanner.placement !== initialGlobalBanner.placement ||
-            globalBanner.level_name !== initialGlobalBanner.level_name
+            globalBanner.level_id !== initialGlobalBanner.level_id
         ) {
             return true;
         }
@@ -161,18 +159,17 @@ export default function ClassificationMarkings({disabled}: Props) {
                     let banner: GlobalBannerConfig = {...DEFAULT_GLOBAL_BANNER};
                     if (linkedField) {
                         const actions = (linkedField.attrs?.actions as string[]) ?? [];
-                        let levelName = '';
+                        let levelId = '';
                         if (actions.includes(DISPLAY_BANNER_TOP)) {
                             const optionId = await fetchSystemClassificationValue(linkedField.id);
                             if (cancelled) {
                                 return;
                             }
                             if (optionId) {
-                                const options = (field.attrs?.options as PropertyFieldOption[]) ?? [];
-                                levelName = findOptionById(options, optionId)?.name ?? '';
+                                levelId = optionId;
                             }
                         }
-                        banner = actionsToGlobalBanner(actions, levelName);
+                        banner = actionsToGlobalBanner(actions, levelId);
                     }
 
                     setExistingField(field);
@@ -315,10 +312,10 @@ export default function ClassificationMarkings({disabled}: Props) {
                 return formatMessage({id: 'admin.classification_markings.error.duplicate_name', defaultMessage: 'Classification level names must be unique. Duplicate: {name}'}, {name: duplicateName.toUpperCase()});
             }
             if (globalBanner.enabled) {
-                if (!globalBanner.level_name) {
+                if (!globalBanner.level_id) {
                     return formatMessage(msg.errorGlobalBannerNoLevel);
                 }
-                if (!levels.some((l) => l.name.trim() === globalBanner.level_name)) {
+                if (!levels.some((l) => l.id === globalBanner.level_id)) {
                     return formatMessage(msg.errorGlobalBannerLevelMissing);
                 }
             }
@@ -366,13 +363,9 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await saveCreateLinkedField(savedTemplate.id, disabledBanner);
             }
 
-            if (effectiveBanner.enabled && effectiveBanner.level_name) {
-                const options = (savedTemplate.attrs?.options as PropertyFieldOption[]) ?? [];
-                const optionId = findOptionIdByName(options, effectiveBanner.level_name);
-                if (optionId) {
-                    const savedValues = await saveUpsertSystemValue(savedLinked.id, optionId);
-                    dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
-                }
+            if (effectiveBanner.enabled && effectiveBanner.level_id) {
+                const savedValues = await saveUpsertSystemValue(savedLinked.id, effectiveBanner.level_id);
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_VALUES, data: {values: savedValues}});
 
                 savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
             }

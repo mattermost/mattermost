@@ -651,7 +651,7 @@ describe('GlobalClassificationIndicators section', () => {
         await screen.findByText(/A global classification level must be selected/);
     });
 
-    test('should validate that the referenced level still exists when it was renamed', async () => {
+    test('should not invalidate banner when the referenced level is renamed (ID still matches)', async () => {
         const field = makePropertyField({
             attrs: {options: [{id: 'lvl1', name: 'UNCLASSIFIED', color: '#007A33', rank: 1}]},
         });
@@ -672,22 +672,15 @@ describe('GlobalClassificationIndicators section', () => {
 
         const user = userEvent.setup();
 
-        // Rename the level: the banner's level_name no longer matches anything.
         const nameInput = screen.getByRole('textbox', {name: /Classification level name/i});
         await user.clear(nameInput);
         await user.type(nameInput, 'DECLASSIFIED');
         await user.tab();
 
-        // Inline error should appear in the banner section immediately.
+        // The banner still references the same level by ID, so no error should appear.
         expect(
-            await screen.findByText(/The previously selected level no longer exists/),
-        ).toBeInTheDocument();
-
-        // Save should also be blocked with the same validation error.
-        await act(async () => {
-            await user.click(screen.getByText('Save'));
-        });
-        await screen.findByText(/The global classification banner is configured with a level that no longer exists/);
+            screen.queryByText(/The previously selected level no longer exists/),
+        ).not.toBeInTheDocument();
     });
 
     test('should validate that the referenced level still exists when it was deleted', async () => {

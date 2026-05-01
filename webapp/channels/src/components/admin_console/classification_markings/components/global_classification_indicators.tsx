@@ -47,23 +47,21 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     const {formatMessage} = useIntl();
 
     const levelOptions = useMemo((): LevelDropdownOption[] => {
-        // The dropdown is keyed off the level name since that is what is persisted for the banner.
-        // Names that are still empty during editing are filtered out so we don't emit duplicate keys.
         return levels.
             filter((l) => l.name.trim() !== '').
-            map((l) => ({value: l.name.trim(), label: l.name.trim(), color: l.color}));
+            map((l) => ({value: l.id, label: l.name.trim(), color: l.color}));
     }, [levels]);
 
     const selectedLevelOption = useMemo(() => {
-        return levelOptions.find((o) => o.value === globalBanner.level_name);
-    }, [levelOptions, globalBanner.level_name]);
+        return levelOptions.find((o) => o.value === globalBanner.level_id);
+    }, [levelOptions, globalBanner.level_id]);
 
-    // Inline validation: when the banner is enabled, a level name is configured, but that level is
-    // no longer present in the current levels list (e.g. deleted or renamed), surface a visible
-    // error so the admin is forced to pick a valid replacement.
+    // Inline validation: when the banner is enabled, a level is configured, but that level is
+    // no longer present in the current levels list (e.g. deleted), surface a visible error so
+    // the admin is forced to pick a valid replacement.
     const levelMissing = Boolean(
         globalBanner.enabled &&
-        globalBanner.level_name &&
+        globalBanner.level_id &&
         !selectedLevelOption,
     );
     const levelError = levelMissing ? formatMessage(msg.levelMissingError) : undefined;
@@ -81,7 +79,7 @@ export default function GlobalClassificationIndicators({levels, globalBanner, di
     const handleLevelChange = useCallback((selected: ValueType | null) => {
         const levelOption = selected as LevelDropdownOption | null;
         onChange({
-            level_name: levelOption?.value ?? '',
+            level_id: levelOption?.value ?? '',
         });
     }, [onChange]);
 

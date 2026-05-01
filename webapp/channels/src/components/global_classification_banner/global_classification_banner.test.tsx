@@ -53,7 +53,7 @@ function makeTemplateField(options: Array<{id: string; name: string; color: stri
     };
 }
 
-function makeLinkedField(actions: string[]): PropertyField {
+function makeLinkedField(actions: string[], options: Array<{id: string; name: string; color: string}> = []): PropertyField {
     return {
         id: LINKED_FIELD_ID,
         group_id: GROUP_NAME,
@@ -68,7 +68,10 @@ function makeLinkedField(actions: string[]): PropertyField {
         delete_at: 0,
         created_by: 'user1',
         updated_by: 'user1',
-        attrs: {actions},
+        attrs: {
+            actions,
+            options: options.map((o, i) => ({id: o.id, name: o.name, color: o.color, rank: i + 1})),
+        },
     };
 }
 
@@ -148,8 +151,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('renders top banner with level name and background color from template options', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -164,8 +168,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when feature flag is off', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -177,8 +182,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when linked field has no display actions', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([]); // empty actions = banner disabled
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -190,8 +196,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when system property value is absent', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
 
         renderWithContext(
             <GlobalClassificationBanner position='top'/>,
@@ -202,8 +209,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when option ID in value does not match any template option', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('nonexistent_id');
 
         renderWithContext(
@@ -215,8 +223,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('renders bottom banner when linked field has display_banner_bottom action', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -229,8 +238,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render bottom banner when linked field only has display_banner_top', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -242,8 +252,9 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('renders top banner when both actions are present', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP, DISPLAY_BANNER_BOTTOM], options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -255,7 +266,8 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('does not render when linked field is not in store', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
         const value = makeSystemValue('opt1');
 
         renderWithContext(
@@ -276,11 +288,12 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('derives color from the correct option in template field by option ID', () => {
-        const template = makeTemplateField([
+        const options = [
             {id: 'opt1', name: 'UNCLASSIFIED', color: '#007A33'},
             {id: 'opt2', name: 'TOP SECRET', color: '#FCE83A'},
-        ]);
-        const linked = makeLinkedField([DISPLAY_BANNER_TOP]);
+        ];
+        const template = makeTemplateField(options);
+        const linked = makeLinkedField([DISPLAY_BANNER_TOP], options);
         const value = makeSystemValue('opt2'); // points to TOP SECRET
 
         renderWithContext(
@@ -294,7 +307,8 @@ describe('GlobalClassificationBanner', () => {
     });
 
     test('triggers bootstrap fetch for linked fields when not in store', () => {
-        const template = makeTemplateField([{id: 'opt1', name: 'SECRET', color: '#C8102E'}]);
+        const options = [{id: 'opt1', name: 'SECRET', color: '#C8102E'}];
+        const template = makeTemplateField(options);
 
         // Template is in store but linked field is not.
         renderWithContext(

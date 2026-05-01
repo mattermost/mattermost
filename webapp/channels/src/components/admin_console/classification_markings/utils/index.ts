@@ -40,13 +40,13 @@ export type GlobalBannerPlacement = 'top' | 'top_and_bottom';
 export type GlobalBannerConfig = {
     enabled: boolean;
     placement: GlobalBannerPlacement;
-    level_name: string;
+    level_id: string;
 };
 
 export const DEFAULT_GLOBAL_BANNER: GlobalBannerConfig = {
     enabled: false,
     placement: 'top',
-    level_name: '',
+    level_id: '',
 };
 
 // --- Placement ↔ actions conversion ---
@@ -66,9 +66,9 @@ export function placementToActions(config: GlobalBannerConfig): string[] {
 }
 
 /**
- * Reconstructs GlobalBannerConfig from the linked field's attrs.actions and a resolved level name.
+ * Reconstructs GlobalBannerConfig from the linked field's attrs.actions and a resolved level ID.
  */
-export function actionsToGlobalBanner(actions: string[], levelName: string): GlobalBannerConfig {
+export function actionsToGlobalBanner(actions: string[], levelId: string): GlobalBannerConfig {
     const hasTop = actions.includes(DISPLAY_BANNER_TOP);
     if (!hasTop) {
         return {...DEFAULT_GLOBAL_BANNER};
@@ -77,7 +77,7 @@ export function actionsToGlobalBanner(actions: string[], levelName: string): Glo
     return {
         enabled: true,
         placement: hasBottom ? 'top_and_bottom' : 'top',
-        level_name: levelName,
+        level_id: levelId,
     };
 }
 
