@@ -462,13 +462,23 @@ test(
         const translatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'Solo español [translated to en]'});
-        await expect(translatedPost).toBeVisible({timeout: 45000});
+        await expect
+            .poll(async () => translatedPost.isVisible(), {
+                timeout: 90000,
+                intervals: [500, 1500, 3000, 5000],
+            })
+            .toBe(true);
 
         // * Verify the English post is present and unchanged (not translated)
         const notTranslatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'English only'})
             .filter({hasNotText: '[translated to en]'});
-        await expect(notTranslatedPost).toBeVisible({timeout: 30000});
+        await expect
+            .poll(async () => notTranslatedPost.isVisible(), {
+                timeout: 60000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
     },
 );

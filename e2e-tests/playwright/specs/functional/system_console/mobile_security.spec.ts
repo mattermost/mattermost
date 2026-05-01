@@ -312,6 +312,10 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
             EmailAttribute: 'useremail',
         },
     } as any);
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.Office365Settings?.Enable === true && Boolean(cfg.Office365Settings?.Id);
+    });
 
     // # Log in as admin
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);

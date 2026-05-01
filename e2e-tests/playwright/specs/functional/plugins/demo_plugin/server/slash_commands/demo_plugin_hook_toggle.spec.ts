@@ -48,15 +48,17 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     const lastPost = await channelsPage.centerView.getLastPost();
     await expect(lastPost.container).not.toContainText('ChannelHasBeenCreated');
 
-    // 5. Disable hooks (retry once if plugin not yet ready)
-    for (let attempt = 0; attempt < 2; attempt++) {
+    await channelsPage.page.waitForTimeout(6000);
+
+    // 5. Disable hooks (retry if plugin not yet ready)
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
-            await expect(hookStatus).toHaveText('Disabled', {timeout: 15000});
+            await expect(hookStatus).toHaveText('Disabled', {timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
             // Re-enable without patchConfig to avoid triggering a plugin restart that

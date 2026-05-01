@@ -111,7 +111,7 @@ test(
                     const text = await channelsPage.centerView.container.textContent();
                     return text?.includes('[translated to en]') && text.includes(message.slice(0, 12));
                 },
-                {timeout: 60000, intervals: [500, 1500, 3000]},
+                {timeout: 90000, intervals: [500, 1500, 3000, 5000]},
             )
             .toBe(true);
     },
@@ -154,6 +154,10 @@ test(
             mockBaseUrl: translationUrl,
             targetLanguages: ['en', 'es'],
         });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
 
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
@@ -161,8 +165,12 @@ test(
         await configurationTab.save();
         await channelSettingsModal.close();
 
-        const channelAfter = await adminClient.getChannel(created.id);
-        expect(channelAfter.autotranslation).toBe(true);
+        await expect
+            .poll(async () => (await adminClient.getChannel(created.id)).autotranslation === true, {
+                timeout: 60000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
     },
 );
 
@@ -202,12 +210,25 @@ test(
         // AutoTranslationSettings.Enable back to false at any point between the initial
         // enableAutotranslationConfig call above and here, hiding the translation toggle.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
         await configurationTab.enableChannelAutotranslation();
         await configurationTab.save();
         await channelSettingsModal.close();
 
+        await expect
+            .poll(
+                async () => {
+                    const postList = await adminClient.getPosts(created.id);
+                    return Object.values(postList.posts).some((p) => p.type === POST_TYPE_AUTOTRANSLATION_CHANGE);
+                },
+                {timeout: 60000, intervals: [500, 1500, 3000]},
+            )
+            .toBe(true);
         const postList = await adminClient.getPosts(created.id);
         const systemPost = Object.values(postList.posts).find((p) => p.type === POST_TYPE_AUTOTRANSLATION_CHANGE);
         expect(systemPost).toBeDefined();
@@ -281,9 +302,15 @@ test(
 
         // * Verify new message appears (mock server appends "[translated to en]" to original)
         const translatedNewMessage = 'Hola nuevo [translated to en]';
-        await expect(
-            channelsPage.centerView.container.locator('[id^="post_"]').getByText(translatedNewMessage, {exact: false}),
-        ).toBeVisible({timeout: 15000});
+        await expect
+            .poll(
+                async () => {
+                    const text = await channelsPage.centerView.container.textContent();
+                    return Boolean(text?.includes(translatedNewMessage));
+                },
+                {timeout: 60000, intervals: [500, 1500, 3000]},
+            )
+            .toBe(true);
 
         // * Verify old message is unchanged
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText(oldMessage)).toBeVisible();

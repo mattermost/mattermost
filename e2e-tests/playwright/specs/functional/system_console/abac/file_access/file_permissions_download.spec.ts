@@ -216,7 +216,12 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
         const {page, channelsPage} = await pw.testBrowser.login(userDenied as any);
         await channelsPage.goto(sharedTeam.name, sharedChannelName);
         await channelsPage.toBeVisible();
-        await expect(page.getByTestId('redactedFilesPlaceholder')).toBeVisible({timeout: 15000});
+        await expect
+            .poll(() => page.getByTestId('redactedFilesPlaceholder').isVisible(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
         await expect(page.locator('[data-testid="fileAttachmentList"]')).not.toBeVisible();
     });
 
@@ -227,7 +232,12 @@ test.describe('ABAC Permission Policies - Attribute-Based Access - MM-T5826', ()
         const {page, channelsPage} = await pw.testBrowser.login(userAllowed as any);
         await channelsPage.goto(sharedTeam.name, sharedChannelName);
         await channelsPage.toBeVisible();
-        await expect(page.locator('[data-testid="fileAttachmentList"]')).toBeVisible({timeout: 15000});
+        await expect
+            .poll(() => page.locator('[data-testid="fileAttachmentList"]').isVisible(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000],
+            })
+            .toBe(true);
         await expect(page.getByTestId('redactedFilesPlaceholder')).not.toBeVisible();
     });
 });

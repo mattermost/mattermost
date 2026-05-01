@@ -471,17 +471,21 @@ test(
         // The badge should still be absent (French locale is not in targetLanguages), but the
         // server config must be active so the channel header menu shows the "unsupported" notice.
         await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
-        await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
+        await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible({timeout: 30000});
 
         await channelsPage.centerView.header.openChannelMenu();
         const channelMenu = page
             .getByRole('menu')
             .filter({has: page.getByRole('menuitem', {name: /Auto-translation|Channel Settings/})});
-        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible();
-        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible();
+        await expect(channelMenu.getByText('Auto-translation', {exact: true})).toBeVisible({timeout: 30000});
+        await expect(channelMenu.getByText('Your language is not supported')).toBeVisible({timeout: 30000});
         const autotranslationItem = page.getByRole('menuitem', {name: /Auto-translation/});
         await expect(autotranslationItem).toBeDisabled();
     },

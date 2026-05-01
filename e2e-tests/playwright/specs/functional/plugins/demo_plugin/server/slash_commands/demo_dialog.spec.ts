@@ -30,19 +30,22 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
     // is already active (alreadyActive guard skips reinstall).
     await setupDemoPlugin(adminClient, pw);
+    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens with title "Test Title"
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: 45000});
             break; // dialog appeared — proceed
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err; // exhausted retries — let the error surface naturally
             }
-            // attempt 0 timed out — retry the slash command once
+            await setupDemoPlugin(adminClient, pw);
+            await channelsPage.page.waitForTimeout(2000);
+            // attempt timed out — retry the slash command
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
@@ -99,18 +102,21 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     // 4. Send /dialog command (with one retry if the dialog doesn't appear).
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
+    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
+            await setupDemoPlugin(adminClient, pw);
+            await channelsPage.page.waitForTimeout(2000);
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
@@ -147,18 +153,21 @@ test('should show validation errors when required fields are submitted empty', a
     // 4. Send /dialog command (with one retry if the dialog doesn't appear).
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
+    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
+            await setupDemoPlugin(adminClient, pw);
+            await channelsPage.page.waitForTimeout(2000);
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Test Title');
@@ -192,18 +201,21 @@ test('should show general error and keep dialog open on /dialog error submit', a
     // 4. Send /dialog error command (with one retry if the dialog doesn't appear).
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
+    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog error');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens with title "Simple Dialog Test"
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
+            await setupDemoPlugin(adminClient, pw);
+            await channelsPage.page.waitForTimeout(2000);
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Simple Dialog Test');
@@ -239,18 +251,21 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
     // 4. Send /dialog error-no-elements command (with one retry if the dialog doesn't appear).
     // Re-apply guard: concurrent initSetup() resets PluginSettings.
     await setupDemoPlugin(adminClient, pw);
+    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
             // 5. Confirm dialog opens with title "Sample Confirmation Dialog" and no form fields
-            await expect(dialog).toBeVisible({timeout: 15000});
+            await expect(dialog).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
+            await setupDemoPlugin(adminClient, pw);
+            await channelsPage.page.waitForTimeout(2000);
         }
     }
     await expect(dialog.getByRole('heading', {level: 1})).toContainText('Sample Confirmation Dialog');

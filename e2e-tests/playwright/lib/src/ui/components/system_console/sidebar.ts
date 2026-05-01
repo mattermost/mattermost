@@ -80,7 +80,7 @@ export default class SystemConsoleSidebar {
         return this.environment.mobileSecurity;
     }
     get notifications() {
-        return this.siteConfiguration.notifications;
+        return this.environment.notifications;
     }
     get pluginManagement() {
         return this.plugins.pluginManagement;
@@ -196,6 +196,7 @@ class EnvironmentCategory extends SidebarCategory {
     readonly fileStorage: SidebarSection;
     readonly imageProxy: SidebarSection;
     readonly smtp: SidebarSection;
+    readonly notifications: SidebarSection;
     readonly pushNotificationServer: SidebarSection;
     readonly highAvailability: SidebarSection;
     readonly cacheSettings: SidebarSection;
@@ -214,6 +215,8 @@ class EnvironmentCategory extends SidebarCategory {
         this.fileStorage = this.section('File Storage');
         this.imageProxy = this.section('Image Proxy');
         this.smtp = this.section('SMTP');
+        // Notifications settings live under Environment in admin_definition (url environment/notifications).
+        this.notifications = this.section('Notifications');
         this.pushNotificationServer = this.section('Push Notification Server');
         this.highAvailability = this.section('High Availability');
         this.cacheSettings = this.section('Cache Settings');
@@ -230,7 +233,6 @@ class SiteConfigurationCategory extends SidebarCategory {
     readonly customization: SidebarSection;
     readonly localization: SidebarSection;
     readonly usersAndTeams: SidebarSection;
-    readonly notifications: SidebarSection;
     readonly systemWideNotifications: SidebarSection;
     readonly emoji: SidebarSection;
     readonly posts: SidebarSection;
@@ -245,7 +247,6 @@ class SiteConfigurationCategory extends SidebarCategory {
         this.customization = this.section('Customization');
         this.localization = this.section('Localization');
         this.usersAndTeams = this.section('Users and Teams');
-        this.notifications = this.section('Notifications');
         this.systemWideNotifications = this.section('System-wide Notifications');
         this.emoji = this.section('Emoji');
         this.posts = this.section('Posts');

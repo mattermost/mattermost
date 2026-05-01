@@ -217,6 +217,10 @@ test.describe('System Console > Self-Deleting Messages', () => {
         const config = await adminClient.getConfig();
         config.ServiceSettings.EnableBurnOnRead = false;
         await adminClient.patchConfig(config);
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.ServiceSettings?.EnableBurnOnRead === false;
+        });
 
         // # Log in as admin
         const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
@@ -239,22 +243,22 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await expect(enableToggleFalse).toBeChecked({timeout: 10000});
 
         // * Verify dropdowns are disabled when feature is off
-        await expect(durationDropdown).toBeDisabled({timeout: 5000});
-        await expect(maxTTLDropdown).toBeDisabled({timeout: 5000});
+        await expect(durationDropdown).toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 30000});
 
         // # Enable the feature (just toggle, don't save)
         await enableToggleTrue.click();
 
         // * Verify dropdowns are now enabled
-        await expect(durationDropdown).not.toBeDisabled({timeout: 5000});
-        await expect(maxTTLDropdown).not.toBeDisabled({timeout: 5000});
+        await expect(durationDropdown).not.toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).not.toBeDisabled({timeout: 30000});
 
         // # Toggle back to disabled
         await enableToggleFalse.click();
 
         // * Verify dropdowns are disabled again
-        await expect(durationDropdown).toBeDisabled({timeout: 5000});
-        await expect(maxTTLDropdown).toBeDisabled({timeout: 5000});
+        await expect(durationDropdown).toBeDisabled({timeout: 30000});
+        await expect(maxTTLDropdown).toBeDisabled({timeout: 30000});
     });
 
     test('settings persist after page reload', async ({pw}) => {

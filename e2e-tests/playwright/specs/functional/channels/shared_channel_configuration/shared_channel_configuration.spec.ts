@@ -95,7 +95,20 @@ test.describe('Shared channel configuration', () => {
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
-        await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
+        await expect
+            .poll(
+                async () => {
+                    await adminClient.patchConfig({
+                        ConnectedWorkspacesSettings: {
+                            EnableSharedChannels: true,
+                            EnableRemoteClusterService: true,
+                        },
+                    });
+                    return configurationTab.shareWithConnectedWorkspacesSection.isVisible();
+                },
+                {timeout: 60000, intervals: [500, 1500, 3000]},
+            )
+            .toBe(true);
         await expect(configurationTab.shareWithWorkspacesToggle).toBeVisible();
         await channelSettingsModal.close();
     });

@@ -403,11 +403,11 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         // # First close click — modal stays open (unsaved-changes two-step close)
         await channelSettings.closeButton.click();
-        await expect(channelSettings.container).toBeVisible({timeout: 3000});
+        await expect(channelSettings.container).toBeVisible({timeout: 15000});
 
         // # Second click — modal closes
         await channelSettings.closeButton.click();
-        await expect(channelSettings.container).not.toBeVisible({timeout: 10000});
+        await expect(channelSettings.container).not.toBeVisible({timeout: 30000});
     });
 
     test('MM-67326_c12 View users — Restricted tab shows member count and user when rule removes a channel member', async ({

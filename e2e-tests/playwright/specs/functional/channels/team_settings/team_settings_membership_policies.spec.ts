@@ -84,6 +84,11 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
             const channelsPage = new ChannelsPage(page);
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
+            // Force a full navigation so the team settings bundle reads the latest
+            // AccessControlSettings (WebSocket config updates can lag in CI).
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+            await channelsPage.toBeVisible();
 
             const teamSettings = await channelsPage.openTeamSettings();
 

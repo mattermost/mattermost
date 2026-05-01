@@ -161,7 +161,7 @@ test.describe('Anonymous URLs', () => {
             await pw.waitUntil(async () => (await systemConsolePage.usersAndTeams.saveButton.textContent()) === 'Save');
 
             // # Navigate away and come back
-            await systemConsolePage.sidebar.siteConfiguration.notifications.click();
+            await systemConsolePage.sidebar.notifications.click();
             await systemConsolePage.notifications.toBeVisible();
 
             await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();

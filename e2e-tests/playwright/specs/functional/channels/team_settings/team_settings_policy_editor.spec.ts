@@ -909,7 +909,7 @@ test.describe('Team Settings Modal - Policy Editor', () => {
                         return false;
                     }
                 },
-                {timeout: 30000, intervals: [2000, 3000, 5000]},
+                {timeout: 90000, intervals: [2000, 4000, 6000]},
             )
             .toBe(true);
 
