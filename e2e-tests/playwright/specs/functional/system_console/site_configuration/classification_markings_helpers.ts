@@ -70,8 +70,8 @@ export async function deleteClassificationMarkingsFieldIfExists(adminClient: Cli
 }
 
 export type SetupGlobalBannerOptions = {
-    /** Level name that the global banner should display */
-    levelName: string;
+    /** Level ID that the global banner should display */
+    levelId: string;
     enabled?: boolean;
     placement?: 'top' | 'top_and_bottom';
 };
@@ -122,15 +122,15 @@ export async function setupClassificationFieldWithGlobalBanner(
 
     const enabled = bannerOpts.enabled ?? true;
 
-    // Resolve the option ID for the requested level name (only needed when enabled).
+    // Resolve the option ID for the requested level (only needed when enabled).
     let optionId = '';
-    if (enabled) {
+    if (enabled && bannerOpts.levelId) {
         const options = (templateField.attrs?.options ?? []) as Array<{id: string; name: string}>;
-        const matchedOption = options.find((o) => o.name === bannerOpts.levelName);
+        const matchedOption = options.find((o) => o.id === bannerOpts.levelId);
         if (!matchedOption) {
-            const available = options.map((o) => o.name).join(', ');
+            const available = options.map((o) => `${o.name} (${o.id})`).join(', ');
             throw new Error(
-                `setupClassificationFieldWithGlobalBanner: unknown level "${bannerOpts.levelName}". ` +
+                `setupClassificationFieldWithGlobalBanner: unknown level ID "${bannerOpts.levelId}". ` +
                     `Available options on template field ${templateField.id}: [${available}]`,
             );
         }
@@ -159,7 +159,7 @@ export async function setupClassificationFieldWithGlobalBanner(
     if (enabled) {
         if (!optionId) {
             throw new Error(
-                `setupClassificationFieldWithGlobalBanner: resolved optionId is empty for level "${bannerOpts.levelName}". ` +
+                `setupClassificationFieldWithGlobalBanner: resolved optionId is empty for level "${bannerOpts.levelId}". ` +
                     'The server may not have assigned an ID to the option.',
             );
         }
