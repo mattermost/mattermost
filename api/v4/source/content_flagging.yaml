@@ -421,10 +421,12 @@
               schema:
                 type: string
                 format: binary
+        '400':
+          description: Bad request - Invalid post ID.
         '403':
           description: Forbidden - User does not have permission to access this post, or is not a reviewer of the post's team.
         '404':
-          description: Post not found, post is not flagged, or feature is disabled via the feature flag.
+          description: Post not found or post is not flagged.
         '500':
           description: Internal server error.
         '501':
