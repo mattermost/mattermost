@@ -5,26 +5,64 @@ package model
 
 const FlaggedPostReportVersion = "1.0"
 
+// FlaggedPostReportContext bundles the entities needed to build a flagged
+// post report so the per-section writers can be unit-tested in isolation.
+type FlaggedPostReportContext struct {
+	Post        *Post
+	Channel     *Channel
+	Team        *Team
+	Author      *User
+	EditHistory []*Post
+}
+
 // FlaggedPostReportPost is the on-disk shape for post/post.yaml and
-// edit_history/<id>/post.yaml inside a flagged post report archive.
+// edit_history/<id>/post.yaml inside a flagged post report archive. It
+// embeds *Post to reuse common fields; the wire format is fixed by the
+// MarshalYAML method below so the report layout does not depend on Post's
+// own field tags.
 type FlaggedPostReportPost struct {
-	ID                 string          `yaml:"id"`
-	AuthorID           string          `yaml:"author_id"`
-	AuthorName         string          `yaml:"author_name"`
-	AuthorEmail        string          `yaml:"author_email"`
-	Message            string          `yaml:"message"`
-	ChannelID          string          `yaml:"channel_id"`
-	ChannelDisplayName string          `yaml:"channel_display_name"`
-	TeamID             string          `yaml:"team_id"`
-	TeamDisplayName    string          `yaml:"team_display_name"`
-	CreateAt           int64           `yaml:"create_at"`
-	UpdateAt           int64           `yaml:"update_at"`
-	IsPinned           bool            `yaml:"is_pinned"`
-	RootID             string          `yaml:"root_id"`
-	Props              StringInterface `yaml:"props,omitempty"`
-	ReplyCount         *int64          `yaml:"reply_count,omitempty"`
-	Metadata           *PostMetadata   `yaml:"metadata,omitempty"`
-	EditHistoryOrder   []string        `yaml:"edit_history_order,omitempty"`
+	*Post
+
+	AuthorName         string
+	AuthorEmail        string
+	ChannelDisplayName string
+	TeamID             string
+	TeamDisplayName    string
+	ReplyCountPtr      *int64
+	EditHistoryOrder   []string
+}
+
+func (f FlaggedPostReportPost) MarshalYAML() (any, error) {
+	out := map[string]any{
+		"author_name":          f.AuthorName,
+		"author_email":         f.AuthorEmail,
+		"channel_display_name": f.ChannelDisplayName,
+		"team_id":              f.TeamID,
+		"team_display_name":    f.TeamDisplayName,
+	}
+	if f.Post != nil {
+		out["id"] = f.Post.Id
+		out["author_id"] = f.Post.UserId
+		out["message"] = f.Post.Message
+		out["channel_id"] = f.Post.ChannelId
+		out["create_at"] = f.Post.CreateAt
+		out["update_at"] = f.Post.UpdateAt
+		out["is_pinned"] = f.Post.IsPinned
+		out["root_id"] = f.Post.RootId
+		if props := f.Post.GetProps(); len(props) > 0 {
+			out["props"] = props
+		}
+		if f.Post.Metadata != nil {
+			out["metadata"] = f.Post.Metadata
+		}
+	}
+	if f.ReplyCountPtr != nil {
+		out["reply_count"] = *f.ReplyCountPtr
+	}
+	if len(f.EditHistoryOrder) > 0 {
+		out["edit_history_order"] = f.EditHistoryOrder
+	}
+	return out, nil
 }
 
 // FlaggedPostReportContentReview is the on-disk shape for content_review.yaml.

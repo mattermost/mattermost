@@ -29,7 +29,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGenerateFlaggedPostReport, model.AuditStatusFail)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
-	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
+	model.AddEventParameterToAuditRec(auditRec, "flaggedPostId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
 
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
