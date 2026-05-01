@@ -154,7 +154,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
     }, [isRHS, post]);
 
     const actionRows = useMemo<ActionRow[]>(() => {
-        if (!reportedPost || !reportingUser) {
+        if (!reportedPost) {
             return [];
         }
 
@@ -170,15 +170,10 @@ export function DataSpillageReport({post, isRHS}: Props) {
             content: <DataSpillageDownloadReport flaggedPostId={reportedPost.id}/>,
         });
 
-        let showRemoveKeep;
-        if (!propertyFields || !propertyValues) {
-            showRemoveKeep = true;
-        } else {
-            const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
-            showRemoveKeep = Boolean(status) && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned);
-        }
+        const statusFieldId = propertyFields.status?.id;
+        const status = statusFieldId ? (propertyValues.find((value) => value.field_id === statusFieldId)?.value as string | undefined) : undefined;
 
-        if (showRemoveKeep) {
+        if (reportingUser && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned)) {
             rows.push({
                 label: (
                     <FormattedMessage
