@@ -11,10 +11,25 @@ import {DEFAULT_PLACEHOLDER_URL} from 'utils/markdown/apply_markdown';
 import {splitMessageBasedOnCaretPosition, splitMessageBasedOnTextSelection} from 'utils/post_utils';
 import turndownService from 'utils/turndown';
 
+/**
+ * Parses an HTML string and returns the first <table> element found, or null.
+ *
+ * @param html - Raw HTML string to parse.
+ * @returns The first HTMLTableElement in the parsed document, or null if none exists.
+ */
 export function parseHtmlTable(html: string): HTMLTableElement | null {
     return new DOMParser().parseFromString(html, 'text/html').querySelector('table');
 }
 
+/**
+ * Extracts an HTML table element from clipboard data, if present.
+ *
+ * Returns null if the clipboard does not contain 'text/html' or if
+ * the HTML does not include a <table> element.
+ *
+ * @param clipboardData - The DataTransfer object from a paste event.
+ * @returns The first HTMLTableElement found in the clipboard HTML, or null.
+ */
 export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | null {
     // Check if clipboard data has html as one of its types
     if (Array.from(clipboardData.types).indexOf('text/html') === -1) {
@@ -35,15 +50,36 @@ export function getHtmlTable(clipboardData: DataTransfer): HTMLTableElement | nu
     return table;
 }
 
+/**
+ * Checks whether the clipboard data contains HTML with at least one hyperlink (<a> tag).
+ *
+ * @param clipboardData - The DataTransfer object from a paste event.
+ * @returns True if the clipboard contains 'text/html' with an anchor tag, false otherwise.
+ */
 export function hasHtmlLink(clipboardData: DataTransfer): boolean {
     return Array.from(clipboardData.types).includes('text/html') && (/<a/i).test(clipboardData.getData('text/html'));
 }
 
+/**
+ * Determines whether a table's CSS class name indicates it is a GitHub code block.
+ *
+ * GitHub code blocks are rendered as HTML tables with class names containing
+ * 'js-', 'blob-', or 'diff-' prefixes.
+ *
+ * @param tableClassName - The className string of the HTML table element.
+ * @returns True if the class name matches a known GitHub code block pattern.
+ */
 export function isGitHubCodeBlock(tableClassName: string): boolean {
     const result = (/\b(js|blob|diff)-./).test(tableClassName);
     return result;
 }
 
+/**
+ * Checks whether the plain text content of the clipboard is a URL.
+ *
+ * @param clipboardData - The DataTransfer object from a paste event.
+ * @returns True if the plain text starts with 'http://' or 'https://'.
+ */
 export function isTextUrl(clipboardData: DataTransfer): boolean {
     const clipboardText = clipboardData.getData('text/plain');
     return clipboardText.startsWith('http://') || clipboardText.startsWith('https://');
@@ -61,6 +97,12 @@ export function hasPlainText(clipboardData: DataTransfer): boolean {
     return false;
 }
 
+/**
+ * Returns true if the given HTML table has no header cells (<th>).
+ *
+ * @param table - The HTMLTableElement to inspect.
+ * @returns True if the table contains zero <th> elements.
+ */
 function isTableWithoutHeaderRow(table: HTMLTableElement): boolean {
     return table.querySelectorAll('th').length === 0;
 }
@@ -160,6 +202,18 @@ export function formatMarkdownLinkMessage({message, clipboardData, selectionStar
     return markdownLink;
 }
 
+/**
+ * Determines whether a paste event is targeting a known Mattermost textbox element.
+ *
+ * Checks the event target's ID against expected textbox IDs based on the
+ * current location (center channel, RHS comment) and whether the user is
+ * in edit mode.
+ *
+ * @param event - The ClipboardEvent fired by the browser.
+ * @param location - The current UI location (e.g. Locations.CENTER, Locations.RHS_COMMENT).
+ * @param isInEditMode - Whether the user is currently editing an existing post.
+ * @returns True if the event target is a recognised Mattermost input element.
+ */
 export function isKnownTargetForPaste(event: ClipboardEvent, location: string, isInEditMode?: boolean): boolean {
     let isKnownTarget = false;
 
@@ -176,6 +230,23 @@ export function isKnownTargetForPaste(event: ClipboardEvent, location: string, i
     return isKnownTarget;
 }
 
+/**
+ * Central paste event handler for Mattermost message inputs.
+ *
+ * Intercepts paste events when the content would be transformed (HTML tables,
+ * HTML hyperlinks, URL-over-selection markdown links). When the user invokes
+ * plain-text paste (Ctrl+Shift+V, isNonFormattedPaste=true) and plain text is
+ * available, the browser default is suppressed and the raw text/plain value is
+ * inserted instead. If no transformation is needed, the event is left for the
+ * browser to handle natively.
+ *
+ * @param event - The ClipboardEvent fired by the browser.
+ * @param location - The current UI location (e.g. Locations.CENTER, Locations.RHS_COMMENT).
+ * @param message - The current draft message string in the input.
+ * @param isNonFormattedPaste - True when the user pressed Ctrl+Shift+V (paste as plain text).
+ * @param isInEditMode - Whether the user is editing an existing post.
+ * @returns void
+ */
 export function pasteHandler(
     event: ClipboardEvent,
     location: string,
@@ -209,7 +280,6 @@ export function pasteHandler(
     // Only intercept when content would be transformed
     const shouldIntercept = htmlTable || hasHTMLLinks || shouldApplyLinkMarkdown;
 
-    
     if (isNonFormattedPaste && shouldIntercept) {
         const plainText = clipboardData.getData('text/plain');
         if (plainText) {
@@ -252,6 +322,17 @@ export function pasteHandler(
     }
 }
 
+/**
+ * Creates a named File object from a DataTransferItem.
+ *
+ * If the item has no file name, a timestamped name is generated using
+ * the provided prefix and the item's MIME type as the extension.
+ * Returns null if the item cannot be converted to a File.
+ *
+ * @param item - The DataTransferItem to convert.
+ * @param fileNamePrefixIfNoName - Prefix used when generating a fallback filename.
+ * @returns A File object, or null if the item has no associated file.
+ */
 export function createFileFromClipboardDataItem(item: DataTransferItem, fileNamePrefixIfNoName: string): File | null {
     const file = item.getAsFile();
 
@@ -282,4 +363,3 @@ export function createFileFromClipboardDataItem(item: DataTransferItem, fileName
 
     return new File([file as Blob], name, {type: file.type});
 }
-
