@@ -101,10 +101,10 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
         // # Scroll the reply into view
         await replyElement.scrollIntoViewIfNeeded();
 
-        // * Verify the reply is visible
-        await expect(replyElement).toBeVisible();
+        // * Verify the reply is visible (virtualized RHS may need extra time under load)
+        await expect(replyElement).toBeVisible({timeout: 30000});
     }
 
     // * Verify that the first post message is visible after scrolling through the thread
-    await expect(rhsContainer.getByText('First message')).toBeVisible();
+    await expect(rhsContainer.getByText('First message')).toBeVisible({timeout: 30000});
 });

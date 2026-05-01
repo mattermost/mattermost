@@ -75,6 +75,10 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
             await adminClient.patchConfig({
                 AccessControlSettings: {EnableAttributeBasedAccessControl: false},
             });
+            await pw.waitUntil(async () => {
+                const cfg = await adminClient.getConfig();
+                return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
+            });
 
             const {page} = await pw.testBrowser.login(adminUser);
             const channelsPage = new ChannelsPage(page);
@@ -83,8 +87,8 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
 
             const teamSettings = await channelsPage.openTeamSettings();
 
-            // * Tab is not visible
-            await expect(teamSettings.accessPoliciesTab).not.toBeVisible();
+            // * Tab is not visible (WebSocket config update can lag)
+            await expect(teamSettings.accessPoliciesTab).not.toBeVisible({timeout: 30000});
 
             await teamSettings.close();
         } finally {

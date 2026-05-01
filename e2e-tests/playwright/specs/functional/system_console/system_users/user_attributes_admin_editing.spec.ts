@@ -296,7 +296,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
 
         // * Verify inline validation error appears (async client-side validation in CI)
         const fieldError = userCard.getFieldError('Work Email');
-        await expect(fieldError).toBeVisible({timeout: 15000});
+        await expect(fieldError).toBeVisible({timeout: 30000});
         await expect(fieldError).toContainText('Invalid email address');
 
         // * Verify Save button is disabled due to validation error

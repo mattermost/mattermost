@@ -20,6 +20,10 @@ test('Profile popover should show correct fields after at-mention autocomplete @
             ShowFullName: false,
         },
     });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false && cfg.PrivacySettings?.ShowFullName === false;
+    });
 
     // Create and add another user using admin client
     const testUser2 = await adminClient.createUser(await pw.random.user('other'), '', '');

@@ -366,6 +366,7 @@ test(
         tag: ['@autotranslation'],
     },
     async ({pw}) => {
+        test.setTimeout(120000);
         const {adminClient, user, userClient, team} = await pw.initSetup();
 
         const license = await adminClient.getClientLicenseOld();
@@ -440,6 +441,15 @@ test(
             channel_id: created.id,
             message: 'Otro mensaje en español',
             user_id: createdPoster2.id,
+        });
+
+        await enableAutotranslationConfig(adminClient, {
+            mockBaseUrl: translationUrl,
+            targetLanguages: ['en', 'es'],
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
         });
 
         const {channelsPage} = await pw.testBrowser.login(user);

@@ -44,9 +44,6 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await teamSettings.close();
     await expect(teamSettings.container).not.toBeVisible();
 
-    // Re-apply email invitations immediately before opening the invite modal: a
-    // concurrent initSetup() → patchConfig(defaultConfig) resets
-    // ServiceSettings.EnableEmailInvitations: false between the initial patchConfig and here.
     await adminClient.patchConfig({
         ServiceSettings: {EnableEmailInvitations: true},
     });
@@ -54,6 +51,10 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
         const cfg = await adminClient.getConfig();
         return cfg.ServiceSettings?.EnableEmailInvitations === true;
     });
+
+    // Re-apply email invitations immediately before opening the invite modal: a
+    // concurrent initSetup() → patchConfig(defaultConfig) resets
+    // ServiceSettings.EnableEmailInvitations: false between the initial patchConfig and here.
 
     // # Open team menu and click 'Invite People'
     await channelsPage.sidebarLeft.teamMenuButton.click();
@@ -70,6 +71,14 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     await membersInvitedModal.toBeVisible();
     const sentReason = await membersInvitedModal.getSentResultReason();
     expect(sentReason).toBe('This member has been added to the team.');
+
+    await adminClient.patchConfig({
+        ServiceSettings: {EnableEmailInvitations: true},
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.ServiceSettings?.EnableEmailInvitations === true;
+    });
 
     // # Click 'Invite More People' to return to the invite form
     await membersInvitedModal.clickInviteMore();

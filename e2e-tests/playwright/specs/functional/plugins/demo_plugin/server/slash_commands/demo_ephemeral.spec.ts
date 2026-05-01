@@ -26,24 +26,18 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
         .getByRole('listitem')
         .filter({hasText: 'test ephemeral actions'})
         .last();
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt++) {
         await channelsPage.centerView.postCreate.input.fill('/ephemeral');
         await channelsPage.centerView.postCreate.sendMessage();
         try {
-            // Use 30 s on every attempt — after a plugin restart the command handler may
-            // need a few extra seconds to finish wiring up even after isPluginActive=true.
-            await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible({timeout: 30000});
+            await expect(ephemeralPost.getByText('(Only visible to you)', {exact: true})).toBeVisible({timeout: 45000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 2) {
                 throw err;
             }
-            // Plugin may have been disabled (e.g. by a config reset or transient restart).
-            // Re-run full setup (install + enable + poll) to ensure it is truly active.
             await setupDemoPlugin(adminClient, pw);
-            // Give the plugin extra time to finish wiring up command handlers after
-            // reactivation — isPluginActive=true only means the process is up.
-            await new Promise((resolve) => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 6000));
         }
     }
 

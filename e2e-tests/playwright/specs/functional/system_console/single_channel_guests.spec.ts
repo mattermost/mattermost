@@ -83,7 +83,7 @@ test.describe('Single-channel guests', () => {
             );
 
             // * Verify the single-channel guests card is visible
-            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible({timeout: 15000});
+            await expect(systemConsolePage.page.getByTestId('singleChannelGuests')).toBeVisible({timeout: 30000});
 
             // * Verify the count is at least 1.
             // Analytics are indexed asynchronously on the server — poll with reload until

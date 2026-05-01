@@ -198,6 +198,16 @@ test.describe('Anonymous URLs', () => {
             await adminClient.addToTeam(team.id, adminUser.id);
             await setAnonymousUrls(adminClient, true);
 
+            await expect
+                .poll(
+                    async () => {
+                        const cfg = await adminClient.getConfig();
+                        return cfg.PrivacySettings?.UseAnonymousURLs === true;
+                    },
+                    {timeout: 30000, intervals: [500, 1500, 3000]},
+                )
+                .toBe(true);
+
             // # Log in and go to channels — navigate to the team explicitly so the
             // # webapp loads its config after UseAnonymousURLs is already true
             const {channelsPage} = await pw.testBrowser.login(adminUser);
@@ -217,8 +227,13 @@ test.describe('Anonymous URLs', () => {
             // # Fill in a channel name
             await channelsPage.newChannelModal.fillDisplayName('Anonymous Test Channel');
 
-            // * Verify the URL editor section is not visible
-            await expect(channelsPage.newChannelModal.urlSection).not.toBeVisible();
+            // * Verify the URL editor section is not visible (wait for client config to apply)
+            await expect
+                .poll(async () => !(await channelsPage.newChannelModal.urlSection.isVisible()), {
+                    timeout: 30000,
+                    intervals: [500, 1500],
+                })
+                .toBe(true);
 
             // # Cancel modal
             await channelsPage.newChannelModal.cancel();

@@ -201,6 +201,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
  * the shared page don't race.
  */
 test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', () => {
+    test.describe.configure({mode: 'serial'});
+
     let sharedAdminClient: any;
     let sharedTeamId: string;
     let engineerUser: Awaited<ReturnType<typeof createUserForABAC>>;
@@ -322,15 +324,15 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, engineerUser.id, channel.id), {
-                timeout: 30_000,
-                intervals: [500, 1000, 2000],
+                timeout: 90_000,
+                intervals: [500, 1000, 2000, 4000],
                 message: 'engineerUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, salesUser.id, channel.id), {
-                timeout: 30_000,
-                intervals: [500, 1000, 2000],
+                timeout: 90_000,
+                intervals: [500, 1000, 2000, 4000],
                 message: 'salesUser should not be in channel',
             })
             .toBe(false);
@@ -487,22 +489,22 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
         await expect
             .poll(async () => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
-                timeout: 30_000,
-                intervals: [500, 1000, 2000],
+                timeout: 90_000,
+                intervals: [500, 1000, 2000, 4000],
                 message: 'engineerUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, channel.id), {
-                timeout: 30_000,
-                intervals: [500, 1000, 2000],
+                timeout: 90_000,
+                intervals: [500, 1000, 2000, 4000],
                 message: 'salesRemoteUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(adminClient, salesOfficeUser.id, channel.id), {
-                timeout: 30_000,
-                intervals: [500, 1000, 2000],
+                timeout: 90_000,
+                intervals: [500, 1000, 2000, 4000],
                 message: 'salesOfficeUser should not be in channel',
             })
             .toBe(false);

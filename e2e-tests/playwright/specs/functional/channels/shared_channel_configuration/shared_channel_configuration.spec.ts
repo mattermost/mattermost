@@ -164,7 +164,21 @@ test.describe('Shared channel configuration', () => {
         const channelSettingsModal = await channelsPage.openChannelSettings();
         const configurationTab = await channelSettingsModal.openConfigurationTab();
 
-        await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
+        await expect
+            .poll(
+                async () => {
+                    await adminClient.patchConfig({
+                        ConnectedWorkspacesSettings: {
+                            EnableSharedChannels: true,
+                            EnableRemoteClusterService: true,
+                        },
+                    });
+                    return await configurationTab.shareWithConnectedWorkspacesSection.isVisible();
+                },
+                {timeout: 60000, intervals: [2000, 4000]},
+            )
+            .toBe(true);
+
         await expect(configurationTab.shareWithWorkspacesToggle).toBeVisible();
         // When sharing is disabled and no workspaces are configured, the toggle is simply off.
         await expect(configurationTab.shareWithWorkspacesToggle).toHaveAttribute('aria-pressed', 'false');
@@ -345,7 +359,20 @@ test.describe('Shared channel configuration', () => {
 
         let channelSettingsModal = await channelsPage.openChannelSettings();
         let configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithConnectedWorkspacesSection).toBeVisible();
+        await expect
+            .poll(
+                async () => {
+                    await adminClient.patchConfig({
+                        ConnectedWorkspacesSettings: {
+                            EnableSharedChannels: true,
+                            EnableRemoteClusterService: true,
+                        },
+                    });
+                    return await configurationTab.shareWithConnectedWorkspacesSection.isVisible();
+                },
+                {timeout: 60000, intervals: [2000, 4000]},
+            )
+            .toBe(true);
         await channelSettingsModal.close();
 
         const withoutPermission = (systemRole.permissions as string[]).filter((p) => p !== 'manage_shared_channels');
@@ -359,7 +386,12 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.toBeVisible();
         channelSettingsModal = await channelsPage.openChannelSettings();
         configurationTab = await channelSettingsModal.openConfigurationTab();
-        await expect(configurationTab.shareWithConnectedWorkspacesSection).not.toBeVisible();
+        await expect
+            .poll(async () => !(await configurationTab.shareWithConnectedWorkspacesSection.isVisible()), {
+                timeout: 45000,
+                intervals: [1000, 2000, 3000],
+            })
+            .toBe(true);
         await channelSettingsModal.close();
     });
 

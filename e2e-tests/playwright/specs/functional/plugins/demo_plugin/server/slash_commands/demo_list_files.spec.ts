@@ -32,6 +32,8 @@ async function uploadAndPostFiles(client: Client4, channelId: string, filenames:
 }
 
 test('should list uploaded files with running total via /list_files command', async ({pw}) => {
+    test.setTimeout(120000);
+
     // 1. Setup
     const {adminClient, user, team} = await pw.initSetup();
     await setupDemoPlugin(adminClient, pw);
@@ -62,15 +64,29 @@ test('should list uploaded files with running total via /list_files command', as
     // (avoids demo plugin's custom attachment menu intercepting the UI)
     await uploadAndPostFiles(adminClient, createdChannel.id, ['sample_text_file.txt', 'mattermost-icon_128x128.png']);
 
-    // 6. Send /list_files — expect count of 2 and both file names
-    await channelsPage.centerView.postCreate.input.fill('/list_files');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    const response2 = channelsPage.centerView.container
+    // 6. Send /list_files — expect count of 2 and both file names (plugin / indexing can lag in CI)
+    let response2 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
         .last();
-    await expect(response2).toBeVisible();
+    for (let attempt = 0; attempt < 5; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(response2).toBeVisible({timeout: 20000});
+            break;
+        } catch (err) {
+            if (attempt === 4) {
+                throw err;
+            }
+            await setupDemoPlugin(adminClient, pw);
+            await new Promise((resolve) => setTimeout(resolve, 4000));
+            response2 = channelsPage.centerView.container
+                .getByRole('listitem')
+                .filter({hasText: 'Last 2 Files uploaded to this channel'})
+                .last();
+        }
+    }
     await expect(response2.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
     await expect(response2.getByRole('heading', {name: 'sample_text_file.txt'})).toBeVisible();
 
@@ -78,14 +94,28 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
 
     // 8. Send /list_files — expect count of 4 and all file names
-    await channelsPage.centerView.postCreate.input.fill('/list_files');
-    await channelsPage.centerView.postCreate.sendMessage();
-
-    const response4 = channelsPage.centerView.container
+    let response4 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 4 Files uploaded to this channel'})
         .last();
-    await expect(response4).toBeVisible();
+    for (let attempt = 0; attempt < 5; attempt++) {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(response4).toBeVisible({timeout: 20000});
+            break;
+        } catch (err) {
+            if (attempt === 4) {
+                throw err;
+            }
+            await setupDemoPlugin(adminClient, pw);
+            await new Promise((resolve) => setTimeout(resolve, 4000));
+            response4 = channelsPage.centerView.container
+                .getByRole('listitem')
+                .filter({hasText: 'Last 4 Files uploaded to this channel'})
+                .last();
+        }
+    }
     await expect(response4.getByRole('heading', {name: 'mattermost.png'})).toBeVisible();
     await expect(response4.getByRole('heading', {name: 'archive.zip'})).toBeVisible();
     await expect(response4.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();

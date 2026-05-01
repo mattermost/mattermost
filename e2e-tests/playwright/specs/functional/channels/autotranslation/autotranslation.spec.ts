@@ -91,15 +91,29 @@ test(
             user_id: createdPoster.id,
         });
 
+        // Re-apply immediately before viewer loads — concurrent tests can disable autotranslation.
+        await enableAutotranslationConfig(adminClient, {
+            mockBaseUrl: translationUrl,
+            targetLanguages: ['en', 'es'],
+        });
+
         // # Viewer (user) opens the channel and verifies post was translated
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
+        await channelsPage.centerView.container.waitFor({state: 'visible', timeout: 30000});
 
-        // * Verify post is visible (translation happens server-side)
-        // Wait for the post to appear in the channel
-        const postLocator = channelsPage.centerView.container.locator('[id^="post_"]');
-        await expect(postLocator).not.toHaveCount(0, {timeout: 15000});
+        // Mock service appends " [translated to en]" — wait for that instead of any post (avoids
+        // racing on join banners / other posts when translation lags a few seconds).
+        await expect
+            .poll(
+                async () => {
+                    const text = await channelsPage.centerView.container.textContent();
+                    return text?.includes('[translated to en]') && text.includes(message.slice(0, 12));
+                },
+                {timeout: 60000, intervals: [500, 1500, 3000]},
+            )
+            .toBe(true);
     },
 );
 

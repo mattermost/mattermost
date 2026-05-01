@@ -97,6 +97,14 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // STEP 3: Admin manually adds user to channel
         // ============================================================
 
+        await adminClient.patchConfig({
+            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
+        });
+
         // Verify user can be added (policy allows it since user has qualifying attribute)
         await adminClient.addToChannel(testUser.id, privateChannel.id);
 
