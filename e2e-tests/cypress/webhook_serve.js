@@ -305,6 +305,9 @@ function onDateTimeDialogRequest(req, res) {
         case 'timezone-manual':
             dialog = webhookUtils.getTimezoneManualDialog(body.trigger_id, webhookBaseUrl);
             break;
+        case 'minmax':
+            dialog = webhookUtils.getMinMaxDateTimeDialog(body.trigger_id, webhookBaseUrl);
+            break;
         default:
             // Default to basic datetime dialog for backward compatibility
             dialog = webhookUtils.getBasicDateTimeDialog(body.trigger_id, webhookBaseUrl);

@@ -21,7 +21,7 @@ import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
 import SuggestionList from 'components/suggestion/suggestion_list';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {filterEmptyOptions} from 'utils/apps';
+import {filterEmptyOptions, DEFAULT_DATETIME_INTERVAL_MINUTES} from 'utils/apps';
 import {momentToString, stringToMoment, resolveRelativeDate} from 'utils/date_utils';
 
 import type {DoAppCallResult} from 'types/apps';
@@ -30,9 +30,6 @@ import AppsFormField from './apps_form_field';
 import AppsFormHeader from './apps_form_header';
 
 import './apps_form_component.scss';
-
-// Default time interval for DateTime fields in minutes
-const DEFAULT_TIME_INTERVAL_MINUTES = 60;
 
 export type AppsFormProps = {
     form: AppForm;
@@ -156,12 +153,30 @@ const getSafeDateValue = (dateString: string): string => {
 const createSanitizedField = (field: AppField): AppField => {
     const sanitized = {...field};
 
-    // Sanitize time_interval for datetime fields
-    if (field.type === AppFieldTypes.DATETIME && field.time_interval !== undefined) {
-        const interval = field.time_interval;
-        if (typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
-            sanitized.time_interval = DEFAULT_TIME_INTERVAL_MINUTES;
+    // For datetime fields, merge deprecated top-level fields into datetime_config
+    // so downstream components only need to read from datetime_config.
+    if (field.type === AppFieldTypes.DATETIME) {
+        const config = field.datetime_config || {};
+        const mergedConfig = {
+            ...config,
+            time_interval: config.time_interval ?? field.time_interval,
+            min_date: config.min_date ?? field.min_date,
+            max_date: config.max_date ?? field.max_date,
+        };
+
+        // Sanitize time_interval
+        const interval = mergedConfig.time_interval;
+        if (interval === undefined || typeof interval !== 'number' || interval <= 0 || interval > 1440 || 1440 % interval !== 0) {
+            mergedConfig.time_interval = DEFAULT_DATETIME_INTERVAL_MINUTES;
         }
+
+        // Note: min_date/max_date are NOT run through getSafeDateValue here.
+        // getSafeDateValue strips time components (via resolveRelativeDate and .split('T')[0]),
+        // which destroys sub-day relative patterns (+2H, +30M) and absolute datetime values
+        // (2025-01-15T14:30:00Z). These values are validated server-side and resolved with
+        // full precision by stringToMoment in AppsFormDateTimeField.
+
+        sanitized.datetime_config = mergedConfig;
     }
 
     // Sanitize date values for date fields only — datetime fields need the full pattern preserved
@@ -172,7 +187,7 @@ const createSanitizedField = (field: AppField): AppField => {
         if (field.max_date) {
             sanitized.max_date = getSafeDateValue(field.max_date);
         }
-        if (field.type === AppFieldTypes.DATE && field.value && typeof field.value === 'string') {
+        if (field.value && typeof field.value === 'string') {
             sanitized.value = getSafeDateValue(field.value);
         }
     }
@@ -207,8 +222,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Set default to current time for required datetime fields
                 const currentTime = timezone ? moment.tz(timezone) : moment();
 
-                // Use sanitized time_interval (guaranteed to be valid)
-                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
+                // Use sanitized time_interval from datetime_config (canonical location after sanitization)
+                const timePickerInterval = field.datetime_config?.time_interval ?? DEFAULT_DATETIME_INTERVAL_MINUTES;
 
                 // Round up to next time interval
                 const minutesMod = currentTime.minutes() % timePickerInterval;
@@ -798,8 +813,10 @@ function fieldsAsElements(fields?: AppField[]): DialogElement[] {
         type: f.type,
         subtype: f.subtype,
         optional: !f.is_required,
+        datetime_config: f.datetime_config,
         min_date: f.min_date,
         max_date: f.max_date,
+        time_interval: f.time_interval,
     })) as DialogElement[];
 }
 

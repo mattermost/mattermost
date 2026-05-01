@@ -178,27 +178,27 @@ describe('AppsFormDateTimeField', () => {
         expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
     });
 
-    describe('allowPastDates logic', () => {
-        it('should allow past dates by default (no min_date)', () => {
+    describe('minDateTime/maxDateTime resolution', () => {
+        it('should pass no minDateTime by default (no min_date)', () => {
             renderComponent({value: '2025-01-15T14:30:00Z'});
 
-            // DateTimeInput should receive allowPastDates=true by default
+            // DateTimeInput should render without minDateTime restriction
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
         });
 
-        it('should restrict past dates when min_date is today or future', () => {
+        it('should pass minDateTime when min_date is set', () => {
             const fieldWithMinDate = {...defaultField, min_date: 'today'};
             renderComponent({field: fieldWithMinDate, value: '2025-01-15T14:30:00Z'});
 
-            // DateTimeInput should receive allowPastDates=false
+            // DateTimeInput should receive a minDateTime derived from min_date
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
         });
 
-        it('should allow past dates when min_date is in the past', () => {
+        it('should pass minDateTime from past min_date', () => {
             const fieldWithMinDate = {...defaultField, min_date: '-5d'};
             renderComponent({field: fieldWithMinDate, value: '2025-01-15T14:30:00Z'});
 
-            // DateTimeInput should receive allowPastDates=true
+            // DateTimeInput should receive a minDateTime 5 days ago
             expect(screen.getByTestId('datetime-input')).toBeInTheDocument();
         });
     });

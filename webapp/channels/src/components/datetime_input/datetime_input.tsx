@@ -3,7 +3,7 @@
 
 import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
-import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react';
+import React, {useEffect, useState, useCallback, useRef, useMemo} from 'react';
 import type {DayModifiers, DayPickerProps} from 'react-day-picker';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -14,26 +14,23 @@ import {isUseMilitaryTime} from 'selectors/preferences';
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
 
+import {DEFAULT_DATETIME_INTERVAL_MINUTES} from 'utils/apps';
 import Constants from 'utils/constants';
-import {formatDateForDisplay} from 'utils/date_utils';
+import {formatDateForDisplay, getRoundedTime, momentToLocalDate} from 'utils/date_utils';
 import {relativeFormatDate} from 'utils/datetime';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone, isBeforeTime} from 'utils/timezone';
 
 const CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES = 30;
 
-function momentToLocalDate(m: Moment): Date {
-    return new Date(m.year(), m.month(), m.date());
-}
-
-export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
-    const diff = value.minute() % roundedTo;
-    if (diff === 0) {
-        // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
+function getTimeAriaDescribedBy(timeInputError: boolean, timeClampedMessage: string | null): string | undefined {
+    if (timeInputError) {
+        return 'time_input_error';
     }
-    const remainder = roundedTo - diff;
-    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
+    if (timeClampedMessage) {
+        return 'time_input_clamped';
+    }
+    return undefined;
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
@@ -132,6 +129,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     const {formatMessage} = useIntl();
     const [timeInputValue, setTimeInputValue] = useState<string>('');
     const [timeInputError, setTimeInputError] = useState<boolean>(false);
+    const [timeClampedMessage, setTimeClampedMessage] = useState<string | null>(null);
     const timeInputRef = useRef<HTMLInputElement>(null);
 
     // Sync input value with time prop changes
@@ -147,6 +145,7 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
     const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setTimeInputValue(event.target.value);
         setTimeInputError(false); // Clear error as user types
+        setTimeClampedMessage(null); // Clear clamp notice as user types
     }, []);
 
     const handleTimeInputBlur = useCallback(() => {
@@ -181,17 +180,24 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
             targetMoment = baseMoment;
         }
 
+        let clamped = false;
         if (minDateTime && targetMoment.isBefore(minDateTime, 'minute')) {
             targetMoment = minDateTime.clone();
+            clamped = true;
         }
         if (maxDateTime && targetMoment.isAfter(maxDateTime, 'minute')) {
             targetMoment = maxDateTime.clone();
+            clamped = true;
         }
 
         // Valid time - update (no auto-advance, no exclusion checking)
         onTimeChange(targetMoment);
         setTimeInputError(false);
-    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime]);
+        setTimeClampedMessage(clamped ? formatMessage({
+            id: 'datetime.time_adjusted',
+            defaultMessage: 'Time adjusted to nearest allowed time.',
+        }) : null);
+    }, [timeInputValue, time, timezone, onTimeChange, minDateTime, maxDateTime, formatMessage]);
 
     const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
         if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
@@ -211,12 +217,33 @@ const TimeInputManual: React.FC<TimeInputManualProps> = ({
                 onChange={handleTimeInputChange}
                 onBlur={handleTimeInputBlur}
                 onKeyDown={handleTimeInputKeyDown}
-                placeholder={isMilitaryTime ? '13:40' : '1:40 PM'}
+                placeholder={isMilitaryTime ? '13:40' : moment().hour(13).minute(40).format('LT')}
                 aria-label={formatMessage({
                     id: 'datetime.time',
                     defaultMessage: 'Time',
                 })}
+                aria-invalid={timeInputError}
+                aria-describedby={getTimeAriaDescribedBy(timeInputError, timeClampedMessage)}
             />
+            {timeInputError && (
+                <span
+                    id='time_input_error'
+                    className='date-time-input__error-text'
+                >
+                    {formatMessage({
+                        id: 'datetime.invalid_time_format',
+                        defaultMessage: 'Enter a valid time (e.g. {example}).',
+                    }, {example: isMilitaryTime ? '13:40' : moment().hour(13).minute(40).format('LT')})}
+                </span>
+            )}
+            {timeClampedMessage && !timeInputError && (
+                <span
+                    id='time_input_clamped'
+                    className='date-time-input__info-text'
+                >
+                    {timeClampedMessage}
+                </span>
+            )}
         </div>
     );
 };
@@ -228,7 +255,6 @@ type Props = {
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
     timePickerInterval?: number;
-    allowPastDates?: boolean;
     allowManualTimeEntry?: boolean;
     minDateTime?: Moment;
     maxDateTime?: Moment;
@@ -241,12 +267,10 @@ const DateTimeInputContainer: React.FC<Props> = ({
     setIsInteracting,
     relativeDate,
     timePickerInterval,
-    allowPastDates = false,
     allowManualTimeEntry = false,
     minDateTime,
     maxDateTime,
 }: Props) => {
-    const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
     const locale = useSelector(getCurrentLocale);
     const isMilitaryTime = useSelector(isUseMilitaryTime);
@@ -321,35 +345,31 @@ const DateTimeInputContainer: React.FC<Props> = ({
         }
     }, [time, timePickerInterval, handleChange, allowManualTimeEntry]);
 
-    const setTimeAndOptions = () => {
+    useEffect(() => {
+        // Compute fresh currentTime inside the effect so it never goes stale between renders
+        const freshCurrentTime = getCurrentMomentForTimezone(timezone);
+
         // Use displayTime if available, otherwise use currentTime for generating dropdown
         // This ensures dropdown always has options even for optional fields with null time
-        const timeForOptions = displayTime || currentTime;
+        const timeForOptions = displayTime || freshCurrentTime;
 
         // Use clone() to preserve timezone information
-        let startTime = timeForOptions.clone().startOf('day');
-
-        // For form fields (allowPastDates=true), always start from beginning of day
-        // For scheduling (allowPastDates=false), restrict to current time if today
-        if (!allowPastDates && currentTime.isSame(timeForOptions, 'date')) {
-            startTime = getRoundedTime(currentTime, timePickerInterval);
-        }
+        const startTime = timeForOptions.clone().startOf('day');
 
         let options = getTimeInIntervals(startTime, timePickerInterval);
 
-        if (minDateTime && timeForOptions.isSame(minDateTime, 'date')) {
+        const tz = timezone || moment.tz.guess();
+        if (minDateTime && timeForOptions.isSame(minDateTime.clone().tz(tz), 'date')) {
             options = options.filter((opt) => !opt.isBefore(minDateTime, 'minute'));
         }
-        if (maxDateTime && timeForOptions.isSame(maxDateTime, 'date')) {
+        if (maxDateTime && timeForOptions.isSame(maxDateTime.clone().tz(tz), 'date')) {
             options = options.filter((opt) => !opt.isAfter(maxDateTime, 'minute'));
         }
 
         setTimeOptions(options);
-    };
+    }, [displayTime, timePickerInterval, timezone, minDateTime, maxDateTime]);
 
-    useEffect(setTimeAndOptions, [displayTime, timePickerInterval, allowPastDates, timezone, minDateTime, maxDateTime]);
-
-    const handleDayChange = (day: Date, modifiers: DayModifiers) => {
+    const handleDayChange = useCallback((day: Date, modifiers: DayModifiers) => {
         // Use existing time if available, otherwise use current time in display timezone
         let effectiveTime = displayTime;
         if (!effectiveTime) {
@@ -360,17 +380,23 @@ const DateTimeInputContainer: React.FC<Props> = ({
             // For dropdown, use rounded time
             effectiveTime = allowManualTimeEntry ?
                 nowInTimezone :
-                getRoundedTime(nowInTimezone, timePickerInterval || 60);
+                getRoundedTime(nowInTimezone, timePickerInterval ?? DEFAULT_DATETIME_INTERVAL_MINUTES);
         }
 
         let result: Moment;
         if (modifiers.today) {
             const baseTime = getCurrentMomentForTimezone(timezone);
-            if (!allowPastDates && isBeforeTime(baseTime, effectiveTime)) {
-                baseTime.hour(effectiveTime.hours());
-                baseTime.minute(effectiveTime.minutes());
+            if (allowManualTimeEntry) {
+                // Preserve exact manual-entry time when selecting today
+                baseTime.hour(effectiveTime.hour()).minute(effectiveTime.minute()).second(0).millisecond(0);
+                result = baseTime;
+            } else {
+                if (minDateTime && isBeforeTime(baseTime, effectiveTime)) {
+                    baseTime.hour(effectiveTime.hours());
+                    baseTime.minute(effectiveTime.minutes());
+                }
+                result = getRoundedTime(baseTime, timePickerInterval);
             }
-            result = getRoundedTime(baseTime, timePickerInterval);
         } else if (timezone) {
             // Use moment.tz array syntax to create moment directly in timezone
             // This is the same pattern used by manual entry (which works correctly)
@@ -389,26 +415,24 @@ const DateTimeInputContainer: React.FC<Props> = ({
             result = moment(day);
         }
 
-        if (minDateTime) {
-            result = moment.max(result, minDateTime);
+        // Clamp to min/max bounds
+        if (minDateTime && result.isBefore(minDateTime, 'minute')) {
+            result = minDateTime.clone();
         }
-        if (maxDateTime) {
-            result = moment.min(result, maxDateTime);
+        if (maxDateTime && result.isAfter(maxDateTime, 'minute')) {
+            result = maxDateTime.clone();
         }
 
         handleChange(result);
         handlePopperOpenState(false);
-    };
+    }, [displayTime, allowManualTimeEntry, timezone, timePickerInterval, minDateTime, maxDateTime, handleChange, handlePopperOpenState]);
 
     const formatDate = (date: Moment): string => {
         if (relativeDate) {
             return relativeFormatDate(date, formatMessage);
         }
 
-        // Extract date in the moment's timezone, not UTC
-        // .toDate() would convert to UTC and lose the timezone-specific date
-        const dateInTimezone = new Date(date.year(), date.month(), date.date());
-        return formatDateForDisplay(dateInTimezone, locale);
+        return formatDateForDisplay(momentToLocalDate(date)!, locale);
     };
 
     const calendarIcon = (
@@ -419,27 +443,18 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-clock-outline'/>
     );
 
-    // Use date-only string as dep so the memo only recomputes when the calendar date changes,
-    // not on every render (currentTime is a new Moment each render).
-    const todayDateString = currentTime.format('YYYY-MM-DD');
-
     const disabledDays = useMemo(() => {
         const matchers: Array<{before: Date} | {after: Date}> = [];
-        if (minDateTime) {
-            matchers.push({before: momentToLocalDate(minDateTime)});
-        } else if (!allowPastDates) {
-            matchers.push({before: momentToLocalDate(currentTime)});
+        const minDate = minDateTime ? momentToLocalDate(minDateTime.clone().startOf('day')) : undefined;
+        const maxDate = maxDateTime ? momentToLocalDate(maxDateTime.clone().startOf('day')) : undefined;
+        if (minDate) {
+            matchers.push({before: minDate});
         }
-        if (maxDateTime) {
-            // If maxDateTime is exactly midnight, no time on that day is usable — disable the day itself
-            if (maxDateTime.isSame(maxDateTime.clone().startOf('day'), 'minute')) {
-                matchers.push({after: momentToLocalDate(maxDateTime.clone().subtract(1, 'day'))});
-            } else {
-                matchers.push({after: momentToLocalDate(maxDateTime)});
-            }
+        if (maxDate) {
+            matchers.push({after: maxDate});
         }
         return matchers.length > 0 ? matchers : undefined;
-    }, [minDateTime, maxDateTime, allowPastDates, todayDateString]); // eslint-disable-line react-hooks/exhaustive-deps -- currentTime used inside but todayDateString tracks the relevant change (date only)
+    }, [minDateTime, maxDateTime]);
 
     const datePickerProps: DayPickerProps = {
         initialFocus: isPopperOpen,
@@ -524,7 +539,21 @@ const DateTimeInputContainer: React.FC<Props> = ({
                             className: 'time-menu-scrollable',
                         }}
                     >
-                        {timeOptions.map((option, index) => (
+                        {timeOptions.length === 0 ? (
+                            <Menu.Item
+                                key='no-times'
+                                id='time_option_none'
+                                disabled={true}
+                                labels={
+                                    <span className='date-time-input__no-times'>
+                                        {formatMessage({
+                                            id: 'datetime.no_times_available',
+                                            defaultMessage: 'No times available for this date. Select a different date.',
+                                        })}
+                                    </span>
+                                }
+                            />
+                        ) : timeOptions.map((option, index) => (
                             <Menu.Item
                                 key={index}
                                 id={`time_option_${index}`}

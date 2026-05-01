@@ -522,6 +522,39 @@ function getRelativeDateDialog(triggerId, webhookBaseUrl) {
     };
 }
 
+// DateTime field with datetime_config.min_date/max_date constraints - MM-T2530I/J/K
+function getMinMaxDateTimeDialog(triggerId, webhookBaseUrl) {
+    return createDialog(triggerId, webhookBaseUrl, {
+        callback_id: 'minmax_datetime_callback',
+        title: 'DateTime Min/Max Test',
+        elements: [
+            {
+                display_name: 'Constrained DateTime',
+                name: 'constrained_datetime',
+                type: 'datetime',
+                help_text: 'Only dates from today to 7 days out',
+                optional: true,
+                datetime_config: {
+                    min_date: 'today',
+                    max_date: '+7d',
+                    time_interval: 60,
+                },
+            },
+            {
+                display_name: 'Time-Filtered DateTime',
+                name: 'time_filtered_datetime',
+                type: 'datetime',
+                help_text: 'Min 2 hours from now — filters early time slots',
+                optional: true,
+                datetime_config: {
+                    min_date: '+2H',
+                    time_interval: 60,
+                },
+            },
+        ],
+    });
+}
+
 // Legacy function for backward compatibility - returns basic datetime dialog
 function getDateTimeDialog(triggerId, webhookBaseUrl) {
     return getBasicDateTimeDialog(triggerId, webhookBaseUrl);
@@ -588,4 +621,5 @@ module.exports = {
     getCustomIntervalDialog,
     getRelativeDateDialog,
     getTimezoneManualDialog,
+    getMinMaxDateTimeDialog,
 };

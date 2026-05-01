@@ -7,6 +7,9 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 export const appsPluginID = 'com.mattermost.apps';
 
+// Default time interval for DateTime fields in minutes
+export const DEFAULT_DATETIME_INTERVAL_MINUTES = 60;
+
 export function createCallContext(
     appID: string,
     location?: string,
