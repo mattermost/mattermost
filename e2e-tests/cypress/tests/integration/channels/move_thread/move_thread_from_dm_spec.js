@@ -207,10 +207,10 @@ describe('Move Thread', () => {
 
             if (cancel) {
                 // * Assert if button is active
-                cy.findByText('Cancel').should('not.be.disabled').click();
+                cy.findByRole('button', {name: 'Cancel'}).should('not.be.disabled').click();
             } else {
                 // * Assert if button is active
-                cy.findByText('Move').should('not.be.disabled').click();
+                cy.findByRole('button', {name: 'Move'}).should('not.be.disabled').click();
             }
         });
     };
