@@ -3088,7 +3088,7 @@
   "admin.system_properties.user_properties.table.display_name_header": "Display Name",
   "admin.system_properties.user_properties.table.display_name.input.label": "Display Name",
   "admin.system_properties.user_properties.table.filter_type": "Attribute type",
-  "admin.system_properties.user_properties.table.identifier.tooltip": "CEL identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore.",
+  "admin.system_properties.user_properties.table.identifier.tooltip": "CEL identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.",
   "admin.system_properties.user_properties.table.name": "Name",
   "admin.system_properties.user_properties.table.property_name.input.name": "Attribute Name",
   "admin.system_properties.user_properties.table.select_type.email": "Email",

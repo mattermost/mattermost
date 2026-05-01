@@ -10,6 +10,8 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import {searchUsersForExpression} from 'mattermost-redux/actions/access_control';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {CPA_FIELD_NAME_PATTERN} from 'utils/properties';
+
 import AttributeSelectorMenu from './attribute_selector_menu';
 import OperatorSelectorMenu from './operator_selector_menu';
 import type {TableRow} from './value_selector_menu';
@@ -92,12 +94,12 @@ export const findFirstAvailableAttributeFromList = (
     enableUserManagedAttributes: boolean,
 ): UserPropertyField | undefined => {
     return userAttributes.find((attr) => {
-        const hasSpaces = attr.name.includes(' ');
+        const isValidCELIdentifier = CPA_FIELD_NAME_PATTERN.test(attr.name);
         const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
         const isAdminManaged = attr.attrs?.managed === 'admin';
         const isProtected = attr.attrs?.protected;
         const allowed = isSynced || isAdminManaged || isProtected || enableUserManagedAttributes;
-        return !hasSpaces && allowed;
+        return isValidCELIdentifier && allowed;
     });
 };
 

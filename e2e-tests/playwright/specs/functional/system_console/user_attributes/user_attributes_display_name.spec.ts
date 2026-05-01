@@ -46,16 +46,8 @@ async function getFieldsMap(client: Client4): Promise<FieldsMap> {
     }, {});
 }
 
-async function cleanupAllFields(client: Client4) {
-    const fieldsMap = await getFieldsMap(client);
-    if (Object.keys(fieldsMap).length > 0) {
-        await deleteCustomProfileAttributes(client, fieldsMap);
-    }
-}
-
 async function setupTest(pw: PlaywrightExtended): Promise<TestContext> {
     const {adminClient, adminUser} = await createAdminClient();
-    await cleanupAllFields(adminClient);
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     await systemConsolePage.goto();
@@ -75,6 +67,27 @@ async function getTownSquareRoute(adminClient: Client4) {
         teamName: team.name,
         channelName: channel.name,
     };
+}
+
+async function enableIntegratedBoardsFlag(adminClient: Client4): Promise<boolean> {
+    const config = await adminClient.getConfig();
+    const wasEnabled = config.FeatureFlags?.IntegratedBoards === true;
+    if (!wasEnabled) {
+        await adminClient.patchConfig({
+            FeatureFlags: {
+                IntegratedBoards: true,
+            },
+        });
+    }
+    return wasEnabled;
+}
+
+async function disableIntegratedBoardsFlag(adminClient: Client4) {
+    await adminClient.patchConfig({
+        FeatureFlags: {
+            IntegratedBoards: false,
+        },
+    });
 }
 
 async function seedLegacyField(adminClient: Client4, uid: number): Promise<UserPropertyField> {
@@ -253,9 +266,11 @@ test.describe('System Console - User Attributes display names', () => {
         const originalIdentifier = `Legacy Field_${uid}`;
         const validIdentifier = `legacy_field_${uid}`;
         let legacyField: UserPropertyField | undefined;
+        let flagWasEnabled = false;
 
         try {
-            // # Seed a legacy invalid identifier to exercise grandfathered behavior
+            // # Enable IntegratedBoards flag and seed a legacy invalid identifier
+            flagWasEnabled = await enableIntegratedBoardsFlag(adminClient);
             legacyField = await seedLegacyField(adminClient, uid);
 
             await sp.goto();
@@ -301,6 +316,9 @@ test.describe('System Console - User Attributes display names', () => {
         } finally {
             if (legacyField) {
                 await adminClient.deleteCustomProfileAttributeField(legacyField.id).catch(() => undefined);
+            }
+            if (!flagWasEnabled) {
+                await disableIntegratedBoardsFlag(adminClient).catch(() => undefined);
             }
         }
     });

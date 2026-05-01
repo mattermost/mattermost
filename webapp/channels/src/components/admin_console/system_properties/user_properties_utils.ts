@@ -298,10 +298,14 @@ export const ValidationWarningNameInvalidCEL = 'user_properties.validation.name_
 export const ValidationWarningOptionsRequired = 'user_properties.validation.options_required';
 
 const getIncrementedCELName = (desiredName: string, collection: UserPropertyFields) => {
-    const names = new Set(Object.values(collection.data).map(({name}) => name));
+    const names = new Set(
+        Object.values(collection.data)
+            .filter(({delete_at}) => delete_at === 0)
+            .map(({name}) => name.toLowerCase()),
+    );
     let newName = desiredName;
     let n = 1;
-    while (names.has(newName)) {
+    while (names.has(newName.toLowerCase())) {
         n++;
         newName = `${desiredName}_${n}`;
     }

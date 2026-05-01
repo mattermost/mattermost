@@ -111,9 +111,10 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
                 await expect(addAttributeButton).toBeEnabled({timeout: 10000});
                 await addAttributeButton.click();
-                await page.waitForTimeout(500);
 
                 const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+                await attributeButton.waitFor({state: 'visible', timeout: 5000});
+                
                 const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
 
                 if (!(await attributeMenu.isVisible({timeout: 1000}).catch(() => false))) {
@@ -151,19 +152,18 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 // # Select 'Department Head'
                 await filterInput.fill('');
                 await deptHeadItem.first().click({force: true});
-                await page.waitForTimeout(500);
 
                 // * The trigger button shows display_name, not the CEL identifier
-                await expect(attributeButton).toContainText('Department Head');
+                await expect(attributeButton).toContainText('Department Head', {timeout: 5000});
 
                 // # Complete and save the rule
                 const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
                 await operatorButton.waitFor({state: 'visible', timeout: 5000});
                 await operatorButton.click({force: true});
-                await page.waitForTimeout(300);
 
-                await page.locator('[id^="operator-selector-menu"] li:has-text("is")').first().click({force: true});
-                await page.waitForTimeout(300);
+                const operatorMenu = page.locator('[id^="operator-selector-menu"]');
+                await operatorMenu.waitFor({state: 'visible', timeout: 5000});
+                await operatorMenu.locator('li:has-text("is")').first().click({force: true});
 
                 const valueInput = page.locator('.values-editor__simple-input').first();
                 await valueInput.waitFor({state: 'visible', timeout: 10000});
@@ -174,8 +174,8 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 await expect(saveButton).toBeEnabled({timeout: 10000});
                 await saveButton.click();
 
-                await page.waitForLoadState('networkidle');
-                await page.waitForTimeout(1000);
+                // Wait for the save to complete by checking the save button is disabled again
+                await expect(saveButton).toBeDisabled({timeout: 10000});
 
                 // * The persisted CEL uses the canonical identifier, not display_name
                 policyId = await getPolicyIdByName(adminClient, policyName);

@@ -308,7 +308,7 @@ export function UserPropertiesTable({
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
-                                maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
+                                maxLength={CPA_FIELD_NAME_MAX_RUNES}
                             />
                             {!toDelete && warning}
                         </>
