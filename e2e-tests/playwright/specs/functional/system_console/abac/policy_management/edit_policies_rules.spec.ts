@@ -18,6 +18,7 @@ import {
     createAdvancedPolicy,
     waitForLatestSyncJob,
     getPolicyIdByName,
+    enableUserManagedAttributes,
 } from '../support';
 
 // Restore AccessControlSettings to the shared baseline expected by
@@ -334,6 +335,7 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
 
     // Wait for attributes to be indexed
     await new Promise((resolve) => setTimeout(resolve, 2000));
+    await enableUserManagedAttributes(adminClient);
 
     // Create users:
     // 1. engineerRemoteUser: Dept=Engineering, Office=Remote → satisfies ORIGINAL (both rules)
@@ -436,43 +438,22 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
         }
     }
 
-    // Check if Monaco editor is visible - if not, switch to Advanced mode
-    let monacoContainer = page.locator('.monaco-editor').first();
-    const isMonacoVisible = await monacoContainer.isVisible({timeout: 2000}).catch(() => false);
-
-    if (!isMonacoVisible) {
-        const advancedModeButton = page.getByRole('button', {name: /advanced|switch to advanced/i});
-        if (await advancedModeButton.isVisible({timeout: 5000}).catch(() => false)) {
-            await expect(advancedModeButton).toBeEnabled({timeout: 60_000});
-            await advancedModeButton.click();
-            await page.waitForTimeout(2000);
-        }
+    // Remove the Office rule in Simple mode (table editor). Opening an Advanced-created policy
+    // can leave the UI in CEL mode; "Switch to Advanced Mode" stays disabled while attributes load.
+    const switchToSimpleButton = page.getByRole('button', {name: /switch to simple mode/i});
+    if (await switchToSimpleButton.isVisible({timeout: 5000}).catch(() => false)) {
+        await expect(switchToSimpleButton).toBeEnabled({timeout: 60_000});
+        await switchToSimpleButton.click();
+        await page.waitForTimeout(500);
     }
 
-    monacoContainer = page.locator('.monaco-editor').first();
-    await monacoContainer.waitFor({state: 'visible', timeout: 10000});
-
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    await editorLines.waitFor({state: 'visible', timeout: 5000});
+    const officeRowRemove = page
+        .locator('.table-editor__row')
+        .filter({hasText: 'Office'})
+        .getByRole('button', {name: 'Remove row'});
+    await expect(officeRowRemove).toBeVisible({timeout: 15_000});
+    await officeRowRemove.click();
     await page.waitForTimeout(500);
-
-    await editorLines.click({force: true});
-    await page.waitForTimeout(300);
-
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-    await page.waitForTimeout(200);
-
-    const newExpression = 'user.attributes.Department == "Engineering"';
-    await page.keyboard.type(newExpression, {delay: 10});
-    await page.waitForTimeout(1000);
-
-    const validIndicator = page.locator('text=Valid').first();
-    try {
-        await validIndicator.waitFor({state: 'visible', timeout: 10000});
-    } catch {
-        // Ignore if Valid indicator doesn't appear
-    }
 
     // ===========================================
     // STEP 3: Test Access Rule

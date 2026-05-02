@@ -55,10 +55,10 @@ test.describe('System Console Notifications', () => {
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page
+        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.notifications.click();
+        await systemConsolePage.gotoNotificationsSettings();
 
         // # Wait for Notifications section to load
         const notifications = systemConsolePage.notifications;
@@ -70,7 +70,7 @@ test.describe('System Console Notifications', () => {
         // renders with all required fields populated.
         await resetNotificationsConfig(adminClient);
         await systemConsolePage.page.reload();
-        await systemConsolePage.sidebar.notifications.click();
+        await systemConsolePage.gotoNotificationsSettings();
         await notifications.toBeVisible();
 
         // * Verify that setting is visible and matches text content
@@ -121,7 +121,7 @@ test.describe('System Console Notifications', () => {
             for (let attempt = 0; attempt < 8 && !saved; attempt++) {
                 await resetNotificationsConfig(adminClient);
                 await systemConsolePage.page.reload();
-                await systemConsolePage.sidebar.notifications.click();
+                await systemConsolePage.gotoNotificationsSettings();
                 await notifications.toBeVisible();
                 await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
                 await notifications.pushNotificationContents.toBeVisible();
@@ -173,10 +173,10 @@ test.describe('System Console Notifications', () => {
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page
+        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.notifications.click();
+        await systemConsolePage.gotoNotificationsSettings();
 
         // # Wait for Notifications section to load
         const notifications = systemConsolePage.notifications;
@@ -232,10 +232,10 @@ test.describe('System Console Notifications', () => {
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page
+        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.notifications.click();
+        await systemConsolePage.gotoNotificationsSettings();
 
         // # Wait for Notifications section to load
         const notifications = systemConsolePage.notifications;

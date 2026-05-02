@@ -98,6 +98,7 @@ class SidebarSection {
     }
 
     async click() {
+        await this.link.scrollIntoViewIfNeeded();
         await this.link.click();
     }
 
