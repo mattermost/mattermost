@@ -167,11 +167,13 @@ class AdminUserCard {
 
     /**
      * Get the .field-column container for a field by its exact label text.
+     * CPA fields use <label class="cpa-field"> with FormattedMessage — the visible name is often
+     * not wrapped in <span>, so span:text-is would miss them. Match any exact text node instead.
      */
     private getFieldColumn(labelText: string): Locator {
-        return this.body
-            .locator('.field-column')
-            .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
+        return this.body.locator('.field-column').filter({
+            has: this.body.page().getByText(labelText, {exact: true}),
+        });
     }
 
     /**

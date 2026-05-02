@@ -158,20 +158,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // custom profile attribute fields (which are fetched asynchronously after mount).
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
-        // Wait for CPA UI: definitions load into Redux after mount. Prefer "Department" over "Work Email"
-        // — the latter can be absent if the field row is still filtered or slow; Department is first in testUserAttributes.
-        await expect(
-            systemConsolePage.page.locator('.AdminUserCard').getByText('Department', {exact: true}),
-        ).toBeVisible({timeout: 30000});
-        await expect(
-            systemConsolePage.page
-                .locator('.AdminUserCard')
-                .locator('.AdminUserCard__body')
-                .locator('.field-column')
-                .filter({has: systemConsolePage.page.locator('span:text-is("Work Email")')})
-                .locator('input')
-                .first(),
-        ).toBeVisible({timeout: 30_000});
+        // Wait for CPA UI: definitions load into Redux after mount; Work Email uses cpa-field labels
+        // (no span wrapper) — resolved via AdminUserCard page object, not span:text-is.
+        const {userCard} = systemConsolePage.users.userDetail;
+        await expect(userCard.getFieldInputByExactLabel('Department')).toBeVisible({timeout: 30_000});
+        await expect(userCard.getFieldInputByExactLabel('Work Email')).toBeVisible({timeout: 30_000});
     });
 
     test.afterEach(async ({pw}) => {
