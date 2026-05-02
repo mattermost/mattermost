@@ -214,8 +214,10 @@ export async function testAccessRule(
         searchForUser?: string; // optional: search for a specific user in the modal
     } = {},
 ): Promise<TestAccessRuleResult> {
-    const testButton = page.locator('button').filter({hasText: 'Test access rule'});
-    await testButton.waitFor({state: 'visible', timeout: 5000});
+    const testButton = page.getByRole('button', {name: /test access rule/i});
+    await expect(testButton).toBeVisible({timeout: 10_000});
+    // Disabled while CPA fields are still loading or when no usable attributes exist (policy_details noUsableAttributes).
+    await expect(testButton).toBeEnabled({timeout: 90_000});
     await testButton.click();
 
     const modal = page.locator('[role="dialog"], .modal').filter({hasText: 'Access Rule Test Results'});

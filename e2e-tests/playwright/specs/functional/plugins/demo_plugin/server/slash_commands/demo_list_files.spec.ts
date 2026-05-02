@@ -52,13 +52,29 @@ test('should list uploaded files with running total via /list_files command', as
     await channelsPage.goto(team.name, 'list-files-test');
     await channelsPage.toBeVisible();
 
-    // 4. Send /list_files with no files — expect 0 count
-    await channelsPage.centerView.postCreate.input.fill('/list_files');
-    await channelsPage.centerView.postCreate.sendMessage();
+    await channelsPage.page.waitForTimeout(6000);
 
-    await expect(
-        channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {exact: true}),
-    ).toBeVisible();
+    // 4. Send /list_files with no files — expect 0 count (retry: plugin hook races with initSetup)
+    let emptyResponse = channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {
+        exact: true,
+    });
+    for (let attempt = 0; attempt < 5; attempt++) {
+        await setupDemoPlugin(adminClient, pw);
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+        try {
+            await expect(emptyResponse).toBeVisible({timeout: 20000});
+            break;
+        } catch (err) {
+            if (attempt === 4) {
+                throw err;
+            }
+            await channelsPage.page.waitForTimeout(4000);
+            emptyResponse = channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {
+                exact: true,
+            });
+        }
+    }
 
     // 5. Upload first batch of 2 files via API
     // (avoids demo plugin's custom attachment menu intercepting the UI)

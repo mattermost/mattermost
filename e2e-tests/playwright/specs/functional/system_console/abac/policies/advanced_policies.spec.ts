@@ -384,26 +384,39 @@ test.describe('ABAC Policies - Advanced Policies', () => {
 
         await enableUserManagedAttributes(adminClient);
 
+        // Avoid deleting every CPA field on the server — that briefly leaves ABAC with zero usable
+        // attributes and keeps "Test access rule" disabled until fields reload. Only reset fields
+        // this scenario depends on.
         try {
-            const existingFields = await (adminClient as any).doFetch(
-                `${adminClient.getBaseRoute()}/custom_profile_attributes/fields`,
-                {method: 'GET'},
-            );
-            for (const field of existingFields || []) {
-                try {
-                    await adminClient.deleteCustomProfileAttributeField(field.id);
-                } catch {
-                    // Ignore deletion errors
+            const existingFields = await adminClient.getCustomProfileAttributeFields();
+            for (const name of ['Department', 'Location']) {
+                const field = existingFields.find((f: {name: string}) => f.name === name);
+                if (field?.id) {
+                    try {
+                        await adminClient.deleteCustomProfileAttributeField(field.id);
+                    } catch {
+                        // Ignore — parallel tests may have deleted or locked the field
+                    }
                 }
             }
         } catch {
-            // Ignore errors
+            // Ignore — proceed with setupCustomProfileAttributeFields
         }
 
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
             {name: 'Department', type: 'text'},
             {name: 'Location', type: 'text'},
         ]);
+
+        await expect
+            .poll(
+                async () => {
+                    const cfg = await adminClient.getConfig();
+                    return cfg.AccessControlSettings?.EnableUserManagedAttributes === true;
+                },
+                {timeout: 30_000, intervals: [500, 1500, 3000]},
+            )
+            .toBe(true);
 
         Object.keys(attributeFieldsMap);
 
