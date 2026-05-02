@@ -10,7 +10,7 @@ export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangu
 export {duration, getRandomId, wait, newTestPassword} from './util';
 export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
-export {getAdminClient} from './server';
+export {getAdminClient, mergeWithOnPremServerConfig, getOnPremServerConfig} from './server';
 
 export {
     ChannelsPage,
