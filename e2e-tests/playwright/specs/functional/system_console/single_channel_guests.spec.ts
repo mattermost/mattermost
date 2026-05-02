@@ -332,28 +332,30 @@ test.describe('Single-channel guests', () => {
                 await adminClient.addToChannel(guest.id, ch.id);
             }
 
-            // # Log in as admin
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+            // # Log in as admin (new browser context + page).
+            const {context, systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-            // # Mock the server limits API to simulate overage.
-            // We mock BOTH singleChannelGuestLimit (to 1) AND singleChannelGuestCount (to 3)
-            // because analytics indexing is asynchronous — the real count may still be 0
-            // immediately after creating guests, which would not trigger error styling.
-            // Use a URL predicate (not a glob) so the mock intercepts requests regardless of
-            // any query-string cache-busters the frontend may append.
-            await systemConsolePage.page.route(
-                (url) => url.pathname === '/api/v4/limits/server',
-                async (route) => {
-                    const response = await route.fetch();
-                    const json = await response.json();
-                    json.singleChannelGuestLimit = 1;
-                    json.singleChannelGuestCount = 3;
-                    await route.fulfill({response, json});
-                },
-            );
+            // # Mock GET /api/v4/limits/server on the *context* before any navigation so the first
+            // getServerLimits() populates Redux with a low limit. Also fulfill with an explicit
+            // JSON body — route.fulfill({response, json}) does not reliably merge bodies in Playwright.
+            await context.route('**/api/v4/limits/server', async (route) => {
+                const response = await route.fetch();
+                let json: Record<string, unknown> = {};
+                try {
+                    json = (await response.json()) as Record<string, unknown>;
+                } catch {
+                    // ignore — replace with minimal payload
+                }
+                json.singleChannelGuestLimit = 1;
+                json.singleChannelGuestCount = 3;
+                await route.fulfill({
+                    status: response.status(),
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(json),
+                });
+            });
 
             // # Navigate to site statistics page, re-applying patch to counter concurrent resets.
-            // The page.route mock persists across reloads, so navigateWithGuestPatch is safe here.
             await systemConsolePage.goto();
             await systemConsolePage.toBeVisible();
             await navigateWithGuestPatch(
