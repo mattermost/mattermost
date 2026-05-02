@@ -18,6 +18,7 @@ func genStore() *mocks.Store {
 	mock.On("Audit").Return(&mocks.AuditStore{})
 	mock.On("Bot").Return(&mocks.BotStore{})
 	mock.On("Channel").Return(&mocks.ChannelStore{})
+	mock.On("ChannelGuard").Return(&mocks.ChannelGuardStore{})
 	mock.On("ChannelMemberHistory").Return(&mocks.ChannelMemberHistoryStore{})
 	mock.On("ChannelBookmark").Return(&mocks.ChannelBookmarkStore{})
 	mock.On("ClusterDiscovery").Return(&mocks.ClusterDiscoveryStore{})
