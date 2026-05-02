@@ -93,7 +93,7 @@ describe('Notifications.showNotification', () => {
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
             body: 'body',
-            tag: 'body',
+            tag: '',
             icon: '',
             requireInteraction: true,
             silent: false,
@@ -119,11 +119,35 @@ describe('Notifications.showNotification', () => {
         const call = window.Notification.mock.calls[0];
         expect(call[1]).toEqual({
             body: 'body',
-            tag: 'body',
+            tag: '',
             icon: '',
             requireInteraction: true,
             silent: false,
         });
+    });
+
+    it('should not leak the message body via the Notifications API tag', async () => {
+        // The Notifications API tag is serialised into the activation command line on Chromium
+        // and captured by EDR / SIEM tooling. The tag must therefore never carry message content.
+        window.Notification.permission = 'granted';
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        const sensitiveBody = '@alice: token=AKIA-SECRET-VALUE confidential incident details';
+
+        await store.dispatch(Notifications.showNotification({
+            title: '@alice posted in Town Square',
+            body: sensitiveBody,
+            requireInteraction: false,
+            silent: false,
+        }));
+
+        expect(window.Notification).toHaveBeenCalledTimes(1);
+        const options = window.Notification.mock.calls[0][1];
+        expect(options.body).toBe(sensitiveBody);
+        expect(options.tag).not.toContain('AKIA-SECRET-VALUE');
+        expect(options.tag).not.toContain('token=');
+        expect(options.tag).toBe('@alice posted in Town Square');
     });
 
     it('should do nothing if permissions previously requested but not granted', async () => {

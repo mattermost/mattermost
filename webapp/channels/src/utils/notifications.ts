@@ -71,7 +71,15 @@ export function showNotification(
 
         const notification = new Notification(title, {
             body,
-            tag: body,
+
+            // Use the title (sender / channel context) as the notification tag so that
+            // subsequent notifications from the same conversation replace the prior one
+            // instead of stacking, and so that the message body never reaches the tag field.
+            // The tag is serialised into the notification-activation command line on Chromium
+            // (see https://notifications.spec.whatwg.org/#dom-notification-tag), where endpoint
+            // detection tools log it; placing the message body there leaks chat content into
+            // SIEM pipelines that were never in scope to receive it.
+            tag: title,
             icon: icon50,
             requireInteraction,
             silent,
