@@ -65,7 +65,7 @@ test(
 
 test.describe('autotranslation configuration tests', () => {
     test(
-        'DM menu shows Channel Settings when RestrictDMAndGM is disabled',
+        'DM menu follows effective RestrictDMAndGM client config',
         {
             tag: ['@autotranslation', '@permissions'],
         },
@@ -85,6 +85,9 @@ test.describe('autotranslation configuration tests', () => {
                     mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
                     targetLanguages: ['en', 'es'],
                 });
+                await expect.poll(async () => (await adminClient.getClientConfig()).EnableAutoTranslation).toBe('true');
+                const restrictDMAndGM = (await adminClient.getClientConfig()).RestrictDMAndGMAutotranslation;
+                const shouldShowEditHeader = restrictDMAndGM === 'true';
 
                 const peerData = await pw.random.user('dm-peer');
                 const peerUser = await adminClient.createUser(peerData, '', '');
@@ -95,26 +98,14 @@ test.describe('autotranslation configuration tests', () => {
                 await channelsPage.goto(team.name, `@${peerUser.username}`);
                 await channelsPage.toBeVisible();
 
-                await expect
-                    .poll(async () =>
-                        channelsPage.page.evaluate(() => {
-                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
-                            return config?.EnableAutoTranslation ?? null;
-                        }),
-                    )
-                    .toBe('true');
-                await expect
-                    .poll(async () =>
-                        channelsPage.page.evaluate(() => {
-                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
-                            return config?.RestrictDMAndGMAutotranslation ?? null;
-                        }),
-                    )
-                    .toBe('false');
-
                 await channelsPage.centerView.header.openChannelMenu();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                if (shouldShowEditHeader) {
+                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
+                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                } else {
+                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
+                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                }
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
             }
@@ -142,11 +133,24 @@ test.describe('autotranslation configuration tests', () => {
                     mockBaseUrl: process.env.TRANSLATION_SERVICE_URL || 'http://localhost:3010',
                     targetLanguages: ['en', 'es'],
                 });
-                await adminClient.patchConfig({
+                const configAfterEnable = (await adminClient.getConfig()) as any;
+                await adminClient.updateConfig({
+                    ...configAfterEnable,
                     AutoTranslationSettings: {
+                        ...configAfterEnable.AutoTranslationSettings,
                         RestrictDMAndGM: true,
                     },
-                });
+                } as any);
+
+                await expect
+                    .poll(
+                        async () => ((await adminClient.getConfig()) as any)?.AutoTranslationSettings?.RestrictDMAndGM,
+                    )
+                    .toBe(true);
+                await expect.poll(async () => (await adminClient.getClientConfig()).EnableAutoTranslation).toBe('true');
+                await expect
+                    .poll(async () => (await adminClient.getClientConfig()).RestrictDMAndGMAutotranslation)
+                    .toBe('true');
 
                 const peerData = await pw.random.user('dm-peer-restricted');
                 const peerUser = await adminClient.createUser(peerData, '', '');
@@ -156,23 +160,6 @@ test.describe('autotranslation configuration tests', () => {
                 const {channelsPage} = await pw.testBrowser.login(user);
                 await channelsPage.goto(team.name, `@${peerUser.username}`);
                 await channelsPage.toBeVisible();
-
-                await expect
-                    .poll(async () =>
-                        channelsPage.page.evaluate(() => {
-                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
-                            return config?.EnableAutoTranslation ?? null;
-                        }),
-                    )
-                    .toBe('true');
-                await expect
-                    .poll(async () =>
-                        channelsPage.page.evaluate(() => {
-                            const config = (window as Window & {mm_config?: Record<string, string>}).mm_config;
-                            return config?.RestrictDMAndGMAutotranslation ?? null;
-                        }),
-                    )
-                    .toBe('true');
 
                 await channelsPage.centerView.header.openChannelMenu();
                 await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();

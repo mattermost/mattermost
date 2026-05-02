@@ -16,6 +16,7 @@ import ChannelHeaderDirectMenu from './channel_header_direct_menu';
 
 const DM_CHANNEL_ID = 'dm_channel_id';
 const CURRENT_USER_ID = 'user_id';
+
 function getBaseState(overrides?: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
     const channel = TestHelper.getChannelMock({id: DM_CHANNEL_ID, type: 'D'});
     const currentUser = TestHelper.getUserMock({id: CURRENT_USER_ID});
