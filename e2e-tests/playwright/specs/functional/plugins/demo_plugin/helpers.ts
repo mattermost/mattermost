@@ -3,11 +3,11 @@
 
 import {Client4} from '@mattermost/client';
 
-import {expect} from '@mattermost/playwright-lib';
-
 const DEMO_PLUGIN_ID = 'com.mattermost.demo-plugin';
 const DEMO_PLUGIN_URL =
     'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz';
+
+export {DEMO_PLUGIN_ID, DEMO_PLUGIN_URL};
 
 export async function setupDemoPlugin(
     adminClient: Client4,
@@ -35,19 +35,19 @@ export async function setupDemoPlugin(
         await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
     }
 
-    await expect
-        .poll(
-            async () => {
-                // Re-enable on every iteration to fight concurrent initSetup() resets
-                // that clear PluginSettings.PluginStates and disable the plugin.
-                try {
-                    await adminClient.enablePlugin(DEMO_PLUGIN_ID);
-                } catch {
-                    // Plugin already enabled or other transient error — ignore.
-                }
-                return await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
-            },
-            {timeout: 90_000, intervals: [2000, 2000, 2000]},
-        )
-        .toBe(true);
+    // Server must report the plugin active before slash commands run; re-issue enable in case
+    // another test's initSetup cleared PluginStates between install and now.
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+        if (await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID)) {
+            return;
+        }
+        try {
+            await adminClient.enablePlugin(DEMO_PLUGIN_ID);
+        } catch {
+            // Transient — retry until deadline.
+        }
+        await new Promise((r) => setTimeout(r, 1000));
+    }
+    throw new Error(`Demo plugin ${DEMO_PLUGIN_ID} did not become active`);
 }

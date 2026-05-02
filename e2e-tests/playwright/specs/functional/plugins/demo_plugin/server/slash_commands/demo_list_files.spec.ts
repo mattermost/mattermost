@@ -1,11 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
 import {Client4} from '@mattermost/client';
 
 import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
 import {setupDemoPlugin} from '../../helpers';
+
+async function sendSlashCommand(page: Page, send: () => Promise<void>): Promise<void> {
+    const responsePromise = page.waitForResponse(
+        (r) =>
+            r.url().includes('/api/v4/posts') &&
+            r.request().method() === 'POST' &&
+            r.status() >= 200 &&
+            r.status() < 300,
+        {timeout: 30_000},
+    );
+    await send();
+    await responsePromise;
+}
 
 /**
  * Uploads a batch of files to the channel via API and posts them as a single message.
@@ -52,57 +66,31 @@ test('should list uploaded files with running total via /list_files command', as
     await channelsPage.goto(team.name, 'list-files-test');
     await channelsPage.toBeVisible();
 
-    await channelsPage.page.waitForTimeout(6000);
+    const page = channelsPage.page;
 
-    // 4. Send /list_files with no files — expect 0 count (retry: plugin hook races with initSetup)
-    let emptyResponse = channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {
-        exact: true,
-    });
-    for (let attempt = 0; attempt < 5; attempt++) {
-        await setupDemoPlugin(adminClient, pw);
+    // 4. /list_files with no files — wait for server round-trip, then assert bot reply
+    await sendSlashCommand(page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/list_files');
         await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            await expect(emptyResponse).toBeVisible({timeout: 20000});
-            break;
-        } catch (err) {
-            if (attempt === 4) {
-                throw err;
-            }
-            await channelsPage.page.waitForTimeout(4000);
-            emptyResponse = channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {
-                exact: true,
-            });
-        }
-    }
+    });
+    await expect(
+        channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {exact: true}),
+    ).toBeVisible();
 
     // 5. Upload first batch of 2 files via API
     // (avoids demo plugin's custom attachment menu intercepting the UI)
     await uploadAndPostFiles(adminClient, createdChannel.id, ['sample_text_file.txt', 'mattermost-icon_128x128.png']);
 
-    // 6. Send /list_files — expect count of 2 and both file names (plugin / indexing can lag in CI)
-    let response2 = channelsPage.centerView.container
+    // 6. Send /list_files — expect count of 2 and both file names
+    await sendSlashCommand(page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    const response2 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
         .last();
-    for (let attempt = 0; attempt < 5; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/list_files');
-        await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            await expect(response2).toBeVisible({timeout: 20000});
-            break;
-        } catch (err) {
-            if (attempt === 4) {
-                throw err;
-            }
-            await setupDemoPlugin(adminClient, pw);
-            await new Promise((resolve) => setTimeout(resolve, 4000));
-            response2 = channelsPage.centerView.container
-                .getByRole('listitem')
-                .filter({hasText: 'Last 2 Files uploaded to this channel'})
-                .last();
-        }
-    }
+    await expect(response2).toBeVisible();
     await expect(response2.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();
     await expect(response2.getByRole('heading', {name: 'sample_text_file.txt'})).toBeVisible();
 
@@ -110,28 +98,15 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
 
     // 8. Send /list_files — expect count of 4 and all file names
-    let response4 = channelsPage.centerView.container
+    await sendSlashCommand(page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/list_files');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
+    const response4 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 4 Files uploaded to this channel'})
         .last();
-    for (let attempt = 0; attempt < 5; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/list_files');
-        await channelsPage.centerView.postCreate.sendMessage();
-        try {
-            await expect(response4).toBeVisible({timeout: 20000});
-            break;
-        } catch (err) {
-            if (attempt === 4) {
-                throw err;
-            }
-            await setupDemoPlugin(adminClient, pw);
-            await new Promise((resolve) => setTimeout(resolve, 4000));
-            response4 = channelsPage.centerView.container
-                .getByRole('listitem')
-                .filter({hasText: 'Last 4 Files uploaded to this channel'})
-                .last();
-        }
-    }
+    await expect(response4).toBeVisible();
     await expect(response4.getByRole('heading', {name: 'mattermost.png'})).toBeVisible();
     await expect(response4.getByRole('heading', {name: 'archive.zip'})).toBeVisible();
     await expect(response4.getByRole('heading', {name: 'mattermost-icon_128x128.png'})).toBeVisible();

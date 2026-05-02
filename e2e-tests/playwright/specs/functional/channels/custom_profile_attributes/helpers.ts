@@ -47,6 +47,7 @@ export type CustomProfileAttribute = {
     attrs?: {
         value_type?: string;
         visibility?: string;
+        managed?: string;
         options?: {name: string; color: string}[];
     };
 };

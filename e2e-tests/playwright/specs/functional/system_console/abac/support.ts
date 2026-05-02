@@ -77,8 +77,23 @@ export async function createUserAttributeField(client: Client4, name: string, ty
 }
 
 /**
- * Enable user-managed attributes config
+ * Membership policy UI loads CPA fields from GET .../cel/autocomplete/fields.
+ * Fail fast here instead of timing out on disabled "Test access rule" when fields lag.
  */
+export async function assertAccessControlAutocompleteContains(
+    adminClient: Client4,
+    fieldNames: string[],
+): Promise<void> {
+    const fields = await adminClient.getAccessControlFields('', 100);
+    const names = new Set(fields.map((f) => f.name));
+    for (const n of fieldNames) {
+        expect(
+            names.has(n),
+            `ABAC autocomplete API missing "${n}" — policy editor will treat attributes as unusable. Got: ${[...names].join(', ')}`,
+        ).toBe(true);
+    }
+}
+
 export async function enableUserManagedAttributes(client: Client4): Promise<void> {
     try {
         await client.patchConfig({
@@ -216,8 +231,7 @@ export async function testAccessRule(
 ): Promise<TestAccessRuleResult> {
     const testButton = page.getByRole('button', {name: /test access rule/i});
     await expect(testButton).toBeVisible({timeout: 10_000});
-    // Disabled while CPA fields are still loading or when no usable attributes exist (policy_details noUsableAttributes).
-    await expect(testButton).toBeEnabled({timeout: 90_000});
+    await expect(testButton).toBeEnabled({timeout: 15_000});
     await testButton.click();
 
     const modal = page.locator('[role="dialog"], .modal').filter({hasText: 'Access Rule Test Results'});

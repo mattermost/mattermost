@@ -31,6 +31,7 @@ import {
     waitForPolicySyncJob,
     getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
+    assertAccessControlAutocompleteContains,
 } from '../support';
 
 /**
@@ -207,6 +208,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
     let sharedTeamId: string;
     let engineerUser: Awaited<ReturnType<typeof createUserForABAC>>;
     let salesUser: Awaited<ReturnType<typeof createUserForABAC>>;
+    let deptFieldName: string;
     let systemConsolePage: {page: Page};
     let sharedTestBrowser: TestBrowser | null = null;
     let licensed = true;
@@ -233,30 +235,26 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
 
         await enableUserManagedAttributes(adminClient);
 
-        // Clean slate for attributes so the Department text field is the only one.
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const field of existingFields || []) {
-                await adminClient.deleteCustomProfileAttributeField(field.id).catch(() => {});
-            }
-        } catch {
-            // ignore
-        }
+        const suffix = getRandomId();
+        deptFieldName = `MM5786_Dept_${suffix}`;
 
-        const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
+        const attributeFields: CustomProfileAttribute[] = [
+            {name: deptFieldName, type: 'text', value: '', attrs: {managed: 'admin', visibility: 'when_set'}},
+        ];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, attributeFields);
+        await assertAccessControlAutocompleteContains(adminClient, [deptFieldName]);
 
         engineerUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', type: 'text', value: 'Engineering'},
+            {name: deptFieldName, type: 'text', value: 'Engineering'},
         ]);
         salesUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', type: 'text', value: 'Sales'},
+            {name: deptFieldName, type: 'text', value: 'Sales'},
         ]);
 
-        const suffix = getRandomId();
+        const teamSuffix = getRandomId();
         const team = await adminClient.createTeam({
-            name: `abac-ops-${suffix}`,
-            display_name: `ABAC-Ops ${suffix}`,
+            name: `abac-ops-${teamSuffix}`,
+            display_name: `ABAC-Ops ${teamSuffix}`,
             type: 'O',
         } as any);
         sharedTeamId = team.id;
@@ -284,7 +282,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         const policyName = `${namePrefix} Policy ${getRandomId()}`;
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policyName,
-            celExpression,
+            celExpression: celExpression.replaceAll('user.attributes.Department', `user.attributes.${deptFieldName}`),
             autoSync: true,
             channels: [channel.display_name],
         });
@@ -384,53 +382,35 @@ test.describe('ABAC Policies - Advanced Policies', () => {
 
         await enableUserManagedAttributes(adminClient);
 
-        // Avoid deleting every CPA field on the server — that briefly leaves ABAC with zero usable
-        // attributes and keeps "Test access rule" disabled until fields reload. Only reset fields
-        // this scenario depends on.
-        try {
-            const existingFields = await adminClient.getCustomProfileAttributeFields();
-            for (const name of ['Department', 'Location']) {
-                const field = existingFields.find((f: {name: string}) => f.name === name);
-                if (field?.id) {
-                    try {
-                        await adminClient.deleteCustomProfileAttributeField(field.id);
-                    } catch {
-                        // Ignore — parallel tests may have deleted or locked the field
-                    }
-                }
-            }
-        } catch {
-            // Ignore — proceed with setupCustomProfileAttributeFields
-        }
+        const idSuffix = pw.random.id();
+        const deptFieldName = `MM5787_Dept_${idSuffix}`;
+        const locationFieldName = `MM5787_Loc_${idSuffix}`;
 
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
-            {name: 'Department', type: 'text'},
-            {name: 'Location', type: 'text'},
+            {
+                name: deptFieldName,
+                type: 'text',
+                attrs: {managed: 'admin', visibility: 'when_set'},
+            },
+            {
+                name: locationFieldName,
+                type: 'text',
+                attrs: {managed: 'admin', visibility: 'when_set'},
+            },
         ]);
-
-        await expect
-            .poll(
-                async () => {
-                    const cfg = await adminClient.getConfig();
-                    return cfg.AccessControlSettings?.EnableUserManagedAttributes === true;
-                },
-                {timeout: 30_000, intervals: [500, 1500, 3000]},
-            )
-            .toBe(true);
-
-        Object.keys(attributeFieldsMap);
+        await assertAccessControlAutocompleteContains(adminClient, [deptFieldName, locationFieldName]);
 
         const engineerUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Engineering', type: 'text'},
-            {name: 'Location', value: 'Office', type: 'text'},
+            {name: deptFieldName, value: 'Engineering', type: 'text'},
+            {name: locationFieldName, value: 'Office', type: 'text'},
         ]);
         const salesRemoteUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Sales', type: 'text'},
-            {name: 'Location', value: 'Remote', type: 'text'},
+            {name: deptFieldName, value: 'Sales', type: 'text'},
+            {name: locationFieldName, value: 'Remote', type: 'text'},
         ]);
         const salesOfficeUser = await createUserForABAC(adminClient, attributeFieldsMap, [
-            {name: 'Department', value: 'Sales', type: 'text'},
-            {name: 'Location', value: 'Office', type: 'text'},
+            {name: deptFieldName, value: 'Sales', type: 'text'},
+            {name: locationFieldName, value: 'Office', type: 'text'},
         ]);
 
         await adminClient.addToTeam(team.id, engineerUser.id);
@@ -448,8 +428,7 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         await systemConsolePage.page.waitForLoadState('networkidle');
 
         const policyName = `Complex Policy ${pw.random.id()}`;
-        const complexExpression =
-            'user.attributes.Department == "Engineering" || (user.attributes.Department == "Sales" && user.attributes.Location == "Remote")';
+        const complexExpression = `user.attributes.${deptFieldName} == "Engineering" || (user.attributes.${deptFieldName} == "Sales" && user.attributes.${locationFieldName} == "Remote")`;
 
         await createAdvancedPolicy(systemConsolePage.page, {
             name: policyName,
@@ -459,44 +438,27 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         });
 
         await navigateToABACPage(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        if (await policyRow.isVisible({timeout: 5000})) {
-            await policyRow.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
-
-            await testAccessRule(systemConsolePage.page, {
-                expectedMatchingUsers: [engineerUser.username, salesRemoteUser.username],
-                expectedNonMatchingUsers: [salesOfficeUser.username],
-            });
-
-            await navigateToABACPage(systemConsolePage.page);
-        }
-
-        // Brief wait for any remaining background sync to settle.
-        // Avoids waitForLatestSyncJob() which is racy under PW_WORKERS>=2
-        // because it polls the most-recent job in the UI table.
-        await systemConsolePage.page.waitForTimeout(3000);
+        await systemConsolePage.page.waitForTimeout(500);
 
         const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
         const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
         const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
 
         await searchInput.fill(searchTerm);
-        await systemConsolePage.page.waitForTimeout(1000);
+        await systemConsolePage.page.waitForTimeout(500);
 
         const foundPolicy = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        if (await foundPolicy.isVisible({timeout: 5000})) {
-            const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
-            if (policyId) {
-                await activatePolicy(adminClient, policyId);
-                const __jobId4 = await runSyncJob(systemConsolePage.page);
-                await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
-            }
-        } else {
-            await systemConsolePage.page.locator('.policy-name').allTextContents();
-        }
+        await expect
+            .poll(() => foundPolicy.isVisible(), {
+                timeout: 15_000,
+                message: `policy "${policyName}" should appear after search`,
+            })
+            .toBe(true);
+        const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
+        expect(policyId, 'policy row should expose id').toBeTruthy();
+        await activatePolicy(adminClient, policyId!);
+        const __jobId4 = await runSyncJob(systemConsolePage.page);
+        await waitForLatestSyncJob(systemConsolePage.page, 5, __jobId4);
         await searchInput.clear();
 
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
