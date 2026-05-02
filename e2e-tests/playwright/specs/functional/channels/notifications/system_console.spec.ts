@@ -3,17 +3,20 @@
 
 import {AdminConfig} from '@mattermost/types/config';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
 
 /**
  * Patch the Notifications page required fields to known valid values so tests
  * that load the page always start with a saveable form state, regardless of
  * what other parallel tests may have left in the server config.
+ *
+ * Uses mergeWithOnPremServerConfig so shallow patchConfig does not drop sibling
+ * EmailSettings/SupportSettings keys that the admin UI validates as required.
  */
 async function resetNotificationsConfig(adminClient: {
     patchConfig: (config: Partial<AdminConfig>) => Promise<unknown>;
 }) {
-    await adminClient.patchConfig({
+    const merged = mergeWithOnPremServerConfig({
         EmailSettings: {
             FeedbackName: 'Mattermost Notification',
             FeedbackEmail: 'notification@mattertest.com',
@@ -22,6 +25,26 @@ async function resetNotificationsConfig(adminClient: {
             SupportEmail: 'support@mattertest.com',
         },
     } as Partial<AdminConfig>);
+    await adminClient.patchConfig({
+        EmailSettings: merged.EmailSettings,
+        SupportSettings: merged.SupportSettings,
+    });
+}
+
+/** Wait until API reflects required notification fields (guards against concurrent initSetup). */
+async function waitForNotificationsServerPreconditions(adminClient: {getConfig: () => Promise<unknown>}) {
+    await expect
+        .poll(
+            async () => {
+                const c = (await adminClient.getConfig()) as AdminConfig;
+                const support = c.SupportSettings?.SupportEmail?.trim();
+                const feedbackEmail = c.EmailSettings?.FeedbackEmail?.trim();
+                const feedbackName = c.EmailSettings?.FeedbackName?.trim();
+                return Boolean(support && feedbackEmail && feedbackName);
+            },
+            {timeout: 90_000, intervals: [300, 800, 1500, 3000]},
+        )
+        .toBe(true);
 }
 
 test.describe('System Console Notifications', () => {
@@ -44,13 +67,24 @@ test.describe('System Console Notifications', () => {
         // starts enabled — prevents state pollution from concurrent initSetup() calls
         // that reset FeedbackName and SupportEmail to '' via updateConfig(defaultConfig).
         await resetNotificationsConfig(adminClient);
+        await waitForNotificationsServerPreconditions(adminClient);
 
-        // # Update to default config
-        await adminClient.patchConfig({
+        // # Update to default config (merged so SupportEmail / feedback fields are not cleared)
+        const withPush = mergeWithOnPremServerConfig({
             EmailSettings: {
+                FeedbackName: 'Mattermost Notification',
+                FeedbackEmail: 'notification@mattertest.com',
                 PushNotificationContents: 'full',
             },
+            SupportSettings: {
+                SupportEmail: 'support@mattertest.com',
+            },
         } as Partial<AdminConfig>);
+        await adminClient.patchConfig({
+            EmailSettings: withPush.EmailSettings,
+            SupportSettings: withPush.SupportSettings,
+        });
+        await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -69,6 +103,7 @@ test.describe('System Console Notifications', () => {
         // leaving the Save button disabled. Re-apply the config and reload so the form
         // renders with all required fields populated.
         await resetNotificationsConfig(adminClient);
+        await waitForNotificationsServerPreconditions(adminClient);
         await systemConsolePage.page.reload();
         await systemConsolePage.gotoNotificationsSettings();
         await notifications.toBeVisible();
@@ -120,6 +155,7 @@ test.describe('System Console Notifications', () => {
             let saved = false;
             for (let attempt = 0; attempt < 8 && !saved; attempt++) {
                 await resetNotificationsConfig(adminClient);
+                await waitForNotificationsServerPreconditions(adminClient);
                 await systemConsolePage.page.reload();
                 await systemConsolePage.gotoNotificationsSettings();
                 await notifications.toBeVisible();
@@ -169,6 +205,7 @@ test.describe('System Console Notifications', () => {
         // Ensure required Notifications fields are populated so the Save button
         // starts enabled — prevents state pollution from other parallel tests.
         await resetNotificationsConfig(adminClient);
+        await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
@@ -228,6 +265,7 @@ test.describe('System Console Notifications', () => {
         // clearing one field at a time reliably disables the save button, and
         // restoring it reliably re-enables it (no other empty field blocking save).
         await resetNotificationsConfig(adminClient);
+        await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);

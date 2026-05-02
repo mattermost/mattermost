@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Page} from '@playwright/test';
-import {Client4} from '@mattermost/client';
+import {Client4, ClientError} from '@mattermost/client';
 
 import {mergeWithOnPremServerConfig} from '@mattermost/playwright-lib';
 
@@ -49,6 +49,34 @@ async function waitUntilPluginActive(
     return false;
 }
 
+/**
+ * installPluginFromUrl can fail with "Unable to restart plugin on upgrade" when activation
+ * races (server thinks plugin is still active). Retry once after disable + brief settle.
+ */
+async function installAndEnableDemoPlugin(
+    adminClient: Client4,
+    pw: {
+        installAndEnablePlugin: (client: Client4, pluginUrl: string, pluginId: string) => Promise<void>;
+        isPluginActive: (client: Client4, pluginId: string) => Promise<boolean>;
+    },
+) {
+    try {
+        await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+    } catch (err) {
+        const msg = err instanceof ClientError ? err.message : String(err);
+        if (!msg.includes('Unable to restart plugin on upgrade')) {
+            throw err;
+        }
+        try {
+            await adminClient.disablePlugin(DEMO_PLUGIN_ID);
+        } catch {
+            // Already inactive or transitional — continue.
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+        await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+    }
+}
+
 export async function setupDemoPlugin(
     adminClient: Client4,
     pw: {
@@ -86,7 +114,7 @@ export async function setupDemoPlugin(
 
     const alreadyActive = await pw.isPluginActive(adminClient, DEMO_PLUGIN_ID);
     if (!alreadyActive) {
-        await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+        await installAndEnableDemoPlugin(adminClient, pw);
     }
 
     if (await waitUntilPluginActive(adminClient, pw, 90_000)) {
@@ -99,7 +127,8 @@ export async function setupDemoPlugin(
     } catch {
         // Not installed — ignore.
     }
-    await pw.installAndEnablePlugin(adminClient, DEMO_PLUGIN_URL, DEMO_PLUGIN_ID);
+    await new Promise((r) => setTimeout(r, 2000));
+    await installAndEnableDemoPlugin(adminClient, pw);
 
     if (await waitUntilPluginActive(adminClient, pw, 90_000)) {
         return;
