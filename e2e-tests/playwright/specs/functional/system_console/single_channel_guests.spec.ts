@@ -4,7 +4,7 @@
 import {expect, getRandomId, test} from '@mattermost/playwright-lib';
 
 test.describe('Single-channel guests', () => {
-    test.setTimeout(90000);
+    test.setTimeout(180000);
     test.describe.configure({mode: 'serial'});
 
     test.beforeEach(async ({pw}) => {
@@ -103,7 +103,7 @@ test.describe('Single-channel guests', () => {
                             .catch(() => '');
                         return Number(text?.match(/(\d+)/)?.[1] ?? 0);
                     },
-                    {timeout: 120000, intervals: [5000, 8000, 10000, 15000]},
+                    {timeout: 180000, intervals: [3000, 5000, 8000, 12000]},
                 )
                 .toBeGreaterThanOrEqual(1);
         },

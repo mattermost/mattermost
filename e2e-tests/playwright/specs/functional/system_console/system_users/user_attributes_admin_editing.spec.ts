@@ -163,6 +163,15 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(
             systemConsolePage.page.locator('.AdminUserCard').getByText('Department', {exact: true}),
         ).toBeVisible({timeout: 30000});
+        await expect(
+            systemConsolePage.page
+                .locator('.AdminUserCard')
+                .locator('.AdminUserCard__body')
+                .locator('.field-column')
+                .filter({has: systemConsolePage.page.locator('span:text-is("Work Email")')})
+                .locator('input')
+                .first(),
+        ).toBeVisible({timeout: 30_000});
     });
 
     test.afterEach(async ({pw}) => {

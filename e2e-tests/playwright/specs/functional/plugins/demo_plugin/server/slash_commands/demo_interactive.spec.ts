@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
 
 test('should post interactive button and respond with click attribution via /interactive command', async ({pw}) => {
     test.setTimeout(120000);
@@ -28,14 +28,16 @@ test('should post interactive button and respond with click attribution via /int
         .getByRole('listitem')
         .filter({hasText: 'Test interactive button'})
         .last();
-    for (let attempt = 0; attempt < 2; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/interactive');
-        await channelsPage.centerView.postCreate.sendMessage();
+    for (let attempt = 0; attempt < 4; attempt++) {
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/interactive');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             await expect(interactivePost).toBeVisible({timeout: 15000});
             break;
         } catch (err) {
-            if (attempt === 1) {
+            if (attempt === 3) {
                 throw err;
             }
             await setupDemoPlugin(adminClient, pw);

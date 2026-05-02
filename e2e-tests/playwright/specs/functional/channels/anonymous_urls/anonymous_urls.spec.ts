@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
 
 const OBFUSCATED_SLUG_RE = /^[a-z0-9]{26}$/;
 
@@ -11,11 +11,10 @@ async function skipIfNoAdvancedLicense(adminClient: any) {
 }
 
 async function setAnonymousUrls(adminClient: any, enabled: boolean) {
-    await adminClient.patchConfig({
-        PrivacySettings: {
-            UseAnonymousURLs: enabled,
-        },
-    });
+    const merged = mergeWithOnPremServerConfig({
+        PrivacySettings: {UseAnonymousURLs: enabled},
+    } as unknown as Parameters<typeof mergeWithOnPremServerConfig>[0]);
+    await adminClient.patchConfig({PrivacySettings: merged.PrivacySettings});
 }
 
 function expectObfuscatedSlug(slug: string) {
@@ -159,6 +158,12 @@ test.describe('Anonymous URLs', () => {
             // # Save settings
             await systemConsolePage.usersAndTeams.save();
             await pw.waitUntil(async () => (await systemConsolePage.usersAndTeams.saveButton.textContent()) === 'Save');
+            await expect
+                .poll(async () => (await adminClient.getConfig()).PrivacySettings?.UseAnonymousURLs === true, {
+                    timeout: 30_000,
+                    intervals: [500, 1500, 3000],
+                })
+                .toBe(true);
 
             // # Navigate away and come back
             await systemConsolePage.gotoNotificationsSettings();

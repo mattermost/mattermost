@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
 
 test('should open /dialog and post submit confirmation on submit', async ({pw}) => {
     // Plugin installation can take up to 60 s; extend the test timeout to avoid
@@ -30,11 +30,12 @@ test('should open /dialog and post submit confirmation on submit', async ({pw}) 
     // clears the demo plugin config; re-running setupDemoPlugin is fast when the plugin
     // is already active (alreadyActive guard skips reinstall).
     await setupDemoPlugin(adminClient, pw);
-    await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             // 5. Confirm dialog opens with title "Test Title"
             await expect(dialog).toBeVisible({timeout: 45000});
@@ -105,8 +106,10 @@ test('should post cancellation notification when /dialog is cancelled', async ({
     await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             // 5. Confirm dialog opens
             await expect(dialog).toBeVisible({timeout: 45000});
@@ -156,8 +159,10 @@ test('should show validation errors when required fields are submitted empty', a
     await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             // 5. Confirm dialog opens
             await expect(dialog).toBeVisible({timeout: 45000});
@@ -204,8 +209,10 @@ test('should show general error and keep dialog open on /dialog error submit', a
     await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog error');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog error');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             // 5. Confirm dialog opens with title "Simple Dialog Test"
             await expect(dialog).toBeVisible({timeout: 45000});
@@ -254,8 +261,10 @@ test('should show general error on /dialog error-no-elements confirm', async ({p
     await channelsPage.page.waitForTimeout(6000);
     const dialog = channelsPage.page.getByRole('dialog');
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/dialog error-no-elements');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             // 5. Confirm dialog opens with title "Sample Confirmation Dialog" and no form fields
             await expect(dialog).toBeVisible({timeout: 45000});

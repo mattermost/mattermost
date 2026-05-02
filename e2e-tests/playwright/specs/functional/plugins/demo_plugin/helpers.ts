@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
 import {Client4} from '@mattermost/client';
 
 import {mergeWithOnPremServerConfig} from '@mattermost/playwright-lib';
@@ -10,6 +11,22 @@ const DEMO_PLUGIN_URL =
     'https://github.com/mattermost/mattermost-plugin-demo/releases/download/v0.11.0/mattermost-plugin-demo-v0.11.0.tar.gz';
 
 export {DEMO_PLUGIN_ID, DEMO_PLUGIN_URL};
+
+/**
+ * Run `send` (typically fill slash command + click Send) while waiting for
+ * POST /api/v4/commands/execute so the server finishes the slash handler before assertions.
+ */
+export async function sendDemoSlashCommand(page: Page, send: () => Promise<void>) {
+    const responsePromise = page.waitForResponse(
+        (r) =>
+            r.url().includes('/api/v4/commands/execute') &&
+            r.request().method() === 'POST' &&
+            r.status() >= 200 &&
+            r.status() < 500,
+        {timeout: 45_000},
+    );
+    await Promise.all([send(), responsePromise]);
+}
 
 /** Wait until server reports plugin active (handles concurrent initSetup clearing PluginStates). */
 async function waitUntilPluginActive(

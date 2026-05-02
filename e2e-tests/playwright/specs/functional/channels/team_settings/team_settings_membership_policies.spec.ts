@@ -32,6 +32,9 @@ async function setupMembershipPoliciesTest(pw: any) {
 }
 
 test.describe('Team Settings Modal - Membership Policies Tab', () => {
+    // Serial: several tests toggle ABAC; parallel runs in this file race the same server config.
+    test.describe.configure({mode: 'serial'});
+
     test.afterAll(async () => {
         try {
             const {adminClient} = await getAdminClient({skipLog: true});

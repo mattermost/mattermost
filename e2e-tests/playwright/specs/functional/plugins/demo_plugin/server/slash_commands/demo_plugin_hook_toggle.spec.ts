@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {sendDemoSlashCommand, setupDemoPlugin} from '../../helpers';
 
 test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => {
     test.setTimeout(120000);
@@ -52,8 +52,10 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
 
     // 5. Disable hooks (retry if plugin not yet ready)
     for (let attempt = 0; attempt < 4; attempt++) {
-        await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
-        await channelsPage.centerView.postCreate.sendMessage();
+        await sendDemoSlashCommand(channelsPage.page, async () => {
+            await channelsPage.centerView.postCreate.input.fill('/demo_plugin false');
+            await channelsPage.centerView.postCreate.sendMessage();
+        });
         try {
             await expect(hookStatus).toHaveText('Disabled', {timeout: 45000});
             break;
@@ -91,8 +93,10 @@ test('should toggle hooks on and off via /demo_plugin command', async ({pw}) => 
     ).not.toBeVisible();
 
     // 8. Re-enable hooks
-    await channelsPage.centerView.postCreate.input.fill('/demo_plugin true');
-    await channelsPage.centerView.postCreate.sendMessage();
+    await sendDemoSlashCommand(channelsPage.page, async () => {
+        await channelsPage.centerView.postCreate.input.fill('/demo_plugin true');
+        await channelsPage.centerView.postCreate.sendMessage();
+    });
     await expect(hookStatus).toHaveText('Enabled');
 
     // 9. Create second token channel (hooks on)

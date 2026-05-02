@@ -449,7 +449,8 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Unique Name', type: 'text'}];
+        const uniqueDupName = `Unique Name ${Date.now()}`;
+        const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
@@ -460,7 +461,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         const newNameInput = sp.nameInput(1);
         await newNameInput.clear();
-        await newNameInput.fill('Unique Name');
+        await newNameInput.fill(uniqueDupName);
         await newNameInput.blur();
 
         // * Verify validation warning about duplicate name is shown
