@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -49,6 +50,7 @@ import Constants, {A11yCustomEventTypes, AppEvents, Locations, PostTypes, ModalI
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import {isChannelPopoutWindow, isPopoutWindow} from 'utils/popouts/popout_windows';
+import {selectPostById} from 'actions/views/rhs';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -145,6 +147,7 @@ const preventInteractionStyle: React.CSSProperties = {pointerEvents: 'none'};
 function PostComponent(props: Props) {
     const {post, shouldHighlight, togglePostMenu} = props;
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
@@ -385,7 +388,12 @@ function PostComponent(props: Props) {
             props.location === Locations.CENTER &&
             !props.isPostBeingEdited
         ) {
-            props.actions.selectPost(post);
+            const broadcastSourceThreadId = post.props?.broadcast_source_thread_id as string | undefined;
+            if (broadcastSourceThreadId) {
+                dispatch(selectPostById(broadcastSourceThreadId));
+            } else {
+                props.actions.selectPost(post);
+            }
         }
 
         if (e.altKey) {
