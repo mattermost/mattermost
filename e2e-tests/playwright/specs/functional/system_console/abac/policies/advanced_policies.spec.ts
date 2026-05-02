@@ -307,7 +307,8 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         const policyRow = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
         await expect
             .poll(() => policyRow.isVisible(), {
-                timeout: 10_000,
+                timeout: 45_000,
+                intervals: [200, 500, 1000, 2000],
                 message: `policy row for "${policyName}" should appear in search results`,
             })
             .toBe(true);

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {AdminConfig} from '@mattermost/types/config';
+import type {Locator} from '@playwright/test';
 
 import {expect, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
 
@@ -45,6 +46,19 @@ async function waitForNotificationsServerPreconditions(adminClient: {getConfig: 
             {timeout: 90_000, intervals: [300, 800, 1500, 3000]},
         )
         .toBe(true);
+}
+
+/** Fill required notification text fields until Save enables (UI can lag behind API after reload). */
+async function waitForSaveableNotificationsForm(notifications: {
+    notificationDisplayName: {fill: (value: string) => Promise<void>};
+    notificationFromAddress: {fill: (value: string) => Promise<void>};
+    supportEmailAddress: {fill: (value: string) => Promise<void>};
+    saveButton: Locator;
+}) {
+    await notifications.notificationDisplayName.fill('Mattermost Notification');
+    await notifications.notificationFromAddress.fill('notification@mattertest.com');
+    await notifications.supportEmailAddress.fill('support@mattertest.com');
+    await expect(notifications.saveButton).not.toBeDisabled({timeout: 45_000});
 }
 
 test.describe('System Console Notifications', () => {
@@ -107,6 +121,7 @@ test.describe('System Console Notifications', () => {
         await systemConsolePage.page.reload();
         await systemConsolePage.gotoNotificationsSettings();
         await notifications.toBeVisible();
+        await waitForSaveableNotificationsForm(notifications);
 
         // * Verify that setting is visible and matches text content
         await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
@@ -166,6 +181,7 @@ test.describe('System Console Notifications', () => {
                 await expect(loopDropdown).toBeVisible();
                 await loopDropdown.selectOption({label: option.label});
                 await expect(loopDropdown).toHaveValue(option.value);
+                await waitForSaveableNotificationsForm(notifications);
 
                 await expect(notifications.saveButton).not.toBeDisabled({timeout: 25000});
                 await notifications.save();

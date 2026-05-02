@@ -148,11 +148,15 @@ class AdminUserCard {
         this.twoColumnLayout = this.body.locator('.two-column-layout');
         this.fieldRows = this.body.locator('.field-row');
 
-        // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
-        this.usernameInput = this.getFieldInputByExactLabel('Username');
-        this.emailInput = this.getFieldInputByExactLabel('Email');
-        this.authDataInput = this.getFieldInputByExactLabel('Auth Data');
-        this.authenticationMethod = this.getFieldColumn('Authentication Method').locator('label > span').last();
+        // System fields — wrapping <label> supplies accessible names (FormattedMessage CPA labels do not use span:text-is).
+        this.usernameInput = this.container.getByLabel('Username', {exact: true});
+        this.emailInput = this.container.getByLabel('Email', {exact: true});
+        this.authDataInput = this.container.getByLabel('Auth Data', {exact: true});
+        this.authenticationMethod = this.container
+            .locator('label')
+            .filter({hasText: 'Authentication Method'})
+            .locator('span')
+            .last();
 
         // Footer
         const footer = container.locator('.AdminUserCard__footer');
@@ -166,34 +170,26 @@ class AdminUserCard {
     }
 
     /**
-     * Get the .field-column container for a field by its exact label text.
-     */
-    private getFieldColumn(labelText: string): Locator {
-        return this.body
-            .locator('.field-column')
-            .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
-    }
-
-    /**
-     * Get the input inside a field column by exact label text.
-     * Avoids substring ambiguity (e.g., "Email" won't match "Work Email").
+     * Text / email / URL / native select: label wraps control — getByLabel is stable for CPA + system fields.
      */
     getFieldInputByExactLabel(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('input');
+        return this.container.getByLabel(labelText, {exact: true});
     }
 
-    /**
-     * Get the select inside a field column by exact label text.
-     */
     getSelectByExactLabel(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('select');
+        return this.container.getByLabel(labelText, {exact: true});
     }
 
-    /**
-     * Get the .field-error validation message locator for a field by its exact label text.
-     */
     getFieldError(labelText: string): Locator {
-        return this.getFieldColumn(labelText).locator('.field-error');
+        return this.container
+            .getByLabel(labelText, {exact: true})
+            .locator('xpath=ancestor::label[1]')
+            .locator('.field-error');
+    }
+
+    /** CPA multiselect is react-select inside `label.cpa-field` (no single labeled native control). */
+    getCpaMultiselectContainer(labelText: string): Locator {
+        return this.container.locator('label.cpa-field').filter({hasText: labelText});
     }
 }
 

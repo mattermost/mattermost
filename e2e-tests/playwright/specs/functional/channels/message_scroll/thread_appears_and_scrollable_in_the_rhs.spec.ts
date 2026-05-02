@@ -68,7 +68,7 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
 
     // # Reply on original thread with a last reply
     const lastReplyMessage = 'Last Reply';
-    const lastReply = await userClient.createPost({
+    await userClient.createPost({
         channel_id: townSquare.id,
         message: lastReplyMessage,
         user_id: mainUser.id,
@@ -80,9 +80,9 @@ test('MM-T3293 The entire thread appears in the RHS (scrollable)', {tag: ['@mess
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Click reply to last post to open thread on RHS
-    const postWithReply = await channelsPage.centerView.getPostById(lastReply.id);
-    await postWithReply.reply();
+    // # Open thread from root post (last reply may not be in the virtualized center view)
+    const rootPost = await channelsPage.centerView.getPostById(firstPost.id);
+    await rootPost.reply();
 
     // * Verify that the RHS is visible
     await channelsPage.sidebarRight.toBeVisible();

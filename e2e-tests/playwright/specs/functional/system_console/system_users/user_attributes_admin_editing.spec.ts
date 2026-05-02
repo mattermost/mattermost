@@ -27,60 +27,16 @@ import {
     deleteCustomProfileAttributes,
 } from '../../channels/custom_profile_attributes/helpers';
 
-// Test data for different user attribute types (non-synced only)
-const testUserAttributes: CustomProfileAttribute[] = [
-    {
-        name: 'Department',
-        value: 'Engineering',
-        type: 'text',
-        attrs: {
-            visibility: 'when_set', // Ensure it's not synced
-        },
-    },
-    {
-        name: 'Work Email',
-        value: 'work@company.com',
-        type: 'text',
-        attrs: {
-            value_type: 'email',
-            visibility: 'when_set', // Ensure it's not synced
-        },
-    },
-    {
-        name: 'Personal Website',
-        value: 'https://johndoe.com',
-        type: 'text',
-        attrs: {
-            value_type: 'url',
-            visibility: 'when_set', // Ensure it's not synced
-        },
-    },
-    {
-        name: 'Location',
-        type: 'select',
-        attrs: {
-            visibility: 'when_set', // Ensure it's not synced
-        },
-        options: [
-            {name: 'Remote', color: '#00FFFF'},
-            {name: 'Office', color: '#FF00FF'},
-            {name: 'Hybrid', color: '#FFFF00'},
-        ],
-    },
-    {
-        name: 'Skills',
-        type: 'multiselect',
-        attrs: {
-            visibility: 'when_set', // Ensure it's not synced
-        },
-        options: [
-            {name: 'JavaScript', color: '#F0DB4F'},
-            {name: 'React', color: '#61DAFB'},
-            {name: 'Python', color: '#3776AB'},
-            {name: 'Go', color: '#00ADD8'},
-        ],
-    },
-];
+/** Per-run CPA names — avoids reusing global fields (e.g. "Old Name") from other suites. */
+let cpaFieldNames: {
+    department: string;
+    workEmail: string;
+    personalWebsite: string;
+    location: string;
+    skills: string;
+};
+
+let testUserAttributes: CustomProfileAttribute[];
 
 let team: Team;
 let adminUser: UserProfile;
@@ -106,6 +62,66 @@ test.describe('System Console - Admin User Profile Editing', () => {
         adminClient = clientInfo.adminClient;
         adminUser = clientInfo.adminUser;
         const suffix = getRandomId();
+        cpaFieldNames = {
+            department: `UAAE_Department_${suffix}`,
+            workEmail: `UAAE_Work_Email_${suffix}`,
+            personalWebsite: `UAAE_Personal_Website_${suffix}`,
+            location: `UAAE_Location_${suffix}`,
+            skills: `UAAE_Skills_${suffix}`,
+        };
+        testUserAttributes = [
+            {
+                name: cpaFieldNames.department,
+                value: 'Engineering',
+                type: 'text',
+                attrs: {
+                    visibility: 'when_set',
+                },
+            },
+            {
+                name: cpaFieldNames.workEmail,
+                value: 'work@company.com',
+                type: 'text',
+                attrs: {
+                    value_type: 'email',
+                    visibility: 'when_set',
+                },
+            },
+            {
+                name: cpaFieldNames.personalWebsite,
+                value: 'https://johndoe.com',
+                type: 'text',
+                attrs: {
+                    value_type: 'url',
+                    visibility: 'when_set',
+                },
+            },
+            {
+                name: cpaFieldNames.location,
+                type: 'select',
+                attrs: {
+                    visibility: 'when_set',
+                },
+                options: [
+                    {name: 'Remote', color: '#00FFFF'},
+                    {name: 'Office', color: '#FF00FF'},
+                    {name: 'Hybrid', color: '#FFFF00'},
+                ],
+            },
+            {
+                name: cpaFieldNames.skills,
+                type: 'multiselect',
+                attrs: {
+                    visibility: 'when_set',
+                },
+                options: [
+                    {name: 'JavaScript', color: '#F0DB4F'},
+                    {name: 'React', color: '#61DAFB'},
+                    {name: 'Python', color: '#3776AB'},
+                    {name: 'Go', color: '#00ADD8'},
+                ],
+            },
+        ];
         team = await adminClient.createTeam({
             name: `uaae-${suffix}`,
             display_name: `UAAE ${suffix}`,
@@ -158,20 +174,9 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // custom profile attribute fields (which are fetched asynchronously after mount).
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
-        // Wait for CPA UI: definitions load into Redux after mount. Prefer "Department" over "Work Email"
-        // — the latter can be absent if the field row is still filtered or slow; Department is first in testUserAttributes.
-        await expect(
-            systemConsolePage.page.locator('.AdminUserCard').getByText('Department', {exact: true}),
-        ).toBeVisible({timeout: 30000});
-        await expect(
-            systemConsolePage.page
-                .locator('.AdminUserCard')
-                .locator('.AdminUserCard__body')
-                .locator('.field-column')
-                .filter({has: systemConsolePage.page.locator('span:text-is("Work Email")')})
-                .locator('input')
-                .first(),
-        ).toBeVisible({timeout: 30_000});
+        const {userCard} = systemConsolePage.users.userDetail;
+        await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.department)).toBeVisible({timeout: 30_000});
+        await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail)).toBeVisible({timeout: 30_000});
     });
 
     test.afterEach(async ({pw}) => {
@@ -185,7 +190,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find and edit Department field (custom text attribute)
-        const departmentInput = userCard.getFieldInputByExactLabel('Department');
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
         await departmentInput.clear();
         await departmentInput.fill('Marketing');
 
@@ -253,7 +258,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find Location select field
-        const locationSelect = userCard.getSelectByExactLabel('Location');
+        const locationSelect = userCard.getSelectByExactLabel(cpaFieldNames.location);
 
         // # Get the first available option (since we can't predict the option value/ID)
         const firstOption = await locationSelect.locator('option').nth(1); // Skip the default "Select an option"
@@ -277,11 +282,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // * Verify Skills multiselect component is displayed
-        const skillsColumn = userCard.getFieldInputByExactLabel('Skills');
+        const skillsColumn = userCard.getCpaMultiselectContainer(cpaFieldNames.skills);
         await expect(skillsColumn).toBeVisible();
 
         // # Make a change to a different field to trigger save state
-        const departmentInput = userCard.getFieldInputByExactLabel('Department');
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
         await departmentInput.fill('Engineering Updated');
 
         // # Verify save button becomes enabled
@@ -306,7 +311,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find CPA email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel('Work Email');
+        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
         await workEmailInput.scrollIntoViewIfNeeded();
         const originalEmail = await workEmailInput.inputValue();
 
@@ -315,7 +320,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await workEmailInput.fill('not-an-email');
 
         // * Verify inline validation error appears (async client-side validation in CI)
-        const fieldError = userCard.getFieldError('Work Email');
+        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
         await expect(fieldError).toBeVisible({timeout: 30000});
         await expect(fieldError).toContainText('Invalid email address');
 
@@ -347,7 +352,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find custom URL field (Personal Website)
-        const urlInput = userCard.getFieldInputByExactLabel('Personal Website');
+        const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
         const originalUrl = await urlInput.inputValue();
 
         // # Enter invalid URL (specifically the one mentioned: "<%>")
@@ -355,7 +360,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await urlInput.fill('<%>');
 
         // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError('Personal Website');
+        const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
         await expect(fieldError).toBeVisible();
         await expect(fieldError).toContainText('Invalid URL');
 
@@ -384,14 +389,14 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = userDetail;
 
         // # Find custom email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel('Work Email');
+        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
 
         // # Enter invalid email
         await workEmailInput.clear();
         await workEmailInput.fill('not-an-email-either');
 
         // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError('Work Email');
+        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
         await expect(fieldError).toBeVisible();
         await expect(fieldError).toContainText('Invalid email address');
 
@@ -411,7 +416,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.cancelButton).not.toBeVisible();
 
         // # Make a change to trigger save needed state
-        const departmentInput = userCard.getFieldInputByExactLabel('Department');
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
         const originalValue = await departmentInput.inputValue();
         await departmentInput.clear();
         await departmentInput.fill('Changed Value');
@@ -443,7 +448,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userCard.emailInput.clear();
         await userCard.emailInput.fill(newEmail);
 
-        const departmentInput = userCard.getFieldInputByExactLabel('Department');
+        const departmentInput = userCard.getFieldInputByExactLabel(cpaFieldNames.department);
         await departmentInput.clear();
         await departmentInput.fill('Sales');
 

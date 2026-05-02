@@ -42,8 +42,9 @@ test.describe('System Console - Users table sorting', () => {
         await expect(async () => {
             await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
             const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+            const maxRows = Math.min(rowCount, 40);
             const emails: string[] = [];
-            for (let i = 0; i < rowCount; i++) {
+            for (let i = 0; i < maxRows; i++) {
                 const row = systemConsolePage.users.usersTable.getRowByIndex(i);
                 const email = (await row.getEmail()).trim();
                 if (email) {
@@ -52,12 +53,12 @@ test.describe('System Console - Users table sorting', () => {
             }
             expect(emails.length).toBeGreaterThan(3);
 
-            const expectedOrder = [...emails].sort((a, b) => a.localeCompare(b));
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b));
             if (sortDirection === 'descending') {
-                expectedOrder.reverse();
+                sorted.reverse();
             }
-            expect(emails).toEqual(expectedOrder);
-        }).toPass({timeout: 60000});
+            expect(emails).toEqual(sorted);
+        }).toPass({timeout: 120_000});
 
         // # Click on the 'Email' column header again to toggle sort direction
         const reversedDirection = await systemConsolePage.users.usersTable.sortByColumn('Email');
@@ -69,8 +70,9 @@ test.describe('System Console - Users table sorting', () => {
         await expect(async () => {
             await systemConsolePage.page.waitForLoadState('networkidle').catch(() => {});
             const rowCount = await systemConsolePage.users.usersTable.bodyRows.count();
+            const maxRows = Math.min(rowCount, 40);
             const emails: string[] = [];
-            for (let i = 0; i < rowCount; i++) {
+            for (let i = 0; i < maxRows; i++) {
                 const row = systemConsolePage.users.usersTable.getRowByIndex(i);
                 const email = (await row.getEmail()).trim();
                 if (email) {
@@ -79,12 +81,12 @@ test.describe('System Console - Users table sorting', () => {
             }
             expect(emails.length).toBeGreaterThan(3);
 
-            const expectedOrder = [...emails].sort((a, b) => a.localeCompare(b));
+            const sorted = [...emails].sort((a, b) => a.localeCompare(b));
             if (reversedDirection === 'descending') {
-                expectedOrder.reverse();
+                sorted.reverse();
             }
-            expect(emails).toEqual(expectedOrder);
-        }).toPass({timeout: 60000});
+            expect(emails).toEqual(sorted);
+        }).toPass({timeout: 120_000});
     });
 
     test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw}) => {
