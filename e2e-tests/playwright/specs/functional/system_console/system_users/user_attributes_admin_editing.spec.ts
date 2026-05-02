@@ -120,6 +120,18 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // Set up custom user attribute fields
         attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, testUserAttributes);
 
+        // Fields reused by name can still carry access_mode=source_only from another suite; the admin
+        // user detail page hides those (system_user_detail.tsx) so no CPA labels ever appear.
+        const refreshedFields = await adminClient.getCustomProfileAttributeFields();
+        for (const attr of testUserAttributes) {
+            const field = refreshedFields.find((f) => f.name === attr.name);
+            if (field?.attrs?.access_mode === 'source_only') {
+                await adminClient.patchCustomProfileAttributeField(field.id, {
+                    attrs: {...field.attrs, access_mode: ''},
+                } as any);
+            }
+        }
+
         // Set initial custom attribute values for the test user
         await setupCustomProfileAttributeValuesForUser(
             adminClient,
@@ -146,12 +158,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // custom profile attribute fields (which are fetched asynchronously after mount).
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
-        // Wait for at least one custom attribute label to confirm CPA fields have loaded.
-        // CPA fields are fetched asynchronously after mount — 30 s handles slow CI workers.
-        await systemConsolePage.page
-            .locator('.AdminUserCard')
-            .getByText('Work Email', {exact: false})
-            .waitFor({state: 'visible', timeout: 30000});
+        // Wait for CPA UI: definitions load into Redux after mount. Prefer "Department" over "Work Email"
+        // — the latter can be absent if the field row is still filtered or slow; Department is first in testUserAttributes.
+        await expect(
+            systemConsolePage.page.locator('.AdminUserCard').getByText('Department', {exact: true}),
+        ).toBeVisible({timeout: 30000});
     });
 
     test.afterEach(async ({pw}) => {
