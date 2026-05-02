@@ -150,6 +150,34 @@ describe('Notifications.showNotification', () => {
         expect(options.tag).toBe('@alice posted in Town Square');
     });
 
+    it('should use the explicit tag identifier when the caller provides one', async () => {
+        // When a stable opaque id is passed, it must be used verbatim so that
+        // subsequent updates to the same message replace the previous notification, and
+        // so that no user-visible text leaks into the tag field at all.
+        window.Notification.permission = 'granted';
+        jest.resetModules();
+        Notifications = require('utils/notifications');
+
+        const sensitiveBody = '@bob: AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY';
+        const visibleTitle = '@bob posted in #incident-response';
+        const postId = 'post-9bg7p4dyitggimxtxctt7gwp4y';
+
+        await store.dispatch(Notifications.showNotification({
+            title: visibleTitle,
+            body: sensitiveBody,
+            tag: postId,
+            requireInteraction: false,
+            silent: false,
+        }));
+
+        expect(window.Notification).toHaveBeenCalledTimes(1);
+        const options = window.Notification.mock.calls[0][1];
+        expect(options.tag).toBe(postId);
+        expect(options.tag).not.toContain('AWS_SECRET_ACCESS_KEY');
+        expect(options.tag).not.toContain(visibleTitle);
+        expect(options.body).toBe(sensitiveBody);
+    });
+
     it('should do nothing if permissions previously requested but not granted', async () => {
         window.Notification.requestPermission.mockResolvedValue('denied');
 
