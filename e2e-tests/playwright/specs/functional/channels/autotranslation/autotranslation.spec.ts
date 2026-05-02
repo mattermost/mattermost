@@ -281,6 +281,16 @@ test(
             user_id: createdPoster.id,
         });
 
+        // patchChannel(autotranslation) and member autotranslation reject when the enterprise
+        // feature is momentarily unavailable — another test's initSetup can reset config here.
+        await enableAutotranslationConfig(adminClient, {
+            mockBaseUrl: translationUrl,
+            targetLanguages: ['en', 'es'],
+        });
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await enableChannelAutotranslation(adminClient, created.id);
         await setUserChannelAutotranslation(userClient, created.id, true);
 

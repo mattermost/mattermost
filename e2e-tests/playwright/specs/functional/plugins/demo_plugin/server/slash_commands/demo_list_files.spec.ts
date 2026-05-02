@@ -9,16 +9,13 @@ import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 import {setupDemoPlugin} from '../../helpers';
 
 async function sendSlashCommand(page: Page, send: () => Promise<void>): Promise<void> {
+    // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
     const responsePromise = page.waitForResponse(
-        (r) =>
-            r.url().includes('/api/v4/posts') &&
-            r.request().method() === 'POST' &&
-            r.status() >= 200 &&
-            r.status() < 300,
+        (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
         {timeout: 30_000},
     );
-    await send();
-    await responsePromise;
+    const [, response] = await Promise.all([send(), responsePromise]);
+    expect(response.ok(), `slash command failed: HTTP ${response.status()}`).toBeTruthy();
 }
 
 /**
