@@ -222,8 +222,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             this.getUser(userId);
         }
 
-        // Fetch CPA field definitions if not already available
-        if (this.props.customProfileAttributeEnabled && this.props.customProfileAttributeFields.length === 0) {
+        // Always refresh CPA field definitions on this screen. Redux can hold a stale
+        // subset from a previous admin page (e.g. User Attributes list) and the previous
+        // "only if empty" guard skipped the fetch, so user detail showed wrong fields.
+        if (this.props.customProfileAttributeEnabled) {
             this.props.getCustomProfileAttributeFields();
         }
     }
@@ -250,7 +252,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     });
             }
 
-            if (this.props.customProfileAttributeFields.length === 0) {
+            if (this.props.customProfileAttributeEnabled) {
                 this.props.getCustomProfileAttributeFields();
             }
         }

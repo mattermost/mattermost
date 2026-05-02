@@ -156,6 +156,22 @@ describe('SystemUserDetail', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('should always fetch CPA field definitions on mount when CPA is enabled', async () => {
+        const getCustomProfileAttributeFields = jest.fn().mockResolvedValue({data: []});
+        const props = {
+            ...defaultProps,
+            customProfileAttributeFields: [
+                {id: 'field_stale', name: 'Stale Field', type: 'text', attrs: {}} as any,
+            ],
+            getCustomProfileAttributeFields,
+        };
+        renderWithContext(<SystemUserDetail {...props}/>);
+
+        await waitFor(() => {
+            expect(getCustomProfileAttributeFields).toHaveBeenCalled();
+        });
+    });
+
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
             const userEventInstance = userEvent.setup();
