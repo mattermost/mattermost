@@ -3056,8 +3056,8 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// u2 should be auto-following because channel_mention_auto_follow_threads is enabled
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
-		require.Nil(t, appErr)
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
 	})
@@ -3086,8 +3086,8 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// u2 should NOT be auto-following because they opted out
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
-		require.Nil(t, appErr)
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
 		if threadMembership != nil {
 			assert.False(t, threadMembership.Following)
 		}
@@ -3119,8 +3119,8 @@ func TestChannelMentionAutoFollowThreads(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// u2 should be auto-following because channel_mention_auto_follow_threads isn't defined
-		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
-		require.Nil(t, appErr)
+		threadMembership, getThreadErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
+		require.Nil(t, getThreadErr)
 		require.NotNil(t, threadMembership)
 		assert.True(t, threadMembership.Following)
 	})
