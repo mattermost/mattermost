@@ -62,6 +62,7 @@ type Store interface {
 	LinkMetadata() LinkMetadataStore
 	SharedChannel() SharedChannelStore
 	Draft() DraftStore
+	ChannelGuard() ChannelGuardStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -1064,6 +1065,21 @@ type PostPriorityStore interface {
 	GetForPosts(ids []string) ([]*model.PostPriority, error)
 	Save(priority *model.PostPriority) (*model.PostPriority, error)
 	Delete(postID string) error
+}
+
+// ChannelGuard is a single claim row asserting that a plugin has registered as a guard for a given
+// channel. Plugins may co-claim a channel; one row per (ChannelId, PluginId) pair.
+type ChannelGuard struct {
+	ChannelId string
+	PluginId  string
+	CreatedAt int64
+}
+
+type ChannelGuardStore interface {
+	Save(guard *ChannelGuard) error
+	Delete(channelID, pluginID string) error
+	GetForChannel(channelID string) ([]*ChannelGuard, error)
+	GetAll() ([]*ChannelGuard, error)
 }
 
 type DraftStore interface {

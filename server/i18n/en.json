@@ -5731,6 +5731,26 @@
     "translation": "Unable to determine if the user belongs to a list of channels."
   },
   {
+    "id": "app.channel_guard.invalid_channel.app_error",
+    "translation": "Channel ID is not a valid channel identifier."
+  },
+  {
+    "id": "app.channel_guard.register.app_error",
+    "translation": "Unable to register the channel guard."
+  },
+  {
+    "id": "app.channel_guard.register.empty_channel.app_error",
+    "translation": "Channel ID is required to register a channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.app_error",
+    "translation": "Unable to unregister the channel guard."
+  },
+  {
+    "id": "app.channel_guard.unregister.empty_channel.app_error",
+    "translation": "Channel ID is required to unregister a channel guard."
+  },
+  {
     "id": "app.channel_member_history.log_join_event.internal_error",
     "translation": "Failed to record channel member history."
   },

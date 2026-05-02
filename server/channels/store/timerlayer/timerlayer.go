@@ -26,6 +26,7 @@ type TimerLayer struct {
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
+	ChannelGuardStore               store.ChannelGuardStore
 	ChannelMemberHistoryStore       store.ChannelMemberHistoryStore
 	ClusterDiscoveryStore           store.ClusterDiscoveryStore
 	CommandStore                    store.CommandStore
@@ -104,6 +105,10 @@ func (s *TimerLayer) Channel() store.ChannelStore {
 
 func (s *TimerLayer) ChannelBookmark() store.ChannelBookmarkStore {
 	return s.ChannelBookmarkStore
+}
+
+func (s *TimerLayer) ChannelGuard() store.ChannelGuardStore {
+	return s.ChannelGuardStore
 }
 
 func (s *TimerLayer) ChannelMemberHistory() store.ChannelMemberHistoryStore {
@@ -338,6 +343,11 @@ type TimerLayerChannelStore struct {
 
 type TimerLayerChannelBookmarkStore struct {
 	store.ChannelBookmarkStore
+	Root *TimerLayer
+}
+
+type TimerLayerChannelGuardStore struct {
+	store.ChannelGuardStore
 	Root *TimerLayer
 }
 
@@ -3200,6 +3210,70 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.UpdateSortOrder", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) Delete(channelID string, pluginID string) error {
+	start := time.Now()
+
+	err := s.ChannelGuardStore.Delete(channelID, pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
+	start := time.Now()
+
+	result, err := s.ChannelGuardStore.GetAll()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGuard, error) {
+	start := time.Now()
+
+	result, err := s.ChannelGuardStore.GetForChannel(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.GetForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelGuardStore) Save(guard *store.ChannelGuard) error {
+	start := time.Now()
+
+	err := s.ChannelGuardStore.Save(guard)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.Save", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerChannelMemberHistoryStore) DeleteOrphanedRows(limit int) (int64, error) {
@@ -14494,6 +14568,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
+	newStore.ChannelGuardStore = &TimerLayerChannelGuardStore{ChannelGuardStore: childStore.ChannelGuard(), Root: &newStore}
 	newStore.ChannelMemberHistoryStore = &TimerLayerChannelMemberHistoryStore{ChannelMemberHistoryStore: childStore.ChannelMemberHistory(), Root: &newStore}
 	newStore.ClusterDiscoveryStore = &TimerLayerClusterDiscoveryStore{ClusterDiscoveryStore: childStore.ClusterDiscovery(), Root: &newStore}
 	newStore.CommandStore = &TimerLayerCommandStore{CommandStore: childStore.Command(), Root: &newStore}

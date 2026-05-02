@@ -3500,3 +3500,154 @@ func TestHookRPCDraftWillBeUpserted(t *testing.T) {
 		require.Equal(t, "modified-by-plugin", replacement.Message)
 	})
 }
+
+func TestRegisterChannelGuardIdempotent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channelID := th.BasicChannel.Id
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			channelID := "` + channelID + `"
+			if appErr := p.API.RegisterChannelGuard(channelID); appErr != nil {
+				return appErr
+			}
+			// Second call must be idempotent.
+			return p.API.RegisterChannelGuard(channelID)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	require.NoError(t, err)
+	require.Len(t, guards, 1, "second Register call must be a no-op (DO NOTHING)")
+
+	cached := th.App.Channels().getGuardsForChannel(channelID)
+	require.Len(t, cached, 1, "cache should match the store")
+	assert.Equal(t, strings.ToLower(pluginIDs[0]), cached[0].PluginId)
+}
+
+func TestRegisterChannelGuardMultiClaim(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channelID := th.BasicChannel.Id
+
+	pluginCode := func() string {
+		return `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			return p.API.RegisterChannelGuard("` + channelID + `")
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`
+	}
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		pluginCode(),
+		pluginCode(),
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 2)
+
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	require.NoError(t, err)
+	require.Len(t, guards, 2, "two distinct plugins must produce two rows")
+
+	pluginAID := strings.ToLower(pluginIDs[0])
+	pluginBID := strings.ToLower(pluginIDs[1])
+
+	cached := th.App.Channels().getGuardsForChannel(channelID)
+	require.Len(t, cached, 2)
+	cachedIDs := []string{cached[0].PluginId, cached[1].PluginId}
+	assert.Contains(t, cachedIDs, pluginAID)
+	assert.Contains(t, cachedIDs, pluginBID)
+
+	// Unregister plugin A's claim via the App-level method; B's claim must remain.
+	require.Nil(t, th.App.UnregisterChannelGuard(channelID, pluginAID))
+
+	guards, err = th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	require.NoError(t, err)
+	require.Len(t, guards, 1)
+	assert.Equal(t, pluginBID, guards[0].PluginId)
+
+	cached = th.App.Channels().getGuardsForChannel(channelID)
+	require.Len(t, cached, 1)
+	assert.Equal(t, pluginBID, cached[0].PluginId)
+}
+
+func TestChannelGuardSurvivesArchive(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	channelID := th.BasicChannel.Id
+
+	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			return p.API.RegisterChannelGuard("` + channelID + `")
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+	}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	require.Len(t, pluginIDs, 1)
+
+	// Archive the channel.
+	require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
+
+	// Guard row must persist (no FK, no cascade).
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	require.NoError(t, err)
+	require.Len(t, guards, 1)
+	assert.Equal(t, strings.ToLower(pluginIDs[0]), guards[0].PluginId)
+
+	cached := th.App.Channels().getGuardsForChannel(channelID)
+	require.Len(t, cached, 1)
+}

@@ -4464,6 +4464,62 @@ func (s *apiRPCServer) UpdateChannel(args *Z_UpdateChannelArgs, returns *Z_Updat
 	return nil
 }
 
+type Z_RegisterChannelGuardArgs struct {
+	A string
+}
+
+type Z_RegisterChannelGuardReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) RegisterChannelGuard(channelID string) *model.AppError {
+	_args := &Z_RegisterChannelGuardArgs{channelID}
+	_returns := &Z_RegisterChannelGuardReturns{}
+	if err := g.client.Call("Plugin.RegisterChannelGuard", _args, _returns); err != nil {
+		log.Printf("RPC call to RegisterChannelGuard API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) RegisterChannelGuard(args *Z_RegisterChannelGuardArgs, returns *Z_RegisterChannelGuardReturns) error {
+	if hook, ok := s.impl.(interface {
+		RegisterChannelGuard(channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.RegisterChannelGuard(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API RegisterChannelGuard called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UnregisterChannelGuardArgs struct {
+	A string
+}
+
+type Z_UnregisterChannelGuardReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UnregisterChannelGuard(channelID string) *model.AppError {
+	_args := &Z_UnregisterChannelGuardArgs{channelID}
+	_returns := &Z_UnregisterChannelGuardReturns{}
+	if err := g.client.Call("Plugin.UnregisterChannelGuard", _args, _returns); err != nil {
+		log.Printf("RPC call to UnregisterChannelGuard API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UnregisterChannelGuard(args *Z_UnregisterChannelGuardArgs, returns *Z_UnregisterChannelGuardReturns) error {
+	if hook, ok := s.impl.(interface {
+		UnregisterChannelGuard(channelID string) *model.AppError
+	}); ok {
+		returns.A = hook.UnregisterChannelGuard(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API UnregisterChannelGuard called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SearchChannelsArgs struct {
 	A string
 	B string

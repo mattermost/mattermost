@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -49,6 +50,13 @@ type Channels struct {
 	pluginsEnvironment            *plugin.Environment
 	pluginConfigListenerID        string
 	pluginClusterLeaderListenerID string
+
+	// guardCache caches ChannelGuards rows by ChannelId -> []*store.ChannelGuard.
+	guardCache atomic.Pointer[sync.Map]
+
+	// guardCacheRetryInFlight collapses concurrent reload-failure retries to a single goroutine.
+	// See scheduleGuardCacheReloadRetry.
+	guardCacheRetryInFlight atomic.Bool
 
 	imageProxy *imageproxy.ImageProxy
 
@@ -109,6 +117,7 @@ func NewChannels(s *Server) (*Channels, error) {
 		cfgSvc:            s.Platform(),
 		interruptQuitChan: make(chan struct{}),
 	}
+	ch.guardCache.Store(&sync.Map{})
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
@@ -232,6 +241,15 @@ func NewChannels(s *Server) (*Channels, error) {
 	pluginsRoute.HandleFunc("", ch.ServePluginRequest)
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
+
+	if err := ch.reloadGuardCache(s.Store()); err != nil {
+		s.Log().Warn(
+			"Failed to load channel guard cache at startup; retry scheduled",
+			mlog.Bool("clustered", s.platform.Cluster() != nil),
+			mlog.Err(err),
+		)
+		ch.scheduleGuardCacheReloadRetry()
+	}
 
 	return ch, nil
 }

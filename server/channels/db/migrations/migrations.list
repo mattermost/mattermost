@@ -339,3 +339,7 @@ channels/db/migrations/postgres/000170_add_property_groups_version.down.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.up.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.down.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.up.sql
+channels/db/migrations/postgres/000172_create_channel_guards.down.sql
+channels/db/migrations/postgres/000172_create_channel_guards.up.sql
+channels/db/migrations/postgres/000173_create_channel_guards_plugin_id_index.down.sql
+channels/db/migrations/postgres/000173_create_channel_guards_plugin_id_index.up.sql
