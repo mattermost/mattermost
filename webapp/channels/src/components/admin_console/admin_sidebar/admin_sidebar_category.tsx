@@ -9,7 +9,7 @@ type Props = {
     icon: JSX.Element;
     title: string | JSX.Element;
     action?: JSX.Element;
-    children?: JSX.Element[];
+    children?: React.ReactNode;
     definitionKey?: string;
     name?: string;
     parentLink?: string;
