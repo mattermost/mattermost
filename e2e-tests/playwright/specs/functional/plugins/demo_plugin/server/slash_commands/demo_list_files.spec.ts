@@ -8,11 +8,7 @@ import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
 import {setupDemoPlugin, DEMO_PLUGIN_ID} from '../../helpers';
 
-async function sendSlashCommand(
-    page: Page,
-    send: () => Promise<void>,
-    adminClient: Client4,
-): Promise<void> {
+async function sendSlashCommand(page: Page, send: () => Promise<void>, adminClient: Client4): Promise<void> {
     // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
     // Retry once if the server returns 500 (plugin transiently inactive between setup and first use).
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -86,10 +82,14 @@ test('should list uploaded files with running total via /list_files command', as
     const page = channelsPage.page;
 
     // 4. /list_files with no files — wait for server round-trip, then assert bot reply
-    await sendSlashCommand(page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/list_files');
-        await channelsPage.centerView.postCreate.sendMessage();
-    }, adminClient);
+    await sendSlashCommand(
+        page,
+        async () => {
+            await channelsPage.centerView.postCreate.input.fill('/list_files');
+            await channelsPage.centerView.postCreate.sendMessage();
+        },
+        adminClient,
+    );
     await expect(
         channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {exact: true}),
     ).toBeVisible();
@@ -99,10 +99,14 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['sample_text_file.txt', 'mattermost-icon_128x128.png']);
 
     // 6. Send /list_files — expect count of 2 and both file names
-    await sendSlashCommand(page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/list_files');
-        await channelsPage.centerView.postCreate.sendMessage();
-    }, adminClient);
+    await sendSlashCommand(
+        page,
+        async () => {
+            await channelsPage.centerView.postCreate.input.fill('/list_files');
+            await channelsPage.centerView.postCreate.sendMessage();
+        },
+        adminClient,
+    );
     const response2 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
@@ -115,10 +119,14 @@ test('should list uploaded files with running total via /list_files command', as
     await uploadAndPostFiles(adminClient, createdChannel.id, ['mattermost.png', 'archive.zip']);
 
     // 8. Send /list_files — expect count of 4 and all file names
-    await sendSlashCommand(page, async () => {
-        await channelsPage.centerView.postCreate.input.fill('/list_files');
-        await channelsPage.centerView.postCreate.sendMessage();
-    }, adminClient);
+    await sendSlashCommand(
+        page,
+        async () => {
+            await channelsPage.centerView.postCreate.input.fill('/list_files');
+            await channelsPage.centerView.postCreate.sendMessage();
+        },
+        adminClient,
+    );
     const response4 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 4 Files uploaded to this channel'})
