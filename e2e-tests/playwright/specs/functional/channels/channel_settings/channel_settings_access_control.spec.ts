@@ -213,7 +213,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         // * SaveChangesPanel disappears — rules were saved
         await expect(saveBtn).not.toBeVisible({timeout: 15000});
 
-        await channelSettings.close();
+        // The dialog may auto-close after save or the Close button may take a moment to stabilise
+        // after the panel removal re-render. Only close if the dialog is still open.
+        const isOpen = await channelSettings.container.isVisible({timeout: 2000}).catch(() => false);
+        if (isOpen) {
+            await channelSettings.close();
+        }
     });
 
     test('MM-67326_c8 Auto-add checkbox becomes enabled after adding an attribute rule', async ({pw}) => {

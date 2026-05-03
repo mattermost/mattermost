@@ -6,16 +6,36 @@ import {Client4} from '@mattermost/client';
 
 import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
 
-import {setupDemoPlugin} from '../../helpers';
+import {setupDemoPlugin, DEMO_PLUGIN_ID} from '../../helpers';
 
-async function sendSlashCommand(page: Page, send: () => Promise<void>): Promise<void> {
+async function sendSlashCommand(
+    page: Page,
+    send: () => Promise<void>,
+    adminClient: Client4,
+): Promise<void> {
     // Slash commands hit POST /api/v4/commands/execute — not POST /posts (see web client executeCommand).
-    const responsePromise = page.waitForResponse(
-        (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
-        {timeout: 30_000},
-    );
-    const [, response] = await Promise.all([send(), responsePromise]);
-    expect(response.ok(), `slash command failed: HTTP ${response.status()}`).toBeTruthy();
+    // Retry once if the server returns 500 (plugin transiently inactive between setup and first use).
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const responsePromise = page.waitForResponse(
+            (r) => r.url().includes('/api/v4/commands/execute') && r.request().method() === 'POST',
+            {timeout: 30_000},
+        );
+        const [, response] = await Promise.all([send(), responsePromise]);
+        if (response.ok()) {
+            return;
+        }
+        if (attempt === 0 && response.status() === 500) {
+            // Plugin may have been deactivated by a concurrent initSetup() — re-enable and retry.
+            try {
+                await adminClient.enablePlugin(DEMO_PLUGIN_ID);
+                await new Promise((r) => setTimeout(r, 1500));
+            } catch {
+                // Ignore; retry the slash command anyway.
+            }
+            continue;
+        }
+        expect(response.ok(), `slash command failed: HTTP ${response.status()}`).toBeTruthy();
+    }
 }
 
 /**
@@ -69,7 +89,7 @@ test('should list uploaded files with running total via /list_files command', as
     await sendSlashCommand(page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/list_files');
         await channelsPage.centerView.postCreate.sendMessage();
-    });
+    }, adminClient);
     await expect(
         channelsPage.centerView.container.getByText('Last 0 Files uploaded to this channel', {exact: true}),
     ).toBeVisible();
@@ -82,7 +102,7 @@ test('should list uploaded files with running total via /list_files command', as
     await sendSlashCommand(page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/list_files');
         await channelsPage.centerView.postCreate.sendMessage();
-    });
+    }, adminClient);
     const response2 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 2 Files uploaded to this channel'})
@@ -98,7 +118,7 @@ test('should list uploaded files with running total via /list_files command', as
     await sendSlashCommand(page, async () => {
         await channelsPage.centerView.postCreate.input.fill('/list_files');
         await channelsPage.centerView.postCreate.sendMessage();
-    });
+    }, adminClient);
     const response4 = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'Last 4 Files uploaded to this channel'})

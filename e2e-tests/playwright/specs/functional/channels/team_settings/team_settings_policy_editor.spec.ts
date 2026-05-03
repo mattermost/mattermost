@@ -95,6 +95,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         await expect(saveBtn).toBeEnabled({timeout: 20000});
         await saveBtn.click();
 
+        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
+        // and the server processing the save request causes the confirmation modal to skip.
+        await enableABACConfig(adminClient);
+
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});
         await page.getByRole('button', {name: /Apply policy/}).click();
@@ -543,6 +547,10 @@ test.describe('Team Settings Modal - Policy Editor', () => {
         // Re-apply guard: concurrent initSetup() may reset ABAC between setup and save
         await enableABACConfig(adminClient);
         await saveBtn.click();
+
+        // Re-apply guard post-click: a concurrent initSetup() reset between the guard above
+        // and the server processing the save request causes the confirmation modal to skip.
+        await enableABACConfig(adminClient);
 
         // # Confirm in PolicyConfirmationModal
         await page.locator('.TeamPolicyConfirmationModal').waitFor({timeout: 30000});

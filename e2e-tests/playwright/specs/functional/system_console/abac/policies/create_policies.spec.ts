@@ -399,10 +399,11 @@ test.describe('ABAC Policies - Create Policies', () => {
         });
 
         // Navigate back and try to create another policy with the same name.
-        // Re-apply guard: a concurrent initSetup() may have reset EnableAttributeBasedAccessControl
-        // between the first createBasicPolicy call and now, triggering a page redirect that
-        // closes the browser context before the second policy form can be filled.
+        // Re-apply guards: a concurrent initSetup() may have reset EnableAttributeBasedAccessControl
+        // AND deleted custom profile attributes between the first createBasicPolicy call and now.
+        // Without the Department attribute the attributeSelectorMenuButton has no items and times out.
         await navigateToABACPage(page);
+        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         });

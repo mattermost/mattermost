@@ -306,6 +306,15 @@ test(
             user_id: createdPoster.id,
         });
 
+        // Re-apply config guard: a concurrent initSetup() may have reset AutoTranslationSettings.Enable
+        // between the createPost call and the browser login. If the feature is disabled the mock
+        // translation service will not process the posted message and the translated text never appears.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();

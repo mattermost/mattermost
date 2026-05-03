@@ -364,6 +364,14 @@ test(
 
         await expect(channelsPage.centerView.autotranslationBadge).not.toBeVisible();
 
+        // Re-apply config guard: a concurrent initSetup() may have reset AutoTranslationSettings.Enable
+        // between the disable action above and now, causing 'Enable autotranslation' not to appear.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
+
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Enable autotranslation'}).click();
 
@@ -422,6 +430,13 @@ test(
             return (cfg as any).AutoTranslationSettings?.Enable === true;
         });
         await channelsPage.page.reload();
+        // Post-reload re-apply: firing the CONFIG_CHANGED WebSocket event during page load
+        // rather than after prevents it from disrupting the badge render.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await pw.waitUntil(async () => {
+            const cfg = await adminClient.getConfig();
+            return (cfg as any).AutoTranslationSettings?.Enable === true;
+        });
         await channelsPage.toBeVisible();
 
         await expect(channelsPage.centerView.autotranslationBadge).toBeVisible({timeout: 15000});

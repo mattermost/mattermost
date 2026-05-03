@@ -169,6 +169,17 @@ test.describe('Anonymous URLs', () => {
             await systemConsolePage.gotoNotificationsSettings();
             await systemConsolePage.notifications.toBeVisible();
 
+            // Re-apply guard: a concurrent initSetup() → updateConfig(defaultConfig) may have
+            // reset PrivacySettings.UseAnonymousURLs=false while we were navigating away.
+            // Re-patch before returning to the page so the radio reflects our value.
+            await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: true}});
+            await expect
+                .poll(async () => (await adminClient.getConfig()).PrivacySettings?.UseAnonymousURLs === true, {
+                    timeout: 10_000,
+                    intervals: [500, 1000],
+                })
+                .toBe(true);
+
             await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();
             await systemConsolePage.usersAndTeams.toBeVisible();
 

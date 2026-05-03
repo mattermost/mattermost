@@ -490,6 +490,15 @@ test('MM-T5792 Editing policy to remove attribute rule with auto-add enabled', a
     // STEP 5 & 6: Verify channel membership after edit
     // ===========================================
 
+    // Re-apply guard: a concurrent initSetup() may have reset ABAC between the policy save
+    // and the sync job completing. Without ABAC enabled the sync job is a no-op.
+    await adminClient.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
+    } as any);
+
     // Poll under PW_WORKERS>=2: other shards' sync jobs may briefly change membership.
     await expect
         .poll(async () => verifyUserInChannel(adminClient, engineerOfficeUser.id, privateChannel.id), {

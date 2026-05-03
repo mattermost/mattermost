@@ -105,6 +105,11 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
         });
 
+        // Re-create the Department CPA field if a concurrent initSetup() deleted it.
+        // Without the field the server returns "An attribute is missing from the expression"
+        // on addToChannel, because the policy references a field id that no longer exists.
+        await setupCustomProfileAttributeFields(adminClient, attributeFields);
+
         // Verify user can be added (policy allows it since user has qualifying attribute)
         await adminClient.addToChannel(testUser.id, privateChannel.id);
 

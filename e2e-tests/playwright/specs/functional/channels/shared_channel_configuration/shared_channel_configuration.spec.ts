@@ -275,6 +275,17 @@ test.describe('Shared channel configuration', () => {
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply guard: a concurrent initSetup() may have reset ConnectedWorkspacesSettings
+        // between the initial patchConfig call and now.  enableShareWithWorkspaces() calls
+        // toggle.getAttribute() which times out (30 s) when EnableSharedChannels=false because
+        // the toggle is not rendered at all.
+        await adminClient.patchConfig({
+            ConnectedWorkspacesSettings: {
+                EnableSharedChannels: true,
+                EnableRemoteClusterService: true,
+            },
+        });
+
         // Enable sharing via UI
         let channelSettingsModal = await channelsPage.openChannelSettings();
         let configurationTab = await channelSettingsModal.openConfigurationTab();
