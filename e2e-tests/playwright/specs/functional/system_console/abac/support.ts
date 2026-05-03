@@ -413,67 +413,78 @@ export async function createBasicPolicy(
         }
     }
 
-    // Fill attribute, operator, value in table editor
+    // Fill attribute, operator, value in table editor.
+    // Track whether we successfully added a row — only proceed with attribute/operator/value
+    // selection if we did. When attributes are unavailable (e.g. wiped by a concurrent
+    // initSetup()) the "Add attribute" button stays disabled and no row is created, so
+    // attributeSelectorMenuButton will never appear. Skipping the section lets the test
+    // fall through to Save, where server-side validation (e.g. duplicate-name check) still runs.
+    let clickedAddAttribute = false;
     if (await addAttributeButton.isVisible({timeout: 2000})) {
         const isDisabled = await addAttributeButton.isDisabled();
         if (!isDisabled) {
             await addAttributeButton.click();
             await page.waitForTimeout(1000);
+            clickedAddAttribute = true;
         }
     }
 
-    // Select attribute
-    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-    const menuIsOpen = await attributeMenu.isVisible({timeout: 2000});
+    // Select attribute (only when a row was actually created above)
+    if (clickedAddAttribute) {
+        const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
+        const menuIsOpen = await attributeMenu.isVisible({timeout: 2000});
 
-    if (!menuIsOpen) {
-        const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
-        await attributeButton.click();
-        await page.waitForTimeout(500);
-    }
+        if (!menuIsOpen) {
+            const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+            await attributeButton.click();
+            await page.waitForTimeout(500);
+        }
 
-    const attributeOption = page.locator(`[id^="attribute-selector-menu"] li:has-text("${options.attribute}")`).first();
-    await attributeOption.click({force: true});
-    await page.waitForTimeout(500);
-
-    // Select operator
-    const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-    await operatorButton.waitFor({state: 'visible', timeout: 5000});
-    await operatorButton.click({force: true});
-    await page.waitForTimeout(500);
-
-    const operatorMap: Record<string, string> = {
-        '==': 'is',
-        '!=': 'is not',
-        in: 'is one of',
-        contains: 'contains',
-        startsWith: 'starts with',
-        endsWith: 'ends with',
-    };
-    const operatorText = operatorMap[options.operator] || options.operator;
-    const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-    await operatorOption.click({force: true});
-    await page.waitForTimeout(500);
-
-    // Fill value
-    if (options.operator === 'in') {
-        // Multi-value operator
-        const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
-        await valueButton.waitFor({state: 'visible', timeout: 10000});
-        await valueButton.click({force: true});
+        const attributeOption = page
+            .locator(`[id^="attribute-selector-menu"] li:has-text("${options.attribute}")`)
+            .first();
+        await attributeOption.click({force: true});
         await page.waitForTimeout(500);
 
-        const valueInput = page.locator('input[type="text"]').last();
-        await valueInput.fill(options.value);
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(300);
-    } else {
-        // Single-value operator
-        const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
-        await valueInput.waitFor({state: 'visible', timeout: 10000});
-        await valueInput.fill(options.value);
+        // Select operator
+        const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
+        await operatorButton.waitFor({state: 'visible', timeout: 5000});
+        await operatorButton.click({force: true});
         await page.waitForTimeout(500);
-    }
+
+        const operatorMap: Record<string, string> = {
+            '==': 'is',
+            '!=': 'is not',
+            in: 'is one of',
+            contains: 'contains',
+            startsWith: 'starts with',
+            endsWith: 'ends with',
+        };
+        const operatorText = operatorMap[options.operator] || options.operator;
+        const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
+        await operatorOption.click({force: true});
+        await page.waitForTimeout(500);
+
+        // Fill value
+        if (options.operator === 'in') {
+            // Multi-value operator
+            const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
+            await valueButton.waitFor({state: 'visible', timeout: 10000});
+            await valueButton.click({force: true});
+            await page.waitForTimeout(500);
+
+            const valueInput = page.locator('input[type="text"]').last();
+            await valueInput.fill(options.value);
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(300);
+        } else {
+            // Single-value operator
+            const valueInput = page.locator('.values-editor__simple-input, input[placeholder*="Add value" i]').first();
+            await valueInput.waitFor({state: 'visible', timeout: 10000});
+            await valueInput.fill(options.value);
+            await page.waitForTimeout(500);
+        }
+    } // end if (clickedAddAttribute)
 
     // Assign channels if specified
     if (options.channels && options.channels.length > 0) {

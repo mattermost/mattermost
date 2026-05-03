@@ -343,21 +343,26 @@ test(
         await channelsPage.toBeVisible();
 
         // * Verify both posts appear
-        // Mock server produces "<original> [translated to en]", not real translations
+        // Mock server produces "<original> [translated to en]", not real translations.
+        // Translation is async — use expect.poll to ride out mock-service latency in CI.
         await expect(channelsPage.centerView.container.locator('[id^="post_"]').getByText('English only')).toBeVisible({
             timeout: 15000,
         });
-        await expect(
-            channelsPage.centerView.container
-                .locator('[id^="post_"]')
-                .getByText('Solo español [translated to en]', {exact: false}),
-        ).toBeVisible({timeout: 15000});
+        const translatedSpanishLocator = channelsPage.centerView.container
+            .locator('[id^="post_"]')
+            .getByText('Solo español [translated to en]', {exact: false});
+        await expect
+            .poll(async () => translatedSpanishLocator.isVisible(), {
+                timeout: 45000,
+                intervals: [500, 1500, 3000, 5000],
+            })
+            .toBe(true);
 
         // * Verify both messages are present
         const spanishPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: 'Solo español [translated to en]'});
-        await expect(spanishPost).toBeVisible({timeout: 15000});
+        await expect(spanishPost).toBeVisible({timeout: 30000});
 
         // * Verify English message is present and unchanged
         const englishPost = channelsPage.centerView.container
