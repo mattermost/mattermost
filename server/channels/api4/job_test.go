@@ -244,6 +244,7 @@ func TestGetJobsByType(t *testing.T) {
 func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
+	th.LoginSystemManager(t)
 
 	policyID := model.NewId()
 	otherPolicyID := model.NewId()
@@ -345,7 +346,13 @@ func TestGetJobsByTypeWithPolicyIDFilter(t *testing.T) {
 	})
 
 	t.Run("policy_id filter requires system admin permission", func(t *testing.T) {
-		resp, err := th.Client.DoAPIGet(
+		// SessionHasPermissionToReadJob for JobTypeAccessControlSync already requires
+		// PermissionManageSystem (see app/job.go), so the policyID guard in getJobsByType
+		// acts as defence-in-depth. Use SystemManagerClient — a role that has many admin
+		// privileges but intentionally lacks PermissionManageSystem — to verify that any
+		// caller without manage_system is denied (403) at the read-job gate before the
+		// policyID branch is even reached.
+		resp, err := th.SystemManagerClient.DoAPIGet(
 			context.Background(),
 			"/jobs/type/"+model.JobTypeAccessControlSync+"?page=0&per_page=60&policy_id="+policyID,
 			"",
