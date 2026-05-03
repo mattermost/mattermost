@@ -171,7 +171,21 @@ test.describe('Anonymous URLs', () => {
 
             // Re-apply guard: a concurrent initSetup() → updateConfig(defaultConfig) may have
             // reset PrivacySettings.UseAnonymousURLs=false while we were navigating away.
-            // Re-patch before returning to the page so the radio reflects our value.
+            // Re-patch and confirm propagation before navigating back.
+            await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: true}});
+            await expect
+                .poll(async () => (await adminClient.getConfig()).PrivacySettings?.UseAnonymousURLs === true, {
+                    timeout: 20_000,
+                    intervals: [500, 1000, 2000],
+                })
+                .toBe(true);
+
+            await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();
+            await systemConsolePage.usersAndTeams.toBeVisible();
+
+            // Re-apply one more time after the page renders and confirm, so the radio reads the
+            // fresh config (a WebSocket CONFIG_CHANGED event from a concurrent initSetup() can
+            // reset the in-memory Redux state between the poll above and the page rendering).
             await adminClient.patchConfig({PrivacySettings: {UseAnonymousURLs: true}});
             await expect
                 .poll(async () => (await adminClient.getConfig()).PrivacySettings?.UseAnonymousURLs === true, {
@@ -179,9 +193,6 @@ test.describe('Anonymous URLs', () => {
                     intervals: [500, 1000],
                 })
                 .toBe(true);
-
-            await systemConsolePage.sidebar.siteConfiguration.usersAndTeams.click();
-            await systemConsolePage.usersAndTeams.toBeVisible();
 
             // * Verify the setting is still enabled
             await systemConsolePage.usersAndTeams.useAnonymousURLs.toBeTrue();

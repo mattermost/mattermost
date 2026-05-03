@@ -89,9 +89,23 @@ test.describe('Team Settings Modal - Membership Policies Tab', () => {
             await channelsPage.toBeVisible();
             // Force a full navigation so the team settings bundle reads the latest
             // AccessControlSettings (WebSocket config updates can lag in CI).
+            // Re-apply guard immediately before reload: a concurrent initSetup() may have
+            // re-enabled ABAC between the waitUntil check above and here.
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
             await page.reload();
             await page.waitForLoadState('networkidle');
             await channelsPage.toBeVisible();
+            // Re-apply once more after the page has settled to prevent a WebSocket
+            // CONFIG_CHANGED event (from a concurrent initSetup()) from flipping it back.
+            await adminClient.patchConfig({
+                AccessControlSettings: {EnableAttributeBasedAccessControl: false},
+            });
+            await pw.waitUntil(async () => {
+                const cfg = await adminClient.getConfig();
+                return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === false;
+            });
 
             const teamSettings = await channelsPage.openTeamSettings();
 

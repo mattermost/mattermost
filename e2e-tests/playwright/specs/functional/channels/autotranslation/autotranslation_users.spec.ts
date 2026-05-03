@@ -230,13 +230,20 @@ test(
         await channelsPage.page.reload();
         await channelsPage.toBeVisible();
 
-        // * Verify post with translated text appears before disabling
-        // Mock server appends "[translated to en]" to the original text
+        // * Verify post with translated text appears before disabling.
+        // Mock server appends "[translated to en]" to the original text. Translation
+        // is asynchronous and can lag several seconds in CI; use expect.poll to retry
+        // reliably rather than a fixed 15 s one-shot timeout.
         const translatedText = 'Solo texto original [translated to en]';
         const spanishPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
             .filter({hasText: translatedText});
-        await expect(spanishPost).toBeVisible({timeout: 15000});
+        await expect
+            .poll(async () => spanishPost.isVisible(), {
+                timeout: 60000,
+                intervals: [500, 1500, 3000, 5000],
+            })
+            .toBe(true);
 
         await channelsPage.centerView.header.openChannelMenu();
         await page.getByRole('menuitem', {name: 'Disable autotranslation'}).click();

@@ -48,15 +48,22 @@ test('should send ephemeral post with Update and Delete actions via /ephemeral c
     await expect(ephemeralPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
 
     // 6. Click Update and verify post text and button label change
-    // After clicking Update the text changes — re-find the post by its new content
+    // After clicking Update the text changes — re-find the post by its new content.
+    // The virtual list can re-render immediately after the click, causing a brief DOM
+    // detachment window; wrap the assertion in toPass to ride out that re-render.
     await ephemeralPost.getByRole('button', {name: 'Update', exact: true}).click();
     const updatedPost = channelsPage.centerView.container
         .getByRole('listitem')
         .filter({hasText: 'updated ephemeral action'})
         .last();
-    await expect(updatedPost.getByText('updated ephemeral action', {exact: true})).toBeVisible();
-    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible();
-    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible();
+    await expect
+        .poll(async () => updatedPost.getByText('updated ephemeral action', {exact: true}).isVisible(), {
+            timeout: 30000,
+            intervals: [500, 1000, 2000],
+        })
+        .toBe(true);
+    await expect(updatedPost.getByRole('button', {name: 'Update 1', exact: true})).toBeVisible({timeout: 15000});
+    await expect(updatedPost.getByRole('button', {name: 'Delete', exact: true})).toBeVisible({timeout: 15000});
 
     // 7. Click Delete and verify post content is removed and buttons are gone
     // After delete the text changes again — re-find by the new content

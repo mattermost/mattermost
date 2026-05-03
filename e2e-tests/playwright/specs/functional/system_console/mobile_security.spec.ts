@@ -337,7 +337,11 @@ test('should configure new IntuneSettings with Office365 auth provider', async (
     // * Verify Intune is enabled
     await systemConsolePage.mobileSecurity.enableIntuneMAM.toBeTrue();
 
-    // # Select Office365 as auth provider
+    // # Select Office365 as auth provider.
+    // After enabling Intune MAM the form re-renders; scroll the dropdown into view
+    // before selecting so it is both visible and interactive.
+    await systemConsolePage.mobileSecurity.authProvider.dropdown.scrollIntoViewIfNeeded();
+    await expect(systemConsolePage.mobileSecurity.authProvider.dropdown).toBeEnabled({timeout: 15000});
     await systemConsolePage.mobileSecurity.authProvider.select('office365');
 
     // # Fill in Intune configuration
