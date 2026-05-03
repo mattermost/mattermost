@@ -122,7 +122,7 @@ class AdminUserCard {
     readonly twoColumnLayout: Locator;
     readonly fieldRows: Locator;
 
-    // System field inputs
+    // System field inputs (scoped via wrapping <label> to avoid substring ambiguity)
     readonly usernameInput: Locator;
     readonly emailInput: Locator;
     readonly authDataInput: Locator;
@@ -148,16 +148,11 @@ class AdminUserCard {
         this.twoColumnLayout = this.body.locator('.two-column-layout');
         this.fieldRows = this.body.locator('.field-row');
 
-        // System fields — plain <label> (not .cpa-field); FormattedMessage has no htmlFor, so
-        // getByLabel is unreliable. Match label row text, then the input inside.
-        this.usernameInput = AdminUserCard.systemFieldTextbox(this.body, 'Username');
-        this.emailInput = AdminUserCard.systemFieldTextbox(this.body, 'Email');
-        this.authDataInput = AdminUserCard.systemFieldTextbox(this.body, 'Auth Data');
-        this.authenticationMethod = this.container
-            .locator('label')
-            .filter({hasText: 'Authentication Method'})
-            .locator('span')
-            .last();
+        // System fields — use exact label text to avoid substring matches (e.g., "Email" vs "Work Email")
+        this.usernameInput = this.getFieldInputByExactLabel('Username');
+        this.emailInput = this.getFieldInputByExactLabel('Email');
+        this.authDataInput = this.getFieldInputByExactLabel('Auth Data');
+        this.authenticationMethod = this.getFieldColumn('Authentication Method').locator('label > span').last();
 
         // Footer
         const footer = container.locator('.AdminUserCard__footer');
@@ -166,69 +161,47 @@ class AdminUserCard {
         this.manageUserSettingsButton = footer.getByRole('button', {name: 'Manage User Settings'});
     }
 
-    /** Standard (non-CPA) user-detail rows: label without .cpa-field wraps a text input. */
-    private static systemFieldTextbox(body: Locator, title: string): Locator {
-        const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return body
-            .locator('label:not(.cpa-field)')
-            .filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)})
-            .locator('input.form-control')
-            .first();
-    }
-
-    /** CPA text / email / URL fields live under `label.cpa-field`. */
-    private static cpaFieldTextbox(container: Locator, fieldName: string): Locator {
-        const escaped = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return container
-            .locator('label.cpa-field')
-            .filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)})
-            .locator('input.form-control')
-            .first();
-    }
-
-    private static cpaFieldSelect(container: Locator, fieldName: string): Locator {
-        const escaped = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return container
-            .locator('label.cpa-field')
-            .filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)})
-            .locator('select')
-            .first();
-    }
-
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
 
-    getFieldInputByExactLabel(labelText: string): Locator {
-        return AdminUserCard.cpaFieldTextbox(this.container, labelText);
-    }
-
-    getSelectByExactLabel(labelText: string): Locator {
-        return AdminUserCard.cpaFieldSelect(this.container, labelText);
-    }
-
-    getFieldError(labelText: string): Locator {
-        const escaped = labelText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return this.container
-            .locator('label.cpa-field')
-            .filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)})
-            .locator('.field-error')
-            .first();
-    }
-
-    /** Inline validation on standard (non-CPA) fields, e.g. system Email. */
-    getSystemFieldError(fieldTitle: string): Locator {
-        const escaped = fieldTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    /**
+     * Get the .field-column container for a field by its exact label text.
+     */
+    private getFieldColumn(labelText: string): Locator {
         return this.body
-            .locator('label:not(.cpa-field)')
-            .filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)})
-            .locator('.field-error')
-            .first();
+            .locator('.field-column')
+            .filter({has: this.body.page().locator(`span:text-is("${labelText}")`)});
     }
 
+    /**
+     * Get the input inside a field column by exact label text.
+     * Avoids substring ambiguity (e.g., "Email" won't match "Work Email").
+     */
+    getFieldInputByExactLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('input');
+    }
+
+    /**
+     * Get the select inside a field column by exact label text.
+     */
+    getSelectByExactLabel(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('select');
+    }
+
+    /**
+     * Get the .field-error validation message locator for a field by its exact label text.
+     */
+    getFieldError(labelText: string): Locator {
+        return this.getFieldColumn(labelText).locator('.field-error');
+    }
+
+    /**
+     * Get the container for a multiselect CPA field by its exact label text.
+     * Returns the .field-column wrapper which holds the multiselect component.
+     */
     getCpaMultiselectContainer(labelText: string): Locator {
-        const escaped = labelText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return this.container.locator('label.cpa-field').filter({hasText: new RegExp(`^\\s*${escaped}\\s*$`)});
+        return this.getFieldColumn(labelText);
     }
 }
 
