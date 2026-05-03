@@ -29,13 +29,40 @@ dump_openldap_diagnostics() {
   mkdir -p "$out"
   mme2e_log "[diagnostics:${label}] capturing openldap state to $out"
 
-  # Container-level state (exit code, OOMKilled, error string, restart count)
-  docker inspect mmserver-openldap-1 >"$out/openldap.inspect.json" 2>&1 || true
+  # Container-level state (exit code, OOMKilled, error string, restart count).
+  # Capture only safe metadata fields — omit Config.Env to prevent leaking
+  # secrets such as MM_LICENSE that are present in container environments.
+  docker inspect --format='{"Name":{{json .Name}},"State":{{json .State}},"RestartCount":{{json .RestartCount}},"Image":{{json .Image}},"HostConfig":{"CapAdd":{{json .HostConfig.CapAdd}},"SecurityOpt":{{json .HostConfig.SecurityOpt}}}}' \
+    mmserver-openldap-1 >"$out/openldap.inspect.json" 2>&1 || \
+    docker inspect mmserver-openldap-1 >"$out/openldap.inspect.json" 2>&1 || true
   ${MME2E_DC_SERVER} ps -a >"$out/compose.ps.txt" 2>&1 || true
   ${MME2E_DC_SERVER} logs --no-log-prefix -- openldap >"$out/openldap.log" 2>&1 || true
 
-  # Merged compose config — confirms which security_opt / cap_add / image is actually applied
-  ${MME2E_DC_SERVER} config >"$out/compose.config.yml" 2>&1 || true
+  # Merged compose config — confirms which security_opt / cap_add / image is actually
+  # applied. Strip environment variable blocks before saving to avoid leaking secrets
+  # (MM_LICENSE, POSTGRES_PASSWORD, etc.) that docker compose config may materialise
+  # from env_file entries.
+  ${MME2E_DC_SERVER} config 2>&1 | python3 -c "
+import sys, re
+in_env = False
+env_indent = 0
+for line in sys.stdin:
+    m = re.match(r'^(\s*)environment\s*:', line)
+    if m:
+        in_env = True
+        env_indent = len(m.group(1))
+        print(m.group(1) + 'environment: {}  # redacted by CI')
+        continue
+    if in_env:
+        stripped = line.lstrip()
+        indent = len(line) - len(stripped)
+        if stripped and indent <= env_indent and not stripped.startswith('-'):
+            in_env = False
+        else:
+            continue
+    print(line, end='')
+" >"$out/compose.config.yml" 2>&1 || \
+    ${MME2E_DC_SERVER} config >"$out/compose.config.yml" 2>&1 || true
 
   # Host-level state useful for OOM / AppArmor diagnosis
   uname -a >"$out/host.uname.txt" 2>&1 || true

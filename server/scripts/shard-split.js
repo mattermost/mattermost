@@ -34,14 +34,22 @@
  */
 
 const fs = require("node:fs");
-const { execSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 
 const SHARD_INDEX = parseInt(process.env.SHARD_INDEX);
 const SHARD_TOTAL = parseInt(process.env.SHARD_TOTAL);
 const HEAVY_MS = 600000; // 600s (10 min): packages above this get test-level splitting
 
-if (isNaN(SHARD_INDEX) || isNaN(SHARD_TOTAL) || SHARD_TOTAL < 1) {
-    console.error("ERROR: SHARD_INDEX and SHARD_TOTAL must be set");
+if (
+    Number.isNaN(SHARD_INDEX) ||
+    Number.isNaN(SHARD_TOTAL) ||
+    SHARD_TOTAL < 1 ||
+    SHARD_INDEX < 0 ||
+    SHARD_INDEX >= SHARD_TOTAL
+) {
+    console.error(
+        `ERROR: SHARD_INDEX (${SHARD_INDEX}) and SHARD_TOTAL (${SHARD_TOTAL}) must be valid: SHARD_INDEX must be in [0, SHARD_TOTAL)`,
+    );
     process.exit(1);
 }
 
@@ -148,6 +156,7 @@ for (const pkg of allPkgs) {
 // assign any cache-missing tests to the least-loaded shard.
 if (heavyPkgs.size > 0) {
     console.log("::group::Discovering new tests in heavy packages");
+    const discoveryFailedPkgs = new Set();
     for (const pkg of heavyPkgs) {
         const cachedTests = new Set(
             Object.keys(testTimes)
@@ -155,9 +164,12 @@ if (heavyPkgs.size > 0) {
                 .map((k) => k.split("::")[1]),
         );
         try {
-            const out = execSync(`go test -list '.*' ${pkg} 2>/dev/null`, {
+            // Use execFileSync (not execSync) so pkg is passed as a safe argv
+            // element and cannot be interpreted as shell syntax.
+            const out = execFileSync("go", ["test", "-list", ".*", pkg], {
                 encoding: "utf8",
                 timeout: 300000,
+                stdio: ["pipe", "pipe", "ignore"],
             });
             const currentTests = out
                 .split("\n")
@@ -179,12 +191,23 @@ if (heavyPkgs.size > 0) {
         } catch (e) {
             // go test -list can fail for packages whose TestMain requires a DB
             // connection (e.g. sqlstore) because the GitHub runner cannot reach the
-            // docker-compose postgres network.  Log a warning and fall back to
-            // treating the package as a whole unit rather than failing all shards.
+            // docker-compose postgres network.  Log a warning and mark the package
+            // so per-test entries are removed and replaced with a whole-package entry.
+            discoveryFailedPkgs.add(pkg);
             console.error(
                 `::warning::${pkg.split("/").pop()}: go test -list failed — treating as whole package (new tests may be skipped this run). ${e.message}`,
             );
         }
+    }
+    // Remove any per-test items already pushed for failed-discovery packages and
+    // replace them with a single package-level entry so the shard plan is correct.
+    for (const pkg of discoveryFailedPkgs) {
+        for (let i = items.length - 1; i >= 0; i--) {
+            if (items[i].pkg === pkg) {
+                items.splice(i, 1);
+            }
+        }
+        items.push({ ms: pkgTimes[pkg] || 1, type: "P", pkg });
     }
     console.log("::endgroup::");
 }

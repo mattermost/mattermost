@@ -49,6 +49,14 @@ if [ -n "${PW_SHARD_INDEX:-}" ] && [ -n "${PW_SHARD_TOTAL:-}" ]; then
   BALANCED_SPECS=$(${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- playwright bash -lc \
     "cd e2e-tests/playwright && node scripts/shard-balancer.mjs ${PW_SHARD_INDEX} ${PW_SHARD_TOTAL}" 2>/dev/null || true)
   BALANCED_SPECS=$(echo "$BALANCED_SPECS" | tr -d '\r' | xargs || true)
+  # Shell-quote every spec path (via printf '%q') before embedding in bash -lc
+  # so that paths containing shell metacharacters cannot be re-tokenized as
+  # commands or arguments by the inner shell.
+  if [ -n "$BALANCED_SPECS" ]; then
+    read -ra _balanced_arr <<< "$BALANCED_SPECS"
+    BALANCED_SPECS=$(printf '%q ' "${_balanced_arr[@]}")
+    BALANCED_SPECS="${BALANCED_SPECS% }"  # trim trailing space
+  fi
   # IMPORTANT: must be exported so `docker compose exec -e BALANCED_SPECS`
   # copies it from this shell's environment.
   export BALANCED_SPECS
@@ -122,10 +130,13 @@ if [ -n "$FAILED_SPECS" ]; then
       -e TEST_FILTER \
       -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER}" | tee ../playwright/logs/playwright-retry.log || true
   else
+    # Retry with explicit failed-spec paths — do NOT pass PW_SHARD here.
+    # PW_SHARD would re-apply Playwright's alphabetical shard slice to the
+    # already-narrow failed-spec list, potentially filtering out the very
+    # specs we're trying to re-run.
     ${MME2E_DC_SERVER} exec -i -T -u "$MME2E_UID" \
       -e TEST_FILTER \
-      -e PW_SHARD \
-      -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER} \${PW_SHARD:+\$PW_SHARD}" | tee ../playwright/logs/playwright-retry.log || true
+      -- playwright bash -lc "cd e2e-tests/playwright && npm run test:ci -- $SPEC_ARGS \${TEST_FILTER:+\$TEST_FILTER}" | tee ../playwright/logs/playwright-retry.log || true
   fi
 
   # Stash retry blobs alongside the first-pass blobs.
