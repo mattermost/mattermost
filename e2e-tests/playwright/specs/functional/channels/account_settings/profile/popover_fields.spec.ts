@@ -12,6 +12,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * 2. Two user accounts, with one user able to see their own information
  */
 test('Profile popover should show correct fields after at-mention autocomplete @user_profile', async ({pw}) => {
+    test.setTimeout(120000);
     // Initialize with user's privacy settings set to hide email and full name
     const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
@@ -19,6 +20,10 @@ test('Profile popover should show correct fields after at-mention autocomplete @
             ShowEmailAddress: false,
             ShowFullName: false,
         },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false && cfg.PrivacySettings?.ShowFullName === false;
     });
 
     // Create and add another user using admin client
@@ -35,6 +40,8 @@ test('Profile popover should show correct fields after at-mention autocomplete @
 
     // 3. Open profile popover for the current user on first
     const lastPost = await channelsPage.getLastPost();
+    await expect(lastPost.container).toContainText(`@${user.username}`);
+    await expect(lastPost.container).toContainText(`@${testUser2.username}`);
     const firstMention = await lastPost.container.getByText(`@${user.username}`, {exact: true});
     await firstMention.click();
     const currentUserProfilePopover = channelsPage.userProfilePopover;
@@ -47,7 +54,20 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     // 4. Close the current user's profile popover
     await currentUserProfilePopover.close();
 
-    // 5. Open profile popover for the other user on second mention
+    // 5. Open profile popover for the other user on second mention.
+    // Re-apply privacy settings in case a concurrent initSetup() reset them,
+    // then wait until the server confirms the value before proceeding so the
+    // browser gets the WebSocket update before the popover renders.
+    await adminClient.patchConfig({
+        PrivacySettings: {
+            ShowEmailAddress: false,
+            ShowFullName: false,
+        },
+    });
+    await pw.waitUntil(async () => {
+        const cfg = await adminClient.getConfig();
+        return cfg.PrivacySettings?.ShowEmailAddress === false && cfg.PrivacySettings?.ShowFullName === false;
+    });
     const secondMention = await lastPost.container.getByText(`@${testUser2.username}`, {exact: true});
     await secondMention.click();
     const otherUserProfilePopover = channelsPage.userProfilePopover;

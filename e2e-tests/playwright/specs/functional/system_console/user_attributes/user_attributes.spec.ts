@@ -13,7 +13,7 @@
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
 
-import {expect, test, SystemConsolePage} from '@mattermost/playwright-lib';
+import {expect, getAdminClient, test, SystemConsolePage} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
@@ -72,6 +72,23 @@ async function cleanupFields(client: Client4, fieldsMap: FieldsMap): Promise<voi
 }
 
 test.describe('System Console - User Attributes Management', () => {
+    test.afterAll(async () => {
+        try {
+            const {adminClient} = await getAdminClient({skipLog: true});
+            const fields = (await adminClient.getCustomProfileAttributeFields()) as Array<{name: string}>;
+            if (!fields.some((f) => f.name === 'Department')) {
+                await adminClient.createCustomProfileAttributeField({
+                    name: 'Department',
+                    type: 'text',
+                    attrs: {sort_order: 0},
+                } as any);
+            }
+        } catch {
+            // Best-effort cleanup; if the server is unlicensed or fields API
+            // is unavailable, ABAC tests will handle their own attribute setup.
+        }
+    });
+
     /**
      * @objective Verify that navigating to the User Attributes page shows the empty state
      * with the Add attribute button and a disabled Save button.
@@ -180,6 +197,9 @@ test.describe('System Console - User Attributes Management', () => {
         // # Add options
         await sp.addOptions(0, ['Remote', 'Office', 'Hybrid']);
 
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.nameInput(0).click();
+
         await sp.saveAndWaitForSettled();
 
         // * Verify field was created with correct type via API
@@ -211,11 +231,13 @@ test.describe('System Console - User Attributes Management', () => {
         // # Navigate to User Attributes page
         await sp.goto();
 
-        // # Find the attribute name input and edit it
-        const nameInput = sp.nameInput(0);
-        await expect(nameInput).toHaveValue('Old Name');
-        await nameInput.fill('New Name');
-        await nameInput.blur();
+        const nameInputLocator = sp.nameInputByValue('Old Name');
+        await expect(nameInputLocator).toBeVisible();
+        await nameInputLocator.focus();
+        await nameInputLocator.fill('New Name');
+        // blur via keyboard — the CSS-attribute locator no longer matches
+        // after fill() so calling .blur() on it would time out.
+        await sp.page.keyboard.press('Tab');
 
         await sp.saveAndWaitForSettled();
 
@@ -365,18 +387,28 @@ test.describe('System Console - User Attributes Management', () => {
         // # Click "Editable by users" toggle
         await sp.toggleEditableByUsers();
 
+        // # Wait for the checkbox to reflect the toggled (unchecked) state before dismissing,
+        // # to avoid a race where Escape fires before the UI registers the change
+        await expect(systemConsolePage.page.getByRole('menuitemcheckbox', {name: 'Editable by users'})).toHaveAttribute(
+            'aria-checked',
+            'false',
+        );
+
         // # Close the dot menu — it stays open after toggling; backdrop would block Save click
         await sp.dismissMenu();
 
         await sp.saveAndWaitForSettled();
 
         // * Verify managed was set to 'admin' (not editable by users) via API
-        const updatedMap = await getFieldsMap(adminClient);
-        const updatedField = Object.values(updatedMap).find((f) => f.name === 'Editable Test');
-        expect(updatedField).toBeDefined();
-        expect(updatedField!.attrs.managed).toBe('admin');
+        // # Use expect.poll to tolerate brief server-side propagation delay
+        await expect
+            .poll(async () => {
+                const map = await getFieldsMap(adminClient);
+                return Object.values(map).find((f) => f.name === 'Editable Test');
+            })
+            .toMatchObject({attrs: {managed: 'admin'}});
 
-        await cleanupFields(adminClient, updatedMap);
+        await cleanupFields(adminClient, await getFieldsMap(adminClient));
     });
 
     /**
@@ -417,7 +449,8 @@ test.describe('System Console - User Attributes Management', () => {
         const sp = systemConsolePage.systemProperties;
 
         // # Create an attribute via API
-        const attributes: CustomProfileAttribute[] = [{name: 'Unique Name', type: 'text'}];
+        const uniqueDupName = `Unique Name ${Date.now()}`;
+        const attributes: CustomProfileAttribute[] = [{name: uniqueDupName, type: 'text'}];
         const fieldsMap = await setupCustomProfileAttributeFields(adminClient, attributes);
 
         // # Navigate to User Attributes page
@@ -428,7 +461,7 @@ test.describe('System Console - User Attributes Management', () => {
 
         const newNameInput = sp.nameInput(1);
         await newNameInput.clear();
-        await newNameInput.fill('Unique Name');
+        await newNameInput.fill(uniqueDupName);
         await newNameInput.blur();
 
         // * Verify validation warning about duplicate name is shown
@@ -497,6 +530,9 @@ test.describe('System Console - User Attributes Management', () => {
 
         // # Add options
         await sp.addOptions(0, ['JavaScript', 'Python', 'Go']);
+
+        // # Click the name input to blur the react-select and commit all pending option state
+        await sp.nameInput(0).click();
 
         await sp.saveAndWaitForSettled();
 
