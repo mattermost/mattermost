@@ -5764,6 +5764,7 @@
   "post_reminder.custom_time_picker_modal.header": "Set a reminder",
   "post_reminder.custom_time_picker_modal.submit_button": "Set reminder",
   "post.ariaLabel.attachment": ", 1 attachment",
+  "post.broadcast_reply_link": "Reply in thread",
   "post.ariaLabel.attachmentMultiple": ", {attachmentCount} attachments",
   "post.ariaLabel.message": "At {time} {date}, {authorName} wrote, {message}",
   "post.ariaLabel.messageIsFlagged": ", message is saved",

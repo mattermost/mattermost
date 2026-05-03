@@ -129,6 +129,12 @@ type ThreadMembership struct {
 	// is the thread analogue to the ChannelMembership's MentionCount, and is used to highlight
 	// threads with the mention count.
 	UnreadMentions int64 `json:"unread_mentions"`
+
+	// IsMentionOnly indicates the user is following this thread only because they were mentioned
+	// via @here/@channel/@all. They see the thread in Followed Threads but do not receive
+	// push/email notifications for subsequent replies unless they actively reply (which upgrades
+	// them to a full follower).
+	IsMentionOnly bool `json:"is_mention_only"`
 }
 
 func (o *ThreadMembership) IsValid() *AppError {

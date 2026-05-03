@@ -201,6 +201,54 @@ func (_m *ThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []string, in
 	return r0, r1
 }
 
+// EnsureThreadExists provides a mock function with given fields: postID, channelID, teamID, createAt
+func (_m *ThreadStore) EnsureThreadExists(postID string, channelID string, teamID string, createAt int64) error {
+	ret := _m.Called(postID, channelID, teamID, createAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EnsureThreadExists")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string, int64) error); ok {
+		r0 = rf(postID, channelID, teamID, createAt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetMentionOnlyFollowers provides a mock function with given fields: threadID
+func (_m *ThreadStore) GetMentionOnlyFollowers(threadID string) (model.StringSet, error) {
+	ret := _m.Called(threadID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMentionOnlyFollowers")
+	}
+
+	var r0 model.StringSet
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (model.StringSet, error)); ok {
+		return rf(threadID)
+	}
+	if rf, ok := ret.Get(0).(func(string) model.StringSet); ok {
+		r0 = rf(threadID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(model.StringSet)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(threadID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetThreadFollowers provides a mock function with given fields: threadID, fetchOnlyActive
 func (_m *ThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	ret := _m.Called(threadID, fetchOnlyActive)

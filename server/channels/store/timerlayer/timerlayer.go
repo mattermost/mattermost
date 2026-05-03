@@ -11752,6 +11752,38 @@ func (s *TimerLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 	return result, err
 }
 
+func (s *TimerLayerThreadStore) EnsureThreadExists(postID string, channelID string, teamID string, createAt int64) error {
+	start := time.Now()
+
+	err := s.ThreadStore.EnsureThreadExists(postID, channelID, teamID, createAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.EnsureThreadExists", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerThreadStore) GetMentionOnlyFollowers(threadID string) (model.StringSet, error) {
+	start := time.Now()
+
+	result, err := s.ThreadStore.GetMentionOnlyFollowers(threadID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ThreadStore.GetMentionOnlyFollowers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 	start := time.Now()
 

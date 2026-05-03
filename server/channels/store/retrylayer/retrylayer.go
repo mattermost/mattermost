@@ -14877,6 +14877,48 @@ func (s *RetryLayerThreadStore) GetTeamsUnreadForUser(userID string, teamIDs []s
 
 }
 
+func (s *RetryLayerThreadStore) EnsureThreadExists(postID string, channelID string, teamID string, createAt int64) error {
+
+	tries := 0
+	for {
+		err := s.ThreadStore.EnsureThreadExists(postID, channelID, teamID, createAt)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerThreadStore) GetMentionOnlyFollowers(threadID string) (model.StringSet, error) {
+
+	tries := 0
+	for {
+		result, err := s.ThreadStore.GetMentionOnlyFollowers(threadID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error) {
 
 	tries := 0

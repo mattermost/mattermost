@@ -340,6 +340,8 @@ type ChannelMemberHistoryStore interface {
 }
 type ThreadStore interface {
 	GetThreadFollowers(threadID string, fetchOnlyActive bool) ([]string, error)
+	GetMentionOnlyFollowers(threadID string) (model.StringSet, error)
+	EnsureThreadExists(postID, channelID, teamID string, createAt int64) error
 	GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error)
 
 	Get(id string) (*model.Thread, error)
@@ -1306,6 +1308,10 @@ type ThreadMembershipOpts struct {
 	// UpdateParticipants indicates whether or not the thread's participants list
 	// should be updated.
 	UpdateParticipants bool
+	// IsMentionOnly marks the membership as created due to an @here/@channel/@all mention.
+	// The thread appears in Followed Threads but CRT push/email notifications for subsequent
+	// replies are suppressed. Actively replying upgrades this to a full follow.
+	IsMentionOnly bool
 	// ImportData contains the data only when the membership is imported.
 	// and triggers a different workflow.
 	ImportData *ThreadMembershipImportData

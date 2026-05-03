@@ -63,6 +63,7 @@ import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
+import {getSiteURL} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -422,6 +423,28 @@ const AdvancedTextEditor = ({
         focusTextbox();
     }, [draft, handleDraftChange, focusTextbox]);
 
+    const dispatchBroadcastIfNeeded = useCallback(() => {
+        if (canBroadcastToChannel && broadcastToChannel && draft.message.trim() && currentTeam) {
+            const trimmed = draft.message.trim();
+            const firstLine = trimmed.split('\n').find((line) => line.trim().length > 0) || trimmed;
+            const snippet = firstLine.length > 200 ? `${firstLine.slice(0, 200)}…` : firstLine;
+            const permalink = `${getSiteURL()}/${currentTeam.name}/pl/${rootId}?thread=open`;
+            const broadcastBody = `> ${snippet}\n\n→ [Trả lời trong thread](${permalink})`;
+
+            dispatch(submitPost(channelId, '', {
+                message: broadcastBody,
+                fileInfos: [],
+                uploadsInProgress: [],
+                channelId,
+                rootId: '',
+                createAt: 0,
+                updateAt: 0,
+                props: {broadcast_source_thread_id: rootId},
+            }));
+            setBroadcastToChannel(false);
+        }
+    }, [dispatch, draft, canBroadcastToChannel, broadcastToChannel, currentTeam, channelId, rootId]);
+
     const handleSubmitWrapper = useCallback(() => {
         const isEmptyPost = isPostDraftEmpty(draft);
 
@@ -439,32 +462,9 @@ const AdvancedTextEditor = ({
             return;
         }
 
-        if (canBroadcastToChannel && broadcastToChannel && draft.message.trim() && currentTeam) {
-            const trimmed = draft.message.trim();
-            const firstLine = trimmed.split('\n').find((line) => line.trim().length > 0) || trimmed;
-            const snippet = firstLine.length > 200 ? `${firstLine.slice(0, 200)}…` : firstLine;
-            const permalink = `/${currentTeam.name}/pl/${rootId}?thread=open`;
-            const replyInThreadLabel = formatMessage({
-                id: 'advanced_text_editor.broadcast.reply_in_thread_link',
-                defaultMessage: 'Reply in thread',
-            });
-            const broadcastBody = `> ${snippet}\n\n→ [${replyInThreadLabel}](${permalink})`;
-
-            dispatch(submitPost(channelId, '', {
-                message: broadcastBody,
-                fileInfos: [],
-                uploadsInProgress: [],
-                channelId,
-                rootId: '',
-                createAt: 0,
-                updateAt: 0,
-                props: {broadcast_source_thread_id: rootId},
-            }));
-            setBroadcastToChannel(false);
-        }
-
+        dispatchBroadcastIfNeeded();
         handleSubmitWithErrorHandling();
-    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, canBroadcastToChannel, broadcastToChannel, currentTeam, channelId, rootId]);
+    }, [dispatch, draft, handleSubmitWithErrorHandling, isInEditMode, isRHS, dispatchBroadcastIfNeeded]);
 
     const [handleKeyDown, postMsgKeyPress] = useKeyHandler(
         draft,
@@ -629,8 +629,9 @@ const AdvancedTextEditor = ({
     }, [draft]);
 
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
+        dispatchBroadcastIfNeeded();
         handleSubmitWithErrorHandling(undefined, schedulingInfo);
-    }, [handleSubmitWithErrorHandling]);
+    }, [dispatchBroadcastIfNeeded, handleSubmitWithErrorHandling]);
 
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {

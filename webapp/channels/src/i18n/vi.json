@@ -3682,6 +3682,7 @@
   "pluggable.errorOccurred": "Đã xảy ra lỗi trong plugin {pluginId}.",
   "pluggable.errorRefresh": "Làm mới?",
   "post.ariaLabel.attachment": ", 1 tệp đính kèm",
+  "post.broadcast_reply_link": "Trả lời trong thread",
   "post.ariaLabel.attachmentMultiple": ", {attachmentCount} tệp đính kèm",
   "post.ariaLabel.message": "Vào {time} {date}, {authorName} đã viết, {message}",
   "post.ariaLabel.messageIsFlagged": ", tin nhắn đã được lưu",

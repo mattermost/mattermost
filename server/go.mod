@@ -233,3 +233,5 @@ replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5
 
 // See MM-63434 for more details.
 replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe
+
+replace github.com/mattermost/mattermost/server/public => ./public

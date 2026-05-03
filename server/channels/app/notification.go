@@ -94,12 +94,19 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	}
 
 	var tchan chan store.StoreResult[[]string]
+	var mochan chan store.StoreResult[model.StringSet]
 	if isCRTAllowed && post.RootId != "" {
 		tchan = make(chan store.StoreResult[[]string], 1)
 		go func() {
 			followers, err := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
 			tchan <- store.StoreResult[[]string]{Data: followers, NErr: err}
 			close(tchan)
+		}()
+		mochan = make(chan store.StoreResult[model.StringSet], 1)
+		go func() {
+			mentionOnly, err := a.Srv().Store().Thread().GetMentionOnlyFollowers(post.RootId)
+			mochan <- store.StoreResult[model.StringSet]{Data: mentionOnly, NErr: err}
+			close(mochan)
 		}()
 	}
 
@@ -132,6 +139,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	channelMemberNotifyPropsMap := cmnResult.Data
 
 	followers := make(model.StringSet, 0)
+	mentionOnlyFollowers := make(model.StringSet, 0)
 	if tchan != nil {
 		tResult := <-tchan
 		if tResult.NErr != nil {
@@ -147,6 +155,18 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 		}
 		for _, v := range tResult.Data {
 			followers.Add(v)
+		}
+
+		moResult := <-mochan
+		if moResult.NErr != nil {
+			rctx.Logger().LogM(mlog.MlvlNotificationError, "Error fetching mention-only followers",
+				mlog.String("sender_id", sender.Id),
+				mlog.String("post_id", post.Id),
+				mlog.Err(moResult.NErr),
+			)
+			// non-fatal: fall back to notifying all followers
+		} else {
+			mentionOnlyFollowers = moResult.Data
 		}
 	}
 
@@ -305,23 +325,10 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					incrementMentions = false
 					updateFollowing = false
 				}
-				// Slack-style auto-follow:
-				// only the replier (post.UserId), the root-post author,
-				// and users who opted into channel-wide "auto-follow threads"
-				// auto-follow. Any mention type (direct/group/@here/@channel/@all)
-				// triggers notifications but does not auto-follow.
-				if updateFollowing {
-					isReplier := userID == post.UserId
-					isRootAuthor := false
-					if parentPostList != nil {
-						rootPost := parentPostList.Posts[parentPostList.Order[0]]
-						isRootAuthor = userID == rootPost.UserId
-					}
-					optedIn := channelMemberNotifyPropsMap[userID][model.ChannelAutoFollowThreads] == model.ChannelAutoFollowThreadsOn
-					if !isReplier && !isRootAuthor && !optedIn {
-						updateFollowing = false
-					}
-				}
+				// @here/@channel/@all mentioned users become mention-only followers:
+				// they see the thread in Followed Threads but don't receive CRT
+				// push/email for subsequent replies. Actively replying upgrades them.
+				isMentionOnly := mentionType == ChannelMention && userID != post.UserId
 				opts := store.ThreadMembershipOpts{
 					// Use updateFollowing as the desired Following state so that
 					// brand-new ThreadMembership rows created by the store also
@@ -332,6 +339,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					UpdateFollowing:       updateFollowing,
 					UpdateViewedTimestamp: false,
 					UpdateParticipants:    userID == post.UserId,
+					IsMentionOnly:         isMentionOnly,
 				}
 				threadMembership, err := a.Srv().Store().Thread().MaintainMembership(userID, post.RootId, opts)
 				if err != nil {
@@ -356,6 +364,82 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			mentionAutofollowChans = append(mentionAutofollowChans, mac)
 		}
 	}
+	// For root channel posts with mentions: ensure a Threads entry exists so the thread
+	// is immediately visible in "Followed Threads" without waiting for the first reply.
+	// @here/@channel/@all → IsMentionOnly (no reply-spam), direct @mention → full follow.
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId == "" && isCRTAllowed && len(mentions.Mentions) > 0 {
+		if err := a.Srv().Store().Thread().EnsureThreadExists(post.Id, post.ChannelId, team.Id, post.CreateAt); err != nil {
+			rctx.Logger().Warn("Failed to ensure thread exists for root post",
+				mlog.String("post_id", post.Id),
+				mlog.Err(err),
+			)
+		}
+		for userID, mentionType := range mentions.Mentions {
+			if userID == post.UserId {
+				continue
+			}
+			if _, ok := profileMap[userID]; !ok {
+				continue
+			}
+			if !a.IsCRTEnabledForUser(rctx, userID) {
+				continue
+			}
+			isMentionOnly := mentionType == ChannelMention
+			opts := store.ThreadMembershipOpts{
+				Following:             true,
+				UpdateFollowing:       true,
+				IncrementMentions:     false,
+				UpdateViewedTimestamp: false,
+				UpdateParticipants:    false,
+				IsMentionOnly:         isMentionOnly,
+			}
+			threadMembership, err := a.Srv().Store().Thread().MaintainMembership(userID, post.Id, opts)
+			if err != nil {
+				rctx.Logger().Warn("Failed to create thread membership for root post mention",
+					mlog.String("post_id", post.Id),
+					mlog.String("user_id", userID),
+					mlog.Err(err),
+				)
+				continue
+			}
+			// Send WebSocket event so the frontend updates "Followed Threads" panel
+			// in real-time without requiring a page reload.
+			userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
+			if err != nil {
+				rctx.Logger().Warn("Failed to get thread for root post mention websocket event",
+					mlog.String("post_id", post.Id),
+					mlog.String("user_id", userID),
+					mlog.Err(err),
+				)
+				continue
+			}
+			if userThread != nil {
+				a.sanitizeProfiles(userThread.Participants, false)
+				userThread.Post.SanitizeProps()
+				sanitizedPost, _, err := a.SanitizePostMetadataForUser(rctx, userThread.Post, userID)
+				if err != nil {
+					rctx.Logger().Warn("Failed to sanitize post for root post mention websocket event",
+						mlog.String("post_id", post.Id),
+						mlog.String("user_id", userID),
+						mlog.Err(err),
+					)
+					continue
+				}
+				userThread.Post = sanitizedPost
+				payload, jsonErr := json.Marshal(userThread)
+				if jsonErr != nil {
+					rctx.Logger().Warn("Failed to encode thread to JSON for root post mention")
+					continue
+				}
+				message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, team.Id, "", userID, nil, "")
+				message.Add("thread", string(payload))
+				message.Add("previous_unread_mentions", int64(0))
+				message.Add("previous_unread_replies", int64(0))
+				a.Publish(message)
+			}
+		}
+	}
+
 	for id := range mentions.Mentions {
 		mentionedUsersList = append(mentionedUsersList, id)
 	}
@@ -397,6 +481,13 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			}
 
 			if post.GetProp(model.PostPropsFromWebhook) != "true" && uid == post.UserId {
+				continue
+			}
+
+			// Mention-only followers (@here/@channel/@all) receive the initial
+			// mention notification via mentionedUsersList but do not receive
+			// push/email notifications for subsequent replies.
+			if mentionOnlyFollowers.Has(uid) {
 				continue
 			}
 

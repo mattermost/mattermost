@@ -2360,6 +2360,19 @@
     pointer-events: none;
 }
 
+.broadcast-reply-link {
+    display: block;
+    margin-top: 4px;
+    color: var(--link-color);
+    font-size: 14px;
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
 @keyframes post-message-shimmer {
     0% {
         background-position: 200% 0;

@@ -537,6 +537,43 @@ func (s *SqlThreadStore) GetThreadFollowers(threadID string, fetchOnlyActive boo
 	return users, nil
 }
 
+func (s *SqlThreadStore) EnsureThreadExists(postID, channelID, teamID string, createAt int64) error {
+	_, err := s.GetMaster().ExecBuilder(
+		s.getQueryBuilder().
+			Insert("Threads").
+			Columns("PostId", "ChannelId", "ReplyCount", "LastReplyAt", "Participants", "ThreadTeamId").
+			Values(postID, channelID, 0, createAt, "[]", teamID).
+			Suffix("ON CONFLICT (PostId) DO NOTHING"),
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to ensure thread exists for post id=%s", postID)
+	}
+	return nil
+}
+
+func (s *SqlThreadStore) GetMentionOnlyFollowers(threadID string) (model.StringSet, error) {
+	users := []string{}
+	query := s.getQueryBuilder().
+		Select("UserId").
+		From("ThreadMemberships").
+		Where(sq.And{
+			sq.Eq{"PostId": threadID},
+			sq.Eq{"Following": true},
+			sq.Eq{"IsMentionOnly": true},
+		})
+
+	err := s.GetReplica().SelectBuilder(&users, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get mention-only followers for thread id=%s", threadID)
+	}
+
+	result := make(model.StringSet, len(users))
+	for _, u := range users {
+		result.Add(u)
+	}
+	return result, nil
+}
+
 func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.ThreadMembershipForExport, error) {
 	members := []*model.ThreadMembershipForExport{}
 
@@ -713,8 +750,8 @@ func (s *SqlThreadStore) MarkAsRead(userId, threadId string, timestamp int64) er
 func (s *SqlThreadStore) saveMembership(ex sqlxExecutor, membership *model.ThreadMembership) (*model.ThreadMembership, error) {
 	query := s.getQueryBuilder().
 		Insert("ThreadMemberships").
-		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions").
-		Values(membership.PostId, membership.UserId, membership.Following, membership.LastViewed, membership.LastUpdated, membership.UnreadMentions)
+		Columns("PostId", "UserId", "Following", "LastViewed", "LastUpdated", "UnreadMentions", "IsMentionOnly").
+		Values(membership.PostId, membership.UserId, membership.Following, membership.LastViewed, membership.LastUpdated, membership.UnreadMentions, membership.IsMentionOnly)
 
 	_, err := ex.ExecBuilder(query)
 	if err != nil {
@@ -757,6 +794,7 @@ func (s *SqlThreadStore) updateMembership(ex sqlxExecutor, membership *model.Thr
 		Set("LastViewed", membership.LastViewed).
 		Set("LastUpdated", membership.LastUpdated).
 		Set("UnreadMentions", membership.UnreadMentions).
+		Set("IsMentionOnly", membership.IsMentionOnly).
 		Where(sq.And{
 			sq.Eq{"PostId": membership.PostId},
 			sq.Eq{"UserId": membership.UserId},
@@ -781,6 +819,7 @@ func (s *SqlThreadStore) GetMembershipsForUser(userId, teamId string) ([]*model.
 			"ThreadMemberships.LastUpdated",
 			"ThreadMemberships.LastViewed",
 			"ThreadMemberships.UnreadMentions",
+			"ThreadMemberships.IsMentionOnly",
 		).
 		Join("Threads ON Threads.PostId = ThreadMemberships.PostId").
 		From("ThreadMemberships").
@@ -808,6 +847,7 @@ func (s *SqlThreadStore) getMembershipForUser(ex sqlxExecutor, userId, postId st
 			"LastUpdated",
 			"LastViewed",
 			"UnreadMentions",
+			"IsMentionOnly",
 		).
 		From("ThreadMemberships").
 		Where(sq.And{
@@ -905,6 +945,11 @@ func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID
 	// d. the membership is imported
 	if err == nil {
 		followingNeedsUpdate := (opts.UpdateFollowing && (membership.Following != opts.Following))
+		// Upgrade mention-only to full follow when the user actively replies (UpdateParticipants)
+		// or is directly @mentioned (IncrementMentions=true but IsMentionOnly=false, meaning
+		// it was a KeywordMention/GroupMention, not a broadcast @here/@channel/@all).
+		mentionOnlyNeedsUpgrade := membership.IsMentionOnly &&
+			(opts.UpdateParticipants || (opts.IncrementMentions && !opts.IsMentionOnly))
 		if imported := opts.ImportData; imported != nil {
 			// Only the active followers are getting exported, so we can safely assume
 			// that the user is following the thread.
@@ -924,9 +969,12 @@ func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID
 			if err = s.updateThreadParticipantsForUserTx(trx, postID, userID); err != nil {
 				return nil, err
 			}
-		} else if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp {
+		} else if followingNeedsUpdate || opts.IncrementMentions || opts.UpdateViewedTimestamp || mentionOnlyNeedsUpgrade {
 			if followingNeedsUpdate {
 				membership.Following = opts.Following
+			}
+			if mentionOnlyNeedsUpgrade {
+				membership.IsMentionOnly = false
 			}
 			if opts.UpdateViewedTimestamp {
 				membership.LastViewed = now
@@ -949,10 +997,11 @@ func (s *SqlThreadStore) maintainMembershipTx(trx *sqlxTxWrapper, userID, postID
 	}
 
 	membership = &model.ThreadMembership{
-		PostId:      postID,
-		UserId:      userID,
-		Following:   opts.Following,
-		LastUpdated: now,
+		PostId:        postID,
+		UserId:        userID,
+		Following:     opts.Following,
+		LastUpdated:   now,
+		IsMentionOnly: opts.IsMentionOnly,
 	}
 	if opts.ImportData != nil {
 		membership.UnreadMentions = opts.ImportData.UnreadMentions
