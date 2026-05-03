@@ -3,13 +3,13 @@
 
 import classNames from 'classnames';
 import React, {isValidElement} from 'react';
-import {NavLink} from 'react-router-dom';
+import {NavLink, Route} from 'react-router-dom';
 
 type Props = {
     icon: JSX.Element;
     title: string | JSX.Element;
     action?: JSX.Element;
-    children?: React.ReactNode;
+    children?: JSX.Element[];
     definitionKey?: string;
     name?: string;
     parentLink?: string;
@@ -44,10 +44,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     let clonedChildren = null;
     const sectionsClassName = classNames('sections', sectionClass);
     if (children) {
-        // Always render subsection links. Nesting them under <Route path={link}> hid
-        // links whenever the URL was outside that prefix (e.g. on site_config/* the
-        // Environment list was empty), which broke deep links and Playwright navigation.
-        clonedChildren = (
+        const renderedChildren = () => (
             <ul className={sectionsClassName}>
                 {
                     React.Children.map(children, (child) => {
@@ -61,6 +58,12 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
                     })
                 }
             </ul>
+        );
+        clonedChildren = (
+            <Route
+                path={link}
+                render={renderedChildren}
+            />
         );
     }
 
