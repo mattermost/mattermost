@@ -244,6 +244,56 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
           cache-dependency-path: ${{ needs.generate-build-variables.outputs.node-cache-dependency-path }}
+      - name: ci/runner-prep-for-openldap
+        # Observed failure: "dependency failed to start: container
+        # mmserver-openldap-1 exited (1)" on ubuntu-24.04 runners — kills
+        # every LDAP spec on the affected shard.
+        #
+        # Ubuntu 24.04 introduced an AppArmor profile that restricts the
+        # creation of unprivileged user namespaces. The osixia/openldap
+        # image's internal init scripts rely on this capability; blocking
+        # it produces an immediate exit(1) with no useful stderr. The
+        # container's own security_opt: apparmor:unconfined is not
+        # sufficient — that only unconfines slapd, not the container's
+        # entrypoint process. The actual switch is at the host-kernel level.
+        #
+        # Also ensure docker-compose is >= 2.36.0 — the 2.35.1 shipped on
+        # some ubuntu-24.04 images has a known `up` regression that
+        # manifests as random dependency-failed errors under load.
+        run: |
+          echo "Before: docker compose version"
+          docker compose version || true
+
+          # Disable the AppArmor user-namespace restriction. Idempotent;
+          # safe if the key doesn't exist (older kernel).
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+
+          # If docker-compose is older than 2.36.0, install a newer one to
+          # the user's cli-plugins dir (takes precedence over the system copy).
+          CURRENT=$(docker compose version --short 2>/dev/null || echo "0.0.0")
+          NEED="2.36.0"
+          if [ "$(printf '%s\n' "$NEED" "$CURRENT" | sort -V | head -n1)" != "$NEED" ]; then
+            echo "Upgrading docker-compose from ${CURRENT} to 2.39.1"
+            mkdir -p "$HOME/.docker/cli-plugins"
+            curl -SL -o "$HOME/.docker/cli-plugins/docker-compose" \
+              "https://github.com/docker/compose/releases/download/v2.39.1/docker-compose-linux-x86_64"
+            chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+          fi
+
+          echo "After: docker compose version"
+          docker compose version
+      - name: ci/restore-test-durations
+        # Restore shard-balancer timing data so the greedy bin-packing
+        # algorithm distributes spec files evenly across workers.
+        # Lookup order: same branch → any branch (falls back to main's cache).
+        if: inputs.TEST == 'playwright'
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: playwright-test-durations-${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.worker_index }}
+          restore-keys: |
+            playwright-test-durations-${{ github.ref_name }}-
+            playwright-test-durations-
       - name: ci/e2e-test
         run: |
           make cloud-init
@@ -269,9 +319,55 @@ jobs:
             echo "RollingRelease: smoketest completed. Starting full E2E tests."
           fi
           make
+      - name: ci/extract-test-durations
+        # Parse the reporter output and write per-spec timing data so the
+        # next run's shard-balancer can distribute work more evenly.
+        if: always() && inputs.TEST == 'playwright'
+        working-directory: e2e-tests
+        run: |
+          RESULTS="playwright/results/reporter/results.json"
+          if [ -f "$RESULTS" ]; then
+            node playwright/scripts/extract-durations.mjs "$RESULTS" playwright/.test-durations.json
+          fi
+      - name: ci/save-test-durations
+        if: always() && inputs.TEST == 'playwright'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: e2e-tests/playwright/.test-durations.json
+          key: playwright-test-durations-${{ github.ref_name }}-${{ github.run_id }}-${{ matrix.worker_index }}
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
+      - name: ci/dump-docker-state-on-failure
+        # Always run a final docker-state capture so failures unrelated to
+        # openldap startup (e.g. server container later crashes) still produce
+        # logs we can inspect. The script's own retry loop dumps openldap
+        # state per-attempt; this step is a backstop covering the whole job.
+        if: failure()
+        run: |
+          set +e
+          DIAG="e2e-tests/docker-diagnostics/job-failure"
+          mkdir -p "$DIAG"
+          docker ps -a >"$DIAG/docker.ps.txt" 2>&1
+          docker version >"$DIAG/docker.version.txt" 2>&1
+          docker info >"$DIAG/docker.info.txt" 2>&1
+          for c in $(docker ps -a --format '{{.Names}}'); do
+            docker inspect "$c" >"$DIAG/$c.inspect.json" 2>&1
+            docker logs "$c" >"$DIAG/$c.log" 2>&1
+          done
+          uname -a >"$DIAG/host.uname.txt" 2>&1
+          free -m >"$DIAG/host.free.txt" 2>&1
+          df -h >"$DIAG/host.df.txt" 2>&1
+          sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
+          sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
+      - name: ci/upload-docker-diagnostics
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: docker-diagnostics-${{ inputs.TEST }}-${{ matrix.os }}-${{ matrix.worker_index }}
+          path: e2e-tests/docker-diagnostics/
+          retention-days: 7
+          if-no-files-found: ignore
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()

@@ -5,6 +5,12 @@ import {defineConfig, devices} from '@playwright/test';
 
 import {duration, testConfig} from '@mattermost/playwright-lib';
 
+const chromeUse = {
+    browserName: 'chromium' as const,
+    permissions: ['notifications', 'clipboard-read', 'clipboard-write'] as string[],
+    viewport: {width: 1280, height: 1024},
+};
+
 export default defineConfig({
     globalSetup: './global_setup.ts',
     forbidOnly: testConfig.isCI,
@@ -40,7 +46,7 @@ export default defineConfig({
         },
         screenshot: 'only-on-failure',
         timezoneId: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        trace: 'retain-on-failure-and-retries',
+        trace: 'retain-on-failure',
         video: 'retain-on-failure',
         actionTimeout: duration.half_min,
     },
@@ -57,11 +63,7 @@ export default defineConfig({
         },
         {
             name: 'chrome',
-            use: {
-                browserName: 'chromium',
-                permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
-                viewport: {width: 1280, height: 1024},
-            },
+            use: chromeUse,
             dependencies: ['setup'],
         },
         {
