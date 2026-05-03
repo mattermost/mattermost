@@ -65,6 +65,8 @@ export {
     ProfileModal,
 } from './ui/components';
 
+export {TextInputSetting} from './ui/components/system_console/base_components';
+
 export {TestArgs, ScreenshotOptions} from './types';
 
 export {

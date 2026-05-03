@@ -73,7 +73,7 @@ export class TextInputSetting {
     constructor(container: Locator, labelText: string) {
         this.container = container;
         this.label = container.getByText(labelText);
-        this.input = container.getByRole('textbox');
+        this.input = container.locator('input.form-control').first();
         this.helpText = container.locator('.help-text');
     }
 

@@ -144,7 +144,7 @@ test('displays inline validation errors for invalid email', {tag: '@user_managem
     await userCard.emailInput.fill('invalid-email');
 
     // * Verify email validation error appears
-    const emailError = userCard.getFieldError('Email');
+    const emailError = userCard.getSystemFieldError('Email');
     await expect(emailError).toBeVisible();
 
     // * Verify Save button is disabled due to validation error

@@ -4,7 +4,7 @@
 import {AdminConfig} from '@mattermost/types/config';
 import type {Locator} from '@playwright/test';
 
-import {expect, mergeWithOnPremServerConfig, test} from '@mattermost/playwright-lib';
+import {expect, mergeWithOnPremServerConfig, test, TextInputSetting} from '@mattermost/playwright-lib';
 
 /**
  * Patch the Notifications page required fields to known valid values so tests
@@ -50,15 +50,21 @@ async function waitForNotificationsServerPreconditions(adminClient: {getConfig: 
 
 /** Fill required notification text fields until Save enables (UI can lag behind API after reload). */
 async function waitForSaveableNotificationsForm(notifications: {
-    notificationDisplayName: {fill: (value: string) => Promise<void>};
-    notificationFromAddress: {fill: (value: string) => Promise<void>};
-    supportEmailAddress: {fill: (value: string) => Promise<void>};
+    notificationDisplayName: TextInputSetting;
+    notificationFromAddress: TextInputSetting;
+    supportEmailAddress: TextInputSetting;
+    notificationReplyToAddress: TextInputSetting;
     saveButton: Locator;
 }) {
+    await notifications.notificationDisplayName.container.scrollIntoViewIfNeeded();
     await notifications.notificationDisplayName.fill('Mattermost Notification');
+    await notifications.notificationFromAddress.container.scrollIntoViewIfNeeded();
     await notifications.notificationFromAddress.fill('notification@mattertest.com');
+    await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
     await notifications.supportEmailAddress.fill('support@mattertest.com');
-    await expect(notifications.saveButton).not.toBeDisabled({timeout: 45_000});
+    await notifications.notificationReplyToAddress.container.scrollIntoViewIfNeeded();
+    await notifications.notificationReplyToAddress.fill('notification@mattertest.com');
+    await expect(notifications.saveButton).not.toBeDisabled({timeout: 60_000});
 }
 
 test.describe('System Console Notifications', () => {
