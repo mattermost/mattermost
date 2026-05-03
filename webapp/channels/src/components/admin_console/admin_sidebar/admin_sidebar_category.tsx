@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {isValidElement} from 'react';
-import {NavLink, Route} from 'react-router-dom';
+import {NavLink} from 'react-router-dom';
 
 type Props = {
     icon: JSX.Element;
@@ -44,7 +44,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     let clonedChildren = null;
     const sectionsClassName = classNames('sections', sectionClass);
     if (children) {
-        const renderedChildren = () => (
+        clonedChildren = (
             <ul className={sectionsClassName}>
                 {
                     React.Children.map(children, (child) => {
@@ -58,12 +58,6 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
                     })
                 }
             </ul>
-        );
-        clonedChildren = (
-            <Route
-                path={link}
-                render={renderedChildren}
-            />
         );
     }
 
