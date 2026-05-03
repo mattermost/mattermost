@@ -115,11 +115,14 @@ const hasTimingData = Object.keys(pkgTimes).length > 0;
 const hasTestTiming = Object.keys(testTimes).length > 0;
 
 // ── Identify heavy packages ──
-// Only split at test level if we have per-test timing data
+// Only split at test level if we have per-test timing data.
+// Guard against stale entries in pkgTimes (renamed/deleted packages) by
+// requiring the package to exist in the canonical all-packages.txt list.
+const allPkgSet = new Set(allPkgs);
 const heavyPkgs = new Set();
 if (hasTestTiming) {
     for (const [pkg, ms] of Object.entries(pkgTimes)) {
-        if (ms > HEAVY_MS) heavyPkgs.add(pkg);
+        if (ms > HEAVY_MS && allPkgSet.has(pkg)) heavyPkgs.add(pkg);
     }
 }
 if (heavyPkgs.size > 0) {
