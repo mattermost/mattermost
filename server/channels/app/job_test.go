@@ -627,6 +627,77 @@ func TestGetJobByType(t *testing.T) {
 	require.Equal(t, statuses[1], received[0], "should've received oldest job last")
 }
 
+func TestGetJobsByTypeAndData(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	policyID := model.NewId()
+	otherPolicyID := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: 1000,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: 999,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: 1001,
+			Data:     map[string]string{"policy_id": policyID},
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeAccessControlSync,
+			CreateAt: 1002,
+			Data:     map[string]string{"policy_id": otherPolicyID},
+		},
+	}
+
+	for _, job := range jobs {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		defer func(id string) {
+			_, err := th.App.Srv().Store().Job().Delete(id)
+			require.NoError(t, err)
+		}(job.Id)
+	}
+
+	t.Run("returns all matching jobs for policy", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
+			map[string]string{"policy_id": policyID})
+		require.Nil(t, appErr)
+		require.Len(t, received, 3)
+		receivedIDs := make([]string, len(received))
+		for i, j := range received {
+			receivedIDs[i] = j.Id
+		}
+		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id}, receivedIDs)
+	})
+
+	t.Run("filters by data key-value, excludes other policies", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
+			map[string]string{"policy_id": otherPolicyID})
+		require.Nil(t, appErr)
+		require.Len(t, received, 1)
+		require.Equal(t, jobs[3].Id, received[0].Id)
+	})
+
+	t.Run("returns empty when no jobs match data filter", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
+			map[string]string{"policy_id": model.NewId()})
+		require.Nil(t, appErr)
+		require.Empty(t, received)
+	})
+}
+
 func TestGetJobsByTypes(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
