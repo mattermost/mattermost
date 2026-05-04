@@ -1901,6 +1901,13 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
+	if post.RootId == "" {
+		appErr = a.DeletePersistentNotification(rctx, post)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
@@ -3146,7 +3153,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id, nil)
 		if appErr != nil {
 			return appErr
 		}
@@ -3155,6 +3162,12 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return appErr
+		}
 	}
 
 	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -3169,12 +3182,6 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
-	}
-
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-			return appErr
-		}
 	}
 
 	postJSON, err := json.Marshal(post)
@@ -3921,7 +3928,8 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		_, appErr := a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		return appErr
 	}
 
 	// If not the author, check read receipt
