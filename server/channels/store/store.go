@@ -805,6 +805,7 @@ type ReactionStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
 	GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, error)
+	GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error)
 }
 
 type JobStore interface {

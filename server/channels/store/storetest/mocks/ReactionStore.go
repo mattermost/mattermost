@@ -74,6 +74,36 @@ func (_m *ReactionStore) GetReceivedReactions(userID string, teamID string, limi
 	return r0, r1
 }
 
+// GetBroadcastMentions provides a mock function with given fields: userID, teamID, limit
+func (_m *ReactionStore) GetBroadcastMentions(userID string, teamID string, limit int) ([]*model.Post, error) {
+	ret := _m.Called(userID, teamID, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBroadcastMentions")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int) ([]*model.Post, error)); ok {
+		return rf(userID, teamID, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int) []*model.Post); ok {
+		r0 = rf(userID, teamID, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
+		r1 = rf(userID, teamID, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: reaction
 func (_m *ReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	ret := _m.Called(reaction)

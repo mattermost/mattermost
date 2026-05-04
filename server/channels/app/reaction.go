@@ -127,12 +127,83 @@ func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppE
 // GetReceivedReactions returns reactions left by other users on the given user's
 // posts, optionally constrained to channels in `teamID`. Used to populate the
 // Activity feed.
-func (a *App) GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, *model.AppError) {
+func (a *App) GetReceivedReactions(rctx request.CTX, userID, teamID string, limit int) ([]*model.ReceivedReaction, *model.AppError) {
 	reactions, err := a.Srv().Store().Reaction().GetReceivedReactions(userID, teamID, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetReceivedReactions", "app.reaction.get_received.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	return reactions, nil
+
+	// When the cross-team RestrictDirectMessage policy is enabled, drop reactions
+	// from DM/GM channels whose participants don't share a team — Activity should
+	// honor the same compliance gate as the rest of the product.
+	if *a.Config().TeamSettings.RestrictDirectMessage != model.DirectMessageTeam || len(reactions) == 0 {
+		return reactions, nil
+	}
+
+	// Single batched lookup to learn each channel's type. Public/private channels
+	// are never restricted DMs so we can short-circuit them without ever touching
+	// GetDirectOrGroupMessageMembersCommonTeams (the expensive path).
+	uniqueIDs := make([]string, 0, len(reactions))
+	seen := make(map[string]struct{}, len(reactions))
+	for _, r := range reactions {
+		if _, ok := seen[r.ChannelId]; ok {
+			continue
+		}
+		seen[r.ChannelId] = struct{}{}
+		uniqueIDs = append(uniqueIDs, r.ChannelId)
+	}
+
+	channels, cErr := a.GetChannels(rctx, uniqueIDs)
+	if cErr != nil {
+		// On batch lookup failure, fall back to per-row check for safety.
+		channels = nil
+	}
+	channelByID := make(map[string]*model.Channel, len(channels))
+	for _, ch := range channels {
+		channelByID[ch.Id] = ch
+	}
+
+	// Cache the restricted decision per channelId so the (potentially expensive)
+	// CheckIfChannelIsRestrictedDM call fires at most once per unique DM/GM.
+	restrictedByID := make(map[string]bool, len(uniqueIDs))
+	for _, id := range uniqueIDs {
+		ch, ok := channelByID[id]
+		if !ok {
+			// Unknown channel — be conservative and drop.
+			restrictedByID[id] = true
+			continue
+		}
+		if ch.Type != model.ChannelTypeDirect && ch.Type != model.ChannelTypeGroup {
+			restrictedByID[id] = false
+			continue
+		}
+		restricted, rErr := a.CheckIfChannelIsRestrictedDM(rctx, ch)
+		if rErr != nil {
+			restrictedByID[id] = true
+			continue
+		}
+		restrictedByID[id] = restricted
+	}
+
+	allowed := make([]*model.ReceivedReaction, 0, len(reactions))
+	for _, r := range reactions {
+		if !restrictedByID[r.ChannelId] {
+			allowed = append(allowed, r)
+		}
+	}
+	return allowed, nil
+}
+
+// GetBroadcastMentions returns recent posts containing @here / @channel / @all
+// in channels visible to the user within the given team. Used by the Activity
+// feed cold-load to surface broadcast mentions that Postgres FTS cannot match
+// (because `here` and `all` are stopwords).
+func (a *App) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store().Reaction().GetBroadcastMentions(userID, teamID, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetBroadcastMentions", "app.post.get_broadcast_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return posts, nil
 }
 
 func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError) {

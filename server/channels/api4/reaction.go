@@ -18,6 +18,7 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.APISessionRequired(deleteReaction)).Methods(http.MethodDelete)
 	api.BaseRoutes.Posts.Handle("/ids/reactions", api.APISessionRequired(getBulkReactions)).Methods(http.MethodPost)
 	api.BaseRoutes.TeamForUser.Handle("/activity/reactions", api.APISessionRequired(getReceivedReactions)).Methods(http.MethodGet)
+	api.BaseRoutes.TeamForUser.Handle("/activity/broadcast_mentions", api.APISessionRequired(getBroadcastMentions)).Methods(http.MethodGet)
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -134,7 +135,7 @@ func getReceivedReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	reactions, appErr := c.App.GetReceivedReactions(c.Params.UserId, c.Params.TeamId, limit)
+	reactions, appErr := c.App.GetReceivedReactions(c.AppContext, c.Params.UserId, c.Params.TeamId, limit)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -143,6 +144,44 @@ func getReceivedReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(reactions)
 	if err != nil {
 		c.Err = model.NewAppError("getReceivedReactions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing js response", mlog.Err(err))
+	}
+}
+
+func getBroadcastMentions(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId().RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionViewTeam) {
+		c.SetPermissionError(model.PermissionViewTeam)
+		return
+	}
+
+	limit := 30
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil {
+			limit = parsed
+		}
+	}
+
+	posts, appErr := c.App.GetBroadcastMentions(c.Params.UserId, c.Params.TeamId, limit)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	js, err := json.Marshal(posts)
+	if err != nil {
+		c.Err = model.NewAppError("getBroadcastMentions", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 	if _, err := w.Write(js); err != nil {

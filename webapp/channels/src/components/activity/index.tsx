@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -59,6 +59,11 @@ const TIMESTAMP_OPTS = {
     day: 'numeric' as const,
 };
 
+// Hard caps so the feed stays bounded across a long session: WS events keep
+// prepending into the local arrays and accumulators merge multiple sources.
+const MAX_FEED_ITEMS = 30;
+const ACTIVITY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
 type ActivityFeedItem =
     | {kind: 'reaction'; key: string; createAt: number; group: ReactionGroup}
     | {kind: 'mention'; key: string; createAt: number; post: Post};
@@ -66,6 +71,20 @@ type ActivityFeedItem =
 const truncate = (text: string, max = 200) => {
     const trimmed = text.replace(/\s+/g, ' ').trim();
     return trimmed.length > max ? `${trimmed.slice(0, max)}…` : trimmed;
+};
+
+// Detect a real @here/@channel/@all broadcast in a post body. Strips fenced and
+// inline code blocks so quoted examples don't match, and rejects URL-like
+// "@here.com" patterns (`.<word>` follow).
+const BROADCAST_RE = /(?:^|[^\w@])@(?:here|channel|all)(?!\w)(?!\.\w)/i;
+const isBroadcastMessage = (message: string | undefined): boolean => {
+    if (!message) {
+        return false;
+    }
+    const stripped = message.
+        replace(/```[\s\S]*?```/g, '').
+        replace(/`[^`\n]*`/g, '');
+    return BROADCAST_RE.test(stripped);
 };
 
 const channelIconClass = (type?: string) => {
@@ -271,6 +290,7 @@ const MentionItem = ({post, onJump}: MentionItemProps) => {
 
     const authorName = author ? displayUsername(author, teammateNameDisplaySetting) : post.user_id;
     const avatarUrl = author ? Client4.getProfilePictureUrl(author.id, author.last_picture_update) : undefined;
+    const isBroadcast = isBroadcastMessage(post.message);
 
     return (
         <button
@@ -296,10 +316,17 @@ const MentionItem = ({post, onJump}: MentionItemProps) => {
                 </div>
                 <div className='Activity__reactedin'>
                     <i className='icon icon-at'/>
-                    <FormattedMessage
-                        id='activity.page.mentionedYouIn'
-                        defaultMessage='Mentioned you in'
-                    />
+                    {isBroadcast ? (
+                        <FormattedMessage
+                            id='activity.page.channelMentionIn'
+                            defaultMessage='Channel mention in'
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='activity.page.mentionedYouIn'
+                            defaultMessage='Mentioned you in'
+                        />
+                    )}
                     <ChannelChip channelId={post.channel_id}/>
                 </div>
                 <div className='Activity__snippet Activity__snippet--mention'>
@@ -324,6 +351,11 @@ function Activity() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // Tracks the latest fetch invocation. If the user navigates away/back or
+    // switches teams while an earlier fetch is in flight, its result is dropped
+    // instead of clobbering newer state.
+    const fetchTokenRef = useRef(0);
+
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Activity));
         dispatch(suppressRHS);
@@ -332,45 +364,168 @@ function Activity() {
         };
     }, [dispatch]);
 
+    useEffect(() => {
+        return () => {
+            // Bump on unmount so any in-flight fetch resolves into a stale token.
+            fetchTokenRef.current += 1;
+        };
+    }, []);
+
     const mentionTerms = useMemo(() => {
-        return mentionKeys.
+        // Personal keys only — broadcast mentions (@here/@channel/@all) come from a
+        // dedicated endpoint because Postgres FTS treats `here` and `all` as stopwords
+        // and cannot match them via the regular search API.
+        const keys = mentionKeys.
             filter(({key}) => key !== '@channel' && key !== '@all' && key !== '@here').
             map(({key}) => key).
             join(' ').
             trim();
+        if (!keys) {
+            return '';
+        }
+        // Restrict the FTS search to the last 7 days so a quiet user doesn't see
+        // 3-week-old mentions surface. Mattermost search supports the `after:`
+        // modifier with YYYY-MM-DD; pad backwards an extra day to be safe across
+        // server timezone boundaries.
+        const after = new Date(Date.now() - (8 * 24 * 60 * 60 * 1000));
+        const yyyy = after.getUTCFullYear();
+        const mm = String(after.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(after.getUTCDate()).padStart(2, '0');
+        return `${keys} after:${yyyy}-${mm}-${dd}`;
     }, [mentionKeys]);
 
-    const fetchActivity = useCallback(async () => {
+    const fetchActivity = useCallback(() => {
         if (!userId || !teamId) {
             return;
         }
-        try {
-            setLoading(true);
-            const reactionsPromise = Client4.getReceivedReactions(userId, teamId, 50);
-            const mentionsPromise = mentionTerms ?
-                Client4.searchPostsWithParams(teamId, {terms: mentionTerms, is_or_search: true, page: 0, per_page: 50}) :
-                Promise.resolve({posts: {}, order: [], matches: {}, has_next: false} as any);
+        fetchTokenRef.current += 1;
+        const myToken = fetchTokenRef.current;
+        setLoading(true);
+        setError(null);
 
-            const [reactionsResult, mentionsResult] = await Promise.all([reactionsPromise, mentionsPromise]);
-            setReactions(reactionsResult || []);
+        // Render-as-arrives: each source updates state independently the moment its
+        // promise resolves, so the user sees the fastest source (usually reactions)
+        // immediately rather than waiting on the slowest (broadcast ILIKE scan).
+        const isFresh = () => myToken === fetchTokenRef.current;
+        const personalMentionsAccum = new Map<string, Post>();
+        const broadcastMentionsAccum = new Map<string, Post>();
 
-            const mentionPosts = (mentionsResult as any).posts || {};
-            const mentionOrder: string[] = (mentionsResult as any).order || [];
-            const mentionList: Post[] = [];
-            for (const postId of mentionOrder) {
-                const post: Post | undefined = mentionPosts[postId];
-                if (!post || post.user_id === userId || post.delete_at) {
-                    continue;
+        const recomputeMentions = () => {
+            const seen = new Set<string>();
+            const merged: Post[] = [];
+            const pushPost = (post: Post | undefined) => {
+                if (!post || post.user_id === userId || post.delete_at || seen.has(post.id)) {
+                    return;
                 }
-                mentionList.push(post);
+                seen.add(post.id);
+                merged.push(post);
+            };
+            for (const p of personalMentionsAccum.values()) {
+                pushPost(p);
             }
-            setMentions(mentionList);
-            setError(null);
-        } catch (err: any) {
-            setError(err?.message || 'Failed to load activity');
-        } finally {
-            setLoading(false);
-        }
+            for (const p of broadcastMentionsAccum.values()) {
+                pushPost(p);
+            }
+            setMentions(merged);
+        };
+
+        // Loading spinner stays up until either:
+        //   (a) some source has returned non-empty data — render what we have, drop
+        //       the spinner; subsequent sources merge in as they arrive, or
+        //   (b) all 3 sources have settled — even if feed is empty, hide spinner
+        //       so the "No recent activity" state can show.
+        // This avoids the flicker where an empty fast source unmasks the empty
+        // state before the slower source delivers data.
+        let pending = 3;
+        let hasData = false;
+        const stopLoadingIfReady = () => {
+            if (!isFresh()) {
+                return;
+            }
+            if (hasData || pending === 0) {
+                setLoading(false);
+            }
+        };
+        const markData = (count: number) => {
+            if (count > 0) {
+                hasData = true;
+            }
+        };
+        const settle = () => {
+            if (!isFresh()) {
+                return;
+            }
+            pending -= 1;
+            stopLoadingIfReady();
+        };
+
+        Client4.getReceivedReactions(userId, teamId, 10).
+            then((res) => {
+                if (!isFresh()) {
+                    return;
+                }
+                const list = res || [];
+                setReactions(list);
+                markData(list.length);
+                stopLoadingIfReady();
+            }).
+            catch((err) => {
+                if (!isFresh()) {
+                    return;
+                }
+                setError((prev) => prev ?? err?.message ?? 'Failed to load reactions');
+            }).
+            finally(settle);
+
+        const mentionsPromise = mentionTerms ?
+            Client4.searchPostsWithParams(teamId, {terms: mentionTerms, is_or_search: true, page: 0, per_page: 10}) :
+            Promise.resolve({posts: {}, order: [], matches: {}, has_next: false} as any);
+        mentionsPromise.
+            then((res) => {
+                if (!isFresh()) {
+                    return;
+                }
+                const posts = (res as any).posts || {};
+                const order: string[] = (res as any).order || [];
+                personalMentionsAccum.clear();
+                for (const id of order) {
+                    const p: Post | undefined = posts[id];
+                    if (p) {
+                        personalMentionsAccum.set(p.id, p);
+                    }
+                }
+                recomputeMentions();
+                markData(personalMentionsAccum.size);
+                stopLoadingIfReady();
+            }).
+            catch((err) => {
+                if (!isFresh()) {
+                    return;
+                }
+                setError((prev) => prev ?? err?.message ?? 'Failed to load mentions');
+            }).
+            finally(settle);
+
+        Client4.getBroadcastMentions(userId, teamId, 10).
+            then((res) => {
+                if (!isFresh()) {
+                    return;
+                }
+                broadcastMentionsAccum.clear();
+                for (const p of res || []) {
+                    broadcastMentionsAccum.set(p.id, p);
+                }
+                recomputeMentions();
+                markData(broadcastMentionsAccum.size);
+                stopLoadingIfReady();
+            }).
+            catch((err) => {
+                if (!isFresh()) {
+                    return;
+                }
+                setError((prev) => prev ?? err?.message ?? 'Failed to load broadcast mentions');
+            }).
+            finally(settle);
     }, [userId, teamId, mentionTerms]);
 
     useEffect(() => {
@@ -387,7 +542,7 @@ function Activity() {
             if (prev.some((r) => `${r.user_id}-${r.post_id}-${r.emoji_name}-${r.create_at}` === dupKey)) {
                 return prev;
             }
-            return [lastReceived, ...prev];
+            return [lastReceived, ...prev].slice(0, MAX_FEED_ITEMS);
         });
         dispatch({type: ActionTypes.ACTIVITY_MARK_READ});
     }, [lastReceived, dispatch]);
@@ -400,7 +555,7 @@ function Activity() {
             if (prev.some((p) => p.id === lastMention.id)) {
                 return prev;
             }
-            return [lastMention, ...prev];
+            return [lastMention, ...prev].slice(0, MAX_FEED_ITEMS);
         });
         dispatch({type: ActionTypes.ACTIVITY_MARK_READ});
     }, [lastMention, dispatch]);
@@ -409,14 +564,25 @@ function Activity() {
 
     const feed = useMemo<ActivityFeedItem[]>(() => {
         const items: ActivityFeedItem[] = [];
+        // Drop anything older than the activity window so a quiet user doesn't see
+        // 3-week-old mentions surface (the search API has no date filter).
+        const cutoff = Date.now() - ACTIVITY_WINDOW_MS;
         for (const g of groups) {
+            if (g.latestCreateAt < cutoff) {
+                continue;
+            }
             items.push({kind: 'reaction', key: `r-${g.postId}`, createAt: g.latestCreateAt, group: g});
         }
         for (const p of mentions) {
+            if (p.create_at < cutoff) {
+                continue;
+            }
             items.push({kind: 'mention', key: `m-${p.id}`, createAt: p.create_at, post: p});
         }
         items.sort((a, b) => b.createAt - a.createAt);
-        return items;
+        // Final cap so the rendered feed never grows beyond the configured size,
+        // even if accumulated WS events would otherwise stretch it.
+        return items.slice(0, MAX_FEED_ITEMS);
     }, [groups, mentions]);
 
     // Hydrate user profiles referenced by the feed.
@@ -441,7 +607,9 @@ function Activity() {
         }
     }, [dispatch, userIds]);
 
-    // Hydrate channels referenced.
+    // Hydrate channels referenced. We compute the missing-channel subset inside a
+    // memoized selector so the effect only re-runs when an *unknown* channel id
+    // appears, not whenever any channel anywhere in the store changes.
     const channelIds = useMemo(() => {
         const ids = new Set<string>();
         for (const g of groups) {
@@ -452,14 +620,23 @@ function Activity() {
         }
         return Array.from(ids);
     }, [groups, mentions]);
-    const knownChannels = useSelector((state: GlobalState) => state.entities.channels.channels);
-    useEffect(() => {
-        channelIds.forEach((cid) => {
-            if (cid && !knownChannels[cid]) {
-                dispatch(fetchChannel(cid));
+
+    const missingChannelIds = useSelector((state: GlobalState) => {
+        const channels = state.entities.channels.channels;
+        const missing: string[] = [];
+        for (const cid of channelIds) {
+            if (cid && !channels[cid]) {
+                missing.push(cid);
             }
-        });
-    }, [dispatch, channelIds, knownChannels]);
+        }
+        return missing;
+    }, (a, b) => a.length === b.length && a.every((v, i) => v === b[i]));
+
+    useEffect(() => {
+        for (const cid of missingChannelIds) {
+            dispatch(fetchChannel(cid));
+        }
+    }, [dispatch, missingChannelIds]);
 
     // Hydrate custom emojis used in reactions.
     const emojiNames = useMemo(() => {

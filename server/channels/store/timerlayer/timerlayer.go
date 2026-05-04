@@ -8284,6 +8284,22 @@ func (s *TimerLayerReactionStore) GetReceivedReactions(userID, teamID string, li
 	return result, err
 }
 
+func (s *TimerLayerReactionStore) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.ReactionStore.GetBroadcastMentions(userID, teamID, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.GetBroadcastMentions", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 	start := time.Now()
 

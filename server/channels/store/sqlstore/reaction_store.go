@@ -186,13 +186,70 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	return reactions, nil
 }
 
+// GetBroadcastMentions returns recent posts containing @here / @channel / @all
+// in channels visible to `userID` within `teamID`. Used by the Activity feed for
+// cold-load history of broadcast mentions, since Postgres FTS treats `here` and
+// `all` as stopwords and cannot match them via the regular search API.
+//
+// Limited to the last 7 days to bound the cost of the unindexed ILIKE scan.
+func (s *SqlReactionStore) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+
+	const windowMs = int64(7 * 24 * 60 * 60 * 1000)
+	sinceMs := model.GetMillis() - windowMs
+
+	query := s.getQueryBuilder().
+		Select("p.*").
+		From("Posts p").
+		InnerJoin("ChannelMembers cm ON cm.ChannelId = p.ChannelId").
+		InnerJoin("Channels c ON c.Id = p.ChannelId").
+		Where(sq.Eq{"cm.UserId": userID}).
+		Where(sq.NotEq{"p.UserId": userID}).
+		Where(sq.Eq{"p.DeleteAt": 0}).
+		Where(sq.Eq{"c.DeleteAt": 0}).
+		// Broadcast mentions only apply to public/private channels. DMs and GMs
+		// are excluded — both to avoid surfacing literal "@here" text typed in DMs
+		// as broadcasts, and to sidestep the cross-team RestrictDirectMessage policy.
+		Where(sq.NotEq{"c.Type": []string{"D", "G"}}).
+		Where(sq.Gt{"p.CreateAt": sinceMs}).
+		Where(sq.Or{
+			sq.Expr("p.Message ILIKE ?", "%@here%"),
+			sq.Expr("p.Message ILIKE ?", "%@channel%"),
+			sq.Expr("p.Message ILIKE ?", "%@all%"),
+		}).
+		OrderBy("p.CreateAt DESC").
+		Limit(uint64(limit))
+
+	if teamID != "" {
+		query = query.Where(sq.Or{
+			sq.Eq{"c.TeamId": teamID},
+			sq.Eq{"c.TeamId": ""},
+		})
+	}
+
+	var posts []*model.Post
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get broadcast mentions")
+	}
+	return posts, nil
+}
+
 // GetReceivedReactions returns reactions left by other users on posts authored
 // by `userID`, optionally constrained to channels in `teamID`. Used to populate
 // the Activity feed.
+//
+// Limited to the last 3 days — reactions are far noisier than mentions and a
+// tighter window keeps Activity focused on what just happened. The Reactions
+// table has an index on CreateAt that makes this filter effectively free.
 func (s *SqlReactionStore) GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 30
 	}
+
+	const windowMs = int64(3 * 24 * 60 * 60 * 1000)
+	sinceMs := model.GetMillis() - windowMs
 
 	query := s.getQueryBuilder().
 		Select(
@@ -206,20 +263,21 @@ func (s *SqlReactionStore) GetReceivedReactions(userID, teamID string, limit int
 		).
 		From("Reactions r").
 		InnerJoin("Posts p ON p.Id = r.PostId").
+		InnerJoin("Channels c ON c.Id = r.ChannelId").
 		Where(sq.Eq{"p.UserId": userID}).
 		Where(sq.NotEq{"r.UserId": userID}).
 		Where(sq.Eq{"COALESCE(r.DeleteAt, 0)": 0}).
 		Where(sq.Eq{"p.DeleteAt": 0}).
+		Where(sq.Eq{"c.DeleteAt": 0}).
+		Where(sq.Gt{"r.CreateAt": sinceMs}).
 		OrderBy("r.CreateAt DESC").
 		Limit(uint64(limit))
 
 	if teamID != "" {
-		query = query.
-			InnerJoin("Channels c ON c.Id = r.ChannelId").
-			Where(sq.Or{
-				sq.Eq{"c.TeamId": teamID},
-				sq.Eq{"c.TeamId": ""},
-			})
+		query = query.Where(sq.Or{
+			sq.Eq{"c.TeamId": teamID},
+			sq.Eq{"c.TeamId": ""},
+		})
 	}
 
 	var reactions []*model.ReceivedReaction

@@ -883,6 +883,21 @@ function postMentionsCurrentUser(post: Post, getStateFn: () => any): boolean {
     if (!message) {
         return false;
     }
+
+    // Broadcast mentions (@here/@channel/@all) always surface in Activity, regardless
+    // of the user's keyword config (those keys are only present when the user has
+    // channel mentions enabled and, for @here, is online).
+    //
+    // Strip fenced and inline code so quoted "@here" examples don't false-positive,
+    // and disallow `.<word>` follow (e.g. "@here.com") which is a URL fragment, not
+    // a real broadcast.
+    const stripped = message.
+        replace(/```[\s\S]*?```/g, '').
+        replace(/`[^`\n]*`/g, '');
+    if (/(?:^|[^\w@])@(?:here|channel|all)(?!\w)(?!\.\w)/i.test(stripped)) {
+        return true;
+    }
+
     const keys = getCurrentUserMentionKeys(state) || [];
     for (const k of keys) {
         const key = k.key;
@@ -1516,13 +1531,48 @@ function handleReactionAddedEvent(msg: WebSocketMessages.PostReaction) {
     });
 }
 
+// Burst-protect Activity: when many reactions land on the same post within a
+// short window, a render storm rebuilds the Activity feed once per event. We
+// coalesce arrivals into a 250ms batch and flush a single dispatch so there is
+// at most ~4 re-renders per second regardless of incoming WS volume.
+let activityReactionQueue: any[] = [];
+let activityReactionFlushTimer: ReturnType<typeof setTimeout> | null = null;
+const ACTIVITY_REACTION_FLUSH_MS = 250;
+
+function flushActivityReactionQueue() {
+    activityReactionFlushTimer = null;
+    const queue = activityReactionQueue;
+    activityReactionQueue = [];
+    if (queue.length === 0) {
+        return;
+    }
+    // Within a burst we keep only the latest event per post so the lastReceived
+    // selector flips at most once per post per flush.
+    const latestByPost = new Map<string, any>();
+    for (const ev of queue) {
+        if (!ev?.post_id) {
+            continue;
+        }
+        const existing = latestByPost.get(ev.post_id);
+        if (!existing || (ev.create_at ?? 0) >= (existing.create_at ?? 0)) {
+            latestByPost.set(ev.post_id, ev);
+        }
+    }
+    for (const ev of latestByPost.values()) {
+        dispatch({
+            type: ActionTypes.ACTIVITY_RECEIVED,
+            data: ev,
+        });
+    }
+}
+
 function handleActivityReactionReceived(msg: any) {
     try {
         const data = JSON.parse(msg.data.activity);
-        dispatch({
-            type: ActionTypes.ACTIVITY_RECEIVED,
-            data,
-        });
+        activityReactionQueue.push(data);
+        if (activityReactionFlushTimer === null) {
+            activityReactionFlushTimer = setTimeout(flushActivityReactionQueue, ACTIVITY_REACTION_FLUSH_MS);
+        }
     } catch (err) {
         // ignore malformed payload
     }

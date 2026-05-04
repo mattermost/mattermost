@@ -2605,6 +2605,13 @@ export default class Client4 {
         );
     };
 
+    getBroadcastMentions = (userId: string, teamId: string, limit = 30) => {
+        return this.doFetch<Post[]>(
+            `${this.getUserRoute(userId)}/teams/${teamId}/activity/broadcast_mentions${buildQueryString({limit})}`,
+            {method: 'get'},
+        );
+    };
+
     searchPostsWithParams = (teamId: string, params: any) => {
         let route = `${this.getPostsRoute()}/search`;
         if (teamId) {
