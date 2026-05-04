@@ -166,6 +166,141 @@ func TestRecapStore(t *testing.T) {
 			}
 		})
 
+		t.Run("CountForUserSinceIncludesSoftDeletedRecaps", func(t *testing.T) {
+			userId := model.NewId()
+			since := model.GetMillis() - 1000
+
+			completedRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Completed Recap",
+				CreateAt:          since + 1,
+				UpdateAt:          since + 1,
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusCompleted,
+				BotID:             "test-bot-id",
+			}
+			_, err := ss.Recap().SaveRecap(completedRecap)
+			require.NoError(t, err)
+
+			skippedRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Skipped Recap",
+				CreateAt:          since + 2,
+				UpdateAt:          since + 2,
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 0,
+				Status:            model.RecapStatusSkipped,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecap(skippedRecap)
+			require.NoError(t, err)
+
+			err = ss.Recap().DeleteRecap(completedRecap.Id)
+			require.NoError(t, err)
+			err = ss.Recap().DeleteRecap(skippedRecap.Id)
+			require.NoError(t, err)
+
+			count, err := ss.Recap().CountForUserSince(userId, since)
+			require.NoError(t, err)
+			assert.Equal(t, int64(1), count)
+
+			totalMessages, err := ss.Recap().SumTotalMessageCountForUserSince(userId, since)
+			require.NoError(t, err)
+			assert.Equal(t, int64(10), totalMessages)
+		})
+
+		t.Run("SaveRecapIfUnderDailyLimit", func(t *testing.T) {
+			since := model.GetMillis() - 1000
+
+			user, err := ss.User().Save(rctx, &model.User{
+				Username: model.NewUsername(),
+				Email:    model.NewId() + "@example.com",
+			})
+			require.NoError(t, err)
+			userId := user.Id
+
+			recap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "First Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecapIfUnderDailyLimit(recap, since, 1)
+			require.NoError(t, err)
+
+			overLimitRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Second Recap",
+				CreateAt:          model.GetMillis(),
+				UpdateAt:          model.GetMillis(),
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecapIfUnderDailyLimit(overLimitRecap, since, 1)
+			require.Error(t, err)
+
+			var limitErr *store.ErrLimitExceeded
+			require.ErrorAs(t, err, &limitErr)
+		})
+
+		t.Run("GetLastCompletedManualRecapIncludesSoftDeletedRecaps", func(t *testing.T) {
+			userId := model.NewId()
+			baseTime := model.GetMillis()
+
+			olderRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Older Recap",
+				CreateAt:          baseTime - 60000,
+				UpdateAt:          baseTime - 60000,
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusCompleted,
+				BotID:             "test-bot-id",
+			}
+			_, err := ss.Recap().SaveRecap(olderRecap)
+			require.NoError(t, err)
+
+			newerRecap := &model.Recap{
+				Id:                model.NewId(),
+				UserId:            userId,
+				Title:             "Newer Recap",
+				CreateAt:          baseTime - 30000,
+				UpdateAt:          baseTime - 30000,
+				DeleteAt:          0,
+				ReadAt:            0,
+				TotalMessageCount: 10,
+				Status:            model.RecapStatusCompleted,
+				BotID:             "test-bot-id",
+			}
+			_, err = ss.Recap().SaveRecap(newerRecap)
+			require.NoError(t, err)
+
+			err = ss.Recap().DeleteRecap(newerRecap.Id)
+			require.NoError(t, err)
+
+			lastRecap, err := ss.Recap().GetLastCompletedManualRecap(userId)
+			require.NoError(t, err)
+			require.NotNil(t, lastRecap)
+			assert.Equal(t, newerRecap.Id, lastRecap.Id)
+		})
+
 		t.Run("DeleteRecap", func(t *testing.T) {
 			recap := &model.Recap{
 				Id:                model.NewId(),
@@ -190,6 +325,12 @@ func TestRecapStore(t *testing.T) {
 			recaps, err := ss.Recap().GetRecapsForUser(recap.UserId, 0, 10)
 			require.NoError(t, err)
 			assert.Len(t, recaps, 0)
+
+			_, err = ss.Recap().GetRecap(recap.Id)
+			require.Error(t, err)
+
+			var nfErr *store.ErrNotFound
+			require.ErrorAs(t, err, &nfErr)
 		})
 	})
 }

@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Client4} from '@mattermost/client';
-import type {Channel} from '@mattermost/types/channels';
-
 import {expect, test} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+
+import {
+    createRecapAndWaitForStatus,
+    createUnreadChannelFixture,
+    markAllCurrentChannelsRead,
+    setupRecapBridge,
+    waitForRecapStatus,
+    waitForRecordedRequestCount,
+} from './recaps_helpers';
 
 /**
  * @objective Verify a user can create a selected-channels AI recap and receive the mocked summary without reloading the page
@@ -50,6 +55,7 @@ test('creates selected-channels recap and auto-renders mocked summary', {tag: '@
     const createRecapModal = await recapsPage.openCreateRecap();
     await createRecapModal.fillTitle(recapTitle);
     await createRecapModal.selectSelectedChannels();
+    await createRecapModal.enableRunOnce();
     await createRecapModal.clickNext();
     await createRecapModal.expectChannelSelectorVisible();
     await createRecapModal.searchChannel(channel.display_name);
@@ -137,6 +143,7 @@ test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, 
     await createRecapModal.fillTitle(recapTitle);
     await createRecapModal.selectAgent(agent.displayName);
     await createRecapModal.selectAllUnreads();
+    await createRecapModal.enableRunOnce();
     await createRecapModal.clickNext();
 
     // * Verify the all-unreads flow skips the channel selector and includes only the unread channels in the summary.
@@ -283,13 +290,13 @@ test('deletes a recap from the recaps page', {tag: '@ai_recaps'}, async ({pw}) =
     await recap.clickDelete();
     await recapsPage.confirmDelete();
 
-    // * Verify the recap disappears from the list and the page returns to the setup placeholder.
+    // * Verify the recap disappears from the list and the page returns to the caught-up empty state.
     await recapsPage.expectRecapNotVisible(recapTitle);
-    await recapsPage.expectSetupPlaceholder();
+    await recapsPage.expectCaughtUpEmptyState();
 });
 
 /**
- * @objective Verify regenerating a recap returns it to processing and replaces the rendered summary with the latest mocked response
+ * @objective Verify regenerating a recap sends a new summary request and replaces the rendered summary with the latest mocked response
  */
 test('regenerates a recap with a new mocked summary', {tag: '@ai_recaps'}, async ({pw}) => {
     const recapTitle = `Regenerated recap ${pw.random.id()}`;
@@ -315,38 +322,48 @@ test('regenerates a recap with a new mocked summary', {tag: '@ai_recaps'}, async
             }),
         ],
     });
+    const originalConfig = await adminClient.getConfig();
 
-    const channel = await createUnreadChannelFixture(
-        pw,
-        adminClient,
-        adminUser.id,
-        user.id,
-        team.id,
-        'Regenerate recap channel',
-        sourceMessage,
-    );
-    await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
+    try {
+        await adminClient.patchConfig({
+            AIRecapSettings: {
+                EnforceCooldown: false,
+            },
+        });
 
-    // # Open the recap, confirm the original summary is visible, and trigger regeneration from the recap menu.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+        const channel = await createUnreadChannelFixture(
+            pw,
+            adminClient,
+            adminUser.id,
+            user.id,
+            team.id,
+            'Regenerate recap channel',
+            sourceMessage,
+        );
+        await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
 
-    const recap = recapsPage.getRecap(recapTitle);
-    await recap.expand();
-    await recap.expectText(firstHighlight);
-    await recap.openMenuAction('Regenerate this recap');
+        // # Open the recap, confirm the original summary is visible, and trigger regeneration from the recap menu.
+        const {recapsPage} = await pw.testBrowser.login(user);
+        await recapsPage.goto(team.name);
+        await recapsPage.toBeVisible();
 
-    // * Verify the recap returns to the processing state and then renders the regenerated summary.
-    await recap.expectProcessing();
-    await expect(recap.container).toContainText(secondHighlight, {timeout: pw.duration.one_min});
-    await expect(recap.container).not.toContainText(firstHighlight);
+        const recap = recapsPage.getRecap(recapTitle);
+        await recap.expand();
+        await recap.expectText(firstHighlight);
+        await recap.openMenuAction('Regenerate this recap');
 
-    // * Verify two recap_summary requests were recorded for the original generation and the regeneration.
-    await waitForRecordedRequestCount(pw, adminClient, 2);
-    const bridgeState = await pw.getAIBridgeMock(adminClient);
-    const recapRequests = bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary');
-    expect(recapRequests).toHaveLength(2);
+        // * Verify the regeneration request is recorded and then renders the regenerated summary.
+        await waitForRecordedRequestCount(pw, adminClient, 2);
+        await expect(recap.container).toContainText(secondHighlight, {timeout: pw.duration.one_min});
+        await expect(recap.container).not.toContainText(firstHighlight);
+
+        // * Verify two recap_summary requests were recorded for the original generation and the regeneration.
+        const bridgeState = await pw.getAIBridgeMock(adminClient);
+        const recapRequests = bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary');
+        expect(recapRequests).toHaveLength(2);
+    } finally {
+        await adminClient.updateConfig(originalConfig as any);
+    }
 });
 
 /**
@@ -465,130 +482,3 @@ test('executes recap channel card actions', {tag: '@ai_recaps'}, async ({pw}) =>
     // * Verify the user lands back in the source channel route.
     await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}$`));
 });
-
-async function setupRecapBridge(
-    pw: PlaywrightExtended,
-    adminClient: Client4,
-    {
-        available = true,
-        completions,
-    }: {
-        available?: boolean;
-        completions: Array<{completion?: string; error?: string; status_code?: number}>;
-    },
-) {
-    await pw.enableAIBridgeTestMode(adminClient, {enableRecaps: true});
-    await pw.resetAIBridgeMock(adminClient);
-
-    const {agent, service} = await pw.createMockAIAgent(adminClient, {
-        agent: {
-            id: `recap-agent-${pw.random.id()}`,
-            displayName: 'Recap Summary Agent',
-            username: `recap.summary.${pw.random.id()}`,
-            is_default: true,
-        },
-        service: {
-            id: `recap-service-${pw.random.id()}`,
-            name: 'Recap Summary Service',
-            type: 'anthropic',
-        },
-    });
-
-    await pw.configureAIBridgeMock(adminClient, {
-        status: {available},
-        agents: [agent],
-        services: [service],
-        agent_completions: {
-            recap_summary: completions,
-        },
-        record_requests: true,
-    });
-
-    return {agent, service};
-}
-
-async function createUnreadChannelFixture(
-    pw: PlaywrightExtended,
-    adminClient: Client4,
-    adminUserId: string,
-    userId: string,
-    teamId: string,
-    displayName: string,
-    sourceMessage: string,
-) {
-    const channel = await adminClient.createChannel(
-        pw.random.channel({
-            teamId,
-            name: `recap${pw.random.id()}`,
-            displayName,
-            unique: false,
-        }),
-    );
-
-    await adminClient.addToChannel(userId, channel.id);
-    await adminClient.createPost({
-        channel_id: channel.id,
-        user_id: adminUserId,
-        message: sourceMessage,
-    });
-
-    return channel;
-}
-
-async function createRecapAndWaitForStatus(
-    pw: PlaywrightExtended,
-    userClient: Client4,
-    recapTitle: string,
-    channelIds: string[],
-    agentId: string,
-    expectedStatus: string,
-) {
-    const recap = await userClient.createRecap({
-        title: recapTitle,
-        channel_ids: channelIds,
-        agent_id: agentId,
-    });
-
-    await pw.waitUntil(
-        async () => {
-            const currentRecap = await userClient.getRecap(recap.id);
-            return currentRecap.status === expectedStatus;
-        },
-        {timeout: pw.duration.one_min},
-    );
-
-    return userClient.getRecap(recap.id);
-}
-
-async function waitForRecapStatus(
-    pw: PlaywrightExtended,
-    userClient: Client4,
-    recapTitle: string,
-    expectedStatus: string,
-) {
-    await pw.waitUntil(
-        async () => {
-            const recaps = await userClient.getRecaps(0, 60);
-            return recaps.some((recap) => recap.title === recapTitle && recap.status === expectedStatus);
-        },
-        {timeout: pw.duration.one_min},
-    );
-}
-
-async function waitForRecordedRequestCount(pw: PlaywrightExtended, adminClient: Client4, requestCount: number) {
-    await pw.waitUntil(
-        async () => {
-            const bridgeState = await pw.getAIBridgeMock(adminClient);
-            return (
-                bridgeState.recorded_requests.filter((request) => request.operation === 'recap_summary').length ===
-                requestCount
-            );
-        },
-        {timeout: pw.duration.one_min},
-    );
-}
-
-async function markAllCurrentChannelsRead(userClient: Client4, teamId: string) {
-    const currentChannels = await userClient.getMyChannels(teamId);
-    await userClient.readMultipleChannels(currentChannels.map((channel: Channel) => channel.id));
-}

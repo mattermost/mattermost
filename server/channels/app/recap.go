@@ -4,15 +4,23 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // CreateRecap creates a new recap job for the specified channels
 func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
+	if appErr := a.requireAIRecapsEnabled("CreateRecap"); appErr != nil {
+		return nil, appErr
+	}
+
 	userID := rctx.Session().UserId
 
 	// Validate user is member of all channels
@@ -20,6 +28,19 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
 			return nil, model.NewAppError("CreateRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 		}
+	}
+
+	limits, err := a.GetEffectiveLimits(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
+		return nil, recapMaxChannelsExceededError("CreateRecap", limits.MaxChannelsPerRecap, len(channelIDs))
+	}
+
+	if appErr := a.checkManualRecapCooldown(userID, limits, "CreateRecap"); appErr != nil {
+		return nil, appErr
 	}
 
 	timeNow := model.GetMillis()
@@ -38,9 +59,29 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 		BotID:             agentID,
 	}
 
-	savedRecap, err := a.Srv().Store().Recap().SaveRecap(recap)
-	if err != nil {
-		return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	var (
+		savedRecap *model.Recap
+		storeErr   error
+	)
+	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+
+		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecapIfUnderDailyLimit(recap, startOfDayMillis, limits.MaxRecapsPerDay)
+		if storeErr != nil {
+			var limitErr *store.ErrLimitExceeded
+			if errors.As(storeErr, &limitErr) {
+				return nil, recapMaxRecapsReachedError("CreateRecap", limits.MaxRecapsPerDay)
+			}
+			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+	} else {
+		savedRecap, storeErr = a.Srv().Store().Recap().SaveRecap(recap)
+		if storeErr != nil {
+			return nil, model.NewAppError("CreateRecap", "app.recap.save.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
 	}
 
 	// Create background job
@@ -115,6 +156,10 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, recap *model.Recap) (*model.Reca
 
 // RegenerateRecap regenerates an existing recap
 func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Recap) (*model.Recap, *model.AppError) {
+	if appErr := a.requireAIRecapsEnabled("RegenerateRecap"); appErr != nil {
+		return nil, appErr
+	}
+
 	recapID := recap.Id
 
 	// Get existing recap channels to extract channel IDs
@@ -127,6 +172,33 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 	channelIDs := make([]string, len(channels))
 	for i, channel := range channels {
 		channelIDs[i] = channel.ChannelId
+	}
+
+	limits, limitsErr := a.GetEffectiveLimits(userID)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	if model.IsLimitEnabled(limits.MaxChannelsPerRecap) && len(channelIDs) > limits.MaxChannelsPerRecap {
+		return nil, recapMaxChannelsExceededError("RegenerateRecap", limits.MaxChannelsPerRecap, len(channelIDs))
+	}
+	if appErr := a.checkManualRecapCooldown(userID, limits, "RegenerateRecap"); appErr != nil {
+		return nil, appErr
+	}
+
+	if model.IsLimitEnabled(limits.MaxRecapsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return nil, dayErr
+		}
+
+		count, countErr := a.Srv().Store().Recap().CountForUserSince(userID, startOfDayMillis)
+		if countErr != nil {
+			return nil, model.NewAppError("RegenerateRecap", "app.recap.get_daily_count.app_error", nil, "", http.StatusInternalServerError).Wrap(countErr)
+		}
+		if count >= int64(limits.MaxRecapsPerDay) {
+			return nil, recapMaxRecapsReachedError("RegenerateRecap", limits.MaxRecapsPerDay)
+		}
 	}
 
 	// Delete existing recap channels
@@ -180,9 +252,14 @@ func (a *App) DeleteRecap(rctx request.CTX, recapID string) *model.AppError {
 	return nil
 }
 
-// ProcessRecapChannel processes a single channel for a recap, fetching posts, summarizing them,
-// and saving the recap channel record. Returns the number of messages processed.
+// ProcessRecapChannel processes a single channel for a recap using default manual recap options.
 func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, agentID string) (*model.RecapChannelResult, *model.AppError) {
+	return a.ProcessRecapChannelWithOptions(rctx, recapID, channelID, userID, agentID, model.RecapProcessingOptions{})
+}
+
+// ProcessRecapChannelWithOptions processes a single channel for a recap, fetching posts,
+// summarizing them, and saving the recap channel record. Returns the number of messages processed.
+func (a *App) ProcessRecapChannelWithOptions(rctx request.CTX, recapID, channelID, userID, agentID string, options model.RecapProcessingOptions) (*model.RecapChannelResult, *model.AppError) {
 	result := &model.RecapChannelResult{
 		ChannelID: channelID,
 		Success:   false,
@@ -199,9 +276,22 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	if lastViewedErr != nil {
 		return result, model.NewAppError("ProcessRecapChannel", "app.recap.get_last_viewed.app_error", nil, "", http.StatusInternalServerError).Wrap(lastViewedErr)
 	}
+	fetchSince, allowRecentFallback := recapFetchStartAt(options.TimePeriod, lastViewedAt, time.Now())
+
+	remainingPosts, limitErr := a.getRemainingPostsForRecap(userID, recapID)
+	if limitErr != nil {
+		return result, limitErr
+	}
+	if remainingPosts == 0 {
+		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, nil); appErr != nil {
+			return result, appErr
+		}
+		result.Success = true
+		return result, nil
+	}
 
 	// Fetch posts for recap
-	posts, postsErr := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 100)
+	posts, postsErr := a.fetchPostsForRecapWithFallback(rctx, channelID, fetchSince, remainingPosts, allowRecentFallback)
 	if postsErr != nil {
 		return result, postsErr
 	}
@@ -224,7 +314,7 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	}
 
 	// Summarize posts
-	summary, err := a.SummarizePosts(rctx, userID, posts, channel.DisplayName, team.Name, agentID)
+	summary, err := a.SummarizePostsWithInstructions(rctx, userID, posts, channel.DisplayName, team.Name, agentID, options.CustomInstructions)
 	if err != nil {
 		if saveErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); saveErr != nil {
 			return result, saveErr
@@ -262,10 +352,14 @@ func (a *App) saveRecapChannelRecord(recapID, channelID, channelName string, hig
 
 // fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information
 func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedAt int64, limit int) ([]*model.Post, *model.AppError) {
+	return a.fetchPostsForRecapWithFallback(rctx, channelID, lastViewedAt, limit, true)
+}
+
+func (a *App) fetchPostsForRecapWithFallback(rctx request.CTX, channelID string, since int64, limit int, allowRecentFallback bool) ([]*model.Post, *model.AppError) {
 	// Get posts after lastViewedAt
 	options := model.GetPostsSinceOptions{
 		ChannelId: channelID,
-		Time:      lastViewedAt,
+		Time:      since,
 	}
 
 	postList, err := a.GetPostsSince(rctx, options)
@@ -273,7 +367,7 @@ func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedA
 		return nil, err
 	}
 
-	if len(postList.Posts) == 0 {
+	if allowRecentFallback && len(postList.Posts) == 0 {
 		// If there are no unread posts, get the most recent 15 posts to include in the recap
 		postList, err = a.GetPosts(rctx, channelID, 0, 20)
 		if err != nil {
@@ -306,6 +400,19 @@ func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedA
 	return posts, nil
 }
 
+func recapFetchStartAt(timePeriod string, lastViewedAt int64, now time.Time) (int64, bool) {
+	switch timePeriod {
+	case model.TimePeriodLast24h:
+		return now.Add(-24 * time.Hour).UnixMilli(), false
+	case model.TimePeriodLastWeek:
+		return now.Add(-7 * 24 * time.Hour).UnixMilli(), false
+	case "", model.TimePeriodSinceLastRead:
+		return lastViewedAt, true
+	default:
+		return lastViewedAt, true
+	}
+}
+
 // extractPostIDs extracts post IDs from a slice of posts
 func extractPostIDs(posts []*model.Post) []string {
 	ids := make([]string, len(posts))
@@ -313,4 +420,308 @@ func extractPostIDs(posts []*model.Post) []string {
 		ids[i] = post.Id
 	}
 	return ids
+}
+
+func recapMaxChannelsExceededError(where string, limit int, requested int) *model.AppError {
+	return model.NewAppError(where,
+		"app.recap.max_channels_exceeded.app_error",
+		map[string]any{
+			"Limit":     limit,
+			"Requested": requested,
+		},
+		"", http.StatusBadRequest)
+}
+
+func recapMaxRecapsReachedError(where string, limit int) *model.AppError {
+	return model.NewAppError(where,
+		"app.recap.max_recaps_reached.app_error",
+		map[string]any{"Limit": limit},
+		"", http.StatusBadRequest)
+}
+
+func (a *App) checkManualRecapCooldown(userID string, limits *model.EffectiveRecapLimits, where string) *model.AppError {
+	if !model.IsLimitEnabled(limits.CooldownMinutes) || limits.CooldownMinutes <= 0 {
+		return nil
+	}
+
+	lastManualRecap, storeErr := a.Srv().Store().Recap().GetLastCompletedManualRecap(userID)
+	if storeErr != nil {
+		return model.NewAppError(where,
+			"app.recap.cooldown_check_failed.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+	if lastManualRecap == nil {
+		return nil
+	}
+
+	cooldownEndTime := lastManualRecap.CreateAt + int64(limits.CooldownMinutes)*60*1000
+	now := model.GetMillis()
+	if now >= cooldownEndTime {
+		return nil
+	}
+
+	remainingMs := cooldownEndTime - now
+	remainingMinutes := int((remainingMs + 60000 - 1) / 60000)
+	return model.NewAppError(where,
+		"app.recap.cooldown_active.app_error",
+		map[string]any{
+			"CooldownMinutes":   limits.CooldownMinutes,
+			"RetryAfterMinutes": remainingMinutes,
+		},
+		"", http.StatusTooManyRequests)
+}
+
+func (a *App) getRemainingPostsForRecap(userID string, recapID string) (int, *model.AppError) {
+	const defaultFetchLimit = 100
+
+	limits, limitsErr := a.GetEffectiveLimits(userID)
+	if limitsErr != nil {
+		return 0, limitsErr
+	}
+
+	remaining := defaultFetchLimit
+	currentRecapPosts, appErr := a.countCurrentRecapSourcePosts(recapID)
+	if appErr != nil {
+		return 0, appErr
+	}
+
+	if model.IsLimitEnabled(limits.MaxPostsPerRecap) {
+		remaining = min(remaining, limits.MaxPostsPerRecap-currentRecapPosts)
+	}
+
+	if model.IsLimitEnabled(limits.MaxPostsPerDay) {
+		startOfDayMillis, dayErr := a.getStartOfUserDayMillis(userID)
+		if dayErr != nil {
+			return 0, dayErr
+		}
+
+		usedToday, storeErr := a.Srv().Store().Recap().SumTotalMessageCountForUserSince(userID, startOfDayMillis)
+		if storeErr != nil {
+			return 0, model.NewAppError("ProcessRecapChannel", "app.recap.sum_daily_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+		}
+		remaining = min(remaining, limits.MaxPostsPerDay-int(usedToday)-currentRecapPosts)
+	}
+
+	if remaining < 0 {
+		return 0, nil
+	}
+	return remaining, nil
+}
+
+func (a *App) countCurrentRecapSourcePosts(recapID string) (int, *model.AppError) {
+	recapChannels, storeErr := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+	if storeErr != nil {
+		return 0, model.NewAppError("ProcessRecapChannel", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	count := 0
+	for _, recapChannel := range recapChannels {
+		count += len(recapChannel.SourcePostIds)
+	}
+	return count, nil
+}
+
+// truncatePostsProportionally distributes maxPosts across channels proportionally.
+// Busier channels get more posts. Returns truncated map and whether truncation occurred.
+// Channels may receive 0 posts when maxPosts is lower than the number of active channels.
+func truncatePostsProportionally(postsByChannel map[string][]*model.Post, maxPosts int) (map[string][]*model.Post, bool) {
+	totalPosts := 0
+	for _, posts := range postsByChannel {
+		totalPosts += len(posts)
+	}
+
+	if totalPosts <= maxPosts {
+		return postsByChannel, false
+	}
+
+	// First pass: compute proportional shares using floor division.
+	shares := make(map[string]int, len(postsByChannel))
+	for channelID, posts := range postsByChannel {
+		channelCount := len(posts)
+		if channelCount == 0 {
+			continue
+		}
+		share := min(int(float64(channelCount)/float64(totalPosts)*float64(maxPosts)), channelCount)
+		shares[channelID] = share
+	}
+
+	// Enforce the cap: if floating-point rounding caused totalAllocated > maxPosts,
+	// reduce shares iteratively from channels with the largest allocations.
+	totalAllocated := 0
+	for _, s := range shares {
+		totalAllocated += s
+	}
+	for totalAllocated > maxPosts {
+		largestID := ""
+		largestShare := 0
+		for id, s := range shares {
+			if s > largestShare {
+				largestID = id
+				largestShare = s
+			}
+		}
+		if largestID == "" || largestShare == 0 {
+			break
+		}
+		shares[largestID]--
+		totalAllocated--
+	}
+
+	// Build result: take most recent posts (assuming newest-first ordering)
+	result := make(map[string][]*model.Post, len(postsByChannel))
+	for channelID, posts := range postsByChannel {
+		share := shares[channelID]
+		if share <= 0 {
+			continue
+		}
+		result[channelID] = posts[:share]
+	}
+
+	return result, true
+}
+
+// estimateTokens estimates token count for text using conservative 4 chars/token heuristic.
+// This is approximate - actual LLM tokenization varies by model.
+func estimateTokens(text string) int {
+	// Conservative estimate: 4 characters per token for English
+	// This tends to overestimate, which is safer for context limits
+	return (len(text) + 3) / 4 // Ceiling division
+}
+
+// estimatePostTokens estimates tokens for a single post
+func estimatePostTokens(post *model.Post) int {
+	return estimateTokens(post.Message)
+}
+
+// truncateToTokenLimit removes posts until total tokens are under limit.
+// Removes from channels proportionally, largest contributor first.
+// Returns truncated posts and whether truncation occurred.
+func truncateToTokenLimit(postsByChannel map[string][]*model.Post, maxTokens int) (map[string][]*model.Post, bool) {
+	// Calculate total tokens
+	totalTokens := 0
+	tokensByChannel := make(map[string]int)
+
+	for channelID, posts := range postsByChannel {
+		channelTokens := 0
+		for _, post := range posts {
+			channelTokens += estimatePostTokens(post)
+		}
+		tokensByChannel[channelID] = channelTokens
+		totalTokens += channelTokens
+	}
+
+	// No truncation needed
+	if totalTokens <= maxTokens {
+		return postsByChannel, false
+	}
+
+	result := make(map[string][]*model.Post)
+	for channelID, posts := range postsByChannel {
+		result[channelID] = make([]*model.Post, len(posts))
+		copy(result[channelID], posts)
+	}
+
+	// Iteratively remove posts until under limit
+	// Remove oldest posts (end of slice if sorted newest-first) from largest channels
+	for totalTokens > maxTokens {
+		// Find channel with most tokens that has posts remaining
+		maxChannelID := ""
+		maxChannelTokens := 0
+		for channelID, tokens := range tokensByChannel {
+			if tokens > maxChannelTokens && len(result[channelID]) > 0 {
+				maxChannelID = channelID
+				maxChannelTokens = tokens
+			}
+		}
+
+		if maxChannelID == "" {
+			break // No more posts to remove
+		}
+
+		// Remove oldest post from this channel
+		posts := result[maxChannelID]
+		if len(posts) > 0 {
+			removedPost := posts[len(posts)-1]
+			removedTokens := estimatePostTokens(removedPost)
+			result[maxChannelID] = posts[:len(posts)-1]
+			tokensByChannel[maxChannelID] -= removedTokens
+			totalTokens -= removedTokens
+		}
+	}
+
+	return result, true
+}
+
+// FetchAndTruncatePostsForRecap fetches posts for multiple channels and applies truncation limits.
+// This is used by recap generation to ensure LLM context limits are respected.
+// Posts are distributed proportionally across channels (busier channels get more posts).
+// Token limit takes precedence over post count limit.
+func (a *App) FetchAndTruncatePostsForRecap(rctx request.CTX, channelIDs []string, userID string) (map[string][]*model.Post, *model.AppError) {
+	// Get effective limits for user
+	limits, limitsErr := a.GetEffectiveLimits(userID)
+	if limitsErr != nil {
+		return nil, limitsErr
+	}
+
+	// Fetch posts for all channels
+	postsByChannel := make(map[string][]*model.Post)
+	successfulFetches := 0
+	hadFetchFailure := false
+	for _, channelID := range channelIDs {
+		// Get user's last viewed timestamp
+		lastViewedAt, lastViewedErr := a.Srv().Store().Channel().GetMemberLastViewedAt(rctx, channelID, userID)
+		if lastViewedErr != nil {
+			hadFetchFailure = true
+			rctx.Logger().Warn("Failed to get last viewed timestamp",
+				mlog.String("channel_id", channelID),
+				mlog.Err(lastViewedErr))
+			continue
+		}
+
+		posts, err := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 1000) // Fetch more, truncate later
+		if err != nil {
+			hadFetchFailure = true
+			rctx.Logger().Warn("Failed to fetch posts for channel",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err))
+			continue
+		}
+		successfulFetches++
+
+		if len(posts) > 0 {
+			postsByChannel[channelID] = posts
+		}
+	}
+
+	if len(channelIDs) > 0 && successfulFetches == 0 && hadFetchFailure {
+		return nil, model.NewAppError(
+			"FetchAndTruncatePostsForRecap",
+			"app.recap.fetch_posts.app_error",
+			nil, "", http.StatusInternalServerError,
+		)
+	}
+
+	// ENF-05: Apply max posts limit
+	if model.IsLimitEnabled(limits.MaxPostsPerRecap) {
+		var wasTruncated bool
+		postsByChannel, wasTruncated = truncatePostsProportionally(postsByChannel, limits.MaxPostsPerRecap)
+		if wasTruncated {
+			rctx.Logger().Debug("Posts truncated due to limit",
+				mlog.Int("max_posts", limits.MaxPostsPerRecap),
+				mlog.String("user_id", userID))
+		}
+	}
+
+	// ENF-06: Apply max tokens limit (takes precedence over post count)
+	if model.IsLimitEnabled(limits.MaxTokensPerRecap) {
+		var wasTruncated bool
+		postsByChannel, wasTruncated = truncateToTokenLimit(postsByChannel, limits.MaxTokensPerRecap)
+		if wasTruncated {
+			rctx.Logger().Debug("Posts truncated due to token limit",
+				mlog.Int("max_tokens", limits.MaxTokensPerRecap),
+				mlog.String("user_id", userID))
+		}
+	}
+
+	return postsByChannel, nil
 }

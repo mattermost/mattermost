@@ -165,6 +165,9 @@ docker-compose.override.yaml
 **/CLAUDE.local.md
 **/CLAUDE.md
 .cursorrules
+
+# Planning files (local only)
+.planning
 .cursor/
 server/prev-report.xml
 server/prev-gotestsum.json

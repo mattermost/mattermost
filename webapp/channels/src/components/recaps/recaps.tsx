@@ -1,16 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {Redirect} from 'react-router-dom';
+import {Redirect, useHistory, useLocation} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {getRecaps} from 'mattermost-redux/actions/recaps';
-import {getAllRecaps, getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
+import {getRecaps, getScheduledRecaps, getRecapLimitStatus as fetchRecapLimitStatus} from 'mattermost-redux/actions/recaps';
+import {getUnreadRecaps, getReadRecaps, getAllScheduledRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
@@ -20,36 +20,69 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {useQuery} from 'utils/http_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
-import AICopilotIntroSvg from './ai_copilot_intro_svg';
+import RecapUsageBadge from './recap_usage_badge';
 import RecapsList from './recaps_list';
+import ScheduledRecapsList from './scheduled_recaps_list';
 
 import './recaps.scss';
+import './scheduled_recap_item.scss';
+
+type TabName = 'unread' | 'read' | 'scheduled';
+
+const isValidTab = (tab: string | null): tab is TabName => {
+    return tab === 'unread' || tab === 'read' || tab === 'scheduled';
+};
 
 const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
-    const [isLoading, setIsLoading] = useState(true);
+    const history = useHistory();
+    const location = useLocation();
+    const query = useQuery();
+    const tabParam = query.get('tab');
+    const [activeTab, setActiveTab] = useState<TabName>(() => {
+        return isValidTab(tabParam) ? tabParam : 'unread';
+    });
+
+    // Handle tab change: update state and URL
+    const handleTabChange = useCallback((tab: TabName) => {
+        setActiveTab(tab);
+
+        // Update URL with the new tab parameter using replace to avoid polluting history
+        const newSearchParams = new URLSearchParams(location.search);
+        if (tab === 'unread') {
+            // Remove tab param for default tab to keep URL clean
+            newSearchParams.delete('tab');
+        } else {
+            newSearchParams.set('tab', tab);
+        }
+        const newSearch = newSearchParams.toString();
+        const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+        history.replace(newUrl);
+    }, [history, location.pathname, location.search]);
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
-    const allRecaps = useSelector(getAllRecaps);
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
+    const scheduledRecaps = useSelector(getAllScheduledRecaps);
 
-    const hasNoRecaps = !isLoading && allRecaps.length === 0;
+    // Sync activeTab with URL query parameter changes (e.g., when navigating via history.push)
+    useEffect(() => {
+        const urlTab = isValidTab(tabParam) ? tabParam : 'unread';
+        setActiveTab(urlTab);
+    }, [tabParam]);
 
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
-        const fetchData = async () => {
-            await dispatch(getRecaps(0, 60));
-            setIsLoading(false);
-        };
-        fetchData();
+        dispatch(getRecaps(0, 60));
+        dispatch(getScheduledRecaps(0, 60));
         dispatch(getAgents());
+        dispatch(fetchRecapLimitStatus());
     }, [dispatch]);
 
     // Redirect if feature flag is disabled
@@ -64,6 +97,23 @@ const Recaps = () => {
         }));
     };
 
+    const handleEditScheduledRecap = (id: string) => {
+        // Find the scheduled recap to edit
+        const scheduledRecapToEdit = scheduledRecaps.find((sr) => sr.id === id);
+
+        if (!scheduledRecapToEdit) {
+            return;
+        }
+
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CREATE_RECAP_MODAL,
+            dialogType: CreateRecapModal,
+            dialogProps: {
+                editScheduledRecap: scheduledRecapToEdit,
+            },
+        }));
+    };
+
     const displayedRecaps = activeTab === 'unread' ? unreadRecaps : readRecaps;
 
     return (
@@ -75,56 +125,48 @@ const Recaps = () => {
                         <h1 className='recaps-title'>
                             {formatMessage({id: 'recaps.title', defaultMessage: 'Recaps'})}
                         </h1>
+                        <RecapUsageBadge/>
                     </div>
-                    {!hasNoRecaps && (
-                        <div className='recaps-tabs'>
-                            <button
-                                className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('unread')}
-                            >
-                                {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
-                            </button>
-                            <button
-                                className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('read')}
-                            >
-                                {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
-                            </button>
-                        </div>
-                    )}
+                    <div className='recaps-tabs'>
+                        <button
+                            className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
+                            onClick={() => handleTabChange('unread')}
+                        >
+                            {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
+                        </button>
+                        <button
+                            className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
+                            onClick={() => handleTabChange('read')}
+                        >
+                            {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
+                        </button>
+                        <button
+                            className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
+                            onClick={() => handleTabChange('scheduled')}
+                        >
+                            {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
+                        </button>
+                    </div>
                 </div>
-                {!hasNoRecaps && (
-                    <button
-                        className='btn btn-tertiary recap-add-button'
-                        onClick={handleAddRecap}
-                        disabled={!agentsBridgeEnabled.available}
-                        title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                    >
-                        <PlusIcon size={12}/>
-                        {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
-                    </button>
-                )}
+                <button
+                    className='btn btn-tertiary recap-add-button'
+                    onClick={handleAddRecap}
+                    disabled={!agentsBridgeEnabled.available}
+                    title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
+                >
+                    <PlusIcon size={12}/>
+                    {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
+                </button>
             </div>
 
             <div className='recaps-content'>
-                {hasNoRecaps ? (
-                    <div className='recaps-placeholder'>
-                        <AICopilotIntroSvg/>
-                        <h2 className='recaps-placeholder-title'>
-                            {formatMessage({id: 'recaps.placeholder.title', defaultMessage: 'Set up your recap'})}
-                        </h2>
-                        <p className='recaps-placeholder-description'>
-                            {formatMessage({id: 'recaps.placeholder.description', defaultMessage: 'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.'})}
-                        </p>
-                        <button
-                            className='btn btn-primary recaps-placeholder-button'
-                            onClick={handleAddRecap}
-                            disabled={!agentsBridgeEnabled.available}
-                            title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
-                        >
-                            {formatMessage({id: 'recaps.placeholder.createRecap', defaultMessage: 'Create a recap'})}
-                        </button>
-                    </div>
+                {activeTab === 'scheduled' ? (
+                    <ScheduledRecapsList
+                        scheduledRecaps={scheduledRecaps}
+                        onEdit={handleEditScheduledRecap}
+                        onCreateClick={handleAddRecap}
+                        createDisabled={!agentsBridgeEnabled.available}
+                    />
                 ) : (
                     <RecapsList recaps={displayedRecaps}/>
                 )}
@@ -134,4 +176,3 @@ const Recaps = () => {
 };
 
 export default Recaps;
-

@@ -1,0 +1,117 @@
+.RecapUsageBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border: none;
+    border-radius: 4px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 16px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    .icon {
+        font-size: 12px;
+    }
+
+    &--warning {
+        background-color: rgba(var(--away-indicator-rgb), 0.16);
+        color: var(--away-indicator);
+
+        &:hover {
+            background-color: rgba(var(--away-indicator-rgb), 0.24);
+        }
+    }
+
+    &--error {
+        background-color: rgba(var(--error-text-rgb), 0.16);
+        color: var(--error-text);
+
+        &:hover {
+            background-color: rgba(var(--error-text-rgb), 0.24);
+        }
+    }
+
+    &__popover {
+        z-index: 2000;
+        min-width: 240px;
+        max-width: 300px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 8px;
+        background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-5);
+    }
+
+    &__popover-header {
+        margin-bottom: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    &__popover-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    &__popover-usage {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__popover-warning {
+        display: flex;
+        align-items: center;
+        color: var(--away-indicator);
+        font-size: 12px;
+        gap: 6px;
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-error {
+        display: flex;
+        align-items: center;
+        color: var(--error-text);
+        font-size: 12px;
+        gap: 6px;
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-cooldown {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+        border-radius: 4px;
+        background-color: rgba(var(--error-text-rgb), 0.08);
+        color: var(--error-text);
+        font-size: 12px;
+        gap: 6px;
+
+        .icon {
+            font-size: 14px;
+        }
+    }
+
+    &__popover-reset {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 12px;
+    }
+}

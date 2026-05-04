@@ -1,0 +1,291 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import moment from 'moment-timezone';
+import React, {useMemo} from 'react';
+import {useIntl, FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
+
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
+
+import DropdownInput from 'components/dropdown_input';
+import Input from 'components/widgets/inputs/input/input';
+
+import DayOfWeekSelector from './day_of_week_selector';
+
+type Props = {
+    daysOfWeek: number;
+    setDaysOfWeek: (days: number) => void;
+    timeOfDay: string;
+    setTimeOfDay: (time: string) => void;
+    timePeriod: string;
+    setTimePeriod: (period: string) => void;
+    customInstructions: string;
+    setCustomInstructions: (instructions: string) => void;
+    daysError?: boolean;
+    timeError?: boolean;
+    agentName?: string;
+};
+
+// Generate time options in 30-minute intervals
+const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+            const h = hour.toString().padStart(2, '0');
+            const m = minute.toString().padStart(2, '0');
+            options.push(`${h}:${m}`);
+        }
+    }
+    return options;
+};
+
+const TIME_OPTIONS = generateTimeOptions();
+
+const ScheduleConfiguration = ({
+    daysOfWeek,
+    setDaysOfWeek,
+    timeOfDay,
+    setTimeOfDay,
+    timePeriod,
+    setTimePeriod,
+    customInstructions,
+    setCustomInstructions,
+    daysError,
+    timeError,
+    agentName,
+}: Props) => {
+    const {formatMessage, formatTime, formatDate} = useIntl();
+    const userTimezone = useSelector(getCurrentTimezone);
+
+    // Time period options - must match server model constants
+    const timePeriodOptions = useMemo(() => [
+        {value: 'last_24h', label: formatMessage({id: 'recaps.timePeriod.last24h', defaultMessage: 'Last 24 hours'})},
+        {value: 'last_week', label: formatMessage({id: 'recaps.timePeriod.lastWeek', defaultMessage: 'Last 7 days'})},
+        {value: 'since_last_read', label: formatMessage({id: 'recaps.timePeriod.sinceLastRead', defaultMessage: 'Since last read'})},
+    ], [formatMessage]);
+
+    // Time dropdown options with locale-aware labels
+    const timeOptions = useMemo(() => {
+        return TIME_OPTIONS.map((time) => {
+            const [hours, minutes] = time.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return {
+                value: time,
+                label: formatTime(date, {hour: 'numeric', minute: '2-digit'}),
+            };
+        });
+    }, [formatTime]);
+
+    // Calculate next run preview
+    const nextRunPreview = useMemo(() => {
+        if (daysOfWeek === 0 || !timeOfDay) {
+            return null;
+        }
+
+        const [hours, minutes] = timeOfDay.split(':').map(Number);
+        const previewTimeZone = moment.tz.zone(userTimezone) ? userTimezone : undefined;
+        const now = previewTimeZone ? moment.tz(previewTimeZone) : moment();
+        const startOfToday = now.clone().startOf('day');
+
+        // Find the next occurrence
+        // Start from today and check each day
+        for (let daysAhead = 0; daysAhead < 8; daysAhead++) {
+            const checkMoment = startOfToday.clone().add(daysAhead, 'days').set({
+                hour: hours,
+                minute: minutes,
+                second: 0,
+                millisecond: 0,
+            });
+
+            // Get day of week (0 = Sunday, 1 = Monday, etc.)
+            const dayOfWeek = checkMoment.day();
+            const dayBit = 1 << dayOfWeek;
+
+            // Check if this day is selected
+            if ((daysOfWeek & dayBit) !== 0) {
+                // Check if the time hasn't passed yet (or it's a future day)
+                if (daysAhead > 0 || checkMoment.isAfter(now)) {
+                    // Format the preview
+                    const checkDate = checkMoment.toDate();
+                    const formattedTime = previewTimeZone ?
+                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit', timeZone: previewTimeZone}) :
+                        formatTime(checkDate, {hour: 'numeric', minute: '2-digit'});
+                    let dateStr: string;
+
+                    if (daysAhead === 0) {
+                        dateStr = formatMessage(
+                            {id: 'recaps.nextRun.today', defaultMessage: 'Today at {time}'},
+                            {time: formattedTime},
+                        );
+                    } else if (daysAhead === 1) {
+                        dateStr = formatMessage(
+                            {id: 'recaps.nextRun.tomorrow', defaultMessage: 'Tomorrow at {time}'},
+                            {time: formattedTime},
+                        );
+                    } else if (daysAhead <= 7) {
+                        dateStr = formatMessage(
+                            {id: 'recaps.nextRun.dayAt', defaultMessage: '{day} at {time}'},
+                            {
+                                day: previewTimeZone ?
+                                    formatDate(checkDate, {weekday: 'long', timeZone: previewTimeZone}) :
+                                    formatDate(checkDate, {weekday: 'long'}),
+                                time: formattedTime,
+                            },
+                        );
+                    } else {
+                        dateStr = formatMessage(
+                            {id: 'recaps.nextRun.dateAt', defaultMessage: '{date} at {time}'},
+                            {
+                                date: previewTimeZone ?
+                                    formatDate(checkDate, {month: 'short', day: 'numeric', timeZone: previewTimeZone}) :
+                                    formatDate(checkDate, {month: 'short', day: 'numeric'}),
+                                time: formattedTime,
+                            },
+                        );
+                    }
+
+                    // Add timezone abbreviation (e.g., EST, PST, EDT)
+                    if (previewTimeZone) {
+                        try {
+                            // Get the short timezone abbreviation using Intl.DateTimeFormat
+                            const tzAbbrev = new Intl.DateTimeFormat('en-US', {
+                                timeZone: previewTimeZone,
+                                timeZoneName: 'short',
+                            }).formatToParts(checkDate).find((part) => part.type === 'timeZoneName')?.value || '';
+
+                            if (tzAbbrev) {
+                                return `${dateStr} (${tzAbbrev})`;
+                            }
+                        } catch {
+                            // Fall back to showing timezone identifier if Intl fails
+                        }
+                    }
+                    return dateStr;
+                }
+            }
+        }
+
+        return null;
+    }, [daysOfWeek, timeOfDay, formatMessage, formatTime, formatDate, userTimezone]);
+
+    return (
+        <div className='step-three'>
+            {/* Section: Schedule configuration */}
+            <div className='schedule-section'>
+                {/* Days of week selection */}
+                <div className='form-group days-group'>
+                    <label
+                        htmlFor='daysOfWeek'
+                        className='section-subtitle'
+                    >
+                        <FormattedMessage
+                            id='recaps.modal.whichDays'
+                            defaultMessage='On which days should your recap run?'
+                        />
+                    </label>
+                    <DayOfWeekSelector
+                        value={daysOfWeek}
+                        onChange={setDaysOfWeek}
+                        error={daysError}
+                    />
+                    {daysError && (
+                        <div className='form-error'>
+                            <FormattedMessage
+                                id='recaps.modal.selectDaysRequired'
+                                defaultMessage='Please select at least one day'
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Time of day selection with next run preview as helper text */}
+                <div className='form-group time-selection-group'>
+                    <label
+                        htmlFor='timeOfDay'
+                        className='section-subtitle'
+                    >
+                        <FormattedMessage
+                            id='recaps.modal.atWhatTime'
+                            defaultMessage='At what time?'
+                        />
+                    </label>
+                    <DropdownInput
+                        name='timeOfDay'
+                        legend={formatMessage({id: 'recaps.modal.selectTime', defaultMessage: 'Select time'})}
+                        value={timeOptions.find((o) => o.value === timeOfDay)}
+                        options={timeOptions}
+                        onChange={(val) => setTimeOfDay(val.value)}
+                        required={true}
+                        error={timeError ? formatMessage({id: 'recaps.modal.selectTimeRequired', defaultMessage: 'Please select a time'}) : undefined}
+                    />
+                    {/* Next run preview - always rendered with fixed height to prevent modal jumping */}
+                    <div className='next-run-preview-container'>
+                        <div className={`next-run-preview${nextRunPreview ? '' : ' hidden'}`}>
+                            {nextRunPreview ? (
+                                <FormattedMessage
+                                    id='recaps.modal.nextRunPreview'
+                                    defaultMessage='Next recap: {preview}'
+                                    values={{preview: nextRunPreview}}
+                                />
+                            ) : (
+                                '\u00A0'
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section: Time period to cover */}
+            <div className='schedule-section'>
+                <div className='form-group'>
+                    <label
+                        htmlFor='timePeriod'
+                        className='section-subtitle'
+                    >
+                        <FormattedMessage
+                            id='recaps.modal.selectTimePeriod'
+                            defaultMessage='Select a time period for your recap to cover'
+                        />
+                    </label>
+                    <DropdownInput
+                        name='timePeriod'
+                        legend={formatMessage({id: 'recaps.modal.timePeriod', defaultMessage: 'Time period to cover'})}
+                        value={timePeriodOptions.find((o) => o.value === timePeriod)}
+                        options={timePeriodOptions}
+                        onChange={(val) => setTimePeriod(val.value)}
+                        required={true}
+                    />
+                </div>
+            </div>
+
+            {/* Section: Custom instructions */}
+            <div className='schedule-section'>
+                <div className='form-group'>
+                    <label
+                        htmlFor='customInstructions'
+                        className='section-subtitle'
+                    >
+                        <FormattedMessage
+                            id='recaps.modal.additionalInstructions'
+                            defaultMessage='Additional instructions for {agentName}'
+                            values={{agentName: agentName || 'Copilot'}}
+                        />
+                    </label>
+                    <Input
+                        type='textarea'
+                        name='customInstructions'
+                        placeholder={formatMessage({id: 'recaps.modal.customInstructionsPlaceholder', defaultMessage: 'Add any specific instructions for the AI...'})}
+                        value={customInstructions}
+                        onChange={(e) => setCustomInstructions(e.target.value)}
+                        rows={3}
+                        limit={500}
+                    />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ScheduleConfiguration;

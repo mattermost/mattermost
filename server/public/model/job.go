@@ -46,6 +46,7 @@ const (
 	JobTypeAccessControlSync             = "access_control_sync"
 	JobTypePushProxyAuth                 = "push_proxy_auth"
 	JobTypeRecap                         = "recap"
+	JobTypeScheduledRecap                = "scheduled_recap"
 	JobTypeDeleteExpiredPosts            = "delete_expired_posts"
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 
@@ -80,6 +81,7 @@ var AllJobTypes = [...]string{
 	JobTypeCleanupDesktopTokens,
 	JobTypeRefreshMaterializedViews,
 	JobTypeMobileSessionMetadata,
+	JobTypeScheduledRecap,
 }
 
 type Job struct {

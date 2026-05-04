@@ -339,3 +339,17 @@ channels/db/migrations/postgres/000170_add_property_groups_version.down.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.up.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.down.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.up.sql
+channels/db/migrations/postgres/000172_create_scheduled_recaps.down.sql
+channels/db/migrations/postgres/000172_create_scheduled_recaps.up.sql
+channels/db/migrations/postgres/000173_create_scheduled_recaps_user_id_index.down.sql
+channels/db/migrations/postgres/000173_create_scheduled_recaps_user_id_index.up.sql
+channels/db/migrations/postgres/000174_create_scheduled_recaps_next_run_at_index.down.sql
+channels/db/migrations/postgres/000174_create_scheduled_recaps_next_run_at_index.up.sql
+channels/db/migrations/postgres/000175_create_scheduled_recaps_enabled_next_run_index.down.sql
+channels/db/migrations/postgres/000175_create_scheduled_recaps_enabled_next_run_index.up.sql
+channels/db/migrations/postgres/000176_create_scheduled_recaps_user_delete_index.down.sql
+channels/db/migrations/postgres/000176_create_scheduled_recaps_user_delete_index.up.sql
+channels/db/migrations/postgres/000177_add_recap_skip_fields.down.sql
+channels/db/migrations/postgres/000177_add_recap_skip_fields.up.sql
+channels/db/migrations/postgres/000178_add_recaps_scheduled_recap_id_index.down.sql
+channels/db/migrations/postgres/000178_add_recaps_scheduled_recap_id_index.up.sql
