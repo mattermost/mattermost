@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 	searchenginemocks "github.com/mattermost/mattermost/server/v8/platform/services/searchengine/mocks"
@@ -64,11 +65,13 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 	engineMock.On("IsHealthy").Return(true).Maybe()
 	engineMock.On("SetHealthy", mock.Anything).Maybe()
 
-	// Disable the backfill so it doesn't fire in watcher-focused tests that
-	// use a mock store without the required methods set up.
-	ps.UpdateConfig(func(cfg *model.Config) {
-		cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = model.NewPointer(false)
-	})
+	// Make backfillPostsChannelType return immediately by indicating the backfill
+	// is already done. This prevents the goroutine from calling unmocked store
+	// methods in tests that only exercise watcher retry/health logic.
+	systemMock := &storemocks.SystemStore{}
+	systemMock.On("GetByName", model.SystemPostChannelTypeBackfillComplete).
+		Return(&model.System{Name: model.SystemPostChannelTypeBackfillComplete, Value: "true"}, nil).Maybe()
+	ps.Store.(*storemocks.Store).On("System").Return(systemMock).Maybe()
 
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
