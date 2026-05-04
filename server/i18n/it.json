@@ -3044,10 +3044,6 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} è già fermo."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} non è attivo."
   },

@@ -780,8 +780,7 @@ func (a *App) GetUsersNotInAbacChannel(rctx request.CTX, teamID string, channelI
 		return nil, model.NewAppError("GetUsersNotInAbacChannel", "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	// Use cursor-based pagination for ABAC channels
-	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+	users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 		TeamID: teamID,
 		Limit:  limit,
 		Cursor: model.SubjectCursor{
@@ -2330,7 +2329,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 	} else if ok {
 		acs := a.Srv().Channels().AccessControl
 		if acs != nil {
-			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, "*", model.SubjectSearchOptions{
+			users, _, appErr := acs.QueryUsersForResource(rctx, channelID, model.AccessControlPolicyActionMembership, model.SubjectSearchOptions{
 				Term:   term,
 				TeamID: teamID,
 				Limit:  options.Limit,
@@ -2339,7 +2338,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 				return nil, appErr
 			}
 
-			return users, nil
+			return a.sanitizeProfiles(users, options.IsAdmin), nil
 		}
 	}
 
@@ -2348,11 +2347,7 @@ func (a *App) SearchUsersNotInChannel(teamID string, channelID string, term stri
 		return nil, model.NewAppError("SearchUsersNotInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	for _, user := range users {
-		a.SanitizeProfile(user, options.IsAdmin)
-	}
-
-	return users, nil
+	return a.sanitizeProfiles(users, options.IsAdmin), nil
 }
 
 func (a *App) SearchUsersInTeam(rctx request.CTX, teamID, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {

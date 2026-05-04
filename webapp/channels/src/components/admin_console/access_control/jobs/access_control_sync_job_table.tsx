@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {JobType, JobTypeBase, Job} from '@mattermost/types/jobs';
 
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function AccessControlSyncJobTable(props: Props): JSX.Element {
+    const {formatMessage} = useIntl();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,8 +83,18 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
         <div className='AccessControlSyncJobTable'>
             <div className='policy-header'>
                 <div className='policy-header-text'>
-                    <h1>{'Access Control Sync Jobs'}</h1>
-                    <p>{'Synchronize access control policies with system resources and permissions.'}</p>
+                    <h1>
+                        <FormattedMessage
+                            id='admin.access_control.sync_jobs.title'
+                            defaultMessage='Membership Sync Jobs'
+                        />
+                    </h1>
+                    <p>
+                        <FormattedMessage
+                            id='admin.access_control.sync_jobs.description'
+                            defaultMessage='Apply membership policies to their assigned resources.'
+                        />
+                    </p>
                 </div>
                 <button
                     className='btn btn-primary'
@@ -90,7 +102,19 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                     disabled={isSubmitting}
                 >
                     <i className='icon icon-plus'/>
-                    <span>{isSubmitting ? 'Running Job...' : 'Run Sync Job'}</span>
+                    <span>
+                        {isSubmitting ? (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.running'
+                                defaultMessage='Running Job...'
+                            />
+                        ) : (
+                            <FormattedMessage
+                                id='admin.access_control.sync_jobs.run'
+                                defaultMessage='Run Sync Job'
+                            />
+                        )}
+                    </span>
                 </button>
             </div>
             <JobsTable
@@ -98,7 +122,10 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
                 jobType={JobTypes.ACCESS_CONTROL_SYNC}
                 hideJobCreateButton={true}
                 className={'job-table__access-control'}
-                createJobButtonText={'Create Job'}
+                createJobButtonText={formatMessage({
+                    id: 'admin.access_control.sync_jobs.create_job',
+                    defaultMessage: 'Create Job',
+                })}
                 disabled={false}
                 createJobHelpText={<></>}
                 onRowClick={handleRowClick}

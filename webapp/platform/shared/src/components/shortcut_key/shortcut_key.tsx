@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import './shortcut_key.scss';
+import './shortcut_key.css';
 
 export enum ShortcutKeyVariant {
     Contrast = 'contrast',
@@ -13,12 +13,12 @@ export enum ShortcutKeyVariant {
     ShortcutModal = 'shortcut',
 }
 
-export type ShortcutKeyProps = {
+export interface ShortcutKeyProps {
     variant?: ShortcutKeyVariant;
     children: React.ReactNode;
 }
 
-export const ShortcutKey = ({children, variant}: ShortcutKeyProps): JSX.Element => {
+export function ShortcutKey({children, variant}: ShortcutKeyProps) {
     return (
         <mark
             className={classNames('shortcut-key', {
@@ -31,4 +31,4 @@ export const ShortcutKey = ({children, variant}: ShortcutKeyProps): JSX.Element 
             {children}
         </mark>
     );
-};
+}

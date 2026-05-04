@@ -421,6 +421,7 @@ type PostStore interface {
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
+	GetPostRemindersForPost(postId string) ([]*model.PostReminder, error)
 	DeleteAllPostRemindersForPost(postId string) error
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
@@ -572,7 +573,13 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterID string) (bool, error)
 	Get(remoteClusterID string, includeDeleted bool) (*model.RemoteCluster, error)
+	// Deprecated: GetByPluginID returns a single remote for the plugin. Only correct
+	// when the plugin has one registration. Use GetAllByPluginID instead.
 	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
+	// GetAllByPluginID returns all remotes registered by the specified plugin.
+	GetAllByPluginID(pluginID string) ([]*model.RemoteCluster, error)
+	// GetBySiteURL returns the remote cluster with the given SiteURL, or an error if not found.
+	GetBySiteURL(siteURL string) (*model.RemoteCluster, error)
 	GetAll(offset, limit int, filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterID string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterID string) error

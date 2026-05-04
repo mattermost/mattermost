@@ -4232,10 +4232,6 @@
     "translation": "Ваша ліцэнзія Mattermost не падтрымлівае індэксаваны пошук."
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} ужо спынены."
-  },
-  {
     "id": "ent.elasticsearch.start.parse_server_version.app_error",
     "translation": "Немагчыма прааналізаваць версію сервера {{.Backend}}."
   },
@@ -10694,10 +10690,6 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Не атрымалася абнавіць пароль карыстальніка."
-  },
-  {
-    "id": "app.job.get_existing_jobs.error",
-    "translation": "Немагчыма атрымаць існуючыя задачы."
   },
   {
     "id": "app.submit_interactive_dialog.invalid_response",

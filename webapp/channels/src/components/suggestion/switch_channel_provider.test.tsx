@@ -52,6 +52,25 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     })),
 }));
 
+jest.mock('components/with_tooltip', () => {
+    const ReactActual = jest.requireActual('react');
+    const Mock = jest.fn(({children, title, disabled}: {children: React.ReactNode; title: unknown; disabled?: boolean}) => {
+        return ReactActual.createElement(
+            'div',
+            {
+                'data-testid': 'with-tooltip',
+                'data-tooltip-title': typeof title === 'string' ? title : '',
+                'data-tooltip-disabled': String(Boolean(disabled)),
+            },
+            children,
+        );
+    });
+    return {
+        __esModule: true,
+        default: Mock,
+    };
+});
+
 describe('components/SwitchChannelProvider', () => {
     const defaultState = {
         entities: {
@@ -1471,5 +1490,123 @@ describe('SwitchChannelSuggestion', () => {
         expect(screen.queryByLabelText('5 unread notifications')).toBeInTheDocument();
         expect(suggestion).toHaveAccessibleName(channel3.display_name);
         expect(suggestion).toHaveAccessibleDescription(`5 unread notifications ~${channel3.name} Public channel`);
+    });
+
+    describe('layout and tooltip behavior for long names', () => {
+        const longTeam1 = TestHelper.getTeamMock({
+            id: 'team1',
+            display_name: 'A Very Long Team Display Name That Will Likely Overflow Its Slot In The Switcher',
+        });
+        const longTeam2 = TestHelper.getTeamMock({
+            id: 'team2',
+            display_name: 'Another Long Team Two',
+        });
+        const longChannel = TestHelper.getChannelMock({
+            id: 'channel1',
+            team_id: 'team1',
+            name: 'super_long_channel_name',
+            display_name: 'Super Extremely Long Channel Display Name That Should Truncate With An Ellipsis',
+        });
+
+        afterEach(() => {
+            // reset prototype overrides between tests
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 0});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 0});
+        });
+
+        test('should render team name as a sibling of the primary column wrapper inside .suggestion-list__flex when on multiple teams', () => {
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const suggestion = document.getElementById(baseProps.id) as HTMLElement;
+            expect(suggestion).toBeInTheDocument();
+
+            // Both nodes (channel name and team name) are present
+            expect(screen.getByText(longChannel.display_name)).toBeInTheDocument();
+            expect(screen.getByText(longTeam1.display_name)).toBeInTheDocument();
+
+            // The flex row contains the primary column wrapper and the team name as siblings
+            const flexRow = suggestion.querySelector('.suggestion-list__flex') as HTMLElement;
+            expect(flexRow).not.toBeNull();
+
+            const primaryColumn = flexRow.querySelector(':scope > .suggestion-list__switch-channel-primary');
+            expect(primaryColumn).not.toBeNull();
+
+            const teamNameNode = flexRow.querySelector('.suggestion-list__team-name');
+            expect(teamNameNode).not.toBeNull();
+            expect(teamNameNode).toHaveTextContent(longTeam1.display_name);
+
+            // Team name must live outside the primary column so it remains a flex sibling that doesn't shrink with the channel name.
+            expect(primaryColumn!.contains(teamNameNode)).toBe(false);
+
+            // Channel name span should live inside the primary column with the truncation class
+            const channelNameNode = primaryColumn!.querySelector('.suggestion-list__channel-name-text');
+            expect(channelNameNode).not.toBeNull();
+            expect(channelNameNode).toHaveTextContent(longChannel.display_name);
+        });
+
+        test('should disable the channel-name tooltip when the channel name fits its container', () => {
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 100});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const tooltips = screen.getAllByTestId('with-tooltip');
+            const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
+            expect(channelNameTooltip).toBeDefined();
+            expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
+
+            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
+            expect(teamNameTooltip).toBeDefined();
+            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
+        });
+
+        test('should enable the channel-name tooltip when the channel name overflows its container', () => {
+            Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 500});
+            Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={longChannel.name}
+                    item={{
+                        channel: longChannel,
+                        name: longChannel.name,
+                        deactivated: false,
+                    }}
+                />,
+                getBaseState([longTeam1, longTeam2], [longChannel]),
+            );
+
+            const tooltips = screen.getAllByTestId('with-tooltip');
+            const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
+            expect(channelNameTooltip).toBeDefined();
+            expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
+
+            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
+            expect(teamNameTooltip).toBeDefined();
+            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
+        });
     });
 });

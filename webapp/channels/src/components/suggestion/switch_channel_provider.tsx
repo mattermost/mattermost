@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {defineMessage, useIntl} from 'react-intl';
 import {connect, useSelector} from 'react-redux';
 
@@ -58,6 +58,7 @@ import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import WithTooltip from 'components/with_tooltip';
 
 import {getArchiveIconClassName} from 'utils/channel_utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
@@ -144,6 +145,11 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
 
     const currentUserId = useSelector(getCurrentUserId);
+
+    const channelNameRef = useRef<HTMLSpanElement>(null);
+    const [isChannelNameTruncated, setIsChannelNameTruncated] = useState(false);
+    const teamNameRef = useRef<HTMLSpanElement>(null);
+    const [isTeamNameTruncated, setIsTeamNameTruncated] = useState(false);
 
     const ids = usePrefixedIds(id, {
         name: null,
@@ -320,17 +326,31 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let teamName = null;
     if (isRealChannel(channel) && channel.team_id && team) {
         teamName = (
-            <span
-                id={ids.teamName}
-                className='ml-2 suggestion-list__team-name'
+            <WithTooltip
+                title={team.display_name}
+                disabled={!isTeamNameTruncated}
             >
-                {team.display_name}
-            </span>
+                <span
+                    id={ids.teamName}
+                    ref={teamNameRef}
+                    className='ml-2 suggestion-list__team-name'
+                >
+                    {team.display_name}
+                </span>
+            </WithTooltip>
         );
     }
     const showSlug = (isPartOfOnlyOneTeam || channel.type === Constants.DM_CHANNEL) && channel.type !== Constants.THREADS;
 
     Reflect.deleteProperty(otherProps, 'dispatch');
+
+    useLayoutEffect(() => {
+        const channelEl = channelNameRef.current;
+        setIsChannelNameTruncated(Boolean(channelEl && channelEl.scrollWidth > channelEl.clientWidth));
+
+        const teamEl = teamNameRef.current;
+        setIsTeamNameTruncated(Boolean(teamEl && teamEl.scrollWidth > teamEl.clientWidth));
+    }, [name, description, showSlug, isPartOfOnlyOneTeam, team?.display_name, item.unread, channelIsArchived]);
 
     return (
         <SuggestionContainer
@@ -344,26 +364,34 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
         >
             {icon}
             <div className='suggestion-list__ellipsis suggestion-list__flex'>
-                <span className='suggestion-list__main'>
-                    <span
-                        id={ids.name}
-                        className={classNames({'suggestion-list__unread': item.unread && !channelIsArchived})}
-                    >
-                        {name}
-                    </span>
-                    {showSlug && description && (
-                        <span
-                            id={ids.description}
-                            className='ml-2 suggestion-list__desc'
+                <div className='suggestion-list__switch-channel-primary'>
+                    <span className='suggestion-list__main'>
+                        <WithTooltip
+                            title={name}
+                            disabled={!isChannelNameTruncated}
                         >
-                            {description}
-                        </span>
-                    )}
-                </span>
-                {customStatus}
-                {sharedIcon}
-                {tag && <span id={ids.tag}>{tag}</span>}
-                {badge}
+                            <span
+                                id={ids.name}
+                                ref={channelNameRef}
+                                className={classNames('suggestion-list__channel-name-text', {'suggestion-list__unread': item.unread && !channelIsArchived})}
+                            >
+                                {name}
+                            </span>
+                        </WithTooltip>
+                        {showSlug && description && (
+                            <span
+                                id={ids.description}
+                                className='ml-2 suggestion-list__desc'
+                            >
+                                {description}
+                            </span>
+                        )}
+                    </span>
+                    {customStatus}
+                    {sharedIcon}
+                    {tag && <span id={ids.tag}>{tag}</span>}
+                    {badge}
+                </div>
                 {!isPartOfOnlyOneTeam && teamName}
             </div>
         </SuggestionContainer>

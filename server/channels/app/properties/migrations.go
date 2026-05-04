@@ -36,55 +36,38 @@ func (ps *PropertyService) MigrateBackfillCPADisplayName(rctx request.CTX) (back
 	}
 	groupID := group.ID
 
-	const perPage = 100
-	var cursor model.PropertyFieldSearchCursor
+	const cpaFieldLimit = 20
 	var fieldsToUpdate []*model.PropertyField
 
-	for {
-		// Use the unexported searchPropertyFields to bypass access control.
-		// AC would filter out (or strip options from) protected fields when
-		// the caller is not the source plugin, which would corrupt the
-		// fields we then try to write back.
-		fields, searchErr := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{
-			PerPage: perPage,
-			Cursor:  cursor,
-		})
-		if searchErr != nil {
-			return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to search CPA fields: %w", searchErr)
+	// Use the unexported searchPropertyFields to bypass access control.
+	// AC would filter out (or strip options from) protected fields when
+	// the caller is not the source plugin, which would corrupt the
+	// fields we then try to write back. CPA creation is capped at 20
+	// active fields, so a single page covers the full migration scope.
+	fields, searchErr := ps.searchPropertyFields(groupID, model.PropertyFieldSearchOpts{
+		PerPage: cpaFieldLimit,
+	})
+	if searchErr != nil {
+		return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to search CPA fields: %w", searchErr)
+	}
+
+	for _, pf := range fields {
+		cpaField, convErr := model.NewCPAFieldFromPropertyField(pf)
+		if convErr != nil {
+			return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to convert property field %q: %w", pf.ID, convErr)
 		}
 
-		if len(fields) == 0 {
-			break
+		// Backfill if display_name is absent OR empty-string. This covers
+		// fields created before display_name existed, fields created after
+		// without an explicit display_name (stored as ""), and fields
+		// patched with display_name="".
+		if cpaField.Attrs.DisplayName != "" {
+			skipped++
+			continue
 		}
 
-		for _, pf := range fields {
-			cpaField, convErr := model.NewCPAFieldFromPropertyField(pf)
-			if convErr != nil {
-				return 0, 0, fmt.Errorf("MigrateBackfillCPADisplayName: failed to convert property field %q: %w", pf.ID, convErr)
-			}
-
-			// Backfill if display_name is absent OR empty-string. This covers
-			// fields created before display_name existed, fields created after
-			// without an explicit display_name (stored as ""), and fields
-			// patched with display_name="".
-			if cpaField.Attrs.DisplayName != "" {
-				skipped++
-				continue
-			}
-
-			cpaField.Attrs.DisplayName = cpaField.Name
-			fieldsToUpdate = append(fieldsToUpdate, cpaField.ToPropertyField())
-		}
-
-		if len(fields) < perPage {
-			break
-		}
-
-		lastField := fields[len(fields)-1]
-		cursor = model.PropertyFieldSearchCursor{
-			PropertyFieldID: lastField.ID,
-			CreateAt:        lastField.CreateAt,
-		}
+		cpaField.Attrs.DisplayName = cpaField.Name
+		fieldsToUpdate = append(fieldsToUpdate, cpaField.ToPropertyField())
 	}
 
 	if len(fieldsToUpdate) > 0 {

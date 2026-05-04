@@ -35,13 +35,28 @@ export enum Filter {
     Public = 'Public',
     Private = 'Private',
     Archived = 'Archived',
+    Recommended = 'Recommended',
 }
 
 export type FilterType = keyof typeof Filter;
 
+// Resolve the initial filter, defending against callers that ask for
+// `Recommended` when ABAC isn't enabled — the dropdown would hide that menu
+// item server-side, leaving the UI stuck on a filter the user can't toggle off.
+function resolveInitialFilter(initialFilter: FilterType | undefined, accessControlEnabled: boolean): FilterType {
+    if (!initialFilter) {
+        return Filter.All;
+    }
+    if (initialFilter === Filter.Recommended && !accessControlEnabled) {
+        return Filter.All;
+    }
+    return initialFilter;
+}
+
 type Actions = {
     getChannels: (teamId: string, page: number, perPage: number) => Promise<ActionResult<Channel[]>>;
     getArchivedChannels: (teamId: string, page: number, channelsPerPage: number) => Promise<ActionResult<Channel[]>>;
+    getRecommendedChannelsForUser: (teamId: string) => Promise<ActionResult<Channel[]>>;
     joinChannel: (currentUserId: string, teamId: string, channelId: string) => Promise<ActionResult>;
     searchAllChannels: (term: string, opts?: ChannelSearchOpts) => Promise<ActionResult<Channel[] | ChannelsWithTotalCount>>;
     openModal: <P>(modalData: ModalData<P>) => void;
@@ -68,6 +83,8 @@ export type Props = {
     rhsState?: RhsState;
     rhsOpen?: boolean;
     channelsMemberCount?: Record<string, number>;
+    accessControlEnabled: boolean;
+    initialFilter?: FilterType;
     actions: Actions;
 }
 
@@ -79,6 +96,7 @@ type State = {
     serverError: React.ReactNode | string;
     searching: boolean;
     searchTerm: string;
+    recommendedChannels: Channel[];
 }
 
 export default class BrowseChannels extends React.PureComponent<Props, State> {
@@ -92,12 +110,13 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
         this.state = {
             loading: true,
-            filter: Filter.All,
+            filter: resolveInitialFilter(props.initialFilter, props.accessControlEnabled),
             search: false,
             searchedChannels: [],
             serverError: null,
             searching: false,
             searchTerm: '',
+            recommendedChannels: [],
         };
     }
 
@@ -107,22 +126,44 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             return;
         }
 
-        const promises = [
+        const promises: Array<Promise<ActionResult<Channel[]>>> = [
             this.props.actions.getChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
             this.props.actions.getArchivedChannels(this.props.teamId, 0, CHANNELS_CHUNK_SIZE * 2),
         ];
 
+        if (this.props.accessControlEnabled) {
+            promises.push(this.props.actions.getRecommendedChannelsForUser(this.props.teamId).then((result) => {
+                if (result.data) {
+                    this.setState({recommendedChannels: result.data});
+                }
+                return result;
+            }));
+        }
+
         Promise.all(promises).then((results) => {
-            const channelIDsForMemberCount = results.flatMap((result) => {
-                return result.data ? result.data.map((channel) => channel.id) : [];
-            },
-            );
-            this.props.privateChannels.forEach((channel) => channelIDsForMemberCount.push(channel.id));
-            if (channelIDsForMemberCount.length > 0) {
-                this.props.actions.getChannelsMemberCount(channelIDsForMemberCount);
+            // Dedupe across the result lists + privateChannels: a recommended
+            // channel is also a public channel, so the same id can show up in
+            // both `getChannels` and `getRecommendedChannelsForUser` results.
+            // getChannelsMemberCount tolerates dupes but issuing them is
+            // wasted work and noisy.
+            const ids = new Set<string>();
+            for (const result of results) {
+                if (result.data) {
+                    for (const channel of result.data) {
+                        ids.add(channel.id);
+                    }
+                }
             }
+            for (const channel of this.props.privateChannels) {
+                ids.add(channel.id);
+            }
+            if (ids.size > 0) {
+                this.props.actions.getChannelsMemberCount(Array.from(ids));
+            }
+            this.loadComplete();
+        }).catch(() => {
+            this.loadComplete();
         });
-        this.loadComplete();
     }
 
     loadComplete = () => {
@@ -238,10 +279,35 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         if (this.state.filter === Filter.Archived) {
             searchedChannels = channels.filter((c) => c.delete_at !== 0);
         }
+        if (this.state.filter === Filter.Recommended) {
+            const recommendedIds = new Set(this.state.recommendedChannels.map((c) => c.id));
+            searchedChannels = channels.filter((c) => recommendedIds.has(c.id));
+        }
         if (this.props.shouldHideJoinedChannels) {
             searchedChannels = this.getChannelsWithoutJoined(searchedChannels);
         }
+        searchedChannels = this.boostRecommendedChannels(searchedChannels);
         this.setState({searchedChannels, searching: false});
+    };
+
+    // Boost recommended channels to the top of a list. Used as a light-touch
+    // prioritization signal so matching public channels surface first in the
+    // generic Browse Channels views.
+    boostRecommendedChannels = (channels: Channel[]): Channel[] => {
+        if (this.state.recommendedChannels.length === 0) {
+            return channels;
+        }
+        const recommendedIds = new Set(this.state.recommendedChannels.map((c) => c.id));
+        const recommended: Channel[] = [];
+        const rest: Channel[] = [];
+        for (const c of channels) {
+            if (recommendedIds.has(c.id)) {
+                recommended.push(c);
+            } else {
+                rest.push(c);
+            }
+        }
+        return [...recommended, ...rest];
     };
 
     changeFilter = (filter: FilterType) => {
@@ -264,26 +330,32 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
 
     getActiveChannels = () => {
         const {channels, archivedChannels, shouldHideJoinedChannels, privateChannels} = this.props;
-        const {search, searchedChannels, filter} = this.state;
+        const {search, searchedChannels, filter, recommendedChannels} = this.state;
 
         const allChannels = channels.concat(privateChannels).sort((a, b) => a.display_name.localeCompare(b.display_name));
         const allChannelsWithoutJoined = this.getChannelsWithoutJoined(allChannels);
         const publicChannelsWithoutJoined = this.getChannelsWithoutJoined(channels);
         const archivedChannelsWithoutJoined = this.getChannelsWithoutJoined(archivedChannels);
         const privateChannelsWithoutJoined = this.getChannelsWithoutJoined(privateChannels);
+        const recommendedChannelsWithoutJoined = this.getChannelsWithoutJoined(recommendedChannels);
 
-        const filterOptions = {
+        const filterOptions: Record<FilterType, Channel[]> = {
             [Filter.All]: shouldHideJoinedChannels ? allChannelsWithoutJoined : allChannels,
             [Filter.Archived]: shouldHideJoinedChannels ? archivedChannelsWithoutJoined : archivedChannels,
             [Filter.Private]: shouldHideJoinedChannels ? privateChannelsWithoutJoined : privateChannels,
             [Filter.Public]: shouldHideJoinedChannels ? publicChannelsWithoutJoined : channels,
+            [Filter.Recommended]: shouldHideJoinedChannels ? recommendedChannelsWithoutJoined : recommendedChannels,
         };
 
         if (search) {
             return searchedChannels;
         }
 
-        return filterOptions[filter] || filterOptions[Filter.All];
+        const activeList = filterOptions[filter] || filterOptions[Filter.All];
+        if (filter === Filter.Recommended) {
+            return activeList;
+        }
+        return this.boostRecommendedChannels(activeList);
     };
 
     render() {
@@ -345,6 +417,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     handleJoin={this.handleJoin}
                     noResultsText={noResultsText}
                     loading={search ? searching : channelsRequestStarted}
+                    showRecommendedFilter={this.props.accessControlEnabled}
                     changeFilter={this.changeFilter}
                     filter={this.state.filter}
                     myChannelMemberships={this.props.myChannelMemberships}
