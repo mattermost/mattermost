@@ -1,21 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {screen} from '@testing-library/react';
 import React from 'react';
 
 import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {screen} from '@testing-library/react';
-
 import {render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
-import {getBestImage, getIsLargeImage, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
+import PostAttachmentOpenGraphBase, {
+    getBestImage,
+    getIsLargeImage,
+    PostAttachmentOpenGraphBody,
+    PostAttachmentOpenGraphImage,
+} from './post_attachment_opengraph';
 
 import PostAttachmentOpenGraph from './index';
-import PostAttachmentOpenGraphBase from './post_attachment_opengraph';
 
 const preferenceKeys = {
     COLLAPSE_DISPLAY: getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY),

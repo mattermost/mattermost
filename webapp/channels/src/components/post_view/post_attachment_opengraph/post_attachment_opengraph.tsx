@@ -268,23 +268,30 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </ExternalImage>
     );
 
+    let previewBody: React.ReactNode;
+    if (large) {
+        previewBody = (
+            <AutoHeightSwitcher
+                showSlot={isEmbedVisible ? 1 : 2}
+                slot1={imageLargeExpanded}
+                slot2={imageCollapseButton}
+            />
+        );
+    } else if (isEmbedVisible) {
+        previewBody = imageFigureOnly;
+    } else {
+        previewBody = (
+            <AutoHeightSwitcher
+                showSlot={2}
+                slot1={imageFigureOnly}
+                slot2={imageCollapseButton}
+            />
+        );
+    }
+
     return (
         <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
-            {large ? (
-                <AutoHeightSwitcher
-                    showSlot={isEmbedVisible ? 1 : 2}
-                    slot1={imageLargeExpanded}
-                    slot2={imageCollapseButton}
-                />
-            ) : isEmbedVisible ? (
-                imageFigureOnly
-            ) : (
-                <AutoHeightSwitcher
-                    showSlot={2}
-                    slot1={imageFigureOnly}
-                    slot2={imageCollapseButton}
-                />
-            )}
+            {previewBody}
         </div>
     );
 });
