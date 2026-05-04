@@ -1,0 +1,23 @@
+{
+  "name": "classify-server-flaky-tests",
+  "private": true,
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest --verbose",
+    "tsc": "tsc -b"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "fast-xml-parser": "^5.7.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.9",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

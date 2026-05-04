@@ -113,7 +113,9 @@ jobs:
 
       - name: Classify flaky tests for PR comment
         id: classify-flaky
-        run: python3 .github/scripts/classify_server_flaky_tests.py "${{ matrix.test.artifact }}/report.xml"
+        uses: ./.github/actions/classify-server-flaky-tests
+        with:
+          report-path: ${{ matrix.test.artifact }}/report.xml
 
       - name: Report flaky tests (pull request)
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
