@@ -192,7 +192,9 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 // `all` as stopwords and cannot match them via the regular search API.
 //
 // Limited to the last 7 days to bound the cost of the unindexed ILIKE scan.
-func (s *SqlReactionStore) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error) {
+// `before` is a CreateAt cursor for keyset pagination — pass 0 for the first
+// page, then the smallest CreateAt of the previous page to fetch older items.
+func (s *SqlReactionStore) GetBroadcastMentions(userID, teamID string, limit int, before int64) ([]*model.Post, error) {
 	if limit <= 0 || limit > 100 {
 		limit = 30
 	}
@@ -221,6 +223,10 @@ func (s *SqlReactionStore) GetBroadcastMentions(userID, teamID string, limit int
 		}).
 		OrderBy("p.CreateAt DESC").
 		Limit(uint64(limit))
+
+	if before > 0 {
+		query = query.Where(sq.Lt{"p.CreateAt": before})
+	}
 
 	if teamID != "" {
 		query = query.Where(sq.Or{

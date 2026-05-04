@@ -43,6 +43,17 @@
         text-align: center;
     }
 
+    .Activity__sentinel {
+        padding: 16px 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        text-align: center;
+
+        &--end {
+            color: rgba(var(--center-channel-color-rgb), 0.4);
+        }
+    }
+
     .Activity__item {
         display: flex;
         width: 100%;

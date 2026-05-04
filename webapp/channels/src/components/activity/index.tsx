@@ -101,7 +101,12 @@ const channelIconClass = (type?: string) => {
     }
 };
 
-const groupReactions = (reactions: ReceivedReaction[]): ReactionGroup[] => {
+type FullReactionsByPost = Record<string, Array<{user_id: string; emoji_name: string}>>;
+
+const groupReactions = (
+    reactions: ReceivedReaction[],
+    fullReactions: FullReactionsByPost,
+): ReactionGroup[] => {
     const byPost = new Map<string, ReactionGroup>();
 
     const sorted = [...reactions].sort((a, b) => b.create_at - a.create_at);
@@ -124,14 +129,42 @@ const groupReactions = (reactions: ReceivedReaction[]): ReactionGroup[] => {
         if (!group.uniqueReactorIds.includes(r.user_id)) {
             group.uniqueReactorIds.push(r.user_id);
         }
+    }
 
-        const existing = group.emojiCounts.find((e) => e.emoji === r.emoji_name);
-        if (existing) {
-            if (!existing.userIds.includes(r.user_id)) {
-                existing.userIds.push(r.user_id);
+    // Populate emojiCounts from the FULL reactions on each post when available so
+    // chips reflect the post's complete reaction state, not just the subset that
+    // happened to land in the recent-received-reactions window.
+    for (const group of byPost.values()) {
+        const full = fullReactions[group.postId];
+        if (full && full.length > 0) {
+            for (const fr of full) {
+                if (!group.uniqueReactorIds.includes(fr.user_id)) {
+                    group.uniqueReactorIds.push(fr.user_id);
+                }
+                const existing = group.emojiCounts.find((e) => e.emoji === fr.emoji_name);
+                if (existing) {
+                    if (!existing.userIds.includes(fr.user_id)) {
+                        existing.userIds.push(fr.user_id);
+                    }
+                } else {
+                    group.emojiCounts.push({emoji: fr.emoji_name, userIds: [fr.user_id]});
+                }
             }
-        } else {
-            group.emojiCounts.push({emoji: r.emoji_name, userIds: [r.user_id]});
+            continue;
+        }
+        // Fallback: build emojiCounts from the received-reactions subset.
+        for (const r of sorted) {
+            if (r.post_id !== group.postId) {
+                continue;
+            }
+            const existing = group.emojiCounts.find((e) => e.emoji === r.emoji_name);
+            if (existing) {
+                if (!existing.userIds.includes(r.user_id)) {
+                    existing.userIds.push(r.user_id);
+                }
+            } else {
+                group.emojiCounts.push({emoji: r.emoji_name, userIds: [r.user_id]});
+            }
         }
     }
 
@@ -350,6 +383,19 @@ function Activity() {
     const [mentions, setMentions] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    // Full reaction set per post, fetched once we know which posts to display.
+    // Lets reaction chips reflect every emoji on the post, not just the subset
+    // that landed in the recent-received-reactions window.
+    const [fullReactionsByPost, setFullReactionsByPost] = useState<FullReactionsByPost>({});
+
+    // Pagination state for "load older" — reactions are intentionally NOT
+    // paginated (cap stays at the freshest 10).
+    const [hasMoreMentions, setHasMoreMentions] = useState(true);
+    const [hasMoreBroadcast, setHasMoreBroadcast] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const mentionsPageRef = useRef(0);
+    const broadcastCursorRef = useRef<number>(0);
+    const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
 
     // Tracks the latest fetch invocation. If the user navigates away/back or
     // switches teams while an earlier fetch is in flight, its result is dropped
@@ -402,6 +448,12 @@ function Activity() {
         const myToken = fetchTokenRef.current;
         setLoading(true);
         setError(null);
+
+        // Reset pagination cursors on a fresh fetch (mount / team switch).
+        mentionsPageRef.current = 0;
+        broadcastCursorRef.current = 0;
+        setHasMoreMentions(true);
+        setHasMoreBroadcast(true);
 
         // Render-as-arrives: each source updates state independently the moment its
         // promise resolves, so the user sees the fastest source (usually reactions)
@@ -496,6 +548,13 @@ function Activity() {
                 }
                 recomputeMentions();
                 markData(personalMentionsAccum.size);
+                // Server-side per_page is 10. Returning fewer means we exhausted
+                // matches in the search window — no point asking for more.
+                if (order.length < 10) {
+                    setHasMoreMentions(false);
+                } else {
+                    mentionsPageRef.current = 1;
+                }
                 stopLoadingIfReady();
             }).
             catch((err) => {
@@ -506,17 +565,26 @@ function Activity() {
             }).
             finally(settle);
 
-        Client4.getBroadcastMentions(userId, teamId, 10).
+        Client4.getBroadcastMentions(userId, teamId, 10, 0).
             then((res) => {
                 if (!isFresh()) {
                     return;
                 }
                 broadcastMentionsAccum.clear();
+                let oldest = Number.POSITIVE_INFINITY;
                 for (const p of res || []) {
                     broadcastMentionsAccum.set(p.id, p);
+                    if (p.create_at < oldest) {
+                        oldest = p.create_at;
+                    }
                 }
                 recomputeMentions();
                 markData(broadcastMentionsAccum.size);
+                if ((res || []).length < 10) {
+                    setHasMoreBroadcast(false);
+                } else {
+                    broadcastCursorRef.current = oldest;
+                }
                 stopLoadingIfReady();
             }).
             catch((err) => {
@@ -532,6 +600,120 @@ function Activity() {
         fetchActivity();
         dispatch({type: ActionTypes.ACTIVITY_MARK_READ});
     }, [fetchActivity, dispatch]);
+
+    // Load older mentions + broadcast pages on demand. Reactions are intentionally
+    // skipped — the feed always shows the freshest 10 reactions only.
+    const loadMore = useCallback(async () => {
+        if (!userId || !teamId) {
+            return;
+        }
+        if (loadingMore || (!hasMoreMentions && !hasMoreBroadcast)) {
+            return;
+        }
+        setLoadingMore(true);
+        const myToken = fetchTokenRef.current;
+
+        const tasks: Array<Promise<void>> = [];
+
+        if (hasMoreMentions && mentionTerms) {
+            const page = mentionsPageRef.current;
+            tasks.push(
+                Client4.searchPostsWithParams(teamId, {
+                    terms: mentionTerms, is_or_search: true, page, per_page: 10,
+                }).
+                    then((res: any) => {
+                        if (myToken !== fetchTokenRef.current) {
+                            return;
+                        }
+                        const posts = res.posts || {};
+                        const order: string[] = res.order || [];
+                        if (order.length === 0) {
+                            setHasMoreMentions(false);
+                            return;
+                        }
+                        const newPosts: Post[] = [];
+                        for (const id of order) {
+                            const p: Post | undefined = posts[id];
+                            if (p && p.user_id !== userId && !p.delete_at) {
+                                newPosts.push(p);
+                            }
+                        }
+                        setMentions((prev) => {
+                            const seen = new Set(prev.map((p) => p.id));
+                            const merged = [...prev];
+                            for (const p of newPosts) {
+                                if (!seen.has(p.id)) {
+                                    seen.add(p.id);
+                                    merged.push(p);
+                                }
+                            }
+                            return merged;
+                        });
+                        if (order.length < 10) {
+                            setHasMoreMentions(false);
+                        } else {
+                            mentionsPageRef.current = page + 1;
+                        }
+                    }).
+                    catch(() => {
+                        // Stop probing this source on error to avoid hammering.
+                        setHasMoreMentions(false);
+                    }),
+            );
+        }
+
+        if (hasMoreBroadcast) {
+            const before = broadcastCursorRef.current;
+            tasks.push(
+                Client4.getBroadcastMentions(userId, teamId, 10, before).
+                    then((res) => {
+                        if (myToken !== fetchTokenRef.current) {
+                            return;
+                        }
+                        const list = res || [];
+                        if (list.length === 0) {
+                            setHasMoreBroadcast(false);
+                            return;
+                        }
+                        let oldest = Number.POSITIVE_INFINITY;
+                        const newPosts: Post[] = [];
+                        for (const p of list) {
+                            if (p.user_id === userId || p.delete_at) {
+                                continue;
+                            }
+                            newPosts.push(p);
+                            if (p.create_at < oldest) {
+                                oldest = p.create_at;
+                            }
+                        }
+                        setMentions((prev) => {
+                            const seen = new Set(prev.map((p) => p.id));
+                            const merged = [...prev];
+                            for (const p of newPosts) {
+                                if (!seen.has(p.id)) {
+                                    seen.add(p.id);
+                                    merged.push(p);
+                                }
+                            }
+                            return merged;
+                        });
+                        if (list.length < 10) {
+                            setHasMoreBroadcast(false);
+                        } else {
+                            broadcastCursorRef.current = oldest;
+                        }
+                    }).
+                    catch(() => {
+                        setHasMoreBroadcast(false);
+                    }),
+            );
+        }
+
+        await Promise.all(tasks);
+        if (myToken === fetchTokenRef.current) {
+            setLoadingMore(false);
+        }
+    }, [userId, teamId, mentionTerms, loadingMore, hasMoreMentions, hasMoreBroadcast]);
 
     useEffect(() => {
         if (!lastReceived) {
@@ -560,7 +742,27 @@ function Activity() {
         dispatch({type: ActionTypes.ACTIVITY_MARK_READ});
     }, [lastMention, dispatch]);
 
-    const groups = useMemo(() => groupReactions(reactions), [reactions]);
+    // Watch the sentinel at the bottom of the feed so loadMore fires as soon as
+    // it scrolls into view. The 200px rootMargin pre-fetches before the user
+    // actually reaches the end, hiding the request latency.
+    useEffect(() => {
+        const sentinel = loadMoreSentinelRef.current;
+        if (!sentinel || loading || (!hasMoreMentions && !hasMoreBroadcast)) {
+            return undefined;
+        }
+        const observer = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (entry.isIntersecting) {
+                    loadMore();
+                    break;
+                }
+            }
+        }, {rootMargin: '200px'});
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [loading, hasMoreMentions, hasMoreBroadcast, loadMore]);
+
+    const groups = useMemo(() => groupReactions(reactions, fullReactionsByPost), [reactions, fullReactionsByPost]);
 
     const feed = useMemo<ActivityFeedItem[]>(() => {
         const items: ActivityFeedItem[] = [];
@@ -580,9 +782,7 @@ function Activity() {
             items.push({kind: 'mention', key: `m-${p.id}`, createAt: p.create_at, post: p});
         }
         items.sort((a, b) => b.createAt - a.createAt);
-        // Final cap so the rendered feed never grows beyond the configured size,
-        // even if accumulated WS events would otherwise stretch it.
-        return items.slice(0, MAX_FEED_ITEMS);
+        return items;
     }, [groups, mentions]);
 
     // Hydrate user profiles referenced by the feed.
@@ -637,6 +837,49 @@ function Activity() {
             dispatch(fetchChannel(cid));
         }
     }, [dispatch, missingChannelIds]);
+
+    // Fetch the full reaction set for any post we haven't loaded yet, in one
+    // batched POST. Skips posts already cached so subsequent renders don't
+    // re-request. WS reaction events keep the cached entries in sync via the
+    // separate handler below.
+    const reactionPostIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const r of reactions) {
+            ids.add(r.post_id);
+        }
+        return Array.from(ids);
+    }, [reactions]);
+
+    useEffect(() => {
+        const missing = reactionPostIds.filter((id) => !fullReactionsByPost[id]);
+        if (missing.length === 0) {
+            return;
+        }
+        let cancelled = false;
+        Client4.getBulkReactionsForPosts(missing).
+            then((res: any) => {
+                if (cancelled) {
+                    return;
+                }
+                setFullReactionsByPost((prev) => {
+                    const next = {...prev};
+                    for (const id of missing) {
+                        const list = res[id] || [];
+                        next[id] = list.map((r: any) => ({
+                            user_id: r.user_id,
+                            emoji_name: r.emoji_name,
+                        }));
+                    }
+                    return next;
+                });
+            }).
+            catch(() => {
+                // Non-fatal: chips fall back to the received-reactions subset.
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [reactionPostIds, fullReactionsByPost]);
 
     // Hydrate custom emojis used in reactions.
     const emojiNames = useMemo(() => {
@@ -717,6 +960,27 @@ function Activity() {
                         />
                     );
                 })}
+                {!loading && !error && feed.length > 0 && (hasMoreMentions || hasMoreBroadcast) && (
+                    <div
+                        ref={loadMoreSentinelRef}
+                        className='Activity__sentinel'
+                    >
+                        {loadingMore && (
+                            <FormattedMessage
+                                id='activity.page.loadingMore'
+                                defaultMessage='Loading more…'
+                            />
+                        )}
+                    </div>
+                )}
+                {!loading && !error && feed.length > 0 && !hasMoreMentions && !hasMoreBroadcast && (
+                    <div className='Activity__sentinel Activity__sentinel--end'>
+                        <FormattedMessage
+                            id='activity.page.endOfFeed'
+                            defaultMessage='Nothing more in the last 7 days'
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

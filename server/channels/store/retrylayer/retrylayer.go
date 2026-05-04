@@ -10395,11 +10395,11 @@ func (s *RetryLayerReactionStore) GetReceivedReactions(userID, teamID string, li
 
 }
 
-func (s *RetryLayerReactionStore) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error) {
+func (s *RetryLayerReactionStore) GetBroadcastMentions(userID, teamID string, limit int, before int64) ([]*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.ReactionStore.GetBroadcastMentions(userID, teamID, limit)
+		result, err := s.ReactionStore.GetBroadcastMentions(userID, teamID, limit, before)
 		if err == nil {
 			return result, nil
 		}

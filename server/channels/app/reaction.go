@@ -198,8 +198,11 @@ func (a *App) GetReceivedReactions(rctx request.CTX, userID, teamID string, limi
 // in channels visible to the user within the given team. Used by the Activity
 // feed cold-load to surface broadcast mentions that Postgres FTS cannot match
 // (because `here` and `all` are stopwords).
-func (a *App) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, *model.AppError) {
-	posts, err := a.Srv().Store().Reaction().GetBroadcastMentions(userID, teamID, limit)
+//
+// `before` is a CreateAt cursor for keyset pagination. Pass 0 for the first
+// page; for subsequent pages pass the smallest CreateAt of the previous page.
+func (a *App) GetBroadcastMentions(userID, teamID string, limit int, before int64) ([]*model.Post, *model.AppError) {
+	posts, err := a.Srv().Store().Reaction().GetBroadcastMentions(userID, teamID, limit, before)
 	if err != nil {
 		return nil, model.NewAppError("GetBroadcastMentions", "app.post.get_broadcast_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

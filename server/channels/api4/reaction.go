@@ -173,7 +173,14 @@ func getBroadcastMentions(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	posts, appErr := c.App.GetBroadcastMentions(c.Params.UserId, c.Params.TeamId, limit)
+	var before int64
+	if beforeStr := r.URL.Query().Get("before"); beforeStr != "" {
+		if parsed, err := strconv.ParseInt(beforeStr, 10, 64); err == nil {
+			before = parsed
+		}
+	}
+
+	posts, appErr := c.App.GetBroadcastMentions(c.Params.UserId, c.Params.TeamId, limit, before)
 	if appErr != nil {
 		c.Err = appErr
 		return

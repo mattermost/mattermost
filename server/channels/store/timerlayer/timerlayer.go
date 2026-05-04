@@ -8284,10 +8284,10 @@ func (s *TimerLayerReactionStore) GetReceivedReactions(userID, teamID string, li
 	return result, err
 }
 
-func (s *TimerLayerReactionStore) GetBroadcastMentions(userID, teamID string, limit int) ([]*model.Post, error) {
+func (s *TimerLayerReactionStore) GetBroadcastMentions(userID, teamID string, limit int, before int64) ([]*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.ReactionStore.GetBroadcastMentions(userID, teamID, limit)
+	result, err := s.ReactionStore.GetBroadcastMentions(userID, teamID, limit, before)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

@@ -74,9 +74,9 @@ func (_m *ReactionStore) GetReceivedReactions(userID string, teamID string, limi
 	return r0, r1
 }
 
-// GetBroadcastMentions provides a mock function with given fields: userID, teamID, limit
-func (_m *ReactionStore) GetBroadcastMentions(userID string, teamID string, limit int) ([]*model.Post, error) {
-	ret := _m.Called(userID, teamID, limit)
+// GetBroadcastMentions provides a mock function with given fields: userID, teamID, limit, before
+func (_m *ReactionStore) GetBroadcastMentions(userID string, teamID string, limit int, before int64) ([]*model.Post, error) {
+	ret := _m.Called(userID, teamID, limit, before)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBroadcastMentions")
@@ -84,19 +84,19 @@ func (_m *ReactionStore) GetBroadcastMentions(userID string, teamID string, limi
 
 	var r0 []*model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, int) ([]*model.Post, error)); ok {
-		return rf(userID, teamID, limit)
+	if rf, ok := ret.Get(0).(func(string, string, int, int64) ([]*model.Post, error)); ok {
+		return rf(userID, teamID, limit, before)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, int) []*model.Post); ok {
-		r0 = rf(userID, teamID, limit)
+	if rf, ok := ret.Get(0).(func(string, string, int, int64) []*model.Post); ok {
+		r0 = rf(userID, teamID, limit, before)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, int) error); ok {
-		r1 = rf(userID, teamID, limit)
+	if rf, ok := ret.Get(1).(func(string, string, int, int64) error); ok {
+		r1 = rf(userID, teamID, limit, before)
 	} else {
 		r1 = ret.Error(1)
 	}

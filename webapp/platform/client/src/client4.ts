@@ -2605,9 +2605,20 @@ export default class Client4 {
         );
     };
 
-    getBroadcastMentions = (userId: string, teamId: string, limit = 30) => {
+    getBulkReactionsForPosts = (postIds: string[]) => {
+        return this.doFetch<Record<string, Reaction[]>>(
+            `${this.getPostsRoute()}/ids/reactions`,
+            {method: 'post', body: JSON.stringify(postIds)},
+        );
+    };
+
+    getBroadcastMentions = (userId: string, teamId: string, limit = 30, before?: number) => {
+        const params: Record<string, string | number> = {limit};
+        if (before && before > 0) {
+            params.before = before;
+        }
         return this.doFetch<Post[]>(
-            `${this.getUserRoute(userId)}/teams/${teamId}/activity/broadcast_mentions${buildQueryString({limit})}`,
+            `${this.getUserRoute(userId)}/teams/${teamId}/activity/broadcast_mentions${buildQueryString(params)}`,
             {method: 'get'},
         );
     };
