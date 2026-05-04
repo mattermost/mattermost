@@ -64,6 +64,12 @@ func setupWatcherTest(t *testing.T) (*searchEngineWatcher, *searchenginemocks.Se
 	engineMock.On("IsHealthy").Return(true).Maybe()
 	engineMock.On("SetHealthy", mock.Anything).Maybe()
 
+	// Disable the backfill so it doesn't fire in watcher-focused tests that
+	// use a mock store without the required methods set up.
+	ps.UpdateConfig(func(cfg *model.Config) {
+		cfg.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = model.NewPointer(false)
+	})
+
 	ps.SearchEngine = searchengine.NewBroker(ps.Config())
 	ps.SearchEngine.ElasticsearchEngine = engineMock
 
