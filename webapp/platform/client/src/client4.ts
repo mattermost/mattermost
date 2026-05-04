@@ -118,6 +118,7 @@ import type {
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
+    PropertyValuePatchItem,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
 import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
@@ -2179,6 +2180,13 @@ export default class Client4 {
         return this.doFetch<Array<PropertyValue<T>>>(
             `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
             {method: 'get'},
+        );
+    };
+
+    patchPropertyValues = <T>(groupName: string, objectType: string, targetId: string, items: PropertyValuePatchItem[]) => {
+        return this.doFetch<Array<PropertyValue<T>>>(
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            {method: 'PATCH', body: JSON.stringify(items)},
         );
     };
 

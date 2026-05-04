@@ -1,0 +1,36 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.property-value-editor--user {
+    .UserMultiSelector .UserMultiSelector__value-container {
+        position: relative;
+        display: flex !important;
+        align-items: center;
+        gap: 0 !important;
+
+        // Overlay the placeholder on top of the input so the typing cursor sits
+        // at the start of the placeholder text, matching standard select fields.
+        .UserMultiSelector__placeholder {
+            position: absolute;
+            left: 8px;
+            margin: 0;
+            pointer-events: none;
+        }
+
+        .UserMultiSelector__input-container {
+            flex: 1;
+            margin: 0;
+        }
+
+        .UserMultiSelector__single-value {
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        // Hide the typing input once a user is selected; the user must clear first.
+        .UserMultiSelector__single-value ~ .UserMultiSelector__input-container {
+            display: none;
+        }
+    }
+}

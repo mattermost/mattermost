@@ -10,6 +10,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDoSetupChannelPostProperties(t *testing.T) {
+	t.Run("should register the channel post properties group", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ChannelPostPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.ChannelPostPropertyGroupName, group.Name)
+		require.Equal(t, model.PropertyGroupVersionV2, group.Version)
+
+		data, sysErr := th.Store.System().GetByName(channelPostPropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, "true", data.Value)
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ChannelPostPropertyGroupName)
+		require.Nil(t, appErr)
+		originalGroupID := group.ID
+
+		// Remove the migration done key from systems table to allow the
+		// migration to run again.
+		_, err := th.Store.System().PermanentDeleteByName(channelPostPropertiesSetupDoneKey)
+		require.NoError(t, err)
+
+		err = th.Server.doSetupChannelPostProperties()
+		require.NoError(t, err)
+
+		group, appErr = th.App.GetPropertyGroup(th.Context, model.ChannelPostPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, originalGroupID, group.ID, "re-running the migration must not create a new group")
+
+		data, sysErr := th.Store.System().GetByName(channelPostPropertiesSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, "true", data.Value)
+	})
+}
+
 func TestDoSetupContentFlaggingProperties(t *testing.T) {
 	t.Run("should register property group and fields", func(t *testing.T) {
 		//we need to call the Setup method and run the full setup instead of

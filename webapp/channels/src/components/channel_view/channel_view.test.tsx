@@ -61,6 +61,8 @@ describe('components/channel_view', () => {
         fetchIsRestrictedDM: jest.fn(),
         canRestrictDirectMessage: false,
         restrictDirectMessage: false,
+        integratedBoardsEnabled: false,
+        loadChannelPostPropertyFields: jest.fn(),
     };
 
     it('Should match snapshot with base props', () => {

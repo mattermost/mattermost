@@ -8,10 +8,15 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 
+import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
+
 import {closeRightHandSide} from 'actions/views/rhs';
 
 import RhsHeaderPost from 'components/rhs_header_post';
+import RhsPostPropertiesPanel from 'components/rhs_post_properties_panel';
 import ThreadViewer from 'components/threading/thread_viewer';
+
+import * as PostUtils from 'utils/post_utils';
 
 import type {FakePost, RhsState} from 'types/store/rhs';
 
@@ -43,6 +48,12 @@ const RhsThread = ({
         );
     }
 
+    const realPost = (selected as Post);
+    const showPropertiesPanel =
+        Boolean(realPost.channel_id) &&
+        !PostUtils.isSystemMessage(realPost) &&
+        !isPostPendingOrFailed(realPost);
+
     return (
         <div
             id='rhsContainer'
@@ -53,6 +64,12 @@ const RhsThread = ({
                 channel={channel}
                 previousRhsState={previousRhsState}
             />
+            {showPropertiesPanel && (
+                <RhsPostPropertiesPanel
+                    postId={selected.id}
+                    channelId={realPost.channel_id}
+                />
+            )}
             <ThreadViewer
                 rootPostId={selected.id}
                 useRelativeTimestamp={true}

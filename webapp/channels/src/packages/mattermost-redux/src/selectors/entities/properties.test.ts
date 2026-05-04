@@ -5,6 +5,8 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {GlobalState} from '@mattermost/types/store';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {ChannelPostPropertyGroupName} from 'mattermost-redux/constants/properties';
+
 import {
     getPropertyFieldsForObjectTypeAndGroup,
     getPropertyFieldById,
@@ -15,6 +17,7 @@ import {
     getPropertyValueForTargetField,
     getPropertyValuesForTargetByFieldIds,
     getPropertyValuesForField,
+    getPostPropertyFieldsForChannel,
 } from './properties';
 
 function makeField(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -424,5 +427,117 @@ describe('Group selectors', () => {
 
             expect(getPropertyGroupByName(state as GlobalState, 'unknown')).toBeUndefined();
         });
+    });
+});
+
+describe('getPostPropertyFieldsForChannel', () => {
+    const channelId = 'channel-1';
+    const groupId = 'group-1';
+    const group = {id: groupId, name: ChannelPostPropertyGroupName};
+
+    test('returns post property fields scoped to the given channel', () => {
+        const f1 = makeField({id: 'f1', group_id: groupId, target_type: 'channel', target_id: channelId});
+        const f2 = makeField({id: 'f2', group_id: groupId, target_type: 'channel', target_id: channelId});
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {
+                        byObjectType: {post: {[groupId]: {f1, f2}}},
+                        byId: {f1, f2},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {[groupId]: group}, byName: {[ChannelPostPropertyGroupName]: group}},
+                },
+            },
+        };
+
+        const result = getPostPropertyFieldsForChannel(state as GlobalState, channelId);
+        expect(result).toHaveLength(2);
+        expect(result).toContain(f1);
+        expect(result).toContain(f2);
+    });
+
+    test('filters out fields targeting a different channel', () => {
+        const mine = makeField({id: 'mine', group_id: groupId, target_type: 'channel', target_id: channelId});
+        const other = makeField({id: 'other', group_id: groupId, target_type: 'channel', target_id: 'channel-2'});
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {
+                        byObjectType: {post: {[groupId]: {mine, other}}},
+                        byId: {mine, other},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {[groupId]: group}, byName: {[ChannelPostPropertyGroupName]: group}},
+                },
+            },
+        };
+
+        expect(getPostPropertyFieldsForChannel(state as GlobalState, channelId)).toEqual([mine]);
+    });
+
+    test('filters out fields with non-channel target_type', () => {
+        const channelField = makeField({id: 'cf', group_id: groupId, target_type: 'channel', target_id: channelId});
+        const teamField = makeField({id: 'tf', group_id: groupId, target_type: 'team', target_id: channelId});
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {
+                        byObjectType: {post: {[groupId]: {cf: channelField, tf: teamField}}},
+                        byId: {cf: channelField, tf: teamField},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {[groupId]: group}, byName: {[ChannelPostPropertyGroupName]: group}},
+                },
+            },
+        };
+
+        expect(getPostPropertyFieldsForChannel(state as GlobalState, channelId)).toEqual([channelField]);
+    });
+
+    test('returns empty array when the property group is not registered', () => {
+        const f1 = makeField({id: 'f1', group_id: groupId, target_type: 'channel', target_id: channelId});
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {
+                        byObjectType: {post: {[groupId]: {f1}}},
+                        byId: {f1},
+                    },
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {}, byName: {}},
+                },
+            },
+        };
+
+        expect(getPostPropertyFieldsForChannel(state as GlobalState, channelId)).toEqual([]);
+    });
+
+    test('returns empty array when there are no post object_type entries', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {byObjectType: {}, byId: {}},
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {[groupId]: group}, byName: {[ChannelPostPropertyGroupName]: group}},
+                },
+            },
+        };
+
+        expect(getPostPropertyFieldsForChannel(state as GlobalState, channelId)).toEqual([]);
+    });
+
+    test('returns empty array when the group has no fields under post', () => {
+        const state: DeepPartial<GlobalState> = {
+            entities: {
+                properties: {
+                    fields: {byObjectType: {post: {}}, byId: {}},
+                    values: {byTargetId: {}, byFieldId: {}},
+                    groups: {byId: {[groupId]: group}, byName: {[ChannelPostPropertyGroupName]: group}},
+                },
+            },
+        };
+
+        expect(getPostPropertyFieldsForChannel(state as GlobalState, channelId)).toEqual([]);
     });
 });

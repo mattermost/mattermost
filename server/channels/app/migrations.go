@@ -32,6 +32,7 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	channelPostPropertiesSetupDoneKey              = "channel_post_properties_setup_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -805,6 +806,28 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	return s.cacheManagedCategoryIDs()
 }
 
+func (s *Server) doSetupChannelPostProperties() error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(channelPostPropertiesSetupDoneKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	if data != nil {
+		return nil
+	}
+
+	if _, err := s.propertyService.RegisterPropertyGroup(&model.PropertyGroup{Name: model.ChannelPostPropertyGroupName, Version: model.PropertyGroupVersionV2}); err != nil {
+		return fmt.Errorf("failed to register channel post properties group: %w", err)
+	}
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{Name: channelPostPropertiesSetupDoneKey, Value: "true"}); err != nil {
+		return fmt.Errorf("failed to save channel post properties setup done flag: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) cacheManagedCategoryIDs() error {
 	group, err := s.propertyService.GetPropertyGroup(model.ManagedCategoryPropertyGroupName)
 	if err != nil {
@@ -1009,6 +1032,7 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"Channel Post Properties Setup", s.doSetupChannelPostProperties},
 	}
 
 	for i := range m1 {

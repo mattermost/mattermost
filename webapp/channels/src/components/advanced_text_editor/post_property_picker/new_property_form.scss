@@ -1,0 +1,129 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.new-property-form {
+    display: flex;
+    min-width: 260px;
+    flex-direction: column;
+    gap: 10px;
+
+    label {
+        display: block;
+        margin-bottom: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    input[type='text'],
+    select {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: var(--center-channel-bg);
+        color: var(--center-channel-color);
+        font-size: 13px;
+        line-height: 18px;
+
+        &:focus {
+            border-color: var(--button-bg);
+            outline: none;
+        }
+    }
+}
+
+.new-property-form__field {
+    display: block;
+}
+
+.new-property-form__error {
+    display: block;
+    margin-top: 4px;
+    color: var(--error-text, #d24b4e);
+    font-size: 11px;
+}
+
+.new-property-form__options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.new-property-form__option-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    input[type='text'] {
+        flex: 1;
+    }
+
+    button {
+        display: inline-flex;
+        width: 22px;
+        height: 22px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+
+        &:hover {
+            border-radius: 4px;
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+}
+
+.new-property-form__add-option {
+    align-self: flex-start;
+    padding: 4px 8px;
+    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.24);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.new-property-form__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.new-property-form__save,
+.new-property-form__cancel {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.new-property-form__save {
+    border: 1px solid var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-color);
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+}
+
+.new-property-form__cancel {
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    background: transparent;
+    color: var(--center-channel-color);
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}

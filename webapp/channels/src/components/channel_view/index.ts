@@ -8,12 +8,13 @@ import {withRouter} from 'react-router-dom';
 import type {Channel} from '@mattermost/types/channels';
 
 import {fetchIsRestrictedDM} from 'mattermost-redux/actions/channels';
+import {loadChannelPostPropertyFields} from 'mattermost-redux/actions/properties';
 import {
     getCurrentChannel,
     getMyChannelMembership,
     isDeactivatedDirectChannel,
 } from 'mattermost-redux/selectors/entities/channels';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -54,12 +55,14 @@ function mapStateToProps(state: GlobalState) {
         restrictDirectMessage: channel ? state.entities.channels.restrictedDMs[channel.id] : false,
         isChannelBookmarksEnabled: getIsChannelBookmarksEnabled(state),
         missingChannelRole,
+        integratedBoardsEnabled: getFeatureFlagValue(state, 'IntegratedBoards') === 'true',
     };
 }
 
 const mapDispatchToProps = ({
     goToLastViewedChannel,
     fetchIsRestrictedDM,
+    loadChannelPostPropertyFields,
 });
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

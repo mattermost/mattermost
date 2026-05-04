@@ -1,0 +1,147 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.post-property-picker__search {
+    display: block;
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-size: 13px;
+    line-height: 18px;
+
+    &::placeholder {
+        color: rgba(var(--center-channel-color-rgb), 0.5);
+    }
+
+    &:focus {
+        border-color: var(--button-bg);
+        outline: none;
+    }
+}
+
+.post-property-picker__search-wrapper {
+    padding: 8px 12px;
+}
+
+.post-property-picker__row-icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.post-property-picker__add-new {
+    color: var(--button-bg);
+    font-weight: 600;
+
+    .post-property-picker__add-new-icon {
+        display: inline-flex;
+        align-items: center;
+        color: var(--button-bg);
+        margin-inline-end: 8px;
+    }
+}
+
+.post-property-picker__manage {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+}
+
+.post-property-picker__empty {
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-style: italic;
+}
+
+.post-property-picker__trigger {
+    display: inline-flex;
+    height: 28px;
+    align-items: center;
+    padding: 0 12px 0 8px;
+    border: 1px dashed rgba(var(--center-channel-color-rgb), 0.32);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 16px;
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+
+    &:hover:not(:disabled) {
+        border-color: var(--button-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
+    }
+
+    &:focus-visible,
+    &.post-property-picker__trigger--active {
+        border-style: solid;
+        border-color: var(--button-bg);
+        background: rgba(var(--button-bg-rgb), 0.08);
+        outline: none;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.4;
+    }
+}
+
+.post-property-picker__trigger-label {
+    font-weight: 600;
+}
+
+.post-property-picker__add-new-row {
+    padding: 0;
+    list-style: none;
+}
+
+.post-property-picker__add-new-btn {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--button-bg);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+
+    &:hover,
+    &:focus-visible {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        outline: none;
+    }
+}
+
+.post-property-picker__form-wrapper {
+    min-width: 280px;
+    max-width: 320px;
+    padding: 0;
+    list-style: none;
+
+    .new-property-form {
+        max-height: 60vh;
+        padding: 8px 12px;
+        overflow-y: auto;
+    }
+
+    .new-property-form__actions {
+        position: sticky;
+        bottom: 0;
+        padding-top: 8px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 4px;
+        background: var(--center-channel-bg);
+    }
+}
+

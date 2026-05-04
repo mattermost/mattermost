@@ -1,0 +1,90 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.staged-property-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 6px 0;
+    gap: 6px;
+}
+
+.staged-property-chip {
+    display: inline-flex;
+    overflow: hidden;
+    align-items: stretch;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 14px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+}
+
+.staged-property-chip__trigger {
+    display: inline-flex;
+    height: 26px;
+    align-items: center;
+    padding: 0 8px;
+    border: none;
+    background: transparent;
+    color: var(--center-channel-color);
+    cursor: pointer;
+    font-size: 12px;
+    gap: 6px;
+    line-height: 16px;
+
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: -2px;
+    }
+}
+
+.staged-property-chip__icon {
+    display: inline-flex;
+    align-items: center;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+}
+
+.staged-property-chip__name {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-weight: 600;
+}
+
+.staged-property-chip__placeholder {
+    color: rgba(var(--center-channel-color-rgb), 0.5);
+    font-style: italic;
+}
+
+.staged-property-chip__value {
+    display: inline-flex;
+    align-items: center;
+    color: var(--center-channel-color);
+    gap: 4px;
+}
+
+.staged-property-chip__remove {
+    display: inline-flex;
+    width: 22px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: rgba(var(--center-channel-color-rgb), 0.5);
+    cursor: pointer;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        color: var(--center-channel-color);
+    }
+}
+
+.staged-property-chip__editor {
+    min-width: 200px;
+    padding: 12px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 6px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
