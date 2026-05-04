@@ -3273,7 +3273,7 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 
 	if s.EnableSearchPublicChannelsWithoutMembership == nil {
-		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(false)
+		s.EnableSearchPublicChannelsWithoutMembership = NewPointer(true)
 	}
 }
 
