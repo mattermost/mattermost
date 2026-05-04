@@ -14,11 +14,11 @@ import (
 func TestConditionJSON_HasMaskedValuesOmitEmpty(t *testing.T) {
 	t.Run("has_masked_values omitted when false", func(t *testing.T) {
 		condition := Condition{
-			Attribute:     "user.attributes.Program",
-			Operator:      "==",
-			Value:         "Alpha",
-			ValueType:     LiteralValue,
-			AttributeType: "select",
+			Attribute:       "user.attributes.Program",
+			Operator:        "==",
+			Value:           "Alpha",
+			ValueType:       LiteralValue,
+			AttributeType:   "select",
 			HasMaskedValues: false,
 		}
 
