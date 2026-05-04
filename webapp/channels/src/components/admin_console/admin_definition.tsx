@@ -57,6 +57,7 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import ClassificationMarkings, {searchableStrings as classificationMarkingsSearchableStrings} from './classification_markings';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsMagicLinkSetting, {searchableStrings as magicLinkSearchableStrings} from './custom_enable_disable_guest_accounts_magic_link_setting';
@@ -2161,10 +2162,15 @@ const AdminDefinition: AdminDefinitionType = {
                     name: defineMessage({id: 'admin.developer.title', defaultMessage: 'Developer Settings'}),
                     settings: [
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.service.testingWarning', defaultMessage: 'Warning: Testing commands are intended only for isolated non-production environments with test users and sample data. Never enable this setting in production.'}),
+                            banner_type: 'warning',
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableTesting',
                             label: defineMessage({id: 'admin.service.testingTitle', defaultMessage: 'Enable Testing Commands:'}),
-                            help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, /test slash command is enabled to load test accounts, data and text formatting. Changing this requires a server restart before taking effect.'}),
+                            help_text: defineMessage({id: 'admin.service.testingDescription', defaultMessage: 'When true, the /test slash command is enabled to load test accounts, data, and text formatting. Use this setting only in isolated non-production environments and never in production. Changing this requires a server restart before taking effect.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.DEVELOPER)),
                         },
                         {
@@ -3013,6 +3019,20 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.configIsFalse('FeatureFlags', 'NotificationMonitoring'),
                         },
                     ],
+                },
+            },
+            classification_markings: {
+                url: 'site_config/classification_markings',
+                title: defineMessage({id: 'admin.sidebar.classificationMarkings', defaultMessage: 'Classification Markings'}),
+                searchableStrings: classificationMarkingsSearchableStrings,
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+                    it.not(it.configIsTrue('FeatureFlags', 'ClassificationMarkings')),
+                ),
+                isDisabled: it.not(it.isSystemAdmin),
+                schema: {
+                    id: 'ClassificationMarkings',
+                    component: ClassificationMarkings,
                 },
             },
             announcement_banner: {

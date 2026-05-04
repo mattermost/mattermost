@@ -7,7 +7,7 @@ import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {getChannels, getArchivedChannels, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {getChannels, getArchivedChannels, getRecommendedChannelsForUser, joinChannel, getChannelsMemberCount, searchAllChannels} from 'mattermost-redux/actions/channels';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannelsInCurrentTeam, getMyChannelMemberships, getChannelsMemberCount as getChannelsMemberCountSelector} from 'mattermost-redux/selectors/entities/channels';
@@ -17,6 +17,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {setGlobalItem} from 'actions/storage';
 import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {makeGetGlobalItem} from 'selectors/storage';
 
@@ -61,6 +62,7 @@ function mapStateToProps(state: GlobalState) {
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
+        accessControlEnabled: isChannelAccessControlEnabled(state),
     };
 }
 
@@ -69,6 +71,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getChannels,
             getArchivedChannels,
+            getRecommendedChannelsForUser,
             joinChannel,
             searchAllChannels,
             openModal,

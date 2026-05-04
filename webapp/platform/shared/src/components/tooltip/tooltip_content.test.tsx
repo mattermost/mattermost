@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-
 import TooltipContent from './tooltip_content';
+
+import {renderWithContext} from '../../testing';
 
 describe('TooltipContent', () => {
     test('have correct structure with just title', () => {

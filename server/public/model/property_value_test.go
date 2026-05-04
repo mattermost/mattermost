@@ -173,6 +173,45 @@ func TestPropertyValue_IsValid(t *testing.T) {
 		}
 		require.NoError(t, pv.IsValid())
 	})
+
+	t.Run("system TargetType with system sentinel TargetID is valid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   PropertyValueSystemTargetID,
+			TargetType: PropertyValueTargetTypeSystem,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pv.IsValid())
+	})
+
+	t.Run("system TargetType with arbitrary TargetID is invalid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   NewId(),
+			TargetType: PropertyValueTargetTypeSystem,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pv.IsValid())
+	})
+
+	t.Run("non-system TargetType with system sentinel TargetID is invalid", func(t *testing.T) {
+		pv := &PropertyValue{
+			ID:         NewId(),
+			TargetID:   PropertyValueSystemTargetID,
+			TargetType: PropertyValueTargetTypeChannel,
+			GroupID:    NewId(),
+			FieldID:    NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pv.IsValid())
+	})
 }
 
 func TestPropertyValueSearchCursor_IsValid(t *testing.T) {
