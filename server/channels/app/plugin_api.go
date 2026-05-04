@@ -55,6 +55,11 @@ func (api *PluginAPI) LoadPluginConfiguration(dest any) error {
 		for _, setting := range api.manifest.SettingsSchema.Settings {
 			finalConfig[strings.ToLower(setting.Key)] = setting.Default
 		}
+		for _, section := range api.manifest.SettingsSchema.Sections {
+			for _, setting := range section.Settings {
+				finalConfig[strings.ToLower(setting.Key)] = setting.Default
+			}
+		}
 	}
 
 	// If we have settings given we override the defaults with them
@@ -1476,6 +1481,10 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 	return api.app.UnregisterPluginForSharedChannels(pluginID)
 }
 
+func (api *PluginAPI) UnregisterPluginRemoteForSharedChannels(remoteID string) error {
+	return api.app.UnregisterPluginRemoteForSharedChannels(api.id, remoteID)
+}
+
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
 	if errors.Is(err, model.ErrChannelAlreadyShared) {
@@ -1681,7 +1690,10 @@ func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyVa
 }
 
 func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
-	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), name)
+	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), &model.PropertyGroup{
+		Name:    name,
+		Version: model.PropertyGroupVersionV1,
+	})
 	if appErr != nil {
 		return nil, appErr
 	}

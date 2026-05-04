@@ -4614,7 +4614,6 @@ func TestSearchPostsWithDateFlags(t *testing.T) {
 }
 
 func TestGetFileInfosForPost(t *testing.T) {
-	t.Skip("MM-46902")
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
@@ -4622,17 +4621,22 @@ func TestGetFileInfosForPost(t *testing.T) {
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
 	for i := range 3 {
-		fileResp, _, _ := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		fileResp, _, uploadErr := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, uploadErr, "failed to upload file %d", i)
 		fileIds[i] = fileResp.FileInfos[0].Id
 	}
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", FileIds: fileIds}
-	post, _, _ = client.CreatePost(context.Background(), post)
-
-	infos, resp, err := client.GetFileInfosForPost(context.Background(), post.Id, "")
+	post, _, err = client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
-	require.Len(t, infos, 3, "missing file infos")
+	// File info association can be async; poll until all 3 are visible (MM-46902).
+	var infos []*model.FileInfo
+	var resp *model.Response
+	require.Eventually(t, func() bool {
+		infos, resp, err = client.GetFileInfosForPost(context.Background(), post.Id, "")
+		return err == nil && len(infos) == 3
+	}, 10*time.Second, 200*time.Millisecond, "expected 3 file infos")
 
 	found := false
 	for _, info := range infos {
@@ -5325,15 +5329,41 @@ func TestGetPostStripActionIntegrations(t *testing.T) {
 	require.Nil(t, action["integration"])
 }
 
+func waitForPostReminderEphemeral(t *testing.T, userWSClient *model.WebSocketClient, timeout time.Duration) *model.Post {
+	t.Helper()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	for {
+		select {
+		case ev := <-userWSClient.EventChannel:
+			if ev.EventType() != model.WebsocketEventEphemeralMessage {
+				continue
+			}
+			data := ev.GetData()
+			postJSON, ok := data["post"].(string)
+			require.True(t, ok)
+			var parsedPost model.Post
+			err := json.Unmarshal([]byte(postJSON), &parsedPost)
+			require.NoError(t, err)
+			if parsedPost.GetProp("type") != model.PostTypeReminder {
+				continue
+			}
+			return &parsedPost
+		case <-timer.C:
+			require.Fail(t, "timed out waiting for post reminder ephemeral websocket event")
+			return nil
+		}
+	}
+}
 func TestPostReminder(t *testing.T) {
-	t.Skip("MM-60329")
-
 	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-	targetTime := time.Now().UTC().Unix()
+	// Set target time 1s in the future so the reminder processor picks it up
+	// on its next tick rather than relying on it already being in the past (MM-60329).
+	targetTime := time.Now().UTC().Unix() + 1
 	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
 		TargetTime: targetTime,
 		PostId:     th.BasicPost.Id,
@@ -5348,45 +5378,61 @@ func TestPostReminder(t *testing.T) {
 	user, _, err := client.GetUser(context.Background(), post.UserId, "")
 	require.NoError(t, err)
 
-	var caught bool
-	func() {
-		for {
-			select {
-			case ev := <-userWSClient.EventChannel:
-				if ev.EventType() == model.WebsocketEventEphemeralMessage {
-					caught = true
-					data := ev.GetData()
+	parsedPost := waitForPostReminderEphemeral(t, userWSClient, 15*time.Second)
+	require.NotNil(t, parsedPost)
 
-					post, ok := data["post"].(string)
-					require.True(t, ok)
+	assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+	assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
+	assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
 
-					var parsedPost model.Post
-					err := json.Unmarshal([]byte(post), &parsedPost)
-					require.NoError(t, err)
+	require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+	require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
+	require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+	require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
+}
 
-					assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
-					assert.Equal(t, th.BasicUser.Id, parsedPost.UserId)
-					assert.Equal(t, th.BasicPost.Id, parsedPost.RootId)
+func TestPostReminderReplyEphemeralUsesThreadRoot(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	userWSClient := th.CreateConnectedWebSocketClient(t)
 
-					require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
-					require.Equal(t, th.BasicPost.Id, parsedPost.GetProp("post_id").(string))
-					require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
-					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
-					return
-				}
-			case <-time.After(5 * time.Second):
-				return
-			}
-		}
-	}()
+	replyPost := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		RootId:    th.BasicPost.Id,
+		Message:   "reply for reminder " + model.NewId(),
+	}
+	replyCreated, _, err := client.CreatePost(context.Background(), replyPost)
+	require.NoError(t, err)
 
-	require.Truef(t, caught, "User should have received %s event", model.WebsocketEventEphemeralMessage)
+	targetTime := time.Now().UTC().Unix() + 1
+	resp, err := client.SetPostReminder(context.Background(), &model.PostReminder{
+		TargetTime: targetTime,
+		PostId:     replyCreated.Id,
+		UserId:     th.BasicUser.Id,
+	})
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	user, _, err := client.GetUser(context.Background(), replyCreated.UserId, "")
+	require.NoError(t, err)
+
+	parsedPost := waitForPostReminderEphemeral(t, userWSClient, 15*time.Second)
+	require.NotNil(t, parsedPost)
+
+	assert.Equal(t, model.PostTypeEphemeral, parsedPost.Type)
+	assert.Equal(t, th.BasicPost.Id, parsedPost.RootId, "ephemeral should be threaded under the thread root so RHS/center thread views show the ack")
+	assert.Equal(t, replyCreated.Id, parsedPost.GetProp("post_id").(string))
+	require.Equal(t, float64(targetTime), parsedPost.GetProp("target_time").(float64))
+	require.Equal(t, user.Username, parsedPost.GetProp("username").(string))
+	require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 }
 
 func TestPostGetInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 
 	defaultPerms := th.SaveDefaultRolePermissions(t)
 	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
@@ -5395,8 +5441,16 @@ func TestPostGetInfo(t *testing.T) {
 	th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
 
 	client := th.Client
+	guestUser, guestClient := th.CreateGuestAndClient(t)
+	otherTeamMemberClient := th.CreateClient()
+	_, _, err := otherTeamMemberClient.Login(context.Background(), th.BasicUser2.Username, th.BasicUser2.Password)
+	require.NoError(t, err)
+	outsiderUser := th.CreateUser(t)
+	outsiderClient := th.CreateClient()
+	_, _, err = outsiderClient.Login(context.Background(), outsiderUser.Username, outsiderUser.Password)
+	require.NoError(t, err)
 	sysadminClient := th.SystemAdminClient
-	_, _, err := sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)
+	_, _, err = sysadminClient.AddTeamMember(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id)
 	require.NoError(t, err)
 
 	openChannel, _, err := client.CreateChannel(context.Background(), &model.Channel{TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, Name: "open-channel", DisplayName: "Open Channel"})
@@ -5457,6 +5511,7 @@ func TestPostGetInfo(t *testing.T) {
 		hasJoinedChannel bool
 		post             *model.Post
 		client           *model.Client4
+		assertSetup      func(t *testing.T)
 		hasAccess        bool
 	}{
 		// Open channel - Current Team
@@ -5479,6 +5534,25 @@ func TestPostGetInfo(t *testing.T) {
 			post:             openPost,
 			client:           sysadminClient,
 			hasAccess:        true,
+		},
+		{
+			name:             "Open post - Current team - Guest user outside channel",
+			team:             th.BasicTeam,
+			hasJoinedTeam:    true,
+			channel:          openChannel,
+			hasJoinedChannel: false,
+			post:             openPost,
+			client:           guestClient,
+			assertSetup: func(t *testing.T) {
+				t.Helper()
+
+				_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guestUser.Id)
+				require.Nil(t, appErr)
+
+				_, appErr = th.App.GetChannelMember(th.Context, openChannel.Id, guestUser.Id)
+				require.NotNil(t, appErr)
+			},
+			hasAccess: false,
 		},
 
 		// Private channel - Current Team
@@ -5613,6 +5687,38 @@ func TestPostGetInfo(t *testing.T) {
 			hasAccess: false,
 		},
 		{
+			name:             "Open post - Invite team - Basic user with join private teams permission",
+			team:             inviteTeam,
+			hasJoinedTeam:    false,
+			channel:          inviteTeamOpenChannel,
+			hasJoinedChannel: false,
+			post:             inviteTeamOpenPost,
+			client:           client,
+			assertSetup: func(t *testing.T) {
+				t.Helper()
+
+				_, appErr := th.App.GetTeamMember(th.Context, inviteTeam.Id, th.BasicUser.Id)
+				require.NotNil(t, appErr)
+
+				_, appErr = th.App.GetChannelMember(th.Context, inviteTeamOpenChannel.Id, th.BasicUser.Id)
+				require.NotNil(t, appErr)
+
+				require.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPrivateTeams))
+				require.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPublicChannels))
+
+				th.AddPermissionToRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				th.AddPermissionToRole(t, model.PermissionJoinPublicChannels.Id, model.SystemUserRoleId)
+				t.Cleanup(func() {
+					th.RemovePermissionFromRole(t, model.PermissionJoinPublicChannels.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionJoinPrivateTeams.Id, model.SystemUserRoleId)
+				})
+
+				require.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPrivateTeams))
+				require.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, inviteTeam.Id, model.PermissionJoinPublicChannels))
+			},
+			hasAccess: true,
+		},
+		{
 			name:             "Open post - Invite team - Sysadmin user",
 			team:             inviteTeam,
 			hasJoinedTeam:    true,
@@ -5626,6 +5732,10 @@ func TestPostGetInfo(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			if tc.assertSetup != nil {
+				tc.assertSetup(t)
+			}
+
 			info, resp, err := tc.client.GetPostInfo(context.Background(), tc.post.Id)
 			if !tc.hasAccess {
 				require.Error(t, err)
@@ -5651,6 +5761,97 @@ func TestPostGetInfo(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("Open post - Current team - Non-member denied when compliance is enabled", func(t *testing.T) {
+		info, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openChannel.Id, info.ChannelId)
+		require.True(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = otherTeamMemberClient.GetPostInfo(context.Background(), openPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Open post - Open team - Non-member denied when compliance is enabled", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, openTeam.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, openTeamOpenChannel.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+
+		info, resp, err := client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Equal(t, openTeamOpenChannel.Id, info.ChannelId)
+		require.False(t, info.HasJoinedTeam)
+		require.False(t, info.HasJoinedChannel)
+
+		originalComplianceEnabled := *th.App.Config().ComplianceSettings.Enable
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ComplianceSettings.Enable = true
+		})
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ComplianceSettings.Enable = originalComplianceEnabled
+			})
+		})
+
+		_, resp, err = client.GetPostInfo(context.Background(), openTeamOpenPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Private post - Same-team non-member with manage members permission is denied", func(t *testing.T) {
+		_, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetChannelMember(th.Context, privateChannelBasicUser.Id, th.BasicUser2.Id)
+		require.NotNil(t, appErr)
+
+		th.AddPermissionToRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
+		t.Cleanup(func() {
+			th.RemovePermissionFromRole(t, model.PermissionManagePrivateChannelMembers.Id, model.TeamUserRoleId)
+		})
+
+		hasPermission, isMember := th.App.HasPermissionToChannel(th.Context, th.BasicUser2.Id, privateChannelBasicUser.Id, model.PermissionManagePrivateChannelMembers)
+		require.True(t, hasPermission)
+		require.False(t, isMember)
+
+		_, resp, err := otherTeamMemberClient.GetPostInfo(context.Background(), privatePostBasicUser.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("DM post - Outsider is denied", func(t *testing.T) {
+		_, appErr := th.App.GetChannelMember(th.Context, dmChannel.Id, outsiderUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := outsiderClient.GetPostInfo(context.Background(), dmPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("GM post - Outsider is denied", func(t *testing.T) {
+		_, appErr := th.App.GetChannelMember(th.Context, gmChannel.Id, outsiderUser.Id)
+		require.NotNil(t, appErr)
+
+		_, resp, err := outsiderClient.GetPostInfo(context.Background(), gmPost.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
 }
 
 func TestAcknowledgePost(t *testing.T) {

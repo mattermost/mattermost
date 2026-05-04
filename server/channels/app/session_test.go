@@ -374,6 +374,7 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	rc := model.RemoteCluster{
 		RemoteId:  remoteID,
 		Name:      "test",
+		SiteURL:   "https://test.example.com",
 		Token:     token,
 		CreatorId: model.NewId(),
 	}

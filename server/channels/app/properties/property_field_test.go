@@ -4,6 +4,7 @@
 package properties
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -224,9 +225,10 @@ func TestCreatePropertyField(t *testing.T) {
 	rctx := th.Context
 
 	t.Run("legacy property with empty ObjectType should skip conflict check", func(t *testing.T) {
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
 		field := &model.PropertyField{
 			ObjectType: "", // Legacy
-			GroupID:    model.NewId(),
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Legacy Property",
@@ -238,10 +240,10 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "System Property",
@@ -253,13 +255,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with existing team property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		// Create team-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -269,7 +271,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create system-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Status",
@@ -284,14 +286,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("system-level property with existing channel property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create channel-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -301,7 +303,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create system-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "Priority",
@@ -316,12 +318,12 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -334,13 +336,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with existing system property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 
 		// Create system-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "SystemField",
@@ -349,7 +351,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create team-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -365,14 +367,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("team-level property with existing channel property in same team should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create channel-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -382,7 +384,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create team-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -398,13 +400,13 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with no conflict should create successfully", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -417,14 +419,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with existing system property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create system-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Type:       model.PropertyFieldTypeText,
 			Name:       "GlobalProp",
@@ -433,7 +435,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create channel-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -449,14 +451,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel-level property with existing team property should conflict", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 
 		// Create team-level property first (direct to avoid conflict check)
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -466,7 +468,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Try to create channel-level property with same name
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -482,14 +484,14 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("DM channel only checks system-level for conflicts", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team := th.CreateTeam(t)
 		dmChannel := th.CreateDMChannel(t)
 
 		// Create a team-level property in a team
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -500,7 +502,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// since DM channels have no team association
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   dmChannel.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -512,7 +514,7 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("channel in different team does not conflict with team property", func(t *testing.T) {
-		groupID := model.NewId()
+		group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 		team1 := th.CreateTeam(t)
 		team2 := th.CreateTeam(t)
 		channelInTeam2 := th.CreateChannel(t, team2.Id)
@@ -520,7 +522,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Create team-level property in team1
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelTeam),
 			TargetID:   team1.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -530,7 +532,7 @@ func TestCreatePropertyField(t *testing.T) {
 		// Channel-level property in team2 should not conflict with team1's property
 		field := &model.PropertyField{
 			ObjectType: "channel",
-			GroupID:    groupID,
+			GroupID:    group.ID,
 			TargetType: string(model.PropertyFieldTargetLevelChannel),
 			TargetID:   channelInTeam2.Id,
 			Type:       model.PropertyFieldTypeText,
@@ -542,8 +544,8 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("properties in different groups with same name do not conflict", func(t *testing.T) {
-		group1 := model.NewId()
-		group2 := model.NewId()
+		group1 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
+		group2 := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create system-level property in group1
 		th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -568,7 +570,7 @@ func TestCreatePropertyField(t *testing.T) {
 	})
 
 	t.Run("deleted properties do not cause conflicts", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create and delete a system-level property
 		deleted := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -600,7 +602,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	rctx := th.Context
 
 	t.Run("updating non-name fields should not trigger conflict check", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -629,7 +631,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to non-conflicting value should succeed", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -648,7 +650,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to conflicting value at team level should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 
 		// Create a team-level property
@@ -682,7 +684,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating DM channel property to same name as regular channel property should succeed", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel := th.CreateChannel(t, team.Id)
 		dmChannel := th.CreateDMChannel(t)
@@ -716,7 +718,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating name to conflicting value at system level should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 
 		// Create a system-level property
@@ -750,7 +752,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating TargetType that creates conflict should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel1 := th.CreateChannel(t, team.Id)
 		channel2 := th.CreateChannel(t, team.Id)
@@ -789,7 +791,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("updating TargetID that creates conflict should fail", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 		team := th.CreateTeam(t)
 		channel1 := th.CreateChannel(t, team.Id)
 		channel2 := th.CreateChannel(t, team.Id)
@@ -827,7 +829,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("legacy property updates should skip conflict check", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1).ID
 
 		// Create a legacy property (no ObjectType)
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -846,7 +848,7 @@ func TestUpdatePropertyField(t *testing.T) {
 	})
 
 	t.Run("property can be renamed to its own name", func(t *testing.T) {
-		groupID := model.NewId()
+		groupID := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2).ID
 
 		// Create a property
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
@@ -862,5 +864,741 @@ func TestUpdatePropertyField(t *testing.T) {
 		result, err := th.service.UpdatePropertyField(rctx, groupID, field)
 		require.NoError(t, err)
 		assert.Equal(t, "SameName", result.Name)
+	})
+}
+
+func TestLinkedPropertyFields(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	rctx := th.Context
+	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+	// Helper to create a source template field with select options
+	createSourceField := func(t *testing.T, name string) *model.PropertyField {
+		t.Helper()
+		return th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       name,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+					map[string]any{"id": model.NewId(), "name": "Option B"},
+				},
+			},
+		})
+	}
+
+	t.Run("create linked field copies source type and options", func(t *testing.T) {
+		source := createSourceField(t, "Source-"+model.NewId())
+
+		linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText, // will be overwritten
+			LinkedFieldID: &source.ID,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, source.ID, *linked.LinkedFieldID)
+		assert.Equal(t, source.Type, linked.Type)
+
+		// Verify options were copied
+		sourceOpts := source.Attrs[model.PropertyFieldAttributeOptions]
+		linkedOpts := linked.Attrs[model.PropertyFieldAttributeOptions]
+		require.NotNil(t, linkedOpts)
+		assert.Equal(t, sourceOpts, linkedOpts)
+	})
+
+	t.Run("create linked field rejects non-existent source", func(t *testing.T) {
+		fakeID := model.NewId()
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "Linked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &fakeID,
+		})
+		require.Error(t, err)
+	})
+
+	t.Run("create linked field rejects non-template source", func(t *testing.T) {
+		// Create a regular (non-template) field
+		regular := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "RegularSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+		})
+
+		// Try to link to the non-template field — should be rejected
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LinkToRegular-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &regular.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("create linked field rejects chaining", func(t *testing.T) {
+		source := createSourceField(t, "ChainSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChainLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Try to link to the linked field (chain) — rejected because it's not a template
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChainAttempt-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &linked.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("create linked template field is rejected", func(t *testing.T) {
+		source := createSourceField(t, "TemplateLink-"+model.NewId())
+
+		// A template field should not itself be linked to another template
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeTemplate,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "LinkedTemplate-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("create linked field rejects target type mismatch", func(t *testing.T) {
+		source := createSourceField(t, "TTMismatchSource-"+model.NewId())
+
+		// Source has TargetType=system, try to link with TargetType=channel
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelChannel),
+			Name:          "TTMismatch-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "target_type")
+	})
+
+	t.Run("update linked field blocks type change", func(t *testing.T) {
+		source := createSourceField(t, "TypeBlockSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "TypeBlockLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Type = model.PropertyFieldTypeText
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("update linked field blocks options change", func(t *testing.T) {
+		source := createSourceField(t, "OptsBlockSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "OptsBlockLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": model.NewId(), "name": "Different"},
+		}
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("update linked field allows name change", func(t *testing.T) {
+		source := createSourceField(t, "NameChangeSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "NameChangeLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked.Name = "NewName-" + model.NewId()
+		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Equal(t, linked.Name, result.Name)
+	})
+
+	t.Run("update source field propagates options to linked fields", func(t *testing.T) {
+		source := createSourceField(t, "PropagateSource-"+model.NewId())
+
+		linked1 := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "PropLinked1-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		linked2 := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeChannel,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "PropLinked2-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Update source options
+		newOptions := []any{
+			map[string]any{"id": model.NewId(), "name": "New Option 1"},
+			map[string]any{"id": model.NewId(), "name": "New Option 2"},
+			map[string]any{"id": model.NewId(), "name": "New Option 3"},
+		}
+		source.Attrs[model.PropertyFieldAttributeOptions] = newOptions
+
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
+		require.NoError(t, err)
+		require.Len(t, result, 1)     // only the requested source field
+		require.Len(t, propagated, 2) // 2 linked fields
+
+		// Verify linked fields got the new options
+		updatedLinked1, err := th.service.GetPropertyField(rctx, group.ID, linked1.ID)
+		require.NoError(t, err)
+		updatedLinked2, err := th.service.GetPropertyField(rctx, group.ID, linked2.ID)
+		require.NoError(t, err)
+
+		for _, linked := range []*model.PropertyField{updatedLinked1, updatedLinked2} {
+			opts := extractOptionIDs(linked.Attrs[model.PropertyFieldAttributeOptions])
+			expectedOpts := extractOptionIDs(newOptions)
+			assert.Equal(t, expectedOpts, opts)
+		}
+	})
+
+	t.Run("update source field blocks type change when dependents exist", func(t *testing.T) {
+		source := createSourceField(t, "TypeBlockDeps-"+model.NewId())
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DepLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		source.Type = model.PropertyFieldTypeMultiselect
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, source)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("delete source field blocked when linked dependents exist", func(t *testing.T) {
+		source := createSourceField(t, "DeleteBlock-"+model.NewId())
+
+		th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DelDepLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		err := th.service.DeletePropertyField(rctx, group.ID, source.ID)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
+	})
+
+	t.Run("delete source field succeeds after dependents are deleted", func(t *testing.T) {
+		source := createSourceField(t, "DeleteOK-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "DeleteOKLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Delete the linked dependent first
+		err := th.service.DeletePropertyField(rctx, group.ID, linked.ID)
+		require.NoError(t, err)
+
+		// Now delete the source
+		err = th.service.DeletePropertyField(rctx, group.ID, source.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("unlink field preserves type and options", func(t *testing.T) {
+		source := createSourceField(t, "UnlinkSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "UnlinkLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Unlink by clearing LinkedFieldID
+		linked.LinkedFieldID = nil
+		result, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.NoError(t, err)
+		assert.Nil(t, result.LinkedFieldID)
+		assert.Equal(t, source.Type, result.Type)
+
+		// Verify options are preserved after unlinking
+		sourceOpts := extractOptionIDs(source.Attrs[model.PropertyFieldAttributeOptions])
+		resultOpts := extractOptionIDs(result.Attrs[model.PropertyFieldAttributeOptions])
+		require.NotEmpty(t, sourceOpts, "source should have options")
+		assert.Equal(t, sourceOpts, resultOpts, "options should be preserved after unlinking")
+	})
+
+	t.Run("template field value creation is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateValReject-"+model.NewId())
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    group.ID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.CreatePropertyValue(rctx, value)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("template field value upsert is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateUpsertReject-"+model.NewId())
+
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    group.ID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.UpsertPropertyValue(rctx, value)
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+
+	t.Run("update blocks setting LinkedFieldID on non-linked field", func(t *testing.T) {
+		// Create a regular (non-linked) field
+		regular := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeUser,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Name:       "Regular-" + model.NewId(),
+			Type:       model.PropertyFieldTypeSelect,
+		})
+
+		require.Nil(t, regular.LinkedFieldID)
+
+		// Attempt to set LinkedFieldID on update — should be rejected
+		source := createSourceField(t, "LinkAttemptSource-"+model.NewId())
+		regular.LinkedFieldID = &source.ID
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, regular)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "creation time")
+	})
+
+	t.Run("update blocks changing LinkedFieldID to a different source", func(t *testing.T) {
+		source1 := createSourceField(t, "ChangeSource1-"+model.NewId())
+		source2 := createSourceField(t, "ChangeSource2-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "ChangeLink-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source1.ID,
+		})
+
+		// Attempt to change the link target — should be rejected
+		linked.LinkedFieldID = &source2.ID
+		_, err := th.service.UpdatePropertyField(rctx, group.ID, linked)
+		require.Error(t, err)
+		appErr, ok := err.(*model.AppError)
+		require.True(t, ok)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Contains(t, appErr.Error(), "cannot change link target")
+	})
+
+	t.Run("linked CPA field with LinkedFieldID behaves correctly", func(t *testing.T) {
+		source := createSourceField(t, "CPASource-"+model.NewId())
+
+		// Create a CPA-style linked field (user object type)
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CPALinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Verify type and options were inherited
+		assert.Equal(t, source.Type, linked.Type)
+		assert.NotNil(t, linked.LinkedFieldID)
+		assert.Equal(t, source.ID, *linked.LinkedFieldID)
+	})
+
+	t.Run("CPA linked field delete succeeds", func(t *testing.T) {
+		source := createSourceField(t, "CPADelSource-"+model.NewId())
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CPADelLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Deleting the linked field should succeed
+		err := th.service.DeletePropertyField(rctx, group.ID, linked.ID)
+		require.NoError(t, err)
+	})
+
+	t.Run("update source field propagates option removal to linked fields", func(t *testing.T) {
+		optAID := model.NewId()
+		optBID := model.NewId()
+		optCID := model.NewId()
+
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "RemovalSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": optAID, "name": "Option A", "color": "red"},
+					map[string]any{"id": optBID, "name": "Option B", "color": "blue"},
+					map[string]any{"id": optCID, "name": "Option C", "color": "green"},
+				},
+			},
+		})
+
+		linked := th.CreatePropertyField(t, rctx, &model.PropertyField{
+			GroupID:       group.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "RemovalLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+
+		// Remove option B, keep A and C
+		source.Attrs[model.PropertyFieldAttributeOptions] = []any{
+			map[string]any{"id": optAID, "name": "Option A", "color": "red"},
+			map[string]any{"id": optCID, "name": "Option C", "color": "green"},
+		}
+
+		result, propagated, err := th.service.UpdatePropertyFields(rctx, group.ID, []*model.PropertyField{source})
+		require.NoError(t, err)
+		require.Len(t, result, 1)     // only the requested source field
+		require.Len(t, propagated, 1) // 1 linked field
+
+		// Verify the linked field has the updated options (B removed)
+		updatedLinked, err := th.service.GetPropertyField(rctx, group.ID, linked.ID)
+		require.NoError(t, err)
+
+		linkedOptIDs := extractOptionIDs(updatedLinked.Attrs[model.PropertyFieldAttributeOptions])
+		assert.Equal(t, []string{optAID, optCID}, linkedOptIDs, "option B should be removed from linked field")
+
+		// Verify option content (names, colors) was propagated correctly
+		linkedOpts := asOptionSlice(updatedLinked.Attrs)
+		require.Len(t, linkedOpts, 2)
+		assert.Equal(t, "Option A", linkedOpts[0]["name"])
+		assert.Equal(t, "red", linkedOpts[0]["color"])
+		assert.Equal(t, "Option C", linkedOpts[1]["name"])
+		assert.Equal(t, "green", linkedOpts[1]["color"])
+	})
+
+	// FIXME: remove this test once CPA is fully migrated to v2 — template
+	// fields should then only be created on v2 groups.
+	t.Run("template field creation is allowed on v1 group", func(t *testing.T) {
+		v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
+
+		template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:    v1Group.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "V1Template-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "Option A"},
+				},
+			},
+		})
+		require.NoError(t, err)
+		assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+	})
+
+	t.Run("cross-group linking is rejected", func(t *testing.T) {
+		registeredA := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+		registeredB := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
+
+		// Create a template in group A
+		source := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    registeredA.ID,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Type:       model.PropertyFieldTypeSelect,
+			Name:       "CrossGroupSource-" + model.NewId(),
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"id": model.NewId(), "name": "X"},
+					map[string]any{"id": model.NewId(), "name": "Y"},
+				},
+			},
+		})
+
+		// Linking from group B to a template in group A must fail
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+			GroupID:       registeredB.ID,
+			ObjectType:    model.PropertyFieldObjectTypeUser,
+			TargetType:    string(model.PropertyFieldTargetLevelSystem),
+			Name:          "CrossGroupLinked-" + model.NewId(),
+			Type:          model.PropertyFieldTypeText,
+			LinkedFieldID: &source.ID,
+		})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "cross_group")
+	})
+
+	t.Run("update template value is rejected at service layer", func(t *testing.T) {
+		source := createSourceField(t, "TemplateUpdateReject-"+model.NewId())
+
+		// First create a value on a non-template field, then try to update
+		// using template field ID via UpdatePropertyValues
+		value := &model.PropertyValue{
+			TargetID:   model.NewId(),
+			TargetType: "user",
+			GroupID:    group.ID,
+			FieldID:    source.ID,
+			Value:      json.RawMessage(`"some value"`),
+		}
+
+		_, err := th.service.UpdatePropertyValues(rctx, group.ID, []*model.PropertyValue{value})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "template")
+	})
+}
+
+func TestOptionsChanged(t *testing.T) {
+	// attrsFromJSON simulates what arrives over the wire: JSON bytes
+	// deserialized into model.StringInterface, where options become
+	// []interface{} of map[string]interface{}.
+	attrsFromJSON := func(t *testing.T, jsonStr string) model.StringInterface {
+		t.Helper()
+		var attrs model.StringInterface
+		require.NoError(t, json.Unmarshal([]byte(jsonStr), &attrs))
+		return attrs
+	}
+
+	optID1 := model.NewId()
+	optID2 := model.NewId()
+	optID3 := model.NewId()
+
+	t.Run("both nil attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(nil, nil))
+	})
+
+	t.Run("both empty attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(model.StringInterface{}, model.StringInterface{}))
+	})
+
+	t.Run("nil vs empty attrs means no change", func(t *testing.T) {
+		assert.False(t, optionsChanged(nil, model.StringInterface{}))
+		assert.False(t, optionsChanged(model.StringInterface{}, nil))
+	})
+
+	t.Run("nil vs attrs with no options key means no change", func(t *testing.T) {
+		attrs := attrsFromJSON(t, `{"other_key": "value"}`)
+		assert.False(t, optionsChanged(nil, attrs))
+		assert.False(t, optionsChanged(attrs, nil))
+	})
+
+	t.Run("identical options means no change", func(t *testing.T) {
+		raw := `{"options": [{"id": "` + optID1 + `", "name": "A"}, {"id": "` + optID2 + `", "name": "B"}]}`
+		old := attrsFromJSON(t, raw)
+		updated := attrsFromJSON(t, raw)
+		assert.False(t, optionsChanged(old, updated))
+	})
+
+	t.Run("different option count is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+		assert.True(t, optionsChanged(updated, old))
+	})
+
+	t.Run("option replaced with different ID (same count) is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID3+`", "name": "C"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+	})
+
+	t.Run("option name renamed is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A-renamed"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+	})
+
+	t.Run("extra key added to option is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "color": "red"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+	})
+
+	t.Run("extra key removed from option is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "color": "red"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+	})
+
+	t.Run("reordered options with same IDs means no change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}, {"id": "`+optID2+`", "name": "B"}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID2+`", "name": "B"}, {"id": "`+optID1+`", "name": "A"}]}`)
+		assert.False(t, optionsChanged(old, updated))
+	})
+
+	t.Run("no options vs options present is a change", func(t *testing.T) {
+		old := model.StringInterface{}
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+		assert.True(t, optionsChanged(updated, old))
+	})
+
+	t.Run("options null in JSON vs absent means no change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": null}`)
+		updated := model.StringInterface{}
+		assert.False(t, optionsChanged(old, updated))
+		assert.False(t, optionsChanged(updated, old))
+	})
+
+	t.Run("empty options array vs absent is a change", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": []}`)
+		updated := model.StringInterface{}
+		// []any{} has len 0, nil has len 0 — asOptionSlice returns empty vs nil
+		// but len check treats both as 0, so no change detected
+		assert.False(t, optionsChanged(old, updated))
+	})
+
+	t.Run("non-map items in options array are skipped", func(t *testing.T) {
+		// After JSON unmarshal, options are always maps. But if somehow
+		// a non-map sneaks in, asOptionSlice drops it — which changes
+		// the effective count.
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optID1, "name": "A"},
+				"not a map",
+			},
+		}
+		updated := model.StringInterface{
+			model.PropertyFieldAttributeOptions: []any{
+				map[string]any{"id": optID1, "name": "A"},
+			},
+		}
+		// old becomes 1 valid option (non-map dropped), new has 1 — same
+		assert.False(t, optionsChanged(old, updated))
+	})
+
+	t.Run("options value is not a slice means no change vs absent", func(t *testing.T) {
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: "not a slice",
+		}
+		assert.False(t, optionsChanged(old, nil))
+	})
+
+	t.Run("options value is not a slice vs real options is a change", func(t *testing.T) {
+		old := model.StringInterface{
+			model.PropertyFieldAttributeOptions: "not a slice",
+		}
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}]}`)
+		assert.True(t, optionsChanged(old, updated))
+	})
+
+	t.Run("other attrs keys are ignored", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}], "color": "red"}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A"}], "color": "blue"}`)
+		assert.False(t, optionsChanged(old, updated))
+	})
+
+	t.Run("numeric value in option survives JSON round-trip", func(t *testing.T) {
+		// JSON numbers deserialize as float64 — verify DeepEqual handles this
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 1}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 1}]}`)
+		assert.False(t, optionsChanged(old, updated))
+
+		changed := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "sort_order": 2}]}`)
+		assert.True(t, optionsChanged(old, changed))
+	})
+
+	t.Run("boolean value in option survives JSON round-trip", func(t *testing.T) {
+		old := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": false}]}`)
+		updated := attrsFromJSON(t, `{"options": [{"id": "`+optID1+`", "name": "A", "disabled": true}]}`)
+		assert.True(t, optionsChanged(old, updated))
 	})
 }

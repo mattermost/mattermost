@@ -34,9 +34,11 @@ type Props = {
     excludePolicyConstrained?: boolean;
     excludeAccessControlPolicyEnforced?: boolean;
     excludeGroupConstrained?: boolean;
+    excludeDefaultChannels?: boolean;
     excludeTeamIds?: string[];
     excludeTypes?: string[];
     teamId?: string;
+    excludeRemote?: boolean;
     customNoOptionsMessage?: React.ReactNode;
     isStacked?: boolean;
 }
@@ -82,6 +84,12 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
             opts.public = true;
         } else if (wantsPrivate && !wantsPublic) {
             opts.private = true;
+        }
+        if (this.props.excludeDefaultChannels) {
+            opts.exclude_default_channels = true;
+        }
+        if (this.props.excludeRemote) {
+            opts.exclude_remote = true;
         }
         return opts;
     }
@@ -158,7 +166,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     handlePageChange = (page: number, prevPage: number) => {
         if (page > prevPage) {
             this.setChannelsLoadingState(true);
-            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
+            this.props.actions.loadChannels(page, CHANNELS_PER_PAGE + 1, this.props.groupID, this.props.excludeDefaultChannels ?? false, this.props.excludePolicyConstrained, this.props.excludeAccessControlPolicyEnforced).then((response) => {
                 const newState = [...this.state.channels];
                 const stateChannelIDs = this.state.channels.map((stateChannel) => stateChannel.id);
                 (response.data || []).forEach((serverChannel) => {
@@ -259,6 +267,13 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
         }
         if (this.props.excludeTypes) {
             options = options.filter((channel) => this.props.excludeTypes?.indexOf(channel.type) === -1);
+        }
+        if (this.props.excludeDefaultChannels) {
+            // Belt-and-suspenders: the server honors exclude_default_channels on
+            // the sysadmin search path, but the non-admin (team-scoped) path
+            // uses AutocompleteChannelsForTeam which ignores it. Filter by the
+            // canonical default-channel names client-side so both paths agree.
+            options = options.filter((channel) => channel.name !== Constants.DEFAULT_CHANNEL && channel.name !== Constants.OFFTOPIC_CHANNEL);
         }
         const values = this.state.values.map((i): ChannelWithTeamDataValue => ({...i, label: i.display_name, value: i.id}));
 

@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {getBasePath} from 'utils/url';
-import {isDesktopApp} from 'utils/user_agent';
 
 import {POPOUT_FOCUSED, POPOUT_BLURRED, getFocusedPopoutInfo} from './focus';
 import {popoutChannel, popoutThread} from './popout_windows';
@@ -16,7 +17,7 @@ jest.mock('utils/desktop_api', () => ({
     },
 }));
 
-jest.mock('utils/user_agent', () => ({
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 

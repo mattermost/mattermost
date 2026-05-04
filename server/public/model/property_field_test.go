@@ -314,6 +314,51 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.Error(t, pf.IsValid())
 	})
 
+	t.Run("PSAv2 system ObjectType with system TargetType is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			TargetID:   "",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 system ObjectType with team TargetType is invalid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelTeam),
+			TargetID:   NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("PSAv2 system ObjectType with channel TargetType is invalid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			ObjectType: PropertyFieldObjectTypeSystem,
+			TargetType: string(PropertyFieldTargetLevelChannel),
+			TargetID:   NewId(),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
 	t.Run("PSAv2 team TargetType with invalid TargetID is invalid", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),
@@ -500,6 +545,66 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("template object type requires TargetType", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "template field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeTemplate,
+			TargetType: "",
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("template object type with valid TargetType", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "template field",
+			Type:       PropertyFieldTypeSelect,
+			ObjectType: PropertyFieldObjectTypeTemplate,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("valid LinkedFieldID", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("invalid LinkedFieldID format", func(t *testing.T) {
+		invalidID := "not-a-valid-id"
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "linked field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeUser,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &invalidID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
 	t.Run("PSAv1 cannot have protected set", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:        NewId(),
@@ -509,6 +614,51 @@ func TestPropertyField_IsValid(t *testing.T) {
 			Protected: true,
 			CreateAt:  GetMillis(),
 			UpdateAt:  GetMillis(),
+		}
+		require.Error(t, pf.IsValid())
+	})
+
+	t.Run("nil LinkedFieldID is valid", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "regular field",
+			Type:          PropertyFieldTypeText,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: nil,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("empty string LinkedFieldID is valid", func(t *testing.T) {
+		emptyID := ""
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "regular field",
+			Type:          PropertyFieldTypeText,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &emptyID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
+	t.Run("template field with LinkedFieldID is invalid", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			ID:            NewId(),
+			GroupID:       NewId(),
+			Name:          "template field",
+			Type:          PropertyFieldTypeSelect,
+			ObjectType:    PropertyFieldObjectTypeTemplate,
+			TargetType:    string(PropertyFieldTargetLevelSystem),
+			LinkedFieldID: &linkedID,
+			CreateAt:      GetMillis(),
+			UpdateAt:      GetMillis(),
 		}
 		require.Error(t, pf.IsValid())
 	})
@@ -878,6 +1028,60 @@ func TestPropertyField_Patch(t *testing.T) {
 		_, exists := pf.Attrs["remove"]
 		assert.False(t, exists)
 		assert.Len(t, pf.Attrs, 1)
+	})
+
+	t.Run("patch with empty LinkedFieldID clears the link", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			Name:          "test",
+			Type:          PropertyFieldTypeSelect,
+			LinkedFieldID: &linkedID,
+		}
+
+		emptyStr := ""
+		patch := &PropertyFieldPatch{
+			LinkedFieldID: &emptyStr,
+		}
+
+		pf.Patch(patch, false)
+
+		assert.Nil(t, pf.LinkedFieldID)
+	})
+
+	t.Run("patch with nil LinkedFieldID does not change the link", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			Name:          "test",
+			Type:          PropertyFieldTypeSelect,
+			LinkedFieldID: &linkedID,
+		}
+
+		patch := &PropertyFieldPatch{
+			LinkedFieldID: nil,
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.LinkedFieldID)
+		assert.Equal(t, linkedID, *pf.LinkedFieldID)
+	})
+
+	t.Run("patch with same LinkedFieldID is a no-op", func(t *testing.T) {
+		linkedID := NewId()
+		pf := &PropertyField{
+			Name:          "test",
+			Type:          PropertyFieldTypeSelect,
+			LinkedFieldID: &linkedID,
+		}
+
+		patch := &PropertyFieldPatch{
+			LinkedFieldID: &linkedID,
+		}
+
+		pf.Patch(patch, false)
+
+		require.NotNil(t, pf.LinkedFieldID)
+		assert.Equal(t, linkedID, *pf.LinkedFieldID)
 	})
 }
 

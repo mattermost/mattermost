@@ -660,6 +660,43 @@ func TestPermalinkBroadcastHook_AbacFileStripping(t *testing.T) {
 		gotJSON, _ := msg.Get("post").(string)
 		assert.NotContains(t, gotJSON, `"redacted_file_count"`, "no redaction metadata should be present")
 	})
+
+	t.Run("nil session: fail-secure, files stripped from permalink preview", func(t *testing.T) {
+		postJSON := makeOuterPostJSON(t)
+		msg := makeMessage(postJSON)
+
+		// WebConn with no session — cannot evaluate permissions, must strip files.
+		mockSuite := &platform_mocks.SuiteIFace{}
+		mockSuite.On("HasPermissionToReadChannel", mock.Anything, userID, previewChannel).Return(true, true)
+		mockSuite.On("MakeAuditRecord", mock.Anything, mock.Anything, mock.Anything).Return(&model.AuditRecord{})
+		mockSuite.On("LogAuditRec", mock.Anything, mock.Anything, mock.Anything).Return()
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    mockSuite,
+		}
+		// Do NOT call wc.SetSession — session remains nil
+
+		fileID := model.NewId()
+		previewPost := makeRefPost(
+			model.StringArray{fileID},
+			[]*model.FileInfo{{Id: fileID, Name: "doc.pdf", Extension: "pdf"}},
+		)
+
+		err := hook.Process(msg, wc, map[string]any{
+			"preview_channel":          previewChannel,
+			"permalink_previewed_post": previewPost,
+			"preview_prop":             previewPost.PostID,
+		})
+		require.NoError(t, err)
+
+		gotPost := extractPost(t, msg)
+		require.Len(t, gotPost.Metadata.Embeds, 1)
+
+		gotJSON, _ := msg.Get("post").(string)
+		assert.NotContains(t, gotJSON, fileID, "file ID should be stripped when session is nil")
+		assert.Contains(t, gotJSON, `"redacted_file_count":1`, "redacted count should be set when session is nil")
+	})
 }
 
 func TestAbacFilesBroadcastHook_Process(t *testing.T) {
@@ -803,11 +840,11 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		assert.Empty(t, gotPost.FileIds)
 	})
 
-	t.Run("nil session: pass-through, no stripping", func(t *testing.T) {
+	t.Run("nil session: fail-secure, files stripped", func(t *testing.T) {
 		_, postJSON := makePostWithFiles(t, 2)
 		msg := makeMessage(channelID, postJSON)
 
-		// WebConn with no session set
+		// WebConn with no session set — cannot evaluate permissions, must strip files
 		wc := &platform.WebConn{
 			UserId:   userID,
 			Platform: &platform.PlatformService{},
@@ -818,9 +855,9 @@ func TestAbacFilesBroadcastHook_Process(t *testing.T) {
 		require.NoError(t, err)
 
 		gotPost := extractPost(t, msg)
-		assert.Len(t, gotPost.Metadata.Files, 2)
-		assert.Len(t, gotPost.FileIds, 2)
-		assert.Equal(t, 0, gotPost.Metadata.RedactedFileCount)
+		assert.Empty(t, gotPost.Metadata.Files)
+		assert.Empty(t, gotPost.FileIds)
+		assert.Equal(t, 2, gotPost.Metadata.RedactedFileCount)
 	})
 
 	t.Run("missing channel_id arg: returns error", func(t *testing.T) {

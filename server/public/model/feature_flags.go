@@ -89,6 +89,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable classification markings for banners at the system and channel level
+	ClassificationMarkings bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -104,6 +107,9 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// Collect plugin metrics and serve them on the /metrics endpoint
+	AggregatePluginMetrics bool
 
 	// Enable collection of request-provided session attributes (user agent, IP address, etc.).
 	SessionAttributes bool
@@ -145,6 +151,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.AutoTranslation = true
 
+	f.ClassificationMarkings = false
+
 	f.BurnOnRead = true
 
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
@@ -155,6 +163,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.AggregatePluginMetrics = false
 
 	f.SessionAttributes = false
 }

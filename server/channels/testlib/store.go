@@ -41,6 +41,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "PostPriorityConfigDefaultTrueMigrationComplete").Return(&model.System{Name: "PostPriorityConfigDefaultTrueMigrationComplete", Value: "true"}, nil)
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", "managed_category_setup_done").Return(&model.System{Name: "managed_category_setup_done", Value: "true"}, nil)
+	systemStore.On("GetByName", "cpa_display_name_backfill_done").Return(&model.System{Name: "cpa_display_name_backfill_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
@@ -140,30 +141,55 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyFieldStore := mocks.PropertyFieldStore{}
 	propertyValueStore := mocks.PropertyValueStore{}
 
-	propertyGroupStore.On("Register", model.ContentFlaggingGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.ContentFlaggingGroupName}, nil)
-	propertyGroupStore.On("Register", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
-	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(&model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName}, nil)
+	groupsByName := map[string]*model.PropertyGroup{}
 
-	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName}
-	propertyGroupStore.On("Register", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
-	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
-
+	cpaGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1}
+	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
+	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	sessionAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.SessionAttributesPropertyGroupName}
-	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
-	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName}
-	propertyGroupStore.On("Register", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
+	groupsByName[cpaGroup.Name] = cpaGroup
+	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
+	groupsByName[boardsGroup.Name] = boardsGroup
+
+	propertyGroupStore.On("Register", mock.AnythingOfType("*model.PropertyGroup")).Return(
+		func(group *model.PropertyGroup) *model.PropertyGroup {
+			if existing, ok := groupsByName[group.Name]; ok {
+				return existing
+			}
+
+			version := group.Version
+			if version == 0 {
+				version = model.PropertyGroupVersionV1
+			}
+
+			created := &model.PropertyGroup{
+				ID:      model.NewId(),
+				Name:    group.Name,
+				Version: version,
+			}
+			groupsByName[group.Name] = created
+			return created
+		},
+		func(group *model.PropertyGroup) error {
+			return nil
+		},
+	)
+	propertyGroupStore.On("Get", model.CustomProfileAttributesPropertyGroupName).Return(cpaGroup, nil)
+	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
+	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
 
 	propertyFieldStore.On("SearchPropertyFields", mock.Anything).Return([]*model.PropertyField{}, nil)
 	propertyFieldStore.On("CreatePropertyField", mock.Anything).Return(&model.PropertyField{}, nil)
 	propertyFieldStore.On("Create", mock.AnythingOfType("*model.PropertyField")).Return(&model.PropertyField{}, nil)
 
 	managedCategoryField := &model.PropertyField{ID: model.NewId(), GroupID: managedCategoryGroup.ID, Name: model.ManagedCategoryPropertyFieldName}
-	propertyFieldStore.On("GetFieldByName", managedCategoryGroup.ID, "", model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)
+	propertyFieldStore.On("GetFieldByName", mock.Anything, managedCategoryGroup.ID, "", model.ManagedCategoryPropertyFieldName).Return(managedCategoryField, nil)
 
 	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
-	propertyFieldStore.On("GetFieldByName", boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
+	propertyFieldStore.On("GetFieldByName", mock.Anything, boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
+	propertyFieldStore.On("GetFieldByName", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 
 	for _, name := range []string{
 		model.SessionAttributesPropertyFieldUserAgentPlatform,

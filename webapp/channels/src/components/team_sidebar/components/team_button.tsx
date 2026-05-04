@@ -9,9 +9,9 @@ import {Link} from 'react-router-dom';
 
 import {mark} from 'actions/telemetry_actions';
 
+import {ShortcutKeys} from 'components/shortcut_key';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 
@@ -19,6 +19,10 @@ const messages = defineMessages({
     nameUndefined: {
         id: 'team.button.name_undefined',
         defaultMessage: 'This team does not have a name',
+    },
+    urgentMentionTooltip: {
+        id: 'channel_mention_badge.urgent_tooltip',
+        defaultMessage: 'You have an urgent mention',
     },
 });
 
@@ -107,7 +111,14 @@ export default function TeamButton({
         }
 
         if (mentions && isNotCreateTeamButton) {
-            ariaLabel = formatMessage({
+            ariaLabel = otherProps.hasUrgent ? formatMessage({
+                id: 'team.button.mentions.urgent.ariaLabel',
+                defaultMessage: '{teamName} team, {mentionCount} mentions, including an urgent mention',
+            },
+            {
+                teamName: displayName,
+                mentionCount: mentions,
+            }) : formatMessage({
                 id: 'team.button.mentions.ariaLabel',
                 defaultMessage: '{teamName} team, {mentionCount} mentions',
             },
@@ -116,7 +127,7 @@ export default function TeamButton({
                 mentionCount: mentions,
             });
 
-            badge = (
+            const mentionBadge = (
                 <span
                     data-testid={'team-badge-' + teamId}
                     className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}
@@ -124,6 +135,12 @@ export default function TeamButton({
                     {mentions > 99 ? '99+' : mentions}
                 </span>
             );
+
+            badge = otherProps.hasUrgent ? (
+                <WithTooltip title={messages.urgentMentionTooltip}>
+                    {mentionBadge}
+                </WithTooltip>
+            ) : mentionBadge;
         }
     }
 

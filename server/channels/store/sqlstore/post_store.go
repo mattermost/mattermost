@@ -3236,6 +3236,20 @@ func (s *SqlPostStore) GetPostReminders(now int64) ([]*model.PostReminder, error
 	return reminders, nil
 }
 
+func (s *SqlPostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+	reminders := []*model.PostReminder{}
+	err := s.GetMaster().Select(&reminders, `SELECT PostId, UserId, TargetTime FROM PostReminders WHERE PostId = $1`, postId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("PostUd", postId)
+		}
+
+		return nil, errors.Wrap(err, "failed to get post reminders")
+	}
+
+	return reminders, nil
+}
+
 func (s *SqlPostStore) DeleteAllPostRemindersForPost(postId string) error {
 	_, err := s.GetMaster().Exec(`DELETE from PostReminders WHERE PostId = ?`, postId)
 	if err != nil {

@@ -1901,6 +1901,13 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 		a.Srv().Store().FileInfo().InvalidateFileInfosForPostCache(postID, false)
 	}
 
+	if post.RootId == "" {
+		appErr = a.DeletePersistentNotification(rctx, post)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
@@ -2678,18 +2685,27 @@ func (a *App) populateEditHistoryFileMetadata(editHistoryPosts []*model.Post) *m
 }
 
 func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTime int64) *model.AppError {
-	// Store the reminder in the DB
+	remindedPost, postErr := a.GetSinglePost(rctx, postID, false)
+	if postErr != nil {
+		return postErr
+	}
+	// Ephemeral ack must use the thread root so CRT/RHS thread views (keyed by root id) show the confirmation.
+	ephemeralRootID := remindedPost.Id
+	if remindedPost.RootId != "" {
+		ephemeralRootID = remindedPost.RootId
+	}
+
+	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	if err != nil {
+		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	reminder := &model.PostReminder{
 		PostId:     postID,
 		UserId:     userID,
 		TargetTime: targetTime,
 	}
-	err := a.Srv().Store().Post().SetPostReminder(reminder)
-	if err != nil {
-		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	metadata, err := a.Srv().Store().Post().GetPostReminderMetadata(postID)
+	err = a.Srv().Store().Post().SetPostReminder(reminder)
 	if err != nil {
 		return model.NewAppError("SetPostReminder", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -2710,7 +2726,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 		Id:        model.NewId(),
 		CreateAt:  model.GetMillis(),
 		UserId:    userID,
-		RootId:    postID,
+		RootId:    ephemeralRootID,
 		ChannelId: metadata.ChannelID,
 		// It's okay to keep this non-translated. This is just a fallback.
 		// The webapp will parse the timestamp and show that in user's local timezone.
@@ -3137,7 +3153,7 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	}
 
 	if postHasFiles {
-		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id)
+		appErr := a.PermanentDeleteFilesByPost(rctx, post.Id, nil)
 		if appErr != nil {
 			return appErr
 		}
@@ -3146,6 +3162,12 @@ func (a *App) PermanentDeletePost(rctx request.CTX, postID, deleteByID string) *
 	err = a.Srv().Store().Post().PermanentDelete(rctx, post.Id)
 	if err != nil {
 		return model.NewAppError("PermanentDeletePost", "app.post.permanent_delete_post.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if post.RootId == "" {
+		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
+			return appErr
+		}
 	}
 
 	appErr := a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
@@ -3160,12 +3182,6 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 	channel, appErr := a.GetChannel(rctx, post.ChannelId)
 	if appErr != nil {
 		return appErr
-	}
-
-	if post.RootId == "" {
-		if appErr := a.DeletePersistentNotification(rctx, post); appErr != nil {
-			return appErr
-		}
 	}
 
 	postJSON, err := json.Marshal(post)
@@ -3912,7 +3928,8 @@ func (a *App) BurnPost(rctx request.CTX, post *model.Post, userID string, connec
 
 	// If user is the author, permanently delete the post
 	if post.UserId == userID {
-		return a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		_, appErr := a.PermanentDeletePostDataRetainStub(rctx, post, userID)
+		return appErr
 	}
 
 	// If not the author, check read receipt

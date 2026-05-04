@@ -82,7 +82,6 @@ import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
-import useOrientationHandler from './use_orientation_handler';
 import usePluginItems from './use_plugin_items';
 import usePriority from './use_priority';
 import useRewrite from './use_rewrite';
@@ -312,7 +311,6 @@ const AdvancedTextEditor = ({
         }]));
     }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
-    useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
     const {
