@@ -14,6 +14,7 @@ const Preferences = {
     CATEGORY_NOTIFICATIONS: 'notifications',
     COLLAPSED_REPLY_THREADS: 'collapsed_reply_threads',
     WYSIWYG_EDITOR: 'wysiwyg_editor',
+    WYSIWYG_EDITOR_DEFAULT: 'false',
     COLLAPSED_REPLY_THREADS_OFF: 'off',
     COLLAPSED_REPLY_THREADS_ON: 'on',
     COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT: 'off',

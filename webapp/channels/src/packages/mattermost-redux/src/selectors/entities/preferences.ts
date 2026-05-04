@@ -339,7 +339,7 @@ export function getWysiwygEditorPreference(state: GlobalState): boolean {
     if (!featureEnabled) {
         return false;
     }
-    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.WYSIWYG_EDITOR, true);
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.WYSIWYG_EDITOR, Preferences.WYSIWYG_EDITOR_DEFAULT === 'true');
 }
 
 export const getOverageBannerPreferences = makeGetCategory('getOverageBannerPreferences', Preferences.CATEGORY_OVERAGE_USERS_BANNER);
