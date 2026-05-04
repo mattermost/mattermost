@@ -32,11 +32,6 @@ describe('Autocomplete without Elasticsearch - Renaming', () => {
         });
     });
 
-    beforeEach(() => {
-        // Force the legacy <textarea> composer (see cy.apiRequireLegacyEditor).
-        cy.apiRequireLegacyEditor();
-    });
-
     it('renamed user appears in message input box', () => {
         const spiderman = {
             username: withTimestamp('spiderman', timestamp),

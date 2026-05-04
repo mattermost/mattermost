@@ -34,12 +34,6 @@ describe('Messaging', () => {
     before(() => {
         let offTopicUrl;
         cy.apiInitSetup().then(({team, user}) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             testTeam = team;
             testUser = user;
             offTopicUrl = `/${team.name}/channels/off-topic`;

@@ -34,12 +34,6 @@ describe('MM-23102 - Channel Moderation - Create Posts', () => {
         cy.apiRequireLicense();
 
         cy.apiInitSetup().then(({team, channel, user}) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             regularUser = user;
             testTeam = team;
             testChannel = channel;

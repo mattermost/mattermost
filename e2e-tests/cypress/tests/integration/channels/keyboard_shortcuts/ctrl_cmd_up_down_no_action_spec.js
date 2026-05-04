@@ -15,12 +15,6 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 describe('Keyboard Shortcuts', () => {
     before(() => {
         cy.apiInitSetup({loginAfter: true}).then(({channelUrl}) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             // # Visit test channel
             cy.visit(channelUrl);
         });

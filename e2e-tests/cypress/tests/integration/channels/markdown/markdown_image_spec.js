@@ -24,12 +24,6 @@ describe('Markdown', () => {
 
         // # Login as new user, create new team and off-topic
         cy.apiInitSetup({loginAfter: true}).then(({offTopicUrl}) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             cy.visit(offTopicUrl);
         });
     });

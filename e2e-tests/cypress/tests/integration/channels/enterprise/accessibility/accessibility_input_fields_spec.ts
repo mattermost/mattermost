@@ -24,12 +24,6 @@ describe('Verify Accessibility Support in different input fields', () => {
         cy.apiRequireLicenseForFeature('GuestAccounts');
 
         cy.apiInitSetup().then(({team}) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             testTeam = team;
         });
     });

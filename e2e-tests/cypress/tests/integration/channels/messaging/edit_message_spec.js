@@ -18,12 +18,6 @@ describe('Edit Message', () => {
     before(() => {
         // # Login as test user
         cy.apiInitSetup({loginAfter: true}).then((out) => {
-            // Force the legacy <textarea> composer (Textbox). This spec
-            // asserts behavior (native :focused/:disabled, selectionStart/End,
-            // formatting bar layout, etc.) that does not apply to the WYSIWYG
-            // editor, which is the default user preference now.
-            cy.apiRequireLegacyEditor();
-
             offTopicUrl = out.offTopicUrl;
         });
     });
