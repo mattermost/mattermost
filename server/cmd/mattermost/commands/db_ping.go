@@ -138,10 +138,11 @@ func pingWithRetry(ctx context.Context, db *dbsql.DB, retryInterval time.Duratio
 		}
 
 		// Surface progress on every attempt so operators can see the probe is alive.
+		// Intentionally omit the raw error: lib/pq error strings can echo DSN fragments.
 		logger.Info("Waiting for database",
 			mlog.Int("attempt", attempt),
 			mlog.Duration("retry_interval", retryInterval),
-			mlog.Err(err),
+			mlog.String("status", "ping_failed"),
 		)
 
 		// Wait retryInterval, but bail early if ctx is done.
