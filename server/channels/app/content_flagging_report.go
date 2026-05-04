@@ -409,7 +409,7 @@ func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, fla
 	}
 
 	message := fmt.Sprintf("@%s generated a report for the quarantined message.", generator.Username)
-	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID); appErr != nil {
+	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, ""); appErr != nil {
 		rctx.Logger().Warn("Failed to post report generation notification to reviewers", mlog.String("flagged_post_id", flaggedPostID), mlog.Err(appErr))
 	}
 }

@@ -126,17 +126,20 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Setting AllowOpenInvite or AllowedDomains requires PermissionInviteUser, matching updateTeam/patchTeam.
+	if (team.AllowOpenInvite || team.AllowedDomains != "") && !creatorCanInviteUsersOnTeam(c, &team) {
+		c.SetPermissionError(model.PermissionInviteUser)
+		return
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(c.AppContext, &team, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
-	// instead check the scheme roles for the team and if the user has the permission to invite users
-	_, schemeUserRole, schemeAdminRole, schemeErr := c.App.GetSchemeRolesForTeam(rteam.Id)
-	if schemeErr != nil || !c.App.RolesGrantPermission([]string{schemeUserRole, schemeAdminRole}, model.PermissionInviteUser.Id) {
-		// If we can't check permissions, fail secure by hiding the invite_id because the team is already created above
+	// The creator's session doesn't yet reflect their team_admin role, so check the team's default roles directly.
+	if !creatorCanInviteUsersOnTeam(c, rteam) {
 		rteam.InviteId = ""
 	}
 
@@ -148,6 +151,29 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(rteam); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// creatorCanInviteUsersOnTeam checks whether the creator will have PermissionInviteUser on the new team,
+// using the team's scheme (if any) or the built-in team roles as defaults.
+func creatorCanInviteUsersOnTeam(c *Context, team *model.Team) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionInviteUser) {
+		return true
+	}
+
+	if team.SchemeId != nil && *team.SchemeId != "" {
+		scheme, appErr := c.App.GetScheme(*team.SchemeId)
+		if appErr != nil {
+			c.Logger.Warn("Failed to fetch scheme while checking invite permission for new team",
+				mlog.String("scheme_id", *team.SchemeId),
+				mlog.Err(appErr),
+			)
+			return false
+		}
+
+		return c.App.RolesGrantPermission([]string{scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole}, model.PermissionInviteUser.Id)
+	}
+
+	return c.App.RolesGrantPermission([]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionInviteUser.Id)
 }
 
 func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
