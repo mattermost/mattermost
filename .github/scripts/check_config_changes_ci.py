@@ -42,6 +42,10 @@ HEADERS  = {
     "Accept":        "application/vnd.github.v3+json",
 }
  
+# Timeout for all GitHub API requests: (connect seconds, read seconds).
+# Prevents the workflow from hanging indefinitely on a slow/unresponsive API.
+_TIMEOUT = (5, 30)
+ 
 # Paths watched by this script (must align with `paths:` in the workflow YAML)
 WATCHED_PATHS = [
     "server/public/model/config.go",
@@ -63,6 +67,16 @@ class CheckResult:
  
     def has_findings(self) -> bool:
         return bool(self.additions or self.removals or self.changes)
+ 
+    def to_markdown(self) -> str:
+        lines = [f"### {self.label}"]
+        if self.additions:
+            lines.append("**Added:** "   + ", ".join(self.additions))
+        if self.removals:
+            lines.append("**Removed:** " + ", ".join(self.removals))
+        for change in self.changes:
+            lines.append(change)
+        return "\n".join(lines)
  
  
 # ── Diff helpers ───────────────────────────────────────────────────────────────
@@ -184,38 +198,35 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # ── Checker 2 — api4/ ─────────────────────────────────────────────────────────
  
 # Matches Handle() route registrations after whitespace-collapsing the source.
-# Tolerates whitespace inside the call (the collapse leaves single spaces
-# between tokens) and supports wrappers with extra arguments. The handler is
-# captured as the first identifier inside the wrapper call.
+# Whitespace collapse makes multi-line declarations single-searchable.
 # Group 1: path   Group 2: handler func   Group 3: raw Methods(...) content
+#
+# The wrapper pattern uses [^)]* so it tolerates any middleware arguments
+# (e.g. r.APIHandler(...), r.ApiSessionRequired(..., isLocal=true), etc.)
+# without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
-    r'\.Handle\(\s*"([^"]*)"\s*,'        # path
-    r'\s*\w+\.\w+\(\s*(\w+)[^)]*\)\s*\)' # wrapper(handler[, ...])
-    r'\s*\.Methods\(([^)]+)\)'           # .Methods(...) — caller filters via _HTTP_METHODS
+    r'\.Handle\("([^"]*)"'          # path
+    r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
+    r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
  
-# Known HTTP verbs — used to filter out stray identifiers that aren't methods
-# (e.g. tokens that slip in from comments after whitespace-collapse).
+_METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
- 
-_METHOD_RE = re.compile(r'(?:http\.Method)?(\w+)')
  
  
 def _parse_methods(raw: str) -> list[str]:
+    """Split raw Methods(...) content into individual uppercase HTTP verbs.
+ 
+    Filters against the set of known HTTP methods so that incidental
+    identifiers (handler names, constants, etc.) that happen to appear
+    inside Methods(...) don't produce spurious results.
     """
-    Split raw Methods(...) content into individual uppercase HTTP verbs.
-    Filters against _HTTP_METHODS so unrelated identifiers cannot be mistaken
-    for HTTP methods.
-    """
-    methods: list[str] = []
-    for token in raw.split(","):
-        m = _METHOD_RE.search(token.strip())
-        if not m:
-            continue
-        verb = m.group(1).upper()
-        if verb in _HTTP_METHODS:
-            methods.append(verb)
-    return methods
+    return [
+        verb
+        for token in raw.split(",")
+        if (m := _METHOD_RE.search(token.strip()))
+        and (verb := m.group(1).upper()) in _HTTP_METHODS
+    ]
  
  
 def _format_endpoint(path: str, handler: str, method: str) -> str:
@@ -354,10 +365,9 @@ _AUTO_LINE_RE = re.compile(
     r"|^🗑️  Removed API file:"
 )
  
-# Matches "I have nothing to put here" placeholders that PR templates seed
-# inside the ```release-note fence. When real auto-detected entries are about
-# to be injected, these are replaced rather than left to sit alongside the
-# generated lines.
+# Matches placeholder content inside a release-note fence that means "nothing
+# to report yet" (e.g. NONE, N/A, ---).  When detected, we replace the
+# placeholder rather than appending alongside it.
 _PLACEHOLDER_RE = re.compile(r"^\s*(?:NONE|N/?A|-+)\s*$", re.IGNORECASE)
  
  
@@ -386,6 +396,7 @@ def _format_lines(result: CheckResult) -> list[str]:
  
     elif "Go Runtime" in result.label:
         for item in result.additions:
+            # item is e.g. "`1.22`" — strip backticks for the prose form
             lines.append(f"Go runtime set to {item}.")
         for c in result.changes:
             # c arrives as "Go updated: `1.21` → `1.22`" — rewrite it
@@ -409,15 +420,15 @@ def build_pr_note(results: list[CheckResult]) -> str:
  
 def strip_old_note(body: str) -> str:
     """
-    Remove previously auto-generated lines so we can re-inject a fresh set.
-    Lines are identified by pattern (_AUTO_LINE_RE) rather than visible markers.
+    Remove previously auto-generated lines from the PR description.
  
-    Cleans both INSIDE the ```release-note fence (the preferred location) and
-    OUTSIDE it (the fallback locations used when no fence exists), so reruns
-    never accumulate duplicates regardless of where notes landed.
+    Primary path  — lines inside the ```release-note ... ``` fence.
+    Fallback path — auto-generated lines that were appended outside any fence
+                    (e.g. via the ## Release Notes section on earlier runs).
+ 
+    Lines are identified by pattern rather than visible markers, so the PR
+    description stays clean for human readers.
     """
-    body = body or ""
- 
     def _clean_fence(m: re.Match) -> str:
         open_tag, content, close_tag = m.group(1), m.group(2), m.group(3)
         cleaned_lines = [
@@ -426,19 +437,20 @@ def strip_old_note(body: str) -> str:
         ]
         return open_tag + "\n".join(cleaned_lines) + close_tag
  
-    body = re.sub(
+    cleaned = re.sub(
         r"(```release-note)(.*?)(```)",
         _clean_fence,
-        body,
+        body or "",
         flags=re.DOTALL | re.IGNORECASE,
     )
  
-    # Strip stray auto-lines that ended up outside any fence (fallback paths).
-    body = "\n".join(
-        line for line in body.split("\n")
+    # Fallback: strip any auto-generated lines that appear outside a fence
+    # (written by an older version of this script or via the header-inject path).
+    cleaned_lines = [
+        line for line in cleaned.splitlines()
         if not _AUTO_LINE_RE.match(line.strip())
-    )
-    return body.rstrip()
+    ]
+    return "\n".join(cleaned_lines).rstrip()
  
  
 def inject_note(body: str, note: str) -> str:
@@ -454,32 +466,31 @@ def inject_note(body: str, note: str) -> str:
     if not note:
         return body
  
-    # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence
+    # 1. Mattermost-style ```release-note ... ``` block — inject INSIDE the fence.
+    #    If the fence currently contains only a placeholder (NONE / N/A / ---),
+    #    replace the placeholder rather than appending alongside it.
     release_note_block = re.search(
         r"(```release-note)(.*?)(```)",
         body,
         flags=re.DOTALL | re.IGNORECASE,
     )
     if release_note_block:
-        open_tag = release_note_block.group(1)
-        content  = release_note_block.group(2)
-        close_tag = release_note_block.group(3)
+        open_tag   = release_note_block.group(1)
+        content    = release_note_block.group(2)   # everything between the fences
+        close_tag  = release_note_block.group(3)
+        block_start = release_note_block.start()
+        block_end   = release_note_block.end()
  
-        # If the existing fence content is empty or only contains template
-        # placeholders (e.g. "NONE"), replace it entirely so our entries
-        # don't sit alongside an inert "NONE". User-written content is
-        # preserved by appending instead.
-        non_blank = [ln for ln in content.split("\n") if ln.strip()]
-        if not non_blank or all(_PLACEHOLDER_RE.match(ln) for ln in non_blank):
-            new_content = "\n" + note + "\n"
+        # Strip leading/trailing newlines inside the fence for comparison
+        inner = content.strip()
+        if _PLACEHOLDER_RE.match(inner):
+            # Replace the entire fence with a fresh one
+            new_block = f"{open_tag}\n{note}\n{close_tag}"
         else:
-            new_content = content.rstrip("\n") + "\n" + note + "\n"
+            # Append before the closing fence
+            new_block = open_tag + content + note + "\n" + close_tag
  
-        return (
-            body[:release_note_block.start()]
-            + open_tag + new_content + close_tag
-            + body[release_note_block.end():]
-        )
+        return body[:block_start] + new_block + body[block_end:]
  
     # 2. Markdown section headers
     for header in ["## Release Notes", "## Changelog", "## What Changed", "## What's Changed"]:
@@ -494,7 +505,11 @@ def inject_note(body: str, note: str) -> str:
 # ── GitHub API ─────────────────────────────────────────────────────────────────
  
 def get_pr_body() -> str:
-    r = requests.get(f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}", headers=HEADERS)
+    r = requests.get(
+        f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
+        headers=HEADERS,
+        timeout=_TIMEOUT,
+    )
     r.raise_for_status()
     return r.json().get("body") or ""
  
@@ -504,6 +519,7 @@ def update_pr_body(new_body: str) -> None:
         f"{BASE_URL}/repos/{REPO}/pulls/{PR_NUMBER}",
         headers=HEADERS,
         json={"body": new_body},
+        timeout=_TIMEOUT,
     )
     r.raise_for_status()
  
@@ -551,9 +567,11 @@ def main():
     print("\n🔄 Fetching PR description …")
     body = get_pr_body()
     new_body = inject_note(body, note)
+ 
     if new_body == body:
-        print("ℹ️  PR description already up to date — no PATCH needed.")
+        print("ℹ️  PR description already up to date — no changes needed.")
         return
+ 
     update_pr_body(new_body)
     print(f"✅ PR #{PR_NUMBER} description updated.")
  
