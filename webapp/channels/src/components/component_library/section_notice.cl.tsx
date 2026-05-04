@@ -8,7 +8,7 @@ import React, {useCallback, useState} from 'react';
 
 import SectionNotice from 'components/section_notice';
 
-import {useBooleanProp, useComponentWithProps, useDropdownProp, useStringProp} from './hooks';
+import {useBooleanProp, useComponentWithProps, useDropdownProp, usePropSelectors, useStringProp} from './hooks';
 
 import './component_library.scss';
 
@@ -27,10 +27,10 @@ type Props = {
 const SectionNoticeComponentLibrary = ({
     backgroundClass,
 }: Props) => {
-    const [text, textSelector] = useStringProp('text', 'Some text', true);
-    const [title, titleSelector] = useStringProp('title', 'Some text', false);
-    const [dismissable, dismissableSelector] = useBooleanProp('isDismissable', true);
-    const [sectionType, sectionTypePosibilities, sectionTypeSelector] = useDropdownProp('type', 'danger', sectionTypeValues, true);
+    const textProp = useStringProp('text', 'Some text', true);
+    const titleProp = useStringProp('title', 'Some text', false);
+    const dismissableProp = useBooleanProp('isDismissable', true);
+    const sectionTypeProp = useDropdownProp('type', 'danger', sectionTypeValues, true);
 
     const [showPrimaryButton, setShowPrimaryButton] = useState(false);
     const onChangePrimaryButton = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setShowPrimaryButton(e.target.checked), []);
@@ -44,12 +44,11 @@ const SectionNoticeComponentLibrary = ({
     const components = useComponentWithProps(
         SectionNotice,
         propPossibilities,
-        [sectionTypePosibilities],
         [
-            text,
-            title,
-            dismissable,
-            sectionType,
+            textProp,
+            titleProp,
+            dismissableProp,
+            sectionTypeProp,
             showPrimaryButton ? primaryButton : undefined,
             showSecondaryButton ? secondaryButton : undefined,
             showLinkButton ? linkButton : undefined,
@@ -57,12 +56,16 @@ const SectionNoticeComponentLibrary = ({
         ],
     );
 
+    const selectors = usePropSelectors([
+        textProp,
+        titleProp,
+        dismissableProp,
+        sectionTypeProp,
+    ]);
+
     return (
         <>
-            {textSelector}
-            {titleSelector}
-            {dismissableSelector}
-            {sectionTypeSelector}
+            {selectors}
             <label className='clInput'>
                 {'Show primary button: '}
                 <input

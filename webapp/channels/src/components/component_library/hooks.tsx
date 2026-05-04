@@ -114,12 +114,28 @@ export const useDropdownProp = (
     return [preparedProp, preparedPossibilities, selector];
 };
 
+type PropResult = HookResult<any> | DropdownHookResult | {[x: string]: unknown} | undefined;
+
 export const useComponentWithProps = (
     Component: React.ComponentType<any>,
     propPossibilities: {[x: string]: any[]},
-    dropdownPossibilities: Array<{[x: string]: string[]} | undefined>,
-    setProps: Array<{[x: string]: any} | undefined>,
+    propsArray: PropResult[],
 ): React.ReactNode[] => {
+    const dropdownPossibilities = useMemo(
+        () => propsArray.filter(isDropdownHookResult).map((r) => r[1]),
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [...propsArray],
+    );
+    const setProps = useMemo(
+        () => propsArray.map((r) => {
+            return Array.isArray(r) ? r[0] : r;
+        }),
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [...propsArray],
+    );
+
     return useMemo(
         () => buildComponent(Component, propPossibilities, dropdownPossibilities, setProps),
 
@@ -127,3 +143,24 @@ export const useComponentWithProps = (
         [Component, ...Object.values(propPossibilities), ...dropdownPossibilities, ...setProps],
     );
 };
+
+export const usePropSelectors = (
+    propsArray: PropResult[],
+) => {
+    return useMemo(
+        () => propsArray.flatMap((r) => {
+            if (!Array.isArray(r)) {
+                return [];
+            }
+
+            return isDropdownHookResult(r) ? r[2] : r[1];
+        }).map((r, index) => React.cloneElement(r, {key: index})),
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        propsArray,
+    );
+};
+
+function isDropdownHookResult(o: PropResult): o is DropdownHookResult {
+    return Array.isArray(o) && o.length === 3;
+}

@@ -7,7 +7,7 @@ import React, {useMemo} from 'react';
 import glyphMap from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import {useBooleanProp, useComponentWithProps, useDropdownProp, useStringProp} from './hooks';
+import {useBooleanProp, useComponentWithProps, useDropdownProp, usePropSelectors, useStringProp} from './hooks';
 
 const propPossibilities = {};
 
@@ -22,57 +22,56 @@ type Props = {
 };
 
 export default function ButtonComponentLibrary({backgroundClass}: Props) {
-    const [label, labelSelector] = useStringProp('label', 'Label', false);
+    const labelProp = useStringProp('label', 'Label', false);
 
     const [leadingIcon, leadingIconPossibilities, leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
     const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
 
-    const [emphasis, emphasisPossibilities, emphasisSelector] = useDropdownProp('emphasis', 'primary', emphasisValues, true);
-    const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'md', sizeValues, true);
-    const [variant, variantPossibilities, variantSelector] = useDropdownProp('variant', '', variantValues, true);
+    const emphasisProp = useDropdownProp('emphasis', 'primary', emphasisValues, true);
+    const sizeProp = useDropdownProp('size', 'md', sizeValues, true);
+    const variantProp = useDropdownProp('variant', '', variantValues, true);
 
-    const [disabled, disabledSelector] = useBooleanProp('disabled', false);
+    const disabledProp = useBooleanProp('disabled', false);
 
     const children = useMemo(() => ({
         children: (
             <>
-                {leadingIcon?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIcon.leadingIcon}`)}/> : null}
-                {label.label}
-                {trailingIcon?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIcon.trailingIcon}`)}/> : null}
+                {leadingIconProp[0]?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIconProp[0]?.leadingIcon}`)}/> : null}
+                {labelProp[0]?.label}
+                {trailingIconProp[0]?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIconProp[0]?.trailingIcon}`)}/> : null}
             </>
         ),
-    }), [label, leadingIcon, trailingIcon]);
+    }), [labelProp, leadingIconProp, trailingIconProp]);
 
     const components = useComponentWithProps(
         Button,
         propPossibilities,
         [
-            emphasisPossibilities,
-            leadingIconPossibilities,
-            sizePossibilities,
-            trailingIconPossibilities,
-            variantPossibilities,
-        ],
-        [
             children,
-            emphasis,
-            size,
-            variant,
-            disabled,
+            emphasisProp,
+            sizeProp,
+            variantProp,
+            disabledProp,
         ],
     );
 
+    const selectors = usePropSelectors([
+        labelProp,
+        leadingIconProp,
+        trailingIconProp,
+
+        // <hr key='first-selector'/>,
+        emphasisProp,
+        sizeProp,
+        variantProp,
+
+        // <hr key='second-selector'/>,
+        disabledProp,
+    ]);
+
     return (
         <>
-            {labelSelector}
-            {leadingIconSelector}
-            {trailingIconSelector}
-            <hr/>
-            {emphasisSelector}
-            {sizeSelector}
-            {variantSelector}
-            <hr/>
-            {disabledSelector}
+            {selectors}
             <div className={classNames('clWrapper', backgroundClass)}>{components}</div>
             <ButtonGrid/>
         </>
