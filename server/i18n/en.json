@@ -6055,6 +6055,160 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
+    "id": "app.data_spillage.report.cleared",
+    "translation": "Cleared"
+  },
+  {
+    "id": "app.data_spillage.report.column.detail",
+    "translation": "Detail"
+  },
+  {
+    "id": "app.data_spillage.report.column.status",
+    "translation": "Status"
+  },
+  {
+    "id": "app.data_spillage.report.column.step",
+    "translation": "Step"
+  },
+  {
+    "id": "app.data_spillage.report.detail.deleted",
+    "translation": "Deleted."
+  },
+  {
+    "id": "app.data_spillage.report.detail.failed_retrieve_edit_history",
+    "translation": "Failed to retrieve edit history."
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_attachments_info_ids",
+    "translation": "**File Info IDs:** {{.FileInfoIDs}}"
+  },
+  {
+    "id": "app.data_spillage.report.detail.file_names",
+    "translation": {
+      "one": "Removed {{.Count}} file from disk.",
+      "other": "Removed {{.Count}} files from disk."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_data_found",
+    "translation": "No data found."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_files",
+    "translation": "No files found."
+  },
+  {
+    "id": "app.data_spillage.report.detail.no_rows_to_delete",
+    "translation": "No rows to delete."
+  },
+  {
+    "id": "app.data_spillage.report.detail.post_scrubbed_deleted",
+    "translation": "Post scrubbed and deleted."
+  },
+  {
+    "id": "app.data_spillage.report.detail.revisions_cleared",
+    "translation": {
+      "one": "Cleared {{.Count}} revision of {{.Total}}.",
+      "other": "Cleared {{.Count}} revisions of {{.Total}}."
+    }
+  },
+  {
+    "id": "app.data_spillage.report.detail.thread_data_deleted",
+    "translation": "Threads, reactions, and associated data deleted."
+  },
+  {
+    "id": "app.data_spillage.report.error_log",
+    "translation": "Error Log"
+  },
+  {
+    "id": "app.data_spillage.report.generated",
+    "translation": "Generated:"
+  },
+  {
+    "id": "app.data_spillage.report.incomplete_warning",
+    "translation": "Post deletion incomplete. Review the Error Log and escalate to a System Administrator for manual remediation."
+  },
+  {
+    "id": "app.data_spillage.report.post_id",
+    "translation": "Post ID:"
+  },
+  {
+    "id": "app.data_spillage.report.revision",
+    "translation": "Revision"
+  },
+  {
+    "id": "app.data_spillage.report.revisions_found",
+    "translation": "Revisions found:"
+  },
+  {
+    "id": "app.data_spillage.report.status.failed",
+    "translation": "Failed"
+  },
+  {
+    "id": "app.data_spillage.report.status.not_applicable",
+    "translation": "Not applicable"
+  },
+  {
+    "id": "app.data_spillage.report.status.partial",
+    "translation": "Partial"
+  },
+  {
+    "id": "app.data_spillage.report.status.removed",
+    "translation": "Removed"
+  },
+  {
+    "id": "app.data_spillage.report.status.unknown",
+    "translation": "Unknown"
+  },
+  {
+    "id": "app.data_spillage.report.step.acknowledgements",
+    "translation": "Acknowledgements"
+  },
+  {
+    "id": "app.data_spillage.report.step.edit_histories",
+    "translation": "Edit history"
+  },
+  {
+    "id": "app.data_spillage.report.step.file_attachments",
+    "translation": "File attachments"
+  },
+  {
+    "id": "app.data_spillage.report.step.fileinfo_rows",
+    "translation": "File attachment records"
+  },
+  {
+    "id": "app.data_spillage.report.step.persistent_notifications",
+    "translation": "Persistent notifications"
+  },
+  {
+    "id": "app.data_spillage.report.step.post_itself",
+    "translation": "Post record"
+  },
+  {
+    "id": "app.data_spillage.report.step.priority_data",
+    "translation": "Priority metadata"
+  },
+  {
+    "id": "app.data_spillage.report.step.reminders",
+    "translation": "Reminders"
+  },
+  {
+    "id": "app.data_spillage.report.step.thread_data",
+    "translation": "Thread, replies, and reactions"
+  },
+  {
+    "id": "app.data_spillage.report.summary",
+    "translation": "Summary"
+  },
+  {
+    "id": "app.data_spillage.report.title",
+    "translation": "Post Deletion Report"
+  },
+  {
+    "id": "app.data_spillage.report.total_steps",
+    "translation": "Total Steps:"
+  },
+  {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
     "translation": "Failed to save content reviewer settings to the database."
   },
@@ -6299,12 +6453,20 @@
     "translation": "Unable to get the file info with options"
   },
   {
+    "id": "app.file_info.not_found",
+    "translation": "File not found in file store at path."
+  },
+  {
     "id": "app.file_info.permanent_delete_by_user.app_error",
     "translation": "Unable to delete attachments of the user."
   },
   {
     "id": "app.file_info.permanent_delete_for_post.app_error",
     "translation": "Failed to permanently delete file for post."
+  },
+  {
+    "id": "app.file_info.remove_file.app_error",
+    "translation": "Failed to remove the file from file store."
   },
   {
     "id": "app.file_info.save.app_error",

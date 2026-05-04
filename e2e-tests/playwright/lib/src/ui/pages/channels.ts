@@ -299,4 +299,8 @@ export default class ChannelsPage {
 
         return await this.scheduleMessageModal.scheduleMessage(dayFromToday, timeOptionIndex);
     }
+
+    async getFlaggedPostViewDetailButton(flaggedPostId: string) {
+        return this.page.getByTestId(`data-spillage-action-view-details_${flaggedPostId}`);
+    }
 }

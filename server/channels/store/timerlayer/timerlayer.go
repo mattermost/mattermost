@@ -1227,6 +1227,22 @@ func (s *TimerLayerChannelStore) AutocompleteInTeam(rctx request.CTX, teamID str
 	return result, err
 }
 
+func (s *TimerLayerChannelStore) AutocompleteInTeamFiltered(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool, privateOnly bool, excludeGroupConstrained bool) (model.ChannelList, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.AutocompleteInTeamFiltered(rctx, teamID, userID, term, includeDeleted, isGuest, privateOnly, excludeGroupConstrained)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.AutocompleteInTeamFiltered", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerChannelStore) AutocompleteInTeamForSearch(teamID string, userID string, term string, includeDeleted bool) (model.ChannelList, error) {
 	start := time.Now()
 
@@ -6793,6 +6809,22 @@ func (s *TimerLayerPostStore) GetPostReminders(now int64) ([]*model.PostReminder
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostReminders", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostRemindersForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostRemindersForPost", success, elapsed)
 	}
 	return result, err
 }
