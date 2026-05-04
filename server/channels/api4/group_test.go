@@ -3562,3 +3562,176 @@ func TestLinkGroupTeam_LinkOnSoftDeletedDoesNotPreserveSchemeAdmin(t *testing.T)
 		assert.False(t, persisted.SchemeAdmin)
 	})
 }
+
+func TestPatchGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+
+	patch := &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(false),
+	}
+	_, response, err = th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	assert.True(t, tm.SchemeAdmin)
+}
+
+func TestPatchGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	_, response, err = th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	th.MakeUserChannelAdmin(t, th.BasicUser2, th.BasicChannel)
+
+	patch := &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(false),
+	}
+	_, response, err = th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.NoError(t, err)
+	CheckOKStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	cm, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	assert.True(t, cm.SchemeAdmin)
+}
+
+func TestLinkGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+
+	patch := &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	}
+	_, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	assert.True(t, tm.SchemeAdmin)
+}
+
+func TestLinkGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	th.MakeUserChannelAdmin(t, th.BasicUser2, th.BasicChannel)
+
+	patch := &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	}
+	_, response, err = th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	cm, appErr := th.App.GetChannelMember(th.Context, th.BasicChannel.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	assert.True(t, cm.SchemeAdmin)
+}
+
+func TestLinkGroupTeam_SchemeAdminTruePromotesGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	_, appErr := th.App.UpsertGroupMember(g.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+		AutoAdd:     model.NewPointer(true),
+		SchemeAdmin: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, th.BasicUser2.Id)
+	require.Nil(t, appErr)
+	assert.True(t, tm.SchemeAdmin)
+}
+
+func TestLinkGroupTeam_AutoAddOnlyAddsGroupMembers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	g := newSchemeAdminTestLdapGroup(t, th)
+
+	newUser := th.CreateUser(t)
+	_, appErr := th.App.UpsertGroupMember(g.Id, newUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, newUser.Id)
+	require.NotNil(t, appErr)
+
+	_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	})
+	require.NoError(t, err)
+	CheckCreatedStatus(t, response)
+
+	time.Sleep(2 * time.Second)
+
+	tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, newUser.Id)
+	require.Nil(t, appErr)
+	assert.Equal(t, newUser.Id, tm.UserId)
+}
