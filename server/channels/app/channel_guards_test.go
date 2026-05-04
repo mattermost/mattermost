@@ -217,7 +217,6 @@ func TestChannelGuardLowercaseNormalization(t *testing.T) {
 	}
 
 	require.Nil(t, api.RegisterChannelGuard(channelID))
-
 	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
