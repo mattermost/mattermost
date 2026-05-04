@@ -7,12 +7,15 @@ import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import {screen} from '@testing-library/react';
+
 import {render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
 import {getBestImage, getIsLargeImage, PostAttachmentOpenGraphImage, PostAttachmentOpenGraphBody} from './post_attachment_opengraph';
 
 import PostAttachmentOpenGraph from './index';
+import PostAttachmentOpenGraphBase from './post_attachment_opengraph';
 
 const preferenceKeys = {
     COLLAPSE_DISPLAY: getPreferenceKey(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY),
@@ -287,7 +290,7 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
     });
 
-    test('should render a small image without toggle', () => {
+    test('should render a small image with toggle', () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -304,7 +307,106 @@ describe('PostAttachmentOpenGraphImage', () => {
 
         expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
-        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).not.toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
+    });
+
+    test('should not render inline figure when small image embed is collapsed', () => {
+        const props = {
+            ...baseProps,
+            imageMetadata: {
+                ...baseProps.imageMetadata!,
+                height: 90,
+                width: 120,
+            },
+            isEmbedVisible: false,
+        };
+
+        const {container} = renderWithContext(
+            <PostAttachmentOpenGraphImage {...props}/>,
+            initialState,
+        );
+
+        expect(container.querySelector('figure')).not.toBeInTheDocument();
+        expect(container.querySelector('.preview-toggle')).toBeInTheDocument();
+        expect(screen.getByText('Show image preview')).toBeInTheDocument();
+    });
+});
+
+describe('PostAttachmentOpenGraph bestImage metadata updates', () => {
+    const gifUrl = 'https://example.com/animated.gif';
+    const openGraphForGif: OpenGraphMetadata = {
+        type: 'website',
+        url: gifUrl,
+        images: [{
+            url: gifUrl,
+            type: 'image/gif',
+        }],
+    };
+
+    const basePost = {
+        id: 'post_gif',
+        root_id: '',
+        channel_id: 'channel_id',
+        create_at: 1,
+        message: gifUrl,
+        props: {},
+        metadata: {
+            images: {} as Record<string, {format: string; frameCount: number; height: number; width: number}>,
+        },
+    } as unknown as Post;
+
+    const baseProps = {
+        postId: 'post_gif',
+        link: gifUrl,
+        post: basePost,
+        currentUserId: 'user-1',
+        openGraphData: openGraphForGif,
+        previewEnabled: true,
+        enableLinkPreviews: true,
+        isEmbedVisible: true,
+        isInPermalink: false,
+        toggleEmbedVisibility: jest.fn(),
+        actions: {editPost: jest.fn()},
+    };
+
+    test('updates large vs small classification when post.metadata.images arrives', () => {
+        const stateWithOpenGraph = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                posts: {
+                    ...initialState.entities.posts,
+                    openGraph: {
+                        post_gif: {
+                            [gifUrl]: openGraphForGif,
+                        },
+                    },
+                },
+            },
+        };
+
+        const {container, rerender} = renderWithContext(
+            <PostAttachmentOpenGraphBase {...baseProps}/>,
+            stateWithOpenGraph,
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
+
+        rerender(
+            <PostAttachmentOpenGraphBase
+                {...baseProps}
+                post={{
+                    ...basePost,
+                    metadata: {
+                        images: {
+                            [gifUrl]: {format: 'gif', frameCount: 0, height: 200, width: 400},
+                        },
+                    },
+                }}
+            />,
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).toBeInTheDocument();
     });
 });
 
