@@ -18,6 +18,7 @@ const (
 	PropertyValueTargetTypePost    = "post"
 	PropertyValueTargetTypeUser    = "user"
 	PropertyValueTargetTypeChannel = "channel"
+	PropertyValueTargetTypeSession = "session"
 )
 
 type PropertyValue struct {

@@ -45,6 +45,8 @@ const (
 	PropertyFieldObjectTypePost    = "post"
 	PropertyFieldObjectTypeChannel = "channel"
 	PropertyFieldObjectTypeUser    = "user"
+
+	PropertyFieldAttributeTTL = "ttl"
 )
 
 // validPermissionLevels contains all valid PermissionLevel values.

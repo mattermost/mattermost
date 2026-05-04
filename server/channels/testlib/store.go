@@ -148,6 +148,9 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyGroupStore.On("Register", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
 	propertyGroupStore.On("Get", model.ManagedCategoryPropertyGroupName).Return(managedCategoryGroup, nil)
 
+	sessionAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.SessionAttributesPropertyGroupName}
+	propertyGroupStore.On("Get", model.SessionAttributesPropertyGroupName).Return(sessionAttributesGroup, nil)
+
 	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName}
 	propertyGroupStore.On("Register", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
 	propertyGroupStore.On("Get", model.BoardsPropertyGroupName).Return(boardsGroup, nil)
@@ -161,6 +164,17 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
 	propertyFieldStore.On("GetFieldByName", boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
+
+	for _, name := range []string{
+		model.SessionAttributesPropertyFieldUserAgentPlatform,
+		model.SessionAttributesPropertyFieldUserAgentOS,
+		model.SessionAttributesPropertyFieldUserAgentBrowserName,
+		model.SessionAttributesPropertyFieldUserAgentBrowserVersion,
+		model.SessionAttributesPropertyFieldIPAddress,
+	} {
+		f := &model.PropertyField{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: name}
+		propertyFieldStore.On("GetFieldByName", sessionAttributesGroup.ID, "", name).Return(f, nil)
+	}
 
 	viewStore := mocks.ViewStore{}
 	mockStore.On("View").Return(&viewStore)

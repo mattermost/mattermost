@@ -56,3 +56,36 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.Equal(t, "v5", data.Value)
 	})
 }
+
+func TestSetupSessionAttributeProperties(t *testing.T) {
+	t.Run("should register property group and fields", func(t *testing.T) {
+		th := Setup(t)
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		require.NotNil(t, group)
+		require.Equal(t, model.SessionAttributesPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 5)
+		for _, pf := range propertyFields {
+			require.EqualValues(t, model.SessionAttributeDefaultTTLSeconds, pf.Attrs[model.PropertyFieldAttributeTTL], "field %q", pf.Name)
+		}
+	})
+
+	t.Run("the migration is idempotent", func(t *testing.T) {
+		th := Setup(t)
+
+		require.NoError(t, th.Server.doSetupSessionAttributeProperties())
+		require.NoError(t, th.Server.doSetupSessionAttributeProperties())
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
+		require.Nil(t, appErr)
+		require.Equal(t, model.SessionAttributesPropertyGroupName, group.Name)
+
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 5)
+	})
+}

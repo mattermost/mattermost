@@ -183,6 +183,11 @@ func (a *App) GetLRUSessions(rctx request.CTX, userID string, limit uint64, offs
 }
 
 func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError {
+	sessions, sessErr := a.ch.srv.platform.GetSessions(rctx, userID)
+	if sessErr != nil {
+		rctx.Logger().Warn("Failed to fetch sessions before revoking all sessions", mlog.String("user_id", userID), mlog.Err(sessErr))
+	}
+
 	if err := a.ch.srv.platform.RevokeAllSessions(rctx, userID); err != nil {
 		switch {
 		case errors.Is(err, platform.GetSessionError):
@@ -193,6 +198,12 @@ func (a *App) RevokeAllSessions(rctx request.CTX, userID string) *model.AppError
 			return model.NewAppError("RevokeAllSessions", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	go func() {
+		for _, s := range sessions {
+			a.cleanUpSessionAttributes(rctx, s.Id)
+		}
+	}()
 
 	return nil
 }
@@ -237,9 +248,22 @@ func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
 }
 
 func (a *App) RevokeSessionsForDeviceId(rctx request.CTX, userID string, deviceID string, currentSessionId string) *model.AppError {
+	sessions, sessErr := a.ch.srv.platform.GetSessions(rctx, userID)
+	if sessErr != nil {
+		rctx.Logger().Warn("Failed to fetch sessions before revoking by device id", mlog.String("user_id", userID), mlog.Err(sessErr))
+	}
+
 	if err := a.ch.srv.platform.RevokeSessionsForDeviceId(rctx, userID, deviceID, currentSessionId); err != nil {
 		return model.NewAppError("RevokeSessionsForDeviceId", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	go func() {
+		for _, s := range sessions {
+			if s.DeviceId == deviceID && s.Id != currentSessionId {
+				a.cleanUpSessionAttributes(rctx, s.Id)
+			}
+		}
+	}()
 
 	return nil
 }
@@ -271,6 +295,10 @@ func (a *App) RevokeSession(rctx request.CTX, session *model.Session) *model.App
 			return model.NewAppError("RevokeSession", "app.session.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	go func() {
+		a.cleanUpSessionAttributes(rctx, session.Id)
+	}()
 
 	return nil
 }

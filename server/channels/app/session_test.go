@@ -497,3 +497,95 @@ func TestSetExtraSessionProps(t *testing.T) {
 		assert.Equal(t, "true", storeSession.Props["testProp"])
 	})
 }
+
+func TestRevokeSessionCleansUpSessionAttributes(t *testing.T) {
+	t.Run("RevokeSession deletes the session's property values", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(rctx, r)
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, session.Id))
+
+		appErr = th.App.RevokeSession(th.Context, session)
+		require.Nil(t, appErr)
+
+		assert.Eventually(t, func() bool {
+			return len(searchSessionAttributeValues(t, th, session.Id)) == 0
+		}, 5*time.Second, 50*time.Millisecond)
+	})
+
+	t.Run("RevokeSessionById deletes the session's property values", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(rctx, r)
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, session.Id))
+
+		appErr = th.App.RevokeSessionById(th.Context, session.Id)
+		require.Nil(t, appErr)
+
+		assert.Eventually(t, func() bool {
+			return len(searchSessionAttributeValues(t, th, session.Id)) == 0
+		}, 5*time.Second, 50*time.Millisecond)
+	})
+
+	t.Run("RevokeAllSessions deletes property values for all of the user's sessions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		session1, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		session2, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(th.Context.WithSession(session1), r)
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(th.Context.WithSession(session2), r)
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, session1.Id))
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, session2.Id))
+
+		appErr = th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		assert.Eventually(t, func() bool {
+			return len(searchSessionAttributeValues(t, th, session1.Id)) == 0 &&
+				len(searchSessionAttributeValues(t, th, session2.Id)) == 0
+		}, 5*time.Second, 50*time.Millisecond)
+	})
+
+	t.Run("RevokeSessionsForDeviceId deletes property values for matching device sessions", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+
+		const deviceID = "apple_rn:device-1"
+
+		deviceSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, DeviceId: deviceID, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		otherSession, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+
+		r := newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234")
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(th.Context.WithSession(deviceSession), r)
+		th.App.RefreshRequestProvidedSessionAttributesIfNeeded(th.Context.WithSession(otherSession), r)
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, deviceSession.Id))
+		require.NotEmpty(t, searchSessionAttributeValues(t, th, otherSession.Id))
+
+		appErr = th.App.RevokeSessionsForDeviceId(th.Context, th.BasicUser.Id, deviceID, otherSession.Id)
+		require.Nil(t, appErr)
+
+		assert.Eventually(t, func() bool {
+			return len(searchSessionAttributeValues(t, th, deviceSession.Id)) == 0
+		}, 5*time.Second, 50*time.Millisecond)
+		assert.NotEmpty(t, searchSessionAttributeValues(t, th, otherSession.Id))
+	})
+}

@@ -817,6 +817,54 @@ func (s *Server) cacheManagedCategoryIDs() error {
 	return nil
 }
 
+func (s *Server) doSetupSessionAttributeProperties() error {
+	group, err := s.propertyService.Group(model.SessionAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to get session attributes group: %w", err)
+	}
+
+	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+	if err != nil {
+		return fmt.Errorf("failed to search for existing session attribute properties: %w", err)
+	}
+
+	existingByName := make(map[string]bool, len(existingProperties))
+	for _, property := range existingProperties {
+		existingByName[property.Name] = true
+	}
+
+	sessionFieldNames := []string{
+		model.SessionAttributesPropertyFieldUserAgentPlatform,
+		model.SessionAttributesPropertyFieldUserAgentOS,
+		model.SessionAttributesPropertyFieldUserAgentBrowserName,
+		model.SessionAttributesPropertyFieldUserAgentBrowserVersion,
+		model.SessionAttributesPropertyFieldIPAddress,
+	}
+
+	var propertiesToCreate []*model.PropertyField
+	for _, name := range sessionFieldNames {
+		if existingByName[name] {
+			continue
+		}
+		propertiesToCreate = append(propertiesToCreate, &model.PropertyField{
+			GroupID: group.ID,
+			Name:    name,
+			Type:    model.PropertyFieldTypeText,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeTTL: model.SessionAttributeDefaultTTLSeconds,
+			},
+		})
+	}
+
+	for _, property := range propertiesToCreate {
+		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
+			return fmt.Errorf("failed to create session attribute property field %q: %w", property.Name, err)
+		}
+	}
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -1000,6 +1048,7 @@ func (s *Server) doAppMigrations() {
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
 		{"Managed Category Properties Setup", s.doSetupManagedCategoryProperties},
+		{"Session Attribute Properties Setup", s.doSetupSessionAttributeProperties},
 	}
 
 	for i := range m1 {

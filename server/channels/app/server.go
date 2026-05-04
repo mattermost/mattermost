@@ -283,6 +283,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
 		{Name: model.CustomProfileAttributesPropertyGroupName},
 		{Name: model.ContentFlaggingGroupName},
+		{Name: model.SessionAttributesPropertyGroupName},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
 	}
