@@ -114,13 +114,24 @@ export const useDropdownProp = (
     return [preparedProp, preparedPossibilities, selector];
 };
 
-type PropResult = HookResult<any> | DropdownHookResult | {[x: string]: unknown} | undefined;
+type PropResult = HookResult<any> | DropdownHookResult | {[x: string]: unknown} | React.ReactElement | undefined;
 
-export const useComponentWithProps = (
+export const useLibraryComponent = (
     Component: React.ComponentType<any>,
     propPossibilities: {[x: string]: any[]},
     propsArray: PropResult[],
-): React.ReactNode[] => {
+) => {
+    return {
+        components: useComponentWithProps(Component, propPossibilities, propsArray),
+        selectors: usePropSelectors(propsArray),
+    };
+};
+
+const useComponentWithProps = (
+    Component: React.ComponentType<any>,
+    propPossibilities: {[x: string]: any[]},
+    propsArray: PropResult[],
+) => {
     const dropdownPossibilities = useMemo(
         () => propsArray.filter(isDropdownHookResult).map((r) => r[1]),
 
@@ -129,7 +140,15 @@ export const useComponentWithProps = (
     );
     const setProps = useMemo(
         () => propsArray.map((r) => {
-            return Array.isArray(r) ? r[0] : r;
+            if (!r || React.isValidElement(r)) {
+                return undefined;
+            }
+
+            if (Array.isArray(r)) {
+                return r[0];
+            }
+
+            return r;
         }),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,8 +163,8 @@ export const useComponentWithProps = (
     );
 };
 
-export const usePropSelectors = (
-    propsOrComponents: Array<PropResult | React.ReactNode>,
+const usePropSelectors = (
+    propsOrComponents: PropResult[],
 ) => {
     return useMemo(
         () => propsOrComponents.flatMap((r) => {

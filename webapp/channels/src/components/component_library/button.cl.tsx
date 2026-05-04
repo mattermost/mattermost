@@ -7,7 +7,7 @@ import React, {useMemo} from 'react';
 import glyphMap from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import {useBooleanProp, useComponentWithProps, useDropdownProp, usePropSelectors, useStringProp} from './hooks';
+import {useBooleanProp, useLibraryComponent, useDropdownProp, useStringProp} from './hooks';
 
 const propPossibilities = {};
 
@@ -43,32 +43,25 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
         ),
     }), [labelProp, leadingIconProp, trailingIconProp]);
 
-    const components = useComponentWithProps(
+    const {components, selectors} = useLibraryComponent(
         Button,
         propPossibilities,
         [
             children,
+            <hr key='first-selector'/>,
             emphasisProp,
             sizeProp,
             variantProp,
+            <hr key='second-selector'/>,
             disabledProp,
         ],
     );
 
-    const selectors = usePropSelectors([
-        labelProp,
-        leadingIconProp,
-        trailingIconProp,
-        <hr key='first-selector'/>,
-        emphasisProp,
-        sizeProp,
-        variantProp,
-        <hr key='second-selector'/>,
-        disabledProp,
-    ]);
-
     return (
         <>
+            {labelProp[1]}
+            {leadingIconProp[2]}
+            {trailingIconProp[2]}
             {selectors}
             <div className={classNames('clWrapper', backgroundClass)}>{components}</div>
             <ButtonGrid/>

@@ -8,7 +8,7 @@ import React, {useCallback, useState} from 'react';
 
 import SectionNotice from 'components/section_notice';
 
-import {useBooleanProp, useComponentWithProps, useDropdownProp, usePropSelectors, useStringProp} from './hooks';
+import {useBooleanProp, useLibraryComponent, useDropdownProp, useStringProp} from './hooks';
 
 import './component_library.scss';
 
@@ -41,7 +41,7 @@ const SectionNoticeComponentLibrary = ({
     const [showLinkButton, setShowLinkButton] = useState(false);
     const onChangeLinkButton = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setShowLinkButton(e.target.checked), []);
 
-    const components = useComponentWithProps(
+    const {components, selectors} = useLibraryComponent(
         SectionNotice,
         propPossibilities,
         [
@@ -55,13 +55,6 @@ const SectionNoticeComponentLibrary = ({
             {onDismissClick: () => window.alert('dismiss!')},
         ],
     );
-
-    const selectors = usePropSelectors([
-        textProp,
-        titleProp,
-        dismissableProp,
-        sectionTypeProp,
-    ]);
 
     return (
         <>
