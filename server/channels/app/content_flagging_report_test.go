@@ -5,6 +5,7 @@ package app
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"io"
 	"os"
@@ -150,14 +151,19 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := th.CreatePost(t, th.BasicChannel)
 
+		attachmentBody := []byte("hello attachment body")
 		fileInfo := &model.FileInfo{
 			Id:        model.NewId(),
 			PostId:    post.Id,
 			CreatorId: post.UserId,
-			Path:      "test/missing-file.txt",
-			Name:      "missing-file.txt",
-			Size:      42,
+			Path:      "test/" + model.NewId() + "/attachment.txt",
+			Name:      "attachment.txt",
+			Size:      int64(len(attachmentBody)),
 		}
+		_, appErr = th.App.WriteFile(bytes.NewReader(attachmentBody), fileInfo.Path)
+		require.Nil(t, appErr)
+		t.Cleanup(func() { _ = th.App.RemoveFile(fileInfo.Path) })
+
 		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo)
 		require.NoError(t, err)
 
@@ -181,9 +187,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		entries := readReportZip(t, path)
 		entryName := "post/attachments/" + fileInfo.Id + "_" + fileInfo.Name
 		require.Contains(t, entries, entryName)
-		// The backing file does not exist on disk; writeAttachments writes a stub
-		// "# unable to read file ..." line and continues. Either way, the entry
-		// should be present and the rest of the report should be intact.
+		require.Equal(t, attachmentBody, entries[entryName])
 		require.Contains(t, entries, "post/post.yaml")
 		require.Contains(t, entries, "content_review.yaml")
 		require.Contains(t, entries, "report_metadata.yaml")
