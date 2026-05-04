@@ -401,11 +401,13 @@ describe('PostAttachmentOpenGraph bestImage metadata updates', () => {
                 post={{
                     ...basePost,
                     metadata: {
+                        ...basePost.metadata,
                         images: {
+                            ...basePost.metadata.images,
                             [gifUrl]: {format: 'gif', frameCount: 0, height: 200, width: 400},
                         },
                     },
-                }}
+                } as Post}
             />,
         );
 
