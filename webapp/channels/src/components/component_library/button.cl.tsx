@@ -7,8 +7,7 @@ import React, {useMemo} from 'react';
 import glyphMap from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/shared/components/button';
 
-import {useBooleanProp, useDropdownProp, useStringProp} from './hooks';
-import {buildComponent} from './utils';
+import {useBooleanProp, useComponentWithProps, useDropdownProp, useStringProp} from './hooks';
 
 const propPossibilities = {};
 
@@ -34,43 +33,32 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
 
     const [disabled, disabledSelector] = useBooleanProp('disabled', false);
 
-    const children = useMemo(() => (
-        <>
-            {leadingIcon?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIcon.leadingIcon}`)}/> : null}
-            {label.label}
-            {trailingIcon?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIcon.trailingIcon}`)}/> : null}
-        </>
-    ), [label, leadingIcon, trailingIcon]);
-
-    const components = useMemo(
-        () => buildComponent(
-            Button,
-            propPossibilities,
-            [
-                emphasisPossibilities,
-                leadingIconPossibilities,
-                sizePossibilities,
-                trailingIconPossibilities,
-                variantPossibilities,
-            ], [
-                {children},
-                emphasis,
-                size,
-                variant,
-                disabled,
-            ],
+    const children = useMemo(() => ({
+        children: (
+            <>
+                {leadingIcon?.leadingIcon ? <i className={classNames('icon', `icon-${leadingIcon.leadingIcon}`)}/> : null}
+                {label.label}
+                {trailingIcon?.trailingIcon ? <i className={classNames('icon', `icon-${trailingIcon.trailingIcon}`)}/> : null}
+            </>
         ),
+    }), [label, leadingIcon, trailingIcon]);
+
+    const components = useComponentWithProps(
+        Button,
+        propPossibilities,
         [
-            children,
-            disabled,
-            emphasis,
             emphasisPossibilities,
             leadingIconPossibilities,
-            size,
             sizePossibilities,
             trailingIconPossibilities,
-            variant,
             variantPossibilities,
+        ],
+        [
+            children,
+            emphasis,
+            size,
+            variant,
+            disabled,
         ],
     );
 

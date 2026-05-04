@@ -4,6 +4,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 
 import './component_library.scss';
+import {buildComponent} from './utils';
 
 type HookResult<T> = [
     {[x: string]: T},
@@ -111,4 +112,18 @@ export const useDropdownProp = (
     const preparedProp = useMemo(() => (value === ALL_OPTION ? undefined : ({[propName]: value})), [propName, value]);
     const preparedPossibilities = useMemo(() => (value === ALL_OPTION ? ({[propName]: options}) : undefined), [propName, value, options]);
     return [preparedProp, preparedPossibilities, selector];
+};
+
+export const useComponentWithProps = (
+    Component: React.ComponentType<any>,
+    propPossibilities: {[x: string]: any[]},
+    dropdownPossibilities: Array<{[x: string]: string[]} | undefined>,
+    setProps: Array<{[x: string]: any} | undefined>,
+): React.ReactNode[] => {
+    return useMemo(
+        () => buildComponent(Component, propPossibilities, dropdownPossibilities, setProps),
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [Component, ...Object.values(propPossibilities), ...dropdownPossibilities, ...setProps],
+    );
 };

@@ -4,12 +4,11 @@
 /* eslint-disable no-alert */
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 import SectionNotice from 'components/section_notice';
 
-import {useBooleanProp, useDropdownProp, useStringProp} from './hooks';
-import {buildComponent} from './utils';
+import {useBooleanProp, useComponentWithProps, useDropdownProp, useStringProp} from './hooks';
 
 import './component_library.scss';
 
@@ -42,8 +41,11 @@ const SectionNoticeComponentLibrary = ({
     const [showLinkButton, setShowLinkButton] = useState(false);
     const onChangeLinkButton = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setShowLinkButton(e.target.checked), []);
 
-    const components = useMemo(
-        () => buildComponent(SectionNotice, propPossibilities, [sectionTypePosibilities], [
+    const components = useComponentWithProps(
+        SectionNotice,
+        propPossibilities,
+        [sectionTypePosibilities],
+        [
             text,
             title,
             dismissable,
@@ -52,8 +54,7 @@ const SectionNoticeComponentLibrary = ({
             showSecondaryButton ? secondaryButton : undefined,
             showLinkButton ? linkButton : undefined,
             {onDismissClick: () => window.alert('dismiss!')},
-        ]),
-        [dismissable, sectionType, sectionTypePosibilities, showLinkButton, showPrimaryButton, showSecondaryButton, text, title],
+        ],
     );
 
     return (
