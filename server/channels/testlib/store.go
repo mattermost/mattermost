@@ -143,7 +143,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	propertyValueStore := mocks.PropertyValueStore{}
 
 	channelGuardStore := mocks.ChannelGuardStore{}
-	channelGuardStore.On("GetAll").Return([]*store.ChannelGuard{}, nil)
+	channelGuardStore.On("GetAll", mock.Anything).Return([]*store.ChannelGuard{}, nil)
 
 	groupsByName := map[string]*model.PropertyGroup{}
 
