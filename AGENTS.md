@@ -1,6 +1,6 @@
 # AGENTS.md
 
-# Explicitly import subdirectory instruction files that must always be in context.
+Explicitly import subdirectory instruction files that must always be in context:
 @server/AGENTS.md
 
 ## Pull Requests
