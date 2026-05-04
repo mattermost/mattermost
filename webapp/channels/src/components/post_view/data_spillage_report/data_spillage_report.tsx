@@ -22,9 +22,10 @@ import PropertiesCardView from 'components/properties_card_view/properties_card_
 
 import {DataSpillagePropertyNames} from 'utils/constants';
 
-import './data_spillage_report.scss';
 import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
 import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
+
+import './data_spillage_report.scss';
 
 // The order of fields to be displayed in the report, from top to bottom.
 const orderedFieldName = [
@@ -116,8 +117,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 fetchDeletedPost: true,
                 channel,
                 team,
-                generateFileDownloadUrl:
-                    generateFileDownloadUrl(reportedPostId),
+                generateFileDownloadUrl: generateFileDownloadUrl(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({

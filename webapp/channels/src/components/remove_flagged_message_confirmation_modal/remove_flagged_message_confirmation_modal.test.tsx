@@ -385,6 +385,118 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
         });
     });
 
+    describe('step transitions', () => {
+        test('should pass typed comment to action API', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.type(screen.getByPlaceholderText('Add your comment here'), 'looks fine');
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+            await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
+
+            await waitFor(() => {
+                expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, 'looks fine');
+            });
+        });
+
+        test('clicking "Download again" on generated step retriggers report fetch', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+            const initialFetchCount = (global.fetch as jest.Mock).mock.calls.length;
+
+            await userEvent.click(screen.getByTestId('generated-download-again-button'));
+
+            await waitFor(() => {
+                expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(initialFetchCount);
+            });
+            await waitFor(() => {
+                expect(screen.getByTestId('generated-section')).toBeVisible();
+            });
+        });
+
+        test('skip from generating step routes to skip-confirm', async () => {
+            // Hold the fetch open so we can interact with the generating footer
+            let resolveFetch: (value: any) => void = () => {};
+            global.fetch = jest.fn().mockReturnValue(new Promise((resolve) => {
+                resolveFetch = resolve;
+            })) as jest.Mock;
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generating-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('generating-skip-button'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+
+            // Resolving the aborted fetch should not advance to generated state
+            resolveFetch({
+                ok: true,
+                blob: () => Promise.resolve(new Blob(['report'])),
+            });
+            await Promise.resolve();
+            expect(screen.queryByTestId('generated-section')).not.toBeInTheDocument();
+        });
+
+        test('back from skip-confirm returns to form step', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='remove'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('skip-confirm-back-button'));
+
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
+            });
+        });
+    });
+
     describe('error handling', () => {
         test('should show request error when API call fails', async () => {
             const errorMessage = 'Failed to remove flagged post';
