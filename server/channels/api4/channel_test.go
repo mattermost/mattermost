@@ -2400,6 +2400,127 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 	})
 }
 
+func TestGetRecommendedChannelsForTeam(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	t.Run("without enterprise license ABAC is disabled so the endpoint returns an empty list", func(t *testing.T) {
+		// Be explicit about the license precondition so this subtest is
+		// deterministic even if a parallel test elsewhere installed one.
+		appErr := th.App.Srv().RemoveLicense()
+		require.Nil(t, appErr)
+
+		resp, err := th.Client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var channels []*model.Channel
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&channels))
+		require.Empty(t, channels)
+	})
+
+	t.Run("user must be on the team", func(t *testing.T) {
+		otherTeamUser := th.CreateUser(t)
+		client := th.CreateClient()
+		_, _, err := client.Login(context.Background(), otherTeamUser.Email, otherTeamUser.Password)
+		require.NoError(t, err)
+
+		resp, err := client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
+		require.Error(t, err)
+		// resp can be nil on transport errors; only defer Close when we
+		// actually got an HTTP response back so we can assert the status.
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("returns policy-enforced channels the requester matches under enterprise license", func(t *testing.T) {
+		// License + ABAC config gate the endpoint; without these it short-circuits
+		// to an empty list (covered by the no-license subtest above).
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+		t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		// Wire a mock ABAC service that allows the requester for `included`
+		// and denies for `excluded`. This pins the api4 layer's responsibility
+		// (routing, permissions, response shape) to a deterministic policy
+		// outcome — the underlying CEL evaluation has its own coverage at the
+		// app layer in TestGetRecommendedPublicChannelsForUser.
+		mockACS := &einterfacesmocks.AccessControlServiceInterface{}
+		originalACS := th.App.Srv().Channels().AccessControl
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = originalACS })
+		// PermanentDeleteChannel during cleanup calls DeletePolicy on the ACS.
+		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+			Return((*model.AppError)(nil)).Maybe()
+
+		included, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "abac-recommended-" + model.NewId(),
+			DisplayName: "ABAC Recommended",
+		})
+		require.NotNil(t, included)
+		t.Cleanup(func() {
+			_ = th.App.PermanentDeleteChannel(th.Context, included)
+		})
+
+		excluded, _, _ := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "abac-excluded-" + model.NewId(),
+			DisplayName: "ABAC Excluded",
+		})
+		require.NotNil(t, excluded)
+		t.Cleanup(func() {
+			_ = th.App.PermanentDeleteChannel(th.Context, excluded)
+		})
+
+		// Stamp channel-scope policy rows so SearchAllChannels picks them up
+		// as PolicyEnforced=true. The expressions are placeholders — the mock
+		// ACS short-circuits evaluation below.
+		for _, ch := range []*model.Channel{included, excluded} {
+			_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, &model.AccessControlPolicy{
+				ID:       ch.Id,
+				Type:     model.AccessControlPolicyTypeChannel,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Revision: 1,
+				Active:   true,
+				Rules:    []model.AccessControlPolicyRule{{Actions: []string{"membership"}, Expression: "true"}},
+			})
+			require.NoError(t, err)
+		}
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == included.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == excluded.Id
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		resp, err := th.Client.DoAPIGet(context.Background(), "/teams/"+th.BasicTeam.Id+"/channels/recommended", "")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var channels []*model.Channel
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&channels))
+
+		ids := make(map[string]bool, len(channels))
+		for _, ch := range channels {
+			ids[ch.Id] = true
+		}
+		require.True(t, ids[included.Id], "policy-allowed channel must be returned")
+		require.False(t, ids[excluded.Id], "policy-denied channel must be filtered out")
+	})
+}
+
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

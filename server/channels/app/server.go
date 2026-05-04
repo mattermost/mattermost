@@ -858,6 +858,12 @@ func stripPort(hostport string) string {
 }
 
 func (s *Server) Start() error {
+	// Start inter-cluster services first so shared channels APIs are
+	// available when plugins activate during channels startup.
+	if err := s.startInterClusterServices(s.License()); err != nil {
+		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
+	}
+
 	// Start channels.
 	// This needs to happen before because channels is dependent on the HTTP server.
 	if err := s.Channels().Start(); err != nil {
@@ -1113,10 +1119,6 @@ func (s *Server) Start() error {
 		if err := s.startLocalModeServer(); err != nil {
 			mlog.Fatal(err.Error())
 		}
-	}
-
-	if err := s.startInterClusterServices(s.License()); err != nil {
-		mlog.Error("Error starting inter-cluster services", mlog.Err(err))
 	}
 
 	return nil

@@ -29,6 +29,13 @@ jest.mock('utils/popouts/popout_windows', () => ({
     isChannelPopoutWindow: jest.fn(() => false),
 }));
 
+// Avoid Floating UI tooltip portals in #root-portal — they mount inconsistently under jsdom
+// and make full-document snapshots flaky (tooltip DOM vs. empty portal).
+jest.mock('components/with_tooltip', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => <>{children}</>,
+}));
+
 describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
     const testChannel = TestHelper.getChannelMock();
     const testCategory = TestHelper.getCategoryMock();

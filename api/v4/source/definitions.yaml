@@ -1567,6 +1567,7 @@ components:
               type: boolean
             EnableTesting:
               type: boolean
+              description: Intended only for isolated non-production environments and must never be enabled in production.
             EnableDeveloper:
               type: boolean
             EnableSecurityFixAlert:
@@ -2049,6 +2050,7 @@ components:
               type: boolean
             EnableTesting:
               type: boolean
+              description: Intended only for isolated non-production environments and must never be enabled in production.
             EnableDeveloper:
               type: boolean
             EnableSecurityFixAlert:

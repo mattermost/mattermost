@@ -439,9 +439,14 @@ export type AppFieldType = string;
 
 // DateTime field configuration
 export type DateTimeConfig = {
+    min_date?: string; // Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+    max_date?: string; // Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
     time_interval?: number; // Minutes between time options (default: 60)
     location_timezone?: string; // IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
-    allow_manual_time_entry?: boolean; // Allow text entry for time
+    manual_time_entry?: boolean; // Allow text entry for time
+
+    /** @deprecated Use manual_time_entry instead. Kept for backward compatibility. */
+    allow_manual_time_entry?: boolean;
 };
 
 // This should go in mattermost-redux
@@ -478,9 +483,13 @@ export type AppField = {
     // Date/datetime configuration
     datetime_config?: DateTimeConfig;
 
-    // Simple date/datetime configuration (fallback when datetime_config not provided)
+    /** @deprecated Use datetime_config.min_date instead. Kept for backward compatibility. */
     min_date?: string;
+
+    /** @deprecated Use datetime_config.max_date instead. Kept for backward compatibility. */
     max_date?: string;
+
+    /** @deprecated Use datetime_config.time_interval instead. Kept for backward compatibility. */
     time_interval?: number;
 };
 
@@ -493,7 +502,7 @@ function isValidDateString(dateStr: string): boolean {
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/i,
+        /^[+-]\d{1,3}[dwmHMS]$/,
     ];
 
     for (const pattern of relativePatterns) {
@@ -577,12 +586,38 @@ function isAppField(v: unknown): v is AppField {
         return false;
     }
 
+    // Validate datetime_config fields
+    if (field.datetime_config !== undefined) {
+        if (typeof field.datetime_config !== 'object' || field.datetime_config === null) {
+            return false;
+        }
+        if (field.datetime_config.min_date !== undefined) {
+            if (typeof field.datetime_config.min_date !== 'string' || !isValidDateString(field.datetime_config.min_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.max_date !== undefined) {
+            if (typeof field.datetime_config.max_date !== 'string' || !isValidDateString(field.datetime_config.max_date)) {
+                return false;
+            }
+        }
+        if (field.datetime_config.time_interval !== undefined && typeof field.datetime_config.time_interval !== 'number') {
+            return false;
+        }
+        if (field.datetime_config.manual_time_entry !== undefined && typeof field.datetime_config.manual_time_entry !== 'boolean') {
+            return false;
+        }
+        if (field.datetime_config.allow_manual_time_entry !== undefined && typeof field.datetime_config.allow_manual_time_entry !== 'boolean') {
+            return false;
+        }
+    }
+
+    // Validate deprecated top-level fields (kept for backward compatibility)
     if (field.min_date !== undefined) {
         if (typeof field.min_date !== 'string') {
             return false;
         }
 
-        // Validate that min_date is a valid date format (ISO or relative)
         if (!isValidDateString(field.min_date)) {
             return false;
         }
@@ -593,7 +628,6 @@ function isAppField(v: unknown): v is AppField {
             return false;
         }
 
-        // Validate that max_date is a valid date format (ISO or relative)
         if (!isValidDateString(field.max_date)) {
             return false;
         }

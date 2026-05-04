@@ -729,12 +729,30 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
-	ok, appErr := a.ChannelAccessControlled(rctx, channel.Id)
+	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr
 	}
-	if ok && channel.Type != model.ChannelTypePrivate {
-		return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+	if enforced {
+		if channel.Type != model.ChannelTypePrivate && channel.Type != model.ChannelTypeOpen {
+			return nil, model.NewAppError("UpdateChannel", "api.channel.update_channel.not_allowed.app_error", nil, "", http.StatusForbidden)
+		}
+
+		// Block public ↔ private conversion while an ABAC policy is attached.
+		// Public-channel and private-channel ABAC have asymmetric semantics
+		// (advisory recommend/auto-add vs hard-gate with member removal); a
+		// silent type flip would change what the existing policy actually
+		// does to members. The admin must remove the policy first and
+		// re-apply it after the conversion if they still want it.
+		current, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+		if getErr != nil {
+			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+		}
+		if current.Type != channel.Type {
+			return nil, model.NewAppError("UpdateChannel",
+				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
+				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
+		}
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -1692,6 +1710,12 @@ func (a *App) DeleteChannel(rctx request.CTX, channel *model.Channel, userID str
 	if err := a.Srv().Store().PostPersistentNotification().DeleteByChannel([]string{channel.Id}); err != nil {
 		return model.NewAppError("DeleteChannel", "app.post_persistent_notification.delete_by_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Archiving a channel tears down the membership policy attached to it.
+	// If the channel is later restored the admin can re-apply policies;
+	// leaving the policy row behind would otherwise keep the sync job
+	// processing an archived channel.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
@@ -3412,6 +3436,12 @@ func (a *App) PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *
 		return model.NewAppError("PermanentDeleteChannel", "app.channel.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	// Remove any orphaned channel-scope ABAC policy tied to this channel ID.
+	// cleanupChannelAccessControlPolicy intentionally does not gate on
+	// PolicyEnforced (see its doc comment) — the underlying DeletePolicy is a
+	// no-op when no row exists, so it's safe to call unconditionally.
+	a.cleanupChannelAccessControlPolicy(rctx, channel)
+
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
 
 	var message *model.WebSocketEvent
@@ -4141,6 +4171,167 @@ func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool,
 	}
 
 	return channel.PolicyEnforced, nil
+}
+
+// cleanupChannelAccessControlPolicy removes the channel-scope ABAC policy row,
+// if any, for a channel being archived or permanently deleted. Orphan policy
+// rows left behind would still be picked up by the sync job and surface in
+// searches that filter by AccessControlPolicyEnforced. Failures are logged
+// but not returned — deleting/archiving a channel must not be blocked by an
+// ABAC cleanup error.
+//
+// We intentionally do NOT gate this on channel.PolicyEnforced: that flag is
+// computed from the AccessControlPolicies table via the channel store and can
+// be stale when read through the channel cache, which would cause us to skip
+// cleanup and leave an orphaned policy behind. DeletePolicy is a no-op when
+// no matching row exists, so calling it unconditionally is safe.
+//
+// When the enterprise access control service is unavailable (acs == nil) or
+// reports the operation as unsupported (NotImplemented / NotAcceptable —
+// e.g. running on Team Edition or under a license that gates the ABAC
+// engine), we still need to remove the underlying row to avoid leaving an
+// orphaned policy behind. In those cases we fall back to deleting directly
+// through the access control policy store.
+func (a *App) cleanupChannelAccessControlPolicy(rctx request.CTX, channel *model.Channel) {
+	if channel == nil || channel.Id == "" {
+		return
+	}
+
+	useStoreFallback := false
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		useStoreFallback = true
+	} else if appErr := acs.DeletePolicy(rctx, channel.Id); appErr != nil {
+		switch appErr.StatusCode {
+		case http.StatusNotImplemented, http.StatusNotAcceptable:
+			useStoreFallback = true
+		default:
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(appErr),
+			)
+		}
+	}
+
+	if useStoreFallback {
+		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, channel.Id); err != nil {
+			rctx.Logger().Warn("Failed to delete channel ABAC policy during channel delete/archive",
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(err),
+			)
+		}
+	}
+}
+
+// recommendedPublicChannelsScanPageSize is the per-page size used while
+// paginating through policy-enforced public channels in
+// GetRecommendedPublicChannelsForUser.
+const recommendedPublicChannelsScanPageSize = 200
+
+// recommendedPublicChannelsScanCap is a hard upper bound on the total number
+// of candidate channels we will evaluate per request. Evaluation is O(n) and
+// CEL programs are non-trivial; this guards against runaway scans on
+// pathological deployments. In practice teams have far fewer policy-enforced
+// public channels than this cap.
+const recommendedPublicChannelsScanCap = 2000
+
+// GetRecommendedPublicChannelsForUser returns public channels in the given team
+// that have an ABAC policy assigned and whose membership rule the user
+// satisfies. ABAC policies on public channels are advisory — this list is
+// consumed by the "Recommended channels" feature in the Browse Channels UI.
+//
+// Channels the user is already a member of are intentionally NOT filtered out:
+// membership filtering is a presentation concern handled by the caller (the
+// Browse Channels UI has its own "Hide joined channels" preference and may
+// want to show membership state alongside each recommendation).
+//
+// Returns an empty list when the Enterprise Advanced license or ABAC feature
+// flag is not available, or when the access control service is not wired up.
+func (a *App) GetRecommendedPublicChannelsForUser(rctx request.CTX, userID, teamID string) (model.ChannelList, *model.AppError) {
+	if l := a.License(); !model.MinimumEnterpriseAdvancedLicense(l) || !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
+		return model.ChannelList{}, nil
+	}
+
+	acs := a.Srv().Channels().AccessControl
+	if acs == nil {
+		return model.ChannelList{}, nil
+	}
+
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	subject, appErr := a.BuildAccessControlSubject(rctx, user.Id, user.Roles)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Page through policy-enforced public channels until the team is fully
+	// scanned or we hit the hard cap. SearchAllChannels signals "no more
+	// pages" by returning fewer rows than the requested page size.
+	candidates := make(model.ChannelListWithTeamData, 0)
+	for page := 0; len(candidates) < recommendedPublicChannelsScanCap; page++ {
+		batch, _, searchErr := a.SearchAllChannels(rctx, "", model.ChannelSearchOpts{
+			TeamIds:                     []string{teamID},
+			Public:                      true,
+			AccessControlPolicyEnforced: true,
+			Page:                        model.NewPointer(page),
+			PerPage:                     model.NewPointer(recommendedPublicChannelsScanPageSize),
+		})
+		if searchErr != nil {
+			return nil, searchErr
+		}
+		if len(batch) == 0 {
+			break
+		}
+
+		// Truncate to the remaining cap so the final candidate count never
+		// exceeds the documented bound. The loop condition only gates entry
+		// to a new iteration; without this, a final page worth of channels
+		// could push len past the cap by up to (pageSize - 1).
+		remaining := recommendedPublicChannelsScanCap - len(candidates)
+		if len(batch) > remaining {
+			candidates = append(candidates, batch[:remaining]...)
+			break
+		}
+
+		candidates = append(candidates, batch...)
+		if len(batch) < recommendedPublicChannelsScanPageSize {
+			break
+		}
+	}
+
+	// We intentionally do NOT filter out channels the user is already a member
+	// of here — the Browse Channels UI has its own "Hide joined channels"
+	// preference and callers may want to show membership state next to each
+	// recommendation. Membership filtering is a presentation concern.
+	recommended := make(model.ChannelList, 0, len(candidates))
+	for _, channel := range candidates {
+		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
+			Subject: *subject,
+			Resource: model.Resource{
+				Type: model.AccessControlPolicyTypeChannel,
+				ID:   channel.Id,
+			},
+			Action: "membership",
+		})
+		if evalErr != nil {
+			rctx.Logger().Debug("ABAC evaluation failed when computing recommended channels",
+				mlog.String("user_id", userID),
+				mlog.String("channel_id", channel.Id),
+				mlog.Err(evalErr),
+			)
+			continue
+		}
+		if !decision.Decision {
+			continue
+		}
+
+		recommended = append(recommended, &channel.Channel)
+	}
+
+	return recommended, nil
 }
 
 func (a *App) handleChannelCategoryName(channel *model.Channel) {

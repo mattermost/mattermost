@@ -682,6 +682,36 @@ func (_m *PostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) 
 	return r0, r1
 }
 
+// GetPostRemindersForPost provides a mock function with given fields: postId
+func (_m *PostStore) GetPostRemindersForPost(postId string) ([]*model.PostReminder, error) {
+	ret := _m.Called(postId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostRemindersForPost")
+	}
+
+	var r0 []*model.PostReminder
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.PostReminder, error)); ok {
+		return rf(postId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.PostReminder); ok {
+		r0 = rf(postId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PostReminder)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(postId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostRepliesByTypeAndProps provides a mock function with given fields: rootId, postType, propKey, propValue
 func (_m *PostStore) GetPostRepliesByTypeAndProps(rootId string, postType string, propKey string, propValue string) ([]*model.Post, error) {
 	ret := _m.Called(rootId, postType, propKey, propValue)
