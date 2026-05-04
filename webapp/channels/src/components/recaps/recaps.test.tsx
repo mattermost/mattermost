@@ -4,7 +4,7 @@
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor} from 'tests/react_testing_utils';
 
 import {LhsItemType, LhsPage} from 'types/store/lhs';
 
@@ -57,10 +57,11 @@ describe('components/recaps/Recaps', () => {
         mockDispatch.mockClear();
         mockGetAgents.mockClear();
         mockGetRecaps.mockClear();
+        mockMarkRecapsAsViewed.mockClear();
         mockSelectLhsItem.mockClear();
     });
 
-    test('selects Recaps in the LHS on mount', () => {
+    test('selects Recaps in the LHS on mount', async () => {
         renderWithContext(
             <MemoryRouter>
                 <Recaps/>
@@ -73,5 +74,9 @@ describe('components/recaps/Recaps', () => {
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'SELECT_LHS_ITEM'}));
         expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'GET_RECAPS'}));
         expect(mockDispatch).toHaveBeenCalledWith({type: 'GET_AGENTS'});
+
+        // markRecapsAsViewed runs asynchronously after getRecaps resolves.
+        await waitFor(() => expect(mockMarkRecapsAsViewed).toHaveBeenCalled());
+        expect(mockDispatch).toHaveBeenCalledWith({type: 'MARK_RECAPS_VIEWED'});
     });
 });
