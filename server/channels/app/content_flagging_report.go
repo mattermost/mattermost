@@ -305,17 +305,16 @@ func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix strin
 		}
 		seen[fi.Id] = true
 
-		entryName := path.Join(dirPrefix, attachmentEntryName(fi))
-
-		w, err := zw.Create(entryName)
-		if err != nil {
-			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-
 		reader, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to read attachment for flagged post report", mlog.String("file_id", fi.Id), mlog.Err(appErr))
 			continue
+		}
+
+		entryName := path.Join(dirPrefix, attachmentEntryName(fi))
+		w, err := zw.Create(entryName)
+		if err != nil {
+			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if _, err := io.Copy(w, reader); err != nil {
