@@ -729,6 +729,18 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 
 // UpdateChannel updates a given channel by its Id. It also publishes the CHANNEL_UPDATED event.
 func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Channel, *model.AppError) {
+	oldChannel, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
+	if getErr != nil {
+		errCtx := map[string]any{"channel_id": channel.Id}
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(getErr, &nfErr):
+			return nil, model.NewAppError("UpdateChannel", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(getErr)
+		default:
+			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(getErr)
+		}
+	}
+
 	enforced, appErr := a.ChannelAccessControlled(rctx, channel.Id)
 	if appErr != nil {
 		return nil, appErr
@@ -744,15 +756,28 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 		// silent type flip would change what the existing policy actually
 		// does to members. The admin must remove the policy first and
 		// re-apply it after the conversion if they still want it.
-		current, getErr := a.Srv().Store().Channel().Get(channel.Id, true)
-		if getErr != nil {
-			return nil, model.NewAppError("UpdateChannel", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
-		}
-		if current.Type != channel.Type {
+		if oldChannel.Type != channel.Type {
 			return nil, model.NewAppError("UpdateChannel",
 				"api.channel.update_channel.policy_enforced_type_conversion.app_error",
 				nil, "channel has an active ABAC policy; remove the policy before converting between public and private", http.StatusBadRequest)
 		}
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		replacement, reason := hooks.ChannelWillBeUpdated(pluginContext, channel, oldChannel)
+		if reason != "" {
+			rejectionReason = reason
+			return false
+		}
+		if replacement != nil {
+			channel = replacement
+		}
+		return true
+	}, plugin.ChannelWillBeUpdatedID)
+	if rejectionReason != "" {
+		return nil, model.NewAppError("UpdateChannel", "app.channel.update_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	_, err := a.Srv().Store().Channel().Update(rctx, channel)
@@ -895,6 +920,16 @@ func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, chan
 func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID string) (*model.Channel, *model.AppError) {
 	if channel.DeleteAt == 0 {
 		return nil, model.NewAppError("restoreChannel", "api.channel.restore_channel.restored.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		rejectionReason = hooks.ChannelWillBeRestored(pluginContext, channel)
+		return rejectionReason == ""
+	}, plugin.ChannelWillBeRestoredID)
+	if rejectionReason != "" {
+		return nil, model.NewAppError("RestoreChannel", "app.channel.restore_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	if err := a.Srv().Store().Channel().Restore(channel.Id, model.GetMillis()); err != nil {
@@ -3510,6 +3545,16 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 		default:
 			return model.NewAppError("MoveChannel", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+	}
+
+	var rejectionReason string
+	pluginContext := pluginContext(rctx)
+	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+		rejectionReason = hooks.ChannelWillBeMoved(pluginContext, channel, channel.TeamId, team.Id)
+		return rejectionReason == ""
+	}, plugin.ChannelWillBeMovedID)
+	if rejectionReason != "" {
+		return model.NewAppError("MoveChannel", "app.channel.move_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
 	}
 
 	if nErr := a.Srv().Store().Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); nErr != nil {

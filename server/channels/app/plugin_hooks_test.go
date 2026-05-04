@@ -3654,3 +3654,1043 @@ func TestChannelGuardSurvivesArchive(t *testing.T) {
 	cached := th.App.Channels().getGuardsForChannel(channelID)
 	require.Len(t, cached, 1)
 }
+
+func TestHookChannelWillBeUpdated(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				return nil, "update not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		original := th.BasicChannel.DisplayName
+		updated := th.BasicChannel.DeepCopy()
+		updated.DisplayName = "Should Not Persist"
+
+		_, appErr := th.App.UpdateChannel(th.Context, updated)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, original, fetched.DisplayName)
+	})
+
+	t.Run("modified", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"strings"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				newChannel.DisplayName = strings.ToUpper(newChannel.DisplayName)
+				return newChannel, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		updated := th.BasicChannel.DeepCopy()
+		updated.DisplayName = "lowercase name"
+
+		_, appErr := th.App.UpdateChannel(th.Context, updated)
+		require.Nil(t, appErr)
+
+		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "LOWERCASE NAME", fetched.DisplayName)
+	})
+
+	t.Run("old vs new diff", func(t *testing.T) {
+		// Plugin rejects only when the DisplayName changed — proving that oldChannel carries the
+		// stored value, not a copy of newChannel.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				if oldChannel.DisplayName != newChannel.DisplayName {
+					return nil, "display name changed"
+				}
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		// Call with a changed DisplayName — plugin sees old != new and rejects.
+		changed := th.BasicChannel.DeepCopy()
+		changed.DisplayName = "Renamed Channel"
+		_, appErr := th.App.UpdateChannel(th.Context, changed)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		// Call with the same DisplayName — plugin sees old == new and allows.
+		same := th.BasicChannel.DeepCopy()
+		_, appErr = th.App.UpdateChannel(th.Context, same)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("idempotent across repeat calls", func(t *testing.T) {
+		// UpdateChannelPrivacy may invoke UpdateChannel twice on the postChannelPrivacyMessage
+		// failure path (forward + revert). This test approximates that double-fire by calling
+		// UpdateChannel twice with the same plugin loaded — the hook must tolerate repeat invocations.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeUpdated(c *plugin.Context, newChannel, oldChannel *model.Channel) (*model.Channel, string) {
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		first := th.BasicChannel.DeepCopy()
+		first.DisplayName = "First"
+		_, appErr := th.App.UpdateChannel(th.Context, first)
+		require.Nil(t, appErr)
+
+		second := first.DeepCopy()
+		second.DisplayName = "Second"
+		_, appErr = th.App.UpdateChannel(th.Context, second)
+		require.Nil(t, appErr)
+
+		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, "Second", fetched.DisplayName)
+	})
+}
+
+func TestHookChannelWillBeMoved(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID, toTeamID string) string {
+				return "move not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, sourceTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, targetTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		channel := th.CreateChannel(t, sourceTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		// Place the channel in a custom sidebar category so we can verify sidebar state is
+		// preserved when the move is rejected.
+		sidebarCat, appErr2 := th.App.CreateSidebarCategory(th.Context, th.BasicUser.Id, sourceTeam.Id, &model.SidebarCategoryWithChannels{
+			SidebarCategory: model.SidebarCategory{
+				UserId:      th.BasicUser.Id,
+				TeamId:      sourceTeam.Id,
+				DisplayName: "Test Category",
+				Type:        model.SidebarCategoryCustom,
+			},
+			Channels: []string{channel.Id},
+		})
+		require.Nil(t, appErr2)
+
+		appErr = th.App.MoveChannel(th.Context, targetTeam, channel, th.BasicUser)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		fetched, err := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, sourceTeam.Id, fetched.TeamId)
+
+		// Sidebar entry must survive the rejected move.
+		updatedCat, appErr3 := th.App.GetSidebarCategory(th.Context, sidebarCat.Id)
+		require.Nil(t, appErr3)
+		assert.Contains(t, updatedCat.Channels, channel.Id)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID, toTeamID string) string {
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, sourceTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, targetTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		channel := th.CreateChannel(t, sourceTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MoveChannel(th.Context, targetTeam, channel, th.BasicUser)
+		require.Nil(t, appErr)
+
+		fetched, err := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, targetTeam.Id, fetched.TeamId)
+	})
+
+	t.Run("team ids propagated", func(t *testing.T) {
+		// Plugin encodes fromTeamID and toTeamID in its rejection reason; the test verifies both
+		// arrive at the plugin in the correct order.
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID, toTeamID string) string {
+				return "from=" + fromTeamID + ":to=" + toTeamID
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		sourceTeam := th.CreateTeam(t)
+		targetTeam := th.CreateTeam(t)
+		_, _, appErr := th.App.AddUserToTeam(th.Context, sourceTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, targetTeam.Id, th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		channel := th.CreateChannel(t, sourceTeam)
+		_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+		require.Nil(t, appErr)
+
+		appErr = th.App.MoveChannel(th.Context, targetTeam, channel, th.BasicUser)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+		assert.Contains(t, appErr.Message, sourceTeam.Id)
+		assert.Contains(t, appErr.Message, targetTeam.Id)
+
+		fetched, err := th.App.GetChannel(th.Context, channel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, sourceTeam.Id, fetched.TeamId)
+	})
+}
+
+func TestHookChannelWillBeRestored(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// First archive the channel so RestoreChannel has something to do.
+		require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
+				return "restore not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.NotEqual(t, int64(0), fetched.DeleteAt)
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+
+		_, appErr := th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		fetched, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+		require.Nil(t, err)
+		assert.Equal(t, int64(0), fetched.DeleteAt)
+	})
+}
+
+func TestHookScheduledPostWillBeCreated(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("save rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				return nil, "scheduled post not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		sp := &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "scheduled hi",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}
+		_, appErr := th.App.SaveScheduledPost(th.Context, sp, "")
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+	})
+
+	t.Run("save modified", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				scheduledPost.Message = "modified-by-plugin"
+				return scheduledPost, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		sp := &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "original",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}
+		saved, appErr := th.App.SaveScheduledPost(th.Context, sp, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, "modified-by-plugin", saved.Message)
+	})
+
+	t.Run("update rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		// First save (no plugin loaded yet so the hook is a no-op).
+		sp := &model.ScheduledPost{
+			Draft: model.Draft{
+				UserId:    th.BasicUser.Id,
+				ChannelId: th.BasicChannel.Id,
+				Message:   "original",
+			},
+			ScheduledAt: model.GetMillis() + 60_000,
+		}
+		saved, appErr := th.App.SaveScheduledPost(th.Context, sp, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ScheduledPostWillBeCreated(c *plugin.Context, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, string) {
+				return nil, "update not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		saved.Message = "edited"
+		_, appErr = th.App.UpdateScheduledPost(th.Context, th.BasicUser.Id, saved, "")
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+	})
+}
+
+func TestHookDraftWillBeUpserted(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.Server.platform.SetConfigReadOnlyFF(false)
+		defer th.Server.platform.SetConfigReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+				return nil, "draft not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		draft := &model.Draft{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "draft hi",
+		}
+		_, appErr := th.App.UpsertDraft(th.Context, draft, "")
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+
+		drafts, getErr := th.App.GetDraftsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
+		require.Nil(t, getErr)
+		assert.Empty(t, drafts)
+	})
+
+	t.Run("modified", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.Server.platform.SetConfigReadOnlyFF(false)
+		defer th.Server.platform.SetConfigReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+				draft.Message = "modified-by-plugin"
+				return draft, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		draft := &model.Draft{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "original",
+		}
+		saved, appErr := th.App.UpsertDraft(th.Context, draft, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, saved)
+		assert.Equal(t, "modified-by-plugin", saved.Message)
+	})
+
+	t.Run("delete-empty does not fire hook", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic(t)
+
+		th.Server.platform.SetConfigReadOnlyFF(false)
+		defer th.Server.platform.SetConfigReadOnlyFF(true)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
+
+		// Plugin rejects everything; if it fires on the delete path we will see an AppError.
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) DraftWillBeUpserted(c *plugin.Context, draft *model.Draft) (*model.Draft, string) {
+				return nil, "should not be called for empty-message delete"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		empty := &model.Draft{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "",
+		}
+		_, appErr := th.App.UpsertDraft(th.Context, empty, "")
+		require.Nil(t, appErr)
+	})
+}
+
+func TestHookRecapWillBeProcessed(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("skipped", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["x"],"action_items":["y"]}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
+				return "recap not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.CreatePost(t, channel)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+		assert.True(t, result.Success)
+		assert.Equal(t, 0, result.MessageCount)
+		assert.Empty(t, bridge.completeCalls, "agents bridge must not be called when recap is rejected")
+
+		recapChannels, storeErr := th.App.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+		require.NoError(t, storeErr)
+		assert.Empty(t, recapChannels, "no recap row must be written when the hook rejects")
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"highlights":["A highlight"],"action_items":["An action"]}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.EnableAIRecaps = true })
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) RecapWillBeProcessed(c *plugin.Context, channel *model.Channel) string {
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		channel := th.CreateChannel(t, th.BasicTeam)
+		th.CreatePost(t, channel)
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		recapID := model.NewId()
+		agentID := "test-agent"
+		_, storeErr := th.App.Srv().Store().Recap().SaveRecap(&model.Recap{
+			Id:       recapID,
+			UserId:   th.BasicUser.Id,
+			Title:    "Recap",
+			CreateAt: model.GetMillis(),
+			UpdateAt: model.GetMillis(),
+			Status:   model.RecapStatusProcessing,
+			BotID:    agentID,
+		})
+		require.NoError(t, storeErr)
+
+		result, appErr := th.App.ProcessRecapChannel(ctx, recapID, channel.Id, th.BasicUser.Id, agentID)
+		require.Nil(t, appErr)
+		require.NotNil(t, result)
+		assert.True(t, result.Success)
+		assert.Equal(t, 1, result.MessageCount)
+		require.Len(t, bridge.completeCalls, 1)
+	})
+}
+
+func TestHookMessageWillBeRewrittenByAI(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("rejected", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"rewritten_text":"should not happen"}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+				return "rewrite not permitted"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		_, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", th.BasicChannel.Id)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.Id, "rejected_by_plugin")
+		assert.Empty(t, bridge.completeCalls, "agents bridge must not be called when rewrite is rejected")
+	})
+
+	t.Run("allowed", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"rewritten_text":"shorter"}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		resp, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello world", model.RewriteActionShorten, "", "", th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, resp)
+		assert.Equal(t, "shorter", resp.RewrittenText)
+		require.Len(t, bridge.completeCalls, 1)
+	})
+
+	t.Run("channel-id propagated to synthetic post", func(t *testing.T) {
+		// Plugin rejects only when the synthetic post's ChannelId equals the expected channel.
+		// If propagation is broken, the rejection will not fire and the test fails.
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"rewritten_text":"x"}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		expectedChannelID := th.BasicChannel.Id
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+				if post.ChannelId == "` + expectedChannelID + `" {
+					return "channel matched"
+				}
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		_, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello", model.RewriteActionShorten, "", "", expectedChannelID)
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.DetailedError+appErr.Message, "channel matched")
+	})
+
+	t.Run("empty channel-id reaches plugin as empty string", func(t *testing.T) {
+		// Older mobile clients send no channel_id. The server tolerates that; the
+		// hook receives a synthetic post with ChannelId="" and the plugin decides
+		// (a fail-closed CME plugin would reject; a permissive plugin would allow).
+		mainHelper.Parallel(t)
+		bridge := &testAgentsBridge{
+			completeFn: func(sessionUserID, agentID string, req BridgeCompletionRequest) (string, error) {
+				return `{"rewritten_text":"x"}`, nil
+			},
+		}
+		th := Setup(t, WithAgentsBridge(bridge)).InitBasic(t)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
+			`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBeRewrittenByAI(c *plugin.Context, post *model.Post, action string) string {
+				if post.ChannelId == "" {
+					return "no channel context"
+				}
+				return ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+		}, th.App, th.NewPluginAPI)
+		defer tearDown()
+
+		ctx := th.Context.WithSession(&model.Session{UserId: th.BasicUser.Id})
+		_, appErr := th.App.RewriteMessage(ctx, model.NewId(), "hello", model.RewriteActionShorten, "", "", "")
+		require.NotNil(t, appErr)
+		assert.Contains(t, appErr.DetailedError+appErr.Message, "no channel context")
+	})
+}
+
+func TestHooksNoOpWhenNoPlugin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// No plugin loaded — all hooks must be no-ops and the affected app calls must succeed
+	// (or fail for unrelated reasons). This guards against accidentally turning a no-op
+	// RunMultiHook into a hard requirement.
+
+	updated := th.BasicChannel.DeepCopy()
+	updated.DisplayName = "renamed"
+	_, appErr := th.App.UpdateChannel(th.Context, updated)
+	require.Nil(t, appErr)
+
+	require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
+	archived, err := th.App.GetChannel(th.Context, th.BasicChannel.Id)
+	require.Nil(t, err)
+	_, appErr = th.App.RestoreChannel(th.Context, archived, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	// UpsertDraft exercises the DraftWillBeUpserted hook path with no plugin loaded.
+	th.Server.platform.SetConfigReadOnlyFF(false)
+	defer th.Server.platform.SetConfigReadOnlyFF(true)
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
+	draft := &model.Draft{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "no-op draft",
+	}
+	_, appErr = th.App.UpsertDraft(th.Context, draft, "")
+	require.Nil(t, appErr)
+}

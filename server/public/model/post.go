@@ -1240,6 +1240,7 @@ const (
 type RewriteRequest struct {
 	AgentID      string        `json:"agent_id"`
 	Message      string        `json:"message"`
+	ChannelID    string        `json:"channel_id,omitempty"`
 	Action       RewriteAction `json:"action"`
 	CustomPrompt string        `json:"custom_prompt,omitempty"`
 	RootID       string        `json:"root_id,omitempty"`

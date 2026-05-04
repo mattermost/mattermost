@@ -5615,6 +5615,10 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "app.channel.move_channel.rejected_by_plugin",
+    "translation": "Channel move rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "Unable to update channel members' notify props."
   },
@@ -5671,6 +5675,10 @@
     "translation": "Unable to restore the channel."
   },
   {
+    "id": "app.channel.restore_channel.rejected_by_plugin",
+    "translation": "Channel restore rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.channel.save_member.exists.app_error",
     "translation": "A channel member with that ID already exists."
   },
@@ -5709,6 +5717,10 @@
   {
     "id": "app.channel.update_channel.internal_error",
     "translation": "Unable to update channel."
+  },
+  {
+    "id": "app.channel.update_channel.rejected_by_plugin",
+    "translation": "Channel update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.channel.update_last_viewed_at.app_error",
@@ -6323,6 +6335,10 @@
   {
     "id": "app.draft.save.app_error",
     "translation": "Unable to save the Draft."
+  },
+  {
+    "id": "app.draft.upsert.rejected_by_plugin",
+    "translation": "Draft rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.drafts.permanent_delete_by_user.app_error",
@@ -7973,6 +7989,10 @@
     "translation": "Failed to parse rewrite response from AI."
   },
   {
+    "id": "app.post.rewrite.rejected_by_plugin",
+    "translation": "Rewrite rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
@@ -8559,8 +8579,16 @@
     "translation": "Private channel"
   },
   {
+    "id": "app.scheduled_post.save.rejected_by_plugin",
+    "translation": "Scheduled post rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "app.scheduled_post.unknown_channel",
     "translation": "Unknown Channel"
+  },
+  {
+    "id": "app.scheduled_post.update.rejected_by_plugin",
+    "translation": "Scheduled post update rejected by plugin: {{.Reason}}"
   },
   {
     "id": "app.scheme.delete.app_error",

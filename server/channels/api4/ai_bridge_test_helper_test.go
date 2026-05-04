@@ -182,9 +182,10 @@ func TestAIBridgeTestHelperMocksRealEndpoints(t *testing.T) {
 	assert.Equal(t, serviceID, servicesResp[0].ID)
 
 	rewriteReq := &model.RewriteRequest{
-		AgentID: agentID,
-		Message: "the status update",
-		Action:  model.RewriteActionFixSpelling,
+		AgentID:   agentID,
+		Message:   "the status update",
+		ChannelID: th.BasicChannel.Id,
+		Action:    model.RewriteActionFixSpelling,
 	}
 
 	rewriteHTTPResp, err := th.Client.DoAPIPostJSON(context.Background(), "/posts/rewrite", rewriteReq)
