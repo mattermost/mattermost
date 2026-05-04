@@ -209,14 +209,15 @@ func TestChannelGuardLowercaseNormalization(t *testing.T) {
 	// Build a PluginAPI directly with a mixed-case manifest. This bypasses the
 	// real plugin activation path (which we don't need for the lowercasing
 	// check) and exercises only the api.id -> App.RegisterChannelGuard handoff.
+	rctx := request.EmptyContext(th.App.Srv().Log())
 	api := &PluginAPI{
 		id:  mixedCaseID,
 		app: th.App,
+		ctx: rctx,
 	}
 
 	require.Nil(t, api.RegisterChannelGuard(channelID))
 
-	rctx := request.EmptyContext(th.App.Srv().Log())
 	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
