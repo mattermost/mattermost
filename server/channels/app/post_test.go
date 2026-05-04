@@ -952,6 +952,52 @@ func TestDeletePostInArchivedChannel(t *testing.T) {
 	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
 }
 
+func TestDeletePostDeletesPersistentNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostPriority = true
+		*cfg.ServiceSettings.AllowPersistentNotifications = true
+	})
+
+	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+	require.Nil(t, appErr)
+
+	t.Run("should delete persistent notification for root post", func(t *testing.T) {
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+		}
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.Empty(t, post.RootId, "test post must be a root post")
+
+		// Verify persistent notification exists
+		pn, err := th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+		require.NoError(t, err)
+		require.NotNil(t, pn)
+
+		// Delete the post (soft delete)
+		_, appErr = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify persistent notification was deleted
+		_, err = th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+		var nfErr *store.ErrNotFound
+		require.Error(t, err)
+		require.ErrorAs(t, err, &nfErr)
+	})
+}
+
 func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
@@ -4770,6 +4816,47 @@ func TestPermanentDeletePost(t *testing.T) {
 		_, tmpErr = th.App.Srv().Store().TemporaryPost().Get(th.Context, post.Id, true)
 		assert.Error(t, tmpErr)
 		assert.True(t, store.IsErrNotFound(tmpErr))
+	})
+
+	t.Run("should delete persistent notification for root post", func(t *testing.T) {
+		th.App.Srv().SetLicense(getLicWithSkuShortName(model.LicenseShortSkuProfessional))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.PostPriority = true
+			*cfg.ServiceSettings.AllowPersistentNotifications = true
+		})
+
+		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser2, th.BasicChannel, false)
+		require.Nil(t, appErr)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "urgent " + "@" + th.BasicUser2.Username,
+			Metadata: &model.PostMetadata{
+				Priority: &model.PostPriority{
+					Priority:                model.NewPointer(model.PostPriorityUrgent),
+					PersistentNotifications: model.NewPointer(true),
+				},
+			},
+		}
+		post, _, appErr = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		require.Empty(t, post.RootId, "test post must be a root post")
+
+		// Verify persistent notification exists
+		pn, err := th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+		require.NoError(t, err)
+		require.NotNil(t, pn)
+
+		// Permanently delete the post
+		appErr = th.App.PermanentDeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify persistent notification was deleted
+		_, err = th.App.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+		var nfErr *store.ErrNotFound
+		require.Error(t, err)
+		require.ErrorAs(t, err, &nfErr)
 	})
 
 	t.Run("should send unrevealed post in websocket broadcast", func(t *testing.T) {

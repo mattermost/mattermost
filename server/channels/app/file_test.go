@@ -820,7 +820,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		require.Nil(t, err)
 
 		_, err = th.App.GetFileInfo(th.Context, info1.Id)
@@ -828,7 +828,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 	})
 
 	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
-		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1", nil)
 		assert.Nil(t, err)
 	})
 
@@ -844,8 +844,64 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		assert.Nil(t, err)
+	})
+
+	t.Run("should mark both report steps as failed on GetForPost store error", func(t *testing.T) {
+		mockTh := SetupWithStoreMock(t)
+
+		mockStore := mockTh.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		mockFileStore.On("GetForPost", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("db connection lost"))
+		mockStore.On("FileInfo").Return(&mockFileStore)
+
+		report := &model.PostDeletionReport{
+			PostID:    "test-post-id",
+			Timestamp: time.Now(),
+		}
+
+		appErr := mockTh.App.PermanentDeleteFilesByPost(request.TestContext(t), "test-post-id", report)
+		require.NotNil(t, appErr)
+
+		// Both file_attachments and fileinfo_rows steps should be marked as failed
+		require.Len(t, report.Steps, 2)
+		require.Equal(t, model.StepFailed, report.Steps[0].Status)
+		require.Equal(t, model.StepFailed, report.Steps[1].Status)
+		require.Contains(t, report.Steps[0].Errors[0], "db connection lost")
+		require.Contains(t, report.Steps[1].Errors[0], "db connection lost")
+	})
+
+	t.Run("should mark fileinfo_rows as failed when PermanentDeleteForPost fails", func(t *testing.T) {
+		mockTh := SetupWithStoreMock(t)
+
+		postID := model.NewId()
+
+		mockStore := mockTh.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		// Return file infos with non-existent paths so file store removal
+		// returns NotFound (which is skipped), resulting in no errors.
+		mockFileStore.On("GetForPost", postID, false, true, true).Return([]*model.FileInfo{
+			{Id: model.NewId(), Name: "file1.txt", Path: "/nonexistent/file1.txt"},
+			{Id: model.NewId(), Name: "file2.txt", Path: "/nonexistent/file2.txt"},
+		}, nil)
+		mockFileStore.On("PermanentDeleteForPost", mock.Anything, postID).Return(errors.New("foreign key constraint"))
+		mockStore.On("FileInfo").Return(&mockFileStore)
+
+		report := &model.PostDeletionReport{
+			PostID:    postID,
+			Timestamp: time.Now(),
+		}
+
+		appErr := mockTh.App.PermanentDeleteFilesByPost(request.TestContext(t), postID, report)
+		require.NotNil(t, appErr)
+
+		// file_attachments step should succeed (NotFound files are skipped),
+		// but fileinfo_rows step should fail due to the DB error.
+		require.Len(t, report.Steps, 2)
+		require.Equal(t, model.StepSuccess, report.Steps[0].Status, "file_attachments step should succeed")
+		require.Equal(t, model.StepFailed, report.Steps[1].Status, "fileinfo_rows step should fail")
+		require.Contains(t, report.Steps[1].Errors[0], "foreign key constraint")
 	})
 }
 
