@@ -278,9 +278,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -300,7 +299,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -720,9 +719,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -742,7 +740,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -1107,9 +1105,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -1129,7 +1126,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>
@@ -1392,9 +1389,8 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                   >
                     <button
                       aria-pressed="false"
-                      class="btn btn-lg btn-toggle disabled"
+                      class="btn btn-lg btn-toggle"
                       data-testid="policy-enforce-toggle-button"
-                      disabled=""
                       id="policy-enforce-toggle"
                       tabindex="0"
                       type="button"
@@ -1414,7 +1410,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
                     <div
                       class="help-text-small help-text-no-padding "
                     >
-                      Only private channels can be attribute based.
+                      Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.
                     </div>
                   </div>
                 </div>

@@ -340,11 +340,18 @@ type Dialog struct {
 
 // DialogDateTimeConfig groups date/datetime specific configuration
 type DialogDateTimeConfig struct {
+	// MinDate: Minimum allowed date (ISO date, datetime, or relative like "+2H", "today")
+	MinDate string `json:"min_date,omitempty"`
+	// MaxDate: Maximum allowed date (ISO date, datetime, or relative like "+7d", "tomorrow")
+	MaxDate string `json:"max_date,omitempty"`
 	// TimeInterval: Minutes between time options in dropdown (default: 60)
 	TimeInterval int `json:"time_interval,omitempty"`
 	// LocationTimezone: IANA timezone for display (e.g., "America/Denver", "Asia/Tokyo")
 	LocationTimezone string `json:"location_timezone,omitempty"`
-	// AllowManualTimeEntry: Allow manual text entry for time instead of dropdown
+	// ManualTimeEntry: Allow manual text entry for time instead of dropdown
+	ManualTimeEntry bool `json:"manual_time_entry,omitempty"`
+	// Deprecated: Use ManualTimeEntry instead. Kept for backward compatibility;
+	// when both are provided, either field being true enables manual time entry.
 	AllowManualTimeEntry bool `json:"allow_manual_time_entry,omitempty"`
 }
 
@@ -367,11 +374,43 @@ type DialogElement struct {
 
 	// Date/datetime field configuration
 	DateTimeConfig *DialogDateTimeConfig `json:"datetime_config,omitempty"`
+	// Deprecated: Use DateTimeConfig.MinDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MinDate takes precedence.
+	MinDate string `json:"min_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.MaxDate instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its MaxDate takes precedence.
+	MaxDate string `json:"max_date,omitempty"`
+	// Deprecated: Use DateTimeConfig.TimeInterval instead. Kept for backward compatibility;
+	// if DateTimeConfig is provided, its TimeInterval takes precedence.
+	TimeInterval int `json:"time_interval,omitempty"`
+}
 
-	// Simple date/datetime configuration (fallback when datetime_config not provided)
-	MinDate      string `json:"min_date,omitempty"`
-	MaxDate      string `json:"max_date,omitempty"`
-	TimeInterval int    `json:"time_interval,omitempty"`
+// EffectiveDateTimeConfig returns the resolved date/datetime configuration by
+// merging DateTimeConfig over the deprecated top-level fields (MinDate, MaxDate,
+// TimeInterval). DateTimeConfig values take precedence when set.
+func (e *DialogElement) EffectiveDateTimeConfig() DialogDateTimeConfig {
+	cfg := DialogDateTimeConfig{
+		MinDate:      e.MinDate,
+		MaxDate:      e.MaxDate,
+		TimeInterval: e.TimeInterval,
+	}
+	if e.DateTimeConfig != nil {
+		if e.DateTimeConfig.MinDate != "" {
+			cfg.MinDate = e.DateTimeConfig.MinDate
+		}
+		if e.DateTimeConfig.MaxDate != "" {
+			cfg.MaxDate = e.DateTimeConfig.MaxDate
+		}
+		if e.DateTimeConfig.TimeInterval != 0 {
+			cfg.TimeInterval = e.DateTimeConfig.TimeInterval
+		}
+		cfg.LocationTimezone = e.DateTimeConfig.LocationTimezone
+		// ManualTimeEntry is OR'd with the deprecated AllowManualTimeEntry. Booleans can't
+		// distinguish explicit-false from not-set across JSON (omitempty drops the zero value),
+		// so either field being true must enable the feature during the deprecation window.
+		cfg.ManualTimeEntry = e.DateTimeConfig.ManualTimeEntry || e.DateTimeConfig.AllowManualTimeEntry
+	}
+	return cfg
 }
 
 type OpenDialogRequest struct {
@@ -667,20 +706,22 @@ func (e *DialogElement) IsValid() error {
 		}
 
 	case "date":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateFormat(cfg.MaxDate))
 
 	case "datetime":
+		cfg := e.EffectiveDateTimeConfig()
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementTextMaxLength))
 		multiErr = multierror.Append(multiErr, validateDateTimeFormat(e.Default))
-		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MinDate))
-		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(e.MaxDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MinDate))
+		multiErr = multierror.Append(multiErr, validateDateOrDateTimeFormat(cfg.MaxDate))
 		// Validate time_interval for datetime fields (0 means omitted — treated as default)
-		timeInterval := e.TimeInterval
+		timeInterval := cfg.TimeInterval
 		if timeInterval != 0 {
 			if timeInterval < 1 || timeInterval > 1440 {
 				multiErr = multierror.Append(multiErr, errors.Errorf("time_interval must be between 1 and 1440 minutes, got %d", timeInterval))
