@@ -312,6 +312,7 @@ func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix strin
 		}
 
 		entryName := path.Join(dirPrefix, attachmentEntryName(fi))
+
 		w, err := zw.Create(entryName)
 		if err != nil {
 			return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
