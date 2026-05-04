@@ -20,6 +20,8 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       REPO: ${{ github.repository }}
+      # TODO: remove once validated end-to-end; limits recheck to test branches only.
+      BRANCH_PREFIX_FILTER: test-branch-freshness
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
