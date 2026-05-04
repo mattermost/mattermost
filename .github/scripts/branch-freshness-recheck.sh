@@ -24,14 +24,22 @@ prs_json=$(mktemp)
 trap 'rm -f "$prs_json"' EXIT
 
 gh pr list --repo "$REPO" --base master --state open --limit 1000 \
-  --json number,headRefOid,baseRefOid > "$prs_json"
+  --json number,headRefOid,baseRefOid,headRefName > "$prs_json"
 
-echo "Re-evaluating $(jq length "$prs_json") open PRs."
+# TODO: remove this filter once the check has been validated end-to-end.
+branch_filter="${BRANCH_PREFIX_FILTER:-}"
+
+echo "Re-evaluating $(jq length "$prs_json") open PRs${branch_filter:+ matching prefix '${branch_filter}'}."
 
 jq -c '.[]' "$prs_json" | while read -r pr; do
   number=$(jq -r '.number' <<<"$pr")
   head_sha=$(jq -r '.headRefOid' <<<"$pr")
   base_sha=$(jq -r '.baseRefOid' <<<"$pr")
+  head_ref=$(jq -r '.headRefName' <<<"$pr")
+
+  if [ -n "$branch_filter" ] && [[ "$head_ref" != "${branch_filter}"* ]]; then
+    continue
+  fi
 
   # branch-freshness-check.sh exits 1 when the branch is too far behind, but
   # still prints a JSON result to stdout. Treat empty output as a real error.
@@ -48,10 +56,28 @@ jq -c '.[]' "$prs_json" | while read -r pr; do
 
   printf "PR #%s @ %s -> %s (%s)\n" "$number" "$head_sha" "$conclusion" "$title"
 
-  if ! gh api "repos/${REPO}/check-runs" \
-      --method POST \
+  existing_id=$(gh api "repos/${REPO}/check-runs" \
+      --method GET \
       --field name='branch-freshness' \
       --field head_sha="$head_sha" \
+      --jq '.check_runs[0].id // empty' 2>/dev/null || true)
+
+  if [ -n "$existing_id" ]; then
+    method=PATCH
+    endpoint="repos/${REPO}/check-runs/${existing_id}"
+  else
+    method=POST
+    endpoint="repos/${REPO}/check-runs"
+  fi
+
+  extra_fields=()
+  if [ "$method" = POST ]; then
+    extra_fields=(--field name='branch-freshness' --field head_sha="$head_sha")
+  fi
+
+  if ! gh api "$endpoint" \
+      --method "$method" \
+      "${extra_fields[@]}" \
       --field status='completed' \
       --field conclusion="$conclusion" \
       --field "output[title]=$title" \
