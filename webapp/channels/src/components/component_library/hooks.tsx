@@ -145,10 +145,14 @@ export const useComponentWithProps = (
 };
 
 export const usePropSelectors = (
-    propsArray: PropResult[],
+    propsOrComponents: Array<PropResult | React.ReactNode>,
 ) => {
     return useMemo(
-        () => propsArray.flatMap((r) => {
+        () => propsOrComponents.flatMap((r) => {
+            if (React.isValidElement(r)) {
+                return [r];
+            }
+
             if (!Array.isArray(r)) {
                 return [];
             }
@@ -157,7 +161,7 @@ export const usePropSelectors = (
         }).map((r, index) => React.cloneElement(r, {key: index})),
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        propsArray,
+        propsOrComponents,
     );
 };
 

@@ -59,13 +59,11 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
         labelProp,
         leadingIconProp,
         trailingIconProp,
-
-        // <hr key='first-selector'/>,
+        <hr key='first-selector'/>,
         emphasisProp,
         sizeProp,
         variantProp,
-
-        // <hr key='second-selector'/>,
+        <hr key='second-selector'/>,
         disabledProp,
     ]);
 
