@@ -49,7 +49,7 @@ test.describe('Channel Category Sorting', () => {
             // * Verify the default category selector is not rendered
             const defaultCategorySelector = channelSettingsModal.container
                 .locator('.CategorySelector')
-                .filter({hasText: 'Choose a category (optional)'});
+                .filter({hasText: 'Choose a default category (optional)'});
             await expect(defaultCategorySelector).toHaveCount(0);
 
             await channelSettingsModal.close();
@@ -80,7 +80,7 @@ test.describe('Channel Category Sorting', () => {
 
             // # Locate the default category selector and select a new category
             const defaultCategorySection = newChannelModal.container.locator('.CategorySelector').first();
-            await expect(defaultCategorySection).toContainText('Choose a category (optional)');
+            await expect(defaultCategorySection).toContainText('Choose a default category (optional)');
 
             const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
             await defaultCategoryControl.click();
@@ -129,7 +129,7 @@ test.describe('Channel Category Sorting', () => {
 
         // * Verify the default category selector is visible
         const defaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(defaultCategorySection).toContainText('Choose a category (optional)');
+        await expect(defaultCategorySection).toContainText('Choose a default category (optional)');
 
         // # Click the selector, type a new category name, and select "Create new category"
         const defaultCategoryControl = defaultCategorySection.locator('.CategorySelector__control');
@@ -210,7 +210,7 @@ test.describe('Channel Category Sorting', () => {
 
         // * Verify the default category selector shows the placeholder (value is cleared)
         const reopenedDefaultCategorySection = channelSettingsModal.container.locator('.CategorySelector').first();
-        await expect(reopenedDefaultCategorySection).toContainText('Choose a category (optional)');
+        await expect(reopenedDefaultCategorySection).toContainText('Choose a default category (optional)');
 
         await channelSettingsModal.close();
     });
