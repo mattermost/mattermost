@@ -314,11 +314,7 @@ func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix strin
 
 		reader, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
-			// Missing file content is logged but does not fail the report.
 			rctx.Logger().Warn("Failed to read attachment for flagged post report", mlog.String("file_id", fi.Id), mlog.Err(appErr))
-			if _, wErr := fmt.Fprintf(w, "# unable to read file %s: %s\n", fi.Id, appErr.Error()); wErr != nil {
-				return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_write.app_error", nil, "", http.StatusInternalServerError).Wrap(wErr)
-			}
 			continue
 		}
 

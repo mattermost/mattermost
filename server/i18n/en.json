@@ -6257,10 +6257,6 @@
     "translation": "Failed to create an entry in the flagged post report archive."
   },
   {
-    "id": "app.data_spillage.report.zip_write.app_error",
-    "translation": "Failed to write to the flagged post report archive."
-  },
-  {
     "id": "app.data_spillage.save_reviewer_settings.app_error",
     "translation": "Failed to save content reviewer settings to the database."
   },

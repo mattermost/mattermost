@@ -2281,7 +2281,16 @@ func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, 
 
 // GetFileInfosForPost also returns firstInaccessibleFileTime based on cloud plan's limit.
 func (a *App) GetFileInfosForPost(rctx request.CTX, post *model.Post, fromMaster bool, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
-	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(post.FileIds, includeDeleted, true, fromMaster)
+	fileIDs := post.FileIds
+	if fromMaster {
+		masterPost, err := a.Srv().Store().Post().GetSingle(sqlstore.RequestContextWithMaster(rctx), post.Id, includeDeleted)
+		if err != nil {
+			return nil, 0, model.NewAppError("GetFileInfosForPost", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		fileIDs = masterPost.FileIds
+	}
+
+	fileInfos, err := a.Srv().Store().FileInfo().GetByIds(fileIDs, includeDeleted, true, fromMaster)
 	if err != nil {
 		return nil, 0, model.NewAppError("GetFileInfosForPost", "app.file_info.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
