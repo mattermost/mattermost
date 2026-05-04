@@ -8,9 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {expect, test, testConfig} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended, SystemConsolePage} from '@mattermost/playwright-lib';
 
-import {
-    setupCustomProfileAttributeValuesForUser,
-} from '../../channels/custom_profile_attributes/helpers';
+import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
 
 type AdminUser = UserProfile & {password: string};
 

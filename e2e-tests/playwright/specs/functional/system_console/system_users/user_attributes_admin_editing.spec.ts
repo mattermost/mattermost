@@ -174,9 +174,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // * Verify custom user attributes are present
         for (const field of testUserAttributes) {
             const label = field.attrs?.display_name || field.name;
-            await expect(
-                systemConsolePage.page.locator('label').filter({hasText: new RegExp(label)}),
-            ).toBeVisible();
+            await expect(systemConsolePage.page.locator('label').filter({hasText: new RegExp(label)})).toBeVisible();
         }
 
         // * Verify we have input fields (at least 4-5 total)

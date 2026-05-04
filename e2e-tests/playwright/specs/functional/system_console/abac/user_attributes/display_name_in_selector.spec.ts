@@ -114,7 +114,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
 
                 const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
                 await attributeButton.waitFor({state: 'visible', timeout: 5000});
-                
+
                 const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
 
                 if (!(await attributeMenu.isVisible({timeout: 1000}).catch(() => false))) {
