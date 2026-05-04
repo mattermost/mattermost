@@ -3171,8 +3171,15 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			}
 		} else {
 			// metadata exists, update it
+			// Recalculate reply count from DB (within the same transaction so it sees
+			// the just-inserted posts). This is necessary because EnsureThreadExists may
+			// have pre-inserted the row with a placeholder ReplyCount.
+			var actualCount int64
+			if err := transaction.Get(&actualCount, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId); err != nil {
+				return err
+			}
+			thread.ReplyCount = actualCount
 			for _, post := range posts {
-				thread.ReplyCount += 1
 				if thread.Participants.Contains(post.UserId) {
 					thread.Participants = thread.Participants.Remove(post.UserId)
 				}

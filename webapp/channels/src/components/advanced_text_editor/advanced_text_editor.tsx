@@ -63,7 +63,7 @@ import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
-import {getSiteURL} from 'utils/url';
+import {getBasePath} from 'utils/url';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -426,10 +426,21 @@ const AdvancedTextEditor = ({
     const dispatchBroadcastIfNeeded = useCallback(() => {
         if (canBroadcastToChannel && broadcastToChannel && draft.message.trim() && currentTeam) {
             const trimmed = draft.message.trim();
-            const firstLine = trimmed.split('\n').find((line) => line.trim().length > 0) || trimmed;
-            const snippet = firstLine.length > 200 ? `${firstLine.slice(0, 200)}…` : firstLine;
-            const permalink = `${getSiteURL()}/${currentTeam.name}/pl/${rootId}?thread=open`;
-            const broadcastBody = `> ${snippet}\n\n→ [Trả lời trong thread](${permalink})`;
+            // Find the first meaningful line: skip blockquote/code-fence markers and empty lines.
+            let snippetLine = '';
+            for (const rawLine of trimmed.split('\n')) {
+                const stripped = rawLine.replace(/^(>\s*)+/, '').trim();
+                if (stripped && !/^`{3,}/.test(stripped) && !/^-{3,}$/.test(stripped)) {
+                    snippetLine = stripped;
+                    break;
+                }
+            }
+            if (!snippetLine) {
+                snippetLine = trimmed;
+            }
+            const snippet = snippetLine.length > 200 ? `${snippetLine.slice(0, 200)}…` : snippetLine;
+            const permalink = `${getBasePath()}/${currentTeam.name}/pl/${rootId}?thread=open`;
+            const broadcastBody = `> ${snippet}\n\n→ [Replied to a thread](${permalink})`;
 
             dispatch(submitPost(channelId, '', {
                 message: broadcastBody,

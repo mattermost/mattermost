@@ -367,7 +367,8 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// For root channel posts with mentions: ensure a Threads entry exists so the thread
 	// is immediately visible in "Followed Threads" without waiting for the first reply.
 	// @here/@channel/@all → IsMentionOnly (no reply-spam), direct @mention → full follow.
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId == "" && isCRTAllowed && len(mentions.Mentions) > 0 {
+	// Skip DMs: both participants already see every message, threading adds noise.
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId == "" && isCRTAllowed && len(mentions.Mentions) > 0 && channel.Type != model.ChannelTypeDirect {
 		if err := a.Srv().Store().Thread().EnsureThreadExists(post.Id, post.ChannelId, team.Id, post.CreateAt); err != nil {
 			rctx.Logger().Warn("Failed to ensure thread exists for root post",
 				mlog.String("post_id", post.Id),
@@ -385,11 +386,14 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 				continue
 			}
 			isMentionOnly := mentionType == ChannelMention
+			// Mark the membership as viewed at creation time so the empty (no-reply) thread
+			// doesn't count as unread. Real replies will bump LastReplyAt > LastViewed and
+			// correctly trigger the unread state.
 			opts := store.ThreadMembershipOpts{
 				Following:             true,
 				UpdateFollowing:       true,
 				IncrementMentions:     false,
-				UpdateViewedTimestamp: false,
+				UpdateViewedTimestamp: true,
 				UpdateParticipants:    false,
 				IsMentionOnly:         isMentionOnly,
 			}
