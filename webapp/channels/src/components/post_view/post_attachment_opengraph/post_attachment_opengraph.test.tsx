@@ -290,7 +290,7 @@ describe('PostAttachmentOpenGraphImage', () => {
         expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
     });
 
-    test('should render a small image with toggle', () => {
+    test('should render a small image without inline toggle when expanded', () => {
         const props = {
             ...baseProps,
             imageMetadata: {
@@ -307,7 +307,7 @@ describe('PostAttachmentOpenGraphImage', () => {
 
         expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
         expect(container.querySelector('.PostAttachmentOpenGraph__image.large')).not.toBeInTheDocument();
-        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image .preview-toggle')).not.toBeInTheDocument();
     });
 
     test('should not render inline figure when small image embed is collapsed', () => {

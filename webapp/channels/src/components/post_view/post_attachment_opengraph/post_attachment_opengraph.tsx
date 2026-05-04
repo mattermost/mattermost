@@ -233,7 +233,23 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
         </button>
     );
 
-    const image = (
+    const imageFigureOnly = (
+        <ExternalImage
+            src={src}
+            imageMetadata={imageMetadata}
+        >
+            {(source) => (
+                <figure>
+                    <img
+                        src={source}
+                        alt={title}
+                    />
+                </figure>
+            )}
+        </ExternalImage>
+    );
+
+    const imageLargeExpanded = (
         <ExternalImage
             src={src}
             imageMetadata={imageMetadata}
@@ -254,11 +270,21 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
 
     return (
         <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
-            <AutoHeightSwitcher
-                showSlot={isEmbedVisible ? 1 : 2}
-                slot1={image}
-                slot2={imageCollapseButton}
-            />
+            {large ? (
+                <AutoHeightSwitcher
+                    showSlot={isEmbedVisible ? 1 : 2}
+                    slot1={imageLargeExpanded}
+                    slot2={imageCollapseButton}
+                />
+            ) : isEmbedVisible ? (
+                imageFigureOnly
+            ) : (
+                <AutoHeightSwitcher
+                    showSlot={2}
+                    slot1={imageFigureOnly}
+                    slot2={imageCollapseButton}
+                />
+            )}
         </div>
     );
 });
