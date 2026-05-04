@@ -10,6 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import ChannelInfoRhs from 'components/channel_info_rhs';
 import ChannelMembersRhs from 'components/channel_members_rhs';
+import ActivityRhs from 'components/activity_rhs';
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdRHS} from 'components/file_upload_overlay/file_upload_overlay';
 import LoadingScreen from 'components/loading_screen';
@@ -50,6 +51,7 @@ export type Props = {
     selectedPostCardId: string;
     isSavedPosts?: boolean;
     isRecentMentions?: boolean;
+    isActivity?: boolean;
     ariaLabel?: string;
     ariaLabeledby?: string;
     actions: {
@@ -94,6 +96,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             searchVisible: this.props.searchVisible,
             isPinnedPosts: this.props.isPinnedPosts,
             isRecentMentions: this.props.isRecentMentions,
+            isActivity: this.props.isActivity,
             isSavedPosts: this.props.isSavedPosts,
             isChannelFiles: this.props.isChannelFiles,
             isChannelInfo: this.props.isChannelInfo,
@@ -274,6 +277,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             isChannelMembers,
             isExpanded,
             isPostEditHistory,
+            isActivity,
         } = this.props;
 
         if (!isOpen) {
@@ -308,6 +312,8 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
             content = <ChannelMembersRhs/>;
         } else if (isPostEditHistory) {
             content = <PostEditHistory/>;
+        } else if (isActivity) {
+            content = <ActivityRhs/>;
         }
 
         const isRHSLoading = Boolean(

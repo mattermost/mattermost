@@ -2590,6 +2590,21 @@ export default class Client4 {
         );
     };
 
+    getReceivedReactions = (userId: string, teamId: string, limit = 30) => {
+        return this.doFetch<Array<{
+            user_id: string;
+            post_id: string;
+            emoji_name: string;
+            create_at: number;
+            channel_id: string;
+            post_message: string;
+            post_author_id: string;
+        }>>(
+            `${this.getUserRoute(userId)}/teams/${teamId}/activity/reactions${buildQueryString({limit})}`,
+            {method: 'get'},
+        );
+    };
+
     searchPostsWithParams = (teamId: string, params: any) => {
         let route = `${this.getPostsRoute()}/search`;
         if (teamId) {

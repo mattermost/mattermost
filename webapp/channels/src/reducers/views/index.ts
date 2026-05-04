@@ -3,6 +3,7 @@
 
 import {combineReducers} from 'redux';
 
+import activity from './activity';
 import admin from './admin';
 import announcementBar from './announcement_bar';
 import browser from './browser';
@@ -29,6 +30,7 @@ import textbox from './textbox';
 import threads from './threads';
 
 export default combineReducers({
+    activity,
     admin,
     announcementBar,
     browser,

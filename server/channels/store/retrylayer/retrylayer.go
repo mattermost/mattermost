@@ -10374,6 +10374,27 @@ func (s *RetryLayerReactionStore) BulkGetForPosts(postIds []string) ([]*model.Re
 
 }
 
+func (s *RetryLayerReactionStore) GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReactionStore.GetReceivedReactions(userID, teamID, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
 
 	tries := 0

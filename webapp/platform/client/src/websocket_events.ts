@@ -40,6 +40,7 @@ export const enum WebSocketEvents {
     AuthenticationChallenge = 'authentication_challenge', // This isn't currently used by the web app, and it's a message that would be sent from a client to the server
     ReactionAdded = 'reaction_added',
     ReactionRemoved = 'reaction_removed',
+    ActivityReactionReceived = 'activity_reaction_received',
     Response = 'response',
     EmojiAdded = 'emoji_added',
     MultipleChannelsViewed = 'multiple_channels_viewed',

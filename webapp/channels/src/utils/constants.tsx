@@ -198,6 +198,10 @@ export const ActionTypes = keyMirror({
 
     UPDATE_RHS_STATE: null,
     UPDATE_RHS_SEARCH_TERMS: null,
+
+    ACTIVITY_RECEIVED: null,
+    ACTIVITY_MENTION_RECEIVED: null,
+    ACTIVITY_MARK_READ: null,
     UPDATE_RHS_SEARCH_TEAM: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
@@ -988,6 +992,7 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    ACTIVITY: 'activity',
 };
 
 export const UploadStatuses = {

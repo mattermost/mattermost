@@ -71,3 +71,15 @@ func (o *Reaction) GetRemoteID() string {
 	}
 	return *o.RemoteId
 }
+
+// ReceivedReaction represents a reaction left by another user on the current
+// user's post. Used to populate the Activity feed.
+type ReceivedReaction struct {
+	UserId       string `json:"user_id"`
+	PostId       string `json:"post_id"`
+	EmojiName    string `json:"emoji_name"`
+	CreateAt     int64  `json:"create_at"`
+	ChannelId    string `json:"channel_id"`
+	PostMessage  string `json:"post_message"`
+	PostAuthorId string `json:"post_author_id"`
+}

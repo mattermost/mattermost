@@ -186,6 +186,49 @@ func (s *SqlReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction,
 	return reactions, nil
 }
 
+// GetReceivedReactions returns reactions left by other users on posts authored
+// by `userID`, optionally constrained to channels in `teamID`. Used to populate
+// the Activity feed.
+func (s *SqlReactionStore) GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 30
+	}
+
+	query := s.getQueryBuilder().
+		Select(
+			"r.UserId AS UserId",
+			"r.PostId AS PostId",
+			"r.EmojiName AS EmojiName",
+			"r.CreateAt AS CreateAt",
+			"r.ChannelId AS ChannelId",
+			"p.Message AS PostMessage",
+			"p.UserId AS PostAuthorId",
+		).
+		From("Reactions r").
+		InnerJoin("Posts p ON p.Id = r.PostId").
+		Where(sq.Eq{"p.UserId": userID}).
+		Where(sq.NotEq{"r.UserId": userID}).
+		Where(sq.Eq{"COALESCE(r.DeleteAt, 0)": 0}).
+		Where(sq.Eq{"p.DeleteAt": 0}).
+		OrderBy("r.CreateAt DESC").
+		Limit(uint64(limit))
+
+	if teamID != "" {
+		query = query.
+			InnerJoin("Channels c ON c.Id = r.ChannelId").
+			Where(sq.Or{
+				sq.Eq{"c.TeamId": teamID},
+				sq.Eq{"c.TeamId": ""},
+			})
+	}
+
+	var reactions []*model.ReceivedReaction
+	if err := s.GetReplica().SelectBuilder(&reactions, query); err != nil {
+		return nil, errors.Wrap(err, "failed to get received reactions")
+	}
+	return reactions, nil
+}
+
 func (s *SqlReactionStore) GetSingle(userID, postID, remoteID, emojiName string) (*model.Reaction, error) {
 	query := s.getQueryBuilder().
 		Select("UserId", "PostId", "EmojiName", "CreateAt",

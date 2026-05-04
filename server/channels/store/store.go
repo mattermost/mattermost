@@ -804,6 +804,7 @@ type ReactionStore interface {
 	DeleteOrphanedRowsByIds(r *model.RetentionIdsForDeletion) (int64, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
 	PermanentDeleteByUser(userID string) error
+	GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, error)
 }
 
 type JobStore interface {

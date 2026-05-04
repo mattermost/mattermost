@@ -48,6 +48,7 @@ const (
 	WebsocketAuthenticationChallenge                  WebsocketEventType = "authentication_challenge"
 	WebsocketEventReactionAdded                       WebsocketEventType = "reaction_added"
 	WebsocketEventReactionRemoved                     WebsocketEventType = "reaction_removed"
+	WebsocketEventActivityReactionReceived            WebsocketEventType = "activity_reaction_received"
 	WebsocketEventResponse                            WebsocketEventType = "response"
 	WebsocketEventEmojiAdded                          WebsocketEventType = "emoji_added"
 	WebsocketEventMultipleChannelsViewed              WebsocketEventType = "multiple_channels_viewed"

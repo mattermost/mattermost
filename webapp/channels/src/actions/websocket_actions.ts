@@ -122,7 +122,7 @@ import {
     getRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getNewestThreadInTeam, getThread, getThreads} from 'mattermost-redux/selectors/entities/threads';
-import {getCurrentUser, getCurrentUserId, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId, getCurrentUserMentionKeys, getUser, getIsManualStatusForUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {handlePostExpired} from 'actions/burn_on_read_deletion';
@@ -555,6 +555,10 @@ export function handleEvent(msg: WebSocketMessage) {
         handleReactionRemovedEvent(msg);
         break;
 
+    case WebSocketEvents.ActivityReactionReceived:
+        handleActivityReactionReceived(msg);
+        break;
+
     case WebSocketEvents.EmojiAdded:
         handleAddEmoji(msg);
         break;
@@ -869,6 +873,31 @@ function debouncePostEvent(wait: number) {
 
 const handleNewPostEventDebounced = debouncePostEvent(100);
 
+function postMentionsCurrentUser(post: Post, getStateFn: () => any): boolean {
+    const state = getStateFn();
+    const currentUserId = getCurrentUserId(state);
+    if (!currentUserId || post.user_id === currentUserId) {
+        return false;
+    }
+    const message = post.message || '';
+    if (!message) {
+        return false;
+    }
+    const keys = getCurrentUserMentionKeys(state) || [];
+    for (const k of keys) {
+        const key = k.key;
+        if (!key || key === '@here' || key === '@channel' || key === '@all') {
+            continue;
+        }
+        const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = new RegExp(`(?:^|[^\\w@])${escaped}(?=$|[^\\w])`, 'i');
+        if (re.test(message)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMessages.EphemeralPost): ThunkActionFunc<void> {
     return (myDispatch, myGetState) => {
         const post = JSON.parse(msg.data.post) as Post;
@@ -880,6 +909,11 @@ export function handleNewPostEvent(msg: WebSocketMessages.Posted | WebSocketMess
 
         myDispatch(handleNewPost(post, msg));
         myDispatch(batchFetchStatusesProfilesGroupsFromPosts([post]));
+
+        // Activity feed: bump unread + push live event if this post mentions current user.
+        if (postMentionsCurrentUser(post, myGetState)) {
+            myDispatch({type: ActionTypes.ACTIVITY_MENTION_RECEIVED, data: post});
+        }
 
         // Since status updates aren't real time, assume another user is online if they have posted and:
         // 1. The user hasn't set their status manually to something that isn't online
@@ -1480,6 +1514,18 @@ function handleReactionAddedEvent(msg: WebSocketMessages.PostReaction) {
         type: PostTypes.RECEIVED_REACTION,
         data: reaction,
     });
+}
+
+function handleActivityReactionReceived(msg: any) {
+    try {
+        const data = JSON.parse(msg.data.activity);
+        dispatch({
+            type: ActionTypes.ACTIVITY_RECEIVED,
+            data,
+        });
+    } catch (err) {
+        // ignore malformed payload
+    }
 }
 
 function setConnectionId(connectionId: string) {

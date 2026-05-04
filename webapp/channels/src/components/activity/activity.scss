@@ -1,0 +1,163 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.app__content.Activity {
+    display: flex;
+    overflow-y: auto;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    padding: 25px 25px 32px;
+
+    .Activity__header {
+        margin-bottom: 24px;
+    }
+
+    .Activity__heading {
+        margin: 0;
+        color: var(--center-channel-color);
+        font-family: Metropolis, sans-serif;
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 28px;
+    }
+
+    .Activity__subheading {
+        margin: 4px 0 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        line-height: 18px;
+    }
+
+    .Activity__list {
+        display: flex;
+        max-width: 920px;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .Activity__empty {
+        padding: 32px 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .Activity__item {
+        display: flex;
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background: var(--center-channel-bg);
+        border-radius: 8px;
+        color: var(--center-channel-color);
+        gap: 12px;
+        text-align: left;
+        transition: background 120ms ease, border-color 120ms ease;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    .Activity__avatar {
+        flex: 0 0 auto;
+    }
+
+    .Activity__main {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .Activity__topline {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .Activity__name {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .Activity__date {
+        flex: 0 0 auto;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 18px;
+    }
+
+    .Activity__reactedin {
+        display: flex;
+        align-items: center;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        gap: 6px;
+        line-height: 18px;
+    }
+
+    .Activity__channel {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: var(--center-channel-color);
+        font-weight: 500;
+        gap: 2px;
+
+        > .icon {
+            font-size: 14px;
+            line-height: 1;
+        }
+    }
+
+    .Activity__snippet {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 13px;
+        line-height: 18px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        > :first-child {
+            margin-right: 4px;
+            font-weight: 600;
+        }
+    }
+
+    .Activity__snippet--mention {
+        white-space: normal;
+    }
+
+    .Activity__chips {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 4px;
+        gap: 6px;
+    }
+
+    .Activity__chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-radius: 12px;
+        color: var(--center-channel-color);
+        font-size: 12px;
+        font-weight: 500;
+        gap: 4px;
+        line-height: 18px;
+    }
+}

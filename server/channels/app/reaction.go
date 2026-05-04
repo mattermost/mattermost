@@ -124,6 +124,17 @@ func (a *App) GetReactionsForPost(postID string) ([]*model.Reaction, *model.AppE
 	return reactions, nil
 }
 
+// GetReceivedReactions returns reactions left by other users on the given user's
+// posts, optionally constrained to channels in `teamID`. Used to populate the
+// Activity feed.
+func (a *App) GetReceivedReactions(userID, teamID string, limit int) ([]*model.ReceivedReaction, *model.AppError) {
+	reactions, err := a.Srv().Store().Reaction().GetReceivedReactions(userID, teamID, limit)
+	if err != nil {
+		return nil, model.NewAppError("GetReceivedReactions", "app.reaction.get_received.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return reactions, nil
+}
+
 func (a *App) GetBulkReactionsForPosts(postIDs []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
@@ -212,4 +223,26 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 	}
 
 	a.Publish(message)
+
+	// Also notify the post author when someone else reacts to their post,
+	// so the Activity panel updates in real-time.
+	if event == model.WebsocketEventReactionAdded && reaction.UserId != post.UserId {
+		activityMsg := model.NewWebSocketEvent(model.WebsocketEventActivityReactionReceived, "", "", post.UserId, nil, "")
+		received := &model.ReceivedReaction{
+			UserId:       reaction.UserId,
+			PostId:       reaction.PostId,
+			EmojiName:    reaction.EmojiName,
+			CreateAt:     reaction.CreateAt,
+			ChannelId:    reaction.ChannelId,
+			PostMessage:  post.Message,
+			PostAuthorId: post.UserId,
+		}
+		payload, jsonErr := json.Marshal(received)
+		if jsonErr != nil {
+			rctx.Logger().Warn("Failed to encode received reaction to JSON", mlog.Err(jsonErr))
+			return
+		}
+		activityMsg.Add("activity", string(payload))
+		a.Publish(activityMsg)
+	}
 }
