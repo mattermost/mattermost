@@ -2307,22 +2307,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeoutDescription', defaultMessage: 'Grace period after losing server connection before the device is considered offline. Helps avoid false triggers from brief network interruptions. Values below 5 are not recommended.'}),
                                     placeholder: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.placeholder', defaultMessage: 'E.g.: 60'}),
                                     isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
-                                    validate: (value: number) => {
-                                        if (isNaN(value)) {
-                                            return new ValidationResult(true, '');
-                                        }
-                                        const maxResult = validators.maxValue(
-                                            600,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.maxValue', defaultMessage: 'Cannot exceed 600 seconds (10 minutes).'}),
-                                        )(value);
-                                        if (!maxResult.isValid()) {
-                                            return maxResult;
-                                        }
-                                        return validators.minValue(
-                                            0,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.minValue', defaultMessage: 'Must be 0 or greater.'}),
-                                        )(value);
-                                    },
+                                    validate: validators.numberInRange(0, 600, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.disconnectionTimeout.range',
+                                        defaultMessage: 'Must be a number between 0 and 600 seconds (10 minutes).',
+                                    })),
                                 },
                                 {
                                     type: 'number',
@@ -2335,22 +2323,10 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
                                         it.stateEquals('MobileEphemeralModeSettings.AutoCacheCleanupDays', 0),
                                     ),
-                                    validate: (value: number) => {
-                                        if (isNaN(value)) {
-                                            return new ValidationResult(true, '');
-                                        }
-                                        const maxResult = validators.maxValue(
-                                            72,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.maxValue', defaultMessage: 'Cannot exceed 72 hours (3 days).'}),
-                                        )(value);
-                                        if (!maxResult.isValid()) {
-                                            return maxResult;
-                                        }
-                                        return validators.minValue(
-                                            0,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.minValue', defaultMessage: 'Must be 0 or greater.'}),
-                                        )(value);
-                                    },
+                                    validate: validators.numberInRange(0, 72, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.offlinePersistence.range',
+                                        defaultMessage: 'Must be a number between 0 and 72 hours (3 days).',
+                                    })),
                                 },
                                 {
                                     type: 'number',
@@ -2359,22 +2335,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     help_text: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanupDescription', defaultMessage: 'Controls the maximum age of any content cached on the device, regardless of connection status. Prevents unbounded accumulation of sensitive data. Set to 0 for zero-persistence mode where content is never persisted to disk.'}),
                                     placeholder: defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.placeholder', defaultMessage: 'E.g.: 7'}),
                                     isDisabled: it.stateIsFalse('MobileEphemeralModeSettings.Enable'),
-                                    validate: (value: number) => {
-                                        if (isNaN(value)) {
-                                            return new ValidationResult(true, '');
-                                        }
-                                        const maxResult = validators.maxValue(
-                                            60,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.maxValue', defaultMessage: 'Cannot exceed 60 days.'}),
-                                        )(value);
-                                        if (!maxResult.isValid()) {
-                                            return maxResult;
-                                        }
-                                        return validators.minValue(
-                                            0,
-                                            defineMessage({id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.minValue', defaultMessage: 'Must be 0 or greater.'}),
-                                        )(value);
-                                    },
+                                    validate: validators.numberInRange(0, 60, defineMessage({
+                                        id: 'admin.mobileSecurity.ephemeralMode.autoCacheCleanup.range',
+                                        defaultMessage: 'Must be a number between 0 and 60 days.',
+                                    })),
                                 },
                             ],
                         },
