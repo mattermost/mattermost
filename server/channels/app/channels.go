@@ -242,7 +242,7 @@ func NewChannels(s *Server) (*Channels, error) {
 	pluginsRoute.HandleFunc("/public/{public_file:.*}", ch.ServePluginPublicRequest)
 	pluginsRoute.HandleFunc("/{anything:.*}", ch.ServePluginRequest)
 
-	if err := ch.reloadGuardCache(s.Store()); err != nil {
+	if err := ch.reloadGuardCache(request.EmptyContext(s.Log()), s.Store()); err != nil {
 		s.Log().Warn(
 			"Failed to load channel guard cache at startup; retry scheduled",
 			mlog.Bool("clustered", s.platform.Cluster() != nil),

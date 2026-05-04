@@ -3212,10 +3212,10 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 	return result, err
 }
 
-func (s *TimerLayerChannelGuardStore) Delete(channelID string, pluginID string) error {
+func (s *TimerLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
 	start := time.Now()
 
-	err := s.ChannelGuardStore.Delete(channelID, pluginID)
+	err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3228,10 +3228,10 @@ func (s *TimerLayerChannelGuardStore) Delete(channelID string, pluginID string) 
 	return err
 }
 
-func (s *TimerLayerChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
+func (s *TimerLayerChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
 	start := time.Now()
 
-	result, err := s.ChannelGuardStore.GetAll()
+	result, err := s.ChannelGuardStore.GetAll(rctx)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3244,10 +3244,10 @@ func (s *TimerLayerChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
 	return result, err
 }
 
-func (s *TimerLayerChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGuard, error) {
+func (s *TimerLayerChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
 	start := time.Now()
 
-	result, err := s.ChannelGuardStore.GetForChannel(channelID)
+	result, err := s.ChannelGuardStore.GetForChannel(rctx, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3260,10 +3260,10 @@ func (s *TimerLayerChannelGuardStore) GetForChannel(channelID string) ([]*store.
 	return result, err
 }
 
-func (s *TimerLayerChannelGuardStore) Save(guard *store.ChannelGuard) error {
+func (s *TimerLayerChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard) error {
 	start := time.Now()
 
-	err := s.ChannelGuardStore.Save(guard)
+	err := s.ChannelGuardStore.Save(rctx, guard)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

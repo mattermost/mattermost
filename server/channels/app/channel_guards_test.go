@@ -111,7 +111,8 @@ func TestChannelGuardRegisterTriggersBroadcast(t *testing.T) {
 
 	channelID := model.NewId()
 	pluginID := "com.example.register-broadcast"
-	require.Nil(t, th.App.RegisterChannelGuard(channelID, pluginID))
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	require.Nil(t, th.App.RegisterChannelGuard(rctx, channelID, pluginID))
 
 	guardEvents := filterGuardCacheEvents(cluster.snapshot())
 	require.Len(t, guardEvents, 1, "Register must produce exactly one guard-cache invalidation")
@@ -134,12 +135,13 @@ func TestChannelGuardUnregisterTriggersBroadcast(t *testing.T) {
 
 	channelID := model.NewId()
 	pluginID := "com.example.unregister-broadcast"
+	rctx := request.EmptyContext(th.App.Srv().Log())
 	// Register first (this also broadcasts), then drop captured noise so we
 	// only see the Unregister-side broadcast.
-	require.Nil(t, th.App.RegisterChannelGuard(channelID, pluginID))
+	require.Nil(t, th.App.RegisterChannelGuard(rctx, channelID, pluginID))
 	cluster.reset()
 
-	require.Nil(t, th.App.UnregisterChannelGuard(channelID, pluginID))
+	require.Nil(t, th.App.UnregisterChannelGuard(rctx, channelID, pluginID))
 
 	guardEvents := filterGuardCacheEvents(cluster.snapshot())
 	require.Len(t, guardEvents, 1, "Unregister must produce exactly one guard-cache invalidation")
@@ -155,9 +157,10 @@ func TestChannelGuardCacheMultiChannelRefetch(t *testing.T) {
 	pluginA := "com.example.multi-a"
 	pluginB := "com.example.multi-b"
 
-	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelA, PluginId: pluginA, CreatedAt: 1}))
-	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelA, PluginId: pluginB, CreatedAt: 2}))
-	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelB, PluginId: pluginA, CreatedAt: 3}))
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelA, PluginId: pluginA, CreatedAt: 1}))
+	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelA, PluginId: pluginB, CreatedAt: 2}))
+	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelB, PluginId: pluginA, CreatedAt: 3}))
 
 	// Force the cache to be empty (simulate a node that just started or had its cache cleared).
 	th.App.Channels().guardCache.Store(&sync.Map{})
@@ -185,12 +188,13 @@ func TestChannelGuardRegisterUnregisterNilClusterIsSafe(t *testing.T) {
 	channelID := th.BasicChannel.Id
 	pluginID := "com.example.nil-cluster-rt"
 
-	require.Nil(t, th.App.RegisterChannelGuard(channelID, pluginID))
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	require.Nil(t, th.App.RegisterChannelGuard(rctx, channelID, pluginID))
 	got := th.App.Channels().getGuardsForChannel(channelID)
 	require.Len(t, got, 1)
 	assert.Equal(t, pluginID, got[0].PluginId)
 
-	require.Nil(t, th.App.UnregisterChannelGuard(channelID, pluginID))
+	require.Nil(t, th.App.UnregisterChannelGuard(rctx, channelID, pluginID))
 	assert.Empty(t, th.App.Channels().getGuardsForChannel(channelID))
 }
 
@@ -212,13 +216,14 @@ func TestChannelGuardLowercaseNormalization(t *testing.T) {
 
 	require.Nil(t, api.RegisterChannelGuard(channelID))
 
-	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
 	assert.Equal(t, expectedID, guards[0].PluginId, "PluginId must be normalized to lowercase before reaching the store")
 
 	require.Nil(t, api.UnregisterChannelGuard(channelID))
-	guards, err = th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	guards, err = th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	assert.Empty(t, guards, "Unregister with the same mixed-case id must hit the lowercased row")
 }
@@ -227,12 +232,13 @@ func TestChannelGuardEmptyChannelIDRejected(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	appErr := th.App.RegisterChannelGuard("", "com.example.plugin")
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	appErr := th.App.RegisterChannelGuard(rctx, "", "com.example.plugin")
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel_guard.register.empty_channel.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)
 
-	appErr = th.App.UnregisterChannelGuard("", "com.example.plugin")
+	appErr = th.App.UnregisterChannelGuard(rctx, "", "com.example.plugin")
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel_guard.unregister.empty_channel.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)
@@ -245,7 +251,7 @@ type failingGuardStore struct {
 	err error
 }
 
-func (f *failingGuardStore) GetAll() ([]*store.ChannelGuard, error) {
+func (f *failingGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
 	return nil, f.err
 }
 
@@ -274,12 +280,13 @@ func TestChannelGuardCacheClusterInvalidationHandlesStoreFailure(t *testing.T) {
 	// then doing a successful reload.
 	channelID := model.NewId()
 	pluginID := "com.example.cluster-fail-test"
-	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(&store.ChannelGuard{
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	require.NoError(t, th.App.Srv().Store().ChannelGuard().Save(rctx, &store.ChannelGuard{
 		ChannelId: channelID,
 		PluginId:  pluginID,
 		CreatedAt: 1,
 	}))
-	require.NoError(t, ch.reloadGuardCache(th.App.Srv().Store()))
+	require.NoError(t, ch.reloadGuardCache(rctx, th.App.Srv().Store()))
 	require.Len(t, ch.getGuardsForChannel(channelID), 1, "precondition: cache should hold the seeded row")
 
 	// Swap in a wrapped store that fails on GetAll.
@@ -292,7 +299,7 @@ func TestChannelGuardCacheClusterInvalidationHandlesStoreFailure(t *testing.T) {
 	t.Cleanup(func() { th.App.Srv().SetStore(originalStore) })
 
 	// Sanity: confirm the wrapped store actually fails, otherwise the test is meaningless.
-	_, err := th.App.Srv().Store().ChannelGuard().GetAll()
+	_, err := th.App.Srv().Store().ChannelGuard().GetAll(rctx)
 	require.Error(t, err, "test wrapper must surface GetAll failure")
 
 	// Calling the handler with a failing store must:
@@ -333,12 +340,13 @@ func TestChannelGuardInvalidChannelIDRejected(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	appErr := th.App.RegisterChannelGuard("not-a-real-id", "com.example.plugin")
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	appErr := th.App.RegisterChannelGuard(rctx, "not-a-real-id", "com.example.plugin")
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel_guard.invalid_channel.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)
 
-	appErr = th.App.UnregisterChannelGuard("not-a-real-id", "com.example.plugin")
+	appErr = th.App.UnregisterChannelGuard(rctx, "not-a-real-id", "com.example.plugin")
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.channel_guard.invalid_channel.app_error", appErr.Id)
 	assert.Equal(t, 400, appErr.StatusCode)

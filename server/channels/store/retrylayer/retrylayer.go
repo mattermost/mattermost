@@ -3847,11 +3847,11 @@ func (s *RetryLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 
 }
 
-func (s *RetryLayerChannelGuardStore) Delete(channelID string, pluginID string) error {
+func (s *RetryLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
 
 	tries := 0
 	for {
-		err := s.ChannelGuardStore.Delete(channelID, pluginID)
+		err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
 		if err == nil {
 			return nil
 		}
@@ -3868,11 +3868,11 @@ func (s *RetryLayerChannelGuardStore) Delete(channelID string, pluginID string) 
 
 }
 
-func (s *RetryLayerChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
+func (s *RetryLayerChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelGuardStore.GetAll()
+		result, err := s.ChannelGuardStore.GetAll(rctx)
 		if err == nil {
 			return result, nil
 		}
@@ -3889,11 +3889,11 @@ func (s *RetryLayerChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
 
 }
 
-func (s *RetryLayerChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGuard, error) {
+func (s *RetryLayerChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelGuardStore.GetForChannel(channelID)
+		result, err := s.ChannelGuardStore.GetForChannel(rctx, channelID)
 		if err == nil {
 			return result, nil
 		}
@@ -3910,11 +3910,11 @@ func (s *RetryLayerChannelGuardStore) GetForChannel(channelID string) ([]*store.
 
 }
 
-func (s *RetryLayerChannelGuardStore) Save(guard *store.ChannelGuard) error {
+func (s *RetryLayerChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard) error {
 
 	tries := 0
 	for {
-		err := s.ChannelGuardStore.Save(guard)
+		err := s.ChannelGuardStore.Save(rctx, guard)
 		if err == nil {
 			return nil
 		}

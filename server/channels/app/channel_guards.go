@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -24,8 +25,10 @@ const clusterEventInvalidateChannelGuardCache = model.ClusterEvent("inv_channel_
 
 // reloadGuardCache scans the ChannelGuards table and atomically replaces the in-memory cache with
 // the result. Used both at startup (from NewChannels) and from the cluster invalidation handler.
-func (ch *Channels) reloadGuardCache(s store.Store) error {
-	guards, err := s.ChannelGuard().GetAll()
+// Forces a master read because all callers (post-write reload, cluster invalidation) can race with
+// replica lag.
+func (ch *Channels) reloadGuardCache(rctx request.CTX, s store.Store) error {
+	guards, err := s.ChannelGuard().GetAll(store.RequestContextWithMaster(rctx))
 	if err != nil {
 		return err
 	}
@@ -60,7 +63,8 @@ func (ch *Channels) getGuardsForChannel(channelID string) []*store.ChannelGuard 
 // clusterInvalidateGuardCacheHandler is registered as the receive-side handler for
 // clusterEventInvalidateChannelGuardCache. The handler refetches the entire table.
 func (ch *Channels) clusterInvalidateGuardCacheHandler(msg *model.ClusterMessage) {
-	if err := ch.reloadGuardCache(ch.srv.Store()); err != nil {
+	rctx := request.EmptyContext(ch.srv.Log())
+	if err := ch.reloadGuardCache(rctx, ch.srv.Store()); err != nil {
 		ch.srv.Log().Warn(
 			"Failed to reload channel guard cache after cluster invalidation; retry scheduled",
 			mlog.String("event", string(msg.Event)),
@@ -88,7 +92,7 @@ func (ch *Channels) broadcastChannelGuardInvalidation() {
 
 // RegisterChannelGuard records that pluginID claims channelID. The caller's pluginID is expected to
 // be lowercased.
-func (a *App) RegisterChannelGuard(channelID, pluginID string) *model.AppError {
+func (a *App) RegisterChannelGuard(rctx request.CTX, channelID, pluginID string) *model.AppError {
 	if channelID == "" {
 		return model.NewAppError("RegisterChannelGuard", "app.channel_guard.register.empty_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -101,12 +105,12 @@ func (a *App) RegisterChannelGuard(channelID, pluginID string) *model.AppError {
 		PluginId:  pluginID,
 		CreatedAt: model.GetMillis(),
 	}
-	if err := a.Srv().Store().ChannelGuard().Save(guard); err != nil {
+	if err := a.Srv().Store().ChannelGuard().Save(rctx, guard); err != nil {
 		return model.NewAppError("RegisterChannelGuard", "app.channel_guard.register.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	ch := a.Channels()
-	if err := ch.reloadGuardCache(a.Srv().Store()); err != nil {
+	if err := ch.reloadGuardCache(rctx, a.Srv().Store()); err != nil {
 		a.Srv().Log().Warn(
 			"Failed to reload channel guard cache after Register; retry scheduled",
 			mlog.String("channel_id", channelID),
@@ -122,7 +126,7 @@ func (a *App) RegisterChannelGuard(channelID, pluginID string) *model.AppError {
 // UnregisterChannelGuard removes pluginID's claim on channelID. If pluginID has no claim on the
 // channel, this is a no-op (returns nil). The store-level DELETE matches by both ChannelId and
 // PluginId, so other plugins' claims on the same channel are left untouched.
-func (a *App) UnregisterChannelGuard(channelID, pluginID string) *model.AppError {
+func (a *App) UnregisterChannelGuard(rctx request.CTX, channelID, pluginID string) *model.AppError {
 	if channelID == "" {
 		return model.NewAppError("UnregisterChannelGuard", "app.channel_guard.unregister.empty_channel.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -130,12 +134,12 @@ func (a *App) UnregisterChannelGuard(channelID, pluginID string) *model.AppError
 		return model.NewAppError("UnregisterChannelGuard", "app.channel_guard.invalid_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store().ChannelGuard().Delete(channelID, pluginID); err != nil {
+	if err := a.Srv().Store().ChannelGuard().Delete(rctx, channelID, pluginID); err != nil {
 		return model.NewAppError("UnregisterChannelGuard", "app.channel_guard.unregister.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	ch := a.Channels()
-	if err := ch.reloadGuardCache(a.Srv().Store()); err != nil {
+	if err := ch.reloadGuardCache(rctx, a.Srv().Store()); err != nil {
 		a.Srv().Log().Warn(
 			"Failed to reload channel guard cache after Unregister; retry scheduled",
 			mlog.String("channel_id", channelID),
@@ -165,6 +169,7 @@ func (ch *Channels) scheduleGuardCacheReloadRetry() bool {
 
 func (ch *Channels) runGuardCacheReloadRetry() {
 	defer ch.guardCacheRetryInFlight.Store(false)
+	rctx := request.EmptyContext(ch.srv.Log())
 
 	delay := guardCacheRetryInitialDelay
 	for attempt := 1; ; attempt++ {
@@ -180,7 +185,7 @@ func (ch *Channels) runGuardCacheReloadRetry() {
 		case <-timer.C:
 		}
 
-		if err := ch.reloadGuardCache(ch.srv.Store()); err != nil {
+		if err := ch.reloadGuardCache(rctx, ch.srv.Store()); err != nil {
 			ch.srv.Log().Info(
 				"Channel guard cache reload retry attempt failed; will retry",
 				mlog.Int("attempt", attempt),

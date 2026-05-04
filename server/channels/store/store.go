@@ -1076,10 +1076,10 @@ type ChannelGuard struct {
 }
 
 type ChannelGuardStore interface {
-	Save(guard *ChannelGuard) error
-	Delete(channelID, pluginID string) error
-	GetForChannel(channelID string) ([]*ChannelGuard, error)
-	GetAll() ([]*ChannelGuard, error)
+	Save(rctx request.CTX, guard *ChannelGuard) error
+	Delete(rctx request.CTX, channelID, pluginID string) error
+	GetForChannel(rctx request.CTX, channelID string) ([]*ChannelGuard, error)
+	GetAll(rctx request.CTX) ([]*ChannelGuard, error)
 }
 
 type DraftStore interface {

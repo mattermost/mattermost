@@ -3537,7 +3537,8 @@ func TestRegisterChannelGuardIdempotent(t *testing.T) {
 
 	require.Len(t, pluginIDs, 1)
 
-	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1, "second Register call must be a no-op (DO NOTHING)")
 
@@ -3582,7 +3583,8 @@ func TestRegisterChannelGuardMultiClaim(t *testing.T) {
 
 	require.Len(t, pluginIDs, 2)
 
-	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 2, "two distinct plugins must produce two rows")
 
@@ -3596,9 +3598,9 @@ func TestRegisterChannelGuardMultiClaim(t *testing.T) {
 	assert.Contains(t, cachedIDs, pluginBID)
 
 	// Unregister plugin A's claim via the App-level method; B's claim must remain.
-	require.Nil(t, th.App.UnregisterChannelGuard(channelID, pluginAID))
+	require.Nil(t, th.App.UnregisterChannelGuard(rctx, channelID, pluginAID))
 
-	guards, err = th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	guards, err = th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
 	assert.Equal(t, pluginBID, guards[0].PluginId)
@@ -3643,7 +3645,8 @@ func TestChannelGuardSurvivesArchive(t *testing.T) {
 	require.Nil(t, th.App.DeleteChannel(th.Context, th.BasicChannel, th.BasicUser.Id))
 
 	// Guard row must persist (no FK, no cascade).
-	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(channelID)
+	rctx := request.EmptyContext(th.App.Srv().Log())
+	guards, err := th.App.Srv().Store().ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, guards, 1)
 	assert.Equal(t, strings.ToLower(pluginIDs[0]), guards[0].PluginId)

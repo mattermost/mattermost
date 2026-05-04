@@ -538,11 +538,11 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 }
 
 func (api *PluginAPI) RegisterChannelGuard(channelID string) *model.AppError {
-	return api.app.RegisterChannelGuard(channelID, strings.ToLower(api.id))
+	return api.app.RegisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
 }
 
 func (api *PluginAPI) UnregisterChannelGuard(channelID string) *model.AppError {
-	return api.app.UnregisterChannelGuard(channelID, strings.ToLower(api.id))
+	return api.app.UnregisterChannelGuard(api.ctx, channelID, strings.ToLower(api.id))
 }
 
 func (api *PluginAPI) SearchChannels(teamID string, term string) ([]*model.Channel, *model.AppError) {

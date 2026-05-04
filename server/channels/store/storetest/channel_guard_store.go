@@ -14,14 +14,14 @@ import (
 )
 
 func TestChannelGuardStore(t *testing.T, rctx request.CTX, ss store.Store) {
-	t.Run("SaveAndGetForChannel", func(t *testing.T) { testChannelGuardSaveAndGetForChannel(t, ss) })
-	t.Run("SaveIdempotentSamePlugin", func(t *testing.T) { testChannelGuardSaveIdempotentSamePlugin(t, ss) })
-	t.Run("SaveTwoPluginsSameChannel", func(t *testing.T) { testChannelGuardSaveTwoPluginsSameChannel(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testChannelGuardDelete(t, ss) })
-	t.Run("GetAll", func(t *testing.T) { testChannelGuardGetAll(t, ss) })
+	t.Run("SaveAndGetForChannel", func(t *testing.T) { testChannelGuardSaveAndGetForChannel(t, rctx, ss) })
+	t.Run("SaveIdempotentSamePlugin", func(t *testing.T) { testChannelGuardSaveIdempotentSamePlugin(t, rctx, ss) })
+	t.Run("SaveTwoPluginsSameChannel", func(t *testing.T) { testChannelGuardSaveTwoPluginsSameChannel(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testChannelGuardDelete(t, rctx, ss) })
+	t.Run("GetAll", func(t *testing.T) { testChannelGuardGetAll(t, rctx, ss) })
 }
 
-func testChannelGuardSaveAndGetForChannel(t *testing.T, ss store.Store) {
+func testChannelGuardSaveAndGetForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	pluginID := "com.example.plugin-a"
 
@@ -31,10 +31,10 @@ func testChannelGuardSaveAndGetForChannel(t *testing.T, ss store.Store) {
 		CreatedAt: 1000,
 	}
 
-	err := ss.ChannelGuard().Save(guard)
+	err := ss.ChannelGuard().Save(rctx, guard)
 	require.NoError(t, err)
 
-	got, err := ss.ChannelGuard().GetForChannel(channelID)
+	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, channelID, got[0].ChannelId)
@@ -42,31 +42,31 @@ func testChannelGuardSaveAndGetForChannel(t *testing.T, ss store.Store) {
 	assert.Equal(t, int64(1000), got[0].CreatedAt)
 }
 
-func testChannelGuardSaveIdempotentSamePlugin(t *testing.T, ss store.Store) {
+func testChannelGuardSaveIdempotentSamePlugin(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	pluginID := "com.example.plugin-a"
 
 	first := &store.ChannelGuard{ChannelId: channelID, PluginId: pluginID, CreatedAt: 1000}
-	require.NoError(t, ss.ChannelGuard().Save(first))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, first))
 
 	second := &store.ChannelGuard{ChannelId: channelID, PluginId: pluginID, CreatedAt: 2000}
-	require.NoError(t, ss.ChannelGuard().Save(second))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, second))
 
-	got, err := ss.ChannelGuard().GetForChannel(channelID)
+	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, got, 1, "second save should be a no-op (DO NOTHING)")
 	assert.Equal(t, int64(1000), got[0].CreatedAt, "original CreatedAt should be preserved")
 }
 
-func testChannelGuardSaveTwoPluginsSameChannel(t *testing.T, ss store.Store) {
+func testChannelGuardSaveTwoPluginsSameChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	pluginA := "com.example.plugin-a"
 	pluginB := "com.example.plugin-b"
 
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelID, PluginId: pluginB, CreatedAt: 2000}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginB, CreatedAt: 2000}))
 
-	got, err := ss.ChannelGuard().GetForChannel(channelID)
+	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, got, 2)
 
@@ -75,36 +75,36 @@ func testChannelGuardSaveTwoPluginsSameChannel(t *testing.T, ss store.Store) {
 	assert.Contains(t, pluginIDs, pluginB)
 }
 
-func testChannelGuardDelete(t *testing.T, ss store.Store) {
+func testChannelGuardDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelID := model.NewId()
 	pluginA := "com.example.plugin-a"
 	pluginB := "com.example.plugin-b"
 
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelID, PluginId: pluginB, CreatedAt: 2000}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginA, CreatedAt: 1000}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelID, PluginId: pluginB, CreatedAt: 2000}))
 
-	require.NoError(t, ss.ChannelGuard().Delete(channelID, pluginA))
+	require.NoError(t, ss.ChannelGuard().Delete(rctx, channelID, pluginA))
 
-	got, err := ss.ChannelGuard().GetForChannel(channelID)
+	got, err := ss.ChannelGuard().GetForChannel(rctx, channelID)
 	require.NoError(t, err)
 	require.Len(t, got, 1, "only plugin-A's row should be deleted")
 	assert.Equal(t, pluginB, got[0].PluginId)
 
 	// Deleting an already-removed (channel, plugin) pair is a no-op, not an error.
-	require.NoError(t, ss.ChannelGuard().Delete(channelID, pluginA))
+	require.NoError(t, ss.ChannelGuard().Delete(rctx, channelID, pluginA))
 }
 
-func testChannelGuardGetAll(t *testing.T, ss store.Store) {
+func testChannelGuardGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	channelA := model.NewId()
 	channelB := model.NewId()
 	pluginA := "com.example.plugin-a-" + model.NewId()
 	pluginB := "com.example.plugin-b-" + model.NewId()
 
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelA, PluginId: pluginA, CreatedAt: 1000}))
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelA, PluginId: pluginB, CreatedAt: 1100}))
-	require.NoError(t, ss.ChannelGuard().Save(&store.ChannelGuard{ChannelId: channelB, PluginId: pluginA, CreatedAt: 1200}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelA, PluginId: pluginA, CreatedAt: 1000}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelA, PluginId: pluginB, CreatedAt: 1100}))
+	require.NoError(t, ss.ChannelGuard().Save(rctx, &store.ChannelGuard{ChannelId: channelB, PluginId: pluginA, CreatedAt: 1200}))
 
-	all, err := ss.ChannelGuard().GetAll()
+	all, err := ss.ChannelGuard().GetAll(rctx)
 	require.NoError(t, err)
 
 	count := 0

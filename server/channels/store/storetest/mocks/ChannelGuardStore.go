@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,17 +15,17 @@ type ChannelGuardStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: channelID, pluginID
-func (_m *ChannelGuardStore) Delete(channelID string, pluginID string) error {
-	ret := _m.Called(channelID, pluginID)
+// Delete provides a mock function with given fields: rctx, channelID, pluginID
+func (_m *ChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
+	ret := _m.Called(rctx, channelID, pluginID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Delete")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(channelID, pluginID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(rctx, channelID, pluginID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -32,9 +33,9 @@ func (_m *ChannelGuardStore) Delete(channelID string, pluginID string) error {
 	return r0
 }
 
-// GetAll provides a mock function with no fields
-func (_m *ChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
-	ret := _m.Called()
+// GetAll provides a mock function with given fields: rctx
+func (_m *ChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
+	ret := _m.Called(rctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAll")
@@ -42,19 +43,19 @@ func (_m *ChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
 
 	var r0 []*store.ChannelGuard
 	var r1 error
-	if rf, ok := ret.Get(0).(func() ([]*store.ChannelGuard, error)); ok {
-		return rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) ([]*store.ChannelGuard, error)); ok {
+		return rf(rctx)
 	}
-	if rf, ok := ret.Get(0).(func() []*store.ChannelGuard); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(request.CTX) []*store.ChannelGuard); ok {
+		r0 = rf(rctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*store.ChannelGuard)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func() error); ok {
-		r1 = rf()
+	if rf, ok := ret.Get(1).(func(request.CTX) error); ok {
+		r1 = rf(rctx)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -62,9 +63,9 @@ func (_m *ChannelGuardStore) GetAll() ([]*store.ChannelGuard, error) {
 	return r0, r1
 }
 
-// GetForChannel provides a mock function with given fields: channelID
-func (_m *ChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGuard, error) {
-	ret := _m.Called(channelID)
+// GetForChannel provides a mock function with given fields: rctx, channelID
+func (_m *ChannelGuardStore) GetForChannel(rctx request.CTX, channelID string) ([]*store.ChannelGuard, error) {
+	ret := _m.Called(rctx, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetForChannel")
@@ -72,19 +73,19 @@ func (_m *ChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGu
 
 	var r0 []*store.ChannelGuard
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*store.ChannelGuard, error)); ok {
-		return rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*store.ChannelGuard, error)); ok {
+		return rf(rctx, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*store.ChannelGuard); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*store.ChannelGuard); ok {
+		r0 = rf(rctx, channelID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*store.ChannelGuard)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(channelID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(rctx, channelID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -92,17 +93,17 @@ func (_m *ChannelGuardStore) GetForChannel(channelID string) ([]*store.ChannelGu
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: guard
-func (_m *ChannelGuardStore) Save(guard *store.ChannelGuard) error {
-	ret := _m.Called(guard)
+// Save provides a mock function with given fields: rctx, guard
+func (_m *ChannelGuardStore) Save(rctx request.CTX, guard *store.ChannelGuard) error {
+	ret := _m.Called(rctx, guard)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*store.ChannelGuard) error); ok {
-		r0 = rf(guard)
+	if rf, ok := ret.Get(0).(func(request.CTX, *store.ChannelGuard) error); ok {
+		r0 = rf(rctx, guard)
 	} else {
 		r0 = ret.Error(0)
 	}
