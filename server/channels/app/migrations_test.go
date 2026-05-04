@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -55,4 +56,185 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.NoError(t, sysErr)
 		require.Equal(t, "v5", data.Value)
 	})
+}
+
+// clearCPABackfillMarker removes the System-key marker for the CPA display_name backfill
+// so the migration body actually executes when called from a test. Setup(t) runs
+// doAppMigrations which now includes the backfill; without clearing, the System key is
+// already present and doSetupCPADisplayNameBackfill short-circuits at the idempotency check
+// — the test would then pass for the wrong reason.
+func clearCPABackfillMarker(t *testing.T, th *TestHelper) {
+	t.Helper()
+	_, err := th.Store.System().PermanentDeleteByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, err, "failed to clear CPA backfill marker for test isolation")
+}
+
+func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
+	th := Setup(t)
+
+	clearCPABackfillMarker(t, th)
+
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err)
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
+	th := Setup(t)
+
+	clearCPABackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+
+	// fieldA exercises the "display_name absent / empty in JSONB" case — the
+	// true idempotency boundary the migration is designed to fix.
+	fieldA, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "department",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+	require.Empty(t, fieldA.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"seed invariant: fieldA must have empty display_name")
+
+	fieldB, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "job_title",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs: model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsDisplayName: "Job Title",
+		},
+	}, false, "")
+	require.Nil(t, appErr)
+	require.Equal(t, "Job Title", fieldB.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"seed invariant: fieldB must have display_name set")
+
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err)
+
+	updatedFieldA, appErr := th.App.GetPropertyField(th.Context, group.ID, fieldA.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "department", updatedFieldA.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"fieldA: display_name must be backfilled to field name")
+
+	updatedFieldB, appErr := th.App.GetPropertyField(th.Context, group.ID, fieldB.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "Job Title", updatedFieldB.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"fieldB: display_name must not be overwritten when already set")
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
+}
+
+func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
+	th := Setup(t)
+
+	clearCPABackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+
+	seeded, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		GroupID:    group.ID,
+		Name:       "location",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+	}, false, "")
+	require.Nil(t, appErr)
+
+	err := th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err)
+
+	data1, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data1.Value)
+
+	updatedAfterFirst, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "location", updatedAfterFirst.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
+
+	// Snapshot UpdateAt before the second run so we can prove the second run is a no-op
+	// at the DB-write level. PropertyField.UpdateAt is set to model.GetMillis() on every
+	// write, so a re-run would change it. (model.System exposes only Name + Value, so the
+	// System key cannot be probed the same way; the System-key SaveOrUpdate is gated by
+	// the same short-circuit that gates the field write, so the field check is sufficient.)
+	firstFieldUpdate := updatedAfterFirst.UpdateAt
+
+	// Second run: idempotency check fires immediately, returns nil without any DB writes.
+	err = th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err)
+
+	data2, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.Equal(t, "true", data2.Value)
+
+	updatedAfterSecond, appErr := th.App.GetPropertyField(th.Context, group.ID, seeded.ID)
+	require.Nil(t, appErr)
+	require.Equal(t, "location", updatedAfterSecond.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"second run must not change display_name")
+
+	require.Equal(t, firstFieldUpdate, updatedAfterSecond.UpdateAt,
+		"second run must not re-write the field row")
+}
+
+func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
+	th := Setup(t)
+
+	clearCPABackfillMarker(t, th)
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	require.Nil(t, appErr)
+	groupID := group.ID
+
+	// Insert directly via the store so we bypass the property service's
+	// access-control routing (which would reject creating a protected
+	// source_only field from a non-plugin caller). Type=text avoids the
+	// options-stripping branch in read access control, but the migration's
+	// correctness here doesn't depend on the field type.
+	field := &model.PropertyField{
+		GroupID: groupID,
+		Name:    "uas_employee_id",
+		Type:    model.PropertyFieldTypeText,
+		Attrs: model.StringInterface{
+			model.PropertyAttrsProtected:      true,
+			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,
+			model.PropertyAttrsSourcePluginID: "com.mattermost.uas-plugin",
+			// display_name intentionally omitted - this is the state the migration
+			// is designed to fix.
+		},
+	}
+	created, err := th.Store.PropertyField().Create(field)
+	require.NoError(t, err, "seed: protected source_only field must be insertable directly via the store")
+
+	err = th.Server.doSetupCPADisplayNameBackfill(th.Context)
+	require.NoError(t, err, "migration must succeed even when CPA fields are protected and owned by a plugin")
+
+	// Read back via the store directly to avoid any read-access filtering
+	// the AC layer might apply for a non-source-plugin caller.
+	got, err := th.Store.PropertyField().Get(context.Background(), groupID, created.ID)
+	require.NoError(t, err)
+	require.Equal(t, "uas_employee_id", got.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName],
+		"display_name must be backfilled to the field name even on protected/source_only fields")
+
+	// Confirm the protection metadata was preserved untouched.
+	require.Equal(t, true, got.Attrs[model.PropertyAttrsProtected], "protected flag must be preserved")
+	require.Equal(t, model.PropertyAccessModeSourceOnly, got.Attrs[model.PropertyAttrsAccessMode], "access_mode must be preserved")
+	require.Equal(t, "com.mattermost.uas-plugin", got.Attrs[model.PropertyAttrsSourcePluginID], "source_plugin_id must be preserved")
+
+	data, sysErr := th.Store.System().GetByName(cpaDisplayNameBackfillKey)
+	require.NoError(t, sysErr)
+	require.NotNil(t, data)
+	require.Equal(t, "true", data.Value)
 }

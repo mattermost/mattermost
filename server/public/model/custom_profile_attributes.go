@@ -14,8 +14,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
 
 // CPA-prefixed aliases for the canonical PropertyField* constants in
@@ -24,12 +26,13 @@ import (
 // so a rename to one side cannot silently diverge from the other.
 const (
 	// Attributes keys
-	CustomProfileAttributesPropertyAttrsSortOrder  = PropertyFieldAttrSortOrder
-	CustomProfileAttributesPropertyAttrsValueType  = PropertyFieldAttrValueType
-	CustomProfileAttributesPropertyAttrsVisibility = PropertyFieldAttrVisibility
-	CustomProfileAttributesPropertyAttrsLDAP       = PropertyFieldAttrLDAP
-	CustomProfileAttributesPropertyAttrsSAML       = PropertyFieldAttrSAML
-	CustomProfileAttributesPropertyAttrsManaged    = PropertyFieldAttrManaged
+	CustomProfileAttributesPropertyAttrsSortOrder   = PropertyFieldAttrSortOrder
+	CustomProfileAttributesPropertyAttrsValueType   = PropertyFieldAttrValueType
+	CustomProfileAttributesPropertyAttrsVisibility  = PropertyFieldAttrVisibility
+	CustomProfileAttributesPropertyAttrsLDAP        = PropertyFieldAttrLDAP
+	CustomProfileAttributesPropertyAttrsSAML        = PropertyFieldAttrSAML
+	CustomProfileAttributesPropertyAttrsManaged     = PropertyFieldAttrManaged
+	CustomProfileAttributesPropertyAttrsDisplayName = "display_name"
 
 	// Value Types
 	CustomProfileAttributesValueTypeEmail = PropertyFieldValueTypeEmail
@@ -70,6 +73,51 @@ func IsKnownCPAVisibility(visibility string) bool {
 	}
 
 	return false
+}
+
+// CPAFieldNamePattern defines the character set allowed for CPA field names.
+// Matches the CEL IDENTIFIER grammar (^[A-Za-z_][A-Za-z0-9_]*$) used by the
+// ABAC engine (cel-go v0.27.0). Leading underscore is permitted — this is consistent
+// with both the CEL grammar and the enterprise unparser (identifierPartPattern in
+// access_control/cel_utils/normalizer.go).
+var CPAFieldNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+
+// CPAFieldNameReservedWords is the set of CEL keywords that cannot be used as CPA
+// field names. Bare use of these tokens in member-select position (e.g.
+// user.attributes.in) either fails CEL parse or requires backtick quoting that
+// the ABAC visual builder (ToCEL) does not currently emit.
+//
+// List sourced from cel-go v0.27.0 CEL.g4 lexer rules.
+// Grouped: literals (true/false/null), operator-keywords (in/as), then alphabetical reserved keywords.
+var CPAFieldNameReservedWords = map[string]struct{}{
+	"true": {}, "false": {}, "null": {},
+	"in": {}, "as": {},
+	"break": {}, "const": {}, "continue": {}, "else": {},
+	"for": {}, "function": {}, "if": {}, "import": {},
+	"let": {}, "loop": {}, "package": {}, "namespace": {},
+	"return": {}, "var": {}, "void": {}, "while": {},
+}
+
+func ValidateCPAFieldName(name string) *AppError {
+	if !CPAFieldNamePattern.MatchString(name) {
+		return NewAppError(
+			"ValidateCPAFieldName",
+			"model.cpa_field.name.invalid_charset.app_error",
+			map[string]any{"Name": name},
+			"",
+			http.StatusUnprocessableEntity,
+		)
+	}
+	if _, reserved := CPAFieldNameReservedWords[name]; reserved {
+		return NewAppError(
+			"ValidateCPAFieldName",
+			"model.cpa_field.name.reserved_word.app_error",
+			map[string]any{"Name": name},
+			"",
+			http.StatusUnprocessableEntity,
+		)
+	}
+	return nil
 }
 
 type CustomProfileAttributesSelectOption struct {
@@ -119,6 +167,19 @@ type CPAField struct {
 	Attrs CPAAttrs `json:"attrs"`
 }
 
+// CPAAttrs holds the typed attributes for a CPA (Custom Profile Attributes) field.
+//
+// # CEL-safe-identifier validation for Name
+//
+// CPA field names double as identifiers in ABAC CEL policy expressions of the form
+// user.attributes.<name>. To be valid in that position without backtick quoting,
+// Name must satisfy [CPAFieldNamePattern] (^[A-Za-z_][A-Za-z0-9_]*$) and must not
+// appear in [CPAFieldNameReservedWords].
+//
+// # DisplayName
+//
+// DisplayName carries the user-facing label (e.g. "Department Head") separately
+// from Name (the CEL identifier, e.g. "department_head").
 type CPAAttrs struct {
 	Visibility     string                                                `json:"visibility"`
 	SortOrder      float64                                               `json:"sort_order"`
@@ -130,6 +191,7 @@ type CPAAttrs struct {
 	Protected      bool                                                  `json:"protected"`
 	SourcePluginID string                                                `json:"source_plugin_id"`
 	AccessMode     string                                                `json:"access_mode"`
+	DisplayName    string                                                `json:"display_name,omitempty"` // omitempty applies only to direct JSON marshal of CPAAttrs; ToPropertyField always writes the key into the underlying StringInterface map.
 }
 
 func (c *CPAField) IsSynced() bool {
@@ -177,16 +239,17 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	pf := c.PropertyField
 
 	pf.Attrs = StringInterface{
-		CustomProfileAttributesPropertyAttrsVisibility: c.Attrs.Visibility,
-		CustomProfileAttributesPropertyAttrsSortOrder:  c.Attrs.SortOrder,
-		CustomProfileAttributesPropertyAttrsValueType:  c.Attrs.ValueType,
-		PropertyFieldAttributeOptions:                  c.Attrs.Options,
-		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
-		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
-		CustomProfileAttributesPropertyAttrsManaged:    c.Attrs.Managed,
-		PropertyAttrsProtected:                         c.Attrs.Protected,
-		PropertyAttrsSourcePluginID:                    c.Attrs.SourcePluginID,
-		PropertyAttrsAccessMode:                        c.Attrs.AccessMode,
+		CustomProfileAttributesPropertyAttrsVisibility:  c.Attrs.Visibility,
+		CustomProfileAttributesPropertyAttrsSortOrder:   c.Attrs.SortOrder,
+		CustomProfileAttributesPropertyAttrsValueType:   c.Attrs.ValueType,
+		PropertyFieldAttributeOptions:                   c.Attrs.Options,
+		CustomProfileAttributesPropertyAttrsLDAP:        c.Attrs.LDAP,
+		CustomProfileAttributesPropertyAttrsSAML:        c.Attrs.SAML,
+		CustomProfileAttributesPropertyAttrsManaged:     c.Attrs.Managed,
+		PropertyAttrsProtected:                          c.Attrs.Protected,
+		PropertyAttrsSourcePluginID:                     c.Attrs.SourcePluginID,
+		PropertyAttrsAccessMode:                         c.Attrs.AccessMode,
+		CustomProfileAttributesPropertyAttrsDisplayName: c.Attrs.DisplayName,
 	}
 
 	return &pf
@@ -273,6 +336,15 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 			}, "", http.StatusBadRequest)
 		}
 		c.Attrs.Managed = managed
+	}
+
+	// Sanitize and validate display_name
+	// Reuses PropertyFieldNameMaxRunes to keep the DisplayName cap aligned with the Name cap; do NOT introduce a separate constant.
+	c.Attrs.DisplayName = strings.TrimSpace(c.Attrs.DisplayName)
+	if utf8.RuneCountInString(c.Attrs.DisplayName) > PropertyFieldNameMaxRunes {
+		return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error", map[string]any{
+			"MaxRunes": PropertyFieldNameMaxRunes,
+		}, "", http.StatusUnprocessableEntity)
 	}
 
 	return nil
