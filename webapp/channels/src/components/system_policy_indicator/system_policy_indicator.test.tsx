@@ -93,8 +93,11 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         expect(screen.getByText('Confidential DS-BP')).toBeInTheDocument();
-        expect(screen.getByText(/System access policy applied to this channel/)).toBeInTheDocument();
-        expect(screen.getByText(/Any custom access rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
+        expect(screen.getByText(/System membership policy applied to this channel/)).toBeInTheDocument();
+
+        // Body uses singular "a system-level membership policy" to agree with the title.
+        expect(screen.getByText(/This channel has a system-level membership policy applied/)).toBeInTheDocument();
+        expect(screen.getByText(/Any custom membership rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
 
         // Check for alert banner structure
         expect(screen.getByTestId('system-policy-indicator')).toBeInTheDocument();
@@ -109,11 +112,11 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         expect(screen.getByText('Confidential DS-BP')).toBeInTheDocument();
         expect(screen.getByText('Northern Command Filter')).toBeInTheDocument();
-        expect(screen.getByText(/Multiple system access policies applied to this channel/)).toBeInTheDocument();
-        expect(screen.getByText(/Any custom access rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
+        expect(screen.getByText(/Multiple system membership policies applied to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/Any custom membership rules you set here will be applied in addition to these policies/)).toBeInTheDocument();
 
         // Check that both policy names appear in the description
-        const description = screen.getByText(/This channel has system-level access policies applied/);
+        const description = screen.getByText(/This channel has system-level membership policies applied/);
         expect(description).toBeInTheDocument();
     });
 
@@ -179,9 +182,9 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         // Should show basic message but not the detailed policy list or names
-        expect(screen.getByText(/This channel has system-level access policies applied/)).toBeInTheDocument();
+        expect(screen.getByText(/This channel has system-level membership policies applied/)).toBeInTheDocument();
         expect(screen.queryByText('Confidential DS-BP')).not.toBeInTheDocument();
-        expect(screen.queryByText(/System access policy applied to this channel/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/System membership policy applied to this channel/)).not.toBeInTheDocument();
     });
 
     test('should handle different resource types in compact variant', () => {
@@ -194,7 +197,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
             initialState,
         );
 
-        expect(screen.getByText(/This team has system-level access policy applied/)).toBeInTheDocument();
+        expect(screen.getByText(/This team has system-level membership policy applied/)).toBeInTheDocument();
     });
 
     test('should handle file resource type in compact variant', () => {
@@ -207,6 +210,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
             initialState,
         );
 
+        // Files keep the access-oriented wording since users aren't members of files.
         expect(screen.getByText(/This file has system-level access policy applied/)).toBeInTheDocument();
     });
 
@@ -220,7 +224,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         );
 
         expect(screen.queryByText('Confidential DS-BP')).not.toBeInTheDocument();
-        expect(screen.getByText(/System access policy applied to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/System membership policy applied to this channel/)).toBeInTheDocument();
     });
 
     // Test more button functionality

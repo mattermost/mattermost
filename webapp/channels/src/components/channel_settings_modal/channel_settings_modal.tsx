@@ -134,7 +134,14 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
 
-    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
+    const isPolicyEligibleChannelType = channel.type === Constants.PRIVATE_CHANNEL || channel.type === Constants.OPEN_CHANNEL;
+
+    // Default channels (town-square / off-topic) cannot have ABAC policies —
+    // ValidateChannelEligibilityForAccessControl rejects them on the server, so
+    // showing the Membership Policy tab here would only let the user assemble
+    // rules they can never save.
+    const isDefaultChannel = channel.name === Constants.DEFAULT_CHANNEL || channel.name === Constants.OFFTOPIC_CHANNEL;
+    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && isPolicyEligibleChannelType && !channel.group_constrained && !isDefaultChannel && !channel.shared;
 
     const shouldShowArchiveTab = channel.name !== Constants.DEFAULT_CHANNEL &&
         ((channel.type === Constants.PRIVATE_CHANNEL && canArchivePrivateChannels) ||
@@ -285,9 +292,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         },
         {
             name: ChannelSettingsTabs.ACCESS_RULES,
-            uiName: formatMessage({id: 'channel_settings.tab.access_control', defaultMessage: 'Access Control'}),
+            uiName: formatMessage({id: 'channel_settings.tab.membership_policy', defaultMessage: 'Membership Policy'}),
             icon: 'icon icon-shield-outline',
-            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Access Rules Icon'}),
+            iconTitle: formatMessage({id: 'generic_icons.access_rules', defaultMessage: 'Membership Policy Icon'}),
             display: shouldShowAccessRulesTab,
         },
         {

@@ -118,10 +118,40 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
     if (isSynced) {
         return null;
     }
+
+    let subTitle: JSX.Element;
+    if (isDefault) {
+        subTitle = (
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.default_channel_not_supported'
+                defaultMessage='The default channel cannot have a membership policy.'
+            />
+        );
+    } else if (isPublic) {
+        subTitle = (
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.attribute_based_description_public'
+                defaultMessage='Recommend this channel to users whose attributes match the rules and (optionally) auto-add them. Anyone can still join freely.'
+            />
+        );
+    } else {
+        subTitle = (
+            <FormattedMessage
+                id='admin.channel_settings.channel_details.attribute_based_description'
+                defaultMessage='Restrict which users can be invited to this channel based on their user attributes and values. Only people who match the specified conditions will be allowed to be selected and added to this channel.'
+            />
+        );
+    }
+
     return (
         <LineSwitch
             id='policy-enforce-toggle'
-            disabled={isDisabled || isSynced || isPublic || !policyEnforcedToggleAvailable}
+
+            // Keep the visual disabled state aligned with the click guard in
+            // onToggle (which short-circuits when isDefault is true). Without
+            // including isDefault here the toggle would look enabled but do
+            // nothing on the default channel.
+            disabled={isDisabled || isSynced || isDefault || !policyEnforcedToggleAvailable}
             toggled={policyEnforced}
             last={true}
             onToggle={() => {
@@ -136,18 +166,7 @@ const PolicyEnforceToggle = (props: Props): JSX.Element | null => {
                     defaultMessage='Enable attribute based channel access'
                 />
             )}
-            subTitle={isDefault || isPublic ? (
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.private_channel_only'
-                    defaultMessage='Only private channels can be attribute based.'
-                />
-            ) : (
-                <FormattedMessage
-                    id='admin.channel_settings.channel_details.attribute_based_description'
-                    defaultMessage='Restrict which users can be invited to this channel based on their user attributes and values. Only people who match the specified conditions will be allowed to be selected and added to this channel.'
-                />
-            )
-            }
+            subTitle={subTitle}
         />
     );
 };
