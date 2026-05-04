@@ -47,6 +47,10 @@ jobs:
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: false
+      # Unsharded run on a single 8-core runner: fullyparallel=true causes
+      # resource exhaustion (too many server instances, WebSocket hubs, and
+      # DB connections) and crashes the hosted runner. See #35995.
+      fullyparallel: false
 
   test-postgres-normal-fips:
     name: Postgres FIPS
@@ -60,6 +64,8 @@ jobs:
       logsartifact: postgres-server-fips-test-logs
       go-version: ${{ needs.go.outputs.version }}
       fips-enabled: true
+      # Unsharded run on a single 8-core runner: see note on test-postgres-binary.
+      fullyparallel: false
 
   test-mmctl-fips:
     name: Run mmctl tests (FIPS)
