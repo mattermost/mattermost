@@ -10666,10 +10666,6 @@
     "translation": "该频道受群组限制，无法应用访问控制策略。"
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "访问控制策略只能应用于私有频道。"
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "共享频道无法应用访问控制策略。"
   },
