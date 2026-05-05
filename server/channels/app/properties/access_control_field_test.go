@@ -1458,8 +1458,8 @@ func TestApplyFieldReadAccessControl_MemberWritable(t *testing.T) {
 	field := &model.PropertyField{
 		Type: model.PropertyFieldTypeSelect,
 		Attrs: model.StringInterface{
-			model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly,
-			model.PropertyAttrsProtected:  true,
+			model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
+			model.PropertyAttrsProtected:        true,
 			model.PropertyFieldAttributeOptions: options,
 		},
 		PermissionValues: &memberLevel,
