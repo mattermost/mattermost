@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -1043,28 +1044,10 @@ func TestAddChannelsToPolicy(t *testing.T) {
 	validChannelIDs := []string{model.NewId(), model.NewId()}
 	invalidChannelIDs := []string{"invalid_channel_id"}
 
-	// Custom function to compare slices regardless of order
-	unorderedSlicesEqual := func(a, b []string) bool {
-		if len(a) != len(b) {
-			return false
-		}
-		counts := make(map[string]int)
-		for _, item := range a {
-			counts[item]++
-		}
-		for _, item := range b {
-			counts[item]--
-			if counts[item] < 0 {
-				return false
-			}
-		}
-		return true
-	}
-
 	// Custom matcher for unordered slice comparison
 	unorderedSliceMatcher := func(expected []string) func(actual []string) bool {
 		return func(actual []string) bool {
-			return unorderedSlicesEqual(expected, actual)
+			return utils.SliceEqualUnordered(expected, actual)
 		}
 	}
 
