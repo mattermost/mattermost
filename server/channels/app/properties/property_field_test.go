@@ -1346,12 +1346,10 @@ func TestLinkedPropertyFields(t *testing.T) {
 		assert.Equal(t, "green", linkedOpts[1]["color"])
 	})
 
-	// FIXME: remove this test once CPA is fully migrated to v2 — template
-	// fields should then only be created on v2 groups.
-	t.Run("template field creation is allowed on v1 group", func(t *testing.T) {
+	t.Run("template field creation is rejected on v1 group", func(t *testing.T) {
 		v1Group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV1)
 
-		template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
+		_, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 			GroupID:    v1Group.ID,
 			ObjectType: model.PropertyFieldObjectTypeTemplate,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1363,8 +1361,7 @@ func TestLinkedPropertyFields(t *testing.T) {
 				},
 			},
 		})
-		require.NoError(t, err)
-		assert.Equal(t, model.PropertyFieldObjectTypeTemplate, template.ObjectType)
+		require.Error(t, err)
 	})
 
 	t.Run("cross-group linking is rejected", func(t *testing.T) {

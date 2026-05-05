@@ -44,10 +44,8 @@ func (ps *PropertyService) createPropertyField(field *model.PropertyField) (*mod
 		return nil, err
 	}
 
-	// FIXME: Legacy properties (PSAv1) skip conflict check, but
-	// template fields still need it because they can have linked
-	// dependents.
-	if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
+	// Legacy properties (PSAv1) skip the conflict check.
+	if field.IsPSAv1() {
 		return ps.fieldStore.Create(field)
 	}
 
@@ -277,10 +275,8 @@ func (ps *PropertyService) updatePropertyFields(groupID string, fields []*model.
 			continue
 		}
 
-		// FIXME: Legacy properties (PSAv1) skip conflict check, but
-		// template fields still need it because they can have linked
-		// dependents.
-		if field.IsPSAv1() && field.ObjectType != model.PropertyFieldObjectTypeTemplate {
+		// Legacy properties (PSAv1) skip the conflict check.
+		if field.IsPSAv1() {
 			continue
 		}
 

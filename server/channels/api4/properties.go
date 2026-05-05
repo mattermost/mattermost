@@ -300,12 +300,8 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// PSAv2 routes only operate on PSAv2 fields. Reject legacy fields. FIXME:
-	// IsPSAv1 currently includes template fields (ObjectType="template"), but
-	// templates are valid PSAv2 objects and must be patchable. Once the FIXME
-	// in model.PropertyField.IsPSAv1 is resolved, this extra condition can be
-	// removed.
-	if existingField.IsPSAv1() && existingField.ObjectType == "" {
+	// PSAv2 routes only operate on PSAv2 fields. Reject legacy fields.
+	if existingField.IsPSAv1() {
 		c.Err = model.NewAppError("patchPropertyField", "api.property_field.patch.legacy_field.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
