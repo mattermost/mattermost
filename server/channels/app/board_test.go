@@ -74,7 +74,7 @@ func TestBuildBoardKanbanView(t *testing.T) {
 			ID: model.NewId(),
 			Attrs: map[string]any{
 				"options": []any{
-					"not-a-map",                                 // skipped
+					"not-a-map", // skipped
 					map[string]any{"id": "", "name": "blank-id"}, // skipped (empty id)
 					map[string]any{"id": "opt-x", "name": ""},    // skipped (empty name)
 					map[string]any{"id": "opt-todo", "name": "Todo"},
