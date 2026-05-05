@@ -26,7 +26,7 @@ export default function ButtonComponentLibrary({backgroundClass}: Props) {
     const [label, labelSelector] = useStringProp('label', 'Label', false);
 
     const [leadingIcon, leadingIconPossibilities, leadingIconSelector] = useDropdownProp('leadingIcon', 'mattermost', iconValues, false);
-    const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', 'Trailing Icon', iconValues, false);
+    const [trailingIcon, trailingIconPossibilities, trailingIconSelector] = useDropdownProp('trailingIcon', '', iconValues, false);
 
     const [emphasis, emphasisPossibilities, emphasisSelector] = useDropdownProp('emphasis', 'primary', emphasisValues, true);
     const [size, sizePossibilities, sizeSelector] = useDropdownProp('size', 'md', sizeValues, true);
