@@ -28,7 +28,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		})
 
 		post := th.CreatePost(t)
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Empty(t, report)
@@ -38,7 +38,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), "invalid")
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), "invalid", &model.FlagContentActionRequest{})
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		require.Empty(t, report)
@@ -49,7 +49,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost(t)
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Empty(t, report)
@@ -60,7 +60,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost(t)
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{})
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Empty(t, report)
@@ -73,7 +73,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		post := th.CreatePost(t)
 		flagPostViaAPI(t, client, post.Id)
 
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{Comment: "investigation note"})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
@@ -97,7 +97,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		post := th.CreatePost(t)
 		flagPostViaAPI(t, client, post.Id)
 
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{Comment: "investigation note"})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
@@ -110,7 +110,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		post, fileInfo := uploadFileAndCreatePost(t, th, client)
 		flagPostViaAPI(t, client, post.Id)
 
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{Comment: "investigation note"})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
@@ -145,7 +145,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		flagPostViaAPI(t, client, post.Id)
 
-		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id)
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{Comment: "investigation note"})
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)

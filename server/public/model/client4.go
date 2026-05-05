@@ -3930,8 +3930,8 @@ func (c *Client4) KeepFlaggedPost(ctx context.Context, postId string, actionRequ
 
 // GenerateFlaggedPostReport generates and downloads a ZIP archive containing the
 // flagged post report for the given post.
-func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string) ([]byte, *Response, error) {
-	r, err := c.doAPIGet(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), "")
+func (c *Client4) GenerateFlaggedPostReport(ctx context.Context, postId string, actionRequest *FlagContentActionRequest) ([]byte, *Response, error) {
+	r, err := c.doAPIPostJSON(ctx, c.contentFlaggingRoute().Join("post", postId, "report"), actionRequest)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

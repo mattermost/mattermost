@@ -33,7 +33,11 @@ const (
 // GenerateFlaggedPostReport builds a ZIP archive of a flagged post's data into a
 // temporary file and returns the file path. The caller is responsible for
 // removing the file when the response has been served.
-func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID string) (string, *model.AppError) {
+func (a *App) GenerateFlaggedPostReport(rctx request.CTX, postID, generatedByUserID, comment string) (string, *model.AppError) {
+	if appErr := a.ensureActorCommentForReport(rctx, postID, comment); appErr != nil {
+		return "", appErr
+	}
+
 	tmp, err := os.CreateTemp("", flaggedPostReportTempPattern)
 	if err != nil {
 		return "", model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.tempfile.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -186,6 +190,51 @@ func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *mo
 	}
 	if err := writeYAMLEntry(zw, flaggedPostReportContentReviewFile, payload); err != nil {
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.write_review_yaml.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return nil
+}
+
+// ensureActorCommentForReport persists the report-generator's comment as the
+// actor_comment property when the post does not yet have one. If a value is
+// already present (set by a prior keep/remove or report-generation), it is
+// preserved so the existing reviewer note is never overwritten.
+func (a *App) ensureActorCommentForReport(rctx request.CTX, postID, comment string) *model.AppError {
+	existing, appErr := a.GetPostContentFlaggingPropertyValue(postID, contentFlaggingPropertyNameActorComment)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return appErr
+	}
+	if existing != nil {
+		return nil
+	}
+	if comment == "" {
+		return nil
+	}
+
+	groupID, gErr := a.ContentFlaggingGroupId()
+	if gErr != nil {
+		return gErr
+	}
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupID)
+	if appErr != nil {
+		return appErr
+	}
+
+	commentBytes, jsonErr := json.Marshal(comment)
+	if jsonErr != nil {
+		return model.NewAppError("ensureActorCommentForReport", "app.data_spillage.report.marshal_comment.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+
+	propertyValues := []*model.PropertyValue{
+		{
+			TargetID:   postID,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupID,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      json.RawMessage(commentBytes),
+		},
+	}
+	if _, appErr := a.CreatePropertyValues(rctx, propertyValues); appErr != nil {
+		return model.NewAppError("ensureActorCommentForReport", "app.data_spillage.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 	return nil
 }
