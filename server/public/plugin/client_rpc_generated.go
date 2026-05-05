@@ -1972,10 +1972,10 @@ func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLL
 	return nil
 }
 
-// HooksWithRPCErr is implemented by hooksRPCClient. It provides a WithRPCErr variant for every
-// generated hook. The last error return is always the RPC transport error — if non-nil, the
-// plugin's other return values are zero. For hooks whose base signature already returns error,
-// the tuple is (originalReturns..., rpcErr) where the final slot is always transport.
+// HooksWithRPCErr provides a WithRPCErr variant for every generated hook. The last error return
+// is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
+// hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
+// where the final slot is always transport.
 //
 // If the plugin does not implement the hook, the companion returns zero values and a nil error —
 // indistinguishable from a successful invocation that returned zeros. Callers MUST gate on
