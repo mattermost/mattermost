@@ -626,6 +626,48 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, mani
 	}
 }
 
+// RunMultiPluginHookWithRPCErr is like RunMultiPluginHook but surfaces RPC transport errors. The
+// closure receives a HooksRPCErr so it can call *WithRPCErr variants. Iteration stops on the first
+// non-nil error returned by the closure.
+func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks HooksRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+	startTime := time.Now()
+	var retErr error
+
+	env.registeredPlugins.Range(func(key, value any) bool {
+		rp := value.(registeredPlugin)
+
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) || !env.IsActive(rp.BundleInfo.Manifest.Id) {
+			return true
+		}
+
+		hooks, ok := rp.supervisor.Hooks().(HooksRPCErr)
+		if !ok {
+			retErr = fmt.Errorf("plugin %s hooks do not implement HooksRPCErr", rp.BundleInfo.Manifest.Id)
+			return false
+		}
+
+		hookStartTime := time.Now()
+		cont, err := hookRunnerFunc(hooks, rp.BundleInfo.Manifest)
+
+		if env.metrics != nil {
+			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
+			env.metrics.ObservePluginMultiHookIterationDuration(rp.BundleInfo.Manifest.Id, elapsedTime)
+		}
+
+		if err != nil {
+			retErr = err
+			return false
+		}
+		return cont
+	})
+
+	if env.metrics != nil {
+		elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+		env.metrics.ObservePluginMultiHookDuration(elapsedTime)
+	}
+	return retErr
+}
+
 // PerformHealthCheck uses the active plugin's supervisor to verify if the plugin has crashed.
 func (env *Environment) PerformHealthCheck(id string) error {
 	p, ok := env.registeredPlugins.Load(id)
