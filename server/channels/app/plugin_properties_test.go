@@ -485,7 +485,7 @@ func TestPluginProperties(t *testing.T) {
 				// Create a CPA field
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "CPA Test Field",
+					Name:       "cpa_test_field",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -552,7 +552,7 @@ func TestPluginProperties(t *testing.T) {
 				// Create a protected CPA field
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Protected Field",
+					Name:       "protected_field",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -567,13 +567,13 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Try to update the protected field (should succeed since we created it)
-				createdField.Name = "Updated Protected Field"
+				createdField.Name = "updated_protected_field"
 				updatedField, err := p.API.UpdatePropertyField("` + cpaID + `", createdField)
 				if err != nil {
 					return fmt.Errorf("failed to update own protected field: %w", err)
 				}
 
-				if updatedField.Name != "Updated Protected Field" {
+				if updatedField.Name != "updated_protected_field" {
 					return fmt.Errorf("field name not updated correctly")
 				}
 
@@ -622,7 +622,7 @@ func TestPluginProperties(t *testing.T) {
 				// Create a protected CPA field
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Plugin1 Protected Field",
+					Name:       "plugin1_protected_field",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -666,7 +666,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Protected Field" {
+					if field.Name == "plugin1_protected_field" {
 						plugin1Field = field
 						break
 					}
@@ -722,7 +722,7 @@ func TestPluginProperties(t *testing.T) {
 				// Create a protected CPA field
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Field To Delete",
+					Name:       "field_to_delete",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -786,7 +786,7 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Plugin1 Field To Keep",
+					Name:       "plugin1_field_to_keep",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -830,7 +830,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Field To Keep" {
+					if field.Name == "plugin1_field_to_keep" {
 						plugin1Field = field
 						break
 					}
@@ -885,7 +885,7 @@ func TestPluginProperties(t *testing.T) {
 				// Create a protected CPA field
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Protected Field With Values",
+					Name:       "protected_field_with_values",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -971,7 +971,7 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Plugin1 Field With Protected Values",
+					Name:       "plugin1_field_with_protected_values",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1029,7 +1029,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Plugin1 Field With Protected Values" {
+					if field.Name == "plugin1_field_with_protected_values" {
 						plugin1Field = field
 						break
 					}
@@ -1094,7 +1094,7 @@ func TestPluginProperties(t *testing.T) {
 			func (p *MyPlugin) OnActivate() error {
 				field := &model.PropertyField{
 					GroupID:    "` + cpaID + `",
-					Name:       "Non-Protected Field",
+					Name:       "non_protected_field",
 					Type:       model.PropertyFieldTypeText,
 					ObjectType: model.PropertyFieldObjectTypeUser,
 					TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1136,7 +1136,7 @@ func TestPluginProperties(t *testing.T) {
 
 				var plugin1Field *model.PropertyField
 				for _, field := range fields {
-					if field.Name == "Non-Protected Field" {
+					if field.Name == "non_protected_field" {
 						plugin1Field = field
 						break
 					}
@@ -1147,7 +1147,7 @@ func TestPluginProperties(t *testing.T) {
 				}
 
 				// Update it (should succeed since it's not protected)
-				plugin1Field.Name = "Modified By Plugin2"
+				plugin1Field.Name = "modified_by_plugin2"
 				_, err = p.API.UpdatePropertyField("` + cpaID + `", plugin1Field)
 				if err != nil {
 					return fmt.Errorf("failed to update non-protected field: %w", err)
@@ -1175,7 +1175,7 @@ func TestPluginProperties(t *testing.T) {
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool
 		for _, field := range updatedFields {
-			if field.Name == "Modified By Plugin2" {
+			if field.Name == "modified_by_plugin2" {
 				fieldWasUpdated = true
 				break
 			}

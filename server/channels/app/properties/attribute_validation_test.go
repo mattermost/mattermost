@@ -5,6 +5,7 @@ package properties
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -655,6 +656,257 @@ func TestAttributeValidationHook(t *testing.T) {
 		require.NoError(t, updateErr)
 		require.NotNil(t, updated.PermissionValues)
 		assert.Equal(t, model.PermissionLevelMember, *updated.PermissionValues)
+	})
+
+	t.Run("sanitization on create: defaults visibility to when_set", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, model.CustomProfileAttributesVisibilityWhenSet, created.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+	})
+
+	t.Run("sanitization on create: trims display_name and rejects when too long", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs: model.StringInterface{
+				model.CustomProfileAttributesPropertyAttrsDisplayName: "  Department Head  ",
+			},
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "Department Head", created.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
+
+		// Build a 256-rune string — exceeds the 255-rune cap (PropertyFieldNameMaxRunes).
+		tooLong := strings.Repeat("a", model.PropertyFieldNameMaxRunes+1)
+		bad := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+			Attrs:      model.StringInterface{model.CustomProfileAttributesPropertyAttrsDisplayName: tooLong},
+		}
+		_, badErr := th.service.CreatePropertyField(th.Context, bad)
+		require.Error(t, badErr)
+		assert.Contains(t, badErr.Error(), "display_name")
+	})
+
+	t.Run("sanitization on update: rejects display_name longer than max", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		field.Attrs = model.StringInterface{
+			model.CustomProfileAttributesPropertyAttrsDisplayName: strings.Repeat("a", model.PropertyFieldNameMaxRunes+1),
+		}
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "display_name")
+	})
+
+	t.Run("sanitization on update: rejects unknown value_type on text field", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrValueType: "wat"}
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "value_type")
+	})
+
+	t.Run("sanitization on update: rejects unknown managed value", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "field_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrManaged: "kinda"}
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		assert.Contains(t, updateErr.Error(), "managed")
+	})
+
+	t.Run("name validation on create: rejects non-CEL identifier", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "Has Space",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, createErr, &appErr)
+		assert.Equal(t, "model.cpa_field.name.invalid_charset.app_error", appErr.Id)
+	})
+
+	t.Run("name validation on create: rejects CEL reserved word", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "for",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		}
+		_, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.Error(t, createErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, createErr, &appErr)
+		assert.Equal(t, "model.cpa_field.name.reserved_word.app_error", appErr.Id)
+	})
+
+	t.Run("name validation on create: accepts CEL-safe identifier", func(t *testing.T) {
+		field := &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "department_head",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		}
+		created, createErr := th.service.CreatePropertyField(th.Context, field)
+		require.NoError(t, createErr)
+		assert.Equal(t, "department_head", created.Name)
+	})
+
+	t.Run("name validation on update: lenient grandfather lets non-conforming name through when unchanged", func(t *testing.T) {
+		// Direct store insert bypasses the hook so we can seed a name that
+		// would fail current validation, simulating a field that predates it.
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "legacy name",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		// Patch a different attr without touching Name — should succeed.
+		field.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: "always"}
+		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, "legacy name", updated.Name)
+	})
+
+	t.Run("name validation on update: rejects rename to non-CEL identifier", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "good_name_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		field.Name = "Bad Name"
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, updateErr, &appErr)
+		assert.Equal(t, "model.cpa_field.name.invalid_charset.app_error", appErr.Id)
+	})
+
+	t.Run("name validation on update: rejects rename to CEL reserved word", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "good_name_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		field.Name = "in"
+		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.Error(t, updateErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, updateErr, &appErr)
+		assert.Equal(t, "model.cpa_field.name.reserved_word.app_error", appErr.Id)
+	})
+
+	t.Run("name validation on update: accepts rename to CEL-safe identifier", func(t *testing.T) {
+		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "old_name_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		newName := "new_name_" + model.NewId()
+		field.Name = newName
+		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		require.NoError(t, updateErr)
+		assert.Equal(t, newName, updated.Name)
+	})
+
+	t.Run("name validation on batch update: lenient grandfather applies per-field", func(t *testing.T) {
+		grandfathered := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "still legacy",
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+		renamable := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "rename_src_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		// Touch grandfathered without renaming; rename renamable to a CEL-safe
+		// name. Both should be accepted.
+		grandfathered.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: "hidden"}
+		newName := "rename_dst_" + model.NewId()
+		renamable.Name = newName
+		_, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{grandfathered, renamable})
+		require.NoError(t, updateErr)
+	})
+
+	t.Run("name validation on batch update: one bad rename rejects the batch", func(t *testing.T) {
+		ok := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "ok_src_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+		bad := th.CreatePropertyFieldDirect(t, &model.PropertyField{
+			GroupID:    group.ID,
+			Name:       "bad_src_" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			TargetType: "system",
+			ObjectType: "user",
+		})
+
+		ok.Name = "ok_dst_" + model.NewId()
+		bad.Name = "for" // CEL reserved word
+		_, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{ok, bad})
+		require.Error(t, updateErr)
+		var appErr *model.AppError
+		require.ErrorAs(t, updateErr, &appErr)
+		assert.Equal(t, "model.cpa_field.name.reserved_word.app_error", appErr.Id)
 	})
 
 	t.Run("text — rejects value exceeding max length", func(t *testing.T) {

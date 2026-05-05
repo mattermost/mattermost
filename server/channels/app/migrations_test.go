@@ -85,6 +85,10 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// Enterprise license; the seed CreatePropertyField calls below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
@@ -139,6 +143,10 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 
 func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// Enterprise license; the seed CreatePropertyField call below would
+	// otherwise be rejected with app.property.license_error.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
@@ -191,6 +199,12 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
 	th := Setup(t)
+	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// Enterprise license. The seed below bypasses Create-side hooks via a
+	// direct store insert, but the backfill migration calls UpdatePropertyFields
+	// (unhooked) which still runs the version-match check; the license is
+	// nevertheless required by other CPA paths exercised across the suite.
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
@@ -200,13 +214,15 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	// Insert directly via the store so we bypass the property service's
 	// access-control routing (which would reject creating a protected
-	// source_only field from a non-plugin caller). Type=text avoids the
-	// options-stripping branch in read access control, but the migration's
-	// correctness here doesn't depend on the field type.
+	// source_only field from a non-plugin caller). ObjectType/TargetType are
+	// required so the field is recognized as PSAv2 and matches the group's
+	// version when the migration's UpdatePropertyFields runs.
 	field := &model.PropertyField{
-		GroupID: groupID,
-		Name:    "uas_employee_id",
-		Type:    model.PropertyFieldTypeText,
+		GroupID:    groupID,
+		Name:       "uas_employee_id",
+		Type:       model.PropertyFieldTypeText,
+		ObjectType: model.PropertyFieldObjectTypeUser,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
 		Attrs: model.StringInterface{
 			model.PropertyAttrsProtected:      true,
 			model.PropertyAttrsAccessMode:     model.PropertyAccessModeSourceOnly,

@@ -16,8 +16,6 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
-	"strings"
-	"unicode/utf8"
 )
 
 // CPA-prefixed aliases for the canonical PropertyField* constants in
@@ -32,7 +30,7 @@ const (
 	CustomProfileAttributesPropertyAttrsLDAP        = PropertyFieldAttrLDAP
 	CustomProfileAttributesPropertyAttrsSAML        = PropertyFieldAttrSAML
 	CustomProfileAttributesPropertyAttrsManaged     = PropertyFieldAttrManaged
-	CustomProfileAttributesPropertyAttrsDisplayName = "display_name"
+	CustomProfileAttributesPropertyAttrsDisplayName = PropertyFieldAttrDisplayName
 
 	// Value Types
 	CustomProfileAttributesValueTypeEmail = PropertyFieldValueTypeEmail
@@ -52,28 +50,6 @@ const (
 	// CPA value constraints
 	CPAValueTypeTextMaxLength = PropertyFieldValueTypeTextMaxLength
 )
-
-func IsKnownCPAValueType(valueType string) bool {
-	switch valueType {
-	case CustomProfileAttributesValueTypeEmail,
-		CustomProfileAttributesValueTypeURL,
-		CustomProfileAttributesValueTypePhone:
-		return true
-	}
-
-	return false
-}
-
-func IsKnownCPAVisibility(visibility string) bool {
-	switch visibility {
-	case CustomProfileAttributesVisibilityHidden,
-		CustomProfileAttributesVisibilityWhenSet,
-		CustomProfileAttributesVisibilityAlways:
-		return true
-	}
-
-	return false
-}
 
 // CPAFieldNamePattern defines the character set allowed for CPA field names.
 // Matches the CEL IDENTIFIER grammar (^[A-Za-z_][A-Za-z0-9_]*$) used by the
@@ -202,13 +178,6 @@ func (c *CPAField) IsAdminManaged() bool {
 	return c.Attrs.Managed == "admin"
 }
 
-// SetDefaults sets default values for CPAField attributes
-func (c *CPAField) SetDefaults() {
-	if c.Attrs.Visibility == "" {
-		c.Attrs.Visibility = CustomProfileAttributesVisibilityDefault
-	}
-}
-
 // Patch applies a PropertyFieldPatch to the CPAField by converting to PropertyField,
 // applying the patch, and converting back. This ensures we only maintain one patch logic path.
 // Custom profile attributes doesn't use targets, so TargetID and TargetType are cleared.
@@ -255,101 +224,6 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 	return &pf
 }
 
-// SupportsOptions checks the CPAField type and determines if the type
-// supports the use of options
-func (c *CPAField) SupportsOptions() bool {
-	return c.Type == PropertyFieldTypeSelect || c.Type == PropertyFieldTypeMultiselect
-}
-
-// SupportsSyncing checks the CPAField type and determines if it
-// supports syncing with external sources of truth
-func (c *CPAField) SupportsSyncing() bool {
-	return c.Type == PropertyFieldTypeText
-}
-
-func (c *CPAField) SanitizeAndValidate() *AppError {
-	c.SetDefaults()
-
-	// first we clean unused attributes depending on the field type
-	if !c.SupportsOptions() {
-		c.Attrs.Options = nil
-	}
-	if !c.SupportsSyncing() {
-		c.Attrs.LDAP = ""
-		c.Attrs.SAML = ""
-	}
-
-	// Clear sync properties if managed is set (mutual exclusivity)
-	if c.IsAdminManaged() {
-		c.Attrs.LDAP = ""
-		c.Attrs.SAML = ""
-	}
-
-	switch c.Type {
-	case PropertyFieldTypeText:
-		if valueType := strings.TrimSpace(c.Attrs.ValueType); valueType != "" {
-			if !IsKnownCPAValueType(valueType) {
-				return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-					"AttributeName": CustomProfileAttributesPropertyAttrsValueType,
-					"Reason":        "unknown value type",
-				}, "", http.StatusUnprocessableEntity)
-			}
-			c.Attrs.ValueType = valueType
-		}
-
-	case PropertyFieldTypeSelect, PropertyFieldTypeMultiselect:
-		options := c.Attrs.Options
-
-		// add an ID to options with no ID
-		for i := range options {
-			if options[i].ID == "" {
-				options[i].ID = NewId()
-			}
-		}
-
-		if err := options.IsValid(); err != nil {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": PropertyFieldAttributeOptions,
-				"Reason":        err.Error(),
-			}, "", http.StatusUnprocessableEntity).Wrap(err)
-		}
-		c.Attrs.Options = options
-	}
-
-	// Validate visibility
-	if visibilityAttr := strings.TrimSpace(c.Attrs.Visibility); visibilityAttr != "" {
-		if !IsKnownCPAVisibility(visibilityAttr) {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": CustomProfileAttributesPropertyAttrsVisibility,
-				"Reason":        "unknown visibility",
-			}, "", http.StatusUnprocessableEntity)
-		}
-		c.Attrs.Visibility = visibilityAttr
-	}
-
-	// Validate managed field
-	if managed := strings.TrimSpace(c.Attrs.Managed); managed != "" {
-		if managed != "admin" {
-			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
-				"AttributeName": CustomProfileAttributesPropertyAttrsManaged,
-				"Reason":        "unknown managed type",
-			}, "", http.StatusBadRequest)
-		}
-		c.Attrs.Managed = managed
-	}
-
-	// Sanitize and validate display_name
-	// Reuses PropertyFieldNameMaxRunes to keep the DisplayName cap aligned with the Name cap; do NOT introduce a separate constant.
-	c.Attrs.DisplayName = strings.TrimSpace(c.Attrs.DisplayName)
-	if utf8.RuneCountInString(c.Attrs.DisplayName) > PropertyFieldNameMaxRunes {
-		return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error", map[string]any{
-			"MaxRunes": PropertyFieldNameMaxRunes,
-		}, "", http.StatusUnprocessableEntity)
-	}
-
-	return nil
-}
-
 func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 	attrsJSON, err := json.Marshal(pf.Attrs)
 	if err != nil {
@@ -366,8 +240,6 @@ func NewCPAFieldFromPropertyField(pf *PropertyField) (*CPAField, error) {
 		PropertyField: *pf,
 		Attrs:         attrs,
 	}
-
-	cpaField.SetDefaults()
 
 	return cpaField, nil
 }

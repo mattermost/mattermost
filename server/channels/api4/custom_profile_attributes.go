@@ -73,11 +73,6 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", pf)
 
-	if appErr := pf.SanitizeAndValidate(); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
 	// CPA fields are system-scoped; only a system administrator may create
 	// them. This mirrors the scope-based permission check the shared generic
 	// handler enforces for system-typed fields.

@@ -13,12 +13,13 @@ import (
 // Attribute keys used across property groups. These are the canonical keys
 // stored in PropertyField.Attrs and referenced by hooks.
 const (
-	PropertyFieldAttrVisibility = "visibility"
-	PropertyFieldAttrSortOrder  = "sort_order"
-	PropertyFieldAttrValueType  = "value_type"
-	PropertyFieldAttrLDAP       = "ldap"
-	PropertyFieldAttrSAML       = "saml"
-	PropertyFieldAttrManaged    = "managed"
+	PropertyFieldAttrVisibility  = "visibility"
+	PropertyFieldAttrSortOrder   = "sort_order"
+	PropertyFieldAttrValueType   = "value_type"
+	PropertyFieldAttrLDAP        = "ldap"
+	PropertyFieldAttrSAML        = "saml"
+	PropertyFieldAttrManaged     = "managed"
+	PropertyFieldAttrDisplayName = "display_name"
 )
 
 // Valid visibility values for property fields.

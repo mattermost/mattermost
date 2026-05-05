@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -23,13 +24,25 @@ var (
 // This avoids a circular dependency between the properties and app packages.
 type PermissionChecker func(userID string, permission *model.Permission) bool
 
-// AttributeValidationHook validates property field attributes and values for
-// specific property groups. It enforces that:
-//   - visibility is one of hidden/when_set/always
-//   - sort_order is numeric
-//   - text field values conform to value_type constraints (email, url, phone)
-//   - managed="admin" can only be set by users with PermissionManageSystem
-//   - PermissionValues is kept in sync with the managed attribute
+// AttributeValidationHook validates and sanitizes property field attributes
+// and values for managed property groups. It owns the full attr pipeline
+// for these groups:
+//
+//   - validates field Name against the CEL-safe identifier rules
+//     ([model.ValidateCPAFieldName]); on update this fires only when Name
+//     actually changes, so pre-existing fields with non-conforming names
+//     remain editable on all other attrs (lenient grandfather)
+//   - trims whitespace on string attrs
+//   - applies the visibility default when unset
+//   - clears attrs that don't apply to the field type (options on non-select,
+//     ldap/saml on non-text or admin-managed fields)
+//   - auto-assigns IDs to options that lack one and validates option shape
+//   - validates visibility, value_type, managed, display_name, and sort_order
+//   - validates property values for text fields against value_type
+//     constraints (email, url, phone)
+//   - enforces that managed="admin" can only be set by callers with
+//     PermissionManageSystem, and keeps PermissionValues in sync with the
+//     managed attribute
 //
 // The hook only applies to groups whose IDs are in managedGroupIDs.
 type AttributeValidationHook struct {
@@ -60,13 +73,107 @@ func (h *AttributeValidationHook) isGroupManaged(groupID string) bool {
 	return ok
 }
 
-func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField) error {
+// sanitizeAndValidateFieldAttrs trims string attrs, applies the visibility
+// default, clears attrs that don't apply to the field type, validates each
+// attr, and auto-IDs+validates options for select-shaped fields. Mutates
+// field.Attrs in place.
+func (h *AttributeValidationHook) sanitizeAndValidateFieldAttrs(field *model.PropertyField) error {
+	if field.Attrs == nil {
+		field.Attrs = model.StringInterface{}
+	}
+
+	for _, key := range trimmedFieldAttrKeys {
+		if v, ok := field.Attrs[key].(string); ok {
+			field.Attrs[key] = strings.TrimSpace(v)
+		}
+	}
+
+	if v, _ := field.Attrs[model.PropertyFieldAttrVisibility].(string); v == "" {
+		field.Attrs[model.PropertyFieldAttrVisibility] = model.PropertyFieldVisibilityWhenSet
+	}
+
+	// Type-based attr clearing: select-shaped fields keep options, only text
+	// supports external sync, and admin-managed fields can never be synced
+	// (mutual exclusivity).
+	isSelect := field.Type == model.PropertyFieldTypeSelect || field.Type == model.PropertyFieldTypeMultiselect
+	isText := field.Type == model.PropertyFieldTypeText
+	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
+
+	if !isSelect {
+		delete(field.Attrs, model.PropertyFieldAttributeOptions)
+	}
+	if !isText || managed == "admin" {
+		delete(field.Attrs, model.PropertyFieldAttrLDAP)
+		delete(field.Attrs, model.PropertyFieldAttrSAML)
+	}
+
 	if err := model.ValidatePropertyFieldVisibility(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
+	}
+	if isText {
+		if vt, _ := field.Attrs[model.PropertyFieldAttrValueType].(string); vt != "" && !model.IsValidPropertyFieldValueType(vt) {
+			return fmt.Errorf("invalid value_type %q: %w", vt, ErrInvalidFieldAttrs)
+		}
+	}
+	if managed != "" && managed != "admin" {
+		return fmt.Errorf("invalid managed %q (must be empty or %q): %w", managed, "admin", ErrInvalidFieldAttrs)
+	}
+	if dn, _ := field.Attrs[model.PropertyFieldAttrDisplayName].(string); utf8.RuneCountInString(dn) > model.PropertyFieldNameMaxRunes {
+		return fmt.Errorf("display_name exceeds max length of %d runes: %w", model.PropertyFieldNameMaxRunes, ErrInvalidFieldAttrs)
+	}
+	if isSelect {
+		if err := h.sanitizeAndValidateOptions(field); err != nil {
+			return err
+		}
 	}
 	if err := model.ValidatePropertyFieldSortOrder(field); err != nil {
 		return fmt.Errorf("%s: %w", err.Error(), ErrInvalidFieldAttrs)
 	}
+	return nil
+}
+
+// trimmedFieldAttrKeys lists the string-valued attrs the hook trims on the
+// way in. Listed explicitly rather than iterating Attrs to avoid touching
+// keys this hook doesn't own (e.g. plugin-set attrs).
+var trimmedFieldAttrKeys = []string{
+	model.PropertyFieldAttrVisibility,
+	model.PropertyFieldAttrValueType,
+	model.PropertyFieldAttrManaged,
+	model.PropertyFieldAttrLDAP,
+	model.PropertyFieldAttrSAML,
+	model.PropertyFieldAttrDisplayName,
+}
+
+// sanitizeAndValidateOptions canonicalizes the options attr to the typed
+// option slice, auto-assigns IDs to options without one, and validates the
+// resulting shape. The JSON round-trip handles both the typed-slice form
+// (when the request decoded into a wrapper struct) and the []map[string]any
+// form (after a generic JSON decode or DB read).
+func (h *AttributeValidationHook) sanitizeAndValidateOptions(field *model.PropertyField) error {
+	rawOptions, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok || rawOptions == nil {
+		return nil
+	}
+
+	data, err := json.Marshal(rawOptions)
+	if err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+	var options model.PropertyOptions[*model.CustomProfileAttributesSelectOption]
+	if err := json.Unmarshal(data, &options); err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	for i := range options {
+		if options[i].ID == "" {
+			options[i].ID = model.NewId()
+		}
+	}
+	if err := options.IsValid(); err != nil {
+		return fmt.Errorf("invalid options: %s: %w", err, ErrInvalidFieldAttrs)
+	}
+
+	field.Attrs[model.PropertyFieldAttributeOptions] = options
 	return nil
 }
 
@@ -81,7 +188,7 @@ func (h *AttributeValidationHook) validateFieldAttrs(field *model.PropertyField)
 //     without an identifiable caller ID (e.g. internal callers with no
 //     session on rctx) are treated as non-admin and rejected.
 func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	managed, _ := field.Attrs[model.CustomProfileAttributesPropertyAttrsManaged].(string)
+	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
 	sysadmin := model.PermissionLevelSysadmin
 	member := model.PermissionLevelMember
 
@@ -113,7 +220,16 @@ func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field
 		return field, nil
 	}
 
-	if err := h.validateFieldAttrs(field); err != nil {
+	// Names in managed groups are referenced from ABAC policy expressions
+	// (user.attributes.<name>), so they must satisfy the CEL grammar and
+	// avoid CEL reserved words. Returning the AppError directly preserves
+	// its specific i18n key through the HTTP layer's mapPropertyServiceError
+	// fallback (no sentinel wrap).
+	if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
+		return nil, appErr
+	}
+
+	if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
 		return nil, err
 	}
 
@@ -125,7 +241,20 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, group
 		return field, nil
 	}
 
-	if err := h.validateFieldAttrs(field); err != nil {
+	// Lenient grandfather: only validate Name against CEL rules when it
+	// actually changes, so pre-existing fields whose names predate this
+	// validation remain editable on all other attrs.
+	existing, err := h.propertyService.getPropertyField(groupID, field.ID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.Name != field.Name {
+		if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
 		return nil, err
 	}
 
@@ -133,12 +262,33 @@ func (h *AttributeValidationHook) PreUpdatePropertyField(rctx request.CTX, group
 }
 
 func (h *AttributeValidationHook) PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
-	if !h.isGroupManaged(groupID) {
+	if len(fields) == 0 || !h.isGroupManaged(groupID) {
 		return fields, nil
 	}
 
+	// Single batched read for the lenient-grandfather name check; a missing
+	// ID falls through to the store, which surfaces the not-found error.
+	fieldIDs := make([]string, len(fields))
+	for i, f := range fields {
+		fieldIDs[i] = f.ID
+	}
+	existingFields, err := h.propertyService.getPropertyFields(groupID, fieldIDs)
+	if err != nil {
+		return nil, err
+	}
+	existingByID := make(map[string]*model.PropertyField, len(existingFields))
+	for _, ex := range existingFields {
+		existingByID[ex.ID] = ex
+	}
+
 	for i, field := range fields {
-		if err := h.validateFieldAttrs(field); err != nil {
+		if existing, ok := existingByID[field.ID]; ok && existing.Name != field.Name {
+			if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
+				return nil, fmt.Errorf("field %s: %w", field.ID, appErr)
+			}
+		}
+
+		if err := h.sanitizeAndValidateFieldAttrs(field); err != nil {
 			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 

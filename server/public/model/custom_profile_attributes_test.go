@@ -78,7 +78,10 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "property field with empty attributes returns default values",
+			// Conversion is a pure data operation: empty PropertyField.Attrs
+			// produces empty CPAAttrs. The visibility default is applied at
+			// write time by AttributeValidationHook, not at read time.
+			name: "property field with empty attributes returns empty CPAAttrs",
 			propertyField: &PropertyField{
 				ID:       NewId(),
 				GroupID:  ProtectedAttributesPropertyGroupName,
@@ -87,13 +90,8 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				CreateAt: GetMillis(),
 				UpdateAt: GetMillis(),
 			},
-			wantAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityWhenSet, // Defaults are applied during conversion
-				SortOrder:  0,
-				ValueType:  "",
-				Options:    nil,
-			},
-			wantErr: false,
+			wantAttrs: CPAAttrs{},
+			wantErr:   false,
 		},
 	}
 
@@ -389,565 +387,9 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 	}
 }
 
-func TestCPAField_SanitizeAndValidate(t *testing.T) {
-	tests := []struct {
-		name           string
-		field          *CPAField
-		expectError    bool
-		errorId        string
-		expectedAttrs  CPAAttrs
-		checkOptionsID bool
-	}{
-		{
-			name: "valid text field with no value type",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: "when_set",
-			},
-		},
-		{
-			name: "valid text field with valid value type and whitespace",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					ValueType: " email ",
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: "when_set",
-				ValueType:  CustomProfileAttributesValueTypeEmail,
-			},
-		},
-		{
-			name: "valid text field with visibility and whitespace",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					Visibility: " hidden ",
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityHidden,
-			},
-		},
-		{
-			name: "invalid text field with invalid value type",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					ValueType: "invalid_type",
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
-		},
-		{
-			name: "valid select field with valid options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeSelect,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-						{
-							Name:  "Option 2",
-							Color: "#654321",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-					{Name: "Option 1", Color: "#123456"},
-					{Name: "Option 2", Color: "#654321"},
-				},
-			},
-		},
-		{
-			name: "valid select field with valid options with ids",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeSelect,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    "t9ceh651eir4zkhyh4m54s5r7w",
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-					{ID: "t9ceh651eir4zkhyh4m54s5r7w", Name: "Option 1", Color: "#123456"},
-				},
-			},
-			checkOptionsID: true,
-		},
-		{
-			name: "invalid select field with duplicate option names",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeSelect,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							Name:  "Option 1",
-							Color: "opt1",
-						},
-						{
-							Name:  "Option 1",
-							Color: "opt2",
-						},
-					},
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
-		},
-		{
-			name: "invalid field with unknown visibility",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					Visibility: "unknown",
-				},
-			},
-			expectError: true,
-			errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
-		},
+// TestCPAField_SanitizeAndValidate removed: behavior moved into AttributeValidationHook;
+// see TestAttributeValidationHook in server/channels/app/properties/attribute_validation_test.go.
 
-		// Test options cleaning for types that don't support options
-		{
-			name: "text field with options should clean options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options:    nil, // Options should be cleaned
-			},
-		},
-		{
-			name: "date field with options should clean options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeDate,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options:    nil, // Options should be cleaned
-			},
-		},
-		{
-			name: "user field with options should clean options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeUser,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options:    nil, // Options should be cleaned
-			},
-		},
-
-		// Test options preservation for types that support options
-		{
-			name: "select field with options should preserve options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeSelect,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-					{Name: "Option 1", Color: "#123456"},
-				},
-			},
-		},
-		{
-			name: "multiselect field with options should preserve options",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeMultiselect,
-				},
-				Attrs: CPAAttrs{
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-					{Name: "Option 1", Color: "#123456"},
-				},
-			},
-		},
-
-		// Test syncing attributes cleaning for types that don't support syncing
-		{
-			name: "select field with LDAP and SAML should clean syncing attributes",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeSelect,
-				},
-				Attrs: CPAAttrs{
-					LDAP: "ldap_attribute",
-					SAML: "saml_attribute",
-					Options: []*CustomProfileAttributesSelectOption{
-						{
-							ID:    NewId(),
-							Name:  "Option 1",
-							Color: "#123456",
-						},
-					},
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				LDAP:       "", // Should be cleaned
-				SAML:       "", // Should be cleaned
-				Options: PropertyOptions[*CustomProfileAttributesSelectOption]{
-					{Name: "Option 1", Color: "#123456"},
-				},
-			},
-		},
-		{
-			name: "date field with LDAP and SAML should clean syncing attributes",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeDate,
-				},
-				Attrs: CPAAttrs{
-					LDAP: "ldap_attribute",
-					SAML: "saml_attribute",
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				LDAP:       "", // Should be cleaned
-				SAML:       "", // Should be cleaned
-			},
-		},
-
-		// Test syncing attributes preservation for types that support syncing
-		{
-			name: "text field with LDAP and SAML should preserve syncing attributes",
-			field: &CPAField{
-				PropertyField: PropertyField{
-					Type: PropertyFieldTypeText,
-				},
-				Attrs: CPAAttrs{
-					LDAP: "ldap_attribute",
-					SAML: "saml_attribute",
-				},
-			},
-			expectError: false,
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				LDAP:       "ldap_attribute", // Should be preserved
-				SAML:       "saml_attribute", // Should be preserved
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.field.SanitizeAndValidate()
-			if tt.expectError {
-				require.NotNil(t, err)
-				require.Equal(t, tt.errorId, err.Id)
-			} else {
-				var ogErr error
-				if err != nil {
-					ogErr = err.Unwrap()
-				}
-				require.Nilf(t, err, "unexpected error: %v, with original error: %v", err, ogErr)
-
-				assert.Equal(t, tt.expectedAttrs.Visibility, tt.field.Attrs.Visibility)
-				assert.Equal(t, tt.expectedAttrs.ValueType, tt.field.Attrs.ValueType)
-
-				for i := range tt.expectedAttrs.Options {
-					if tt.checkOptionsID {
-						assert.Equal(t, tt.expectedAttrs.Options[i].ID, tt.field.Attrs.Options[i].ID)
-					}
-					assert.Equal(t, tt.expectedAttrs.Options[i].Name, tt.field.Attrs.Options[i].Name)
-					assert.Equal(t, tt.expectedAttrs.Options[i].Color, tt.field.Attrs.Options[i].Color)
-				}
-			}
-		})
-	}
-
-	// Test managed fields functionality
-	t.Run("managed fields", func(t *testing.T) {
-		managedTests := []struct {
-			name          string
-			field         *CPAField
-			expectError   bool
-			errorId       string
-			expectedAttrs CPAAttrs
-		}{
-			{
-				name: "valid managed field with admin value",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						Managed: "admin",
-					},
-				},
-				expectError: false,
-				expectedAttrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityDefault,
-					Managed:    "admin",
-				},
-			},
-			{
-				name: "managed field with whitespace should be trimmed",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						Managed: " admin ",
-					},
-				},
-				expectError: false,
-				expectedAttrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityDefault,
-					Managed:    "admin",
-				},
-			},
-			{
-				name: "field with empty managed should be allowed",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						Managed: "",
-					},
-				},
-				expectError: false,
-				expectedAttrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityDefault,
-					Managed:    "",
-				},
-			},
-			{
-				name: "field with invalid managed value should fail",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						Managed: "invalid",
-					},
-				},
-				expectError: true,
-				errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
-			},
-			{
-				name: "managed field should clear LDAP sync properties",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						Managed: "admin",
-						LDAP:    "ldap_attribute",
-						SAML:    "saml_attribute",
-					},
-				},
-				expectError: false,
-				expectedAttrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityDefault,
-					Managed:    "admin",
-					LDAP:       "", // Should be cleared
-					SAML:       "", // Should be cleared
-				},
-			},
-			{
-				name: "managed field should clear sync properties even when field supports syncing",
-				field: &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText, // Text fields support syncing
-					},
-					Attrs: CPAAttrs{
-						Managed: "admin",
-						LDAP:    "ldap_attribute",
-					},
-				},
-				expectError: false,
-				expectedAttrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityDefault,
-					Managed:    "admin",
-					LDAP:       "", // Should be cleared due to mutual exclusivity
-					SAML:       "",
-				},
-			},
-		}
-
-		for _, tt := range managedTests {
-			t.Run(tt.name, func(t *testing.T) {
-				err := tt.field.SanitizeAndValidate()
-				if tt.expectError {
-					require.NotNil(t, err)
-					require.Equal(t, tt.errorId, err.Id)
-				} else {
-					require.Nil(t, err)
-					assert.Equal(t, tt.expectedAttrs.Visibility, tt.field.Attrs.Visibility)
-					assert.Equal(t, tt.expectedAttrs.Managed, tt.field.Attrs.Managed)
-					assert.Equal(t, tt.expectedAttrs.LDAP, tt.field.Attrs.LDAP)
-					assert.Equal(t, tt.expectedAttrs.SAML, tt.field.Attrs.SAML)
-				}
-			})
-		}
-	})
-
-	t.Run("display_name sanitization", func(t *testing.T) {
-		displayNameTests := []struct {
-			name          string
-			displayName   string
-			expectError   bool
-			errorId       string
-			expectedValue string
-		}{
-			{
-				name:          "empty display_name is allowed",
-				displayName:   "",
-				expectError:   false,
-				expectedValue: "",
-			},
-			{
-				name:          "display_name with surrounding whitespace is trimmed",
-				displayName:   "  Department Head  ",
-				expectError:   false,
-				expectedValue: "Department Head",
-			},
-			{
-				name:          "all-whitespace display_name is trimmed to empty and allowed",
-				displayName:   "   ",
-				expectError:   false,
-				expectedValue: "",
-			},
-			{
-				name:          "display_name at exactly 255 runes is accepted",
-				displayName:   strings.Repeat("a", PropertyFieldNameMaxRunes),
-				expectError:   false,
-				expectedValue: strings.Repeat("a", PropertyFieldNameMaxRunes),
-			},
-			{
-				name:        "display_name at 256 runes is rejected",
-				displayName: strings.Repeat("a", PropertyFieldNameMaxRunes+1),
-				expectError: true,
-				errorId:     "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
-			},
-		}
-
-		for _, tt := range displayNameTests {
-			t.Run(tt.name, func(t *testing.T) {
-				field := &CPAField{
-					PropertyField: PropertyField{
-						Type: PropertyFieldTypeText,
-					},
-					Attrs: CPAAttrs{
-						DisplayName: tt.displayName,
-					},
-				}
-				appErr := field.SanitizeAndValidate()
-				if tt.expectError {
-					require.NotNil(t, appErr)
-					require.Equal(t, tt.errorId, appErr.Id)
-				} else {
-					require.Nil(t, appErr)
-					assert.Equal(t, tt.expectedValue, field.Attrs.DisplayName,
-						"DisplayName must be trimmed after SanitizeAndValidate")
-				}
-			})
-		}
-	})
-}
 
 func TestValidateCPAFieldName(t *testing.T) {
 	tests := []struct {
@@ -1110,71 +552,9 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 	}
 }
 
-func TestCPAField_SetDefaults(t *testing.T) {
-	testCases := []struct {
-		name          string
-		field         *CPAField
-		expectedAttrs CPAAttrs
-	}{
-		{
-			name: "field with empty visibility should set default",
-			field: &CPAField{
-				Attrs: CPAAttrs{
-					Visibility: "",
-					SortOrder:  5.0,
-				},
-			},
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				SortOrder:  5.0,
-			},
-		},
-		{
-			name: "field with existing visibility should not change",
-			field: &CPAField{
-				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityAlways,
-					SortOrder:  10.0,
-				},
-			},
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityAlways,
-				SortOrder:  10.0,
-			},
-		},
-		{
-			name: "field with zero values should set visibility default, keep sort order zero",
-			field: &CPAField{
-				Attrs: CPAAttrs{},
-			},
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityDefault,
-				SortOrder:  0.0,
-			},
-		},
-		{
-			name: "field with hidden visibility should preserve it",
-			field: &CPAField{
-				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityHidden,
-					SortOrder:  3.5,
-				},
-			},
-			expectedAttrs: CPAAttrs{
-				Visibility: CustomProfileAttributesVisibilityHidden,
-				SortOrder:  3.5,
-			},
-		},
-	}
+// TestCPAField_SetDefaults removed: visibility default is now applied by AttributeValidationHook
+// (see attribute_validation.go), exercised in TestAttributeValidationHook.
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.field.SetDefaults()
-			assert.Equal(t, tc.expectedAttrs.Visibility, tc.field.Attrs.Visibility)
-			assert.Equal(t, tc.expectedAttrs.SortOrder, tc.field.Attrs.SortOrder)
-		})
-	}
-}
 
 func TestCPAField_Patch(t *testing.T) {
 	testCases := []struct {
@@ -1310,6 +690,10 @@ func TestCPAField_Patch(t *testing.T) {
 			expectError: false,
 		},
 		{
+			// Patch with non-nil Attrs replaces the whole Attrs map; visibility
+			// drops to "" because the patch doesn't include it. The visibility
+			// default is reapplied at write time by AttributeValidationHook,
+			// not by Patch itself.
 			name: "patch sort order",
 			field: &CPAField{
 				PropertyField: PropertyField{
@@ -1336,8 +720,7 @@ func TestCPAField_Patch(t *testing.T) {
 					Type: PropertyFieldTypeText,
 				},
 				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityWhenSet,
-					SortOrder:  10.5,
+					SortOrder: 10.5,
 				},
 			},
 			expectError: false,
@@ -1369,8 +752,7 @@ func TestCPAField_Patch(t *testing.T) {
 					Type: PropertyFieldTypeText,
 				},
 				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityWhenSet,
-					Managed:    "admin",
+					Managed: "admin",
 				},
 			},
 			expectError: false,
@@ -1401,8 +783,7 @@ func TestCPAField_Patch(t *testing.T) {
 					Type: PropertyFieldTypeText,
 				},
 				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityWhenSet,
-					LDAP:       "ldap_attribute",
+					LDAP: "ldap_attribute",
 				},
 			},
 			expectError: false,
@@ -1439,7 +820,6 @@ func TestCPAField_Patch(t *testing.T) {
 					Type: PropertyFieldTypeSelect,
 				},
 				Attrs: CPAAttrs{
-					Visibility: CustomProfileAttributesVisibilityWhenSet,
 					Options: []*CustomProfileAttributesSelectOption{
 						{ID: "opt1", Name: "Option 1"},
 						{ID: "opt2", Name: "Option 2"},
@@ -1656,7 +1036,7 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 		assert.Nil(t, result)
 	})
 
-	t.Run("applies SetDefaults via NewCPAFieldFromPropertyField", func(t *testing.T) {
+	t.Run("preserves empty visibility from PropertyField (defaults are applied at write time by AttributeValidationHook, not at read time)", func(t *testing.T) {
 		input := []*PropertyField{{
 			ID:      NewId(),
 			GroupID: ProtectedAttributesPropertyGroupName,
@@ -1668,6 +1048,6 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 		result, err := CPAFieldsFromPropertyFields(input)
 		require.NoError(t, err)
 		require.Len(t, result, 1)
-		assert.Equal(t, CustomProfileAttributesVisibilityDefault, result[0].Attrs.Visibility)
+		assert.Empty(t, result[0].Attrs.Visibility)
 	})
 }
