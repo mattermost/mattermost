@@ -63,12 +63,6 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
-	if err := actionRequest.IsValid(*commentRequired); err != nil {
-		c.Err = err
-		return
-	}
-
 	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment)
 	if appErr != nil {
 		c.Err = appErr
