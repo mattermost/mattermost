@@ -128,6 +128,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -322,6 +323,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -513,6 +515,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -715,6 +718,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -917,6 +921,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -1119,6 +1124,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [
@@ -1328,6 +1334,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "edit_others_posts",
                 ],
               },
+              "edit_file_attachment",
               Object {
                 "id": "delete_posts",
                 "permissions": Array [

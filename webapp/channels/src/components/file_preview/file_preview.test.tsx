@@ -6,6 +6,8 @@ import React from 'react';
 
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import WithTooltip from 'components/with_tooltip';
+
 import FilePreview from './file_preview';
 
 describe('FilePreview', () => {
@@ -140,5 +142,54 @@ describe('FilePreview', () => {
 
         expect(wrapper.find('img').find({src: getFileUrl(fileId)}).exists()).toBe(true);
         expect(wrapper.find('div').find('.file-icon.generic').exists()).toBe(false);
+    });
+
+    test('should render disabled remove button with tooltip when onRemove is absent and disabledRemoveTooltip is provided', () => {
+        const props = {
+            ...baseProps,
+            onRemove: undefined,
+            uploadsInProgress: [],
+            disabledRemoveTooltip: 'You do not have permission to edit file attachments',
+        };
+
+        const wrapper = shallow(
+            <FilePreview {...props}/>,
+        );
+
+        expect(wrapper.find('.file-preview__remove--disabled').exists()).toBe(true);
+        expect(wrapper.find('a.file-preview__remove').exists()).toBe(false);
+        expect(wrapper.find(WithTooltip).prop('title')).toBe('You do not have permission to edit file attachments');
+    });
+
+    test('should render normal remove button when onRemove is defined', () => {
+        const props = {
+            ...baseProps,
+            onRemove: jest.fn(),
+            uploadsInProgress: [],
+            disabledRemoveTooltip: 'tooltip text',
+        };
+
+        const wrapper = shallow(
+            <FilePreview {...props}/>,
+        );
+
+        expect(wrapper.find('a.file-preview__remove').exists()).toBe(true);
+        expect(wrapper.find('.file-preview__remove--disabled').exists()).toBe(false);
+    });
+
+    test('should not render any remove button when onRemove is absent and no disabledRemoveTooltip', () => {
+        const props = {
+            ...baseProps,
+            onRemove: undefined,
+            uploadsInProgress: [],
+            disabledRemoveTooltip: undefined,
+        };
+
+        const wrapper = shallow(
+            <FilePreview {...props}/>,
+        );
+
+        expect(wrapper.find('a.file-preview__remove').exists()).toBe(false);
+        expect(wrapper.find('.file-preview__remove--disabled').exists()).toBe(false);
     });
 });

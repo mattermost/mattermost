@@ -1206,6 +1206,15 @@ func (a *App) getRestrictAcessToChannelConversionToPublic() (permissionsMap, err
 	}, nil
 }
 
+func (a *App) getAddEditFileAttachmentPermissionMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  permissionExists(model.PermissionEditPost.Id),
+			Add: []string{model.PermissionEditFileAttachment.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1260,6 +1269,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationRemoveGetAnalyticsPermission, Migration: a.removeGetAnalyticsPermissionMigration},
 		{Key: model.MigrationAddSysconsoleMobileSecurityPermission, Migration: a.addSysConsoleMobileSecurityPermission},
 		{Key: model.MigrationKeyAddChannelBannerPermissions, Migration: a.getAddChannelBannerPermissionMigration},
+		{Key: model.MigrationKeyAddEditFileAttachmentPermission, Migration: a.getAddEditFileAttachmentPermissionMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()
