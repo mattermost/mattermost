@@ -67,16 +67,17 @@ func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store)
 	nonMember := newUser()
 	wrongChannelOnly := newUser()
 
+	baseTime := model.GetMillis()
 	// user1 has historical rows (joined, left, and rejoined) and should be returned once.
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1000))
-	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, 1100))
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1200))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, baseTime+100))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime+200))
 	// other users are simple joins.
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, 1000))
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, 1000))
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user4, channel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, baseTime))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user4, channel.Id, baseTime))
 	// user on a different channel only should not be returned.
-	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(wrongChannelOnly, otherChannel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(wrongChannelOnly, otherChannel.Id, baseTime))
 
 	// non-positive pagination and invalid page should return empty.
 	results, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, []string{user1, user2}, 0, 0)
