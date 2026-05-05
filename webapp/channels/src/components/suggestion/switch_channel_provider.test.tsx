@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General, Preferences} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
@@ -51,25 +51,6 @@ jest.mock('mattermost-redux/actions/channels', () => ({
         ],
     })),
 }));
-
-jest.mock('components/with_tooltip', () => {
-    const ReactActual = jest.requireActual('react');
-    const Mock = jest.fn(({children, title, disabled}: {children: React.ReactNode; title: unknown; disabled?: boolean}) => {
-        return ReactActual.createElement(
-            'div',
-            {
-                'data-testid': 'with-tooltip',
-                'data-tooltip-title': typeof title === 'string' ? title : '',
-                'data-tooltip-disabled': String(Boolean(disabled)),
-            },
-            children,
-        );
-    });
-    return {
-        __esModule: true,
-        default: Mock,
-    };
-});
 
 describe('components/SwitchChannelProvider', () => {
     const defaultState = {
@@ -1555,7 +1536,9 @@ describe('SwitchChannelSuggestion', () => {
             expect(channelNameNode).toHaveTextContent(longChannel.display_name);
         });
 
-        test('should disable the channel-name tooltip when the channel name fits its container', () => {
+        test('should disable the channel-name and team-name tooltips when the names fit their containers', async () => {
+            jest.useFakeTimers();
+
             Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 100});
             Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
 
@@ -1572,17 +1555,22 @@ describe('SwitchChannelSuggestion', () => {
                 getBaseState([longTeam1, longTeam2], [longChannel]),
             );
 
-            const tooltips = screen.getAllByTestId('with-tooltip');
-            const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
-            expect(channelNameTooltip).toBeDefined();
-            expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
 
-            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
-            expect(teamNameTooltip).toBeDefined();
-            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'true');
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            jest.advanceTimersByTime(1000);
+            expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(1);
+
+            jest.useRealTimers();
         });
 
-        test('should enable the channel-name tooltip when the channel name overflows its container', () => {
+        test('should enable the channel-name and team-name tooltips when the names overflow their containers', async () => {
+            jest.useFakeTimers();
+
             Object.defineProperty(HTMLElement.prototype, 'scrollWidth', {configurable: true, value: 500});
             Object.defineProperty(HTMLElement.prototype, 'clientWidth', {configurable: true, value: 100});
 
@@ -1599,14 +1587,24 @@ describe('SwitchChannelSuggestion', () => {
                 getBaseState([longTeam1, longTeam2], [longChannel]),
             );
 
-            const tooltips = screen.getAllByTestId('with-tooltip');
-            const channelNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longChannel.display_name);
-            expect(channelNameTooltip).toBeDefined();
-            expect(channelNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
+            const channelNameNode = screen.getByText(longChannel.display_name);
+            await userEvent.hover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(2);
+            });
 
-            const teamNameTooltip = tooltips.find((node) => node.getAttribute('data-tooltip-title') === longTeam1.display_name);
-            expect(teamNameTooltip).toBeDefined();
-            expect(teamNameTooltip).toHaveAttribute('data-tooltip-disabled', 'false');
+            await userEvent.unhover(channelNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longChannel.display_name)).toHaveLength(1);
+            });
+
+            const teamNameNode = screen.getByText(longTeam1.display_name);
+            await userEvent.hover(teamNameNode, {advanceTimers: jest.advanceTimersByTime});
+            await waitFor(() => {
+                expect(screen.queryAllByText(longTeam1.display_name)).toHaveLength(2);
+            });
+
+            jest.useRealTimers();
         });
     });
 });
