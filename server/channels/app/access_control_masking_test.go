@@ -4,12 +4,16 @@
 package app
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestExtractFieldName(t *testing.T) {
@@ -297,7 +301,8 @@ func TestAttrValueSkip_FilterConditionValuesNotCalled(t *testing.T) {
 	assert.True(t, condition.HasMaskedValues)
 
 	// This confirms maskConditionValues MUST return early for AttrValue before
-	// reaching filterConditionValues — covered by integration tests via GetMaskedVisualAST.
+	// reaching filterConditionValues. The early-return path in maskConditionValues
+	// itself is not exercised here; this test only documents why that guard is required.
 }
 
 func TestFilterConditionValues_EmptySlice(t *testing.T) {
@@ -552,5 +557,153 @@ func TestMaskConditionValues(t *testing.T) {
 		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
+	})
+}
+
+// TestMaskConditionValues_SharedOnlyText covers the shared_only + text-field branch of
+// maskConditionValues, which requires a real store to call getCallerTextValues →
+// SearchPropertyValues. This branch is intentionally skipped in TestMaskConditionValues
+// (which uses a nil App).
+//
+// A non-CPA V1 group is used so that field creation does not go through the CPA
+// access-control layer (which requires a plugin caller for protected/shared_only fields).
+// The group ID is passed explicitly to maskConditionValues so store lookups use the same group.
+func TestMaskConditionValues_SharedOnlyText(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	rctx := request.TestContext(t)
+	callerID := model.NewId()
+
+	// Register a plain V1 group — no access-control overhead for this group.
+	group, appErr := th.App.RegisterPropertyGroup(rctx, &model.PropertyGroup{
+		Name:    "masking_text_test_" + model.NewId(),
+		Version: model.PropertyGroupVersionV1,
+	})
+	require.Nil(t, appErr)
+	groupID := group.ID
+
+	// Create a text field and set shared_only in its Attrs.
+	// shared_only normally requires protected=true which is plugin-only in the CPA
+	// group; in this non-CPA group the access-control layer is not applied, so the
+	// field is written directly.
+	field := &model.PropertyField{
+		GroupID: groupID,
+		Name:    "f_" + model.NewId(),
+		Type:    model.PropertyFieldTypeText,
+		Attrs:   model.StringInterface{model.PropertyAttrsAccessMode: model.PropertyAccessModeSharedOnly},
+	}
+	createdField, err := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, err)
+
+	// Store "Engineering" as the caller's value for this field.
+	_, appErr = th.App.CreatePropertyValue(rctx, &model.PropertyValue{
+		TargetID:   callerID,
+		TargetType: model.PropertyValueTargetTypeUser,
+		GroupID:    groupID,
+		FieldID:    createdField.ID,
+		Value:      json.RawMessage(`"Engineering"`),
+	})
+	require.Nil(t, appErr)
+
+	fieldsByName := map[string]*model.PropertyField{createdField.Name: createdField}
+
+	t.Run("caller's own value passes through", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes." + createdField.Name,
+			Value:     "Engineering",
+			ValueType: model.LiteralValue,
+		}
+		th.App.maskConditionValues(rctx, callerID, condition, groupID, fieldsByName)
+		assert.Equal(t, "Engineering", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("value the caller does not hold is masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes." + createdField.Name,
+			Value:     "Finance",
+			ValueType: model.LiteralValue,
+		}
+		th.App.maskConditionValues(rctx, callerID, condition, groupID, fieldsByName)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("caller with no stored value is fail-closed", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes." + createdField.Name,
+			Value:     "Engineering",
+			ValueType: model.LiteralValue,
+		}
+		th.App.maskConditionValues(rctx, model.NewId(), condition, groupID, fieldsByName)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+}
+
+// TestGetMaskedVisualAST_Wiring validates the orchestration inside GetMaskedVisualAST:
+// ExpressionToVisualAST is mocked while field lookup and value fetching hit the real store.
+//
+// The shared_only + text path requires a plugin-owned CPA field and is covered by
+// TestMaskConditionValues_SharedOnlyText. This test focuses on:
+//   - public field: value passes through unchanged (no masking)
+//   - unknown field: fail-closed (field absent from prefetch map → nil + HasMaskedValues)
+func TestGetMaskedVisualAST_Wiring(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	cpaID, cErr := th.App.CpaGroupID()
+	require.Nil(t, cErr)
+
+	rctx := request.TestContext(t)
+	callerID := model.NewId()
+
+	// Create a plain public text field in the CPA group (no access mode = public).
+	// Non-protected fields are writable by any caller in the CPA group.
+	fieldName := "f_" + model.NewId()
+	field := &model.PropertyField{
+		GroupID: cpaID,
+		Name:    fieldName,
+		Type:    model.PropertyFieldTypeText,
+	}
+	_, appErr := th.App.CreatePropertyField(rctx, field, false, "")
+	require.Nil(t, appErr)
+
+	t.Run("public field value passes through unchanged", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: "user.attributes." + fieldName, Operator: "==", Value: "Engineering", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		assert.Equal(t, "Engineering", result.Conditions[0].Value)
+		assert.False(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("unknown field name fails closed", func(t *testing.T) {
+		visualAST := &model.VisualExpression{
+			Conditions: []model.Condition{
+				{Attribute: "user.attributes.f_" + model.NewId(), Operator: "==", Value: "SomeValue", ValueType: model.LiteralValue},
+			},
+		}
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		mockACS.On("ExpressionToVisualAST", mock.Anything, mock.Anything).Return(visualAST, nil).Once()
+
+		result, err := th.App.GetMaskedVisualAST(rctx, "irrelevant", callerID)
+		require.Nil(t, err)
+		require.Len(t, result.Conditions, 1)
+		// Field absent from prefetch map → fail-closed
+		assert.Nil(t, result.Conditions[0].Value)
+		assert.True(t, result.Conditions[0].HasMaskedValues)
+		mockACS.AssertExpectations(t)
 	})
 }
