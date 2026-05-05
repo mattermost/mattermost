@@ -46,6 +46,7 @@ func newSqlWebhookStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface
 			"Username",
 			"IconURL",
 			"ChannelLocked",
+			"LastUsed",
 		).
 		From("IncomingWebhooks")
 
@@ -88,9 +89,9 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.In
 	}
 
 	if _, err := s.GetMaster().NamedExec(`INSERT INTO IncomingWebhooks
-		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked)
+		(Id, CreateAt, UpdateAt, DeleteAt, UserId, ChannelId, TeamId, DisplayName, Description, Username, IconURL, ChannelLocked, LastUsed)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked)`, webhook); err != nil {
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :UserId, :ChannelId, :TeamId, :DisplayName, :Description, :Username, :IconURL, :ChannelLocked, :LastUsed)`, webhook); err != nil {
 		return nil, errors.Wrapf(err, "failed to save IncomingWebhook with id=%s", webhook.Id)
 	}
 
@@ -102,13 +103,26 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 
 	_, err := s.GetMaster().NamedExec(`UPDATE IncomingWebhooks SET
 			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
-			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked
+			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked, LastUsed=:LastUsed
 			WHERE Id=:Id`, hook)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)
 	}
 
 	return hook, nil
+}
+
+func (s SqlWebhookStore) UpdateIncomingLastUsed(webhookID string, lastUsed int64) error {
+	_, err := s.GetMaster().Exec(
+		`UPDATE IncomingWebhooks SET LastUsed = ? WHERE Id = ? AND DeleteAt = 0`,
+		lastUsed,
+		webhookID,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "failed to update LastUsed for IncomingWebhook id=%s", webhookID)
+	}
+
+	return nil
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, error) {

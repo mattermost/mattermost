@@ -963,6 +963,10 @@ components:
           description: The time in milliseconds a incoming webhook was deleted
           type: integer
           format: int64
+        last_used:
+          description: The time in milliseconds this incoming webhook was last used to post a message
+          type: integer
+          format: int64
         channel_id:
           description: The ID of a public channel or private group that receives the
             webhook payloads

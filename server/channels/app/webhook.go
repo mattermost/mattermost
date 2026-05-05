@@ -445,6 +445,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.UpdateAt = model.GetMillis()
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
+	updatedHook.LastUsed = oldHook.LastUsed
 
 	newWebhook, err := a.Srv().Store().Webhook().UpdateIncoming(updatedHook)
 	if err != nil {
@@ -875,7 +876,16 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	_, err := a.CreateWebhookPost(rctx, hook.UserId, channel, text, overrideUsername, overrideIconURL, req.IconEmoji, req.Props, webhookType, "", req.Priority)
-	return err
+	if err != nil {
+		return err
+	}
+
+	now := model.GetMillis()
+	if nErr := a.Srv().Store().Webhook().UpdateIncomingLastUsed(hook.Id, now); nErr != nil {
+		rctx.Logger().Warn("Failed to update incoming webhook LastUsed", mlog.String("hook_id", hook.Id), mlog.Err(nErr))
+	}
+
+	return nil
 }
 
 func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

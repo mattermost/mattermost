@@ -18,6 +18,7 @@ import (
 func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("SaveIncoming", func(t *testing.T) { testWebhookStoreSaveIncoming(t, rctx, ss) })
 	t.Run("UpdateIncoming", func(t *testing.T) { testWebhookStoreUpdateIncoming(t, rctx, ss) })
+	t.Run("UpdateIncomingLastUsed", func(t *testing.T) { testWebhookStoreUpdateIncomingLastUsed(t, rctx, ss) })
 	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, rctx, ss) })
 	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, rctx, ss) })
 	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, rctx, ss) })
@@ -71,6 +72,20 @@ func testWebhookStoreUpdateIncoming(t *testing.T, rctx request.CTX, ss store.Sto
 	require.NotEqual(t, webhook.UpdateAt, previousUpdatedAt, "should have updated the UpdatedAt of the hook")
 
 	require.Equal(t, "TestHook", webhook.DisplayName, "display name is not updated")
+}
+
+func testWebhookStoreUpdateIncomingLastUsed(t *testing.T, rctx request.CTX, ss store.Store) {
+	o1 := buildIncomingWebhook()
+	o1, err := ss.Webhook().SaveIncoming(o1)
+	require.NoError(t, err)
+
+	lastUsed := model.GetMillis()
+	err = ss.Webhook().UpdateIncomingLastUsed(o1.Id, lastUsed)
+	require.NoError(t, err)
+
+	updated, err := ss.Webhook().GetIncoming(o1.Id, false)
+	require.NoError(t, err)
+	require.Equal(t, lastUsed, updated.LastUsed)
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, rctx request.CTX, ss store.Store) {
