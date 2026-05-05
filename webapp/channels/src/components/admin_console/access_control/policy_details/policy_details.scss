@@ -12,14 +12,14 @@
     .vertically-centered-label {
         padding-top: 7px;
     }
-
+    
     .EditPolicy__error {
         display: flex;
         align-items: center;
         margin-left: 12px;
         color: var(--error-text);
         font-size: 14px;
-
+        
         i {
             margin-right: 4px;
             font-size: 16px;
@@ -32,13 +32,5 @@
         }
 
         margin-bottom: 16px;
-    }
-
-    .AccessControlPolicySettings__mixedChannelsNotice {
-        margin-bottom: 16px;
-
-        h4 {
-            margin-bottom: 0;
-        }
     }
 }
