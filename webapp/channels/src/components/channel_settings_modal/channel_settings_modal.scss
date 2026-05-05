@@ -62,6 +62,7 @@
             overflow: visible !important; // This is necessary to override the overflow hidden from the modal for emoji list
             flex: 1;
             flex-direction: column;
+            min-width: 0; // allow wide nested content (e.g. admin list tables) to scroll internally instead of expanding the modal
             padding: 0 32px;
 
             .AdvancedTextbox {
