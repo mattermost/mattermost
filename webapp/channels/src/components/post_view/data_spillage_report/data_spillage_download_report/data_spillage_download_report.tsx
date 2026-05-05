@@ -39,19 +39,13 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
 
         setStatus('generating');
 
-        const url = Client4.getFlaggedPostReportUrl(flaggedPostId);
         let blob: Blob | undefined;
 
         try {
-            const response = await fetch(url, {credentials: 'include', signal: controller.signal});
+            blob = await Client4.generateFlaggedPostReport(flaggedPostId, '', controller.signal);
             if (controller.signal.aborted) {
                 return;
             }
-            if (!response.ok) {
-                setStatus('error');
-                return;
-            }
-            blob = await response.blob();
         } catch (err) {
             if (controller.signal.aborted) {
                 return;
