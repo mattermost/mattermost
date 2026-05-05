@@ -78,6 +78,8 @@ describe('Utils.getSuggestionBoxAlgn', () => {
     const originalCreateRange = document.createRange;
     const originalGetSelection = document.getSelection;
     const originalGetComputedStyle = window.getComputedStyle;
+    const originalInnerWidth = window.innerWidth;
+    const originalInnerHeight = window.innerHeight;
 
     beforeEach(() => {
         document.body.innerHTML = '';
@@ -101,6 +103,8 @@ describe('Utils.getSuggestionBoxAlgn', () => {
         document.createRange = originalCreateRange;
         document.getSelection = originalGetSelection;
         window.getComputedStyle = originalGetComputedStyle;
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: originalInnerWidth});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: originalInnerHeight});
     });
 
     test('returns zero offsets for invalid input', () => {
@@ -165,6 +169,28 @@ describe('Utils.getSuggestionBoxAlgn', () => {
         Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
 
         const {textArea, clippingAncestor} = createTextArea(654);
+        mockComputedStyle(new Map([[clippingAncestor, {
+            overflow: 'hidden',
+            overflowX: 'hidden',
+            overflowY: 'hidden',
+        }]]));
+
+        expect(getSuggestionBoxAlgn(textArea)).toMatchObject({
+            pixelsToMoveX: 0,
+            pixelsToMoveY: 40,
+        });
+    });
+
+    test('treats an equal-width clipping ancestor as a valid horizontal boundary', () => {
+        Object.defineProperty(window, 'innerWidth', {configurable: true, value: 900});
+        Object.defineProperty(window, 'innerHeight', {configurable: true, value: 900});
+
+        const {textArea, clippingAncestor} = createTextArea(654);
+        clippingAncestor.getBoundingClientRect = jest.fn(() => ({
+            width: 333,
+            right: 654,
+        })) as unknown as typeof clippingAncestor.getBoundingClientRect;
+
         mockComputedStyle(new Map([[clippingAncestor, {
             overflow: 'hidden',
             overflowX: 'hidden',

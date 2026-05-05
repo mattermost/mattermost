@@ -788,7 +788,7 @@ function getSuggestionBoxHorizontalBoundary(textArea: HTMLElement) {
         const ancestorStyle = getElementComputedStyle(ancestor);
         const clipsHorizontalOverflow = ancestorStyle.overflow !== 'visible' || ancestorStyle.overflowX !== 'visible';
 
-        if (clipsHorizontalOverflow && ancestorRect.width > textAreaRect.width) {
+        if (clipsHorizontalOverflow && ancestorRect.width >= textAreaRect.width) {
             return ancestorRect.right + scrollLeft;
         }
 
