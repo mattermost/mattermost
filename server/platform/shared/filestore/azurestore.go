@@ -19,8 +19,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
-	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/bloberror"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
 	pkgerr "github.com/pkg/errors"
 )
@@ -397,64 +397,55 @@ func (b *AzureFileBackend) ZipReader(p string, deflate bool) (io.ReadCloser, err
 	pr, pw := io.Pipe()
 
 	go func() {
-		defer pw.Close()
 		zw := zip.NewWriter(pw)
-		defer zw.Close()
-
-		// First check whether p points at a single file.
-		exists, err := b.FileExists(p)
-		if err != nil {
-			pw.CloseWithError(err)
-			return
+		err := b.writeZip(zw, p, method)
+		// zw.Close finalizes the zip's central directory; surface its error too.
+		if cerr := zw.Close(); err == nil {
+			err = cerr
 		}
-
-		if exists {
-			data, err := b.ReadFile(p)
-			if err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-			h := &zip.FileHeader{Name: path.Base(p), Method: method}
-			h.SetMode(0644)
-			w, err := zw.CreateHeader(h)
-			if err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-			if _, err := w.Write(data); err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-			return
-		}
-
-		files, err := b.ListDirectoryRecursively(p)
-		if err != nil {
-			pw.CloseWithError(err)
-			return
-		}
-		for _, f := range files {
-			data, err := b.ReadFile(f)
-			if err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-			rel := strings.TrimPrefix(f, strings.TrimSuffix(p, "/")+"/")
-			h := &zip.FileHeader{Name: rel, Method: method}
-			h.SetMode(0644)
-			w, err := zw.CreateHeader(h)
-			if err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-			if _, err := w.Write(data); err != nil {
-				pw.CloseWithError(err)
-				return
-			}
-		}
+		pw.CloseWithError(err)
 	}()
 
 	return pr, nil
+}
+
+func (b *AzureFileBackend) writeZip(zw *zip.Writer, p string, method uint16) error {
+	exists, err := b.FileExists(p)
+	if err != nil {
+		return err
+	}
+
+	if exists {
+		return b.writeZipEntry(zw, p, path.Base(p), method)
+	}
+
+	files, err := b.ListDirectoryRecursively(p)
+	if err != nil {
+		return err
+	}
+	prefix := strings.TrimSuffix(p, "/") + "/"
+	for _, f := range files {
+		rel := strings.TrimPrefix(f, prefix)
+		if err := b.writeZipEntry(zw, f, rel, method); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *AzureFileBackend) writeZipEntry(zw *zip.Writer, blobPath, name string, method uint16) error {
+	data, err := b.ReadFile(blobPath)
+	if err != nil {
+		return err
+	}
+	header := &zip.FileHeader{Name: name, Method: method}
+	header.SetMode(0644)
+	w, err := zw.CreateHeader(header)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(data)
+	return err
 }
 
 // seekableReadCloser wraps a bytes.Reader to satisfy ReadCloseSeeker.
