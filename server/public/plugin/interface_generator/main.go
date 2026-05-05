@@ -390,6 +390,9 @@ func (g *hooksRPCClient) {{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleApp
 	if g.implemented[{{.Name}}ID] {
 		_err = g.client.Call("Plugin.{{.Name}}", _args, _returns)
 		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksRPCErr contract).
+			_returns = &{{.Name | obscure}}Returns{}
 			g.log.Debug("RPC call {{.Name}} to plugin failed.", mlog.Err(_err))
 		}
 	}
