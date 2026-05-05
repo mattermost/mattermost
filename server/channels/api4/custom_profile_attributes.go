@@ -33,7 +33,7 @@ func (api *API) InitCustomProfileAttributes() {
 
 func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
-	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -42,7 +42,7 @@ func listCPAFields(c *Context, w http.ResponseWriter, r *http.Request) {
 	pfs, appErr := c.App.SearchPropertyFields(rctx, group.ID, model.PropertyFieldSearchOpts{
 		GroupID:    group.ID,
 		ObjectType: model.PropertyFieldObjectTypeUser,
-		PerPage:    model.ProtectedAttributesGroupFieldLimit + 5,
+		PerPage:    model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		c.Err = appErr
@@ -86,7 +86,7 @@ func createCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// stamped here; ID/TargetID/Protected are stripped so a caller can't
 	// inject them. Permissions and timestamps are filled in by lower layers.
 	field := pf.ToPropertyField()
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -162,7 +162,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field_patch", patch)
 
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -247,7 +247,7 @@ func deleteCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "field_id", c.Params.FieldId)
 
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -299,7 +299,7 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(c.AppContext, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -318,7 +318,7 @@ func getCPAGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 // websocket event.
 func cpaPatchValues(c *Context, w http.ResponseWriter, r *http.Request, userID string, updates map[string]json.RawMessage) {
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
-	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -457,7 +457,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
-	group, appErr := c.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := c.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -467,7 +467,7 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		TargetIDs:  []string{c.Params.UserId},
 		TargetType: model.PropertyValueTargetTypeUser,
 		// Single-target search: at most one value per (target, field), so the field cap bounds the page.
-		PerPage: model.ProtectedAttributesGroupFieldLimit + 5,
+		PerPage: model.AccessControlGroupFieldLimit + 5,
 	})
 	if appErr != nil {
 		c.Err = appErr

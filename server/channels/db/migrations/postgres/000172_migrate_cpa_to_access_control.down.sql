@@ -2,7 +2,7 @@
 UPDATE PropertyGroups
 SET Name    = 'custom_profile_attributes',
     Version = 1
-WHERE Name = 'protected_attributes';
+WHERE Name = 'access_control';
 
 -- Revert field metadata to the pre-migration state.
 UPDATE PropertyFields

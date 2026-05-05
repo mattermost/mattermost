@@ -23,7 +23,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "valid property field with all attributes",
 			propertyField: &PropertyField{
 				ID:      NewId(),
-				GroupID: ProtectedAttributesPropertyGroupName,
+				GroupID: AccessControlPropertyGroupName,
 				Name:    "Test Field",
 				Type:    PropertyFieldTypeSelect,
 				Attrs: StringInterface{
@@ -59,7 +59,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "valid property field with minimal attributes",
 			propertyField: &PropertyField{
 				ID:      NewId(),
-				GroupID: ProtectedAttributesPropertyGroupName,
+				GroupID: AccessControlPropertyGroupName,
 				Name:    "Test Field",
 				Type:    PropertyFieldTypeText,
 				Attrs: StringInterface{
@@ -84,7 +84,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			name: "property field with empty attributes returns empty CPAAttrs",
 			propertyField: &PropertyField{
 				ID:       NewId(),
-				GroupID:  ProtectedAttributesPropertyGroupName,
+				GroupID:  AccessControlPropertyGroupName,
 				Name:     "Empty Field",
 				Type:     PropertyFieldTypeText,
 				CreateAt: GetMillis(),
@@ -143,7 +143,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  ProtectedAttributesPropertyGroupName,
+					GroupID:  AccessControlPropertyGroupName,
 					Name:     "Test Field",
 					Type:     PropertyFieldTypeSelect,
 					CreateAt: GetMillis(),
@@ -168,7 +168,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  ProtectedAttributesPropertyGroupName,
+					GroupID:  AccessControlPropertyGroupName,
 					Name:     "Test Field",
 					Type:     PropertyFieldTypeText,
 					CreateAt: GetMillis(),
@@ -185,7 +185,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			cpaField: &CPAField{
 				PropertyField: PropertyField{
 					ID:       NewId(),
-					GroupID:  ProtectedAttributesPropertyGroupName,
+					GroupID:  AccessControlPropertyGroupName,
 					Name:     "Empty Field",
 					Type:     PropertyFieldTypeText,
 					CreateAt: GetMillis(),
@@ -235,7 +235,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				cpaField: &CPAField{
 					PropertyField: PropertyField{
 						ID:       NewId(),
-						GroupID:  ProtectedAttributesPropertyGroupName,
+						GroupID:  AccessControlPropertyGroupName,
 						Name:     "Managed Field",
 						Type:     PropertyFieldTypeText,
 						CreateAt: GetMillis(),
@@ -253,7 +253,7 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 				cpaField: &CPAField{
 					PropertyField: PropertyField{
 						ID:       NewId(),
-						GroupID:  ProtectedAttributesPropertyGroupName,
+						GroupID:  AccessControlPropertyGroupName,
 						Name:     "Non-managed Field",
 						Type:     PropertyFieldTypeText,
 						CreateAt: GetMillis(),
@@ -457,7 +457,7 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		original := &CPAField{
 			PropertyField: PropertyField{
 				ID:      NewId(),
-				GroupID: ProtectedAttributesPropertyGroupName,
+				GroupID: AccessControlPropertyGroupName,
 				Name:    "department",
 				Type:    PropertyFieldTypeText,
 			},
@@ -484,7 +484,7 @@ func TestCPAField_ToPropertyField_DisplayName(t *testing.T) {
 		field := &CPAField{
 			PropertyField: PropertyField{
 				ID:      NewId(),
-				GroupID: ProtectedAttributesPropertyGroupName,
+				GroupID: AccessControlPropertyGroupName,
 				Name:    "department",
 				Type:    PropertyFieldTypeText,
 			},
@@ -972,7 +972,7 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 	mkField := func(name string, sortOrder float64) *PropertyField {
 		return &PropertyField{
 			ID:      NewId(),
-			GroupID: ProtectedAttributesPropertyGroupName,
+			GroupID: AccessControlPropertyGroupName,
 			Name:    name,
 			Type:    PropertyFieldTypeText,
 			Attrs: StringInterface{
@@ -1023,7 +1023,7 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 		// json.Marshal fails inside NewCPAFieldFromPropertyField
 		input := []*PropertyField{{
 			ID:      NewId(),
-			GroupID: ProtectedAttributesPropertyGroupName,
+			GroupID: AccessControlPropertyGroupName,
 			Name:    "bad",
 			Type:    PropertyFieldTypeText,
 			Attrs: StringInterface{
@@ -1039,7 +1039,7 @@ func TestCPAFieldsFromPropertyFields(t *testing.T) {
 	t.Run("preserves empty visibility from PropertyField (defaults are applied at write time by AttributeValidationHook, not at read time)", func(t *testing.T) {
 		input := []*PropertyField{{
 			ID:      NewId(),
-			GroupID: ProtectedAttributesPropertyGroupName,
+			GroupID: AccessControlPropertyGroupName,
 			Name:    "no_visibility",
 			Type:    PropertyFieldTypeText,
 			Attrs:   StringInterface{},

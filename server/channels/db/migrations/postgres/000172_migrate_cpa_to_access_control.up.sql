@@ -17,6 +17,6 @@ WHERE GroupID = (SELECT ID FROM PropertyGroups WHERE Name = 'custom_profile_attr
 -- Rename the group and bump it to PSAv2. Single-row update, non-blocking.
 -- The Version column was added in 000170; existing CPA groups default to V1.
 UPDATE PropertyGroups
-SET Name    = 'protected_attributes',
+SET Name    = 'access_control',
     Version = 2
 WHERE Name = 'custom_profile_attributes';

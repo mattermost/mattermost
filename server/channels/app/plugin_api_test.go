@@ -3855,8 +3855,8 @@ func TestMigrateDeprecatedPropertyGroupName(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{model.DeprecatedCPAPropertyGroupName, model.ProtectedAttributesPropertyGroupName},
-		{model.ProtectedAttributesPropertyGroupName, model.ProtectedAttributesPropertyGroupName},
+		{model.DeprecatedCPAPropertyGroupName, model.AccessControlPropertyGroupName},
+		{model.AccessControlPropertyGroupName, model.AccessControlPropertyGroupName},
 		{"some_other_group", "some_other_group"},
 		{"", ""},
 		{"CUSTOM_PROFILE_ATTRIBUTES", "CUSTOM_PROFILE_ATTRIBUTES"}, // case-sensitive
@@ -3881,10 +3881,10 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		assert.Contains(t, err.Error(), "renamed")
 
 		// Register using the canonical name should still work
-		group, err := api.RegisterPropertyGroup(model.ProtectedAttributesPropertyGroupName)
+		group, err := api.RegisterPropertyGroup(model.AccessControlPropertyGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, group)
-		assert.Equal(t, model.ProtectedAttributesPropertyGroupName, group.Name)
+		assert.Equal(t, model.AccessControlPropertyGroupName, group.Name)
 	})
 
 	t.Run("GetPropertyGroup maps deprecated name to canonical name", func(t *testing.T) {
@@ -3892,9 +3892,9 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 
 		api := th.SetupPluginAPI()
 
-		// The protected_attributes group is registered at server startup, so
+		// The access_control group is registered at server startup, so
 		// we can look it up directly.
-		canonical, err := api.GetPropertyGroup(model.ProtectedAttributesPropertyGroupName)
+		canonical, err := api.GetPropertyGroup(model.AccessControlPropertyGroupName)
 		require.NoError(t, err)
 		require.NotNil(t, canonical)
 
@@ -3904,7 +3904,7 @@ func TestPluginAPIPropertyGroupDeprecatedName(t *testing.T) {
 		require.NotNil(t, deprecated)
 
 		assert.Equal(t, canonical.ID, deprecated.ID)
-		assert.Equal(t, model.ProtectedAttributesPropertyGroupName, deprecated.Name)
+		assert.Equal(t, model.AccessControlPropertyGroupName, deprecated.Name)
 	})
 
 	t.Run("other group names are not affected by the mapping", func(t *testing.T) {

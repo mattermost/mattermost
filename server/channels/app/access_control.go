@@ -340,7 +340,7 @@ func (a *App) GetAccessControlPolicyAttributes(rctx request.CTX, channelID strin
 }
 
 func (a *App) GetAccessControlFieldsAutocomplete(rctx request.CTX, after string, limit int, callerID string) ([]*model.PropertyField, *model.AppError) {
-	group, appErr := a.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return nil, model.NewAppError("GetAccessControlAutoComplete", "app.pap.get_access_control_auto_complete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -686,7 +686,7 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string) (*model.Subject, *model.AppError) {
 	a.refreshAttributeViewIfStale(rctx)
 
-	group, err := a.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+	group, err := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, model.NewAppError("BuildAccessControlSubject", "app.access_control.build_subject.group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

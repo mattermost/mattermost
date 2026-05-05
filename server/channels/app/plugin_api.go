@@ -1694,8 +1694,8 @@ func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, 
 		return nil, fmt.Errorf(
 			"the group name %q has been renamed to %q; use %q instead",
 			model.DeprecatedCPAPropertyGroupName,
-			model.ProtectedAttributesPropertyGroupName,
-			model.ProtectedAttributesPropertyGroupName,
+			model.AccessControlPropertyGroupName,
+			model.AccessControlPropertyGroupName,
 		)
 	}
 	group, appErr := api.app.RegisterPropertyGroup(api.psaPluginContext(), &model.PropertyGroup{
@@ -1718,10 +1718,10 @@ func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error
 }
 
 // migrateDeprecatedPropertyGroupName maps the deprecated "custom_profile_attributes"
-// group name to the current "protected_attributes" name for backward compatibility.
+// group name to the current "access_control" name for backward compatibility.
 func migrateDeprecatedPropertyGroupName(name string) string {
 	if name == model.DeprecatedCPAPropertyGroupName {
-		return model.ProtectedAttributesPropertyGroupName
+		return model.AccessControlPropertyGroupName
 	}
 	return name
 }

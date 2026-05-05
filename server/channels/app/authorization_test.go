@@ -1155,7 +1155,7 @@ func TestHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 
@@ -1294,7 +1294,7 @@ func TestHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 
@@ -1518,7 +1518,7 @@ func TestHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 
@@ -1657,7 +1657,7 @@ func TestSessionHasPermissionToEditPropertyField(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 
@@ -1810,7 +1810,7 @@ func TestSessionHasPermissionToSetPropertyFieldValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 
@@ -2033,7 +2033,7 @@ func TestSessionHasPermissionToManagePropertyFieldOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	groupID := cpaGroup.ID
 

@@ -18,7 +18,7 @@ func TestGetCPAValue(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	cpaID := cpaGroup.ID
 
@@ -119,7 +119,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	}).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	cpaID := cpaGroup.ID
 
@@ -134,7 +134,7 @@ func TestDeleteCPAValues(t *testing.T) {
 			TargetIDs:  []string{targetID},
 			TargetType: model.PropertyValueTargetTypeUser,
 			// Single-target search: at most one value per (target, field), so the field cap bounds the page.
-			PerPage: model.ProtectedAttributesGroupFieldLimit + 5,
+			PerPage: model.AccessControlGroupFieldLimit + 5,
 		})
 		require.Nil(t, appErr)
 		return values
@@ -204,7 +204,7 @@ func TestDeleteCPAValues(t *testing.T) {
 // at the app layer: a write for a field with ldap= or saml= set only
 // succeeds when the caller ID matches the field's sync source. Covering this
 // at the app layer also asserts that the startup wiring in server.go
-// (protected_attributes group registration, AccessControlHook install, and
+// (access_control group registration, AccessControlHook install, and
 // CallerIDExtractor reading from request.CTX) is intact — something the
 // properties-package tests cannot verify because they install the hook
 // themselves.
@@ -213,7 +213,7 @@ func TestCPAValueSyncLock(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	cpaID := cpaGroup.ID
 

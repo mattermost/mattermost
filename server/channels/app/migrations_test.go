@@ -85,14 +85,14 @@ func TestCPADisplayNameBackfill_NoExistingFields(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 	th := Setup(t)
-	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// LicenseCheckHook gates writes to the access_control group on an
 	// Enterprise license; the seed CreatePropertyField calls below would
 	// otherwise be rejected with app.property.license_error.
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 
 	// fieldA exercises the "display_name absent / empty in JSONB" case — the
@@ -143,14 +143,14 @@ func TestCPADisplayNameBackfill_BackfillsMissing(t *testing.T) {
 
 func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 	th := Setup(t)
-	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// LicenseCheckHook gates writes to the access_control group on an
 	// Enterprise license; the seed CreatePropertyField call below would
 	// otherwise be rejected with app.property.license_error.
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	clearCPABackfillMarker(t, th)
 
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 
 	seeded, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
@@ -199,7 +199,7 @@ func TestCPADisplayNameBackfill_Idempotent(t *testing.T) {
 
 func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) {
 	th := Setup(t)
-	// LicenseCheckHook gates writes to the protected_attributes group on an
+	// LicenseCheckHook gates writes to the access_control group on an
 	// Enterprise license. The seed below bypasses Create-side hooks via a
 	// direct store insert, but the backfill migration calls UpdatePropertyFields
 	// (unhooked) which still runs the version-match check; the license is
@@ -208,7 +208,7 @@ func TestCPADisplayNameBackfill_BackfillsProtectedSourceOnlyField(t *testing.T) 
 
 	clearCPABackfillMarker(t, th)
 
-	group, appErr := th.App.GetPropertyGroup(th.Context, model.ProtectedAttributesPropertyGroupName)
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
 	require.Nil(t, appErr)
 	groupID := group.ID
 

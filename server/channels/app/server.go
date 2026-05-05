@@ -271,7 +271,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.ProtectedAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
+		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 	}); err != nil {
 		return nil, errors.Wrap(err, "failed to register builtin property groups")
@@ -304,7 +304,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// s.ch for plugin-status and permission lookups; registering them
 	// earlier leaves a window where hook invocations race against a
 	// nil s.ch.
-	cpaGroup, err := s.propertyService.Group(model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, err := s.propertyService.Group(model.AccessControlPropertyGroupName)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to look up CPA property group")
 	}
@@ -340,14 +340,14 @@ func NewServer(options ...Option) (*Server, error) {
 	// Field limit hook — enforces per-object-type and global field limits.
 	// Only "user" has a per-type cap today; when channel/team/post CPA fields
 	// are added, set their per-type caps here. Until then
-	// ProtectedAttributesGroupFieldLimit is the only ceiling for non-user
+	// AccessControlGroupFieldLimit is the only ceiling for non-user
 	// object types within this group.
 	fieldLimitHook := properties.NewFieldLimitHook(s.propertyService)
 	fieldLimitHook.AddGroupLimit(cpaGroup.ID, &properties.FieldLimitConfig{
 		PerObjectType: map[string]int64{
 			model.PropertyFieldObjectTypeUser: 20,
 		},
-		GlobalLimit: model.ProtectedAttributesGroupFieldLimit,
+		GlobalLimit: model.AccessControlGroupFieldLimit,
 	})
 	s.propertyService.AddHook(fieldLimitHook)
 

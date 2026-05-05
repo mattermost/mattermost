@@ -339,7 +339,7 @@ channels/db/migrations/postgres/000170_add_property_groups_version.down.sql
 channels/db/migrations/postgres/000170_add_property_groups_version.up.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.down.sql
 channels/db/migrations/postgres/000171_drop_property_fields_protected_index.up.sql
-channels/db/migrations/postgres/000172_migrate_cpa_to_protected_attributes.down.sql
-channels/db/migrations/postgres/000172_migrate_cpa_to_protected_attributes.up.sql
+channels/db/migrations/postgres/000172_migrate_cpa_to_access_control.down.sql
+channels/db/migrations/postgres/000172_migrate_cpa_to_access_control.up.sql
 channels/db/migrations/postgres/000173_filter_attribute_view_by_object_type.down.sql
 channels/db/migrations/postgres/000173_filter_attribute_view_by_object_type.up.sql

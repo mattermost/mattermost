@@ -16,7 +16,7 @@ import (
 func cleanupCPAFields(t *testing.T, th *TestHelper) {
 	t.Helper()
 
-	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+	cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 	require.Nil(t, groupErr)
 	cpaID := cpaGroup.ID
 
@@ -35,7 +35,7 @@ func cleanupCPAFields(t *testing.T, th *TestHelper) {
 func TestPluginProperties(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
-	// Subtests that exercise the protected_attributes group require an
+	// Subtests that exercise the access_control group require an
 	// Enterprise license because LicenseCheckHook gates that group.
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 	t.Cleanup(func() { _ = th.App.Srv().RemoveLicense() })
@@ -464,7 +464,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin-created CPA field gets source_plugin_id", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -531,7 +531,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can update its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -598,7 +598,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot update another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -701,7 +701,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can delete its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -763,7 +763,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot delete another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -864,7 +864,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can update values for its own protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -946,7 +946,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin cannot update values for another plugin's protected field", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -1071,7 +1071,7 @@ func TestPluginProperties(t *testing.T) {
 	t.Run("test plugin can modify non-protected CPA fields from other plugins", func(t *testing.T) {
 		cleanupCPAFields(t, th)
 
-		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.ProtectedAttributesPropertyGroupName)
+		cpaGroup, groupErr := th.App.GetPropertyGroup(request.TestContext(t), model.AccessControlPropertyGroupName)
 		require.Nil(t, groupErr)
 		cpaID := cpaGroup.ID
 
@@ -1170,7 +1170,7 @@ func TestPluginProperties(t *testing.T) {
 		updatedFields, appErr := th.App.SearchPropertyFields(request.TestContext(t), cpaID, model.PropertyFieldSearchOpts{
 			GroupID:    cpaID,
 			ObjectType: model.PropertyFieldObjectTypeUser,
-			PerPage:    model.ProtectedAttributesGroupFieldLimit + 5,
+			PerPage:    model.AccessControlGroupFieldLimit + 5,
 		})
 		require.Nil(t, appErr)
 		var fieldWasUpdated bool

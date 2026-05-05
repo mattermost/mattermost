@@ -523,7 +523,7 @@ func TestDeleteCPAField(t *testing.T) {
 		// The list endpoint filters out deleted fields, so read at the app layer
 		// to confirm the soft-delete landed on the record itself.
 		rctx := request.TestContext(t)
-		group, appErr := th.App.GetPropertyGroup(rctx, model.ProtectedAttributesPropertyGroupName)
+		group, appErr := th.App.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 		require.Nil(t, appErr)
 		deletedField, appErr := th.App.GetPropertyField(rctx, group.ID, createdField.ID)
 		require.Nil(t, appErr)
@@ -1476,7 +1476,7 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 
 	upserted, resp, err := th.Client.PatchPropertyValues(
 		context.Background(),
-		model.ProtectedAttributesPropertyGroupName,
+		model.AccessControlPropertyGroupName,
 		model.PropertyFieldObjectTypeUser,
 		th.BasicUser.Id,
 		items,
@@ -1495,7 +1495,7 @@ func TestCPANonAdminWriteOwnValueViaGenericAPI(t *testing.T) {
 	// Verify the write persisted via a generic-API read on the same target.
 	stored, resp, err := th.Client.GetPropertyValues(
 		context.Background(),
-		model.ProtectedAttributesPropertyGroupName,
+		model.AccessControlPropertyGroupName,
 		model.PropertyFieldObjectTypeUser,
 		th.BasicUser.Id,
 		model.PropertyValueSearch{PerPage: 60},
@@ -1541,7 +1541,7 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 	t.Run("non-admin writing own admin-managed value is forbidden", func(t *testing.T) {
 		_, resp, err := th.Client.PatchPropertyValues(
 			context.Background(),
-			model.ProtectedAttributesPropertyGroupName,
+			model.AccessControlPropertyGroupName,
 			model.PropertyFieldObjectTypeUser,
 			th.BasicUser.Id,
 			items,
@@ -1558,7 +1558,7 @@ func TestCPANonAdminBlockedFromAdminManagedViaGenericAPI(t *testing.T) {
 		}}
 		upserted, resp, err := th.SystemAdminClient.PatchPropertyValues(
 			context.Background(),
-			model.ProtectedAttributesPropertyGroupName,
+			model.AccessControlPropertyGroupName,
 			model.PropertyFieldObjectTypeUser,
 			th.BasicUser.Id,
 			adminItems,
@@ -1604,7 +1604,7 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 
 		listed, resp, err := th.SystemAdminClient.GetPropertyFields(
 			context.Background(),
-			model.ProtectedAttributesPropertyGroupName,
+			model.AccessControlPropertyGroupName,
 			model.PropertyFieldObjectTypeUser,
 			model.PropertyFieldSearch{
 				TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -1655,7 +1655,7 @@ func TestCPACrossAPIFieldRoundtrip(t *testing.T) {
 		}
 		created, resp, err := th.SystemAdminClient.CreatePropertyField(
 			context.Background(),
-			model.ProtectedAttributesPropertyGroupName,
+			model.AccessControlPropertyGroupName,
 			model.PropertyFieldObjectTypeUser,
 			field,
 		)
