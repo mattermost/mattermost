@@ -190,17 +190,16 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 
 	boardField := &model.PropertyField{ID: model.NewId(), GroupID: boardsGroup.ID, Name: model.BoardsPropertyFieldNameBoard}
 	propertyFieldStore.On("GetFieldByName", mock.Anything, boardsGroup.ID, "", model.BoardsPropertyFieldNameBoard).Return(boardField, nil)
-	propertyFieldStore.On("GetFieldByName", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, store.NewErrNotFound("PropertyField", ""))
 
-	for _, name := range []string{
-		model.SessionAttributesPropertyFieldUserAgentPlatform,
-		model.SessionAttributesPropertyFieldUserAgentOS,
-		model.SessionAttributesPropertyFieldUserAgentBrowserName,
-		model.SessionAttributesPropertyFieldUserAgentBrowserVersion,
-		model.SessionAttributesPropertyFieldIPAddress,
-	} {
-		f := &model.PropertyField{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: name}
-		propertyFieldStore.On("GetFieldByName", sessionAttributesGroup.ID, "", name).Return(f, nil)
+	sessionAttributesFields := []*model.PropertyField{
+		{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: model.SessionAttributesPropertyFieldUserAgentPlatform},
+		{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: model.SessionAttributesPropertyFieldUserAgentOS},
+		{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: model.SessionAttributesPropertyFieldUserAgentBrowserName},
+		{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: model.SessionAttributesPropertyFieldUserAgentBrowserVersion},
+		{ID: model.NewId(), GroupID: sessionAttributesGroup.ID, Name: model.SessionAttributesPropertyFieldIPAddress},
+	}
+	for _, field := range sessionAttributesFields {
+		propertyFieldStore.On("GetFieldByName", mock.Anything, sessionAttributesGroup.ID, "", field.Name).Return(field, nil)
 	}
 
 	viewStore := mocks.ViewStore{}

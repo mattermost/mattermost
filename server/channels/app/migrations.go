@@ -866,16 +866,6 @@ func (s *Server) doSetupSessionAttributeProperties() error {
 		return fmt.Errorf("failed to get session attributes group: %w", err)
 	}
 
-	existingProperties, err := s.propertyService.SearchPropertyFields(nil, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
-	if err != nil {
-		return fmt.Errorf("failed to search for existing session attribute properties: %w", err)
-	}
-
-	existingByName := make(map[string]bool, len(existingProperties))
-	for _, property := range existingProperties {
-		existingByName[property.Name] = true
-	}
-
 	sessionFieldNames := []string{
 		model.SessionAttributesPropertyFieldUserAgentPlatform,
 		model.SessionAttributesPropertyFieldUserAgentOS,
@@ -884,12 +874,12 @@ func (s *Server) doSetupSessionAttributeProperties() error {
 		model.SessionAttributesPropertyFieldIPAddress,
 	}
 
-	var propertiesToCreate []*model.PropertyField
 	for _, name := range sessionFieldNames {
-		if existingByName[name] {
+		if _, err := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", name); err == nil {
 			continue
 		}
-		propertiesToCreate = append(propertiesToCreate, &model.PropertyField{
+
+		field := &model.PropertyField{
 			GroupID:    group.ID,
 			Name:       name,
 			Type:       model.PropertyFieldTypeText,
@@ -898,13 +888,11 @@ func (s *Server) doSetupSessionAttributeProperties() error {
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttributeTTL: model.SessionAttributeDefaultTTLSeconds,
 			},
-		})
-	}
+		}
 
-	for _, property := range propertiesToCreate {
-		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
-			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
-				return fmt.Errorf("failed to create session attribute property field %q: %w", property.Name, err)
+		if _, err := s.propertyService.CreatePropertyField(nil, field); err != nil {
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", name); retryErr != nil {
+				return fmt.Errorf("failed to create session attribute property field %q: %w", name, err)
 			}
 		}
 	}
