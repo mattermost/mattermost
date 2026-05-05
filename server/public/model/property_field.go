@@ -47,6 +47,7 @@ const (
 	PropertyFieldObjectTypeUser     = "user"
 	PropertyFieldObjectTypeTemplate = "template"
 	PropertyFieldObjectTypeSystem   = "system"
+	PropertyFieldObjectTypeSession  = "session"
 
 	PropertyFieldAttributeTTL = "ttl"
 )
@@ -68,6 +69,7 @@ var validPropertyFieldObjectTypes = []string{
 	PropertyFieldObjectTypeUser,
 	PropertyFieldObjectTypeTemplate,
 	PropertyFieldObjectTypeSystem,
+	PropertyFieldObjectTypeSession,
 }
 
 type PropertyField struct {

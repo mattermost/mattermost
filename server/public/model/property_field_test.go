@@ -545,6 +545,20 @@ func TestPropertyField_IsValid(t *testing.T) {
 		require.NoError(t, pf.IsValid())
 	})
 
+	t.Run("PSAv2 valid ObjectType session", func(t *testing.T) {
+		pf := &PropertyField{
+			ID:         NewId(),
+			GroupID:    NewId(),
+			Name:       "test field",
+			Type:       PropertyFieldTypeText,
+			TargetType: string(PropertyFieldTargetLevelSystem),
+			ObjectType: PropertyFieldObjectTypeSession,
+			CreateAt:   GetMillis(),
+			UpdateAt:   GetMillis(),
+		}
+		require.NoError(t, pf.IsValid())
+	})
+
 	t.Run("template object type requires TargetType", func(t *testing.T) {
 		pf := &PropertyField{
 			ID:         NewId(),

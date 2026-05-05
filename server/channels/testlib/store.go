@@ -147,7 +147,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	cpaGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.CustomProfileAttributesPropertyGroupName, Version: model.PropertyGroupVersionV1}
 	managedCategoryGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.ManagedCategoryPropertyGroupName, Version: model.PropertyGroupVersionV2}
 	boardsGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2}
-	sessionAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.SessionAttributesPropertyGroupName}
+	sessionAttributesGroup := &model.PropertyGroup{ID: model.NewId(), Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2}
 
 	groupsByName[cpaGroup.Name] = cpaGroup
 	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup

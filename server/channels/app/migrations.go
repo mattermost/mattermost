@@ -890,9 +890,11 @@ func (s *Server) doSetupSessionAttributeProperties() error {
 			continue
 		}
 		propertiesToCreate = append(propertiesToCreate, &model.PropertyField{
-			GroupID: group.ID,
-			Name:    name,
-			Type:    model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			Name:       name,
+			Type:       model.PropertyFieldTypeText,
+			ObjectType: model.PropertyFieldObjectTypeSession,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
 				model.PropertyFieldAttributeTTL: model.SessionAttributeDefaultTTLSeconds,
 			},
@@ -901,7 +903,9 @@ func (s *Server) doSetupSessionAttributeProperties() error {
 
 	for _, property := range propertiesToCreate {
 		if _, err := s.propertyService.CreatePropertyField(nil, property); err != nil {
-			return fmt.Errorf("failed to create session attribute property field %q: %w", property.Name, err)
+			if _, retryErr := s.propertyService.GetPropertyFieldByName(nil, group.ID, "", property.Name); retryErr != nil {
+				return fmt.Errorf("failed to create session attribute property field %q: %w", property.Name, err)
+			}
 		}
 	}
 
