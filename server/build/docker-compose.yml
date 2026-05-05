@@ -8,6 +8,10 @@ services:
     extends:
         file: docker-compose.common.yml
         service: minio
+  azurite:
+    extends:
+        file: docker-compose.common.yml
+        service: azurite
   inbucket:
     extends:
         file: docker-compose.common.yml
