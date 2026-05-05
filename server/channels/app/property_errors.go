@@ -12,10 +12,12 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// mapPropertyServiceError translates known sentinel errors from the property
-// service / PropertyHook chain into HTTP-shaped AppErrors. Returns nil if err
-// is not a recognised sentinel and does not wrap an AppError; callers should
-// fall back to wrapping with their own default 500 in that case.
+// mapPropertyServiceError translates known errors from the property service /
+// PropertyHook chain — package sentinels (properties.Err*) and store-layer
+// errors (*store.ErrNotFound, *store.ErrConflict, *store.ErrResultsMismatch) —
+// into HTTP-shaped AppErrors. Returns nil if err is not recognised and does
+// not wrap an AppError; callers should fall back to wrapping with their own
+// default 500 in that case.
 //
 // Sentinel matches take priority over a wrapped AppError so that hook code
 // wrapping an inner AppError with a sentinel still drives the mapping.
@@ -54,6 +56,16 @@ func mapPropertyServiceError(where string, err error) *model.AppError {
 	var conflictErr *store.ErrConflict
 	if errors.As(err, &conflictErr) {
 		return model.NewAppError(where, "app.property_field.update.conflict.app_error", nil, "concurrent modification detected; please retry", http.StatusConflict).Wrap(err)
+	}
+
+	var notFoundErr *store.ErrNotFound
+	if errors.As(err, &notFoundErr) {
+		return model.NewAppError(where, "app.property.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	var resultsMismatchErr *store.ErrResultsMismatch
+	if errors.As(err, &resultsMismatchErr) {
+		return model.NewAppError(where, "app.property.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
 	}
 
 	var appErr *model.AppError

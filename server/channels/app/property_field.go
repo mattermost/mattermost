@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"reflect"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 // propertyFieldOptionsEqual reports whether two values from
@@ -102,10 +100,6 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyField(rctx, groupID, fieldID)
 	if err != nil {
-		var notFoundErr *store.ErrNotFound
-		if errors.As(err, &notFoundErr) {
-			return nil, model.NewAppError("GetPropertyField", "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		}
 		if appErr := mapPropertyServiceError("GetPropertyField", err); appErr != nil {
 			return nil, appErr
 		}
@@ -118,10 +112,6 @@ func (a *App) GetPropertyField(rctx request.CTX, groupID, fieldID string) (*mode
 func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) ([]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
-		var resultsMismatchErr *store.ErrResultsMismatch
-		if errors.As(err, &resultsMismatchErr) {
-			return nil, model.NewAppError("GetPropertyFields", "app.property_field.get_many.fields_not_found.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		}
 		if appErr := mapPropertyServiceError("GetPropertyFields", err); appErr != nil {
 			return nil, appErr
 		}
@@ -134,10 +124,6 @@ func (a *App) GetPropertyFields(rctx request.CTX, groupID string, ids []string) 
 func (a *App) GetPropertyFieldByName(rctx request.CTX, groupID, targetID, name string) (*model.PropertyField, *model.AppError) {
 	field, err := a.Srv().propertyService.GetPropertyFieldByName(rctx, groupID, targetID, name)
 	if err != nil {
-		var notFoundErr *store.ErrNotFound
-		if errors.As(err, &notFoundErr) {
-			return nil, model.NewAppError("GetPropertyFieldByName", "app.property_field.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		}
 		if appErr := mapPropertyServiceError("GetPropertyFieldByName", err); appErr != nil {
 			return nil, appErr
 		}

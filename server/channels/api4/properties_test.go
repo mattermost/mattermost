@@ -930,7 +930,7 @@ func TestPatchPropertyField(t *testing.T) {
 		_, resp, err := th.SystemAdminClient.PatchPropertyField(context.Background(), otherGroup.Name, "post", createdField.ID, patch)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Equal(t, "app.property_field.not_found.app_error", err.(*model.AppError).Id)
+		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("options-only update should check options permission", func(t *testing.T) {
@@ -1464,7 +1464,7 @@ func TestDeletePropertyField(t *testing.T) {
 		resp, err := th.SystemAdminClient.DeletePropertyField(context.Background(), otherGroup.Name, "post", createdField.ID)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-		require.Equal(t, "app.property_field.not_found.app_error", err.(*model.AppError).Id)
+		require.Equal(t, "app.property.not_found.app_error", err.(*model.AppError).Id)
 	})
 
 	t.Run("user without permission should not be able to delete", func(t *testing.T) {
@@ -1982,7 +1982,7 @@ func TestPatchPropertyValues(t *testing.T) {
 		}
 		_, resp, patchErr := th.Client.PatchPropertyValues(context.Background(), group.Name, "post", targetID, items)
 		require.Error(t, patchErr)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("nonexistent group should fail", func(t *testing.T) {

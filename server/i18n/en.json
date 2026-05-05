@@ -7945,6 +7945,10 @@
     "translation": "Your license does not support this property group."
   },
   {
+    "id": "app.property.not_found.app_error",
+    "translation": "The specified property does not exist."
+  },
+  {
     "id": "app.property.sync_lock.app_error",
     "translation": "This property field is managed by external sync and cannot be modified directly."
   },
@@ -8039,10 +8043,6 @@
   {
     "id": "app.property_field.get_many.app_error",
     "translation": "Unable to get property fields."
-  },
-  {
-    "id": "app.property_field.get_many.fields_not_found.app_error",
-    "translation": "One or more property field IDs were not found in the specified group."
   },
   {
     "id": "app.property_field.invalid_attrs.app_error",
@@ -8147,10 +8147,6 @@
   {
     "id": "app.property_value.invalid_input.app_error",
     "translation": "Invalid input provided."
-  },
-  {
-    "id": "app.property_value.not_found.app_error",
-    "translation": "The specified property value does not exist."
   },
   {
     "id": "app.property_value.resolve_broadcast_params.unknown_object_type.app_error",

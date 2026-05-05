@@ -999,16 +999,17 @@ func TestPatchCPAValues(t *testing.T) {
 	})
 
 	t.Run("patch fails if any field in the map does not exist", func(t *testing.T) {
-		// App.GetPropertyFields rejects an unknown id with a 400 before the
-		// handler's per-field 404 check runs (see App.GetPropertyFields's
-		// ErrResultsMismatch branch in app/property_field.go).
+		// App.GetPropertyFields rejects an unknown id with a 404 before the
+		// handler's per-field 404 check runs. The property service wraps the
+		// store's ErrResultsMismatch with the ErrFieldNotFound sentinel,
+		// which mapPropertyServiceError translates into a not-found error.
 		values := map[string]json.RawMessage{
 			model.NewId(): json.RawMessage(`"any value"`),
 		}
 		_, resp, err := th.Client.PatchCPAValues(context.Background(), values)
-		CheckBadRequestStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		require.Error(t, err)
-		CheckErrorID(t, err, "app.property_field.get_many.fields_not_found.app_error")
+		CheckErrorID(t, err, "app.property_field.not_found.app_error")
 	})
 
 	t.Run("rejects values that fail hook validation", func(t *testing.T) {
