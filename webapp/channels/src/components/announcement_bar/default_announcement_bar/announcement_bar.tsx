@@ -7,9 +7,9 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import WithTooltip from 'components/with_tooltip';
 
 import {AnnouncementBarTypes} from 'utils/constants';
 import {isStringContainingUrl} from 'utils/url';

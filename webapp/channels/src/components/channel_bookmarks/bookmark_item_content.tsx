@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link, useHistory} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
@@ -18,7 +19,6 @@ import {openModal} from 'actions/views/modals';
 
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';

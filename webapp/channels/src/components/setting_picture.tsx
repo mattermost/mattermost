@@ -6,6 +6,7 @@ import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import FormError from 'components/form_error';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
@@ -13,8 +14,6 @@ import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
-
-import WithTooltip from './with_tooltip';
 
 type Props = {
     clientError?: ReactNode;

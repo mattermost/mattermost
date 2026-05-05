@@ -6,6 +6,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
@@ -18,8 +19,6 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {startUsersBatchExport} from 'actions/views/admin';
 import {openModal} from 'actions/views/modals';
 import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
-
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {isMinimumProfessionalLicense} from 'utils/license_utils';

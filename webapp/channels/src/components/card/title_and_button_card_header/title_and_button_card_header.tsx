@@ -4,8 +4,7 @@
 import React from 'react';
 
 import {Button} from '@mattermost/shared/components/button';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
     title: React.ReactNode;
