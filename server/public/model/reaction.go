@@ -82,4 +82,5 @@ type ReceivedReaction struct {
 	ChannelId    string `json:"channel_id"`
 	PostMessage  string `json:"post_message"`
 	PostAuthorId string `json:"post_author_id"`
+	RootId       string `json:"root_id"`
 }

@@ -310,6 +310,7 @@ func (a *App) sendReactionEvent(rctx request.CTX, event model.WebsocketEventType
 			ChannelId:    reaction.ChannelId,
 			PostMessage:  post.Message,
 			PostAuthorId: post.UserId,
+			RootId:       post.RootId,
 		}
 		payload, jsonErr := json.Marshal(received)
 		if jsonErr != nil {

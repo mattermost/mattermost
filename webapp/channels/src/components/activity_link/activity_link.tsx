@@ -16,7 +16,7 @@ import './activity_link.scss';
 const ActivityLink = () => {
     const {formatMessage} = useIntl();
     const {url} = useRouteMatch();
-    const unreadCount = useSelector((state: GlobalState) => ((state.views as any).activity?.unreadPostIds as string[] | undefined)?.length ?? 0);
+    const unreadCount = useSelector((state: GlobalState) => ((state.views as any).activity?.unreadPostIds as Array<{postId: string; channelId: string}> | undefined)?.length ?? 0);
 
     return (
         <ul className='SidebarActivity NavGroupContent nav nav-pills__container'>

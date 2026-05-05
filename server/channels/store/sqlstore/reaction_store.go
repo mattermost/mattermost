@@ -266,6 +266,7 @@ func (s *SqlReactionStore) GetReceivedReactions(userID, teamID string, limit int
 			"r.ChannelId AS ChannelId",
 			"p.Message AS PostMessage",
 			"p.UserId AS PostAuthorId",
+			"COALESCE(p.RootId, '') AS RootId",
 		).
 		From("Reactions r").
 		InnerJoin("Posts p ON p.Id = r.PostId").
