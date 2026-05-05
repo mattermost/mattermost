@@ -751,6 +751,7 @@ export const PostTypes = {
     CUSTOM_DATA_SPILLAGE_REPORT: 'custom_spillage_report',
     AUTO_TRANSLATION_CHANGE: 'system_autotranslation',
     BURN_ON_READ: 'burn_on_read',
+    CUSTOM_TIMER: 'custom_timer',
 };
 
 export const StatTypes = keyMirror({
