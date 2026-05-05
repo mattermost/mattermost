@@ -52,7 +52,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, model.NewId(), th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, model.NewId(), th.BasicUser.Id, "")
 		require.NotNil(t, appErr)
 		require.Empty(t, path)
 	})
@@ -63,7 +63,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, model.NewId())
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, model.NewId(), "")
 		require.NotNil(t, appErr)
 		require.Empty(t, path)
 	})
@@ -74,7 +74,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, path)
 
@@ -93,7 +93,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -113,7 +113,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -131,7 +131,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -181,7 +181,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -217,7 +217,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id)
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)

@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -24,6 +25,12 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	var actionRequest model.FlagContentActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
+		c.SetInvalidParamWithErr("flagContentActionRequestBody", err)
+		return
+	}
+
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
@@ -31,6 +38,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	model.AddEventParameterToAuditRec(auditRec, "flaggedPostId", postId)
 	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+	model.AddEventParameterToAuditRec(auditRec, "comment", actionRequest.Comment)
 
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
@@ -55,7 +63,13 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId)
+	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
+	if err := actionRequest.IsValid(*commentRequired); err != nil {
+		c.Err = err
+		return
+	}
+
+	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment)
 	if appErr != nil {
 		c.Err = appErr
 		return
