@@ -24,6 +24,8 @@ func (api *API) InitAccessControlPolicy() {
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate", api.APISessionRequired(simulatePolicy)).Methods(http.MethodPost)
+	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users", api.APISessionRequired(simulatePolicyForUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/visual_ast", api.APISessionRequired(convertToVisualAST)).Methods(http.MethodPost)
@@ -365,6 +367,155 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(resp)
 	if err != nil {
 		c.Err = model.NewAppError("checkExpression", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// simulatePolicy runs the dual-lane PDP simulation against a draft policy
+// (not persisted) plus any higher-scoped persisted permission policies, and
+// returns per-user, per-action ALLOW/DENY decisions with blame attribution.
+//
+// Permission gates mirror cel/test:
+//   - System admins: full access.
+//   - Team admins (with PermissionManageTeamAccessRules on the team): when a
+//     team_id is present in the body.
+//   - Channel admins (with PermissionManageChannelAccessRules on the channel):
+//     when a channel_id is present in the body.
+//
+// The endpoint also requires the PermissionPolicies feature flag.
+func simulatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.PermissionPolicies {
+		c.Err = model.NewAppError("simulatePolicy", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	var params model.PolicySimulationParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
+		c.SetInvalidParamWithErr("simulation", jsonErr)
+		return
+	}
+
+	if params.Policy == nil {
+		c.SetInvalidParam("policy")
+		return
+	}
+
+	if params.ChannelID != "" && !model.IsValidId(params.ChannelID) {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	if params.TeamID != "" && !model.IsValidId(params.TeamID) {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	hasTeamPermission := !hasSystemPermission && params.TeamID != "" &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), params.TeamID, model.PermissionManageTeamAccessRules)
+
+	if !hasSystemPermission && !hasTeamPermission {
+		if params.ChannelID == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, params.ChannelID, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	}
+
+	resp, appErr := c.App.SimulateAccessControlPolicy(c.AppContext, params)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for i := range resp.Results {
+		c.App.SanitizeProfile(resp.Results[i].User, hasSystemPermission)
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("simulatePolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// simulatePolicyForUsers is the picker-driven counterpart to simulatePolicy.
+// The caller submits an explicit set of user IDs (with optional per-user
+// session attribute overrides) instead of asking the server to search; the
+// response carries per-user, per-action ALLOW/DENY decisions plus blame
+// attribution for any deny.
+//
+// Permission gates mirror cel/simulate (system, team, channel admins) and
+// the PermissionPolicies feature flag.
+func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.Config().FeatureFlags.PermissionPolicies {
+		c.Err = model.NewAppError("simulatePolicyForUsers", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	var params model.PolicySimulationByUsersParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
+		c.SetInvalidParamWithErr("simulation", jsonErr)
+		return
+	}
+
+	if params.Policy == nil {
+		c.SetInvalidParam("policy")
+		return
+	}
+	if len(params.Users) == 0 {
+		c.SetInvalidParam("users")
+		return
+	}
+	if params.ChannelID != "" && !model.IsValidId(params.ChannelID) {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	if params.TeamID != "" && !model.IsValidId(params.TeamID) {
+		c.SetInvalidParam("team_id")
+		return
+	}
+
+	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	hasTeamPermission := !hasSystemPermission && params.TeamID != "" &&
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), params.TeamID, model.PermissionManageTeamAccessRules)
+
+	if !hasSystemPermission && !hasTeamPermission {
+		if params.ChannelID == "" {
+			c.SetPermissionError(model.PermissionManageSystem)
+			return
+		}
+		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, params.ChannelID, model.PermissionManageChannelAccessRules)
+		if !hasChannelPermission {
+			c.SetPermissionError(model.PermissionManageChannelAccessRules)
+			return
+		}
+	}
+
+	resp, appErr := c.App.SimulateAccessControlPolicyForUsers(c.AppContext, params)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	for i := range resp.Results {
+		c.App.SanitizeProfile(resp.Results[i].User, hasSystemPermission)
+	}
+
+	js, err := json.Marshal(resp)
+	if err != nil {
+		c.Err = model.NewAppError("simulatePolicyForUsers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

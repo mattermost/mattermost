@@ -189,6 +189,39 @@ func (a *App) TestExpression(rctx request.CTX, expression string, opts model.Sub
 	return res, count, nil
 }
 
+// SimulateAccessControlPolicy proxies to the enterprise PDP service so the
+// /cel/simulate handler can preview how a draft policy interacts with
+// persisted higher-scoped policies. The simulator returns per-user, per-
+// action ALLOW/DENY decisions plus blame attribution.
+//
+// Returns NotImplemented when the access control service is unavailable
+// (no enterprise license / ABAC disabled).
+func (a *App) SimulateAccessControlPolicy(rctx request.CTX, params model.PolicySimulationParams) (*model.PolicySimulationResponse, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("SimulateAccessControlPolicy", "app.pap.simulate.unavailable", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return acs.SimulatePolicy(rctx, params)
+}
+
+// SimulateAccessControlPolicyForUsers is the picker-driven counterpart to
+// SimulateAccessControlPolicy. The caller picks users explicitly (with
+// optional per-user session attribute overrides) instead of asking the
+// server to search; the response returns per-user, per-action decisions
+// with blame attribution.
+//
+// Returns NotImplemented when the access control service is unavailable
+// (no enterprise license / ABAC disabled).
+func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError) {
+	acs := a.Srv().ch.AccessControl
+	if acs == nil {
+		return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.unavailable", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
+	}
+
+	return acs.SimulatePolicyForUsers(rctx, params)
+}
+
 func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID string, channelIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {

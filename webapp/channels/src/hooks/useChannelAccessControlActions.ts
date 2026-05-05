@@ -4,7 +4,7 @@
 import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
+import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, PolicySimulationParams, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -16,6 +16,8 @@ import {
     getAccessControlPolicy,
     createAccessControlPolicy,
     deleteAccessControlPolicy,
+    simulatePolicy,
+    simulatePolicyForUsers,
     validateExpressionAgainstRequester,
     createAccessControlSyncJob,
     updateAccessControlPoliciesActive,
@@ -36,6 +38,20 @@ export interface ChannelAccessControlActions {
     updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id?: string; team_id?: string}) => Promise<ActionResult>;
+
+    /**
+     * Run the dual-lane PDP simulation against a draft policy. The action
+     * automatically injects channelId/teamId from the surrounding scope, so
+     * callers only need to provide the policy + actions + pagination.
+     */
+    simulatePolicy: (params: Omit<PolicySimulationParams, 'channel_id' | 'team_id'>) => Promise<ActionResult<PolicySimulationResponse>>;
+
+    /**
+     * Picker-driven counterpart: caller hand-picks user IDs (with optional
+     * per-user session-attribute overrides). channelId/teamId are injected
+     * from scope so the modal only needs policy + actions + users.
+     */
+    simulatePolicyForUsers: (params: Omit<PolicySimulationByUsersParams, 'channel_id' | 'team_id'>) => Promise<ActionResult<PolicySimulationResponse>>;
 }
 
 /**
@@ -90,6 +106,22 @@ export const useChannelAccessControlActions = (channelId?: string, teamId?: stri
 
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
             return dispatch(updateAccessControlPoliciesActive(statuses, teamId));
+        },
+
+        simulatePolicy: (params: Omit<PolicySimulationParams, 'channel_id' | 'team_id'>) => {
+            return dispatch(simulatePolicy({
+                ...params,
+                channel_id: channelId,
+                team_id: teamId,
+            }));
+        },
+
+        simulatePolicyForUsers: (params: Omit<PolicySimulationByUsersParams, 'channel_id' | 'team_id'>) => {
+            return dispatch(simulatePolicyForUsers({
+                ...params,
+                channel_id: channelId,
+                team_id: teamId,
+            }));
         },
     }), [dispatch, channelId, teamId]);
 };

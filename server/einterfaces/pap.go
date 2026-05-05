@@ -42,4 +42,18 @@ type PolicyAdministrationPointInterface interface {
 	// GetPoliciesForFieldIDs returns the policies that reference any of the given
 	// property field IDs in their CEL rule expressions.
 	GetPoliciesForFieldIDs(rctx request.CTX, fieldIDs []string) ([]*model.AccessControlPolicy, *model.AppError)
+	// SimulatePolicy evaluates the given DRAFT policy against persisted higher-
+	// scoped policies (system permission policies) and returns per-user, per-
+	// action ALLOW/DENY decisions with blame attribution. The draft is
+	// compiled in-memory only; nothing is persisted.
+	//
+	// When params.Actions is empty the simulator falls back to expression-only
+	// matching (mirroring QueryUsersForExpression) so the editor can render a
+	// "no permission selected" preview.
+	SimulatePolicy(rctx request.CTX, params model.PolicySimulationParams) (*model.PolicySimulationResponse, *model.AppError)
+	// SimulatePolicyForUsers is the picker-driven counterpart to SimulatePolicy.
+	// The caller provides an explicit user list (with optional per-user
+	// session attribute overrides) instead of asking the server to search.
+	// Returns per-user, per-action decisions plus blame attribution.
+	SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError)
 }

@@ -7581,6 +7581,62 @@
     "translation": "Could not search access control policies."
   },
   {
+    "id": "app.pap.simulate.attribute_refresh",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.compile_failed",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.compile_union",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.driver_not_found",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.feature_disabled",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.invalid_policy",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_actions",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_policy",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.missing_users",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.search_users",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.sqlize",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.too_many_users",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.unavailable",
+    "translation": ""
+  },
+  {
+    "id": "app.pap.simulate.unsupported_type",
+    "translation": ""
+  },
+  {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
     "translation": "Could not unassign access control policy from channels."
   },

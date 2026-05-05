@@ -6,7 +6,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import type {AccessControlPolicyRule} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
@@ -14,6 +14,7 @@ import {
     ACCESS_CONTROL_CHANNEL_ROLE_GUEST,
     ACCESS_CONTROL_CHANNEL_ROLE_USER,
     ACCESS_CONTROL_PERMISSION_ACTIONS,
+    ACCESS_CONTROL_POLICY_VERSION_V0_4,
     buildRulesWithMembership,
     buildRulesWithPermissionRules,
     getMembershipRule,
@@ -27,6 +28,7 @@ import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/acce
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
+import TestAccessRuleModal from 'components/admin_console/access_control/modals/test_access_rule/test_access_rule_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -394,6 +396,37 @@ function ChannelSettingsPermissionsPolicyTab({
         return true;
     }, [validateDraft]);
 
+    // ── Simulation: build the synthetic draft sent to /cel/simulate ──────
+    //
+    // The editor's Test button needs to preview how the rule being authored
+    // would interact with persisted higher-scoped policies. The simulator
+    // expects a complete AccessControlPolicy, so we splice the in-progress
+    // draft rule into the channel's existing rules (preserving membership
+    // and any sibling permission rules untouched) and stamp it as v0.4 so
+    // the backend dispatches the right validators.
+    const buildSimulationPolicy = useCallback((draftRule: EditableRule): AccessControlPolicy => {
+        const otherRules = rules.
+            filter((r) => r.key !== draftRule.key).
+            map(fromEditable);
+        const draftAsRule = fromEditable(draftRule);
+
+        // Preserve the existing membership rule (and any non-permission
+        // entries the backend may have added) so the simulator sees a
+        // coherent draft.
+        const baseRules = buildRulesWithMembership(originalAllRules, originalMembershipExpression);
+        const finalRules = buildRulesWithPermissionRules(baseRules, [...otherRules, draftAsRule]);
+
+        return {
+            id: channel.id,
+            name: channel.display_name,
+            type: 'channel',
+            version: ACCESS_CONTROL_POLICY_VERSION_V0_4,
+            revision: 0,
+            rules: finalRules,
+            imports: originalImports,
+        };
+    }, [rules, originalAllRules, originalMembershipExpression, originalImports, channel.id, channel.display_name]);
+
     // ── Persist to backend ────────────────────────────────────────────────
     const persistRules = useCallback(async (next: EditableRule[]): Promise<SaveResult> => {
         const persistedPermissionRules = next.map(fromEditable);
@@ -470,15 +503,13 @@ function ChannelSettingsPermissionsPolicyTab({
     // ── Render: editor view ───────────────────────────────────────────────
     if (editingKey !== null) {
         const isNew = editingKey === '__new__';
-        const initial = isNew ?
-            {
-                key: '__new__',
-                name: '',
-                role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
-                actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
-                expression: '',
-            } :
-            rules.find((r) => r.key === editingKey);
+        const initial = isNew ? {
+            key: '__new__',
+            name: '',
+            role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+            actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+            expression: '',
+        } : rules.find((r) => r.key === editingKey);
 
         // Stale editingKey: render nothing for one tick — the recovery effect
         // above will reset editingKey and the list view will paint on the
@@ -500,6 +531,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 error={formError}
                 onCancel={cancelEditor}
                 onCommit={commitDraft}
+                buildSimulationPolicy={buildSimulationPolicy}
             />
         );
     }
@@ -767,6 +799,14 @@ type PermissionRuleEditorProps = {
     error: string;
     onCancel: () => void;
     onCommit: (draft: EditableRule, isNew: boolean) => boolean;
+
+    /**
+     * Builds the synthetic draft policy used by the per-rule simulation. The
+     * parent owns this because it has the full rules list (membership +
+     * sibling permission rules) needed for blame attribution. The returned
+     * policy is sent to the simulate endpoint as-is.
+     */
+    buildSimulationPolicy: (draft: EditableRule) => AccessControlPolicy;
 };
 
 function PermissionRuleEditor({
@@ -781,14 +821,24 @@ function PermissionRuleEditor({
     error,
     onCancel,
     onCommit,
+    buildSimulationPolicy,
 }: PermissionRuleEditorProps) {
     const {formatMessage} = useIntl();
     const [draft, setDraft] = useState<EditableRule>(initial);
+    const [showTest, setShowTest] = useState(false);
 
     // Re-seed when the editor is opened on a different rule.
     useEffect(() => {
         setDraft(initial);
     }, [initial]);
+
+    const actionLabels = useMemo(() => {
+        const labels: Record<string, string> = {};
+        for (const def of AVAILABLE_PERMISSIONS) {
+            labels[def.value] = formatMessage(def.label);
+        }
+        return labels;
+    }, [formatMessage]);
 
     const update = useCallback((patch: Partial<EditableRule>) => {
         setDraft((prev) => ({...prev, ...patch}));
@@ -932,6 +982,12 @@ function PermissionRuleEditor({
                             actions={actions}
                             enableUserManagedAttributes={enableUserManagedAttributes}
                             isSystemAdmin={isSystemAdmin}
+
+                            // Replace the legacy expression-only test with the
+                            // dual-lane simulation modal so the author can see
+                            // how their rule interacts with system permission
+                            // policies.
+                            onTestClick={() => setShowTest(true)}
                         />
                     )}
                 </div>
@@ -1078,6 +1134,21 @@ function PermissionRuleEditor({
                     )}
                 </button>
             </div>
+
+            {showTest && (
+                <TestAccessRuleModal
+                    isStacked={true}
+                    onExited={() => setShowTest(false)}
+                    policy={buildSimulationPolicy(draft)}
+                    actions={draft.actions}
+                    ruleName={draft.name.trim()}
+                    channelId={channelId}
+                    actionLabels={actionLabels}
+                    targetRole={draft.role}
+                    targetScope='channel'
+                    accessControlFields={userAttributes}
+                />
+            )}
         </div>
     );
 }
