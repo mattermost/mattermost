@@ -407,11 +407,11 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 
 		// Another plugin should NOT be able to update it (protected)
 		created.Attrs[model.PropertyAttrsProtected] = true
-		updated, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.NoError(t, err)
 
 		updated.Name = "attempt-update"
-		_, err = th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, updated)
+		_, _, err = th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, updated)
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "protected")
 	})
@@ -436,7 +436,7 @@ func TestAccessControlHookGroupScoping(t *testing.T) {
 
 		// Another plugin CAN update it (no access control for this group)
 		created.Name = "updated-by-plugin2"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin2, unmanagedGroup.ID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, unmanagedGroup.ID, created)
 		require.NoError(t, err)
 		assert.Equal(t, "updated-by-plugin2", updated.Name)
 	})
@@ -525,7 +525,7 @@ func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 			TargetType: "user",
 		})
 		field.Name = "updated"
-		_, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
+		_, _, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field})
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "batch update blocked")
 	})
@@ -557,7 +557,7 @@ func TestPreUpdatePropertyFieldsHook(t *testing.T) {
 
 		field1.Name = "a"
 		field2.Name = "b"
-		results, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field1, field2})
+		results, _, _, err := th.service.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field1, field2})
 		require.NoError(t, err)
 		require.Len(t, results, 2)
 		assert.Equal(t, "modified-a", results[0].Name)

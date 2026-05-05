@@ -351,6 +351,12 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	s.propertyService.AddHook(fieldLimitHook)
 
+	// Type-change value cleanup — registered last so the field write has
+	// passed every other gate (license, access control, validation, limit)
+	// before we cascade-delete dependent values. PostUpdate hooks run after
+	// the store write succeeds.
+	s.propertyService.AddHook(properties.NewTypeChangeValueCleanupHook(s.propertyService))
+
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
 	// If you are adding a new field that is non-channels specific, please add

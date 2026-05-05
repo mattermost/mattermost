@@ -211,7 +211,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	updatedField, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	updatedField, valuesCleared, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
 	if updateErr != nil {
 		c.Err = updateErr
 		return
@@ -223,9 +223,13 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CPA-specific websocket event (backward compat)
+	// CPA-specific websocket event (backward compat). delete_values:true tells
+	// pre-PSAv2 webapp clients to clear cached values for this field; PSAv2
+	// clients receive the same signal via WebsocketEventPropertyValuesUpdated
+	// fired by App.UpdatePropertyField.
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
 	message.Add("field", cpaField)
+	message.Add("delete_values", valuesCleared)
 	c.App.Publish(message)
 
 	auditRec.Success()

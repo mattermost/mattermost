@@ -182,20 +182,24 @@ func (a *App) CountPropertyFieldsForTarget(rctx request.CTX, groupID, targetType
 	return count, nil
 }
 
-// UpdatePropertyField updates an existing property field.
-func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, *model.AppError) {
-	fields, err := a.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field}, bypassProtectedCheck, connectionID)
+// UpdatePropertyField updates an existing property field. The second return
+// value indicates whether the field's dependent property values were cleared
+// as a side effect (e.g. by TypeChangeValueCleanupHook on a type change).
+func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, bool, *model.AppError) {
+	fields, clearedIDs, err := a.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field}, bypassProtectedCheck, connectionID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	return fields[0], nil
+	return fields[0], len(clearedIDs) > 0, nil
 }
 
-// UpdatePropertyFields updates multiple property fields.
-func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string) ([]*model.PropertyField, *model.AppError) {
+// UpdatePropertyFields updates multiple property fields. The second return
+// value lists the IDs of fields whose dependent property values were cleared
+// as a side effect.
+func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField, bypassProtectedCheck bool, connectionID string) ([]*model.PropertyField, []string, *model.AppError) {
 	if len(fields) == 0 {
-		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.invalid_input.app_error", nil, "property fields are required", http.StatusBadRequest)
+		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.invalid_input.app_error", nil, "property fields are required", http.StatusBadRequest)
 	}
 
 	// Intrinsic invariants — apply to every caller (HTTP, plugin, internal).
@@ -214,9 +218,9 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
-			return nil, appErr
+			return nil, nil, appErr
 		}
-		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.get_existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	existingByID := make(map[string]*model.PropertyField, len(existingFields))
@@ -240,7 +244,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		if existingLinked {
 			if f.Type != existing.Type {
-				return nil, model.NewAppError(
+				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.linked_type_change.app_error",
 					map[string]any{"FieldID": existing.ID},
@@ -257,7 +261,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 				incomingOpts = f.Attrs[model.PropertyFieldAttributeOptions]
 			}
 			if !propertyFieldOptionsEqual(existingOpts, incomingOpts) {
-				return nil, model.NewAppError(
+				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.linked_options_change.app_error",
 					map[string]any{"FieldID": existing.ID},
@@ -266,7 +270,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 				)
 			}
 			if incomingLinked && *f.LinkedFieldID != *existing.LinkedFieldID {
-				return nil, model.NewAppError(
+				return nil, nil, model.NewAppError(
 					"UpdatePropertyFields",
 					"app.property_field.update.cannot_change_link_target.app_error",
 					map[string]any{"FieldID": existing.ID},
@@ -275,7 +279,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 				)
 			}
 		} else if incomingLinked {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.cannot_link_existing.app_error",
 				map[string]any{"FieldID": existing.ID},
@@ -286,7 +290,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		// Protected-check is the only invariant gated on the caller's opt-out.
 		if !bypassProtectedCheck && existing.Protected {
-			return nil, model.NewAppError(
+			return nil, nil, model.NewAppError(
 				"UpdatePropertyFields",
 				"app.property_field.update.protected.app_error",
 				map[string]any{"FieldID": existing.ID},
@@ -296,12 +300,12 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		}
 	}
 
-	updated, propagated, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
+	updated, propagated, clearedFieldIDs, err := a.Srv().propertyService.UpdatePropertyFields(rctx, groupID, fields)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpdatePropertyFields", err); appErr != nil {
-			return nil, appErr
+			return nil, nil, appErr
 		}
-		return nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Broadcast websocket events for both requested and propagated fields
@@ -312,7 +316,18 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, field, "")
 	}
 
-	return updated, nil
+	// For each field whose dependent values were cleared as a side effect of
+	// the update (e.g. a type change handled by TypeChangeValueCleanupHook),
+	// publish the generic property_values_updated event so subscribers refresh
+	// their local caches. Mirrors App.DeletePropertyValuesForField's wire shape.
+	for _, fieldID := range clearedFieldIDs {
+		message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
+		message.Add("field_id", fieldID)
+		message.Add("values", "[]")
+		a.Publish(message)
+	}
+
+	return updated, clearedFieldIDs, nil
 }
 
 // DeletePropertyField deletes a property field.

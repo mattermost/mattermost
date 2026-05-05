@@ -858,7 +858,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		created.Name = "Updated Name"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Name", updated.Name)
 	})
@@ -879,7 +879,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		created.Name = "Updated Protected Field"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.Equal(t, "Updated Protected Field", updated.Name)
 	})
@@ -900,7 +900,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		created.Name = "Attempted Update"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
@@ -923,7 +923,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 		require.NoError(t, err)
 
 		created.Name = "Attempted Update"
-		updated, err := th.service.UpdatePropertyField(rctxAnon, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxAnon, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
@@ -944,7 +944,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 		// Try to change source_plugin_id
 		created.Attrs[model.PropertyAttrsSourcePluginID] = "plugin-2"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "immutable")
@@ -965,7 +965,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 		// Try to set protected=true without having a source_plugin_id
 		created.Attrs[model.PropertyAttrsProtected] = true
-		updated, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "cannot set protected=true")
@@ -989,14 +989,14 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 		// Try to set protected=true by a different plugin (plugin-2)
 		created.Attrs[model.PropertyAttrsProtected] = true
-		updated, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "cannot set protected=true")
 		assert.Contains(t, err.Error(), "plugin-1")
 
 		// Verify the source plugin (plugin-1) CAN set protected=true
-		updated, err = th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
+		updated, _, err = th.service.UpdatePropertyField(rctxPlugin1, th.CPAGroupID, created)
 		require.NoError(t, err)
 		assert.True(t, model.IsPropertyFieldProtected(updated))
 	})
@@ -1022,7 +1022,7 @@ func TestUpdatePropertyField_WriteAccessControl(t *testing.T) {
 
 		// Update with different plugin - should be allowed (no access control)
 		created.Name = "Updated by Plugin2"
-		updated, err := th.service.UpdatePropertyField(rctxPlugin2, nonCpaGroup.ID, created)
+		updated, _, err := th.service.UpdatePropertyField(rctxPlugin2, nonCpaGroup.ID, created)
 		require.NoError(t, err)
 		assert.NotNil(t, updated)
 		assert.Equal(t, "Updated by Plugin2", updated.Name)
@@ -1052,7 +1052,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Name = "Updated Field2"
 
-		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.NoError(t, err)
 		assert.Len(t, updated, 2)
 	})
@@ -1081,7 +1081,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Unprotected"
 		created2.Name = "Updated Protected"
 
-		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin2, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")
@@ -1112,7 +1112,7 @@ func TestUpdatePropertyFields_BulkWriteAccessControl(t *testing.T) {
 		created1.Name = "Updated Field1"
 		created2.Attrs[model.PropertyAttrsProtected] = true
 
-		updated, _, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
+		updated, _, _, err := th.service.UpdatePropertyFields(rctxPlugin1, th.CPAGroupID, []*model.PropertyField{created1, created2})
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "cannot set protected=true")
@@ -1296,7 +1296,7 @@ func TestDeletePropertyField_OrphanedFieldDeletion(t *testing.T) {
 		})
 
 		created.Name = "Updated Orphaned Field"
-		updated, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created)
+		updated, _, err := th.service.UpdatePropertyField(RequestContextWithCallerID(th.Context, "admin-user"), th.CPAGroupID, created)
 		require.Error(t, err)
 		assert.Nil(t, updated)
 		assert.Contains(t, err.Error(), "protected")

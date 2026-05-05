@@ -344,7 +344,7 @@ func patchPropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	updatedField, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	updatedField, _, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
 	if updateErr != nil {
 		c.Err = updateErr
 		return

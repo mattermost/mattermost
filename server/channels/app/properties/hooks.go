@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -37,6 +38,15 @@ type PropertyHook interface {
 	PreUpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, error)
 	PreUpdatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error)
 	PreDeletePropertyField(rctx request.CTX, groupID string, id string) error
+
+	// PostUpdatePropertyFields runs after a successful field update (including
+	// the linked-field propagation pass). It receives parallel slices of the
+	// pre-update and post-update field state so hooks can detect what changed.
+	// Returns the IDs of fields whose dependent property values were cleared
+	// as a side effect (e.g. type-change cleanup); the caller publishes the
+	// corresponding WS events. Errors are best-effort: the dispatcher logs
+	// and continues, the update is not rolled back.
+	PostUpdatePropertyFields(rctx request.CTX, groupID string, prev, updated []*model.PropertyField) (clearedFieldIDs []string, err error)
 
 	// Field pre-hook for count operations. Count operations return only a
 	// scalar so there is no post-hook — access control applied to per-row
@@ -94,6 +104,9 @@ func (BasePropertyHook) PreUpdatePropertyFields(_ request.CTX, _ string, fields 
 }
 func (BasePropertyHook) PreDeletePropertyField(_ request.CTX, _ string, _ string) error {
 	return nil
+}
+func (BasePropertyHook) PostUpdatePropertyFields(_ request.CTX, _ string, _, _ []*model.PropertyField) ([]string, error) {
+	return nil, nil
 }
 func (BasePropertyHook) PreCountPropertyFields(_ request.CTX, _ string) error {
 	return nil
@@ -187,6 +200,33 @@ func (ps *PropertyService) runPreUpdatePropertyFields(rctx request.CTX, groupID 
 		}
 	}
 	return fields, nil
+}
+
+// runPostUpdatePropertyFields runs all registered post-hooks for
+// UpdatePropertyFields. It aggregates the cleared field IDs returned by each
+// hook (deduped) and is best-effort: hook errors are logged and skipped, the
+// update itself is not rolled back.
+func (ps *PropertyService) runPostUpdatePropertyFields(rctx request.CTX, groupID string, prev, updated []*model.PropertyField) []string {
+	seen := map[string]struct{}{}
+	var cleared []string
+	for _, hook := range ps.hooks {
+		ids, err := hook.PostUpdatePropertyFields(rctx, groupID, prev, updated)
+		if err != nil {
+			rctx.Logger().Error("PostUpdatePropertyFields hook failed",
+				mlog.String("group_id", groupID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		for _, id := range ids {
+			if _, ok := seen[id]; ok {
+				continue
+			}
+			seen[id] = struct{}{}
+			cleared = append(cleared, id)
+		}
+	}
+	return cleared
 }
 
 // runPreDeletePropertyField runs all registered pre-hooks for DeletePropertyField.

@@ -411,6 +411,69 @@ func TestPatchCPAField(t *testing.T) {
 		require.Equal(t, "Updated Option 2", patchedCPA.Attrs.Options[2].Name)
 	})
 
+	t.Run("changing a field's type deletes dependent values and emits delete_values:true", func(t *testing.T) {
+		webSocketClient := th.CreateConnectedWebSocketClient(t)
+
+		selectField := &model.PropertyField{
+			Name: "select_type_change_" + model.NewId(),
+			Type: model.PropertyFieldTypeSelect,
+			Attrs: model.StringInterface{
+				model.PropertyFieldAttributeOptions: []any{
+					map[string]any{"name": "Option 1", "color": "#FF5733"},
+				},
+			},
+		}
+		created, resp, err := th.SystemAdminClient.CreateCPAField(context.Background(), selectField)
+		CheckCreatedStatus(t, resp)
+		require.NoError(t, err)
+
+		createdCPA, err := model.NewCPAFieldFromPropertyField(created)
+		require.NoError(t, err)
+		require.NotEmpty(t, createdCPA.Attrs.Options)
+		optionID := createdCPA.Attrs.Options[0].ID
+		require.NotEmpty(t, optionID)
+
+		// Seed a value for BasicUser referencing the option.
+		_, resp, err = th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.BasicUser.Id, map[string]json.RawMessage{
+			created.ID: json.RawMessage(fmt.Sprintf(`"%s"`, optionID)),
+		})
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// Patch type from select → text.
+		typePatch := &model.PropertyFieldPatch{Type: model.NewPointer(model.PropertyFieldTypeText)}
+		_, resp, err = th.SystemAdminClient.PatchCPAField(context.Background(), created.ID, typePatch)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+
+		// The dependent value must be gone.
+		retrieved, resp, err := th.SystemAdminClient.ListCPAValues(context.Background(), th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+		require.NoError(t, err)
+		_, present := retrieved[created.ID]
+		require.False(t, present, "value should be deleted when the field's type changes")
+
+		// The legacy CPA WS event must carry delete_values:true.
+		var sawDeleteValues bool
+		require.Eventually(t, func() bool {
+			for {
+				select {
+				case event := <-webSocketClient.EventChannel:
+					if event.EventType() != model.WebsocketEventCPAFieldUpdated {
+						continue
+					}
+					if dv, ok := event.GetData()["delete_values"].(bool); ok && dv {
+						sawDeleteValues = true
+						return true
+					}
+				default:
+					return false
+				}
+			}
+		}, 5*time.Second, 100*time.Millisecond)
+		require.True(t, sawDeleteValues, "expected cpa_field_updated to carry delete_values:true on a type change")
+	})
+
 	t.Run("patching a field without changing its type preserves existing values", func(t *testing.T) {
 		selectField := &model.PropertyField{
 			Name: "select_with_values_" + model.NewId(),

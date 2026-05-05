@@ -89,7 +89,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: "bad"}
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "visibility")
 	})
@@ -632,7 +632,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		field.Attrs = model.StringInterface{
 			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 		}
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "managed=admin")
 	})
@@ -652,7 +652,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Attrs = model.StringInterface{}
-		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updated.PermissionValues)
 		assert.Equal(t, model.PermissionLevelMember, *updated.PermissionValues)
@@ -713,7 +713,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		field.Attrs = model.StringInterface{
 			model.CustomProfileAttributesPropertyAttrsDisplayName: strings.Repeat("a", model.PropertyFieldNameMaxRunes+1),
 		}
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "display_name")
 	})
@@ -728,7 +728,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Attrs = model.StringInterface{model.PropertyFieldAttrValueType: "wat"}
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "value_type")
 	})
@@ -743,7 +743,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Attrs = model.StringInterface{model.PropertyFieldAttrManaged: "kinda"}
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "managed")
 	})
@@ -804,7 +804,7 @@ func TestAttributeValidationHook(t *testing.T) {
 
 		// Patch a different attr without touching Name — should succeed.
 		field.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: "always"}
-		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.NoError(t, updateErr)
 		assert.Equal(t, "legacy name", updated.Name)
 	})
@@ -819,7 +819,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Name = "Bad Name"
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		var appErr *model.AppError
 		require.ErrorAs(t, updateErr, &appErr)
@@ -836,7 +836,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		})
 
 		field.Name = "in"
-		_, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.Error(t, updateErr)
 		var appErr *model.AppError
 		require.ErrorAs(t, updateErr, &appErr)
@@ -854,7 +854,7 @@ func TestAttributeValidationHook(t *testing.T) {
 
 		newName := "new_name_" + model.NewId()
 		field.Name = newName
-		updated, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, updateErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
 		require.NoError(t, updateErr)
 		assert.Equal(t, newName, updated.Name)
 	})
@@ -880,7 +880,7 @@ func TestAttributeValidationHook(t *testing.T) {
 		grandfathered.Attrs = model.StringInterface{model.PropertyFieldAttrVisibility: "hidden"}
 		newName := "rename_dst_" + model.NewId()
 		renamable.Name = newName
-		_, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{grandfathered, renamable})
+		_, _, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{grandfathered, renamable})
 		require.NoError(t, updateErr)
 	})
 
@@ -902,7 +902,7 @@ func TestAttributeValidationHook(t *testing.T) {
 
 		ok.Name = "ok_dst_" + model.NewId()
 		bad.Name = "for" // CEL reserved word
-		_, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{ok, bad})
+		_, _, _, updateErr := th.service.UpdatePropertyFields(th.Context, group.ID, []*model.PropertyField{ok, bad})
 		require.Error(t, updateErr)
 		var appErr *model.AppError
 		require.ErrorAs(t, updateErr, &appErr)
@@ -1023,7 +1023,7 @@ func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 		created.Attrs = model.StringInterface{
 			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 		}
-		_, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
+		_, _, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
 		require.Error(t, updateErr)
 		assert.Contains(t, updateErr.Error(), "permission")
 	})
@@ -1044,7 +1044,7 @@ func TestAttributeValidationHookManagedAuthorization(t *testing.T) {
 		created.Attrs = model.StringInterface{
 			model.CustomProfileAttributesPropertyAttrsManaged: "admin",
 		}
-		updated, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
+		updated, _, updateErr := th.service.UpdatePropertyField(rctx, group.ID, created)
 		require.NoError(t, updateErr)
 		require.NotNil(t, updated.PermissionValues)
 		assert.Equal(t, model.PermissionLevelSysadmin, *updated.PermissionValues)

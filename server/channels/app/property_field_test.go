@@ -142,7 +142,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "Updated Field Name"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Updated Field Name", updated.Name)
 	})
@@ -163,7 +163,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "Attempted Update"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -186,7 +186,7 @@ func TestUpdatePropertyField(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "Successfully Updated Protected"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, true, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, true, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "Successfully Updated Protected", updated.Name)
 	})
@@ -204,7 +204,7 @@ func TestUpdatePropertyField(t *testing.T) {
 
 		// Try to update with empty name (invalid)
 		created.Name = ""
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 	})
@@ -240,7 +240,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		created1.Name = "Updated Batch 1"
 		created2.Name = "Updated Batch 2"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{created1, created2}, false, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{created1, created2}, false, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
@@ -273,7 +273,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdNonProtected.Name = "Updated Non-Protected"
 		createdProtected.Name = "Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.protected.app_error", appErr.Id)
@@ -317,7 +317,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdNonProtected.Name = "Bypass Updated Non-Protected"
 		createdProtected.Name = "Bypass Updated Protected"
 
-		updated, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true, "")
+		updated, _, appErr := th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdNonProtected, createdProtected}, true, "")
 		require.Nil(t, appErr)
 		require.Len(t, updated, 2)
 	})
@@ -350,7 +350,7 @@ func TestUpdatePropertyFields(t *testing.T) {
 		createdMain.Name = "Updated Main"
 		createdOther.Name = "Updated Other"
 
-		_, appErr = th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdMain, createdOther}, false, "")
+		_, _, appErr = th.App.UpdatePropertyFields(th.Context, groupID, []*model.PropertyField{createdMain, createdOther}, false, "")
 		require.NotNil(t, appErr)
 
 		// Verify neither field was updated
@@ -460,7 +460,7 @@ func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
 		// Attempt to update it as a v2 field (add ObjectType to make it v2)
 		created.ObjectType = model.PropertyFieldObjectTypeUser
 		created.TargetType = string(model.PropertyFieldTargetLevelSystem)
-		updated, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -484,7 +484,7 @@ func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
 		// Attempt to update it as a v1 field (remove ObjectType to make it v1)
 		created.ObjectType = ""
 		created.TargetType = "user"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -504,7 +504,7 @@ func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "V1 Field Updated"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v1Group.ID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "V1 Field Updated", updated.Name)
 	})
@@ -524,7 +524,7 @@ func TestUpdatePropertyFieldVersionEnforcement(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "V2 Field Updated"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, v2Group.ID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "V2 Field Updated", updated.Name)
 	})
@@ -829,7 +829,7 @@ func TestUpdatePropertyField_TrimNameOnUpdate(t *testing.T) {
 		require.Nil(t, appErr)
 
 		created.Name = "  trimmed-on-update  "
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, created, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "trimmed-on-update", updated.Name)
 	})
@@ -875,7 +875,7 @@ func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
 	t.Run("type immutable on linked field", func(t *testing.T) {
 		_, linked := makeLinkedPair(t)
 		linked.Type = model.PropertyFieldTypeText
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.linked_type_change.app_error", appErr.Id)
@@ -889,7 +889,7 @@ func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
 				{"id": model.NewId(), "name": "different"},
 			},
 		}
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.linked_options_change.app_error", appErr.Id)
@@ -917,7 +917,7 @@ func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
 
 		newID := createdNew.ID
 		linked.LinkedFieldID = &newID
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, linked, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.cannot_change_link_target.app_error", appErr.Id)
@@ -948,7 +948,7 @@ func TestUpdatePropertyField_LinkedFieldInvariants(t *testing.T) {
 		tID := createdTmpl.ID
 
 		createdUnlinked.LinkedFieldID = &tID
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdUnlinked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdUnlinked, false, "")
 		require.NotNil(t, appErr)
 		assert.Nil(t, updated)
 		assert.Equal(t, "app.property_field.update.cannot_link_existing.app_error", appErr.Id)
@@ -993,7 +993,7 @@ func TestUpdatePropertyField_LinkedFieldNoOpPatchOK(t *testing.T) {
 
 		// No-op update: Type unchanged.
 		createdLinked.Name = "linked-renamed"
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
 		require.Nil(t, appErr)
 		assert.Equal(t, "linked-renamed", updated.Name)
 	})
@@ -1029,7 +1029,7 @@ func TestUpdatePropertyField_LinkedFieldUnlinkAllowed(t *testing.T) {
 		require.Nil(t, appErr)
 
 		createdLinked.LinkedFieldID = nil
-		updated, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, groupID, createdLinked, false, "")
 		require.Nil(t, appErr)
 		assert.Nil(t, updated.LinkedFieldID)
 	})
