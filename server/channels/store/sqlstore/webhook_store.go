@@ -103,7 +103,7 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.Inc
 
 	_, err := s.GetMaster().NamedExec(`UPDATE IncomingWebhooks SET
 			CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, ChannelId=:ChannelId, TeamId=:TeamId, DisplayName=:DisplayName,
-			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked, LastUsed=:LastUsed
+			Description=:Description, Username=:Username, IconURL=:IconURL, ChannelLocked=:ChannelLocked
 			WHERE Id=:Id`, hook)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to update IncomingWebhook with id=%s", hook.Id)

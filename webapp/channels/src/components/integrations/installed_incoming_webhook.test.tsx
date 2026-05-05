@@ -164,4 +164,24 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         );
         expect(container.querySelector('.item-details')).not.toBeNull();
     });
+
+    test('should show Last used on when last_used is non-zero', () => {
+        const lastUsedMs = 1704067200000;
+        const hookWithLastUsed: IncomingWebhook = {
+            ...incomingWebhook,
+            last_used: lastUsedMs,
+        };
+
+        renderWithContext(
+            <InstalledIncomingWebhook
+                {...baseProps}
+                incomingWebhook={hookWithLastUsed}
+                canChange={false}
+            />,
+            initialState,
+        );
+
+        expect(screen.getByText(/Last used on/i)).toBeInTheDocument();
+        expect(screen.queryByText('Never used')).not.toBeInTheDocument();
+    });
 });
