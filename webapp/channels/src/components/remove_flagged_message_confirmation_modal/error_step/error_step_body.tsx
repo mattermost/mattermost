@@ -43,7 +43,7 @@ export default function ErrorStepBody({
                 contentFlaggingConfig={contentFlaggingConfig}
             />
             <ReportNotice
-                variant='danger'
+                variant='warning'
                 testId='error-section'
                 icon={<span className='icon icon-information-outline'/>}
                 title={

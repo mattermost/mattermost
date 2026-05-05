@@ -7,7 +7,7 @@ import React from 'react';
 import './report_notice.scss';
 
 type Props = {
-    variant: 'info' | 'success' | 'danger';
+    variant: 'info' | 'success' | 'warning';
     icon: React.ReactNode;
     title: React.ReactNode;
     body: React.ReactNode;

@@ -39,7 +39,7 @@ export default function ErrorStepFooter({action, onSkip, onBack}: FooterProps) {
                     type='button'
                     className='GenericModal__button btn btn-tertiary'
                     onClick={onBack}
-                    data-testid='skip-confirm-back-button'
+                    data-testid='error-step-back-button'
                 >
                     {backText}
                 </button>
