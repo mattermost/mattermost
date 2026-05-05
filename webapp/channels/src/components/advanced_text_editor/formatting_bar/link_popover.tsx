@@ -230,8 +230,7 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
                     />
                     {isUrlDirty && (
                         <HintText>
-                            {'↵ '}
-                            <span>{'ENTER to save'}</span>
+                            <span>{formatMessage({id: 'wysiwyg.link.save_hint', defaultMessage: '↵ ENTER to save'})}</span>
                         </HintText>
                     )}
                     {isSaved && (

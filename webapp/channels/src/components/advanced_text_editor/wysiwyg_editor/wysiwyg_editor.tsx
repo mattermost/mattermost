@@ -53,6 +53,12 @@ type Props = {
     disabled?: boolean;
     id?: string;
     useCtrlSend?: boolean;
+
+    // When true, behaves like the legacy "Send code blocks with Ctrl+Enter" mode:
+    // outside code blocks the rules from useCtrlSend (or default Enter-sends) apply,
+    // but inside a code block plain Enter inserts a newline and Ctrl/Cmd+Enter sends.
+    // Has no effect when useCtrlSend is true.
+    sendCodeBlockOnCtrlEnter?: boolean;
 };
 
 const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
@@ -68,6 +74,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     disabled = false,
     id,
     useCtrlSend = false,
+    sendCodeBlockOnCtrlEnter = false,
 }, ref) => {
     const onSubmitRef = useRef(onSubmit);
     const onChangeRef = useRef(onChange);
@@ -99,6 +106,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     useEffect(() => {
         useCtrlSendRef.current = useCtrlSend;
     }, [useCtrlSend]);
+
+    const sendCodeBlockOnCtrlEnterRef = useRef(sendCodeBlockOnCtrlEnter);
+    useEffect(() => {
+        sendCodeBlockOnCtrlEnterRef.current = sendCodeBlockOnCtrlEnter;
+    }, [sendCodeBlockOnCtrlEnter]);
 
     const editorRef = useRef<Editor | null>(null);
 
@@ -240,6 +252,15 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                         if (insideList || insideBlockquote || insideCodeBlock || insideTable || insideHeading) {
                             return false;
                         }
+                        event.preventDefault();
+                        onSubmitRef.current();
+                        return true;
+                    }
+                    return false;
+                }
+
+                if (sendCodeBlockOnCtrlEnterRef.current && insideCodeBlock) {
+                    if (ctrlOrMeta && !event.shiftKey && !event.altKey) {
                         event.preventDefault();
                         onSubmitRef.current();
                         return true;

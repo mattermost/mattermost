@@ -7311,6 +7311,7 @@
   "wysiwyg.link.open": "Open link",
   "wysiwyg.link.placeholder": "Type or paste a link",
   "wysiwyg.link.remove": "Remove link",
+  "wysiwyg.link.save_hint": "↵ ENTER to save",
   "yourcomputer": "Your computer",
   "youtube_video.play_button.aria_label": "Play video",
   "youtube_video.play.aria_label": "Play {videoTitle} on YouTube",

@@ -235,6 +235,7 @@ const AdvancedTextEditor = ({
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
     const ctrlSend = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'));
+    const codeBlockOnCtrlEnter = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'code_block_ctrl_enter', true));
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
 
     const handleShowPreview = useCallback(() => {
@@ -836,6 +837,7 @@ const AdvancedTextEditor = ({
                                 id={textboxId}
                                 disabled={isDisabled && !rewriteIsProcessing}
                                 useCtrlSend={ctrlSend}
+                                sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
                             />
                         ) : (
                             <Textbox

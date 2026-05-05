@@ -106,8 +106,12 @@ export function splitFormattingBarControls(layoutMode: LayoutMode, additionalCon
         visibleControlsCount = Math.max(0, visibleControlsCount - 3);
     }
 
-    const controls = ALL_CONTROLS.slice(0, visibleControlsCount);
-    const hiddenControls = ALL_CONTROLS.slice(visibleControlsCount);
+    // When the TextStyleDropdown is rendered, the legacy single-button heading
+    // control is redundant
+    const sourceControls = hasTextStyleDropdown ? ALL_CONTROLS.filter((c) => c !== 'heading') : ALL_CONTROLS;
+
+    const controls = sourceControls.slice(0, visibleControlsCount);
+    const hiddenControls = sourceControls.slice(visibleControlsCount);
 
     return {
         controls,
