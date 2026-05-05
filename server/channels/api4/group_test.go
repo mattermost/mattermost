@@ -2881,7 +2881,7 @@ func findPersistedGroupSyncable(t *testing.T, th *TestHelper, groupID, syncableI
 
 func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -2953,7 +2953,7 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3038,7 +3038,7 @@ func TestLinkGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3152,7 +3152,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3273,7 +3273,7 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 
 func TestLinkGroupTeam_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3322,7 +3322,7 @@ func TestLinkGroupTeam_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
 
 func TestLinkGroupChannel_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3377,7 +3377,7 @@ func TestLinkGroupChannel_LinkOnExistingPreservesSchemeAdmin(t *testing.T) {
 
 func TestLinkGroupTeam_LinkOnSoftDeletedDoesNotPreserveSchemeAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3410,7 +3410,7 @@ func TestLinkGroupTeam_LinkOnSoftDeletedDoesNotPreserveSchemeAdmin(t *testing.T)
 
 func TestPatchGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3440,7 +3440,7 @@ func TestPatchGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T)
 
 func TestPatchGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3476,7 +3476,7 @@ func TestPatchGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing
 
 func TestLinkGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3500,7 +3500,7 @@ func TestLinkGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) 
 
 func TestLinkGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3530,7 +3530,7 @@ func TestLinkGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.
 
 func TestLinkGroupTeam_SchemeAdminTruePromotesGroupMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
@@ -3555,13 +3555,13 @@ func TestLinkGroupTeam_SchemeAdminTruePromotesGroupMembers(t *testing.T) {
 
 func TestLinkGroupTeam_AutoAddOnlyAddsGroupMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
 	g := newSchemeAdminTestLdapGroup(t, th)
 
-	newUser := th.CreateUser(t)
+	newUser := th.CreateUser()
 	_, appErr := th.App.UpsertGroupMember(g.Id, newUser.Id)
 	require.Nil(t, appErr)
 
