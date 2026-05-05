@@ -216,18 +216,40 @@ func (b *AzureFileBackend) WriteFile(fr io.Reader, p string) (int64, error) {
 	return b.WriteFileContext(context.Background(), fr, p)
 }
 
+// WriteFileContext stages the entire body as a single block and commits a
+// fresh block list containing only that block. This is intentionally not
+// UploadStream: small uploads through UploadStream fall back to a single-shot
+// PutBlob, which leaves the resulting blob with no committed block list. A
+// later AppendFile that calls CommitBlockList would then overwrite the blob's
+// content. Routing every WriteFile through the block-list mechanism keeps
+// AppendFile's append-by-staging-one-block strategy correct in all cases.
 func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p string) (int64, error) {
-	// Azure SDK uploads buffer the body internally for retries; an UploadStream avoids
-	// holding the whole file in memory.
 	ctx, cancel := context.WithTimeout(ctx, b.timeout)
 	defer cancel()
 
-	cnt := &countingReader{r: fr}
-	_, err := b.blockBlobClient(p).UploadStream(ctx, cnt, nil)
+	data, err := io.ReadAll(fr)
 	if err != nil {
-		return 0, pkgerr.Wrapf(err, "unable to write %s", p)
+		return 0, pkgerr.Wrap(err, "failed to read input")
 	}
-	return cnt.n, nil
+
+	bb := b.blockBlobClient(p)
+
+	blockID, err := newBlockID()
+	if err != nil {
+		return 0, pkgerr.Wrap(err, "failed to generate block id")
+	}
+
+	_, err = bb.StageBlock(ctx, blockID, &readSeekNopCloser{Reader: bytes.NewReader(data)}, nil)
+	if err != nil {
+		return 0, pkgerr.Wrapf(err, "unable to stage block for %s", p)
+	}
+
+	_, err = bb.CommitBlockList(ctx, []string{blockID}, nil)
+	if err != nil {
+		return 0, pkgerr.Wrapf(err, "unable to commit block list for %s", p)
+	}
+
+	return int64(len(data)), nil
 }
 
 // AppendFile appends data to a block blob using StageBlock + CommitBlockList. Each
@@ -235,43 +257,36 @@ func (b *AzureFileBackend) WriteFileContext(ctx context.Context, fr io.Reader, p
 // commits the existing block list plus the new ID. This avoids the O(n^2)
 // download-concatenate-reupload pattern: the new bytes go up exactly once.
 //
-// Notes:
-//   - Block IDs are random base64 strings of equal length, as required by the Azure
-//     block-blob protocol.
-//   - This implementation reads the new chunk fully into memory because the SDK's
-//     StageBlock requires a ReadSeekCloser. Callers (the upload session machinery)
-//     already chunk uploads, so this is bounded.
+// AppendFile mirrors the S3 / local filesystem contract: it returns an error if
+// the target does not yet exist, and returns the number of bytes appended.
+//
+// Block IDs are random base64 strings of equal length, as required by the Azure
+// block-blob protocol. The new chunk is read fully into memory because the SDK's
+// StageBlock requires a ReadSeekCloser; callers (the upload-session machinery)
+// already chunk uploads, so this is bounded.
 func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
-	data, err := io.ReadAll(fr)
-	if err != nil {
-		return 0, pkgerr.Wrap(err, "failed to read input")
-	}
-	if len(data) == 0 {
-		// Match the S3 AppendFile contract: returning the existing size is fine here.
-		size, _ := b.FileSize(p)
-		return size, nil
-	}
-
 	bb := b.blockBlobClient(p)
 
-	var existingIDs []string
-	var existingSize int64
 	listResp, err := bb.GetBlockList(ctx, blockblob.BlockListTypeCommitted, nil)
-	if err != nil && !bloberror.HasCode(err, bloberror.BlobNotFound) {
-		return 0, pkgerr.Wrapf(err, "unable to list existing blocks for %s", p)
+	if err != nil {
+		return 0, pkgerr.Wrapf(err, "unable to find file %s to append data", p)
 	}
-	if err == nil && listResp.BlockList.CommittedBlocks != nil {
+
+	var existingIDs []string
+	if listResp.BlockList.CommittedBlocks != nil {
 		for _, blk := range listResp.BlockList.CommittedBlocks {
 			if blk.Name != nil {
 				existingIDs = append(existingIDs, *blk.Name)
 			}
-			if blk.Size != nil {
-				existingSize += *blk.Size
-			}
 		}
+	}
+
+	data, err := io.ReadAll(fr)
+	if err != nil {
+		return 0, pkgerr.Wrap(err, "failed to read input")
 	}
 
 	newID, err := newBlockID()
@@ -290,7 +305,7 @@ func (b *AzureFileBackend) AppendFile(fr io.Reader, p string) (int64, error) {
 		return 0, pkgerr.Wrapf(err, "unable to commit block list for %s", p)
 	}
 
-	return existingSize, nil
+	return int64(len(data)), nil
 }
 
 func (b *AzureFileBackend) RemoveFile(p string) error {
@@ -465,18 +480,6 @@ func (r *readSeekNopCloser) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (r *readSeekNopCloser) Close() error { return nil }
-
-// countingReader counts bytes flowing through an io.Reader.
-type countingReader struct {
-	r io.Reader
-	n int64
-}
-
-func (c *countingReader) Read(p []byte) (int, error) {
-	n, err := c.r.Read(p)
-	c.n += int64(n)
-	return n, err
-}
 
 // newBlockID generates a 16-byte random block ID, base64-encoded. All committed
 // blocks must share the same decoded length, so callers should always use this.
