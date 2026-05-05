@@ -3422,7 +3422,7 @@ func TestPatchGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
-	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewPointer(false),
@@ -3482,7 +3482,7 @@ func TestLinkGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) 
 
 	g := newSchemeAdminTestLdapGroup(t, th)
 
-	th.UpdateUserToTeamAdmin(t, th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewPointer(true),
