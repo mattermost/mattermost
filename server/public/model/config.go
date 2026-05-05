@@ -36,6 +36,7 @@ const (
 
 	ImageDriverLocal = "local"
 	ImageDriverS3    = "amazons3"
+	ImageDriverAzure = "azureblob"
 
 	DatabaseDriverPostgres = "postgres"
 
@@ -1800,6 +1801,13 @@ type FileSettings struct {
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3UploadPartSizeBytes        *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	AmazonS3StorageClass               *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureStorageAccount                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureAccessKey                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureContainer                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzurePathPrefix                    *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureEndpoint                      *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	AzureSSL                           *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
+	AzureRequestTimeoutMilliseconds    *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
 	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
 	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
@@ -1932,6 +1940,34 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.AmazonS3StorageClass == nil {
 		s.AmazonS3StorageClass = NewPointer("")
+	}
+
+	if s.AzureStorageAccount == nil {
+		s.AzureStorageAccount = NewPointer("")
+	}
+
+	if s.AzureAccessKey == nil {
+		s.AzureAccessKey = NewPointer("")
+	}
+
+	if s.AzureContainer == nil {
+		s.AzureContainer = NewPointer("")
+	}
+
+	if s.AzurePathPrefix == nil {
+		s.AzurePathPrefix = NewPointer("")
+	}
+
+	if s.AzureEndpoint == nil {
+		s.AzureEndpoint = NewPointer("")
+	}
+
+	if s.AzureSSL == nil {
+		s.AzureSSL = NewPointer(true)
+	}
+
+	if s.AzureRequestTimeoutMilliseconds == nil {
+		s.AzureRequestTimeoutMilliseconds = NewPointer(int64(30000))
 	}
 
 	if s.DedicatedExportStore == nil {

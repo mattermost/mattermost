@@ -15,6 +15,7 @@ import (
 const (
 	driverS3    = "amazons3"
 	driverLocal = "local"
+	driverAzure = "azureblob"
 )
 
 type ReadCloseSeeker interface {
@@ -65,6 +66,13 @@ type FileBackendSettings struct {
 	AmazonS3PresignExpiresSeconds      int64
 	AmazonS3UploadPartSizeBytes        int64
 	AmazonS3StorageClass               string
+	AzureStorageAccount                string
+	AzureAccessKey                     string
+	AzureContainer                     string
+	AzurePathPrefix                    string
+	AzureEndpoint                      string
+	AzureSSL                           bool
+	AzureRequestTimeoutMilliseconds    int64
 }
 
 func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableComplianceFeature bool, skipVerify bool) FileBackendSettings {
@@ -72,6 +80,19 @@ func NewFileBackendSettingsFromConfig(fileSettings *model.FileSettings, enableCo
 		return FileBackendSettings{
 			DriverName: *fileSettings.DriverName,
 			Directory:  *fileSettings.Directory,
+		}
+	}
+	if *fileSettings.DriverName == model.ImageDriverAzure {
+		return FileBackendSettings{
+			DriverName:                      *fileSettings.DriverName,
+			AzureStorageAccount:             *fileSettings.AzureStorageAccount,
+			AzureAccessKey:                  *fileSettings.AzureAccessKey,
+			AzureContainer:                  *fileSettings.AzureContainer,
+			AzurePathPrefix:                 *fileSettings.AzurePathPrefix,
+			AzureEndpoint:                   *fileSettings.AzureEndpoint,
+			AzureSSL:                        fileSettings.AzureSSL == nil || *fileSettings.AzureSSL,
+			AzureRequestTimeoutMilliseconds: *fileSettings.AzureRequestTimeoutMilliseconds,
+			SkipVerify:                      skipVerify,
 		}
 	}
 	return FileBackendSettings{
@@ -159,6 +180,12 @@ func newFileBackend(settings FileBackendSettings, canBeCloud bool) (FileBackend,
 		return &LocalFileBackend{
 			directory: settings.Directory,
 		}, nil
+	case driverAzure:
+		backend, err := NewAzureFileBackend(settings)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to connect to the azure backend")
+		}
+		return backend, nil
 	}
 	return nil, errors.New("no valid filestorage driver found")
 }
