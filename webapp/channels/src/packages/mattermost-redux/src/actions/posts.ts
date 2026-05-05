@@ -1260,11 +1260,11 @@ export function doPostActionWithCookie(postId: string, actionId: string, actionC
     };
 }
 
-export function doPostActionWithInlineContext(postId: string, actionId: string, inlineContext: Record<string, string>): ActionFuncAsync {
+export function doPostActionWithQuery(postId: string, actionId: string, query: Record<string, string>): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.doPostActionWithInlineContext(postId, actionId, inlineContext);
+            data = await Client4.doPostActionWithQuery(postId, actionId, query);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

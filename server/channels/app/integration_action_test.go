@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1809,6 +1810,94 @@ func TestDoPostActionWithCookieEdgeCases(t *testing.T) {
 		require.NotNil(t, err)
 		assert.Contains(t, err.Error(), "Unable to find the user.")
 	})
+
+	t.Run("rejects oversized query at the App boundary (independent of API handler)", func(t *testing.T) {
+		// ValidateActionQuery is called at the top of DoPostActionWithCookie,
+		// not just in the API handler. Direct App-layer callers (plugins,
+		// tests, internal triggers) get the same enforcement as REST clients.
+		oversized := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
+			oversized["k"+strconv.Itoa(i)] = "v"
+		}
+
+		_, err := th.App.DoPostActionWithCookie(th.Context, "any_post", "any_action", th.BasicUser.Id, "", nil, oversized)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+		assert.Equal(t, "api.post.do_action.query.app_error", err.Id)
+	})
+}
+
+// TestCloneMmBlocksActionsProp guards the deep-clone semantics used when
+// restoring an original spec after a plugin update response is rejected.
+// A shallow clone would alias the nested per-action map back into post.Props,
+// so a later mutation through response.Update could reach into the live post.
+func TestCloneMmBlocksActionsProp(t *testing.T) {
+	t.Run("nil and non-map values are returned unchanged", func(t *testing.T) {
+		assert.Nil(t, cloneMmBlocksActionsProp(nil))
+		assert.Equal(t, "string", cloneMmBlocksActionsProp("string"))
+	})
+
+	t.Run("top-level and nested mutations on the clone do not leak", func(t *testing.T) {
+		original := map[string]any{
+			"btn1": map[string]any{
+				"type": "external",
+				"url":  "http://example.com/hook",
+			},
+		}
+
+		cloned, ok := cloneMmBlocksActionsProp(original).(map[string]any)
+		require.True(t, ok)
+
+		// Mutating the top-level map on the clone (adding a key) must not
+		// reach the original.
+		cloned["btn2"] = map[string]any{"type": "external", "url": "http://example.com/other"}
+		assert.NotContains(t, original, "btn2")
+
+		// Mutating a nested per-action map on the clone (changing the URL)
+		// must not reach the original — this is the case the shallow-clone
+		// bug actually exposed.
+		clonedEntry, ok := cloned["btn1"].(map[string]any)
+		require.True(t, ok)
+		clonedEntry["url"] = "http://attacker.example/"
+
+		originalEntry, ok := original["btn1"].(map[string]any)
+		require.True(t, ok)
+		assert.Equal(t, "http://example.com/hook", originalEntry["url"])
+	})
+
+	t.Run("deeply nested context and array mutations on the clone do not leak", func(t *testing.T) {
+		// Per-action specs can carry nested context maps and arrays. A
+		// shallow per-entry clone would still alias these structures back
+		// to the live post's props.
+		original := map[string]any{
+			"btn1": map[string]any{
+				"type":    "external",
+				"url":     "http://example.com/hook",
+				"context": map[string]any{"team": "alpha", "tags": []any{"a", "b"}},
+			},
+		}
+
+		cloned, ok := cloneMmBlocksActionsProp(original).(map[string]any)
+		require.True(t, ok)
+
+		clonedEntry := cloned["btn1"].(map[string]any)
+		clonedContext := clonedEntry["context"].(map[string]any)
+
+		// Mutate the nested context map on the clone.
+		clonedContext["team"] = "tampered"
+		clonedContext["new"] = "added"
+
+		// Mutate the nested array on the clone.
+		clonedTags := clonedContext["tags"].([]any)
+		clonedTags[0] = "tampered"
+
+		// Original must be untouched at every level.
+		originalEntry := original["btn1"].(map[string]any)
+		originalContext := originalEntry["context"].(map[string]any)
+		assert.Equal(t, "alpha", originalContext["team"])
+		assert.NotContains(t, originalContext, "new")
+		assert.Equal(t, []any{"a", "b"}, originalContext["tags"])
+	})
 }
 
 func TestDoPluginRequest(t *testing.T) {
@@ -2003,15 +2092,17 @@ func TestDoPluginRequest(t *testing.T) {
 	})
 }
 
-// buildInlineActionsProp returns a typed inline_actions map suitable for use as
-// a post prop in tests.
-func buildInlineActionsProp(id, url string, context map[string]any) map[string]*model.PostActionIntegration {
-	return map[string]*model.PostActionIntegration{
-		id: {
-			URL:     url,
-			Context: context,
-		},
+// buildMmBlocksActionsProp returns a mm_blocks_actions map (an "external"-type
+// action) suitable for use as a post prop in tests.
+func buildMmBlocksActionsProp(id, url string, context map[string]any) map[string]any {
+	entry := map[string]any{
+		"type": model.MmBlocksActionTypeExternal,
+		"url":  url,
 	}
+	if context != nil {
+		entry["context"] = context
+	}
+	return map[string]any{id: entry}
 }
 
 // setupBotInChannel creates a bot, joins it to the team and channel, and
@@ -2028,7 +2119,7 @@ func setupBotInChannel(t *testing.T, th *TestHelper) *model.User {
 	return botUser
 }
 
-func TestInlineActionsStrippedOnCreate(t *testing.T) {
+func TestMmBlocksActionsStrippedOnCreate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2042,7 +2133,7 @@ func TestInlineActionsStrippedOnCreate(t *testing.T) {
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        th.BasicUser.Id,
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: buildInlineActionsProp(
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
 				"actionone",
 				"http://127.0.0.1/plugins/myplugin/doit",
 				map[string]any{"operation": "STORM"},
@@ -2052,14 +2143,14 @@ func TestInlineActionsStrippedOnCreate(t *testing.T) {
 
 	created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
 	require.Nil(t, err)
-	assert.Nil(t, created.GetProp(model.PostPropsInlineActions), "non-bot, non-integration user should have inline_actions stripped")
+	assert.Nil(t, created.GetProp(model.PostPropsMmBlocksActions), "non-bot, non-integration user should have mm_blocks_actions stripped")
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	assert.Nil(t, stored.GetProp(model.PostPropsInlineActions), "stored post should not carry inline_actions")
+	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions), "stored post should not carry mm_blocks_actions")
 }
 
-func TestInlineActionsKeptForBot(t *testing.T) {
+func TestMmBlocksActionsKeptForBotIntegration(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2069,9 +2160,8 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
-	// Bot author AND integration session are both required to preserve
-	// inline_actions. IsOAuth=true makes Session.IsIntegration() return true
-	// without needing a full bot-token session.
+	// IsOAuth=true makes Session.IsIntegration() return true without needing
+	// a full bot-token session.
 	intSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
 	intCtx := th.Context.WithSession(intSession)
 
@@ -2081,7 +2171,7 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        botUser.Id,
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: buildInlineActionsProp(
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
 				"actiontwo",
 				"http://127.0.0.1/plugins/myplugin/doit",
 				map[string]any{"operation": "STORM"},
@@ -2091,22 +2181,103 @@ func TestInlineActionsKeptForBot(t *testing.T) {
 
 	created, _, err := th.App.CreatePostAsUser(intCtx, post, "", true)
 	require.Nil(t, err)
-	require.NotNil(t, created.GetProp(model.PostPropsInlineActions), "bot post via integration session should preserve inline_actions")
+	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions), "bot post via integration session should preserve mm_blocks_actions")
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	require.NotNil(t, stored.GetProp(model.PostPropsInlineActions), "stored bot post should carry inline_actions")
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions), "stored bot post should carry mm_blocks_actions")
 
-	// Sanity-check we can round-trip the inline action back to a lookup.
-	integration := stored.GetInlineAction("actiontwo")
-	require.NotNil(t, integration)
-	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/doit", integration.URL)
+	spec := stored.GetMmBlocksActionSpec("actiontwo")
+	require.NotNil(t, spec)
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/doit", spec.URL)
 }
 
-// TestInlineActionsStrippedWhenOnlyOneSignal verifies that neither signal
-// alone (bot author with non-integration session, or integration session with
-// non-bot author) is sufficient to preserve inline_actions. Both must hold.
-func TestInlineActionsStrippedWhenOnlyOneSignal(t *testing.T) {
+// TestPluginAPICreatePostKeepsMmBlocksActions locks the contract that a
+// plugin creating a post via PluginAPI.CreatePost retains mm_blocks_actions.
+// Plugins are server-trusted code, but their static activation-time rctx
+// has an unmarked session — without pluginIntegrationCtx the strip in
+// CreatePost would delete the prop and clicks would 404 with
+// "invalid action id".
+func TestPluginAPICreatePostKeepsMmBlocksActions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	botUser := setupBotInChannel(t, th)
+
+	manifest := &model.Manifest{Id: "com.mattermost.test-plugin"}
+	api := NewPluginAPI(th.App, th.Context, manifest)
+
+	post := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    botUser.Id,
+		Message:   "issue tracker post",
+		Props: model.StringInterface{
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
+				"triage",
+				"/plugins/com.mattermost.test-plugin/inline_action/triage",
+				map[string]any{"project": "Demo Project"},
+			),
+		},
+	}
+
+	created, appErr := api.CreatePost(post)
+	require.Nil(t, appErr)
+	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions),
+		"plugin-created post must preserve mm_blocks_actions; the strip in CreatePost should not fire because PluginAPI marks the session as integration")
+
+	// Re-read from the store to confirm persistence (not just in-memory).
+	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
+	require.NoError(t, nErr)
+	spec := stored.GetMmBlocksActionSpec("triage")
+	require.NotNil(t, spec, "stored plugin post must resolve the action spec at click time")
+	assert.Equal(t, "/plugins/com.mattermost.test-plugin/inline_action/triage", spec.URL)
+}
+
+// TestMmBlocksActionsKeptForWebhookImpersonation verifies that an integration
+// session is sufficient on its own — the post's author does not need to be a
+// bot. This is the webhook-impersonation flow: a webhook posts as a regular
+// user with from_webhook=true, and we must not strip the prop just because
+// user.IsBot is false.
+func TestMmBlocksActionsKeptForWebhookImpersonation(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	// Integration session for a regular (non-bot) user.
+	intSession := &model.Session{UserId: th.BasicUser.Id, IsOAuth: true}
+	intCtx := th.Context.WithSession(intSession)
+
+	post := &model.Post{
+		Message:       "post from impersonating webhook",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
+				"webhook1",
+				"http://127.0.0.1/plugins/myplugin/wh",
+				nil,
+			),
+		},
+	}
+
+	created, _, err := th.App.CreatePostAsUser(intCtx, post, "", true)
+	require.Nil(t, err)
+	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions),
+		"non-bot author via integration session must preserve mm_blocks_actions (webhook flow)")
+
+	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
+	require.NoError(t, nErr)
+	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions))
+}
+
+// TestMmBlocksActionsStrippedWithoutIntegrationSession verifies that a
+// non-integration session always strips the prop, regardless of whether the
+// author is a bot. The integration-session check is the only gate.
+func TestMmBlocksActionsStrippedWithoutIntegrationSession(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2116,7 +2287,7 @@ func TestInlineActionsStrippedWhenOnlyOneSignal(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
-	inline := buildInlineActionsProp(
+	inline := buildMmBlocksActionsProp(
 		"mx",
 		"http://127.0.0.1/plugins/myplugin/mx",
 		nil,
@@ -2129,35 +2300,30 @@ func TestInlineActionsStrippedWhenOnlyOneSignal(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
-			Props:         model.StringInterface{model.PostPropsInlineActions: inline},
+			Props:         model.StringInterface{model.PostPropsMmBlocksActions: inline},
 		}
 		created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, err)
-		assert.Nil(t, created.GetProp(model.PostPropsInlineActions),
-			"bot-authored post via non-integration session must strip inline_actions")
+		assert.Nil(t, created.GetProp(model.PostPropsMmBlocksActions),
+			"bot-authored post via non-integration session must strip mm_blocks_actions")
 	})
 
-	t.Run("non-bot author via integration session is stripped", func(t *testing.T) {
-		// PAT/OAuth session from a regular user: IsIntegration()==true but
-		// the post's author (BasicUser) is not a bot.
-		intSession := &model.Session{UserId: th.BasicUser.Id, IsOAuth: true}
-		intCtx := th.Context.WithSession(intSession)
-
+	t.Run("regular user via non-integration session is stripped", func(t *testing.T) {
 		post := &model.Post{
 			Message:       "hello",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        th.BasicUser.Id,
-			Props:         model.StringInterface{model.PostPropsInlineActions: inline},
+			Props:         model.StringInterface{model.PostPropsMmBlocksActions: inline},
 		}
-		created, _, err := th.App.CreatePostAsUser(intCtx, post, "", true)
+		created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, err)
-		assert.Nil(t, created.GetProp(model.PostPropsInlineActions),
-			"non-bot post via integration session must strip inline_actions")
+		assert.Nil(t, created.GetProp(model.PostPropsMmBlocksActions),
+			"regular-user post via non-integration session must strip mm_blocks_actions")
 	})
 }
 
-func TestUpdatePostInlineActionsGuard(t *testing.T) {
+func TestUpdatePostMmBlocksActionsGuard(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2167,60 +2333,60 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
-	// Bot posts with inline_actions must be CREATED via an integration
+	// Bot posts with mm_blocks_actions must be CREATED via an integration
 	// session — see the matching create-time strip in CreatePostAsUser.
 	intSeedSession := &model.Session{UserId: botUser.Id, IsOAuth: true}
 	intSeedCtx := th.Context.WithSession(intSeedSession)
 
-	// originalInline is the inline_actions value we expect the bot post to
+	// originalInline is the mm_blocks_actions value we expect the bot post to
 	// keep after non-integration edits.
-	originalInline := buildInlineActionsProp(
+	originalInline := buildMmBlocksActionsProp(
 		"keep",
 		"http://127.0.0.1/plugins/myplugin/original",
 		map[string]any{"k": "orig"},
 	)
 
-	t.Run("non-integration edit of bot post reverts inline_actions", func(t *testing.T) {
+	t.Run("non-integration edit of bot post reverts mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
 			Message:       "bot post with inline actions",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
 			Props: model.StringInterface{
-				model.PostPropsInlineActions: originalInline,
+				model.PostPropsMmBlocksActions: originalInline,
 			},
 		}
 		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 		require.Nil(t, cErr)
-		require.NotNil(t, created.GetProp(model.PostPropsInlineActions))
+		require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
-		// A non-integration session tries to swap inline_actions wholesale.
-		newInline := buildInlineActionsProp(
+		// A non-integration session tries to swap mm_blocks_actions wholesale.
+		newInline := buildMmBlocksActionsProp(
 			"swap",
 			"http://127.0.0.1/plugins/myplugin/swapped",
 			map[string]any{"k": "attacker"},
 		)
 		edit := created.Clone()
 		edit.Message = "edited message"
-		edit.AddProp(model.PostPropsInlineActions, newInline)
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		// th.Context has an empty/zero session — not an integration.
 		updated, _, uErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, uErr)
 
-		// inline_actions should revert to the original value.
-		got := updated.GetInlineAction("keep")
+		// mm_blocks_actions should revert to the original value.
+		got := updated.GetMmBlocksActionSpec("keep")
 		require.NotNil(t, got, "original inline action should still be reachable")
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", got.URL)
 
 		// The attacker's swapped action should not be present.
-		assert.Nil(t, updated.GetInlineAction("swap"))
+		assert.Nil(t, updated.GetMmBlocksActionSpec("swap"))
 
 		// Message change should still be applied.
 		assert.Equal(t, "edited message", updated.Message)
 	})
 
-	t.Run("non-integration edit cannot add inline_actions when original had none", func(t *testing.T) {
+	t.Run("non-integration edit cannot add mm_blocks_actions when original had none", func(t *testing.T) {
 		plainBotPost := &model.Post{
 			Message:       "bot post without inline actions",
 			ChannelId:     th.BasicChannel.Id,
@@ -2229,33 +2395,33 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 		}
 		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, plainBotPost, "", true)
 		require.Nil(t, cErr)
-		require.Nil(t, created.GetProp(model.PostPropsInlineActions))
+		require.Nil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
-		newInline := buildInlineActionsProp(
+		newInline := buildMmBlocksActionsProp(
 			"added",
 			"http://127.0.0.1/plugins/myplugin/added",
 			nil,
 		)
 		edit := created.Clone()
-		edit.AddProp(model.PostPropsInlineActions, newInline)
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		updated, _, uErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, uErr)
-		assert.Nil(t, updated.GetProp(model.PostPropsInlineActions), "non-integration update must not introduce inline_actions")
+		assert.Nil(t, updated.GetProp(model.PostPropsMmBlocksActions), "non-integration update must not introduce mm_blocks_actions")
 	})
 
-	t.Run("integration session alone cannot modify inline_actions", func(t *testing.T) {
+	t.Run("integration session alone cannot modify mm_blocks_actions", func(t *testing.T) {
 		// Even with an integration session (PAT / OAuth / bot-token), the
-		// UpdatePost path requires AllowInlineActionsUpdate to modify
-		// inline_actions. A PAT-holding user could otherwise inject
-		// inline_actions on any post they can edit.
+		// UpdatePost path requires AllowMmBlocksActionsUpdate to modify
+		// mm_blocks_actions. A PAT-holding user could otherwise inject
+		// mm_blocks_actions on any post they can edit.
 		botPost := &model.Post{
 			Message:       "bot post for integration edit",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
 			Props: model.StringInterface{
-				model.PostPropsInlineActions: originalInline,
+				model.PostPropsMmBlocksActions: originalInline,
 			},
 		}
 		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
@@ -2265,57 +2431,101 @@ func TestUpdatePostInlineActionsGuard(t *testing.T) {
 		intCtx := th.Context.WithSession(intSession)
 		require.True(t, intCtx.Session().IsIntegration())
 
-		newInline := buildInlineActionsProp(
+		newInline := buildMmBlocksActionsProp(
 			"replaced",
 			"http://127.0.0.1/plugins/myplugin/new",
 			map[string]any{"k": "integration"},
 		)
 		edit := created.Clone()
-		edit.AddProp(model.PostPropsInlineActions, newInline)
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
 		updated, _, uErr := th.App.UpdatePost(intCtx, edit, &model.UpdatePostOptions{SafeUpdate: false})
 		require.Nil(t, uErr)
 
 		// The attacker's "replaced" entry must not land; the original stays.
-		assert.Nil(t, updated.GetInlineAction("replaced"), "integration session alone must not overwrite inline_actions")
-		keep := updated.GetInlineAction("keep")
+		assert.Nil(t, updated.GetMmBlocksActionSpec("replaced"), "integration session alone must not overwrite mm_blocks_actions")
+		keep := updated.GetMmBlocksActionSpec("keep")
 		require.NotNil(t, keep, "original inline action must be preserved")
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/original", keep.URL)
 	})
 
-	t.Run("AllowInlineActionsUpdate option accepts new inline_actions", func(t *testing.T) {
+	t.Run("AllowMmBlocksActionsUpdate option accepts new mm_blocks_actions", func(t *testing.T) {
 		botPost := &model.Post{
 			Message:       "bot post for plugin-path edit",
 			ChannelId:     th.BasicChannel.Id,
 			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 			UserId:        botUser.Id,
 			Props: model.StringInterface{
-				model.PostPropsInlineActions: originalInline,
+				model.PostPropsMmBlocksActions: originalInline,
 			},
 		}
 		created, _, cErr := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 		require.Nil(t, cErr)
 
-		newInline := buildInlineActionsProp(
+		newInline := buildMmBlocksActionsProp(
 			"plugin",
 			"http://127.0.0.1/plugins/myplugin/plugin",
 			map[string]any{"k": "plugin"},
 		)
 		edit := created.Clone()
-		edit.AddProp(model.PostPropsInlineActions, newInline)
+		edit.AddProp(model.PostPropsMmBlocksActions, newInline)
 
-		// Non-integration session, but AllowInlineActionsUpdate grants write.
-		updated, _, uErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{SafeUpdate: false, AllowInlineActionsUpdate: true})
+		// Non-integration session, but AllowMmBlocksActionsUpdate grants write.
+		updated, _, uErr := th.App.UpdatePost(th.Context, edit, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true})
 		require.Nil(t, uErr)
 
-		assert.Nil(t, updated.GetInlineAction("keep"))
-		integration := updated.GetInlineAction("plugin")
+		assert.Nil(t, updated.GetMmBlocksActionSpec("keep"))
+		integration := updated.GetMmBlocksActionSpec("plugin")
 		require.NotNil(t, integration)
 		assert.Equal(t, "http://127.0.0.1/plugins/myplugin/plugin", integration.URL)
 	})
 }
 
-func TestSendEphemeralPostStripsInlineActions(t *testing.T) {
+// TestCreateWebhookPostStripsMmBlocksActions locks the contract that an
+// incoming webhook cannot persist mm_blocks_actions even if the payload
+// includes the prop in its `props` map. CreateWebhookPost's prop iteration
+// has no explicit blocklist entry for mm_blocks_actions; it falls through
+// to AddProp and would land on the post object. The strip in CreatePost
+// (post.go) then fires because the webhook flow has no integration session
+// (incomingWebhook is registered with RequireSession: false). If a future
+// refactor changes the webhook session model, this test catches it.
+func TestCreateWebhookPostStripsMmBlocksActions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, hookErr := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, hookErr)
+	defer func() {
+		_ = th.App.DeleteIncomingWebhook(hook.Id)
+	}()
+
+	inline := buildMmBlocksActionsProp(
+		"actx",
+		"http://127.0.0.1/plugins/myplugin/x",
+		nil,
+	)
+
+	post, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "hello", "user", "http://iconurl", "",
+		model.StringInterface{
+			model.PostPropsMmBlocksActions: inline,
+		},
+		"", "", nil)
+	require.Nil(t, appErr)
+
+	assert.Nil(t, post.GetProp(model.PostPropsMmBlocksActions),
+		"incoming webhook payload must not be able to persist mm_blocks_actions; the strip in CreatePost should fire because the webhook session has IsIntegration()==false")
+
+	// Belt and suspenders: read back from the DB to confirm the prop is
+	// not persisted either.
+	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, false)
+	require.NoError(t, nErr)
+	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions),
+		"stored webhook post must not carry mm_blocks_actions")
+}
+
+func TestSendEphemeralPostStripsMmBlocksActions(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2324,7 +2534,7 @@ func TestSendEphemeralPostStripsInlineActions(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		Message:   "ephemeral with inline actions",
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: buildInlineActionsProp(
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
 				"eph",
 				"http://127.0.0.1/plugins/myplugin/eph",
 				map[string]any{"k": "v"},
@@ -2334,7 +2544,7 @@ func TestSendEphemeralPostStripsInlineActions(t *testing.T) {
 
 	result, _ := th.App.SendEphemeralPost(th.Context, th.BasicUser.Id, ephemeral)
 	require.NotNil(t, result)
-	assert.Nil(t, result.GetProp(model.PostPropsInlineActions), "SendEphemeralPost must drop inline_actions")
+	assert.Nil(t, result.GetProp(model.PostPropsMmBlocksActions), "SendEphemeralPost must drop mm_blocks_actions")
 
 	// UpdateEphemeralPost path
 	ephemeral2 := &model.Post{
@@ -2343,7 +2553,7 @@ func TestSendEphemeralPostStripsInlineActions(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		Message:   "updated ephemeral with inline actions",
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: buildInlineActionsProp(
+			model.PostPropsMmBlocksActions: buildMmBlocksActionsProp(
 				"eph2",
 				"http://127.0.0.1/plugins/myplugin/eph2",
 				nil,
@@ -2352,10 +2562,10 @@ func TestSendEphemeralPostStripsInlineActions(t *testing.T) {
 	}
 	updated, _ := th.App.UpdateEphemeralPost(th.Context, th.BasicUser.Id, ephemeral2)
 	require.NotNil(t, updated)
-	assert.Nil(t, updated.GetProp(model.PostPropsInlineActions), "UpdateEphemeralPost must drop inline_actions")
+	assert.Nil(t, updated.GetProp(model.PostPropsMmBlocksActions), "UpdateEphemeralPost must drop mm_blocks_actions")
 }
 
-func TestDoPostActionInlineContextMerged(t *testing.T) {
+func TestDoPostActionQueryMergedIntoURL(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2366,9 +2576,15 @@ func TestDoPostActionInlineContextMerged(t *testing.T) {
 	botUser := setupBotInChannel(t, th)
 	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
 
-	// Capture the upstream integration request.
-	var capturedReq model.PostActionIntegrationRequest
+	// Capture both the upstream integration request body and the URL the
+	// server saw, so we can assert that per-click query lands in the URL
+	// (mm_blocks transport) and not in the upstream Context map.
+	var (
+		capturedReq      model.PostActionIntegrationRequest
+		capturedRawQuery string
+	)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedRawQuery = r.URL.RawQuery
 		body, readErr := io.ReadAll(r.Body)
 		require.NoError(t, readErr)
 		require.NoError(t, json.Unmarshal(body, &capturedReq))
@@ -2377,37 +2593,86 @@ func TestDoPostActionInlineContextMerged(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	inlineActions := buildInlineActionsProp(
+	inlineActions := buildMmBlocksActionsProp(
 		"inline1",
 		ts.URL,
 		map[string]any{"operation": "STORM"},
 	)
 	botPost := &model.Post{
-		Message:       "inline action post",
+		Message:       "mm_blocks action post",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        botUser.Id,
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: inlineActions,
+			model.PostPropsMmBlocksActions: inlineActions,
 		},
 	}
 	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
-	require.NotNil(t, created.GetProp(model.PostPropsInlineActions))
+	require.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
-	inlineContext := map[string]string{"tail": "214"}
-	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, inlineContext)
+	query := map[string]string{"tail": "214"}
+	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, query)
 	require.Nil(t, err)
 
-	// inline_params was merged into the upstream Context map.
-	rawInline, ok := capturedReq.Context[model.PostActionInlineParamsKey]
-	require.True(t, ok, "upstream request Context should contain inline_params")
-	inlineMap, ok := rawInline.(map[string]any)
-	require.True(t, ok, "inline_params should decode as a map")
-	assert.Equal(t, "214", inlineMap["tail"])
+	// Query was appended to the upstream URL.
+	parsedQuery, qErr := url.ParseQuery(capturedRawQuery)
+	require.NoError(t, qErr)
+	assert.Equal(t, "214", parsedQuery.Get("tail"), "per-click query should land in the upstream URL")
 
-	// Original Context fields are preserved alongside inline_params.
+	// Original action Context is forwarded as the upstream request's
+	// Context, untouched by the query merge.
 	assert.Equal(t, "STORM", capturedReq.Context["operation"])
+	_, leakedInlineParams := capturedReq.Context["inline_params"]
+	assert.False(t, leakedInlineParams, "query must not be injected into upstream Context")
+}
+
+func TestDoPostActionStaticQueryMergedWithPerClickQuery(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+	})
+
+	botUser := setupBotInChannel(t, th)
+	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
+
+	var capturedRawQuery string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedRawQuery = r.URL.RawQuery
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("{}"))
+	}))
+	defer ts.Close()
+
+	// Spec carries a static query (source=fleet) AND a key (tail=999) that
+	// the per-click query will override. Per-click should win.
+	botPost := &model.Post{
+		Message:       "mm_blocks action post with static query",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        botUser.Id,
+		Props: model.StringInterface{
+			model.PostPropsMmBlocksActions: map[string]any{
+				"inline1": map[string]any{
+					"type":  model.MmBlocksActionTypeExternal,
+					"url":   ts.URL,
+					"query": map[string]any{"source": "fleet", "tail": "999"},
+				},
+			},
+		},
+	}
+	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
+	require.Nil(t, err)
+
+	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "214"})
+	require.Nil(t, err)
+
+	parsedQuery, qErr := url.ParseQuery(capturedRawQuery)
+	require.NoError(t, qErr)
+	assert.Equal(t, "fleet", parsedQuery.Get("source"), "spec static query should land in the upstream URL")
+	assert.Equal(t, "214", parsedQuery.Get("tail"), "per-click query should override spec static query on overlapping keys")
 }
 
 func TestDoPostActionContextMapNotMutated(t *testing.T) {
@@ -2428,46 +2693,44 @@ func TestDoPostActionContextMapNotMutated(t *testing.T) {
 	defer ts.Close()
 
 	originalContext := map[string]any{"operation": "STORM"}
-	inlineActions := buildInlineActionsProp("inline1", ts.URL, originalContext)
+	inlineActions := buildMmBlocksActionsProp("inline1", ts.URL, originalContext)
 	botPost := &model.Post{
-		Message:       "inline action post",
+		Message:       "mm_blocks action post",
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        botUser.Id,
 		Props: model.StringInterface{
-			model.PostPropsInlineActions: inlineActions,
+			model.PostPropsMmBlocksActions: inlineActions,
 		},
 	}
 	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
 	require.Nil(t, err)
 
-	// First click: carries one set of inline_context values.
+	// First click: carries one set of per-click query values.
 	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "214"})
 	require.Nil(t, err)
 
-	// Post's stored Context should not leak inline_params from the first click.
+	// Post's stored mm_blocks_actions Context must not be mutated by the click.
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	integration := stored.GetInlineAction("inline1")
-	require.NotNil(t, integration)
-	_, leaked := integration.Context[model.PostActionInlineParamsKey]
-	assert.False(t, leaked, "first click must not leak inline_params into stored post Context")
-	assert.Equal(t, "STORM", integration.Context["operation"])
+	spec := stored.GetMmBlocksActionSpec("inline1")
+	require.NotNil(t, spec)
+	assert.Equal(t, "STORM", spec.Context["operation"])
+	assert.Equal(t, ts.URL, spec.URL, "stored URL must not absorb per-click query")
 
-	// Second click with a different inline_context.
+	// Second click with a different per-click query.
 	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, "inline1", th.BasicUser.Id, "", nil, map[string]string{"tail": "999"})
 	require.Nil(t, err)
 
 	stored, nErr = th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	integration = stored.GetInlineAction("inline1")
-	require.NotNil(t, integration)
-	_, leaked = integration.Context[model.PostActionInlineParamsKey]
-	assert.False(t, leaked, "second click must not leak inline_params into stored post Context")
-	assert.Equal(t, "STORM", integration.Context["operation"])
+	spec = stored.GetMmBlocksActionSpec("inline1")
+	require.NotNil(t, spec)
+	assert.Equal(t, "STORM", spec.Context["operation"])
+	assert.Equal(t, ts.URL, spec.URL, "stored URL must not absorb per-click query")
 }
 
-func TestDoPostActionPluginResponseInlineActionsDropped(t *testing.T) {
+func TestDoPostActionPluginResponseMmBlocksActionsDropped(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2477,16 +2740,16 @@ func TestDoPostActionPluginResponseInlineActionsDropped(t *testing.T) {
 
 	botUser := setupBotInChannel(t, th)
 
-	// Plugin returns an update that tries to add inline_actions, even though
-	// the original post had none.
+	// Plugin returns an update that tries to add mm_blocks_actions, even
+	// though the original post had none.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		resp := `{
 			"update": {
 				"message": "updated message",
 				"props": {
-					"inline_actions": {
-						"sneaky": {"url": "http://127.0.0.1/plugins/myplugin/sneak"}
+					"mm_blocks_actions": {
+						"sneaky": {"type": "external", "url": "http://127.0.0.1/plugins/myplugin/sneak"}
 					}
 				}
 			}
@@ -2495,9 +2758,9 @@ func TestDoPostActionPluginResponseInlineActionsDropped(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	// Bot post has an ATTACHMENT action (not an inline action), and no
-	// inline_actions prop. The plugin's response to clicking the attachment
-	// should not be able to introduce inline_actions.
+	// Bot post has an ATTACHMENT action (not an mm_blocks action), and no
+	// mm_blocks_actions prop. The plugin's response to clicking the
+	// attachment should not be able to introduce mm_blocks_actions.
 	botPost := &model.Post{
 		Message:       "attachment-only bot post",
 		ChannelId:     th.BasicChannel.Id,
@@ -2526,18 +2789,18 @@ func TestDoPostActionPluginResponseInlineActionsDropped(t *testing.T) {
 	require.True(t, ok)
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
-	require.Nil(t, created.GetProp(model.PostPropsInlineActions))
+	require.Nil(t, created.GetProp(model.PostPropsMmBlocksActions))
 
 	_, err = th.App.DoPostActionWithCookie(th.Context, created.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "", nil, nil)
 	require.Nil(t, err)
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	assert.Nil(t, stored.GetProp(model.PostPropsInlineActions), "plugin response must not be able to add inline_actions where none existed")
+	assert.Nil(t, stored.GetProp(model.PostPropsMmBlocksActions), "plugin response must not be able to add mm_blocks_actions where none existed")
 	assert.Equal(t, "updated message", stored.Message)
 }
 
-func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
+func TestDoPostActionPluginResponseInvalidMmBlocksActionsRestored(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2548,17 +2811,17 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 	botUser := setupBotInChannel(t, th)
 	intSeedCtx := th.Context.WithSession(&model.Session{UserId: botUser.Id, IsOAuth: true})
 
-	// Plugin returns an update where inline_actions contains an entry with an
-	// empty URL — invalid and should be dropped with a warning, while the
-	// message update still succeeds.
+	// Plugin returns an update where mm_blocks_actions contains an entry
+	// with an empty URL — invalid; the original prop should be restored
+	// with a warning, while the message update still succeeds.
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		resp := `{
 			"update": {
 				"message": "updated via plugin",
 				"props": {
-					"inline_actions": {
-						"broken": {"url": ""}
+					"mm_blocks_actions": {
+						"broken": {"type": "external", "url": ""}
 					}
 				}
 			}
@@ -2567,9 +2830,10 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	// The original post has VALID inline_actions, so the "drop because original
-	// had none" branch is bypassed and we exercise the validation branch.
-	originalInline := buildInlineActionsProp(
+	// The original post has VALID mm_blocks_actions, so the "drop because
+	// original had none" branch is bypassed and we exercise the validation
+	// branch.
+	originalInline := buildMmBlocksActionsProp(
 		"orig",
 		"http://127.0.0.1/plugins/myplugin/orig",
 		nil,
@@ -2594,7 +2858,7 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 					},
 				},
 			},
-			model.PostPropsInlineActions: originalInline,
+			model.PostPropsMmBlocksActions: originalInline,
 		},
 	}
 	created, _, err := th.App.CreatePostAsUser(intSeedCtx, botPost, "", true)
@@ -2609,15 +2873,16 @@ func TestDoPostActionPluginResponseInvalidInlineActionsDropped(t *testing.T) {
 
 	stored, nErr := th.App.Srv().Store().Post().GetSingle(th.Context, created.Id, false)
 	require.NoError(t, nErr)
-	// Message update still applied — the invalid inline_actions were dropped
-	// with a warning, so the rest of the response.Update is persisted.
+	// Message update still applied — the invalid mm_blocks_actions were
+	// restored to the original value with a warning, so the rest of the
+	// response.Update is persisted.
 	assert.Equal(t, "updated via plugin", stored.Message)
-	// The broken inline action from the plugin response must never be stored.
-	assert.Nil(t, stored.GetInlineAction("broken"), "invalid inline action from plugin response must not be persisted")
-	// The original valid inline_actions must survive — an invalid plugin
-	// response must never wipe a post's existing inline buttons.
-	require.NotNil(t, stored.GetInlineAction("orig"), "original valid inline action must be preserved when plugin response is invalid")
-	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/orig", stored.GetInlineAction("orig").URL)
+	// The broken action from the plugin response must never be stored.
+	assert.Nil(t, stored.GetMmBlocksActionSpec("broken"), "invalid mm_blocks action from plugin response must not be persisted")
+	// The original valid mm_blocks_actions must survive — an invalid plugin
+	// response must never wipe a post's existing buttons.
+	require.NotNil(t, stored.GetMmBlocksActionSpec("orig"), "original valid mm_blocks action must be preserved when plugin response is invalid")
+	assert.Equal(t, "http://127.0.0.1/plugins/myplugin/orig", stored.GetMmBlocksActionSpec("orig").URL)
 }
 
 // TestPostActionRetainsFromBotAndFromPlugin verifies that from_bot and

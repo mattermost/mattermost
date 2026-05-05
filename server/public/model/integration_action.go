@@ -67,20 +67,19 @@ var PostActionRetainPropKeys = []string{
 type DoPostActionRequest struct {
 	SelectedOption string            `json:"selected_option,omitempty"`
 	Cookie         string            `json:"cookie,omitempty"`
-	InlineContext  map[string]string `json:"inline_context,omitempty"`
+	Query          map[string]string `json:"query,omitempty"`
 }
 
 const (
 	PostActionDataSourceUsers    = "users"
 	PostActionDataSourceChannels = "channels"
 
-	PostPropsInlineActions    = "inline_actions"
-	PostActionInlineParamsKey = "inline_params"
-	MaxInlineActionsPerPost   = 50
+	MaxMmBlocksActionsPerPost  = 50
+	MaxMmBlocksActionKeyLength = 64
 
-	MaxInlineContextEntries     = 50
-	MaxInlineContextKeyLength   = 128
-	MaxInlineContextValueLength = 2048
+	MaxActionQueryEntries     = 50
+	MaxActionQueryKeyLength   = 128
+	MaxActionQueryValueLength = 2048
 )
 
 type PostAction struct {
@@ -889,9 +888,7 @@ func (o *Post) StripActionIntegrations() {
 			action.Integration = nil
 		}
 	}
-	if o.GetProp(PostPropsInlineActions) != nil {
-		o.DelProp(PostPropsInlineActions)
-	}
+	o.StripMmBlocksActionSecrets()
 }
 
 func (o *Post) GetAction(id string) *PostAction {
@@ -902,98 +899,111 @@ func (o *Post) GetAction(id string) *PostAction {
 			}
 		}
 	}
-	if integration := o.GetInlineAction(id); integration != nil {
+	if spec := o.GetMmBlocksActionSpec(id); spec != nil && spec.Type == MmBlocksActionTypeExternal && spec.URL != "" {
+		// Synthesize a PostAction so the existing click pipeline can
+		// dispatch without branching on action source. Pre-merge the
+		// spec's static per-action query into the URL here; per-click
+		// query (from DoPostActionRequest.Query) is merged on top by the
+		// caller via MergeQueryIntoURL, with per-click overriding static
+		// values on overlapping keys.
+		url := spec.URL
+		if len(spec.Query) > 0 {
+			merged, err := MergeQueryIntoURL(spec.URL, spec.Query)
+			if err != nil {
+				// Spec URL is malformed. ValidateMmBlocksActions
+				// should have rejected it at save time, so this is a
+				// belt-and-suspenders guard. Returning nil routes the
+				// caller through the standard "action not found"
+				// 404 path rather than firing a request to a URL
+				// that's missing the static query params.
+				return nil
+			}
+			url = merged
+		}
 		return &PostAction{
-			Id:          id,
-			Type:        PostActionTypeButton,
-			Integration: integration,
+			Id:   id,
+			Type: PostActionTypeButton,
+			Integration: &PostActionIntegration{
+				URL:     url,
+				Context: spec.Context,
+			},
 		}
 	}
 	return nil
 }
 
-func (o *Post) GetInlineAction(id string) *PostActionIntegration {
-	actions, err := normalizeInlineActions(o.GetProp(PostPropsInlineActions))
-	if err != nil {
-		return nil
-	}
-	integration, ok := actions[id]
-	if !ok || integration == nil || integration.URL == "" {
-		return nil
-	}
-	return integration
-}
+var mmBlocksActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
 
-var inlineActionIDRegex = regexp.MustCompile(`^[A-Za-z0-9]+$`)
-
-func ValidateInlineActions(o *Post) error {
-	actions, err := normalizeInlineActions(o.GetProp(PostPropsInlineActions))
-	if err != nil {
-		return err
-	}
-	if actions == nil {
-		return nil
-	}
-	if len(actions) > MaxInlineActionsPerPost {
-		return fmt.Errorf("inline_actions exceeds maximum of %d entries", MaxInlineActionsPerPost)
-	}
-	for key, integration := range actions {
-		if !inlineActionIDRegex.MatchString(key) {
-			return fmt.Errorf("inline_actions key %q must be alphanumeric", key)
-		}
-		if integration == nil {
-			return fmt.Errorf("inline_actions entry %q must have integration settings", key)
-		}
-		if err := validateIntegrationURL(integration.URL); err != nil {
-			return fmt.Errorf("inline_actions entry %q: %w", key, err)
-		}
-	}
-	return nil
-}
-
-// normalizeInlineActions accepts either a typed map (in-memory path) or a
-// JSON-deserialized map[string]any (post-round-trip path) and returns a
-// single canonical map[string]*PostActionIntegration. A nil return with nil
-// error means the prop was absent.
-func normalizeInlineActions(raw any) (map[string]*PostActionIntegration, error) {
+// ValidateMmBlocksActions verifies the post's mm_blocks_actions prop has the
+// expected shape and bounds. Each entry must coerce to a valid spec via
+// mmBlocksEntryMapToSpec.
+func ValidateMmBlocksActions(o *Post) error {
+	raw := o.GetProp(PostPropsMmBlocksActions)
 	if raw == nil {
-		return nil, nil
+		return nil
 	}
-	if typed, ok := raw.(map[string]*PostActionIntegration); ok {
-		return typed, nil
-	}
-	rawMap, ok := raw.(map[string]any)
+	actions, ok := coerceToStringAnyMap(raw)
 	if !ok {
-		return nil, fmt.Errorf("inline_actions must be a map")
+		return fmt.Errorf("mm_blocks_actions must be a map")
 	}
-	out := make(map[string]*PostActionIntegration, len(rawMap))
-	for key, entry := range rawMap {
-		b, err := json.Marshal(entry)
-		if err != nil {
-			return nil, fmt.Errorf("inline_actions entry %q is not valid JSON", key)
-		}
-		var integration PostActionIntegration
-		if err := json.Unmarshal(b, &integration); err != nil {
-			return nil, fmt.Errorf("inline_actions entry %q is not a valid PostActionIntegration", key)
-		}
-		out[key] = &integration
+	if len(actions) > MaxMmBlocksActionsPerPost {
+		return fmt.Errorf("mm_blocks_actions exceeds maximum of %d entries", MaxMmBlocksActionsPerPost)
 	}
-	return out, nil
+	for key, entry := range actions {
+		if len(key) > MaxMmBlocksActionKeyLength {
+			return fmt.Errorf("mm_blocks_actions key exceeds %d chars", MaxMmBlocksActionKeyLength)
+		}
+		if !mmBlocksActionIDRegex.MatchString(key) {
+			return fmt.Errorf("mm_blocks_actions key %q must be alphanumeric", key)
+		}
+		entryMap, ok := coerceToStringAnyMap(entry)
+		if !ok {
+			return fmt.Errorf("mm_blocks_actions entry %q must be an object", key)
+		}
+		spec := mmBlocksEntryMapToSpec(entryMap)
+		if spec == nil {
+			return fmt.Errorf("mm_blocks_actions entry %q has invalid type or shape", key)
+		}
+		if spec.Type == MmBlocksActionTypeExternal {
+			if err := validateIntegrationURL(spec.URL); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q: %w", key, err)
+			}
+			// Bound the per-spec static query so a bot cannot stash
+			// unbounded data in the post that gets merged into the
+			// outgoing URL on every click.
+			if err := ValidateActionQuery(spec.Query); err != nil {
+				return fmt.Errorf("mm_blocks_actions entry %q static query: %w", key, err)
+			}
+			// Bound entry count and key length on the static context.
+			// Values are arbitrary JSON, so size is constrained by the
+			// outer post-size limit; we cap entries to prevent crafted
+			// posts from inflating GetAction's clone cost.
+			if len(spec.Context) > MaxActionQueryEntries {
+				return fmt.Errorf("mm_blocks_actions entry %q context exceeds maximum of %d entries", key, MaxActionQueryEntries)
+			}
+			for k := range spec.Context {
+				if len(k) > MaxActionQueryKeyLength {
+					return fmt.Errorf("mm_blocks_actions entry %q context key exceeds %d chars", key, MaxActionQueryKeyLength)
+				}
+			}
+		}
+	}
+	return nil
 }
 
-// ValidateInlineContext bounds the size of user-supplied context sent with an
-// inline action click so a crafted post cannot trigger unbounded memory use
-// in the plugin-request path.
-func ValidateInlineContext(ctx map[string]string) error {
-	if len(ctx) > MaxInlineContextEntries {
-		return fmt.Errorf("inline_context exceeds maximum of %d entries", MaxInlineContextEntries)
+// ValidateActionQuery bounds the size of user-supplied per-click query
+// parameters so a crafted post cannot trigger unbounded memory use in the
+// plugin-request path.
+func ValidateActionQuery(q map[string]string) error {
+	if len(q) > MaxActionQueryEntries {
+		return fmt.Errorf("query exceeds maximum of %d entries", MaxActionQueryEntries)
 	}
-	for key, value := range ctx {
-		if len(key) > MaxInlineContextKeyLength {
-			return fmt.Errorf("inline_context key exceeds %d chars", MaxInlineContextKeyLength)
+	for key, value := range q {
+		if len(key) > MaxActionQueryKeyLength {
+			return fmt.Errorf("query key exceeds %d chars", MaxActionQueryKeyLength)
 		}
-		if len(value) > MaxInlineContextValueLength {
-			return fmt.Errorf("inline_context value for %q exceeds %d chars", key, MaxInlineContextValueLength)
+		if len(value) > MaxActionQueryValueLength {
+			return fmt.Errorf("query value for %q exceeds %d chars", key, MaxActionQueryValueLength)
 		}
 	}
 	return nil
@@ -1005,6 +1015,14 @@ func validateIntegrationURL(url string) error {
 	}
 	if !(strings.HasPrefix(url, "/plugins/") || strings.HasPrefix(url, "plugins/") || IsValidHTTPURL(url)) {
 		return fmt.Errorf("must have a valid integration URL")
+	}
+	// Reject path-traversal segments. /plugins/ URLs are routed by the
+	// local server, so a `..` segment can escape the plugin namespace and
+	// hit unrelated server routes. Bot-authored mm_blocks specs are the
+	// origin point, so this is a defense-in-depth check beyond the plugin
+	// router's own resolution.
+	if strings.Contains(url, "/../") || strings.HasSuffix(url, "/..") {
+		return fmt.Errorf("integration URL must not contain path traversal segments")
 	}
 	return nil
 }

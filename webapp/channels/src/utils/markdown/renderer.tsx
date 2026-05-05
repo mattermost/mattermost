@@ -11,13 +11,6 @@ import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} f
 
 import {parseImageDimensions} from './helpers';
 
-const MAX_INLINE_ACTION_PARAMS_LENGTH = 2048;
-
-// Mirrors the server-side action ID regex (model.inlineActionIDRegex). Invalid
-// IDs can never resolve to an inline_actions entry, so reject them at render
-// time rather than emitting a dead button.
-const INLINE_ACTION_ID_REGEX = /^[A-Za-z0-9]+$/;
-
 export default class Renderer extends marked.Renderer {
     private formattingOptions: TextFormatting.TextFormattingOptions;
     private emojiMap: EmojiMap;
@@ -148,63 +141,6 @@ export default class Renderer extends marked.Renderer {
                 return text;
             }
             return text + ' : ' + href;
-        }
-
-        const scheme = getScheme(href);
-        if (scheme === 'mmaction') {
-            if (!this.formattingOptions.allowInlineActions) {
-                return text;
-            }
-            const postId = this.formattingOptions.postId || '';
-            if (!postId) {
-                return text;
-            }
-
-            // getScheme() matches scheme:rest without requiring "//"; an
-            // opaque form like "mmaction:MxPlan42" would otherwise mis-slice
-            // below and produce a silently wrong action ID.
-            if (!href.startsWith('mmaction://')) {
-                return text;
-            }
-            try {
-                // new URL().hostname lowercases the authority per WHATWG, but
-                // the server's action ID regex allows [A-Za-z0-9]+ — so parse
-                // the ID out of the raw href to preserve mixed case, then
-                // reject anything that doesn't match the server's regex
-                // (e.g. mmaction://plan:443, mmaction://user@plan).
-                const withoutScheme = href.slice('mmaction://'.length);
-                const actionId = withoutScheme.split(/[/?#]/, 1)[0];
-                if (!INLINE_ACTION_ID_REGEX.test(actionId)) {
-                    return text;
-                }
-                const mmUrl = new URL(href);
-                const params = mmUrl.search ? mmUrl.search.substring(1) : '';
-                if (params.length > MAX_INLINE_ACTION_PARAMS_LENGTH) {
-                    return text;
-                }
-
-                // text is the already-rendered link body from marked, so it
-                // may contain HTML tags (emphasis, emoji spans, mention spans)
-                // and HTML entities (&amp;, &lt;, ...). Strip tags and decode
-                // entities to get the plain-text label, then re-escape for
-                // safe insertion into the span body. This preserves labels
-                // like "Items & Parts" while neutralizing any script injection
-                // attempt in the rendered markup.
-                //
-                // data-inline-action-params holds the raw URL query string;
-                // html-to-react HTML-decodes attribute values before handing
-                // them to processNode, so URLSearchParams receives the
-                // original percent-encoded form.
-                const plainLabel = TextFormatting.convertEntityToCharacter(text.replace(/<[^>]*>/g, ''));
-                return '<span' +
-                    ` data-inline-action-id="${TextFormatting.escapeHtml(actionId)}"` +
-                    ` data-inline-action-params="${TextFormatting.escapeHtml(params)}"` +
-                    ` data-inline-action-post-id="${TextFormatting.escapeHtml(postId)}"` +
-                    ' class="inline-action-button-placeholder"' +
-                    `>${TextFormatting.escapeHtml(plainLabel)}</span>`;
-            } catch {
-                return text;
-            }
         }
 
         if (!href.startsWith('/')) {

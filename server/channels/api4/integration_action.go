@@ -28,19 +28,26 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var actionRequest model.DoPostActionRequest
-	err := json.NewDecoder(r.Body).Decode(&actionRequest)
+	dec := json.NewDecoder(r.Body)
+	err := dec.Decode(&actionRequest)
 	if err != nil && !errors.Is(err, io.EOF) {
 		// Empty body is allowed for backward-compatibility with older clients.
 		// Any other decode failure means the request cannot be trusted — in
-		// particular, a wrong-type inline_context would otherwise fall through
-		// as nil and silently execute the action without the caller's params.
+		// particular, a wrong-type query would otherwise fall through as nil
+		// and silently execute the action without the caller's params.
 		c.SetInvalidParamWithErr("action_request", err)
 		return
 	}
-
-	if ctxErr := model.ValidateInlineContext(actionRequest.InlineContext); ctxErr != nil {
-		c.Err = model.NewAppError("DoPostAction", "api.post.do_action.inline_context.app_error", nil, "", http.StatusBadRequest).Wrap(ctxErr)
-		return
+	if err == nil {
+		// Reject trailing JSON values after the first object (e.g.
+		// `{"query":{"k":"v"}}{"cookie":"x"}`). json.Decoder.Decode
+		// stops at the first complete value and would otherwise silently
+		// ignore the rest, leaving the caller's intent ambiguous.
+		var trailing any
+		if extraErr := dec.Decode(&trailing); !errors.Is(extraErr, io.EOF) {
+			c.SetInvalidParamWithErr("action_request", extraErr)
+			return
+		}
 	}
 
 	var cookie *model.PostActionCookie
@@ -77,7 +84,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
 	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.AppContext, c.Params.PostId, c.Params.ActionId, c.AppContext.Session().UserId,
-		actionRequest.SelectedOption, cookie, actionRequest.InlineContext)
+		actionRequest.SelectedOption, cookie, actionRequest.Query)
 	if appErr != nil {
 		c.Err = appErr
 		return

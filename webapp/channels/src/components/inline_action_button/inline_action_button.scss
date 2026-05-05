@@ -3,7 +3,7 @@
     align-items: center;
     padding: 2px 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     background-color: rgba(var(--center-channel-color-rgb), 0.04);
     color: var(--center-channel-color);
     cursor: pointer;
@@ -16,6 +16,14 @@
     &:hover {
         background-color: rgba(var(--button-bg-rgb), 0.08);
         color: var(--button-bg);
+    }
+
+    // Mattermost's global button styles reset outline; restore a visible
+    // keyboard focus indicator for WCAG 2.4.7. Matches the convention used
+    // on adjacent action chips.
+    &:focus-visible {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
     }
 
     &--executing {

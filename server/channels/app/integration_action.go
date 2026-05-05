@@ -40,7 +40,38 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, inlineContext map[string]string) (string, *model.AppError) {
+// cloneMmBlocksActionsProp deep-clones the post.props.mm_blocks_actions value.
+// Each per-action entry can carry nested context / query maps (and arrays
+// inside those), so the clone walks the structure recursively — a shallow
+// clone at any level would leave nested objects aliased back to the live
+// post's props, defeating the restore-after-invalid-response guarantee.
+func cloneMmBlocksActionsProp(v any) any {
+	switch typed := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for k, child := range typed {
+			out[k] = cloneMmBlocksActionsProp(child)
+		}
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, child := range typed {
+			out[i] = cloneMmBlocksActionsProp(child)
+		}
+		return out
+	default:
+		// Scalars (string/number/bool/nil) are immutable — safe to share.
+		return v
+	}
+}
+
+func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie, query map[string]string) (string, *model.AppError) {
+	// Bound the per-click query at the App boundary so any caller — REST
+	// handler, plugin, future internal trigger — gets the same enforcement.
+	if err := model.ValidateActionQuery(query); err != nil {
+		return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.query.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -122,13 +153,13 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.ChannelName = channel.Name
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = cookie.Type
-		// Clone the Context map — later code may add inline_params or
-		// selected_option to it, and we must not mutate the shared source.
+		// Clone the Context map — later code may add selected_option to
+		// it, and we must not mutate the shared source.
 		//
-		// inlineContext is intentionally not merged on the cookie path:
-		// cookies are only baked for attachment action buttons, not for
-		// inline actions, so this branch is never reached by a click that
-		// carries inline_context.
+		// query is intentionally not merged on the cookie path: cookies are
+		// only baked for attachment action buttons, not for mm_blocks
+		// actions, so this branch is never reached by a click that carries
+		// per-click query params.
 		upstreamRequest.Context = maps.Clone(cookie.Integration.Context)
 		datasource = cookie.DataSource
 
@@ -140,7 +171,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		post := result.Data
 		chResult := <-cchan
 		if chResult.NErr != nil {
-			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
+			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(chResult.NErr)
 		}
 		channel := chResult.Data
 
@@ -154,17 +185,11 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		// Clone the Context map — the action pointer returned from
-		// post.GetAction aliases post.props state (attachment action or
-		// inline-action integration). Mutating it directly would leak
-		// per-click values (inline_params, selected_option) into the
-		// post's cached integration for subsequent clickers.
+		// post.GetAction may alias post.props state (attachment action) or
+		// the synthesized mm_blocks_actions spec. Mutating it directly
+		// would leak per-click values (selected_option) into the post's
+		// cached integration for subsequent clickers.
 		upstreamRequest.Context = maps.Clone(action.Integration.Context)
-		if len(inlineContext) > 0 {
-			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]any{}
-			}
-			upstreamRequest.Context[model.PostActionInlineParamsKey] = inlineContext
-		}
 		datasource = action.DataSource
 
 		// Save the original values that may need to be preserved (including selected
@@ -256,6 +281,18 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		return "", model.NewAppError("DoPostActionWithCookie", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Merge per-click query into the upstream URL. This is the canonical
+	// transport for mm_blocks_actions external clicks; for legacy attachment
+	// clicks `query` is empty so this is a no-op. Done before the request
+	// log so operators see the URL actually sent on the wire.
+	if len(query) > 0 {
+		mergedURL, mergeErr := model.MergeQueryIntoURL(upstreamURL, query)
+		if mergeErr != nil {
+			return "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.merge_query.app_error", nil, "", http.StatusBadRequest).Wrap(mergeErr)
+		}
+		upstreamURL = mergedURL
+	}
+
 	// Log request, regardless of whether destination is internal or external
 	rctx.Logger().Info("DoPostActionWithCookie POST request, through DoActionRequest",
 		mlog.String("url", upstreamURL),
@@ -303,29 +340,44 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 		response.Update.IsPinned = originalIsPinned
 		response.Update.HasReactions = originalHasReactions
 
-		// Validate inline_actions on update responses. Since AllowInlineActionsUpdate
-		// bypasses the non-integration guard in UpdatePost, and inline_actions are
-		// not in PostActionRetainPropKeys, a bad response would otherwise permanently
-		// replace the post's valid inline_actions. Keep the original value (if any)
-		// and log a warning so integration authors can diagnose.
-		if response.Update.GetProp(model.PostPropsInlineActions) != nil {
-			if originalProps[model.PostPropsInlineActions] == nil {
-				rctx.Logger().Warn("Dropping inline_actions from plugin update response: original post had none",
+		// Validate mm_blocks_actions on update responses. Since
+		// AllowMmBlocksActionsUpdate bypasses the non-integration guard in
+		// UpdatePost, and mm_blocks_actions are not in
+		// PostActionRetainPropKeys, a bad response would otherwise
+		// permanently replace the post's valid mm_blocks_actions. Keep the
+		// original value (if any) and log a warning so integration authors
+		// can diagnose.
+		//
+		// Contract (matches the attachments contract): a plugin update
+		// response that returns a non-nil Props map MUST echo
+		// mm_blocks_actions back if it wants the buttons to survive.
+		// Omitting the key drops the prop. This is intentional symmetry
+		// with attachments and matches the behavior in the mm_blocks
+		// framework PR.
+		if response.Update.GetProp(model.PostPropsMmBlocksActions) != nil {
+			if originalProps[model.PostPropsMmBlocksActions] == nil {
+				rctx.Logger().Info("Dropping mm_blocks_actions from plugin update response: original post had none",
 					mlog.String("post_id", postID),
 					mlog.String("url", upstreamURL),
 				)
-				response.Update.DelProp(model.PostPropsInlineActions)
-			} else if err := model.ValidateInlineActions(response.Update); err != nil {
-				rctx.Logger().Warn("Restoring original inline_actions: plugin update response was invalid",
+				response.Update.DelProp(model.PostPropsMmBlocksActions)
+			} else if err := model.ValidateMmBlocksActions(response.Update); err != nil {
+				rctx.Logger().Info("Restoring original mm_blocks_actions: plugin update response was invalid",
 					mlog.String("post_id", postID),
 					mlog.String("url", upstreamURL),
 					mlog.Err(err),
 				)
-				response.Update.AddProp(model.PostPropsInlineActions, originalProps[model.PostPropsInlineActions])
+				// originalProps came from maps.Clone(post.GetProps())
+				// which is a shallow clone — the nested
+				// mm_blocks_actions map is still aliased to
+				// post.Props. Deep-clone before reattaching so a
+				// later mutation through response.Update can't
+				// reach back into the original post's prop map.
+				response.Update.AddProp(model.PostPropsMmBlocksActions, cloneMmBlocksActionsProp(originalProps[model.PostPropsMmBlocksActions]))
 			}
 		}
 
-		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowInlineActionsUpdate: true}); appErr != nil {
+		if _, _, appErr = a.UpdatePost(rctx, response.Update, &model.UpdatePostOptions{SafeUpdate: false, AllowMmBlocksActionsUpdate: true}); appErr != nil {
 			return "", appErr
 		}
 	}

@@ -139,17 +139,20 @@ export default function messageHtmlToComponent(html: string, options: Options = 
     });
 
     if (options.allowInlineActions) {
+        // replaceChildren: false replaces the entire <a> tag (not just its
+        // children) — without it the anchor would remain as a wrapper around
+        // the button, leaving the original mmaction:// href clickable.
         processingInstructions.push({
-            replaceChildren: true,
+            replaceChildren: false,
             shouldProcessNode: (node: any) =>
-                node.type === 'tag' && node.name === 'span' &&
-                node.attribs?.['data-inline-action-id'],
+                node.type === 'tag' && node.name === 'a' &&
+                typeof node.attribs?.href === 'string' &&
+                node.attribs.href.startsWith('mmaction://'),
             processNode: (node: any, children: any, index?: number) => (
                 <InlineActionButton
                     key={`inline-action-${index}`}
-                    actionId={node.attribs['data-inline-action-id']}
-                    params={node.attribs['data-inline-action-params'] || ''}
-                    postId={node.attribs['data-inline-action-post-id'] || ''}
+                    href={node.attribs.href}
+                    postId={options.postId || ''}
                 >
                     {children}
                 </InlineActionButton>

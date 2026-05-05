@@ -2728,10 +2728,10 @@ export default class Client4 {
         );
     };
 
-    doPostActionWithInlineContext = (postId: string, actionId: string, inlineContext: Record<string, string>) => {
+    doPostActionWithQuery = (postId: string, actionId: string, query: Record<string, string>) => {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
-            {method: 'post', body: JSON.stringify({inline_context: inlineContext})},
+            {method: 'post', body: JSON.stringify({query})},
         );
     };
 

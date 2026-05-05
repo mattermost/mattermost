@@ -61,14 +61,13 @@ export default class PostMarkdown extends React.PureComponent<Props> {
     };
 
     getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean, allowInlineActions?: boolean) => {
+        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean) => {
             return {
                 ...options,
                 disableGroupHighlight,
                 mentionHighlight,
                 editedAt,
                 renderEmoticonsAsEmoji,
-                allowInlineActions,
             };
         });
 
@@ -143,7 +142,6 @@ export default class PostMarkdown extends React.PureComponent<Props> {
             mentionHighlight,
             this.props.post?.edit_at,
             this.props?.renderEmoticonsAsEmoji,
-            allowInlineActions,
         );
 
         let highlightKeys;
@@ -164,6 +162,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                 imagesMetadata={this.props.post?.metadata?.images}
                 postId={this.props.post?.id}
                 editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                allowInlineActions={allowInlineActions}
             />
         );
     }

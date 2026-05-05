@@ -255,22 +255,21 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		post.AddProp(model.PostPropsFromOAuthApp, "true")
 	}
 
-	// Strip inline_actions unless BOTH the post author is a bot (DB-verified)
-	// AND the session is an integration (bot token / PAT / OAuth app). Either
-	// signal alone is insufficient: a regular user with a PAT could otherwise
-	// craft a post that phishes other channel members' identity to an
-	// attacker-controlled URL on click, and a non-integration admin session
-	// could post-as-bot with the same effect. Do NOT trust from_webhook /
-	// from_plugin props here — they can be forged by regular users when
-	// hardened mode is off.
+	// Strip mm_blocks_actions from posts that are neither bot-authored nor
+	// created via an integration session. Either signal is sufficient:
+	//   - user.IsBot (DB-verified) covers PluginAPI.CreatePost where the
+	//     plugin's static rctx has no integration markers but the post
+	//     is authored by a bot user.
+	//   - rctx.Session().IsIntegration() (server-derived, unspoofable)
+	//     covers REST callers using bot tokens, PATs, or OAuth apps.
 	//
-	// This block runs only on the REST-API user-post path. Incoming webhooks
-	// (CreateWebhookPost) and plugins (PluginAPI.CreatePost) call CreatePost
-	// or CreatePostMissingChannel directly, bypassing CreatePostAsUser, and
-	// are unaffected by this strip.
-	if post.GetProp(model.PostPropsInlineActions) != nil {
-		if !user.IsBot || !rctx.Session().IsIntegration() {
-			post.DelProp(model.PostPropsInlineActions)
+	// Webhooks are handled separately at their entry point
+	// (CreateWebhookPost) — webhook payloads are user-controlled even
+	// when bound to a bot user, so the prop is dropped before the post
+	// reaches CreatePost. See TestCreateWebhookPostStripsMmBlocksActions.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		if !user.IsBot && !rctx.Session().IsIntegration() {
+			post.DelProp(model.PostPropsMmBlocksActions)
 		}
 	}
 
@@ -723,11 +722,11 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 		post.SetProps(make(model.StringInterface))
 	}
 
-	// inline_actions cannot be resolved on click for ephemeral posts (no DB
-	// row, no per-action cookie transport). Drop the prop here so the client
-	// doesn't render a non-functional button.
-	if post.GetProp(model.PostPropsInlineActions) != nil {
-		post.DelProp(model.PostPropsInlineActions)
+	// mm_blocks_actions cannot be resolved on click for ephemeral posts (no
+	// DB row, no per-action cookie transport). Drop the prop here so the
+	// client doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		post.DelProp(model.PostPropsMmBlocksActions)
 	}
 
 	post.GenerateActionIds()
@@ -764,11 +763,11 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 		post.SetProps(make(model.StringInterface))
 	}
 
-	// inline_actions cannot be resolved on click for ephemeral posts (no DB
-	// row, no per-action cookie transport). Drop the prop here so the client
-	// doesn't render a non-functional button.
-	if post.GetProp(model.PostPropsInlineActions) != nil {
-		post.DelProp(model.PostPropsInlineActions)
+	// mm_blocks_actions cannot be resolved on click for ephemeral posts (no
+	// DB row, no per-action cookie transport). Drop the prop here so the
+	// client doesn't render a non-functional button.
+	if post.GetProp(model.PostPropsMmBlocksActions) != nil {
+		post.DelProp(model.PostPropsMmBlocksActions)
 	}
 
 	post.GenerateActionIds()
@@ -889,18 +888,18 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
-		// inline_actions can only be modified by trusted paths that have
-		// pre-validated the new value (AllowInlineActionsUpdate). Session
+		// mm_blocks_actions can only be modified by trusted paths that have
+		// pre-validated the new value (AllowMmBlocksActionsUpdate). Session
 		// type is intentionally not a sufficient signal: a PAT/OAuth session
 		// from a regular user would otherwise bypass the freeze and inject
-		// inline_actions on edit, since from_bot on the original post is
-		// user-forgeable. All other callers keep whatever inline_actions
+		// mm_blocks_actions on edit, since from_bot on the original post is
+		// user-forgeable. All other callers keep whatever mm_blocks_actions
 		// the original post had (or none).
-		if !updatePostOptions.AllowInlineActionsUpdate {
-			if oldVal, ok := oldPost.GetProps()[model.PostPropsInlineActions]; ok {
-				newPost.AddProp(model.PostPropsInlineActions, oldVal)
+		if !updatePostOptions.AllowMmBlocksActionsUpdate {
+			if oldVal, ok := oldPost.GetProps()[model.PostPropsMmBlocksActions]; ok {
+				newPost.AddProp(model.PostPropsMmBlocksActions, oldVal)
 			} else {
-				newPost.DelProp(model.PostPropsInlineActions)
+				newPost.DelProp(model.PostPropsMmBlocksActions)
 			}
 		}
 

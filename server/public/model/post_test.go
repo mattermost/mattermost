@@ -171,14 +171,17 @@ func TestPost_ContainsIntegrationsReservedProps(t *testing.T) {
 			PostPropsOverrideUsername:   "overridden_username",
 			PostPropsOverrideIconURL:    "a-custom-url",
 			PostPropsOverrideIconEmoji:  ":custom_emoji_name:",
-			PostPropsInlineActions: map[string]*PostActionIntegration{
-				"btn1": {URL: "http://example.com/hook"},
+			PostPropsMmBlocksActions: map[string]any{
+				"btn1": map[string]any{
+					"type": MmBlocksActionTypeExternal,
+					"url":  "http://example.com/hook",
+				},
 			},
 		},
 	}
 	keys2 := post2.ContainsIntegrationsReservedProps()
 	require.Len(t, keys2, 6)
-	require.Contains(t, keys2, PostPropsInlineActions)
+	require.Contains(t, keys2, PostPropsMmBlocksActions)
 }
 
 func TestPostPatch_ContainsIntegrationsReservedProps(t *testing.T) {

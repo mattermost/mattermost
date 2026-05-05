@@ -536,12 +536,12 @@ func TestLookupDialog(t *testing.T) {
 	})
 }
 
-// newInlineActionPost posts an attachment action pointing at upstreamURL,
+// newAttachmentActionPost posts an attachment action pointing at upstreamURL,
 // attributed to th.BasicUser so th.Client has access to call the action.
-func newInlineActionPost(t *testing.T, th *TestHelper, upstreamURL string) (*model.Post, string) {
+func newAttachmentActionPost(t *testing.T, th *TestHelper, upstreamURL string) (*model.Post, string) {
 	t.Helper()
 	basicPost := &model.Post{
-		Message:   "inline action post",
+		Message:   "attachment action post",
 		ChannelId: th.BasicChannel.Id,
 		UserId:    th.BasicUser.Id,
 		Props: model.StringInterface{
@@ -572,7 +572,7 @@ func newInlineActionPost(t *testing.T, th *TestHelper, upstreamURL string) (*mod
 	return created, attachments[0].Actions[0].Id
 }
 
-func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
+func TestDoPostActionQuery_ValidationErrors(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	client := th.Client
@@ -587,47 +587,47 @@ func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	created, actionID := newInlineActionPost(t, th, ts.URL)
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
 	route := "/posts/" + created.Id + "/actions/" + actionID
 
 	t.Run("too many entries returns 400 with expected error id", func(t *testing.T) {
-		ctxMap := make(map[string]string, model.MaxInlineContextEntries+1)
-		for i := range model.MaxInlineContextEntries + 1 {
+		ctxMap := make(map[string]string, model.MaxActionQueryEntries+1)
+		for i := range model.MaxActionQueryEntries + 1 {
 			ctxMap[fmt.Sprintf("k%d", i)] = "v"
 		}
-		payload, err := json.Marshal(model.DoPostActionRequest{InlineContext: ctxMap})
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
 		require.NoError(t, err)
 
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
 	})
 
 	t.Run("oversized key returns 400", func(t *testing.T) {
-		ctxMap := map[string]string{strings.Repeat("k", model.MaxInlineContextKeyLength+1): "v"}
-		payload, err := json.Marshal(model.DoPostActionRequest{InlineContext: ctxMap})
+		ctxMap := map[string]string{strings.Repeat("k", model.MaxActionQueryKeyLength+1): "v"}
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
 		require.NoError(t, err)
 
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
 	})
 
 	t.Run("oversized value returns 400", func(t *testing.T) {
-		ctxMap := map[string]string{"k": strings.Repeat("v", model.MaxInlineContextValueLength+1)}
-		payload, err := json.Marshal(model.DoPostActionRequest{InlineContext: ctxMap})
+		ctxMap := map[string]string{"k": strings.Repeat("v", model.MaxActionQueryValueLength+1)}
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: ctxMap})
 		require.NoError(t, err)
 
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
 		require.Error(t, err)
 		CheckBadRequestStatus(t, model.BuildResponse(resp))
-		CheckErrorID(t, err, "api.post.do_action.inline_context.app_error")
+		CheckErrorID(t, err, "api.post.do_action.query.app_error")
 	})
 
 	t.Run("small valid context returns 200", func(t *testing.T) {
-		payload, err := json.Marshal(model.DoPostActionRequest{InlineContext: map[string]string{"tail": "214"}})
+		payload, err := json.Marshal(model.DoPostActionRequest{Query: map[string]string{"tail": "214"}})
 		require.NoError(t, err)
 
 		resp, err := client.DoAPIPost(context.Background(), route, string(payload))
@@ -637,7 +637,7 @@ func TestDoPostActionInlineContext_ValidationErrors(t *testing.T) {
 	})
 }
 
-func TestDoPostActionInlineContext_OmitempyCompat(t *testing.T) {
+func TestDoPostActionQuery_OmitempyCompat(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 	client := th.Client
@@ -652,12 +652,12 @@ func TestDoPostActionInlineContext_OmitempyCompat(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	created, actionID := newInlineActionPost(t, th, ts.URL)
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
 	route := "/posts/" + created.Id + "/actions/" + actionID
 
-	// Older clients do not know about inline_context — their request body has
-	// no such key. The omitempty tag should make this equivalent to sending
-	// a nil map, which ValidateInlineContext accepts.
+	// Older clients do not know about query — their request body has no such
+	// key. The omitempty tag should make this equivalent to sending a nil
+	// map, which ValidateActionQuery accepts.
 	payload := `{"selected_option":""}`
 	resp, err := client.DoAPIPost(context.Background(), route, payload)
 	require.NoError(t, err)
@@ -674,8 +674,8 @@ func TestDoPostActionInlineContext_OmitempyCompat(t *testing.T) {
 
 // TestDoPostActionMalformedBody verifies non-EOF JSON decode errors now
 // return 400 instead of silently running the action with an empty request.
-// A body like `{"inline_context":{"k":1}}` (value is not a string) would
-// otherwise deserialize to a zero-value InlineContext and skip validation.
+// A body like `{"query":{"k":1}}` (value is not a string) would otherwise
+// deserialize to a zero-value Query and skip validation.
 func TestDoPostActionMalformedBody(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -691,13 +691,13 @@ func TestDoPostActionMalformedBody(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	created, actionID := newInlineActionPost(t, th, ts.URL)
+	created, actionID := newAttachmentActionPost(t, th, ts.URL)
 	route := "/posts/" + created.Id + "/actions/" + actionID
 
-	t.Run("wrong type for inline_context value returns 400", func(t *testing.T) {
-		// inline_context must be map[string]string; passing an int value
-		// triggers a json UnmarshalTypeError which must not fall through.
-		resp, err := client.DoAPIPost(context.Background(), route, `{"inline_context":{"k":1}}`)
+	t.Run("wrong type for query value returns 400", func(t *testing.T) {
+		// query must be map[string]string; passing an int value triggers a
+		// json UnmarshalTypeError which must not fall through.
+		resp, err := client.DoAPIPost(context.Background(), route, `{"query":{"k":1}}`)
 		require.Error(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -705,6 +705,17 @@ func TestDoPostActionMalformedBody(t *testing.T) {
 
 	t.Run("syntactically invalid JSON returns 400", func(t *testing.T) {
 		resp, err := client.DoAPIPost(context.Background(), route, `{not json`)
+		require.Error(t, err)
+		require.NotNil(t, resp)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("trailing JSON values after the first object return 400", func(t *testing.T) {
+		// json.Decoder.Decode stops after the first complete value, so a
+		// body like `{"query":{}}{"cookie":"x"}` would otherwise execute
+		// the action with the first object's intent and silently drop the
+		// rest. The handler explicitly rejects trailing values.
+		resp, err := client.DoAPIPost(context.Background(), route, `{"query":{}}{"cookie":"x"}`)
 		require.Error(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)

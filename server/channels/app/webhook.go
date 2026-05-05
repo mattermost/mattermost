@@ -367,6 +367,12 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 				model.PostPropsOverrideUsername,
 				model.PostPropsFromWebhook:
 			// Do nothing
+			case model.PostPropsMmBlocksActions:
+				// Webhook payloads are user-controlled even when the
+				// webhook is bound to a bot user, so the bot-author
+				// signal in CreatePost's strip rule cannot distinguish
+				// them. Drop here so mm_blocks_actions never reaches
+				// the post object.
 			default:
 				post.AddProp(key, val)
 			}
