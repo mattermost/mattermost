@@ -3130,7 +3130,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	t.Run("sysconsole_write_user_management_groups holder can patch scheme_admin in either direction", func(t *testing.T) {
 		// system_manager bundles sysconsole_write_user_management_groups,
 		// the override honoured by verifySchemeAdminAssignmentPermission.
-		th.LoginSystemManager(t)
+		th.LoginSystemManager()
 
 		gPromote := setupLinkedGroup(t, false)
 		_, response, err := th.SystemManagerClient.PatchGroupSyncable(context.Background(), gPromote.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
@@ -3251,7 +3251,7 @@ func TestPatchGroupChannel_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	t.Run("sysconsole_write_user_management_groups holder can patch scheme_admin in either direction", func(t *testing.T) {
 		// system_manager bundles sysconsole_write_user_management_groups,
 		// the override honoured by verifySchemeAdminAssignmentPermission.
-		th.LoginSystemManager(t)
+		th.LoginSystemManager()
 
 		gPromote := setupLinkedGroup(t, false)
 		_, response, err := th.SystemManagerClient.PatchGroupSyncable(context.Background(), gPromote.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, schemeAdminTrue)
