@@ -390,7 +390,6 @@ func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
 // TestCPAField_SanitizeAndValidate removed: behavior moved into AttributeValidationHook;
 // see TestAttributeValidationHook in server/channels/app/properties/attribute_validation_test.go.
 
-
 func TestValidateCPAFieldName(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -554,7 +553,6 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 
 // TestCPAField_SetDefaults removed: visibility default is now applied by AttributeValidationHook
 // (see attribute_validation.go), exercised in TestAttributeValidationHook.
-
 
 func TestCPAField_Patch(t *testing.T) {
 	testCases := []struct {
