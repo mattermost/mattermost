@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -405,6 +406,150 @@ func TestFilterConditionValues_TextFieldMasking(t *testing.T) {
 		callerTextValues := map[string]struct{}{}
 		filterConditionValues(condition, callerTextValues)
 
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+}
+
+func TestMaskConditionValues(t *testing.T) {
+	rctx := request.TestContext(t)
+
+	// nil App is safe for every branch that does not reach a.getCallerTextValues
+	// (i.e., everything except shared_only + text field, which needs a real store).
+	var a *App
+
+	makeField := func(accessMode string, fieldType model.PropertyFieldType, options []any) *model.PropertyField {
+		attrs := model.StringInterface{model.PropertyAttrsAccessMode: accessMode}
+		if options != nil {
+			attrs[model.PropertyFieldAttributeOptions] = options
+		}
+		return &model.PropertyField{Type: fieldType, Attrs: attrs}
+	}
+
+	options := []any{
+		map[string]any{"id": "id1", "name": "Alpha"},
+		map[string]any{"id": "id2", "name": "Bravo"},
+	}
+
+	t.Run("AttrValue condition: returns immediately, value untouched", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Team",
+			Value:     "user.attributes.Department",
+			ValueType: model.AttrValue,
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", nil)
+		assert.Equal(t, "user.attributes.Department", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("non-user-attribute path: returns immediately, value untouched", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "team.attributes.Program",
+			Value:     "Engineering",
+			ValueType: model.LiteralValue,
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		assert.Equal(t, "Engineering", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("field missing from prefetch map: fail-closed", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Program",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", map[string]*model.PropertyField{})
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("public field: value passes through unchanged", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Program",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Program": makeField(model.PropertyAccessModePublic, model.PropertyFieldTypeSelect, options),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Equal(t, "Alpha", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("source_only field: value is nil'd and masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Clearance",
+			Value:     "Top Secret",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Clearance": makeField(model.PropertyAccessModeSourceOnly, model.PropertyFieldTypeSelect, options),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("shared_only select: visible option kept, hidden option masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Location",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		// "Alpha" is in the field options so it is visible
+		assert.Equal(t, "Alpha", condition.Value)
+		assert.False(t, condition.HasMaskedValues)
+	})
+
+	t.Run("shared_only select: value not in options is masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Location",
+			Value:     "Charlie",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Location": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeSelect, options),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		assert.Nil(t, condition.Value)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("shared_only multiselect: visible values kept, hidden values masked", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Programs",
+			Value:     []any{"Alpha", "Charlie"},
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Programs": makeField(model.PropertyAccessModeSharedOnly, model.PropertyFieldTypeMultiselect, options),
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
+		values, ok := condition.Value.([]any)
+		require.True(t, ok)
+		assert.Equal(t, []any{"Alpha"}, values)
+		assert.True(t, condition.HasMaskedValues)
+	})
+
+	t.Run("unknown access mode: fail-closed", func(t *testing.T) {
+		condition := &model.Condition{
+			Attribute: "user.attributes.Program",
+			Value:     "Alpha",
+			ValueType: model.LiteralValue,
+		}
+		fields := map[string]*model.PropertyField{
+			"Program": {
+				Type:  model.PropertyFieldTypeSelect,
+				Attrs: model.StringInterface{model.PropertyAttrsAccessMode: "future_unknown_mode"},
+			},
+		}
+		a.maskConditionValues(rctx, "caller", condition, "", fields)
 		assert.Nil(t, condition.Value)
 		assert.True(t, condition.HasMaskedValues)
 	})
