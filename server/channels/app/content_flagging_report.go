@@ -119,8 +119,11 @@ func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*mo
 		return nil, appErr
 	}
 
+	// GetEditHistoryForPost returns a 404 AppError when the post has no edit
+	// history rows. That is the normal case for an unedited post, so treat it
+	// as an empty history rather than failing the whole report.
 	editHistory, appErr := a.GetEditHistoryForPost(postID)
-	if appErr != nil {
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return nil, appErr
 	}
 
