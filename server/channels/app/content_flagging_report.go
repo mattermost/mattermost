@@ -199,14 +199,16 @@ func (a *App) writeContentReviewEntry(rctx request.CTX, zw *zip.Writer, post *mo
 // already present (set by a prior keep/remove or report-generation), it is
 // preserved so the existing reviewer note is never overwritten.
 func (a *App) ensureActorCommentForReport(rctx request.CTX, postID, comment string) *model.AppError {
+	if comment == "" {
+		return nil
+	}
+
 	existing, appErr := a.GetPostContentFlaggingPropertyValue(postID, contentFlaggingPropertyNameActorComment)
 	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return appErr
 	}
+
 	if existing != nil {
-		return nil
-	}
-	if comment == "" {
 		return nil
 	}
 
@@ -233,6 +235,7 @@ func (a *App) ensureActorCommentForReport(rctx request.CTX, postID, comment stri
 			Value:      json.RawMessage(commentBytes),
 		},
 	}
+
 	if _, appErr := a.CreatePropertyValues(rctx, propertyValues); appErr != nil {
 		return model.NewAppError("ensureActorCommentForReport", "app.data_spillage.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
