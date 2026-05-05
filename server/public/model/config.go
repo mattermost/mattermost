@@ -4056,9 +4056,9 @@ type Config struct {
 	ExperimentalSettings        ExperimentalSettings
 	AnalyticsSettings           AnalyticsSettings
 	ElasticsearchSettings       ElasticsearchSettings
-	DataRetentionSettings           DataRetentionSettings
-	MobileEphemeralModeSettings     MobileEphemeralModeSettings
-	MessageExportSettings           MessageExportSettings
+	DataRetentionSettings       DataRetentionSettings
+	MobileEphemeralModeSettings MobileEphemeralModeSettings
+	MessageExportSettings       MessageExportSettings
 	JobSettings                 JobSettings
 	PluginSettings              PluginSettings
 	DisplaySettings             DisplaySettings
