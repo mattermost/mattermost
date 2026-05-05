@@ -4,6 +4,8 @@
 package storetest
 
 import (
+	"database/sql"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -40,6 +42,7 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
+	t.Run("CleanupSessionAttributes", func(t *testing.T) { testCleanupSessionAttributes(t, rctx, ss) })
 }
 
 func testSessionStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -617,4 +620,116 @@ func testGetMobileSessionMetadata(t *testing.T, rctx request.CTX, ss store.Store
 		}
 	}
 	require.True(t, found)
+}
+
+func testCleanupSessionAttributes(t *testing.T, rctx request.CTX, ss store.Store) {
+	sessionAttrsGroup, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+		Name:    model.SessionAttributesPropertyGroupName,
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.NoError(t, err)
+
+	otherGroup, err := ss.PropertyGroup().Register(&model.PropertyGroup{
+		Name:    "test_cleanup_unrelated_" + model.NewId(),
+		Version: model.PropertyGroupVersionV2,
+	})
+	require.NoError(t, err)
+
+	liveSession, err := ss.Session().Save(rctx, &model.Session{UserId: model.NewId()})
+	require.NoError(t, err)
+
+	deletedSession, err := ss.Session().Save(rctx, &model.Session{UserId: model.NewId()})
+	require.NoError(t, err)
+
+	liveValue := &model.PropertyValue{
+		TargetID:   liveSession.Id,
+		TargetType: model.PropertyValueTargetTypeSession,
+		GroupID:    sessionAttrsGroup.ID,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"chrome"`),
+	}
+	soonOrphanedValue := &model.PropertyValue{
+		TargetID:   deletedSession.Id,
+		TargetType: model.PropertyValueTargetTypeSession,
+		GroupID:    sessionAttrsGroup.ID,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"firefox"`),
+	}
+	preexistingOrphanValue := &model.PropertyValue{
+		TargetID:   model.NewId(),
+		TargetType: model.PropertyValueTargetTypeSession,
+		GroupID:    sessionAttrsGroup.ID,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"safari"`),
+	}
+	unrelatedGroupValue := &model.PropertyValue{
+		TargetID:   model.NewId(),
+		TargetType: "unrelated_target_type",
+		GroupID:    otherGroup.ID,
+		FieldID:    model.NewId(),
+		Value:      json.RawMessage(`"do not touch"`),
+	}
+
+	for _, v := range []*model.PropertyValue{liveValue, soonOrphanedValue, preexistingOrphanValue, unrelatedGroupValue} {
+		_, err = ss.PropertyValue().Create(v)
+		require.NoError(t, err)
+	}
+
+	require.NoError(t, ss.Session().Remove(deletedSession.Id))
+
+	t.Run("removes only orphaned session_attributes values", func(t *testing.T) {
+		require.NoError(t, ss.Session().CleanupSessionAttributes(100))
+
+		got, err := ss.PropertyValue().Get(sessionAttrsGroup.ID, liveValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, liveValue.ID, got.ID)
+
+		_, err = ss.PropertyValue().Get(sessionAttrsGroup.ID, soonOrphanedValue.ID)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+
+		_, err = ss.PropertyValue().Get(sessionAttrsGroup.ID, preexistingOrphanValue.ID)
+		require.ErrorIs(t, err, sql.ErrNoRows)
+
+		got, err = ss.PropertyValue().Get(otherGroup.ID, unrelatedGroupValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, unrelatedGroupValue.ID, got.ID)
+	})
+
+	t.Run("loops over multiple batches", func(t *testing.T) {
+		var orphans []*model.PropertyValue
+		for range 5 {
+			v := &model.PropertyValue{
+				TargetID:   model.NewId(),
+				TargetType: model.PropertyValueTargetTypeSession,
+				GroupID:    sessionAttrsGroup.ID,
+				FieldID:    model.NewId(),
+				Value:      json.RawMessage(`"batched"`),
+			}
+			_, err := ss.PropertyValue().Create(v)
+			require.NoError(t, err)
+			orphans = append(orphans, v)
+		}
+
+		require.NoError(t, ss.Session().CleanupSessionAttributes(2))
+
+		for _, v := range orphans {
+			_, err := ss.PropertyValue().Get(sessionAttrsGroup.ID, v.ID)
+			require.ErrorIs(t, err, sql.ErrNoRows, "orphan %s should be removed", v.ID)
+		}
+
+		got, err := ss.PropertyValue().Get(sessionAttrsGroup.ID, liveValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, liveValue.ID, got.ID)
+	})
+
+	t.Run("is a no-op when nothing is orphaned", func(t *testing.T) {
+		require.NoError(t, ss.Session().CleanupSessionAttributes(100))
+
+		got, err := ss.PropertyValue().Get(sessionAttrsGroup.ID, liveValue.ID)
+		require.NoError(t, err)
+		require.Equal(t, liveValue.ID, got.ID)
+	})
+
+	require.NoError(t, ss.Session().Remove(liveSession.Id))
+	require.NoError(t, ss.Session().CleanupSessionAttributes(100))
 }

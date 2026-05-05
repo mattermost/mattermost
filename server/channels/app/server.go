@@ -1309,6 +1309,11 @@ func doSessionCleanup(s *Server) {
 	if err != nil {
 		mlog.Warn("Error while cleaning up sessions", mlog.Err(err))
 	}
+
+	err = s.Store().Session().CleanupSessionAttributes(sessionsCleanupBatchSize)
+	if err != nil {
+		mlog.Warn("Error while cleaning up session attributes", mlog.Err(err))
+	}
 }
 
 func doJobsCleanup(s *Server) {

@@ -389,3 +389,35 @@ func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 
 	return nil
 }
+
+func (me SqlSessionStore) CleanupSessionAttributes(batchSize int64) error {
+	query := `
+		DELETE FROM PropertyValues
+		WHERE ID IN (
+			SELECT pv.ID
+			FROM PropertyValues pv
+			INNER JOIN PropertyGroups pg ON pg.ID = pv.GroupID
+			LEFT JOIN Sessions s ON s.Id = pv.TargetID
+			WHERE pg.Name = ?
+				AND pv.TargetType = ?
+				AND s.Id IS NULL
+			LIMIT ?
+		)`
+
+	var rowsAffected int64 = 1
+
+	for rowsAffected > 0 {
+		sqlResult, err := me.GetMaster().Exec(query, model.SessionAttributesPropertyGroupName, model.PropertyValueTargetTypeSession, batchSize)
+		if err != nil {
+			return errors.Wrap(err, "unable to delete session attributes")
+		}
+		var rowErr error
+		rowsAffected, rowErr = sqlResult.RowsAffected()
+		if rowErr != nil {
+			return errors.Wrap(err, "unable to delete session attributes")
+		}
+
+		time.Sleep(sessionsCleanupDelay)
+	}
+	return nil
+}

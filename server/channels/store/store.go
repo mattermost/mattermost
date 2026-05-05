@@ -551,6 +551,7 @@ type SessionStore interface {
 	UpdateProps(session *model.Session) error
 	AnalyticsSessionCount() (int64, error)
 	Cleanup(expiryTime int64, batchSize int64) error
+	CleanupSessionAttributes(batchSize int64) error
 }
 
 type AuditStore interface {

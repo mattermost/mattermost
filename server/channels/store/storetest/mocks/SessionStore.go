@@ -61,6 +61,24 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	return r0
 }
 
+// CleanupSessionAttributes provides a mock function with given fields: batchSize
+func (_m *SessionStore) CleanupSessionAttributes(batchSize int64) error {
+	ret := _m.Called(batchSize)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CleanupSessionAttributes")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64) error); ok {
+		r0 = rf(batchSize)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: rctx, sessionIDOrToken
 func (_m *SessionStore) Get(rctx request.CTX, sessionIDOrToken string) (*model.Session, error) {
 	ret := _m.Called(rctx, sessionIDOrToken)
