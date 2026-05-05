@@ -13,7 +13,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           class="fa fa-angle-left back"
           href="/admin_console/system_attributes/membership_policies"
         />
-        Edit Access Control Policy
+        Edit Membership Policy
       </div>
     </div>
     <div
@@ -34,7 +34,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
               for="admin.access_control.policy.edit_policy.policyName"
             >
-              Access control policy name:
+              Membership policy name:
             </label>
             <div
               class="col-sm-8"
@@ -65,12 +65,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-top"
               >
-                Attribute-based access rules
+                Attribute-based membership rules
               </div>
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to restrict channel membership.
+                Select user attributes and values as rules to determine who should be in the channels this policy applies to.
               </div>
             </div>
             <button
@@ -197,7 +197,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Add channels that this attribute-based access policy will apply to.
+                Add channels that this membership policy will apply to.
               </div>
             </div>
             <button
@@ -508,7 +508,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
           class="fa fa-angle-left back"
           href="/admin_console/system_attributes/membership_policies"
         />
-        Edit Access Control Policy
+        Edit Membership Policy
       </div>
     </div>
     <div
@@ -529,7 +529,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               data-testid="admin.access_control.policy.edit_policy.policyNamelabel"
               for="admin.access_control.policy.edit_policy.policyName"
             >
-              Access control policy name:
+              Membership policy name:
             </label>
             <div
               class="col-sm-8"
@@ -560,12 +560,12 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-top"
               >
-                Attribute-based access rules
+                Attribute-based membership rules
               </div>
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to restrict channel membership.
+                Select user attributes and values as rules to determine who should be in the channels this policy applies to.
               </div>
             </div>
             <button
@@ -692,7 +692,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Add channels that this attribute-based access policy will apply to.
+                Add channels that this membership policy will apply to.
               </div>
             </div>
             <button

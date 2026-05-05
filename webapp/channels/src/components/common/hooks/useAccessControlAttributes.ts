@@ -73,14 +73,36 @@ function processAttributeData(data: Record<string, string[]> | undefined | null)
     return {attributeTags, structuredAttributes};
 }
 
+// Listeners that mounted hook instances register to be notified when the
+// module-level cache is invalidated for an entity they care about. Used to
+// trigger a re-fetch in response to server-side policy changes that arrive
+// out-of-band of the hook's normal dependency-driven refresh.
+type InvalidationListener = (entityType: EntityType | undefined, entityId: string | undefined) => void;
+const invalidationListeners = new Set<InvalidationListener>();
+
 /**
- * Invalidates the cached attributes for a single entity. Components that
- * mutate the underlying access policy should call this to ensure the next
- * read fetches fresh data instead of serving up to CACHE_TTL milliseconds of
- * stale state.
+ * Invalidates cached access control attributes for an entity. When both
+ * entityType and entityId are provided, only that entity's cache entry is
+ * dropped; when omitted, the entire module-level cache is cleared. After
+ * dropping the cache entry/entries, all mounted instances of
+ * useAccessControlAttributes that match the invalidated entity (or all of
+ * them, when called without arguments) will immediately re-fetch so that
+ * consumers (e.g. the channel invite modal banner) pick up the new attribute
+ * set without waiting for the cache TTL to expire.
  */
-export function invalidateAccessControlAttributesCache(entityType: EntityType, entityId: string): void {
-    delete attributesCache[`${entityType}:${entityId}`];
+export function invalidateAccessControlAttributesCache(
+    entityType?: EntityType,
+    entityId?: string,
+): void {
+    if (!entityType || !entityId) {
+        for (const key of Object.keys(attributesCache)) {
+            delete attributesCache[key];
+        }
+    } else {
+        delete attributesCache[`${entityType}:${entityId}`];
+    }
+
+    invalidationListeners.forEach((listener) => listener(entityType, entityId));
 }
 
 /**
@@ -109,6 +131,8 @@ export const useAccessControlAttributes = (
 
     const fetchAttributes = useCallback(async (forceRefresh = false) => {
         if (!entityId || !hasAccessControl) {
+            setAttributeTags([]);
+            setStructuredAttributes([]);
             return;
         }
 
@@ -159,6 +183,24 @@ export const useAccessControlAttributes = (
     useEffect(() => {
         fetchAttributes();
     }, [fetchAttributes]);
+
+    // Re-fetch when the cache is invalidated for this entity (e.g. when a
+    // policy change is broadcast over the websocket). Without this, the
+    // hook's input dependencies may not change even though the underlying
+    // attribute set on the server did.
+    useEffect(() => {
+        const listener: InvalidationListener = (invalidatedType, invalidatedId) => {
+            const matchesEntity = !invalidatedType || !invalidatedId ||
+                (invalidatedType === entityType && invalidatedId === entityId);
+            if (matchesEntity) {
+                fetchAttributes(true);
+            }
+        };
+        invalidationListeners.add(listener);
+        return () => {
+            invalidationListeners.delete(listener);
+        };
+    }, [entityType, entityId, fetchAttributes]);
 
     return {
         attributeTags,

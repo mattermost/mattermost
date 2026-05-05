@@ -140,6 +140,7 @@ describe('components/BrowseChannels', () => {
         teamName: 'team_name',
         channelsRequestStarted: false,
         shouldHideJoinedChannels: false,
+        accessControlEnabled: false,
         myChannelMemberships: {
             'channel-id-3': TestHelper.getChannelMembershipMock({
                 channel_id: 'channel-id-3',
@@ -149,6 +150,7 @@ describe('components/BrowseChannels', () => {
         actions: {
             getChannels: jest.fn(channelActions.getChannels),
             getArchivedChannels: jest.fn(channelActions.getArchivedChannels),
+            getRecommendedChannelsForUser: jest.fn().mockResolvedValue({data: []}),
             joinChannel: jest.fn(channelActions.joinChannelAction),
             searchAllChannels: jest.fn(channelActions.searchAllChannels),
             openModal: jest.fn(),
@@ -644,5 +646,67 @@ describe('components/BrowseChannels', () => {
             expect(screen.getByText('Private')).toBeInTheDocument();
             expect(screen.queryByText('Private Not Member')).not.toBeInTheDocument();
         });
+    });
+
+    test('Recommended filter fetches recommended channels, boosts them on All, and lists only recommended when filtered', async () => {
+        const recommendedChannel = TestHelper.getChannelMock({
+            id: 'recommended-channel-id',
+            team_id: 'team_1',
+            display_name: 'Recommended Channel',
+            name: 'recommended-channel',
+            type: 'O',
+        });
+
+        const getChannels = jest.fn().mockResolvedValue({
+            data: [defaultChannel, recommendedChannel],
+        });
+        const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedChannel]});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            channels: [defaultChannel, recommendedChannel],
+            actions: {...baseProps.actions, getChannels, getRecommendedChannelsForUser},
+        };
+
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        await waitFor(() => {
+            expect(getRecommendedChannelsForUser).toHaveBeenCalledWith('team_1');
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.getByTestId('ChannelRow-default-channel')).toBeInTheDocument();
+        });
+
+        const recommendedRow = screen.getByTestId('ChannelRow-recommended-channel');
+        const defaultRow = screen.getByTestId('ChannelRow-default-channel');
+        expect(
+            recommendedRow.compareDocumentPosition(defaultRow) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).not.toBe(0);
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Recommended channels'));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+            expect(screen.queryByTestId('ChannelRow-default-channel')).not.toBeInTheDocument();
+        });
+    });
+
+    test('Recommended filter entry is hidden when ABAC is disabled', async () => {
+        renderWithContext(<BrowseChannels {...baseProps}/>);
+
+        await act(async () => {
+            await Promise.resolve();
+        });
+
+        await user.click(screen.getByLabelText('Channel type filter'));
+        expect(screen.queryByText('Recommended channels')).not.toBeInTheDocument();
+
+        // The recommendation fetch is also gated server-side on
+        // `accessControlEnabled`. Lock that in so a future refactor doesn't
+        // start fetching unconditionally and silently waste a round-trip.
+        expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
     });
 });
