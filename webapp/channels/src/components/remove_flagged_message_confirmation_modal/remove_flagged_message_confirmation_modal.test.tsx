@@ -52,23 +52,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
     const onExited = jest.fn();
 
-    let originalFetch: typeof global.fetch;
     let originalCreateObjectURL: typeof URL.createObjectURL;
     let originalRevokeObjectURL: typeof URL.revokeObjectURL;
 
-    const mockReportFetchSuccess = () => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: true,
-            status: 200,
-            blob: () => Promise.resolve(new Blob(['report'], {type: 'application/zip'})),
-        }) as jest.Mock;
+    const mockReportSuccess = () => {
+        Client4.generateFlaggedPostReport = jest.fn().mockResolvedValue(new Blob(['report'], {type: 'application/zip'}));
     };
 
-    const mockReportFetchFailure = () => {
-        global.fetch = jest.fn().mockResolvedValue({
-            ok: false,
-            status: 500,
-        }) as jest.Mock;
+    const mockReportFailure = () => {
+        Client4.generateFlaggedPostReport = jest.fn().mockRejectedValue(new Error('boom'));
     };
 
     beforeEach(() => {
@@ -82,22 +74,18 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
         Client4.removeFlaggedPost = jest.fn().mockResolvedValue({});
         Client4.keepFlaggedPost = jest.fn().mockResolvedValue({});
-        Client4.getFlaggedPostReportUrl = jest.fn().mockReturnValue('/api/v4/content_flagging/post/flagged_post_id/report');
+        mockReportSuccess();
 
         originalCreateObjectURL = URL.createObjectURL;
         originalRevokeObjectURL = URL.revokeObjectURL;
         URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url');
         URL.revokeObjectURL = jest.fn();
 
-        originalFetch = global.fetch;
-        mockReportFetchSuccess();
-
         // eslint-disable-next-line no-console
         console.error = jest.fn();
     });
 
     afterEach(() => {
-        global.fetch = originalFetch;
         URL.createObjectURL = originalCreateObjectURL;
         URL.revokeObjectURL = originalRevokeObjectURL;
     });
@@ -169,9 +157,10 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(global.fetch).toHaveBeenCalledWith(
-                    '/api/v4/content_flagging/post/flagged_post_id/report',
-                    expect.objectContaining({credentials: 'include'}),
+                expect(Client4.generateFlaggedPostReport).toHaveBeenCalledWith(
+                    flaggedPost.id,
+                    '',
+                    expect.any(AbortSignal),
                 );
             });
 
@@ -211,14 +200,11 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await waitFor(() => {
                 expect(Client4.removeFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
-            expect(global.fetch).not.toHaveBeenCalledWith(
-                '/api/v4/content_flagging/post/flagged_post_id/report',
-                expect.anything(),
-            );
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
         });
 
         test('should show error step when report generation fails and allow retry', async () => {
-            mockReportFetchFailure();
+            mockReportFailure();
 
             renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
@@ -236,7 +222,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             });
 
             // Switch to success and retry
-            mockReportFetchSuccess();
+            mockReportSuccess();
             await userEvent.click(screen.getByTestId('error-retry-button'));
 
             await waitFor(() => {
@@ -376,10 +362,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await waitFor(() => {
                 expect(screen.getByText('Please add a comment.')).toBeVisible();
             });
-            expect(global.fetch).not.toHaveBeenCalledWith(
-                '/api/v4/content_flagging/post/flagged_post_id/report',
-                expect.anything(),
-            );
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
             expect(Client4.removeFlaggedPost).not.toHaveBeenCalled();
             expect(onExited).not.toHaveBeenCalled();
         });
@@ -423,12 +406,12 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('generated-section')).toBeVisible();
             });
-            const initialFetchCount = (global.fetch as jest.Mock).mock.calls.length;
+            const initialCallCount = (Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length;
 
             await userEvent.click(screen.getByTestId('generated-download-again-button'));
 
             await waitFor(() => {
-                expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(initialFetchCount);
+                expect((Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length).toBeGreaterThan(initialCallCount);
             });
             await waitFor(() => {
                 expect(screen.getByTestId('generated-section')).toBeVisible();
@@ -436,11 +419,8 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
         });
 
         test('skip from generating step routes to skip-confirm', async () => {
-            // Hold the fetch open so we can interact with the generating footer
-            let resolveFetch: (value: any) => void = () => {};
-            global.fetch = jest.fn().mockReturnValue(new Promise((resolve) => {
-                resolveFetch = resolve;
-            })) as jest.Mock;
+            // Hold the request open so we can interact with the generating footer
+            Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(new Promise(() => {}));
 
             renderWithContext(
                 <KeepRemoveFlaggedMessageConfirmationModal
@@ -462,13 +442,6 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
             });
-
-            // Resolving the aborted fetch should not advance to generated state
-            resolveFetch({
-                ok: true,
-                blob: () => Promise.resolve(new Blob(['report'])),
-            });
-            await Promise.resolve();
             expect(screen.queryByTestId('generated-section')).not.toBeInTheDocument();
         });
 

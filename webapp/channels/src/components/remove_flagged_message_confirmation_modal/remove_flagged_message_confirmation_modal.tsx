@@ -145,16 +145,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
         (async () => {
             try {
-                const url = Client4.getFlaggedPostReportUrl(flaggedPost.id);
-                const response = await fetch(url, {credentials: 'include', signal: controller.signal});
-                if (controller.signal.aborted) {
-                    return;
-                }
-                if (!response.ok) {
-                    setStep('error');
-                    return;
-                }
-                const blob = await response.blob();
+                const blob = await Client4.generateFlaggedPostReport(flaggedPost.id, comment, controller.signal);
                 if (controller.signal.aborted) {
                     return;
                 }
@@ -183,7 +174,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         return () => {
             controller.abort();
         };
-    }, [step, flaggedPost.id]);
+    }, [step, flaggedPost.id, comment]);
 
     const removeLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
     const keepLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_keep.title', defaultMessage: 'Keep message'});

@@ -5073,6 +5073,23 @@ export default class Client4 {
     getFlaggedPostReportUrl = (postId: string) => {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
+
+    generateFlaggedPostReport = async (postId: string, comment: string, signal?: AbortSignal): Promise<Blob> => {
+        const url = this.getFlaggedPostReportUrl(postId);
+        const options = this.getOptions({
+            method: 'post',
+            body: JSON.stringify({comment}),
+        });
+        const response = await fetch(url, {...options, signal});
+        if (!response.ok) {
+            throw new ClientError(this.getUrl(), {
+                message: `Received status code ${response.status} from the server.`,
+                status_code: response.status,
+                url,
+            });
+        }
+        return response.blob();
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {
