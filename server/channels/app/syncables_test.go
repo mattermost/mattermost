@@ -680,14 +680,14 @@ func TestSyncSyncableRoles(t *testing.T) {
 
 func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
 		t.Helper()
 
-		team := th.CreateTeam(t)
-		channel := th.CreateChannel(t, team)
-		group := th.CreateGroup(t)
+		team := th.CreateTeam()
+		channel := th.CreateChannel(th.Context, team)
+		group := th.CreateGroup()
 
 		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 			SyncableId: team.Id,
@@ -705,7 +705,7 @@ func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		directAdmin := th.CreateUser(t)
+		directAdmin := th.CreateUser()
 		_, appErr := th.App.AddTeamMember(th.Context, team.Id, directAdmin.Id)
 		require.Nil(t, appErr)
 		_, appErr = th.App.AddUserToChannel(th.Context, directAdmin, channel, false)
@@ -717,7 +717,7 @@ func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
 		_, storeErr = th.App.Srv().Store().Team().UpdateMember(th.Context, tm)
 		require.NoError(t, storeErr)
 
-		cm, storeErr := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, directAdmin.Id)
+		cm, storeErr := th.App.Srv().Store().Channel().GetMember(th.Context.Context(), channel.Id, directAdmin.Id)
 		require.NoError(t, storeErr)
 		cm.SchemeAdmin = true
 		_, storeErr = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm)
@@ -769,14 +769,14 @@ func TestSyncRolesAndMembership_RoleSyncGate(t *testing.T) {
 
 func TestSyncRolesAndMembership_AlwaysSyncsMembership(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := Setup(t).InitBasic()
 
 	setup := func(t *testing.T) (*model.Team, *model.Channel, *model.Group, *model.User) {
 		t.Helper()
 
-		team := th.CreateTeam(t)
-		channel := th.CreateChannel(t, team)
-		group := th.CreateGroup(t)
+		team := th.CreateTeam()
+		channel := th.CreateChannel(th.Context, team)
+		group := th.CreateGroup()
 
 		_, err := th.App.UpsertGroupSyncable(&model.GroupSyncable{
 			SyncableId: team.Id,
@@ -794,7 +794,7 @@ func TestSyncRolesAndMembership_AlwaysSyncsMembership(t *testing.T) {
 		})
 		require.Nil(t, err)
 
-		groupMember := th.CreateUser(t)
+		groupMember := th.CreateUser()
 		_, err = th.App.UpsertGroupMember(group.Id, groupMember.Id)
 		require.Nil(t, err)
 
