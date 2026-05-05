@@ -5935,6 +5935,10 @@
     "translation": "Invalid property value attributes : {{.AttributeName}} ({{.Reason}})."
   },
   {
+    "id": "app.custom_profile_attributes.sanitize_and_validate.display_name_too_long.app_error",
+    "translation": "CPA field display_name exceeds the maximum length of {{.MaxRunes}} characters."
+  },
+  {
     "id": "app.custom_profile_attributes.search_property_fields.app_error",
     "translation": "Unable to search User Attribute fields"
   },
@@ -11591,6 +11595,14 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.cpa_field.name.invalid_charset.app_error",
+    "translation": "Invalid CPA field name '{{.Name}}': must match ^[A-Za-z_][A-Za-z0-9_]*$ (CEL identifier rule)."
+  },
+  {
+    "id": "model.cpa_field.name.reserved_word.app_error",
+    "translation": "Invalid CPA field name '{{.Name}}': this is a CEL reserved word and cannot be used as a field identifier."
+  },
+  {
     "id": "model.dcr.is_valid.client_name.app_error",
     "translation": "Client name must be 64 characters or less."
   },
@@ -12689,6 +12701,18 @@
   {
     "id": "plugin_reattach_request.is_valid.plugin_reattach_config.app_error",
     "translation": "Missing plugin reattach config"
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "This channel is no longer shared with {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "This channel is no longer shared with another workspace."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "This channel is now shared with {{.WorkspaceName}}."
   },
   {
     "id": "sharedchannel.cannot_deliver_post",
