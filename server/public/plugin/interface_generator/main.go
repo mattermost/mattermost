@@ -522,7 +522,7 @@ import (
 type hooksTimerLayer struct {
 	pluginID   string
 	hooksImpl  Hooks
-	rpcErrImpl HooksWithRPCErr
+	hooksWithRPCErrImpl HooksWithRPCErr
 	metrics    metricsInterface
 }
 
@@ -548,7 +548,7 @@ func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return
 
 func (hooks *hooksTimerLayer) {{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleAppendErr .Return}} {
 	startTime := timePkg.Now()
-	{{destructAppendErr "_returns" .Return}} := hooks.rpcErrImpl.{{.Name}}WithRPCErr({{valuesOnly .Params}})
+	{{destructAppendErr "_returns" .Return}} := hooks.hooksWithRPCErrImpl.{{.Name}}WithRPCErr({{valuesOnly .Params}})
 	hooks.recordTime(startTime, "{{.Name}}WithRPCErr", {{ shouldRecordSuccessWithRPCErr "_returns" .Return }})
 	return {{destructAppendErr "_returns" .Return}}
 }
