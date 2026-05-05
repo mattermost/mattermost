@@ -99,8 +99,9 @@ export default class SystemProperties {
         await expect(this.saveButton).toBeEnabled();
 
         const saveResponsePromise = this.page.waitForResponse(
-            (resp: {url: () => string; status: () => number}) =>
-                resp.url().includes('/api/v4/custom_profile_attributes/fields') && resp.status() < 400,
+            (resp) =>
+                resp.url().includes('/api/v4/custom_profile_attributes/fields') &&
+                resp.request().method() !== 'GET',
         );
 
         await this.saveButton.click();

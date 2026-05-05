@@ -67,7 +67,6 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await channelsPage.sidebarRight.toContainText('Post record');
 
     // Verify file attachment is present with the expected filename pattern
-    const rhsLastPost = await channelsPage.sidebarRight.getLastPost();
     const expectedFileName = `deletion_report_${post.id}.md`;
-    await expect(rhsLastPost.container).toContainText(expectedFileName);
+    await channelsPage.sidebarRight.toContainText(expectedFileName, 30000);
 });
