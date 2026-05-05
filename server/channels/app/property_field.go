@@ -199,18 +199,17 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	}
 
 	// Intrinsic invariants — apply to every caller (HTTP, plugin, internal).
-	for _, f := range fields {
+	// Service returns DB-order, not input-order, so we'll build a lookup map
+	// keyed by ID below; collect IDs in this same pass.
+	ids := make([]string, len(fields))
+	for i, f := range fields {
 		f.Name = strings.TrimSpace(f.Name)
+		ids[i] = f.ID
 	}
 
 	// Load existing fields once. Used for: protected-check (gated by
 	// bypassProtectedCheck), PSAv1 reject (always-on), linked-field diff
-	// invariants (always-on). Service returns DB-order, not input-order, so
-	// build a lookup map keyed by ID.
-	ids := make([]string, len(fields))
-	for i, f := range fields {
-		ids[i] = f.ID
-	}
+	// invariants (always-on).
 
 	existingFields, err := a.Srv().propertyService.GetPropertyFields(rctx, groupID, ids)
 	if err != nil {

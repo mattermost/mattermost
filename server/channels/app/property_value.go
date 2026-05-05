@@ -215,6 +215,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		}
 		seenIDs[v.FieldID] = true
 		fieldIDs = append(fieldIDs, v.FieldID)
+		v.Value = model.SanitizePropertyValue(v.Value)
 	}
 
 	// ObjectType-mismatch check is gated on a non-empty objectType argument.
@@ -253,10 +254,6 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 				)
 			}
 		}
-	}
-
-	for _, v := range values {
-		v.Value = model.SanitizePropertyValue(v.Value)
 	}
 
 	result, err := a.Srv().propertyService.UpsertPropertyValues(rctx, values)
