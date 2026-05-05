@@ -396,13 +396,14 @@ func deletePropertyField(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddEventPriorState(existingField)
+
 	connectionID := r.Header.Get(model.ConnectionId)
 	if deleteErr := c.App.DeletePropertyField(rctx, group.ID, c.Params.FieldId, false, connectionID); deleteErr != nil {
 		c.Err = deleteErr
 		return
 	}
 
-	auditRec.AddEventPriorState(existingField)
 	auditRec.Success()
 	auditRec.AddEventResultState(existingField)
 	auditRec.AddEventObjectType("property_field")
