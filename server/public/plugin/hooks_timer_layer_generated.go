@@ -18,7 +18,7 @@ import (
 type hooksTimerLayer struct {
 	pluginID   string
 	hooksImpl  Hooks
-	rpcErrImpl HooksRPCErr
+	rpcErrImpl HooksWithRPCErr
 	metrics    metricsInterface
 }
 

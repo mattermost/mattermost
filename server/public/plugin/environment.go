@@ -627,9 +627,9 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks, mani
 }
 
 // RunMultiPluginHookWithRPCErr is like RunMultiPluginHook but surfaces RPC transport errors. The
-// closure receives a HooksRPCErr so it can call *WithRPCErr variants. Iteration stops on the first
+// closure receives a HooksWithRPCErr so it can call *WithRPCErr variants. Iteration stops on the first
 // non-nil error returned by the closure.
-func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks HooksRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
 	startTime := time.Now()
 	var retErr error
 
@@ -640,9 +640,9 @@ func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks H
 			return true
 		}
 
-		hooks, ok := rp.supervisor.Hooks().(HooksRPCErr)
+		hooks, ok := rp.supervisor.Hooks().(HooksWithRPCErr)
 		if !ok {
-			retErr = fmt.Errorf("plugin %s hooks do not implement HooksRPCErr", rp.BundleInfo.Manifest.Id)
+			retErr = fmt.Errorf("plugin %s hooks do not implement HooksWithRPCErr", rp.BundleInfo.Manifest.Id)
 			return false
 		}
 

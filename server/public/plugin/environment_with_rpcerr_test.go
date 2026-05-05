@@ -19,11 +19,11 @@ import (
 )
 
 // Both the wire-level client and the metrics-wrapping layer returned by
-// supervisor.Hooks() must implement HooksRPCErr — RunMultiPluginHookWithRPCErr's
+// supervisor.Hooks() must implement HooksWithRPCErr — RunMultiPluginHookWithRPCErr's
 // type assertion targets the latter.
 var (
-	_ HooksRPCErr = (*hooksRPCClient)(nil)
-	_ HooksRPCErr = (*hooksTimerLayer)(nil)
+	_ HooksWithRPCErr = (*hooksRPCClient)(nil)
+	_ HooksWithRPCErr = (*hooksTimerLayer)(nil)
 )
 
 func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
@@ -87,7 +87,7 @@ func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
 
 	t.Run("both plugins healthy - closure invoked once per plugin", func(t *testing.T) {
 		seen := map[string]int{}
-		runErr := env.RunMultiPluginHookWithRPCErr(func(hooks HooksRPCErr, manifest *model.Manifest) (bool, error) {
+		runErr := env.RunMultiPluginHookWithRPCErr(func(hooks HooksWithRPCErr, manifest *model.Manifest) (bool, error) {
 			seen[manifest.Id]++
 			require.NoError(t, hooks.MessageHasBeenPostedWithRPCErr(&Context{}, &model.Post{}))
 			return true, nil
@@ -99,7 +99,7 @@ func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
 	t.Run("closure error propagates and stops iteration", func(t *testing.T) {
 		sentinel := errors.New("from closure")
 		var calls int
-		runErr := env.RunMultiPluginHookWithRPCErr(func(_ HooksRPCErr, _ *model.Manifest) (bool, error) {
+		runErr := env.RunMultiPluginHookWithRPCErr(func(_ HooksWithRPCErr, _ *model.Manifest) (bool, error) {
 			calls++
 			return true, sentinel
 		}, MessageHasBeenPostedID)
@@ -109,7 +109,7 @@ func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
 
 	t.Run("hook id not implemented - closure never invoked", func(t *testing.T) {
 		var calls int
-		runErr := env.RunMultiPluginHookWithRPCErr(func(_ HooksRPCErr, _ *model.Manifest) (bool, error) {
+		runErr := env.RunMultiPluginHookWithRPCErr(func(_ HooksWithRPCErr, _ *model.Manifest) (bool, error) {
 			calls++
 			return true, nil
 		}, MessageHasBeenUpdatedID)
@@ -127,7 +127,7 @@ func TestRunMultiPluginHookWithRPCErr(t *testing.T) {
 		// Give the rpc client a moment to notice the dead connection.
 		require.Eventually(t, func() bool {
 			var rpcErr error
-			_ = env.RunMultiPluginHookWithRPCErr(func(hooks HooksRPCErr, manifest *model.Manifest) (bool, error) {
+			_ = env.RunMultiPluginHookWithRPCErr(func(hooks HooksWithRPCErr, manifest *model.Manifest) (bool, error) {
 				if manifest.Id != pluginID1 {
 					return true, nil
 				}

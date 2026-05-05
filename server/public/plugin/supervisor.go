@@ -146,7 +146,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 		sup.hooksClient = c
 	}
 
-	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), raw.(HooksRPCErr), metrics}
+	sup.hooks = &hooksTimerLayer{pluginInfo.Manifest.Id, raw.(Hooks), raw.(HooksWithRPCErr), metrics}
 
 	impl, err := sup.hooks.Implemented()
 	if err != nil {

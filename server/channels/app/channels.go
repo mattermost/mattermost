@@ -333,7 +333,7 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifes
 // invoked; (b) iteration completed and every closure invocation returned nil. Callers that need
 // fail-closed semantics on case (a) must check `ch.GetPluginsEnvironment() != nil` at the call site
 // before invoking — the right policy when plugins are disabled by config is caller-specific.
-func (ch *Channels) RunMultiHookWithRPCErr(hookRunnerFunc func(hooks plugin.HooksRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+func (ch *Channels) RunMultiHookWithRPCErr(hookRunnerFunc func(hooks plugin.HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		return env.RunMultiPluginHookWithRPCErr(hookRunnerFunc, hookId)
 	}
