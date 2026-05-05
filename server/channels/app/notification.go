@@ -270,7 +270,11 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 					threadParticipants[rootPost.UserId] = true
 				}
 			}
-			if channel.Type != model.ChannelTypeDirect {
+			// Group DMs (GM) are conversational like 1-1 DMs — auto-following every
+			// post into a thread row spams the Followed Threads list. Skip the
+			// root-mention propagation here so only direct authors/repliers get
+			// followed via the participant path below.
+			if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
 				rootMentions = getExplicitMentions(rootPost, keywords)
 				for id := range rootMentions.Mentions {
 					threadParticipants[id] = true
@@ -281,7 +285,9 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 			threadParticipants[id] = true
 		}
 
-		if channel.Type != model.ChannelTypeDirect {
+		// Same rationale as above: don't apply the per-channel ChannelAutoFollowThreads
+		// setting in DMs and GMs — those are chats, not threaded discussions.
+		if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
 			for id, propsMap := range channelMemberNotifyPropsMap {
 				if ok := followers.Has(id); !ok && propsMap[model.ChannelAutoFollowThreads] == model.ChannelAutoFollowThreadsOn {
 					threadParticipants[id] = true
@@ -368,7 +374,7 @@ func (a *App) SendNotifications(rctx request.CTX, post *model.Post, team *model.
 	// is immediately visible in "Followed Threads" without waiting for the first reply.
 	// @here/@channel/@all → IsMentionOnly (no reply-spam), direct @mention → full follow.
 	// Skip DMs: both participants already see every message, threading adds noise.
-	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId == "" && isCRTAllowed && len(mentions.Mentions) > 0 && channel.Type != model.ChannelTypeDirect {
+	if *a.Config().ServiceSettings.ThreadAutoFollow && post.RootId == "" && isCRTAllowed && len(mentions.Mentions) > 0 && channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
 		if err := a.Srv().Store().Thread().EnsureThreadExists(post.Id, post.ChannelId, team.Id, post.CreateAt); err != nil {
 			rctx.Logger().Warn("Failed to ensure thread exists for root post",
 				mlog.String("post_id", post.Id),
