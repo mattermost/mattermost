@@ -6,6 +6,7 @@ package api4
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -86,7 +87,7 @@ func TestSameFileIDs(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := sameFileIDs(tc.a, tc.b)
+			result := utils.SliceEqualUnordered(tc.a, tc.b)
 			assert.Equal(t, tc.expected, result)
 		})
 	}
