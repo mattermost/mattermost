@@ -99,6 +99,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", model.MigrationKeyRestoreManageOAuthPermission).Return(&model.System{Name: model.MigrationKeyRestoreManageOAuthPermission, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAccessControlPolicyV0_3).Return(&model.System{Name: model.MigrationKeyAccessControlPolicyV0_3, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddManageAgentPermissions).Return(&model.System{Name: model.MigrationKeyAddManageAgentPermissions, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyAddEditFileAttachmentPermission).Return(&model.System{Name: model.MigrationKeyAddEditFileAttachmentPermission, Value: "true"}, nil)
 
 	systemStore.On("InsertIfExists", mock.AnythingOfType("*model.System")).Return(&model.System{}, nil).Once()
 	systemStore.On("Save", mock.AnythingOfType("*model.System")).Return(nil)
