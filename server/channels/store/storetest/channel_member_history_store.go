@@ -19,6 +19,7 @@ import (
 func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("TestLogJoinEvent", func(t *testing.T) { testLogJoinEvent(t, rctx, ss) })
 	t.Run("TestLogLeaveEvent", func(t *testing.T) { testLogLeaveEvent(t, rctx, ss) })
+	t.Run("TestGetEverMembersInChannel", func(t *testing.T) { testGetEverMembersInChannel(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, rctx, ss) })
 	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, rctx, ss) })
 	t.Run("TestGetChannelsWithActivityDuring", func(t *testing.T) { testGetChannelsWithActivityDuring(t, rctx, ss) })
@@ -27,6 +28,91 @@ func TestChannelMemberHistoryStore(t *testing.T, rctx request.CTX, ss store.Stor
 	t.Run("TestGetChannelsLeftSince", func(t *testing.T) { testGetChannelsLeftSince(t, rctx, ss) })
 	t.Run("TestDeleteOrphanedRows", func(t *testing.T) { testDeleteOrphanedRows(t, rctx, ss) })
 	t.Run("TestGetMembershipChanges", func(t *testing.T) { testGetMembershipChanges(t, rctx, ss) })
+}
+
+func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, err := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, err)
+
+	otherChannel := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Display " + model.NewId(),
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}
+	otherChannel, err = ss.Channel().Save(rctx, otherChannel, -1)
+	require.NoError(t, err)
+
+	newUser := func() string {
+		user := &model.User{
+			Email:    MakeEmail(),
+			Nickname: model.NewId(),
+			Username: model.NewUsername(),
+		}
+		created, saveErr := ss.User().Save(rctx, user)
+		require.NoError(t, saveErr)
+		return created.Id
+	}
+
+	user1 := newUser()
+	user2 := newUser()
+	user3 := newUser()
+	user4 := newUser()
+	nonMember := newUser()
+	wrongChannelOnly := newUser()
+
+	// user1 has historical rows (joined, left, and rejoined) and should be returned once.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, 1100))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, 1200))
+	// other users are simple joins.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user2, channel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user3, channel.Id, 1000))
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user4, channel.Id, 1000))
+	// user on a different channel only should not be returned.
+	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(wrongChannelOnly, otherChannel.Id, 1000))
+
+	// non-positive pagination and invalid page should return empty.
+	results, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, []string{user1, user2}, 0, 0)
+	require.NoError(t, err)
+	require.Empty(t, results)
+
+	results, err = ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, []string{user1, user2}, -1, 2)
+	require.NoError(t, err)
+	require.Empty(t, results)
+
+	// Filter to known candidates in this channel and ensure each user appears once.
+	candidates := []string{user1, user2, user3, user4, nonMember, wrongChannelOnly}
+	allResults, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 0, 10)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{user1, user2, user3, user4}, allResults)
+
+	// Ensure paging walks all results deterministically.
+	page0, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 0, 2)
+	require.NoError(t, err)
+	page1, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 1, 2)
+	require.NoError(t, err)
+	page2, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 2, 2)
+	require.NoError(t, err)
+	assert.Len(t, page0, 2)
+	assert.Len(t, page1, 2)
+	assert.Empty(t, page2)
+
+	pagedSet := make(map[string]struct{})
+	for _, id := range append(page0, page1...) {
+		pagedSet[id] = struct{}{}
+	}
+	assert.Len(t, pagedSet, 4)
+	for _, id := range []string{user1, user2, user3, user4} {
+		_, ok := pagedSet[id]
+		assert.True(t, ok)
+	}
 }
 
 func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {

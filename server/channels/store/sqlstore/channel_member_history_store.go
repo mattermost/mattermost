@@ -78,6 +78,37 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	return nil
 }
 
+// GetEverMembersInChannel returns user IDs that have at least one membership history row in the channel.
+// Results are de-duplicated and paginated.
+func (s SqlChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string, page, perPage int) ([]string, error) {
+	if len(userIDs) == 0 || perPage <= 0 || page < 0 {
+		return []string{}, nil
+	}
+
+	query, args, err := s.getQueryBuilder().
+		Select("UserId").
+		Distinct().
+		From("ChannelMemberHistory").
+		Where(sq.And{
+			sq.Eq{"ChannelId": channelID},
+			sq.Eq{"UserId": userIDs},
+		}).
+		OrderBy("UserId ASC").
+		Offset(uint64(page * perPage)).
+		Limit(uint64(perPage)).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "channel_member_history_to_sql")
+	}
+
+	everMembers := []string{}
+	if err := s.GetReplica().Select(&everMembers, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "GetEverMembersInChannel channelId=%s users=%d page=%d perPage=%d", channelID, len(userIDs), page, perPage)
+	}
+
+	return everMembers, nil
+}
+
 func (s SqlChannelMemberHistoryStore) GetChannelsWithActivityDuring(startTime int64, endTime int64) ([]string, error) {
 	// ChannelMemberHistory has been in production for long enough that we are assuming the export period
 	// starts after the ChannelMemberHistory table was first introduced
