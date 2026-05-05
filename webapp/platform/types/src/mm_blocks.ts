@@ -13,9 +13,6 @@
 // - Native mm_blocks: the client sends `props.mm_blocks_actions` (string) as the post-action cookie.
 // - Legacy attachments translated into mm_blocks: each control may carry `cookie` copied from
 //   `props.attachments[].actions[].cookie` (encrypted PostAction cookie per button/select).
-//
-// Legacy bundled `{ blocks, actions }` inside `mm_blocks` and top-level `mm_actions` are merged
-// into controls client-side when still present.
 
 export type MmButtonStyle = 'default' | 'primary' | 'danger';
 
