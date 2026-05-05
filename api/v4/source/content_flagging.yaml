@@ -392,7 +392,7 @@
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
   /api/v4/content_flagging/post/{post_id}/report:
-    get:
+    post:
       summary: Generate and download a flagged post report
       description: |
         Generates a ZIP archive containing the flagged post, its edit history, content review details, post metadata, and any associated file attachments, then streams the archive back to the caller as a download. All other content reviewers of the post's team are notified that a report has been generated.
@@ -408,6 +408,16 @@
             type: string
           description: The ID of the flagged post to generate the report for
       operationId: GenerateCFPostReport
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: Optional comment from the reviewer to be included in the generated report.
       responses:
         '200':
           description: Report generated successfully. The response body is a ZIP archive containing the flagged post report.
