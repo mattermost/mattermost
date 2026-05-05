@@ -759,7 +759,7 @@ func verifySchemeAdminAssignmentPermission(c *Context, syncableType model.GroupS
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeamRoles})
 		}
 	case model.GroupSyncableTypeChannel:
-		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageChannelRoles); !ok {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, model.PermissionManageChannelRoles) {
 			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageChannelRoles})
 		}
 	}
