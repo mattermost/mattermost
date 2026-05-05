@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       ref_branch: "${{ steps.check.outputs.ref_branch }}"
+      fips_supported: "${{ steps.check.outputs.fips_supported }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -40,12 +41,19 @@ jobs:
           # Strip refs/heads/ prefix if present
           BRANCH="${BRANCH#refs/heads/}"
 
-          if ! [[ "$BRANCH" =~ ^release-[0-9]+\.[0-9]+$ ]]; then
+          # FIPS builds were introduced in release-11.0; skip FIPS tests for older branches.
+          if ! [[ "$BRANCH" =~ ^release-([0-9]+)\.[0-9]+$ ]]; then
             echo "::error::Branch ${BRANCH} must be 'release-X.Y' format."
             exit 1
           elif ! git merge-base --is-ancestor "$COMMIT_SHA" HEAD; then
             echo "::error::Commit ${COMMIT_SHA} is not on branch ${BRANCH}."
             exit 1
+          fi
+
+          if [[ "${BASH_REMATCH[1]}" -ge 11 ]]; then
+            echo "fips_supported=true" >> $GITHUB_OUTPUT
+          else
+            echo "fips_supported=false" >> $GITHUB_OUTPUT
           fi
 
           echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
@@ -91,8 +99,10 @@ jobs:
       REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # Enterprise FIPS Edition
+  # FIPS builds were introduced in release-11.0; skip for older branches.
   e2e-cypress-fips:
     needs: validate
+    if: needs.validate.outputs.fips_supported == 'true'
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
@@ -115,6 +125,7 @@ jobs:
 
   e2e-playwright-fips:
     needs: validate
+    if: needs.validate.outputs.fips_supported == 'true'
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: ${{ inputs.commit_sha }}
