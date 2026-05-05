@@ -152,6 +152,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	groupsByName[cpaGroup.Name] = cpaGroup
 	groupsByName[managedCategoryGroup.Name] = managedCategoryGroup
 	groupsByName[boardsGroup.Name] = boardsGroup
+	groupsByName[sessionAttributesGroup.Name] = sessionAttributesGroup
 
 	propertyGroupStore.On("Register", mock.AnythingOfType("*model.PropertyGroup")).Return(
 		func(group *model.PropertyGroup) *model.PropertyGroup {
