@@ -1616,9 +1616,19 @@ func testGetGroupSyncable(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, gt1.GroupId, dgt.GroupId)
 	require.Equal(t, gt1.SyncableId, dgt.SyncableId)
 	require.Equal(t, gt1.AutoAdd, dgt.AutoAdd)
+	require.Equal(t, gt1.SchemeAdmin, dgt.SchemeAdmin)
 	require.NotZero(t, gt1.CreateAt)
 	require.NotZero(t, gt1.UpdateAt)
 	require.Zero(t, gt1.DeleteAt)
+
+	// Round-trip SchemeAdmin: true through UpdateGroupSyncable and re-fetch.
+	dgt.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(dgt)
+	require.NoError(t, err)
+
+	dgt, err = ss.Group().GetGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
+	require.NoError(t, err)
+	require.True(t, dgt.SchemeAdmin, "GetGroupSyncable must populate SchemeAdmin from the persisted row")
 }
 
 func testGetGroupSyncableErrors(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -4989,6 +4999,15 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, rctx request.CTX, ss sto
 	// deleted group syncable no longer includes group members
 	_, err = ss.Group().DeleteGroupSyncable(group1.Id, team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
+
+	// The persisted row must still carry SchemeAdmin=true after soft-delete;
+	// PermittedSyncableAdmins excludes it via the DeleteAt = 0 predicate, not
+	// via the field having been silently cleared.
+	deletedSyncable, err := ss.Group().GetGroupSyncable(group1.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.NoError(t, err)
+	require.True(t, deletedSyncable.SchemeAdmin)
+	require.NotZero(t, deletedSyncable.DeleteAt)
+
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
@@ -5096,6 +5115,15 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, rctx request.CTX, ss 
 	// deleted group syncable no longer includes group members
 	_, err = ss.Group().DeleteGroupSyncable(group1.Id, channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
+
+	// The persisted row must still carry SchemeAdmin=true after soft-delete;
+	// PermittedSyncableAdmins excludes it via the DeleteAt = 0 predicate, not
+	// via the field having been silently cleared.
+	deletedSyncable, err := ss.Group().GetGroupSyncable(group1.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.NoError(t, err)
+	require.True(t, deletedSyncable.SchemeAdmin)
+	require.NotZero(t, deletedSyncable.DeleteAt)
+
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
