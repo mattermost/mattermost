@@ -23,6 +23,14 @@ jest.mock('hooks/useChannelAccessControlActions', () => ({
 
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 
+const createChannel = (id: string, type: 'O' | 'P'): ChannelWithTeamData => ({
+    id,
+    name: id,
+    display_name: id,
+    team_display_name: 'Team 1',
+    type,
+} as ChannelWithTeamData);
+
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
     const mockUpdatePolicy = jest.fn();
@@ -197,5 +205,60 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
         await waitFor(() => {
             expect(mockDeletePolicy).toHaveBeenCalledWith('policy1');
         });
+    });
+
+    test('shows mixed-channel notice when assigned channels include public and private types', async () => {
+        const searchChannels = jest.fn().mockResolvedValue({
+            data: {
+                channels: [
+                    createChannel('open-channel', 'O'),
+                    createChannel('private-channel', 'P'),
+                ],
+                total_count: 2,
+            },
+        });
+
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                searchChannels,
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(searchChannels).toHaveBeenCalledWith('policy1', '', expect.objectContaining({per_page: 1000}));
+        });
+        expect(screen.getByText('Membership policies affect public and private channels differently')).toBeInTheDocument();
+        expect(screen.getByText(/recommended and will be auto-added when auto-add is enabled/i)).toBeInTheDocument();
+    });
+
+    test('does not show mixed-channel notice when assigned channels are only public', async () => {
+        const searchChannels = jest.fn().mockResolvedValue({
+            data: {
+                channels: [
+                    createChannel('open-1', 'O'),
+                    createChannel('open-2', 'O'),
+                ],
+                total_count: 2,
+            },
+        });
+
+        const props = {
+            ...defaultProps,
+            actions: {
+                ...defaultProps.actions,
+                searchChannels,
+            },
+        };
+
+        renderWithContext(<PolicyDetails {...props}/>);
+
+        await waitFor(() => {
+            expect(searchChannels).toHaveBeenCalledWith('policy1', '', expect.objectContaining({per_page: 1000}));
+        });
+        expect(screen.queryByText('Membership policies affect public and private channels differently')).not.toBeInTheDocument();
     });
 });
