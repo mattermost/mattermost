@@ -1961,6 +1961,124 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, int64(0), postFileInfos[0].DeleteAt)
 	})
 
+	t.Run("should prevent adding files when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "Post without files",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		updatePost := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: channel.Id,
+			Message:   "Updated post with file",
+			FileIds:   model.StringArray{fileId},
+		}
+		_, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Equal(t, "You do not have the appropriate permissions.", err.Error())
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should prevent removing files when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "Post with files",
+			FileIds:   model.StringArray{fileId},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		updatePost := &model.Post{
+			Id:        postWithFiles.Id,
+			ChannelId: channel.Id,
+			Message:   "Updated post without file",
+			FileIds:   model.StringArray{},
+		}
+		_, resp, err := client.UpdatePost(context.Background(), postWithFiles.Id, updatePost)
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		require.Equal(t, "You do not have the appropriate permissions.", err.Error())
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should allow updating post with unchanged files when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "Post with files",
+			FileIds:   model.StringArray{fileId},
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		updatePost := &model.Post{
+			Id:        postWithFiles.Id,
+			ChannelId: channel.Id,
+			Message:   "Updated message only",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithFiles.Id, updatePost)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedPost)
+		assert.Equal(t, "Updated message only", updatedPost.Message)
+	})
+
+	t.Run("should allow changing files when edit_file_attachment permission is present", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "Post without files",
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		updatePost := &model.Post{
+			Id:        postWithoutFiles.Id,
+			ChannelId: channel.Id,
+			Message:   "Updated post with file",
+			FileIds:   model.StringArray{fileId},
+		}
+		updatedPost, resp, err := client.UpdatePost(context.Background(), postWithoutFiles.Id, updatePost)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, updatedPost)
+	})
+
 	t.Run("should be able to add and remove files simultaneously", func(t *testing.T) {
 		th.LoginBasic(t)
 		// create new file
@@ -2216,6 +2334,129 @@ func TestPatchPost(t *testing.T) {
 		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should prevent patching file ids when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileId},
+		}
+		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should prevent removing files via patch when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "post with file",
+			FileIds:   model.StringArray{fileId},
+		})
+		require.NoError(t, err)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		emptyFileIds := model.StringArray{}
+		patch := &model.PostPatch{
+			FileIds: &emptyFileIds,
+		}
+		_, resp, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("should allow patching message without file change when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			FileIds:   model.StringArray{fileId},
+		})
+		require.NoError(t, err)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		patch := &model.PostPatch{
+			Message: model.NewPointer("updated message only"),
+		}
+		patchedPost, _, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.NoError(t, err)
+		assert.Equal(t, "updated message only", patchedPost.Message)
+	})
+
+	t.Run("should allow patching with same file ids when edit_file_attachment permission is revoked", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+			FileIds:   model.StringArray{fileId},
+		})
+		require.NoError(t, err)
+
+		th.RemovePermissionFromRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(t, model.PermissionEditFileAttachment.Id, model.ChannelUserRoleId)
+
+		sameFileIds := model.StringArray{fileId}
+		patch := &model.PostPatch{
+			Message: model.NewPointer("updated message"),
+			FileIds: &sameFileIds,
+		}
+		patchedPost, _, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.NoError(t, err)
+		assert.Equal(t, "updated message", patchedPost.Message)
+	})
+
+	t.Run("should allow patching files when edit_file_attachment permission is present", func(t *testing.T) {
+		th.LoginBasic(t)
+
+		fileResp, _, err := client.UploadFile(context.Background(), data, channel.Id, "test.png")
+		require.NoError(t, err)
+		fileId := fileResp.FileInfos[0].Id
+
+		postToEdit, _, err := client.CreatePost(context.Background(), &model.Post{
+			ChannelId: channel.Id,
+			Message:   "original message",
+		})
+		require.NoError(t, err)
+
+		patch := &model.PostPatch{
+			FileIds: &model.StringArray{fileId},
+		}
+		patchedPost, _, err := client.PatchPost(context.Background(), postToEdit.Id, patch)
+		require.NoError(t, err)
+		require.NotNil(t, patchedPost)
 	})
 
 	t.Run("time limit expired", func(t *testing.T) {
