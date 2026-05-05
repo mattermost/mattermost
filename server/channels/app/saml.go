@@ -109,11 +109,24 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 }
 
 func (a *App) removeSamlFile(filename string) *model.AppError {
+	if !isAllowedSamlCertificateFile(filename) {
+		return model.NewAppError("RemoveSamlFile", "api.context.invalid_param.app_error", map[string]any{"Name": "filename"}, "", http.StatusBadRequest)
+	}
+
 	if err := a.Srv().platform.RemoveConfigFile(filename); err != nil {
 		return model.NewAppError("RemoveSamlFile", "api.admin.remove_certificate.delete.app_error", map[string]any{"Filename": filename}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
+}
+
+func isAllowedSamlCertificateFile(filename string) bool {
+	switch filename {
+	case SamlPublicCertificateName, SamlPrivateKeyName, SamlIdpCertificateName:
+		return true
+	default:
+		return false
+	}
 }
 
 func (a *App) RemoveSamlPublicCertificate() *model.AppError {

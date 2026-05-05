@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -198,9 +199,18 @@ func (fs *FileStore) RemoveFile(name string) error {
 		mlog.Debug("Skipping removal of configuration file with absolute path", mlog.String("filename", name))
 		return nil
 	}
-	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
-	err := os.Remove(resolvedPath)
+	basePath := filepath.Clean(filepath.Dir(fs.path))
+	resolvedPath := filepath.Clean(filepath.Join(basePath, name))
+	relPath, err := filepath.Rel(basePath, resolvedPath)
+	if err != nil {
+		return errors.Wrap(err, "failed to resolve config file path")
+	}
+	if relPath == ".." || strings.HasPrefix(relPath, ".."+string(filepath.Separator)) {
+		return errors.New("invalid config file path")
+	}
+
+	err = os.Remove(resolvedPath)
 	if os.IsNotExist(err) {
 		return nil
 	}
