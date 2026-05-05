@@ -750,7 +750,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	if len(propertiesToUpdate) > 0 {
 		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
-			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update content flagging property fields: %w", err)
+			}
 		}
 	}
 
