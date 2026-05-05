@@ -106,7 +106,7 @@ describe('TeamPolicyEditor', () => {
     test('should not show delete section for new policy', async () => {
         renderWithContext(<TeamPolicyEditor {...defaultProps}/>);
         await waitFor(() => {
-            expect(screen.getByText('Access rules')).toBeInTheDocument();
+            expect(screen.getByText('Membership rules')).toBeInTheDocument();
         });
         expect(screen.queryByText('Delete policy')).not.toBeInTheDocument();
     });

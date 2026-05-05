@@ -127,9 +127,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
         await systemConsolePage.page.waitForTimeout(500);
 
         // Select policy in modal
-        const modal = systemConsolePage.page
-            .locator('[role="dialog"]')
-            .filter({hasText: 'Select an Access Control Policy'});
+        const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
         await modal.waitFor({state: 'visible', timeout: 5000});
 
         const modalSearch = modal.locator('[data-testid="searchInput"]');
