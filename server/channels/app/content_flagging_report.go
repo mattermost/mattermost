@@ -119,11 +119,12 @@ func (a *App) loadFlaggedPostReportContext(rctx request.CTX, postID string) (*mo
 		return nil, appErr
 	}
 
+	// GetEditHistoryForPost returns a 404 AppError when the post has no edit
+	// history rows. That is the normal case for an unedited post, so treat it
+	// as an empty history rather than failing the whole report.
 	editHistory, appErr := a.GetEditHistoryForPost(postID)
-	if appErr != nil {
-		// Best-effort: don't fail the entire report if edit history can't be loaded.
-		rctx.Logger().Warn("Failed to fetch edit history for flagged post report", mlog.String("post_id", postID), mlog.Err(appErr))
-		editHistory = nil
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return nil, appErr
 	}
 
 	return &model.FlaggedPostReportContext{
@@ -149,9 +150,7 @@ func (a *App) writeBasePostSection(rctx request.CTX, zw *zip.Writer, rc *model.F
 
 	baseFiles, _, appErr := a.GetFileInfosForPost(rctx, rc.Post, false, true)
 	if appErr != nil {
-		// Missing base attachments are logged, not fatal.
-		rctx.Logger().Warn("Failed to fetch base post file infos for flagged post report", mlog.String("post_id", rc.Post.Id), mlog.Err(appErr))
-		baseFiles = nil
+		return appErr
 	}
 	attachmentsDir := path.Join(flaggedPostReportPostDir, flaggedPostReportAttachmentsDir)
 	return a.writeAttachments(rctx, zw, attachmentsDir, baseFiles, seen)
@@ -268,9 +267,13 @@ func (a *App) buildContentReviewYAML(rctx request.CTX, post *model.Post) (model.
 	out.ReporterComment = decodePropertyString(rctx, byName, contentFlaggingPropertyNameReportingComment)
 	out.ReportTimestamp = decodePropertyInt64(rctx, byName, contentFlaggingPropertyNameReportingTime)
 
-	if cfg := a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent; cfg != nil {
-		out.Hidden = *cfg
+	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(post.Id, contentFlaggingPropertyManageByContentFlagging)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		return out, appErr
 	}
+
+	postHiddenByContentFlagging := contentFlaggingManaged != nil && string(contentFlaggingManaged.Value) == "true"
+	out.Hidden = postHiddenByContentFlagging
 
 	if reporterID := out.ReporterUserID; reporterID != "" {
 		if u, uErr := a.GetUser(reporterID); uErr == nil {
@@ -307,8 +310,7 @@ func (a *App) writeAttachments(rctx request.CTX, zw *zip.Writer, dirPrefix strin
 
 		reader, appErr := a.FileReader(fi.Path)
 		if appErr != nil {
-			rctx.Logger().Warn("Failed to read attachment for flagged post report", mlog.String("file_id", fi.Id), mlog.Err(appErr))
-			continue
+			return appErr
 		}
 
 		entryName := path.Join(dirPrefix, attachmentEntryName(fi))
