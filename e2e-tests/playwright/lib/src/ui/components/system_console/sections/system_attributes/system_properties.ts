@@ -100,8 +100,7 @@ export default class SystemProperties {
 
         const saveResponsePromise = this.page.waitForResponse(
             (resp) =>
-                resp.url().includes('/api/v4/custom_profile_attributes/fields') &&
-                resp.request().method() !== 'GET',
+                resp.url().includes('/api/v4/custom_profile_attributes/fields') && resp.request().method() !== 'GET',
         );
 
         await this.saveButton.click();
