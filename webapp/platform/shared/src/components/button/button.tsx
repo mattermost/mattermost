@@ -11,11 +11,26 @@ export type ButtonVariant = '' | 'destructive' | 'inverted';
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
 
+    /**
+     * The emphasis level of the button. Controls the colors of the button.
+     *
+     * Defaults to "primary".
+     */
     emphasis?: ButtonEmphasis;
-    size?: ButtonSize;
-    variant?: ButtonVariant;
 
-    // width?: 'full' | number; // TODO
+    /**
+     * The size of the button as defined in our Compass Design System. Controls the height and font size of the button.
+     *
+     * Defaults to "md".
+     */
+    size?: ButtonSize;
+
+    /**
+     * The variant of the button. Modifies the color defined by the emphasis level.
+     *
+     * Defaults to "".
+     */
+    variant?: ButtonVariant;
 }
 
 const emphasisClasses = {
@@ -43,8 +58,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     size = 'md',
     variant = '',
 
-    // width = 'auto',
-
     ...otherProps
 }, ref) => {
     let emphasisClass = emphasisClasses[emphasis];
@@ -59,9 +72,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     return (
         <button
             ref={ref}
-            className={classNames('btn', emphasisClass, sizeClass, variantClass, /*{
-                // 'btn-full': width === 'full',
-            },*/ className)}
+            className={classNames('btn', emphasisClass, sizeClass, variantClass, className)}
             {...otherProps}
         >
             {children}
