@@ -5,7 +5,9 @@ package api4
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -26,7 +28,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	var actionRequest model.FlagContentActionRequest
-	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil && !errors.Is(err, io.EOF) {
 		c.SetInvalidParamWithErr("flagContentActionRequestBody", err)
 		return
 	}

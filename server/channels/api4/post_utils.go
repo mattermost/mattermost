@@ -6,6 +6,7 @@ package api4
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
@@ -82,5 +83,16 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+	}
+}
+
+// checkEditFileAttachmentPermission checks edit_file_attachment permission
+// when file IDs are being changed (files added or removed) during post edit.
+func checkEditFileAttachmentPermission(c *Context, newFileIds []string, originalPost *model.Post) {
+	if utils.SliceEqualUnordered(newFileIds, originalPost.FileIds) {
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
+		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }
