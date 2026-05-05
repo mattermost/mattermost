@@ -210,7 +210,9 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                 </div>
             );
         } else if (this.state.success && this.props.showSuccessMessage) {
-            const text = typeof this.props.successMessage === 'string' ? this.props.successMessage : (<FormattedMessage {...this.props.successMessage}/>);
+            const text = typeof this.props.successMessage === 'string' ?
+                this.props.successMessage :
+                (<FormattedMessage {...this.props.successMessage}/>);
             message = (
                 <div>
                     <div className='alert alert-success'>
