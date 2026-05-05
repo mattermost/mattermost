@@ -55,7 +55,7 @@ const HeavyComponent = makeAsyncComponent(
 
 - **Semantic HTML**: Use `<button>`, `<input>`, etc. over `<div>` with roles.
 - **Keyboard Support**: All interactive elements must be keyboard accessible.
-- **Helpers**: Reuse primitives like `GenericModal`, `Menu`, `WithTooltip`, `A11yController` helpers.
+- **Helpers**: Reuse primitives like `GenericModal` (from `@mattermost/components`), `Menu`, `Button` and `WithTooltip` (from `@mattermost/shared`), and `A11yController` helpers. Don't hand-roll buttons or tooltips when these primitives fit.
 - **Focus**: Use `a11y--focused` class for keyboard focus indicators.
 - **Images**: Alt text required for information images. Empty `alt=""` for decorative.
 
