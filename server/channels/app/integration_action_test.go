@@ -1898,6 +1898,37 @@ func TestCloneMmBlocksActionsProp(t *testing.T) {
 		assert.NotContains(t, originalContext, "new")
 		assert.Equal(t, []any{"a", "b"}, originalContext["tags"])
 	})
+
+	t.Run("pathologically nested input is truncated past maxMmBlocksActionsCloneDepth", func(t *testing.T) {
+		// ValidateMmBlocksActions doesn't bound nesting depth inside
+		// spec.Context — defense-in-depth against stack exhaustion if a
+		// bot/plugin author crafts deeply nested input.
+		var leaf any = "leaf"
+		const tooDeep = maxMmBlocksActionsCloneDepth + 100
+		for range tooDeep {
+			leaf = map[string]any{"n": leaf}
+		}
+
+		// Must not stack-overflow / panic.
+		var cloned any
+		require.NotPanics(t, func() {
+			cloned = cloneMmBlocksActionsProp(leaf)
+		})
+
+		// Walk the clone; should hit nil before reaching the leaf string.
+		current := cloned
+		for i := range tooDeep {
+			m, ok := current.(map[string]any)
+			if !ok {
+				assert.Greater(t, i, maxMmBlocksActionsCloneDepth-2,
+					"truncation should kick in at or near maxMmBlocksActionsCloneDepth")
+				assert.Nil(t, current, "subtree past depth cap must be nil, not aliased to source")
+				return
+			}
+			current = m["n"]
+		}
+		t.Fatalf("clone walked %d levels without hitting truncation", tooDeep)
+	})
 }
 
 func TestDoPluginRequest(t *testing.T) {
@@ -2274,10 +2305,13 @@ func TestMmBlocksActionsKeptForWebhookImpersonation(t *testing.T) {
 	require.NotNil(t, stored.GetProp(model.PostPropsMmBlocksActions))
 }
 
-// TestMmBlocksActionsStrippedWithoutIntegrationSession verifies that a
-// non-integration session always strips the prop, regardless of whether the
-// author is a bot. The integration-session check is the only gate.
-func TestMmBlocksActionsStrippedWithoutIntegrationSession(t *testing.T) {
+// TestMmBlocksActionsStripGate locks the create-time strip policy: keep
+// when the post is bot-authored OR the session is an integration; strip
+// when neither signal is present. The bot-author signal covers
+// PluginAPI.CreatePost (whose static rctx is unmarked) where the post is
+// authored by the plugin's bot user; the integration-session signal
+// covers REST callers using bot tokens, PATs, or OAuth apps.
+func TestMmBlocksActionsStripGate(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
@@ -2293,8 +2327,10 @@ func TestMmBlocksActionsStrippedWithoutIntegrationSession(t *testing.T) {
 		nil,
 	)
 
-	t.Run("bot author via non-integration session is stripped", func(t *testing.T) {
-		// th.Context carries th.BasicUser's regular (non-integration) session.
+	t.Run("bot author via non-integration session is kept", func(t *testing.T) {
+		// Models the PluginAPI.CreatePost path: post.UserId is the plugin's
+		// bot user but rctx.Session() is the unmarked plugin context. The
+		// bot-author signal alone must be sufficient to keep the prop.
 		post := &model.Post{
 			Message:       "hello",
 			ChannelId:     th.BasicChannel.Id,
@@ -2304,11 +2340,13 @@ func TestMmBlocksActionsStrippedWithoutIntegrationSession(t *testing.T) {
 		}
 		created, _, err := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, err)
-		assert.Nil(t, created.GetProp(model.PostPropsMmBlocksActions),
-			"bot-authored post via non-integration session must strip mm_blocks_actions")
+		assert.NotNil(t, created.GetProp(model.PostPropsMmBlocksActions),
+			"bot-authored post must keep mm_blocks_actions even without an integration session")
 	})
 
 	t.Run("regular user via non-integration session is stripped", func(t *testing.T) {
+		// Neither signal present: the prop must be removed. Catches the
+		// baseline user-content case.
 		post := &model.Post{
 			Message:       "hello",
 			ChannelId:     th.BasicChannel.Id,

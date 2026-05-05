@@ -97,6 +97,7 @@ const InlineActionButton: React.FC<Props> = ({href, postId, children, label}) =>
 
     useEffect(() => () => {
         mountedRef.current = false;
+
         // Clear any in-flight timeout so its closure (and the captured
         // dispatch / setState) can be GC'd as soon as the component is
         // unmounted, rather than hanging until the 15s race resolves.

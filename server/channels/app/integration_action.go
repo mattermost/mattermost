@@ -40,23 +40,42 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
+// maxMmBlocksActionsCloneDepth caps recursion in cloneMmBlocksActionsProp.
+// ValidateMmBlocksActions bounds top-level entry count and key length but
+// does not bound nesting depth inside spec.Context — a bot/plugin could
+// otherwise stash a pathologically nested object that drives stack
+// exhaustion on the restore path. 64 is well past any plausible legitimate
+// nesting; deeper input is treated as malicious and truncated.
+const maxMmBlocksActionsCloneDepth = 64
+
 // cloneMmBlocksActionsProp deep-clones the post.props.mm_blocks_actions value.
 // Each per-action entry can carry nested context / query maps (and arrays
 // inside those), so the clone walks the structure recursively — a shallow
 // clone at any level would leave nested objects aliased back to the live
 // post's props, defeating the restore-after-invalid-response guarantee.
 func cloneMmBlocksActionsProp(v any) any {
+	return cloneMmBlocksActionsPropAt(v, 0)
+}
+
+func cloneMmBlocksActionsPropAt(v any, depth int) any {
+	if depth > maxMmBlocksActionsCloneDepth {
+		// Defense-in-depth: drop the subtree rather than risk stack
+		// exhaustion. The restore path that calls this helper is on a
+		// rare branch (plugin response is invalid), and pathological
+		// nesting at this depth is not a legitimate use case.
+		return nil
+	}
 	switch typed := v.(type) {
 	case map[string]any:
 		out := make(map[string]any, len(typed))
 		for k, child := range typed {
-			out[k] = cloneMmBlocksActionsProp(child)
+			out[k] = cloneMmBlocksActionsPropAt(child, depth+1)
 		}
 		return out
 	case []any:
 		out := make([]any, len(typed))
 		for i, child := range typed {
-			out[i] = cloneMmBlocksActionsProp(child)
+			out[i] = cloneMmBlocksActionsPropAt(child, depth+1)
 		}
 		return out
 	default:
