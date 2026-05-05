@@ -27,7 +27,7 @@ type supervisor struct {
 	pluginID     string
 	appDriver    AppDriver
 	client       *plugin.Client
-	hooks        Hooks
+	hooks        *hooksTimerLayer
 	implemented  [TotalHooksID]bool
 	hooksClient  *hooksRPCClient
 	isReattached bool
@@ -193,6 +193,12 @@ func (sup *supervisor) Shutdown() {
 }
 
 func (sup *supervisor) Hooks() Hooks {
+	sup.lock.RLock()
+	defer sup.lock.RUnlock()
+	return sup.hooks
+}
+
+func (sup *supervisor) HooksWithRPCErr() HooksWithRPCErr {
 	sup.lock.RLock()
 	defer sup.lock.RUnlock()
 	return sup.hooks

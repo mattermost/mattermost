@@ -640,14 +640,8 @@ func (env *Environment) RunMultiPluginHookWithRPCErr(hookRunnerFunc func(hooks H
 			return true
 		}
 
-		hooks, ok := rp.supervisor.Hooks().(HooksWithRPCErr)
-		if !ok {
-			retErr = fmt.Errorf("plugin %s hooks do not implement HooksWithRPCErr", rp.BundleInfo.Manifest.Id)
-			return false
-		}
-
 		hookStartTime := time.Now()
-		cont, err := hookRunnerFunc(hooks, rp.BundleInfo.Manifest)
+		cont, err := hookRunnerFunc(rp.supervisor.HooksWithRPCErr(), rp.BundleInfo.Manifest)
 
 		if env.metrics != nil {
 			elapsedTime := float64(time.Since(hookStartTime)) / float64(time.Second)
