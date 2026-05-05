@@ -12703,6 +12703,18 @@
     "translation": "Missing plugin reattach config"
   },
   {
+    "id": "shared_channel.system_message.no_longer_shared",
+    "translation": "This channel is no longer shared with {{.WorkspaceName}}."
+  },
+  {
+    "id": "shared_channel.system_message.no_longer_shared_unknown",
+    "translation": "This channel is no longer shared with another workspace."
+  },
+  {
+    "id": "shared_channel.system_message.now_shared",
+    "translation": "This channel is now shared with {{.WorkspaceName}}."
+  },
+  {
     "id": "sharedchannel.cannot_deliver_post",
     "translation": "One or more posts could not be delivered to remote site {{.Remote}} because it is offline. The post(s) will be delivered when the site is online."
   },

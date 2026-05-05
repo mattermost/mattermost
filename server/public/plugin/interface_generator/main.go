@@ -80,6 +80,16 @@ func FieldListToFuncList(fieldList *ast.FieldList, fileset *token.FileSet) strin
 	return "(" + strings.Join(result, ", ") + ")"
 }
 
+// FieldListToFuncListAppendErr renders the return signature with an extra trailing
+// `error` (the RPC transport error). Used to emit *WithRPCErr companion signatures.
+func FieldListToFuncListAppendErr(fieldList *ast.FieldList, fileset *token.FileSet) string {
+	if fieldList == nil || len(fieldList.List) == 0 {
+		return "error"
+	}
+	base := FieldListToFuncList(fieldList, fileset)
+	return "(" + base[1:len(base)-1] + ", error)"
+}
+
 func FieldListToNames(fieldList *ast.FieldList, variadicForm bool) string {
 	result := []string{}
 	if fieldList == nil || len(fieldList.List) == 0 {
@@ -165,6 +175,17 @@ func FieldListDestruct(structPrefix string, fieldList *ast.FieldList, fileset *t
 	return strings.Join(result, ", ")
 }
 
+// FieldListDestructAppendErr is FieldListDestruct with an extra trailing `<prefix>RPCErr`
+// variable name appended — used to bind the transport error in *WithRPCErr templates.
+func FieldListDestructAppendErr(structPrefix string, fieldList *ast.FieldList, fileset *token.FileSet) string {
+	base := FieldListDestruct(structPrefix, fieldList, fileset)
+	rpcErr := structPrefix + "RPCErr"
+	if base == "" {
+		return rpcErr
+	}
+	return base + ", " + rpcErr
+}
+
 func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList) string {
 	if fieldList == nil || len(fieldList.List) == 0 {
 		return "true"
@@ -185,6 +206,19 @@ func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList) str
 		return "true"
 	}
 	return fmt.Sprintf("%s == nil", result)
+}
+
+// FieldListToRecordSuccessWithRPCErr renders the success-flag expression for a *WithRPCErr
+// timer-layer call. It combines the RPC transport check with the base hook's app-error check
+// (if any), so the metric counts a call as successful only when both the transport and the
+// plugin's application-level return signal success.
+func FieldListToRecordSuccessWithRPCErr(structPrefix string, fieldList *ast.FieldList) string {
+	rpcErr := structPrefix + "RPCErr == nil"
+	base := FieldListToRecordSuccess(structPrefix, fieldList)
+	if base == "true" {
+		return rpcErr
+	}
+	return rpcErr + " && " + base
 }
 
 func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) string {
@@ -347,6 +381,24 @@ func (g *hooksRPCClient) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return}} {
 	{{ if .Return }} return {{destruct "_returns." .Return}} {{ end }}
 }
 
+// {{.Name}}WithRPCErr returns the same values as {{.Name}}, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) {{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleAppendErr .Return}} {
+	_args := &{{.Name | obscure}}Args{ {{valuesOnly .Params}} }
+	_returns := &{{.Name | obscure}}Returns{}
+	var _err error
+	if g.implemented[{{.Name}}ID] {
+		_err = g.client.Call("Plugin.{{.Name}}", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErr contract).
+			_returns = &{{.Name | obscure}}Returns{}
+			g.log.Debug("RPC call {{.Name}} to plugin failed.", mlog.Err(_err))
+		}
+	}
+	{{ if .Return }} return {{destruct "_returns." .Return}}, _err {{ else }} return _err {{ end }}
+}
+
 func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Name | obscure}}Returns) error {
 	if hook, ok := s.impl.(interface {
 		{{.Name}}{{funcStyle .Params}} {{funcStyle .Return}}
@@ -359,6 +411,22 @@ func (s *hooksRPCServer) {{.Name}}(args *{{.Name | obscure}}Args, returns *{{.Na
 	return nil
 }
 {{end}}
+
+// HooksWithRPCErr provides a WithRPCErr variant for every generated hook. The last error return
+// is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
+// hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
+// where the final slot is always transport.
+//
+// If the plugin does not implement the hook, the companion returns zero values and a nil error —
+// indistinguishable from a successful invocation that returned zeros. Callers MUST gate on
+// supervisor.Implements(<HookID>) (or use Environment.RunMultiPluginHookWithRPCErr, which gates
+// by the iteration's hook ID — note that any *WithRPCErr method called on the closure's
+// HooksWithRPCErr is independently subject to its own implemented-gate).
+type HooksWithRPCErr interface {
+	{{range .HooksMethods}}
+	{{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleAppendErr .Return}}
+	{{end}}
+}
 
 {{range .APIMethods}}
 
@@ -452,9 +520,10 @@ import (
 )
 
 type hooksTimerLayer struct {
-	pluginID  string
-	hooksImpl Hooks
-	metrics   metricsInterface
+	pluginID   string
+	hooksImpl  Hooks
+	hooksWithRPCErrImpl HooksWithRPCErr
+	metrics    metricsInterface
 }
 
 func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
@@ -474,6 +543,17 @@ func (hooks *hooksTimerLayer) {{.Name}}{{funcStyle .Params}} {{funcStyle .Return
 }
 
 {{end}}
+
+{{range .HooksMethodsRPCErr}}
+
+func (hooks *hooksTimerLayer) {{.Name}}WithRPCErr{{funcStyle .Params}} {{funcStyleAppendErr .Return}} {
+	startTime := timePkg.Now()
+	{{destructAppendErr "_returns" .Return}} := hooks.hooksWithRPCErrImpl.{{.Name}}WithRPCErr({{valuesOnly .Params}})
+	hooks.recordTime(startTime, "{{.Name}}WithRPCErr", {{ shouldRecordSuccessWithRPCErr "_returns" .Return }})
+	return {{destructAppendErr "_returns" .Return}}
+}
+
+{{end}}
 `
 
 type MethodParams struct {
@@ -483,15 +563,17 @@ type MethodParams struct {
 }
 
 type HooksTemplateParams struct {
-	HooksMethods []MethodParams
-	APIMethods   []MethodParams
+	HooksMethods       []MethodParams
+	HooksMethodsRPCErr []MethodParams
+	APIMethods         []MethodParams
 }
 
 func generateHooksGlue(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]any{
-		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
-		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, false) },
+		"funcStyle":          func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
+		"funcStyleAppendErr": func(fields *ast.FieldList) string { return FieldListToFuncListAppendErr(fields, info.FileSet) },
+		"structStyle":        func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
+		"valuesOnly":         func(fields *ast.FieldList) string { return FieldListToNames(fields, false) },
 		"encodeErrors": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListToEncodedErrors(structPrefix, fields, info.FileSet)
 		},
@@ -544,25 +626,40 @@ func generateHooksGlue(info *PluginInterfaceInfo) {
 
 func generatePluginTimerLayer(info *PluginInterfaceInfo) {
 	templateFunctions := map[string]any{
-		"funcStyle":   func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
-		"structStyle": func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
-		"valuesOnly":  func(fields *ast.FieldList) string { return FieldListToNames(fields, true) },
+		"funcStyle":          func(fields *ast.FieldList) string { return FieldListToFuncList(fields, info.FileSet) },
+		"funcStyleAppendErr": func(fields *ast.FieldList) string { return FieldListToFuncListAppendErr(fields, info.FileSet) },
+		"structStyle":        func(fields *ast.FieldList) string { return FieldListToStructList(fields, info.FileSet) },
+		"valuesOnly":         func(fields *ast.FieldList) string { return FieldListToNames(fields, true) },
 		"destruct": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListDestruct(structPrefix, fields, info.FileSet)
+		},
+		"destructAppendErr": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListDestructAppendErr(structPrefix, fields, info.FileSet)
 		},
 		"shouldRecordSuccess": func(structPrefix string, fields *ast.FieldList) string {
 			return FieldListToRecordSuccess(structPrefix, fields)
 		},
+		"shouldRecordSuccessWithRPCErr": func(structPrefix string, fields *ast.FieldList) string {
+			return FieldListToRecordSuccessWithRPCErr(structPrefix, fields)
+		},
 	}
 
-	// Prepare template params
+	// Prepare template params. The timer layer wraps the full Hooks interface, so
+	// HooksMethods includes excluded hooks too. *WithRPCErr companions only exist
+	// for non-excluded hooks (see HooksWithRPCErr in client_rpc_generated.go), so the
+	// excluded subset is filtered into HooksMethodsRPCErr for that loop.
+	excluded := func(name string) bool { return slices.Contains(excludedPluginHooks, name) }
 	templateParams := HooksTemplateParams{}
 	for _, hook := range info.Hooks {
-		templateParams.HooksMethods = append(templateParams.HooksMethods, MethodParams{
+		mp := MethodParams{
 			Name:   hook.FuncName,
 			Params: hook.Args,
 			Return: hook.Results,
-		})
+		}
+		templateParams.HooksMethods = append(templateParams.HooksMethods, mp)
+		if !excluded(hook.FuncName) {
+			templateParams.HooksMethodsRPCErr = append(templateParams.HooksMethodsRPCErr, mp)
+		}
 	}
 	for _, api := range info.API {
 		templateParams.APIMethods = append(templateParams.APIMethods, MethodParams{

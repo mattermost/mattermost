@@ -18,10 +18,10 @@ import {
     ShieldAlertOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
 
 import './selector_menus.scss';
 

@@ -16,9 +16,10 @@ import (
 )
 
 type hooksTimerLayer struct {
-	pluginID  string
-	hooksImpl Hooks
-	metrics   metricsInterface
+	pluginID            string
+	hooksImpl           Hooks
+	hooksWithRPCErrImpl HooksWithRPCErr
+	metrics             metricsInterface
 }
 
 func (hooks *hooksTimerLayer) recordTime(startTime timePkg.Time, name string, success bool) {
@@ -333,4 +334,263 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
+	hooks.recordTime(startTime, "OnDeactivateWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnConfigurationChangeWithRPCErr() (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnConfigurationChangeWithRPCErr()
+	hooks.recordTime(startTime, "OnConfigurationChangeWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ExecuteCommandWithRPCErr(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ExecuteCommandWithRPCErr(c, args)
+	hooks.recordTime(startTime, "ExecuteCommandWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenCreatedWithRPCErr(c *Context, user *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasBeenCreatedWithRPCErr(c, user)
+	hooks.recordTime(startTime, "UserHasBeenCreatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserWillLogInWithRPCErr(c *Context, user *model.User) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.UserWillLogInWithRPCErr(c, user)
+	hooks.recordTime(startTime, "UserWillLogInWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasLoggedInWithRPCErr(c *Context, user *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasLoggedInWithRPCErr(c, user)
+	hooks.recordTime(startTime, "UserHasLoggedInWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) MessageHasBeenPostedWithRPCErr(c *Context, post *model.Post) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.MessageHasBeenPostedWithRPCErr(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenPostedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) MessageHasBeenUpdatedWithRPCErr(c *Context, newPost, oldPost *model.Post) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.MessageHasBeenUpdatedWithRPCErr(c, newPost, oldPost)
+	hooks.recordTime(startTime, "MessageHasBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) MessageHasBeenDeletedWithRPCErr(c *Context, post *model.Post) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.MessageHasBeenDeletedWithRPCErr(c, post)
+	hooks.recordTime(startTime, "MessageHasBeenDeletedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelHasBeenCreatedWithRPCErr(c *Context, channel *model.Channel) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelHasBeenCreatedWithRPCErr(c, channel)
+	hooks.recordTime(startTime, "ChannelHasBeenCreatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeArchivedWithRPCErr(c *Context, channel *model.Channel) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeArchivedWithRPCErr(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeArchivedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasJoinedChannelWithRPCErr(c *Context, channelMember *model.ChannelMember, actor *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasJoinedChannelWithRPCErr(c, channelMember, actor)
+	hooks.recordTime(startTime, "UserHasJoinedChannelWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasLeftChannelWithRPCErr(c *Context, channelMember *model.ChannelMember, actor *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasLeftChannelWithRPCErr(c, channelMember, actor)
+	hooks.recordTime(startTime, "UserHasLeftChannelWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasJoinedTeamWithRPCErr(c *Context, teamMember *model.TeamMember, actor *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasJoinedTeamWithRPCErr(c, teamMember, actor)
+	hooks.recordTime(startTime, "UserHasJoinedTeamWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasLeftTeamWithRPCErr(c *Context, teamMember *model.TeamMember, actor *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasLeftTeamWithRPCErr(c, teamMember, actor)
+	hooks.recordTime(startTime, "UserHasLeftTeamWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) FileWillBeDownloadedWithRPCErr(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.FileWillBeDownloadedWithRPCErr(c, fileInfo, userID, downloadType)
+	hooks.recordTime(startTime, "FileWillBeDownloadedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenAddedWithRPCErr(c *Context, reaction *model.Reaction) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.ReactionHasBeenAddedWithRPCErr(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenAddedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ReactionHasBeenRemovedWithRPCErr(c *Context, reaction *model.Reaction) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.ReactionHasBeenRemovedWithRPCErr(c, reaction)
+	hooks.recordTime(startTime, "ReactionHasBeenRemovedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnPluginClusterEventWithRPCErr(c *Context, ev model.PluginClusterEvent) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnPluginClusterEventWithRPCErr(c, ev)
+	hooks.recordTime(startTime, "OnPluginClusterEventWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketConnectWithRPCErr(webConnID, userID string) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnWebSocketConnectWithRPCErr(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketConnectWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnWebSocketDisconnectWithRPCErr(webConnID, userID string) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnWebSocketDisconnectWithRPCErr(webConnID, userID)
+	hooks.recordTime(startTime, "OnWebSocketDisconnectWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) WebSocketMessageHasBeenPostedWithRPCErr(webConnID, userID string, req *model.WebSocketRequest) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.WebSocketMessageHasBeenPostedWithRPCErr(webConnID, userID, req)
+	hooks.recordTime(startTime, "WebSocketMessageHasBeenPostedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) RunDataRetentionWithRPCErr(nowTime, batchSize int64) (int64, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.RunDataRetentionWithRPCErr(nowTime, batchSize)
+	hooks.recordTime(startTime, "RunDataRetentionWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnInstallWithRPCErr(c *Context, event model.OnInstallEvent) (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnInstallWithRPCErr(c, event)
+	hooks.recordTime(startTime, "OnInstallWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSendDailyTelemetryWithRPCErr() error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSendDailyTelemetryWithRPCErr()
+	hooks.recordTime(startTime, "OnSendDailyTelemetryWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnCloudLimitsUpdatedWithRPCErr(limits *model.ProductLimits) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.OnCloudLimitsUpdatedWithRPCErr(limits)
+	hooks.recordTime(startTime, "OnCloudLimitsUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ConfigurationWillBeSavedWithRPCErr(newCfg *model.Config) (*model.Config, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ConfigurationWillBeSavedWithRPCErr(newCfg)
+	hooks.recordTime(startTime, "ConfigurationWillBeSavedWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) EmailNotificationWillBeSentWithRPCErr(emailNotification *model.EmailNotification) (*model.EmailNotificationContent, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.EmailNotificationWillBeSentWithRPCErr(emailNotification)
+	hooks.recordTime(startTime, "EmailNotificationWillBeSentWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) NotificationWillBePushedWithRPCErr(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.NotificationWillBePushedWithRPCErr(pushNotification, userID)
+	hooks.recordTime(startTime, "NotificationWillBePushedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) UserHasBeenDeactivatedWithRPCErr(c *Context, user *model.User) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.UserHasBeenDeactivatedWithRPCErr(c, user)
+	hooks.recordTime(startTime, "UserHasBeenDeactivatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsSyncMsgWithRPCErr(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSharedChannelsSyncMsgWithRPCErr(msg, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsSyncMsgWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsPingWithRPCErr(rc *model.RemoteCluster) (bool, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSharedChannelsPingWithRPCErr(rc)
+	hooks.recordTime(startTime, "OnSharedChannelsPingWithRPCErr", _returnsRPCErr == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) PreferencesHaveChangedWithRPCErr(c *Context, preferences []model.Preference) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.PreferencesHaveChangedWithRPCErr(c, preferences)
+	hooks.recordTime(startTime, "PreferencesHaveChangedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsAttachmentSyncMsgWithRPCErr(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSharedChannelsAttachmentSyncMsgWithRPCErr(fi, post, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsAttachmentSyncMsgWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsgWithRPCErr(user *model.User, rc *model.RemoteCluster) (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSharedChannelsProfileImageSyncMsgWithRPCErr(user, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsgWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) GenerateSupportDataWithRPCErr(c *Context) ([]*model.FileData, error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.GenerateSupportDataWithRPCErr(c)
+	hooks.recordTime(startTime, "GenerateSupportDataWithRPCErr", _returnsRPCErr == nil && _returnsB == nil)
+	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) OnSAMLLoginWithRPCErr(c *Context, user *model.User, assertion *saml2.AssertionInfo) (error, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnSAMLLoginWithRPCErr(c, user, assertion)
+	hooks.recordTime(startTime, "OnSAMLLoginWithRPCErr", _returnsRPCErr == nil && _returnsA == nil)
+	return _returnsA, _returnsRPCErr
 }
