@@ -41,6 +41,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         createAccessControlSyncJob: jest.fn(),
         updateAccessControlPoliciesActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
+        simulatePolicy: jest.fn(),
+        simulatePolicyForUsers: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [

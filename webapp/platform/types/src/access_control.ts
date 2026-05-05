@@ -199,3 +199,87 @@ export type AccessControlPolicyActiveUpdate = {
     id: string;
     active: boolean;
 }
+
+/**
+ * Sources of deny attribution returned by the simulate endpoint.
+ *
+ * - `this_rule`     — deny came from the rule the author is editing.
+ * - `sibling_rule`  — deny came from another rule in the same draft policy.
+ * - `channel_policy`— deny came from a sibling channel-policy rule.
+ * - `system_permission` — deny came from a higher-scoped system permission policy.
+ */
+export const POLICY_SIMULATION_BLAME_SOURCES = {
+    THIS_RULE: 'this_rule',
+    SIBLING_RULE: 'sibling_rule',
+    CHANNEL_POLICY: 'channel_policy',
+    SYSTEM_PERMISSION: 'system_permission',
+    NO_APPLICABLE_POLICY: 'no_applicable_policy',
+    SIBLING_SAVED: 'sibling_saved',
+} as const;
+
+export type PolicySimulationBlameSource =
+    typeof POLICY_SIMULATION_BLAME_SOURCES[keyof typeof POLICY_SIMULATION_BLAME_SOURCES];
+
+export type PolicySimulationBlame = {
+    source: PolicySimulationBlameSource;
+    policy_id?: string;
+    policy_name?: string;
+    rule_name?: string;
+    role?: string;
+};
+
+export type PolicySimulationActionDecision = {
+    decision: boolean;
+    blame?: PolicySimulationBlame[];
+};
+
+export type PolicySimulationUserResult = {
+    user: UserProfile;
+    decisions?: Record<string, PolicySimulationActionDecision>;
+};
+
+export type PolicySimulationResponse = {
+    results: PolicySimulationUserResult[];
+    total: number;
+    expression_only?: boolean;
+};
+
+export type PolicySimulationParams = {
+    policy: AccessControlPolicy;
+    actions?: string[];
+    rule_name?: string;
+    channel_id?: string;
+    team_id?: string;
+    term?: string;
+    limit?: number;
+    after?: string;
+};
+
+/**
+ * Per-user payload for the picker-driven /cel/simulate_users endpoint. The
+ * server resolves the user's profile attributes from CPA storage and then
+ * layers session context on top: first the requesting admin's active-session
+ * snapshot (when use_active_session is true), then the explicit
+ * session_overrides map. Either source can be empty; both nil/empty means
+ * "no session context" (strict default — rules referencing session.* will
+ * surface as denies).
+ */
+export type PolicySimulationUserOverride = {
+    user_id: string;
+    use_active_session?: boolean;
+    session_overrides?: Record<string, string>;
+};
+
+/**
+ * Request body for /cel/simulate_users. Used by the picker-based "Test access
+ * rule" UX where the author hand-picks specific users instead of asking the
+ * server to search.
+ */
+export type PolicySimulationByUsersParams = {
+    policy: AccessControlPolicy;
+    actions: string[];
+    rule_name?: string;
+    channel_id?: string;
+    team_id?: string;
+    users: PolicySimulationUserOverride[];
+};

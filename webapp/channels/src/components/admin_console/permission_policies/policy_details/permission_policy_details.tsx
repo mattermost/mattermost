@@ -13,6 +13,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import TestAccessRuleModal from 'components/admin_console/access_control/modals/test_access_rule/test_access_rule_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -34,8 +35,8 @@ import './permission_policy_details.scss';
 const roleMessages = defineMessages({
     guestLabel: {id: 'admin.permission_policies.role.system_guest.label', defaultMessage: 'Guest users'},
     guestDescription: {id: 'admin.permission_policies.role.system_guest.description', defaultMessage: 'Applies only to guest users'},
-    memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members and system administrators'},
-    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members and administrators'},
+    memberLabel: {id: 'admin.permission_policies.role.system_user.label', defaultMessage: 'Members'},
+    memberDescription: {id: 'admin.permission_policies.role.system_user.description', defaultMessage: 'Applies to regular members. System administrators also fall back to this rule if no admin-specific policy with the same permissions exists.'},
     adminLabel: {id: 'admin.permission_policies.role.system_admin.label', defaultMessage: 'System administrators'},
     adminDescription: {id: 'admin.permission_policies.role.system_admin.description', defaultMessage: 'Applies only to system administrators'},
     selectRole: {id: 'admin.permission_policies.role.select', defaultMessage: 'Select a role'},
@@ -125,6 +126,7 @@ function PermissionPolicyDetails({
     const [attributesLoaded, setAttributesLoaded] = useState(false);
     const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = useState(false);
     const [pageLoaded, setPageLoaded] = useState(false);
+    const [showTest, setShowTest] = useState(false);
 
     const {formatMessage} = useIntl();
     const abacActions = useChannelAccessControlActions();
@@ -559,6 +561,12 @@ function PermissionPolicyDetails({
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
+
+                                            // Replace the legacy expression-only modal with the
+                                            // dual-lane simulation so authors can preview how
+                                            // their draft interacts with other persisted system
+                                            // permission policies.
+                                            onTestClick={() => setShowTest(true)}
                                         />
                                     )}
                                 </Card.Body>
@@ -727,6 +735,28 @@ function PermissionPolicyDetails({
                                 defaultMessage='Are you sure you want to delete this policy? This action cannot be undone.'
                             />
                         </GenericModal>
+                    )}
+
+                    {showTest && (
+                        <TestAccessRuleModal
+                            onExited={() => setShowTest(false)}
+                            policy={{
+                                id: policyId || '',
+                                name: policyName,
+                                type: 'permission',
+                                roles: [selectedRole],
+                                rules: buildRulesWithActions(expression, selectedPermissions),
+                            }}
+                            actions={selectedPermissions}
+                            ruleName={policyName}
+                            actionLabels={{
+                                upload_file_attachment: formatMessage(permissionMessages.uploadLabel),
+                                download_file_attachment: formatMessage(permissionMessages.downloadLabel),
+                            }}
+                            targetRole={selectedRole}
+                            targetScope='system'
+                            accessControlFields={autocompleteResult}
+                        />
                     )}
 
                     <div className='admin-console-save'>

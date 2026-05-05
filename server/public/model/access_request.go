@@ -118,3 +118,165 @@ type QueryExpressionParams struct {
 	ChannelId  string `json:"channelId,omitempty"`
 	TeamId     string `json:"teamId,omitempty"`
 }
+
+// PolicySimulationBlameSource enumerates where a deny originated when running
+// the test (simulate) workflow against a draft policy.
+const (
+	// PolicySimulationBlameSourceThisRule means the deny came from the rule
+	// that the author is currently editing.
+	PolicySimulationBlameSourceThisRule = "this_rule"
+	// PolicySimulationBlameSourceSiblingRule means the deny came from another
+	// rule inside the same draft policy (same channel, different role/action
+	// or different rule on the same role/action that resolves to deny).
+	PolicySimulationBlameSourceSiblingRule = "sibling_rule"
+	// PolicySimulationBlameSourceChannelPolicy means the deny came from a
+	// resource-policy rule that is not the one being edited but contributes
+	// to the same effective decision (e.g. an inherited parent policy).
+	PolicySimulationBlameSourceChannelPolicy = "channel_policy"
+	// PolicySimulationBlameSourceSystemPermission means the deny came from a
+	// higher-scoped, persisted system permission policy.
+	PolicySimulationBlameSourceSystemPermission = "system_permission"
+	// PolicySimulationBlameSourceNoApplicablePolicy is a synthetic blame
+	// source emitted by the simulator when the draft policy does not apply
+	// to a candidate user (e.g. a system_user user is added to test a
+	// system_admin policy). The decision is recorded as ALLOW (vacuously,
+	// because the policy is silent on this user) and the picker renders a
+	// "Policy doesn't apply" pill from this entry. Never produced by
+	// production evaluation — simulation-only.
+	PolicySimulationBlameSourceNoApplicablePolicy = "no_applicable_policy"
+	// PolicySimulationBlameSourceSiblingSaved is attached to an ALLOW
+	// decision when the rule the author is editing alone would have DENIED
+	// the subject, but a sibling rule (same role + action, OR-combined at
+	// compile time) flipped the bucket back to ALLOW. Useful so the
+	// picker can surface "this rule alone wouldn't have allowed them — a
+	// sibling did". Simulation-only.
+	PolicySimulationBlameSourceSiblingSaved = "sibling_saved"
+)
+
+// PolicySimulationParams is the request body for the cel/simulate endpoint.
+//
+// When Actions is empty the simulation falls back to expression-only mode:
+// the response carries Total + Results without per-action Decisions, mirroring
+// the legacy /cel/test result so the editor can render a "no permission
+// selected" preview.
+type PolicySimulationParams struct {
+	// Policy is the draft policy as the author currently has it in the editor.
+	// It is NOT persisted by the simulate endpoint; it is compiled in-memory
+	// for evaluation only.
+	Policy *AccessControlPolicy `json:"policy"`
+	// Actions is the set of permission actions to simulate (e.g.
+	// upload_file_attachment, download_file_attachment). When empty the
+	// simulator falls back to expression-only matching using the rule's
+	// expression — useful while the author has not yet selected a permission.
+	Actions []string `json:"actions,omitempty"`
+	// RuleName identifies which rule in Policy.Rules the author is editing
+	// (used for blame attribution). Optional. When set, denies originating
+	// from this rule are tagged source=this_rule; other denies in the same
+	// draft are tagged source=sibling_rule.
+	RuleName string `json:"rule_name,omitempty"`
+	// ChannelID provides resource context for delegated channel admins and
+	// for resource-lane evaluation when Policy.Type == "channel".
+	ChannelID string `json:"channel_id,omitempty"`
+	// TeamID provides team context for team-level delegated admins.
+	TeamID string `json:"team_id,omitempty"`
+	// Term is a prefix filter on candidate user names/usernames (same
+	// semantics as QueryExpressionParams.Term).
+	Term string `json:"term"`
+	// Limit caps the number of users returned in this page.
+	Limit int `json:"limit"`
+	// After is the pagination cursor: the user ID of the last result in the
+	// previous page.
+	After string `json:"after"`
+}
+
+// PolicySimulationBlame attributes a deny decision back to the rule or policy
+// that caused it.
+type PolicySimulationBlame struct {
+	// Source is one of the PolicySimulationBlameSource* constants.
+	Source string `json:"source"`
+	// PolicyID is the ID of the contributing policy (for system permission
+	// or channel policy sources). Empty when the deny originated from the
+	// draft itself (no persisted ID exists yet).
+	PolicyID string `json:"policy_id,omitempty"`
+	// PolicyName is the human-readable name of the contributing policy.
+	PolicyName string `json:"policy_name,omitempty"`
+	// RuleName is the name of the contributing rule (v0.4 permission rules
+	// always carry a unique name within their policy).
+	RuleName string `json:"rule_name,omitempty"`
+	// Role is the scoped role (system_* or channel_*) of the contributing
+	// rule or policy. Useful for explaining hierarchy fallbacks.
+	Role string `json:"role,omitempty"`
+}
+
+// PolicySimulationActionDecision is the per-action verdict for a single user.
+type PolicySimulationActionDecision struct {
+	Decision bool                    `json:"decision"`
+	Blame    []PolicySimulationBlame `json:"blame,omitempty"`
+}
+
+// PolicySimulationUserResult is one row in the simulation response.
+type PolicySimulationUserResult struct {
+	User *User `json:"user"`
+	// Decisions maps action name → verdict. Always populated when the
+	// simulation request had non-empty Actions; nil when ExpressionOnly is
+	// true (fallback mode).
+	Decisions map[string]PolicySimulationActionDecision `json:"decisions,omitempty"`
+}
+
+// PolicySimulationResponse is the body returned by cel/simulate.
+type PolicySimulationResponse struct {
+	Results []PolicySimulationUserResult `json:"results"`
+	Total   int64                        `json:"total"`
+	// ExpressionOnly is true when the request omitted Actions and the
+	// simulator fell back to a single-expression match. In that mode
+	// Decisions is nil for every result and the consumer should render the
+	// "no permission selected" UX.
+	ExpressionOnly bool `json:"expression_only,omitempty"`
+}
+
+// PolicySimulationUserOverride captures the per-user inputs the picker UI
+// sends to /access_control_policies/cel/simulate_users. The simulator
+// resolves each user's profile attributes from CPA storage and then layers
+// session context on top: first the active-session snapshot (when
+// UseActiveSession is set), then the explicit SessionOverrides map.
+type PolicySimulationUserOverride struct {
+	// UserID identifies the user to simulate against.
+	UserID string `json:"user_id"`
+	// UseActiveSession injects the requesting admin's session.* attributes
+	// (network_status, client_type, device_managed, ip_range, platform,
+	// device_id) into this user's evaluation context. When the live PDP
+	// does not yet populate session.* on the request context this is a
+	// no-op; the API surface is forward-compatible.
+	UseActiveSession bool `json:"use_active_session,omitempty"`
+	// SessionOverrides replaces individual session.* attributes for this
+	// user only. Applied on top of the active-session snapshot when both
+	// are set, so a future "configure" panel can shadow specific values
+	// without discarding the rest of the active session.
+	SessionOverrides map[string]string `json:"session_overrides,omitempty"`
+}
+
+// PolicySimulationByUsersParams is the request body for
+// /access_control_policies/cel/simulate_users.
+//
+// Unlike PolicySimulationParams (which searches for matching users) this
+// variant takes an explicit user list. Useful for the picker-based "Test
+// access rule" UX where the author hand-selects who they want to dry-run.
+type PolicySimulationByUsersParams struct {
+	// Policy is the draft policy as it currently sits in the editor. Not
+	// persisted; compiled in-memory only.
+	Policy *AccessControlPolicy `json:"policy"`
+	// Actions is the set of permission actions to simulate. Required for
+	// the per-user simulator (no expression-only fallback here — a picker
+	// only makes sense once an action is in scope).
+	Actions []string `json:"actions"`
+	// RuleName identifies which rule in Policy.Rules the author is editing
+	// (used for blame attribution). Same semantics as PolicySimulationParams.
+	RuleName string `json:"rule_name,omitempty"`
+	// ChannelID and TeamID provide context for delegated admin auth and
+	// channel-scope evaluation.
+	ChannelID string `json:"channel_id,omitempty"`
+	TeamID    string `json:"team_id,omitempty"`
+	// Users is the explicit set of users to evaluate, with per-user
+	// session-attribute overrides.
+	Users []PolicySimulationUserOverride `json:"users"`
+}

@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"os"
 	"testing"
@@ -2320,4 +2321,109 @@ func TestScopeReconciliationCrossTeam(t *testing.T) {
 		require.Equal(t, model.AccessControlPolicyScopeTeam, reloaded.Scope, "scope must be preserved when no channels exist")
 		require.Equal(t, th.BasicTeam.Id, reloaded.ScopeID, "scope_id must be preserved when no channels exist")
 	})
+}
+
+// TestSimulatePolicyForUsers covers the auth, validation, and feature-flag
+// gates on POST /access_control_policies/cel/simulate_users. The handler
+// proxies to the access-control service which we mock here so the test
+// stays focused on the API surface (auth + payload validation).
+func TestSimulatePolicyForUsers(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
+
+	t.Run("returns 501 when permission policies feature flag is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy: &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
+			Users:  []model.PolicySimulationUserOverride{{UserID: model.NewId()}},
+		})
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("rejects regular users without channel/team permission", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:   []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}},
+		})
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("rejects empty users", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy: &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel},
+		})
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.Error(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
+	})
+
+	t.Run("system admin reaches the service mock", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("SimulatePolicyForUsers", mock.Anything, mock.Anything).Return(
+			&model.PolicySimulationResponse{Results: []model.PolicySimulationUserResult{}, Total: 0},
+			(*model.AppError)(nil),
+		)
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:   []model.PolicySimulationUserOverride{{UserID: th.BasicUser.Id}},
+		})
+		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		mockACS.AssertCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
+	})
+}
+
+func mustMarshal(t *testing.T, v any) []byte {
+	t.Helper()
+	b, err := json.Marshal(v)
+	require.NoError(t, err)
+	return b
 }
