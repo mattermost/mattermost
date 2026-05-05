@@ -659,6 +659,12 @@ func TestGetJobsByTypeAndData(t *testing.T) {
 			CreateAt: 1002,
 			Data:     map[string]string{"policy_id": otherPolicyID},
 		},
+		{
+			Id:       model.NewId(),
+			Type:     model.JobTypeDataRetention,
+			CreateAt: 1003,
+			Data:     map[string]string{"policy_id": policyID},
+		},
 	}
 
 	for _, job := range jobs {
@@ -680,6 +686,10 @@ func TestGetJobsByTypeAndData(t *testing.T) {
 			receivedIDs[i] = j.Id
 		}
 		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id}, receivedIDs)
+		for _, j := range received {
+			assert.Equal(t, model.JobTypeAccessControlSync, j.Type,
+				"other job types sharing policy_id must not appear in access control sync results")
+		}
 	})
 
 	t.Run("filters by data key-value, excludes other policies", func(t *testing.T) {
@@ -695,6 +705,19 @@ func TestGetJobsByTypeAndData(t *testing.T) {
 			map[string]string{"policy_id": model.NewId()})
 		require.Nil(t, appErr)
 		require.Empty(t, received)
+	})
+
+	t.Run("empty data map returns all jobs of that type only", func(t *testing.T) {
+		received, appErr := th.App.GetJobsByTypeAndData(th.Context, model.JobTypeAccessControlSync,
+			map[string]string{})
+		require.Nil(t, appErr)
+		require.Len(t, received, 4)
+		receivedIDs := make([]string, len(received))
+		for i, j := range received {
+			receivedIDs[i] = j.Id
+			assert.Equal(t, model.JobTypeAccessControlSync, j.Type)
+		}
+		require.ElementsMatch(t, []string{jobs[0].Id, jobs[1].Id, jobs[2].Id, jobs[3].Id}, receivedIDs)
 	})
 }
 
