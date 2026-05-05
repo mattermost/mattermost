@@ -3458,7 +3458,7 @@ func TestPatchGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
-	th.MakeUserChannelAdmin(t, th.BasicUser2, th.BasicChannel)
+	th.MakeUserChannelAdmin(th.BasicUser2, th.BasicChannel)
 
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewPointer(false),
@@ -3512,7 +3512,7 @@ func TestLinkGroupChannel_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
 
-	th.MakeUserChannelAdmin(t, th.BasicUser2, th.BasicChannel)
+	th.MakeUserChannelAdmin(th.BasicUser2, th.BasicChannel)
 
 	patch := &model.GroupSyncablePatch{
 		AutoAdd: model.NewPointer(true),
