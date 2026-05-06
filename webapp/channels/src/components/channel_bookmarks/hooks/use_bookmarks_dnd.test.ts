@@ -110,4 +110,28 @@ describe('useBookmarksDnd — overflow open guard', () => {
 
         expect(result.current.forceOverflowOpen).toBe(false);
     });
+
+    test('onDrop does NOT call onReorder when dropping on overflow-trigger without overflow', () => {
+        const onReorder = jest.fn().mockResolvedValue(undefined);
+
+        renderHookWithContext(() => useBookmarksDnd({
+            order: ['a', 'b', 'c'],
+            visibleItems: ['a', 'b', 'c'],
+            onReorder,
+        }));
+
+        const monitor = registeredMonitors[0];
+
+        act(() => {
+            monitor.onDragStart({source: {data: {bookmarkId: 'a', type: 'bookmark'}}});
+        });
+        act(() => {
+            monitor.onDrop({
+                source: {data: {bookmarkId: 'a', type: 'bookmark'}},
+                location: dropTargets({type: 'overflow-trigger'}),
+            });
+        });
+
+        expect(onReorder).not.toHaveBeenCalled();
+    });
 });

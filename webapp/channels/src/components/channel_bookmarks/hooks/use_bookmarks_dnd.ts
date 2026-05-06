@@ -100,6 +100,10 @@ export function useBookmarksDnd({
                 let newIndex: number;
 
                 if (target.data.type === 'overflow-trigger') {
+                    if (!hasOverflow) {
+                        return;
+                    }
+
                     // Dropped on the overflow trigger — place at the beginning of overflow
                     newIndex = visibleItemsRef.current.length;
                 } else if (target.data.type === 'bookmark') {
