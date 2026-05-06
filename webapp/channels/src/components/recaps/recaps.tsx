@@ -9,7 +9,7 @@ import {Redirect} from 'react-router-dom';
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
 import {getAgents} from 'mattermost-redux/actions/agents';
-import {getRecaps} from 'mattermost-redux/actions/recaps';
+import {getRecaps, markRecapsAsViewed} from 'mattermost-redux/actions/recaps';
 import {getAllRecaps, getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
 import {selectLhsItem} from 'actions/views/lhs';
@@ -45,8 +45,16 @@ const Recaps = () => {
     useEffect(() => {
         dispatch(selectLhsItem(LhsItemType.Page, LhsPage.Recaps));
         const fetchData = async () => {
-            await dispatch(getRecaps(0, 60));
+            const result = await dispatch(getRecaps(0, 60));
             setIsLoading(false);
+
+            // Only mark viewed when getRecaps succeeded. Marking after the
+            // fetch (rather than in parallel) also prevents getRecaps's
+            // response from overwriting the viewed_at timestamps the
+            // WS-driven refresh is about to set.
+            if (!result.error) {
+                dispatch(markRecapsAsViewed());
+            }
         };
         fetchData();
         dispatch(getAgents());

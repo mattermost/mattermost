@@ -5968,6 +5968,7 @@
   "recaps.processing.subtitle": "Recap created. You'll receive a summary shortly",
   "recaps.readTab": "Read",
   "recaps.sidebarLink": "Recaps",
+  "recaps.sidebarLink.failedTooltip": "One or more recaps failed",
   "recaps.status.failed": "Failed",
   "recaps.title": "Recaps",
   "recaps.unreadTab": "Unread",
