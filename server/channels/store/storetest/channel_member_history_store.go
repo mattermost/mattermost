@@ -67,7 +67,9 @@ func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store)
 	nonMember := newUser()
 	wrongChannelOnly := newUser()
 
-	baseTime := model.GetMillis()
+	// Keep this deterministic and above the legacy 1000ms timestamps used
+	// in fallback-path tests so it does not affect hasDataAtOrBefore logic.
+	const baseTime int64 = 1700000000000
 	// user1 has historical rows (joined, left, and rejoined) and should be returned once.
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(user1, channel.Id, baseTime))
 	require.NoError(t, ss.ChannelMemberHistory().LogLeaveEvent(user1, channel.Id, baseTime+100))
