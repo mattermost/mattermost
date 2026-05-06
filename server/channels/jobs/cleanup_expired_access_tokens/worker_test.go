@@ -64,15 +64,8 @@ func makeTokens(n int, base int64) []*model.UserAccessToken {
 	return out
 }
 
-func newTestLogger(t *testing.T) mlog.LoggerIFace {
-	t.Helper()
-	logger, err := mlog.NewLogger()
-	require.NoError(t, err)
-	return logger
-}
-
 func TestCleanupExpiredHappyPathSingleBatch(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	tokens := makeTokens(3, 1000)
 	store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
@@ -88,7 +81,7 @@ func TestCleanupExpiredHappyPathSingleBatch(t *testing.T) {
 }
 
 func TestCleanupExpiredEmptyResultIsNoOp(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	store := &fakeStore{} // no batches, no errors
 
 	err := cleanupExpired(logger, store, 9999, 1000, 10)
@@ -99,7 +92,7 @@ func TestCleanupExpiredEmptyResultIsNoOp(t *testing.T) {
 }
 
 func TestCleanupExpiredFullBatchTriggersNextIteration(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	const limit = 5
 	first := makeTokens(limit, 1000) // full batch -> loop continues
 	second := makeTokens(2, 2000)    // partial batch -> loop stops
@@ -117,7 +110,7 @@ func TestCleanupExpiredFullBatchTriggersNextIteration(t *testing.T) {
 }
 
 func TestCleanupExpiredMaxIterCap(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	const limit = 3
 	const maxIter = 2
 	store := &fakeStore{batches: [][]*model.UserAccessToken{
@@ -134,7 +127,7 @@ func TestCleanupExpiredMaxIterCap(t *testing.T) {
 }
 
 func TestCleanupExpiredGetErrorPropagates(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	wantErr := errors.New("get failed")
 	store := &fakeStore{
 		batches:  [][]*model.UserAccessToken{makeTokens(2, 1000)},
@@ -148,7 +141,7 @@ func TestCleanupExpiredGetErrorPropagates(t *testing.T) {
 }
 
 func TestCleanupExpiredDeleteErrorPropagates(t *testing.T) {
-	logger := newTestLogger(t)
+	logger := mlog.CreateConsoleTestLogger(t)
 	wantErr := errors.New("delete failed")
 	store := &fakeStore{
 		batches:   [][]*model.UserAccessToken{makeTokens(2, 1000)},
