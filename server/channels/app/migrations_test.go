@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -55,6 +56,45 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		data, sysErr := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
 		require.NoError(t, sysErr)
 		require.Equal(t, "v5", data.Value)
+	})
+
+	t.Run("concurrent runs tolerate update conflicts", func(t *testing.T) {
+		// Reproduce the CI failure: two server instances both read the same
+		// UpdateAt timestamps for the existing fields, then race to update them.
+		// The store's optimistic concurrency control means only one wins; the
+		// other must tolerate ErrConflict rather than crashing fatally.
+		th := Setup(t)
+
+		// Fields are already created by Setup. Clear the done key so both
+		// goroutines enter the migration body and take the update path.
+		_, err := th.Store.System().PermanentDeleteByName(contentFlaggingSetupDoneKey)
+		require.NoError(t, err)
+
+		const runners = 5
+		errs := make([]error, runners)
+		var wg sync.WaitGroup
+		wg.Add(runners)
+		for i := range runners {
+			go func() {
+				defer wg.Done()
+				errs[i] = th.Server.doSetupContentFlaggingProperties()
+			}()
+		}
+		wg.Wait()
+
+		for i, err := range errs {
+			require.NoError(t, err, "runner %d must not fail on concurrent update", i)
+		}
+
+		group, appErr := th.App.GetPropertyGroup(th.Context, model.ContentFlaggingGroupName)
+		require.Nil(t, appErr)
+		propertyFields, appErr := th.App.SearchPropertyFields(th.Context, group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
+		require.Nil(t, appErr)
+		require.Len(t, propertyFields, 11)
+
+		data, sysErr := th.Store.System().GetByName(contentFlaggingSetupDoneKey)
+		require.NoError(t, sysErr)
+		require.Equal(t, contentFlaggingMigrationVersion, data.Value)
 	})
 }
 
