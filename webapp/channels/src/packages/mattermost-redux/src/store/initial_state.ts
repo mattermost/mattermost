@@ -71,6 +71,7 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            recommendedChannelIdsByTeam: {},
             restrictedDMs: {},
         },
         channelBookmarks: {

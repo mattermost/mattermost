@@ -36,10 +36,36 @@ export type Props = WrappedComponentProps & {
     rhsState?: RhsState;
     rhsOpen?: boolean;
 
+    /**
+     * accessControlEnabled gates the recommendation fetch on mount. When
+     * false (TE servers and pre-license deployments) we skip the request —
+     * the server endpoint would short-circuit anyway, but skipping it
+     * client-side keeps the switcher's open-time cheap.
+     */
+    accessControlEnabled: boolean;
+
+    /**
+     * currentTeamId scopes the recommendation fetch to the active team.
+     * The switcher returns cross-team channels in its results, but we
+     * only fetch recommendations for one team — see the MM-68683 design
+     * note. Cross-team rows simply render without the badge, which
+     * accurately reflects "we haven't fetched recommendations for that
+     * team yet" rather than "you don't match this channel's policy".
+     */
+    currentTeamId: string;
+
     actions: {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
         switchToChannel: (channel: Channel) => Promise<ActionResult>;
         closeRightHandSide: () => void;
+
+        /**
+         * Fetches the per-team recommended-channels list and stores it in
+         * the entities slice. Fired once on modal open when ABAC is
+         * enabled; the SwitchChannelSuggestion row reads from that slice
+         * to decide whether to render the Recommended badge.
+         */
+        getRecommendedChannelsForUser: (teamId: string) => Promise<ActionResult>;
     };
     focusOriginElement: string;
 };
@@ -69,6 +95,19 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             shouldShowLoadingSpinner: true,
             pretext: '',
         };
+    }
+
+    public componentDidMount(): void {
+        // Refresh the recommendation set for the active team so any
+        // matching public channel that surfaces in the search results gets
+        // the inline Recommended badge. Gated on ABAC + a non-empty team id
+        // for the same reasons the BrowseChannels modal gates its fetch.
+        // Failures are swallowed: the badge is purely additive UX, the
+        // switcher must keep working even if the recommendation endpoint
+        // is degraded.
+        if (this.props.accessControlEnabled && this.props.currentTeamId) {
+            this.props.actions.getRecommendedChannelsForUser(this.props.currentTeamId);
+        }
     }
 
     private focusTextbox = (): void => {

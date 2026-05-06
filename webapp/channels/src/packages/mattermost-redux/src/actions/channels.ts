@@ -815,11 +815,26 @@ export function getRecommendedChannelsForUser(teamId: string): ActionFuncAsync<C
             return {error};
         }
 
-        dispatch({
-            type: ChannelTypes.RECEIVED_CHANNELS,
-            teamId,
-            data: channels,
-        });
+        // Persist the channel objects in the entities slice (existing
+        // behavior) AND record the recommendation set so other surfaces
+        // (the quick channel switcher) can render the Recommended badge
+        // without re-issuing the request. Empty arrays are written as
+        // explicit empties so the reducer can distinguish "fetched, no
+        // recommendations" from "never fetched".
+        dispatch(batchActions([
+            {
+                type: ChannelTypes.RECEIVED_CHANNELS,
+                teamId,
+                data: channels,
+            },
+            {
+                type: ChannelTypes.RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM,
+                data: {
+                    teamId,
+                    channelIds: channels.map((c: Channel) => c.id),
+                },
+            },
+        ]));
 
         return {data: channels};
     };

@@ -5904,6 +5904,8 @@
   "quarantine_message_modal.subheading": "Quarantined messages will be sent to Content Reviewers for review.",
   "quick_switch_modal.help_mobile": "Type to find a channel.",
   "quick_switch_modal.input": "quick switch input",
+  "quick_switch_modal.recommended": "Recommended",
+  "quick_switch_modal.recommended_indicator": "Recommended for membership",
   "quick_switch_modal.switchChannels": "Find Channels",
   "quickSwitchModal.help_no_team": "Type to find a channel. Use <b>UP/DOWN</b> to browse, <b>ENTER</b> to select, <b>ESC</b> to dismiss.",
   "reaction_limit_reached_modal.body": "Oops! It looks like we've hit a ceiling on emoji reactions for this message. Please contact your system administrator for any adjustments to this limit.",
