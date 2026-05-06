@@ -159,15 +159,6 @@
                         color: var(--center-channel-color);
                         font-weight: 500;
                     }
-
-                    .browse-channels__recommended-tag {
-                        // The tag inherits AlertTag base styles. Snug
-                        // spacing keeps it close to the channel name so it
-                        // reads as a row decoration rather than a separate
-                        // entity, mirroring the equivalent tag in the
-                        // channel_invite modal.
-                        margin-left: 8px;
-                    }
                 }
 
                 #channelPurposeContainer {
@@ -198,6 +189,22 @@
                         span,
                         svg {
                             color: var(--online-indicator);
+                        }
+                    }
+
+                    // Recommended indicator mirrors the membership indicator
+                    // pattern: same line, same separator dots, same text-
+                    // and-icon shape — distinguished only by colour
+                    // (--button-bg blue) and icon (lightbulb). Used in place
+                    // of the Joined indicator when the user matches the
+                    // channel's membership policy but has not joined.
+                    #recommendedIndicatorContainer {
+                        display: flex;
+                        align-items: center;
+
+                        span,
+                        svg {
+                            color: var(--button-bg);
                         }
                     }
 

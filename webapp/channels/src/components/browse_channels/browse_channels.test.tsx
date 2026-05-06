@@ -737,6 +737,53 @@ describe('components/BrowseChannels', () => {
         expect(screen.queryByTestId('recommendedTag-recommended-channel')).not.toBeInTheDocument();
     });
 
+    test('Recommended indicator is suppressed on rows the user has already joined (mutually exclusive with Joined indicator)', async () => {
+        // Spec: per the PR #36275 review mockup, the Recommended indicator
+        // shares its slot with the Joined indicator and never co-renders
+        // with it. Once you're a member the recommendation is moot, and
+        // showing both would clutter the metadata row.
+        const recommendedJoinedChannel = TestHelper.getChannelMock({
+            id: 'rec-and-joined-id',
+            team_id: 'team_1',
+            display_name: 'Already Joined Recommended Channel',
+            name: 'rec-and-joined',
+            type: 'O',
+        });
+
+        const getChannels = jest.fn().mockResolvedValue({
+            data: [defaultChannel, recommendedJoinedChannel],
+        });
+        const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedJoinedChannel]});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            channels: [defaultChannel, recommendedJoinedChannel],
+            myChannelMemberships: {
+                ...baseProps.myChannelMemberships,
+                'rec-and-joined-id': TestHelper.getChannelMembershipMock({
+                    channel_id: 'rec-and-joined-id',
+                    user_id: 'user-1',
+                }),
+            },
+            actions: {...baseProps.actions, getChannels, getRecommendedChannelsForUser},
+        };
+
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        // Wait for the recommendation fetch to commit so isRecommendedRow
+        // gets a chance to evaluate true; the indicator should still be
+        // suppressed because the user is already a member.
+        await waitFor(() => {
+            expect(getRecommendedChannelsForUser).toHaveBeenCalled();
+        });
+
+        await waitFor(() => {
+            expect(screen.getByTestId('ChannelRow-rec-and-joined')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByTestId('recommendedTag-rec-and-joined')).not.toBeInTheDocument();
+    });
+
     test('Recommended filter entry is hidden when ABAC is disabled', async () => {
         renderWithContext(<BrowseChannels {...baseProps}/>);
 

@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -17,7 +17,6 @@ import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import AlertTag from 'components/widgets/tag/alert_tag';
 
 import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -138,26 +137,48 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             memberCount = this.props.channelsMemberCount[channel.id];
         }
 
-        // Show the badge on cross-cut views (All / Public) where it adds
-        // signal. Hide it inside the Recommended filter — every row there is
-        // already recommended, so the tag would be redundant noise.
+        // Show the indicator on cross-cut views (All / Public) where it
+        // adds signal. Hide it inside the Recommended filter — every row
+        // there is already recommended, so the indicator would be
+        // redundant noise. Also hide it for joined rows: the design treats
+        // "Joined" and "Recommended" as mutually exclusive states in the
+        // same slot, since once you're a member the recommendation is
+        // moot. This matches the spec mockup on PR #36275 review.
         const isRecommendedRow = (
             this.props.recommendedChannelIds?.has(channel.id) &&
-            this.props.filter !== Filter.Recommended
+            this.props.filter !== Filter.Recommended &&
+            !this.isMemberOfChannel(channel.id)
         );
 
-        const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
-            <div
-                id='membershipIndicatorContainer'
-                aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
-            >
-                <CheckIcon size={14}/>
-                <FormattedMessage
-                    id={'more_channels.joined'}
-                    defaultMessage={'Joined'}
-                />
-            </div>
-        ) : null;
+        let statusIndicator: JSX.Element | null = null;
+        if (this.isMemberOfChannel(channel.id)) {
+            statusIndicator = (
+                <div
+                    id='membershipIndicatorContainer'
+                    aria-label={this.props.intl.formatMessage({id: 'more_channels.membership_indicator', defaultMessage: 'Membership Indicator: Joined'})}
+                >
+                    <CheckIcon size={14}/>
+                    <FormattedMessage
+                        id={'more_channels.joined'}
+                        defaultMessage={'Joined'}
+                    />
+                </div>
+            );
+        } else if (isRecommendedRow) {
+            statusIndicator = (
+                <div
+                    id='recommendedIndicatorContainer'
+                    data-testid={`recommendedTag-${channel.name}`}
+                    aria-label={this.props.intl.formatMessage({id: 'more_channels.recommended_indicator', defaultMessage: 'Recommended for membership'})}
+                >
+                    <LightbulbOutlineIcon size={14}/>
+                    <FormattedMessage
+                        id={'more_channels.recommended'}
+                        defaultMessage={'Recommended'}
+                    />
+                </div>
+            );
+        }
 
         const channelPurposeContainerAriaLabel = this.props.intl.formatMessage(
             messages.channelPurpose,
@@ -169,8 +190,8 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                 id='channelPurposeContainer'
                 aria-label={channelPurposeContainerAriaLabel}
             >
-                {membershipIndicator}
-                {membershipIndicator ? <span className='dot'/> : null}
+                {statusIndicator}
+                {statusIndicator ? <span className='dot'/> : null}
                 <AccountOutlineIcon size={14}/>
                 <span data-testid={`channelMemberCount-${channel.name}`} >{memberCount}</span>
                 {channel.purpose.length > 0 ? <span className='dot'/> : null}
@@ -226,20 +247,6 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         {channelTypeIcon}
                         <span id='channelName'>{channel.display_name}</span>
                         {sharedChannelIcon}
-                        {isRecommendedRow && (
-                            <AlertTag
-                                className='browse-channels__recommended-tag'
-                                testId={`recommendedTag-${channel.name}`}
-                                text={this.props.intl.formatMessage({
-                                    id: 'more_channels.recommended_tag',
-                                    defaultMessage: 'Recommended',
-                                })}
-                                tooltipTitle={this.props.intl.formatMessage({
-                                    id: 'more_channels.recommended_tag.tooltip',
-                                    defaultMessage: 'You match the membership policy for this channel',
-                                })}
-                            />
-                        )}
                     </div>
                     {channelPurposeContainer}
                 </div>
