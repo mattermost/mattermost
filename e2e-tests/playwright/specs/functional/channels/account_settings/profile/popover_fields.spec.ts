@@ -86,11 +86,18 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     const suggestionList = channelsPage.centerView.postCreate.suggestionList;
     await expect(suggestionList.getByText(`@${user.username}`)).toBeVisible();
 
-    // 8. Clear the message box
+    // 8. Clear the message box and wait for the autocomplete overlay to fully
+    // disappear before interacting with the post — the overlay can otherwise
+    // block hover/click events on the message area and cause a flaky failure.
     await channelsPage.centerView.postCreate.writeMessage('');
+    await expect(suggestionList).toBeHidden({timeout: 5000});
 
-    // 9. Open profile popover for the current user again
-    const profilePopoverAgain = await channelsPage.openProfilePopover(lastPost);
+    // 9. Open profile popover by clicking the @mention text directly (same
+    // approach as steps 3-4) — more reliable than openProfilePopover() which
+    // uses a hover-then-click sequence that the overlay can intercept.
+    const currentUserMention = lastPost.container.getByText(`@${user.username}`, {exact: true});
+    await currentUserMention.click();
+    const profilePopoverAgain = channelsPage.userProfilePopover;
 
     // * Verify all fields are still visible
     await expect(profilePopoverAgain.container.getByText(`@${user.username}`)).toBeVisible();
