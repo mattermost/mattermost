@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
@@ -53,9 +54,10 @@ const ProfilePopoverSelfUserRow = ({
         <div
             className='user-popover__bottom-row-container'
         >
-            <button
+            <Button
                 type='button'
-                className='btn btn-primary btn-sm'
+                emphasis='primary'
+                size='sm'
                 onClick={handleEditAccountSettings}
             >
                 <i
@@ -66,7 +68,7 @@ const ProfilePopoverSelfUserRow = ({
                     id='user_profile.account.editProfile'
                     defaultMessage='Edit Profile'
                 />
-            </button>
+            </Button>
             <WithTooltip
                 title={formatMessage({id: 'user_profile.send.dm.yourself', defaultMessage: 'Send yourself a message'})}
             >
