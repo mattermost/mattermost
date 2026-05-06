@@ -47,25 +47,16 @@ let systemConsolePage: SystemConsolePage;
 
 test.describe('System Console - Admin User Profile Editing', () => {
     test.beforeEach(async ({pw}) => {
-        // FIXME: CPA fields never render in admin console in CI.
-        //
-        // Root cause: system_user_detail.tsx gates ALL CPA rendering on:
-        //   customProfileAttributeEnabled = isEnterpriseLicense(license) &&
-        //                                   FeatureFlagCustomProfileAttributes === 'true'
-        // If the server's FeatureFlagCustomProfileAttributes config key is not 'true'
-        // (computed server-side, not patchable via patchConfig), componentDidMount skips
-        // getCustomProfileAttributeFields() and the CPA section is never rendered.
-        // Fields are created successfully via API, but the admin console shows nothing.
-        //
-        // This cannot be fixed in test code alone — the CI server environment needs
-        // FeatureFlagCustomProfileAttributes='true'. Skipping until that is confirmed.
-        //
-        // Tracking: re-enable once CPA feature flag is active in CI.
-        test.skip(true, 'FIXME: CPA fields not rendered — FeatureFlagCustomProfileAttributes not "true" in CI');
-
-        // Ensure license for Custom Profile Attributes functionality
+        // Ensure license for Custom Profile Attributes functionality.
+        // isEnterpriseLicense() in the webapp only returns true for SKUs: enterprise, E20,
+        // advanced, entry. If the CI license is a lower tier, CPA rendering is gated off.
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
+
+        // Fast-fail if CustomProfileAttributes feature flag is off — prevents a
+        // misleading 30 s timeout on the UI assertion and gives a clear skip reason.
+        // Note: default_config.ts sets this to true, so it should always pass in CI.
+        await pw.skipIfFeatureFlagNotSet('CustomProfileAttributes', true);
 
         // Self-isolating setup — avoid pw.initSetup()'s destructive
         // adminClient.updateConfig() full-config reset which wipes CPA fields mid-run
