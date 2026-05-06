@@ -9,6 +9,7 @@ const url = require('url');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ImageMinimizerPlugin = require('image-minimizer-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const webpack = require('webpack');
@@ -106,14 +107,6 @@ var config = {
             {
                 test: /\.(png|eot|tiff|svg|woff2|woff|ttf|gif|mp3|jpg)$/,
                 type: 'asset/resource',
-                use: [
-
-                    // Skip image optimizations during development to speed up build time
-                    !DEV && {
-                        loader: 'image-webpack-loader',
-                        options: {},
-                    },
-                ],
             },
             {
                 test: /\.apng$/,
@@ -205,7 +198,7 @@ var config = {
                 {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-regular.woff', to: 'fonts'},
                 {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff2', to: 'fonts'},
                 {from: 'src/fonts/open-sans-v18-vietnamese_latin-ext_latin_greek-ext_greek_cyrillic-ext_cyrillic-600.woff', to: 'fonts'},
-                {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
+                {from: path.join(path.dirname(require.resolve('pdfjs-dist/package.json')), 'cmaps'), to: 'cmaps'},
             ],
         }),
 
@@ -423,6 +416,29 @@ if (DEV) {
     // Production mode configuration
     config.mode = 'production';
     config.devtool = 'source-map';
+
+    // Optimize images in production builds.
+    // GIFs are excluded: animated GIFs (e.g. Customize-Your-Experience.gif)
+    // can lose frames or grow in size when processed by sharp.
+    config.optimization = {
+        ...config.optimization,
+        minimizer: [
+            '...',
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.sharpMinify,
+                    filter: (source, sourcePath) => !sourcePath.endsWith('.gif'),
+                    options: {
+                        encodeOptions: {
+                            jpeg: {mozjpeg: true},
+                            png: {},
+                            webp: {},
+                        },
+                    },
+                },
+            }),
+        ],
+    };
 }
 
 const env = {};
