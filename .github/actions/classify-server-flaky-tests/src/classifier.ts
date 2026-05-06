@@ -1,3 +1,6 @@
+// Classifies JUnit report retries for Server CI PR comments. The classifier only
+// reports high-confidence flaky tests: tests with 2-3 failed attempts followed
+// by a passing final attempt in the same run.
 import {XMLParser} from "fast-xml-parser";
 
 export type TestKey = {
