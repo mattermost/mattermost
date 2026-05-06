@@ -5074,11 +5074,11 @@ export default class Client4 {
         return `${this.getContentFlaggingRoute()}/post/${postId}/report`;
     };
 
-    generateFlaggedPostReport = async (postId: string, comment: string, signal?: AbortSignal): Promise<Blob> => {
+    generateFlaggedPostReport = async (postId: string, comment: string, action?: 'keep' | 'remove', signal?: AbortSignal): Promise<Blob> => {
         const url = this.getFlaggedPostReportUrl(postId);
         const options = this.getOptions({
             method: 'post',
-            body: JSON.stringify({comment}),
+            body: JSON.stringify({comment, action}),
         });
         const response = await fetch(url, {...options, signal});
         if (!response.ok) {

@@ -65,7 +65,7 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment)
+	reportPath, appErr := c.App.GenerateFlaggedPostReport(c.AppContext, postId, userId, actionRequest.Comment, actionRequest.Action)
 	if appErr != nil {
 		c.Err = appErr
 		return

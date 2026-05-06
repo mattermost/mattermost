@@ -108,10 +108,12 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         setRequestError('');
         if (downloadReport) {
             setStep('generating');
+        } else if (action === 'keep') {
+            callActionAPI();
         } else {
             setStep('skip_confirm');
         }
-    }, [validateForm, downloadReport]);
+    }, [validateForm, downloadReport, action, callActionAPI]);
 
     const handleSkipConfirmBack = useCallback(() => {
         setRequestError('');
@@ -121,8 +123,12 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     const handleSkipFromGenerating = useCallback(() => {
         abortControllerRef.current?.abort();
         setRequestError('');
-        setStep('skip_confirm');
-    }, []);
+        if (action === 'keep') {
+            callActionAPI();
+        } else {
+            setStep('skip_confirm');
+        }
+    }, [action, callActionAPI]);
 
     const handleBackToForm = useCallback(() => {
         abortControllerRef.current?.abort();
@@ -145,7 +151,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
 
         (async () => {
             try {
-                const blob = await Client4.generateFlaggedPostReport(flaggedPost.id, comment, controller.signal);
+                const blob = await Client4.generateFlaggedPostReport(flaggedPost.id, comment, action, controller.signal);
                 if (controller.signal.aborted) {
                     return;
                 }
@@ -174,13 +180,12 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         return () => {
             controller.abort();
         };
-    }, [step, flaggedPost.id, comment]);
+    }, [step, flaggedPost.id, comment, action]);
 
     const removeLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_remove.title', defaultMessage: 'Remove message from channel'});
     const keepLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_keep.title', defaultMessage: 'Keep message'});
 
     const removeWithoutReportLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_remove_without_report.title', defaultMessage: 'Remove without report?'});
-    const keepWithoutReportLabel = formatMessage({id: 'keep_remove_quarantined_content_modal.action_keep_without_report.title', defaultMessage: 'Restore without report?'});
 
     const bodyContentProps = {
         action,
@@ -217,16 +222,14 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
         );
         break;
     case 'skip_confirm':
-        label = action === 'keep' ? keepWithoutReportLabel : removeWithoutReportLabel;
+        label = removeWithoutReportLabel;
         modalBody = (
             <SkipConfirmStepBody
-                action={action}
                 flaggedPost={flaggedPost}
                 reportingUser={reportingUser}
             />);
         footer = (
             <SkipConfirmStepFooter
-                action={action}
                 submitting={submitting}
                 onBack={handleSkipConfirmBack}
                 onPrimary={callActionAPI}

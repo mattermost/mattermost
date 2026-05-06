@@ -54,6 +54,7 @@ describe('DataSpillageDownloadReport', () => {
             expect(Client4.generateFlaggedPostReport).toHaveBeenCalledWith(
                 flaggedPostId,
                 '',
+                undefined,
                 expect.any(AbortSignal),
             );
         });

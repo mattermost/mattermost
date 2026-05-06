@@ -7,9 +7,11 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"testing"
 
+	"github.com/goccy/go-yaml"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
@@ -126,6 +128,43 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 			}
 		}
 		require.True(t, foundAttachment, "attachment for the flagged post should be present in the report archive")
+	})
+
+	t.Run("Should include reviewer decision from request action", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+		flagPostViaAPI(t, client, post.Id)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{
+			Comment: "investigation note",
+			Action:  model.ContentFlaggingActionRemove,
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.NotEmpty(t, report)
+
+		zr, err := zip.NewReader(bytes.NewReader(report), int64(len(report)))
+		require.NoError(t, err)
+
+		var review model.FlaggedPostReportContentReview
+		var found bool
+		for _, f := range zr.File {
+			if f.Name != "content_review.yaml" {
+				continue
+			}
+			rc, err := f.Open()
+			require.NoError(t, err)
+			b, err := io.ReadAll(rc)
+			require.NoError(t, err)
+			_ = rc.Close()
+			require.NoError(t, yaml.Unmarshal(b, &review))
+			found = true
+			break
+		}
+		require.True(t, found, "content_review.yaml should be present in the report archive")
+		require.Equal(t, "remove", review.ReviewerDecision)
 	})
 
 	t.Run("Should include edit history entries in the generated report", func(t *testing.T) {

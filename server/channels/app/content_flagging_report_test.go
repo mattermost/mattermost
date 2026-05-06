@@ -52,7 +52,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr := setBaseConfig(th)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, model.NewId(), th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, model.NewId(), th.BasicUser.Id, "", "")
 		require.NotNil(t, appErr)
 		require.Empty(t, path)
 	})
@@ -63,7 +63,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, model.NewId(), "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, model.NewId(), "", "")
 		require.NotNil(t, appErr)
 		require.Empty(t, path)
 	})
@@ -74,7 +74,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, path)
 
@@ -93,7 +93,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -113,7 +113,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -131,7 +131,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -143,6 +143,73 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.Equal(t, "spam", review.ReporterReason)
 		require.Equal(t, "This is spam content", review.ReporterComment)
 		require.Greater(t, review.ReportTimestamp, int64(0))
+		require.Empty(t, review.ReviewerDecision)
+	})
+
+	t.Run("content_review.yaml records remove decision after permanent delete", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, &model.FlagContentActionRequest{Comment: "violates policy"}, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		entries := readReportZip(t, path)
+		var review model.FlaggedPostReportContentReview
+		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
+		require.Equal(t, "remove", review.ReviewerDecision)
+	})
+
+	t.Run("content_review.yaml records keep decision after keep action", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		appErr = th.App.KeepFlaggedPost(th.Context, &model.FlagContentActionRequest{Comment: "looks fine"}, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
+		require.Nil(t, appErr)
+
+		entries := readReportZip(t, path)
+		var review model.FlaggedPostReportContentReview
+		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
+		require.Equal(t, "keep", review.ReviewerDecision)
+	})
+
+	t.Run("content_review.yaml uses pending action when status is not yet committed", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", model.ContentFlaggingActionRemove)
+		require.Nil(t, appErr)
+
+		entries := readReportZip(t, path)
+		var review model.FlaggedPostReportContentReview
+		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
+		require.Equal(t, "remove", review.ReviewerDecision)
+	})
+
+	t.Run("content_review.yaml ignores invalid pending action", func(t *testing.T) {
+		appErr := setBaseConfig(th)
+		require.Nil(t, appErr)
+
+		post := setupFlaggedPost(t, th)
+
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "bogus")
+		require.Nil(t, appErr)
+
+		entries := readReportZip(t, path)
+		var review model.FlaggedPostReportContentReview
+		require.NoError(t, yaml.Unmarshal(entries["content_review.yaml"], &review))
+		require.Empty(t, review.ReviewerDecision)
 	})
 
 	t.Run("includes file attachments for the base post", func(t *testing.T) {
@@ -181,7 +248,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)
@@ -217,7 +284,7 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "")
+		path, appErr := th.App.GenerateFlaggedPostReport(th.Context, post.Id, th.BasicUser.Id, "", "")
 		require.Nil(t, appErr)
 
 		entries := readReportZip(t, path)

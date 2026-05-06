@@ -42,7 +42,7 @@ export default function DataSpillageDownloadReport({flaggedPostId}: Props) {
         let blob: Blob | undefined;
 
         try {
-            blob = await Client4.generateFlaggedPostReport(flaggedPostId, '', controller.signal);
+            blob = await Client4.generateFlaggedPostReport(flaggedPostId, '', undefined, controller.signal);
             if (controller.signal.aborted) {
                 return;
             }

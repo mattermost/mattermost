@@ -160,6 +160,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 expect(Client4.generateFlaggedPostReport).toHaveBeenCalledWith(
                     flaggedPost.id,
                     '',
+                    'remove',
                     expect.any(AbortSignal),
                 );
             });
@@ -303,6 +304,52 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
             expect(onExited).toHaveBeenCalled();
+        });
+
+        test('should call Client4.keepFlaggedPost directly without skip-confirm when checkbox is unchecked', async () => {
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='keep'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByRole('button', {name: 'Keep message'}));
+
+            await waitFor(() => {
+                expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
+            expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
+        });
+
+        test('skip from generating step calls keepFlaggedPost directly without skip-confirm', async () => {
+            Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(new Promise(() => {}));
+
+            renderWithContext(
+                <KeepRemoveFlaggedMessageConfirmationModal
+                    action='keep'
+                    onExited={onExited}
+                    flaggedPost={flaggedPost}
+                    reportingUser={reportingUser}
+                />,
+            );
+
+            await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('generating-section')).toBeVisible();
+            });
+
+            await userEvent.click(screen.getByTestId('generating-skip-button'));
+
+            await waitFor(() => {
+                expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
+            });
+            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
         });
     });
 
