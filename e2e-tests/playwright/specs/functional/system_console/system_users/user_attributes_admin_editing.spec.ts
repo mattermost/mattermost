@@ -205,8 +205,22 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
         await userRow.container.getByText(testUser.email).click();
 
-        // Wait for user detail page URL and for the AdminUserCard to finish loading
-        // custom profile attribute fields (which are fetched asynchronously after mount).
+        // Wait for the initial navigation to the user detail page.
+        await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
+
+        // Reload the page to clear the Redux CPA field cache.
+        //
+        // system_user_detail.tsx componentDidMount only calls getCustomProfileAttributeFields()
+        // when customProfileAttributeFields.length === 0 (line 226). Playwright reuses the same
+        // browser context across beforeEach runs, so the in-memory Redux store from the previous
+        // test still holds the OLD UAAE field definitions (e.g. UAAE_Department_fe45b8d). Even
+        // though afterEach deleted those fields from the server, Redux never clears them. On the
+        // next beforeEach the condition is false, the fetch is skipped, the stale labels render,
+        // and span:text-is("UAAE_Department_<new-suffix>") never matches — causing a 30 s timeout.
+        //
+        // A full page reload tears down the React/Redux state so componentDidMount starts with an
+        // empty store and unconditionally fetches the current (freshly created) fields.
+        await systemConsolePage.page.reload();
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
         await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
         const {userCard} = systemConsolePage.users.userDetail;
