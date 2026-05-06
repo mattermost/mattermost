@@ -109,4 +109,94 @@ describe('components/LeaveChannelModal', () => {
         });
         expect(props.callback).toHaveBeenCalledTimes(0);
     });
+
+    test('should match snapshot for the policy enforced public channel variant', () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            display_name: 'Ask IT',
+            policy_enforced: true,
+        };
+
+        const {baseElement} = renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel: jest.fn(),
+                    muteChannel: jest.fn(),
+                }}
+            />,
+        );
+
+        expect(baseElement).toMatchSnapshot();
+    });
+
+    test('should render policy variant for a policy enforced public channel and offer Mute instead', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn();
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        expect(screen.getByText("You're part of this channel's membership policy. If you leave, you will not be automatically re-added.")).toBeInTheDocument();
+        expect(screen.getByText('To stay a member without notifications, you can mute this channel instead.')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Mute instead'}));
+
+        await waitFor(() => {
+            expect(muteChannel).toHaveBeenCalledTimes(1);
+        });
+        expect(muteChannel).toHaveBeenCalledWith('user-1', policyChannel.id);
+        expect(leaveChannel).not.toHaveBeenCalled();
+    });
+
+    test('should hide mute hint when channel is already muted', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn();
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={true}
+                onExited={jest.fn()}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        expect(screen.queryByText('To stay a member without notifications, you can mute this channel instead.')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: 'Mute instead'})).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('button', {name: 'Leave channel'}));
+
+        await waitFor(() => {
+            expect(leaveChannel).toHaveBeenCalledTimes(1);
+        });
+        expect(muteChannel).not.toHaveBeenCalled();
+    });
 });
