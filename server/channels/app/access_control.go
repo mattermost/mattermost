@@ -693,6 +693,16 @@ func (a *App) ValidateExpressionAgainstRequester(rctx request.CTX, expression st
 // CPA values changing, and we don't want a role flip to require a
 // cache-wide invalidation.
 func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles string) (*model.Subject, *model.AppError) {
+	// Refresh the materialized view BEFORE the cache lookup so the existing
+	// 30s cadence is preserved on cache-hit paths. A successful refresh also
+	// purges the local Subject cache (see refreshAttributeViewIfStale): that
+	// is the safety net that catches CPA value mutations from any path that
+	// bypasses the App-layer invalidation hooks (LDAP/SAML attribute syncs,
+	// direct SQL imports, enterprise jobs we don't see here). The refresh
+	// itself is gated to at most once per attributeViewRefreshInterval, so
+	// the cache stays warm for the bulk of calls inside that window.
+	a.refreshAttributeViewIfStale(rctx)
+
 	if cached, ok := a.lookupCachedAccessControlSubject(rctx, userID); ok {
 		// Apply the request's Role on top of the cached attribute snapshot.
 		// Do not mutate the cached value — return a copy so concurrent
@@ -701,8 +711,6 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 		out.Role = roles
 		return &out, nil
 	}
-
-	a.refreshAttributeViewIfStale(rctx)
 
 	groupID, err := a.CpaGroupID()
 	if err != nil {
@@ -788,13 +796,60 @@ func (a *App) storeCachedAccessControlSubject(rctx request.CTX, userID string, s
 	}
 }
 
+// PurgeAccessControlSubjectCache drops every cached Subject locally and
+// broadcasts a cluster-wide purge so all nodes flush their copies. Used for
+// schema-level changes whose blast radius is unbounded by user id, e.g.
+// CPA field deletion (every Subject that referenced the field is now stale).
+// The cluster broadcast carries an empty payload, which the handler treats
+// as a "purge all" signal.
+func (a *App) PurgeAccessControlSubjectCache() {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return
+	}
+	if err := c.Purge(); err != nil {
+		mlog.Warn("Failed to purge access control subject cache", mlog.Err(err))
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+	if cluster := a.Srv().Platform().Cluster(); cluster != nil && c.GetInvalidateClusterEvent() != model.ClusterEventNone {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    c.GetInvalidateClusterEvent(),
+			SendType: model.ClusterSendBestEffort,
+			Data:     nil,
+		})
+	}
+}
+
+// purgeLocalAccessControlSubjectCache drops every cached Subject on THIS node
+// only — no cluster broadcast. Used by refreshAttributeViewIfStale: each node
+// already runs its own 30s refresh independently, so a cluster broadcast
+// would cause redundant cross-node purges (one per node per refresh cycle)
+// that could cluster-wide flatten the cache during steady state. Local-only
+// purge guarantees each node's cache is at most attributeViewRefreshInterval
+// stale relative to its own materialized view read, which is the bound we want.
+func (a *App) purgeLocalAccessControlSubjectCache() {
+	c := a.Srv().ch.accessControlSubjectCache
+	if c == nil {
+		return
+	}
+	if err := c.Purge(); err != nil {
+		mlog.Warn("Failed to purge local access control subject cache", mlog.Err(err))
+	}
+	if metrics := a.Srv().GetMetrics(); metrics != nil {
+		metrics.IncrementMemCacheInvalidationCounter(c.Name())
+	}
+}
+
 // InvalidateAccessControlSubjectCacheForUser removes a single user's cached
 // Subject and broadcasts the invalidation cluster-wide so other nodes drop
 // their copy too. Safe to call on a server with no cache configured.
 //
 // Callers are everything that mutates a user's CPA values (UpsertPropertyValue,
-// UpsertPropertyValues, DeletePropertyValue, DeletePropertyValuesForTarget)
-// or removes the user (PermanentDeleteUser).
+// UpsertPropertyValues, UpdatePropertyValue, UpdatePropertyValues,
+// DeletePropertyValue, DeletePropertyValuesForTarget) or removes the user
+// (PermanentDeleteUser).
 func (a *App) InvalidateAccessControlSubjectCacheForUser(userID string) {
 	c := a.Srv().ch.accessControlSubjectCache
 	if c == nil || userID == "" {
@@ -862,4 +917,13 @@ func (a *App) refreshAttributeViewIfStale(rctx request.CTX) {
 	}
 
 	ch.attributeViewRefreshLast = time.Now()
+
+	// The materialized view we just refreshed is the single source of truth
+	// that BuildAccessControlSubject reads from on cache misses. Anything
+	// that mutated property_value rows via paths that don't go through the
+	// App-layer invalidation hooks (LDAP/SAML sync jobs, direct SQL imports,
+	// enterprise CPA jobs) will now be visible. Drop this node's cached
+	// Subjects so the next read picks up those changes. Local-only on
+	// purpose — see purgeLocalAccessControlSubjectCache for the rationale.
+	a.purgeLocalAccessControlSubjectCache()
 }

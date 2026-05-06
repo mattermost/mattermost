@@ -100,6 +100,13 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Mirror the invalidation hook on UpsertPropertyValue: any user-targeted
+	// CPA value change must drop that user's cached Subject so the next ABAC
+	// evaluation picks up the new attributes.
+	if updatedValue != nil && updatedValue.TargetType == model.PropertyValueTargetTypeUser {
+		a.InvalidateAccessControlSubjectCacheForUser(updatedValue.TargetID)
+	}
 	return updatedValue, nil
 }
 
@@ -113,6 +120,8 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 	if err != nil {
 		return nil, model.NewAppError("UpdatePropertyValues", "app.property_value.update_many.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	a.invalidateAccessControlSubjectCacheForValues(updatedValues)
 	return updatedValues, nil
 }
 
@@ -268,6 +277,13 @@ func (a *App) DeletePropertyValuesForField(rctx request.CTX, groupID, fieldID st
 	if err := a.Srv().propertyService.DeletePropertyValuesForField(rctx, groupID, fieldID); err != nil {
 		return model.NewAppError("DeletePropertyValuesForField", "app.property_value.delete_for_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Field deletion can affect every cached Subject that referenced this
+	// field — we don't have the per-user blast radius without scanning, so
+	// take the safe path and purge the entire Subject cache cluster-wide.
+	// This is rare (admins delete fields infrequently); the cost is one
+	// cluster broadcast and a cold cache for active users on next read.
+	a.PurgeAccessControlSubjectCache()
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPropertyValuesUpdated, "", "", "", nil, "")
 	message.Add("field_id", fieldID)

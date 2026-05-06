@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -2214,4 +2215,80 @@ func TestUpsertPropertyValueInvalidatesAccessControlSubjectCache(t *testing.T) {
 	var probe model.Subject
 	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "uid1 entry must be evicted by user-targeted upsert")
 	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "uid2 entry must remain — only uid1's CPA values changed")
+}
+
+// TestUpdatePropertyValueInvalidatesAccessControlSubjectCache mirrors the
+// Upsert invalidation contract on the Update* path. Plugins call Update
+// (not Upsert) when mutating an existing CPA value via the Plugin API, so
+// missing this hook would leave a measurable cache-staleness gap on
+// plugin-driven attribute changes.
+func TestUpdatePropertyValueInvalidatesAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+
+	// Identical fixture to the Upsert case: two seeded entries, only the
+	// targeted user should be evicted.
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	// Run through the same dedup helper Update* uses to invalidate batches.
+	th.App.invalidateAccessControlSubjectCacheForValues([]*model.PropertyValue{
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1},
+		{TargetType: model.PropertyValueTargetTypeUser, TargetID: uid1}, // duplicate id → single eviction
+	})
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "uid1 entry must be evicted by user-targeted update")
+	assert.NoError(t, ch.accessControlSubjectCache.Get(uid2, &probe), "uid2 entry must remain untouched")
+}
+
+// TestPurgeAccessControlSubjectCache covers the field-deletion path: a
+// schema-level change that we can't scope to specific users, so the safe
+// answer is to drop everything cluster-wide.
+func TestPurgeAccessControlSubjectCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	uid1 := th.BasicUser.Id
+	uid2 := th.BasicUser2.Id
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid1, &model.Subject{ID: uid1}))
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid2, &model.Subject{ID: uid2}))
+
+	th.App.PurgeAccessControlSubjectCache()
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid1, &probe), "purge must drop all entries (uid1)")
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid2, &probe), "purge must drop all entries (uid2)")
+}
+
+// TestRefreshAttributeViewIfStalePurgesLocalCache locks in the out-of-band
+// safety net: a successful materialized-view refresh drops this node's
+// cached Subjects so the next read picks up changes that arrived via paths
+// outside the App-layer invalidation hooks. Local-only — peer nodes run
+// their own refresh on their own 30s timer and self-invalidate the same way.
+func TestRefreshAttributeViewIfStalePurgesLocalCache(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	ch := th.App.Srv().ch
+	require.NotNil(t, ch.accessControlSubjectCache)
+
+	uid := th.BasicUser.Id
+	require.NoError(t, ch.accessControlSubjectCache.Purge())
+	require.NoError(t, ch.accessControlSubjectCache.SetWithDefaultExpiry(uid, &model.Subject{ID: uid}))
+
+	// Force the next refresh attempt to actually run by clearing the gate.
+	ch.attributeViewRefreshMut.Lock()
+	ch.attributeViewRefreshLast = time.Time{}
+	ch.attributeViewRefreshMut.Unlock()
+
+	th.App.refreshAttributeViewIfStale(th.Context)
+
+	var probe model.Subject
+	assert.Error(t, ch.accessControlSubjectCache.Get(uid, &probe), "refresh must purge local cache so out-of-band writes become visible")
 }
