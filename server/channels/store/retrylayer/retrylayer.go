@@ -8,7 +8,6 @@ package retrylayer
 
 import (
 	"context"
-	"database/sql"
 	timepkg "time"
 
 	"github.com/lib/pq"
@@ -18303,14 +18302,6 @@ func (s *RetryLayer) TotalReadDbConnections() int {
 
 func (s *RetryLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
-}
-
-func (s *RetryLayer) MasterDBStats() sql.DBStats {
-	return s.Store.MasterDBStats()
-}
-
-func (s *RetryLayer) ReplicaDBStats() sql.DBStats {
-	return s.Store.ReplicaDBStats()
 }
 
 func (s *RetryLayer) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {

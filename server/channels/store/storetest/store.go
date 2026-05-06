@@ -154,12 +154,6 @@ func (s *Store) GetAppliedMigrations() ([]model.AppliedMigration, error) {
 func (s *Store) TotalMasterDbConnections() int { return 1 }
 func (s *Store) TotalReadDbConnections() int   { return 1 }
 func (s *Store) TotalSearchDbConnections() int { return 1 }
-func (s *Store) MasterDBStats() sql.DBStats {
-	return sql.DBStats{}
-}
-func (s *Store) ReplicaDBStats() sql.DBStats {
-	return sql.DBStats{}
-}
 func (s *Store) CheckIntegrity() <-chan model.IntegrityCheckResult {
 	return make(chan model.IntegrityCheckResult)
 }

@@ -79,8 +79,6 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	MasterDBStats() sql.DBStats
-	ReplicaDBStats() sql.DBStats
 	GetDiagnostics(ctx context.Context) (*SupportPacketDatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error

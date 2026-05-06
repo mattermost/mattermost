@@ -42,14 +42,6 @@ type fixedDBStatsStore struct {
 	replicaStats sql.DBStats
 }
 
-func (s *fixedDBStatsStore) MasterDBStats() sql.DBStats {
-	return s.masterStats
-}
-
-func (s *fixedDBStatsStore) ReplicaDBStats() sql.DBStats {
-	return s.replicaStats
-}
-
 func (s *fixedDBStatsStore) GetDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
 	diagnostics := &store.SupportPacketDatabaseDiagnostics{
 		MasterConnectionsInUse:              s.masterStats.InUse,

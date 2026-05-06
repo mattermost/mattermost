@@ -8,7 +8,6 @@ package timerlayer
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -14476,14 +14475,6 @@ func (s *TimerLayer) TotalReadDbConnections() int {
 
 func (s *TimerLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
-}
-
-func (s *TimerLayer) MasterDBStats() sql.DBStats {
-	return s.Store.MasterDBStats()
-}
-
-func (s *TimerLayer) ReplicaDBStats() sql.DBStats {
-	return s.Store.ReplicaDBStats()
 }
 
 func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
