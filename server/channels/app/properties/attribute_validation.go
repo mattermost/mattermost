@@ -177,22 +177,21 @@ func (h *AttributeValidationHook) sanitizeAndValidateOptions(field *model.Proper
 	return nil
 }
 
-// enforceGroupPermissions sets the permission levels required for fields in
-// managed groups and validates the managed-flag authorization:
+// enforceGroupPermissions pins schema-edit permissions for fields in
+// managed groups and applies the managed=admin upgrade to PermissionValues:
 //   - PermissionField and PermissionOptions are always set to sysadmin so
 //     that only admins can modify field definitions and options.
-//   - PermissionValues is set to sysadmin when managed="admin", and to
-//     member otherwise, so that regular users can write their own values
-//     on non-admin-managed fields.
-//   - Setting managed="admin" requires PermissionManageSystem. Callers
-//     without an identifiable caller ID (e.g. internal callers with no
-//     session on rctx) are treated as non-admin and rejected.
+//   - When managed="admin", PermissionValues is set to sysadmin. This is
+//     gated on PermissionManageSystem; callers without an identifiable
+//     caller ID (e.g. internal callers with no session on rctx) are
+//     treated as non-admin and rejected.
+//   - Otherwise, PermissionValues is left as-is when set, and default-filled
+//     by ObjectType when nil (member for user fields, sysadmin for system
+//     and template). Caller pins are never downgraded.
 func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
-	managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string)
 	sysadmin := model.PermissionLevelSysadmin
-	member := model.PermissionLevelMember
 
-	if managed == "admin" {
+	if managed, _ := field.Attrs[model.PropertyFieldAttrManaged].(string); managed == "admin" {
 		// Verify the caller has admin privileges. Default-deny if the
 		// permission checker isn't wired up or if the caller is
 		// unidentifiable — we never silently promote to sysadmin.
@@ -204,8 +203,9 @@ func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, fiel
 			return nil, fmt.Errorf("missing permission to set managed=admin: only system admins can set managed=admin: %w", ErrAdminRequired)
 		}
 		field.PermissionValues = &sysadmin
-	} else {
-		field.PermissionValues = &member
+	} else if field.PermissionValues == nil {
+		defaultLevel := defaultPermissionValuesForObjectType(field.ObjectType)
+		field.PermissionValues = &defaultLevel
 	}
 
 	// Fields in managed groups always require sysadmin for field/options edits.
@@ -213,6 +213,19 @@ func (h *AttributeValidationHook) enforceGroupPermissions(rctx request.CTX, fiel
 	field.PermissionOptions = &sysadmin
 
 	return field, nil
+}
+
+// defaultPermissionValuesForObjectType returns the PermissionValues level a
+// field should default to when the caller doesn't pin one. User fields are
+// member-writable so users can set their own values; system and template
+// fields attach to admin-owned scopes and require sysadmin.
+func defaultPermissionValuesForObjectType(objectType string) model.PermissionLevel {
+	switch objectType {
+	case model.PropertyFieldObjectTypeSystem, model.PropertyFieldObjectTypeTemplate:
+		return model.PermissionLevelSysadmin
+	default:
+		return model.PermissionLevelMember
+	}
 }
 
 func (h *AttributeValidationHook) PreCreatePropertyField(rctx request.CTX, field *model.PropertyField) (*model.PropertyField, error) {
