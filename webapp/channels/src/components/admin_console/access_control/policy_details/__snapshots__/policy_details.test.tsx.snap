@@ -70,7 +70,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to determine who should be in the channels this policy applies to.
+                Select user attributes and values that qualifying users must have
               </div>
             </div>
             <button
@@ -565,7 +565,7 @@ exports[`components/admin_console/access_control/policy_details/PolicyDetails sh
               <div
                 class="text-bottom"
               >
-                Select user attributes and values as rules to determine who should be in the channels this policy applies to.
+                Select user attributes and values that qualifying users must have
               </div>
             </div>
             <button

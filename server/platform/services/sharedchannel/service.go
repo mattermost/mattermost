@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -32,7 +33,6 @@ const (
 	NotifyMinimumDelay           = time.Second * 2
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
-	UnshareMessage               = "This channel is no longer shared."
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
@@ -64,6 +64,7 @@ type AppIface interface {
 	RemoveUserFromChannel(rctx request.CTX, userID string, removerUserId string, channel *model.Channel) *model.AppError
 	PermanentDeleteChannel(rctx request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError)
+	GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError)
 	UpdatePost(rctx request.CTX, post *model.Post, updatePostOptions *model.UpdatePostOptions) (*model.Post, bool, *model.AppError)
 	DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
 	SaveReactionForPost(rctx request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
@@ -306,28 +307,103 @@ func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) 
 	scs.app.Publish(messageWs)
 }
 
-// postUnshareNotification posts a system message to notify users that the channel is no longer shared.
-func (scs *Service) postUnshareNotification(channelID string, creatorID string, channel *model.Channel, rc *model.RemoteCluster) {
-	post := &model.Post{
-		UserId:    creatorID,
-		ChannelId: channelID,
-		Message:   UnshareMessage,
-		Type:      model.PostTypeSystemGeneric,
+func remoteClusterDisplayName(rc *model.RemoteCluster) string {
+	if rc == nil {
+		return ""
+	}
+	if rc.DisplayName != "" {
+		return rc.DisplayName
+	}
+	if rc.Name != "" {
+		return rc.Name
+	}
+	return rc.RemoteId
+}
+
+// messageForSharedChannelStatePost returns the server-default-locale (i18n.T) copy for Post.Message so clients
+// without a renderer still show the same sentence as the webapp (shared_channel.system_message.*).
+func messageForSharedChannelStatePost(props model.StringInterface) string {
+	raw := props[model.PostPropsSharedChannelState]
+	state, _ := raw.(string)
+	switch state {
+	case model.SharedChannelStatePostValueShared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		return i18n.T("shared_channel.system_message.now_shared", map[string]any{"WorkspaceName": wn})
+	case model.SharedChannelStatePostValueUnshared:
+		wn, _ := props[model.PostPropsSharedChannelWorkspaceName].(string)
+		if wn == "" {
+			return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+		}
+		return i18n.T("shared_channel.system_message.no_longer_shared", map[string]any{"WorkspaceName": wn})
+	default:
+		return i18n.T("shared_channel.system_message.no_longer_shared_unknown")
+	}
+}
+
+// postSharedChannelStatePost creates a system_shared_chan_state post. Message uses the system locale (i18n.T);
+// capable clients still render from props in the viewer's language (not replicated via shared-channel post sync).
+func (scs *Service) postSharedChannelStatePost(channel *model.Channel, props model.StringInterface) {
+	if channel == nil {
+		return
 	}
 
-	logger := scs.server.Log()
-	_, _, appErr := scs.app.CreatePost(request.EmptyContext(logger), post, channel, model.CreatePostFlags{})
+	rctx := request.EmptyContext(scs.server.Log())
+	systemBot, botErr := scs.app.GetSystemBot(rctx)
+	if botErr != nil {
+		scs.server.Log().LogM(
+			mlog.MlvlSharedChannelServiceWarn,
+			"Could not get system bot for shared channel state post",
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(botErr),
+		)
+		return
+	}
 
+	post := &model.Post{
+		UserId:    systemBot.UserId,
+		ChannelId: channel.Id,
+		Message:   messageForSharedChannelStatePost(props),
+		Type:      model.PostTypeSharedChannelState,
+		Props:     props,
+	}
+
+	_, _, appErr := scs.app.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 	if appErr != nil {
 		scs.server.Log().LogM(
 			mlog.MlvlSharedChannelServiceWarn,
-			"Error creating unshare notification post",
-			mlog.String("channel_id", channelID),
-			mlog.String("remote_id", rc.RemoteId),
-			mlog.String("remote_name", rc.Name),
+			"Error creating shared channel state notification post",
+			mlog.String("channel_id", channel.Id),
 			mlog.Err(appErr),
 		)
 	}
+}
+
+func (scs *Service) postChannelSharedWithWorkspace(channel *model.Channel, peer *model.RemoteCluster) {
+	if channel == nil || peer == nil {
+		return
+	}
+	workspaceName := remoteClusterDisplayName(peer)
+	if workspaceName == "" {
+		workspaceName = peer.RemoteId
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState:         model.SharedChannelStatePostValueShared,
+		model.PostPropsSharedChannelWorkspaceName: workspaceName,
+	}
+	scs.postSharedChannelStatePost(channel, props)
+}
+
+func (scs *Service) postChannelUnsharedWithWorkspace(channel *model.Channel, workspaceName string) {
+	if channel == nil {
+		return
+	}
+	props := model.StringInterface{
+		model.PostPropsSharedChannelState: model.SharedChannelStatePostValueUnshared,
+	}
+	if workspaceName != "" {
+		props[model.PostPropsSharedChannelWorkspaceName] = workspaceName
+	}
+	scs.postSharedChannelStatePost(channel, props)
 }
 
 // IsRemoteClusterDirectlyConnected checks if a remote cluster has a direct connection to the current server

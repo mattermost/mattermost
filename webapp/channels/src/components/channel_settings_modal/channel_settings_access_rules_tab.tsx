@@ -724,7 +724,7 @@ function ChannelSettingsAccessRulesTab({
                 <p className='ChannelSettingsModal__accessRulesSubtitle'>
                     {channel.type === Constants.OPEN_CHANNEL ? formatMessage({
                         id: 'channel_settings.access_rules.subtitle_public',
-                        defaultMessage: 'Select user attributes and values to describe who should be in this channel. Rules are advisory: anyone can still join.',
+                        defaultMessage: 'Define who this channel is recommended for. The channel stays open to everyone.',
                     }) : formatMessage({
                         id: 'channel_settings.access_rules.subtitle',
                         defaultMessage: 'Select user attributes and values as rules to restrict channel membership',
@@ -806,7 +806,7 @@ function ChannelSettingsAccessRulesTab({
                             if (isPublic) {
                                 return formatMessage({
                                     id: 'channel_settings.access_rules.auto_sync_enabled_public_description',
-                                    defaultMessage: 'Qualifying users are automatically added as members. Members can still leave on their own — no one is removed based on these rules.',
+                                    defaultMessage: 'Users who match these rules will be added to this channel. They can leave anytime and won\'t be re-added.',
                                 });
                             }
                             return formatMessage({

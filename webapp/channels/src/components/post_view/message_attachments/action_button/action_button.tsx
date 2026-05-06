@@ -4,6 +4,7 @@
 import React, {memo, useCallback} from 'react';
 import styled, {css} from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -12,7 +13,6 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 const getStatusColors = (theme: Theme) => {
     return {

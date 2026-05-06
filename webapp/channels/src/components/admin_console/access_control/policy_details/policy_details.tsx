@@ -441,7 +441,7 @@ function PolicyDetails({
                                 subtitle={
                                     <FormattedMessage
                                         id='admin.access_control.policy.edit_policy.access_rules.subtitle'
-                                        defaultMessage='Select user attributes and values as rules to determine who should be in the channels this policy applies to.'
+                                        defaultMessage='Select user attributes and values that qualifying users must have'
                                     />
                                 }
                                 buttonText={

@@ -108,6 +108,10 @@ func (a *App) CreateCPAField(rctx request.CTX, field *model.CPAField) (*model.CP
 		return nil, appErr
 	}
 
+	if appErr = model.ValidateCPAFieldName(field.Name); appErr != nil {
+		return nil, appErr
+	}
+
 	newField, appErr := a.CreatePropertyField(rctx, field.ToPropertyField(), false, "")
 	if appErr != nil {
 		return nil, appErr
@@ -130,6 +134,7 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 	if appErr != nil {
 		return nil, appErr
 	}
+	originalName := existingField.Name
 
 	shouldDeleteValues := false
 	if patch.Type != nil && *patch.Type != existingField.Type {
@@ -142,6 +147,14 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 
 	if appErr = existingField.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
+	}
+
+	// Lenient grandfather: only validate Name against CEL rules when it actually changes.
+	// Pre-existing fields with invalid names remain editable on all other attrs.
+	if existingField.Name != originalName {
+		if appErr = model.ValidateCPAFieldName(existingField.Name); appErr != nil {
+			return nil, appErr
+		}
 	}
 
 	groupID, appErr := a.CpaGroupID()
