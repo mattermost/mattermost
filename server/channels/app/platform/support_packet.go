@@ -236,7 +236,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
 	if samlDiagnostic := ps.SamlDiagnostic(); samlDiagnostic != nil && model.SafeDereference(ps.Config().SamlSettings.Enable) {
-		if err := samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
+		if err = samlDiagnostic.RunSupportPacketTest(rctx, ps.Config().SamlSettings); err != nil {
 			d.SAML.Status = model.StatusFail
 			d.SAML.Error = err.Error()
 		} else {
