@@ -48,7 +48,7 @@ func TestGetDiagnostics(t *testing.T) {
 }
 
 func TestApplyDBPoolStats(t *testing.T) {
-	diagnostics := &store.SupportPacketDatabaseDiagnostics{}
+	diagnostics := &store.DatabaseDiagnostics{}
 	applyDBPoolStats(
 		diagnostics,
 		sql.DBStats{

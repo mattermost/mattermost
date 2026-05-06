@@ -42,8 +42,8 @@ type fixedDBStatsStore struct {
 	replicaStats sql.DBStats
 }
 
-func (s *fixedDBStatsStore) GetDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
-	diagnostics := &store.SupportPacketDatabaseDiagnostics{
+func (s *fixedDBStatsStore) GetDiagnostics(_ context.Context) (*store.DatabaseDiagnostics, error) {
+	diagnostics := &store.DatabaseDiagnostics{
 		MasterConnectionsInUse:              s.masterStats.InUse,
 		MasterConnectionsIdle:               s.masterStats.Idle,
 		MasterPoolWaitCount:                 s.masterStats.WaitCount,

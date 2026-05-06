@@ -14477,7 +14477,7 @@ func (s *TimerLayer) TotalSearchDbConnections() int {
 	return s.Store.TotalSearchDbConnections()
 }
 
-func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
 	return s.Store.GetDiagnostics(ctx)
 }
 

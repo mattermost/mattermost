@@ -5,11 +5,10 @@ package store
 
 import "time"
 
-// SupportPacketDatabaseDiagnostics is a snapshot of database health and pool
-// state. Pointer fields are nil when the underlying
-// metric is unavailable (non-Postgres driver, query failure, or no matching
-// row).
-type SupportPacketDatabaseDiagnostics struct {
+// DatabaseDiagnostics is a snapshot of database health and pool state.
+// Pointer fields are nil when the underlying metric is unavailable
+// (non-Postgres driver, query failure, or no matching row).
+type DatabaseDiagnostics struct {
 	MasterConnectionsInUse              int
 	MasterConnectionsIdle               int
 	MasterPoolWaitCount                 int64

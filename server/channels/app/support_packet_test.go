@@ -146,7 +146,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("TotalReadDbConnections").Return(20)
 		mockStore.On("TotalSearchDbConnections").Return(10)
 		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
-		mockStore.On("GetDiagnostics", mock.Anything).Return(&store.SupportPacketDatabaseDiagnostics{}, nil)
+		mockStore.On("GetDiagnostics", mock.Anything).Return(&store.DatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)

@@ -578,23 +578,23 @@ func (_m *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, erro
 }
 
 // GetDiagnostics provides a mock function with given fields: ctx
-func (_m *Store) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+func (_m *Store) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetDiagnostics")
 	}
 
-	var r0 *store.SupportPacketDatabaseDiagnostics
+	var r0 *store.DatabaseDiagnostics
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) (*store.SupportPacketDatabaseDiagnostics, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) (*store.DatabaseDiagnostics, error)); ok {
 		return rf(ctx)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) *store.SupportPacketDatabaseDiagnostics); ok {
+	if rf, ok := ret.Get(0).(func(context.Context) *store.DatabaseDiagnostics); ok {
 		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.SupportPacketDatabaseDiagnostics)
+			r0 = ret.Get(0).(*store.DatabaseDiagnostics)
 		}
 	}
 

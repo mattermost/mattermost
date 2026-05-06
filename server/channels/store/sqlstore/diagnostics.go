@@ -50,8 +50,8 @@ WHERE lower(relname) = 'posts'
 LIMIT 1`
 )
 
-func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
-	diagnostics := &store.SupportPacketDatabaseDiagnostics{}
+func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
+	diagnostics := &store.DatabaseDiagnostics{}
 	applyDBPoolStats(diagnostics, ss.MasterDBStats(), ss.ReplicaDBStats())
 
 	if ss.DriverName() != model.DatabaseDriverPostgres {
@@ -65,7 +65,7 @@ func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.SupportPacketDat
 	return diagnostics, nil
 }
 
-func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
+func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	if db == nil {
 		return errors.New("postgres diagnostics query failed: no master database connection")
 	}
@@ -99,7 +99,7 @@ func withDiagnosticsTimeout(ctx context.Context, fn func(context.Context) error)
 	return fn(ctx)
 }
 
-func applyDBPoolStats(diagnostics *store.SupportPacketDatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
+func applyDBPoolStats(diagnostics *store.DatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
 	diagnostics.MasterConnectionsInUse = masterDBStats.InUse
 	diagnostics.MasterConnectionsIdle = masterDBStats.Idle
 	diagnostics.MasterPoolWaitCount = masterDBStats.WaitCount
@@ -115,7 +115,7 @@ func applyDBPoolStats(diagnostics *store.SupportPacketDatabaseDiagnostics, maste
 	diagnostics.ReplicaConnectionsClosedMaxLifetime = replicaDBStats.MaxLifetimeClosed
 }
 
-func collectPGStatDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		CacheHitRatio float64 `db:"cache_hit_ratio"`
 		Deadlocks     int64   `db:"deadlocks"`
@@ -138,7 +138,7 @@ func collectPGStatDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnost
 	return nil
 }
 
-func collectPGStatActivityDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatActivityDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		IdleInTransactionCount      int64   `db:"idle_in_transaction_count"`
 		LongestQueryDurationSeconds float64 `db:"longest_query_duration_seconds"`
@@ -156,7 +156,7 @@ func collectPGStatActivityDiagnostics(ctx context.Context, db *sqlx.DB, diagnost
 	return nil
 }
 
-func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagnostics *store.DatabaseDiagnostics) error {
 	var row struct {
 		NDeadTup       int64        `db:"n_dead_tup"`
 		LastAutovacuum sql.NullTime `db:"last_autovacuum"`
