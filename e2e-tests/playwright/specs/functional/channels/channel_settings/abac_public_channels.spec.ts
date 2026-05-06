@@ -238,4 +238,61 @@ test.describe('ABAC - Public channels', () => {
             'non-matching member must NOT be removed (public channels are advisory under ABAC)',
         ).toContain(nonMatching.id);
     });
+
+    test('Recommended badge renders inline in the All channels view for matching users', async ({pw}) => {
+        // Same advisory setup as the Recommended-filter test: matching user
+        // is in the team, NOT in the channel, auto-add OFF. The new
+        // expectation is that the badge surfaces on the row even when the
+        // user is browsing the default "All channels" view, so they don't
+        // have to flip the filter to discover the recommendation.
+        await pw.skipIfNoLicense();
+        const {adminClient, team} = await pw.initSetup();
+        await enableABACConfig(adminClient);
+
+        const attribute = await createTrackedAttribute(adminClient, 'PubAbacAllView', ledger);
+        const publicChannel = await createTrackedPublicChannel(adminClient, team.id, ledger);
+        const expression = `user.attributes.${attribute.name} == 'engineering'`;
+        await createPolicyAssignedToChannels(
+            adminClient,
+            `Public All-View Recommend ${Date.now()}`,
+            expression,
+            [publicChannel.id],
+            ledger,
+        );
+
+        const matchingUser = await createTrackedTeamMember(
+            adminClient,
+            team.id,
+            {fieldId: attribute.id, value: 'engineering'},
+            ledger,
+        );
+
+        const {page} = await pw.testBrowser.login(matchingUser);
+        const channelsPage = new ChannelsPage(page);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+
+        const browse = await channelsPage.openBrowseChannelsModal();
+        await browse.toBeDoneLoading();
+
+        // Stay on the default "All channels" filter — do NOT flip to
+        // Recommended. The badge must be visible from this view.
+        const channelRow = browse.container.locator(`[data-testid="ChannelRow-${publicChannel.name}"]`);
+        await expect(channelRow).toBeVisible({timeout: 15000});
+
+        // Recommended badge testId is generated as
+        // `recommendedTag-${channel.name}` by SearchableChannelList. Asserting
+        // by testId rather than visible text keeps the spec resilient to
+        // localization and to wording tweaks on the tooltip.
+        const recommendedTag = browse.container.locator(`[data-testid="recommendedTag-${publicChannel.name}"]`);
+        await expect(recommendedTag).toBeVisible({timeout: 15000});
+
+        // The badge should NOT appear on rows that don't match — town-square
+        // has no policy, so its row must not render the tag. This guards
+        // against accidentally showing the badge on every row.
+        const townSquareRow = browse.container.locator('[data-testid="ChannelRow-town-square"]');
+        if ((await townSquareRow.count()) > 0) {
+            await expect(browse.container.locator('[data-testid="recommendedTag-town-square"]')).toHaveCount(0);
+        }
+    });
 });

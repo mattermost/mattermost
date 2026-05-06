@@ -239,11 +239,11 @@ type MetricsInterfaceImpl struct {
 
 	PluginWebappPerf *prometheus.HistogramVec
 
-	AccessControlExpressionCompileDuration  prometheus.Histogram
-	AccessControlEvaluateDuration           prometheus.Histogram
-	AccessControlSearchQueryDuration        prometheus.Histogram
+	AccessControlExpressionCompileDuration   prometheus.Histogram
+	AccessControlEvaluateDuration            prometheus.Histogram
+	AccessControlSearchQueryDuration         prometheus.Histogram
 	AccessControlRecommendedChannelsDuration prometheus.Histogram
-	AccessControlCacheInvalidation          prometheus.Counter
+	AccessControlCacheInvalidation           prometheus.Counter
 
 	// Auto-translation metrics
 	AutoTranslateTranslateDuration       *prometheus.HistogramVec
