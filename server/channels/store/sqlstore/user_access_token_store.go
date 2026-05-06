@@ -272,9 +272,7 @@ func (s SqlUserAccessTokenStore) GetExpiredBefore(cutoff int64, limit int) ([]*m
 
 // DeleteByIds deletes the tokens identified by tokenIDs along with any sessions
 // minted from those tokens, all within a single transaction. It returns the
-// number of UserAccessTokens rows actually deleted. Callers that need audit
-// records for each deletion should pair this with GetExpiredBefore so that the
-// set of deleted tokens exactly matches the set that was audited.
+// number of UserAccessTokens rows actually deleted.
 func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, err error) {
 	if len(tokenIDs) == 0 {
 		return 0, nil
@@ -285,22 +283,32 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 		err = errors.Wrap(beginErr, "begin_transaction")
 		return
 	}
-	// Named returns let finalizeTransactionX append a rollback error to `err`
-	// via merror.Append on the way out. All error paths below assign the
-	// named `err` and use a bare `return` so the deferred call sees and can
-	// augment the final error returned to the caller.
 	defer finalizeTransactionX(transaction, &err)
 
-	args := idsToArgs(tokenIDs)
-	ph := placeholders(len(tokenIDs))
-
-	sessionsQuery := "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.Id IN (" + ph + ")"
-	if _, sErr := transaction.Exec(sessionsQuery, args...); sErr != nil {
+	// Delete sessions whose Token matches any of the PAT tokens via subquery.
+	subSQL, subArgs, sqErr := s.getQueryBuilder().
+		Select("Token").
+		From("UserAccessTokens").
+		Where(sq.Eq{"Id": tokenIDs}).
+		ToSql()
+	if sqErr != nil {
+		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		return
+	}
+	if _, sErr := transaction.Exec("DELETE FROM Sessions WHERE Token IN ("+subSQL+")", subArgs...); sErr != nil {
 		err = errors.Wrap(sErr, "failed to delete Sessions for UserAccessTokens")
 		return
 	}
 
-	res, execErr := transaction.Exec("DELETE FROM UserAccessTokens WHERE Id IN ("+ph+")", args...)
+	tokenSQL, tokenArgs, sqErr := s.getQueryBuilder().
+		Delete("UserAccessTokens").
+		Where(sq.Eq{"Id": tokenIDs}).
+		ToSql()
+	if sqErr != nil {
+		err = errors.Wrap(sqErr, "UserAccessToken_tosql")
+		return
+	}
+	res, execErr := transaction.Exec(tokenSQL, tokenArgs...)
 	if execErr != nil {
 		err = errors.Wrap(execErr, "failed to delete UserAccessTokens")
 		return
@@ -308,9 +316,6 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 
 	rowCount, rErr := res.RowsAffected()
 	if rErr != nil {
-		// Surface the failure rather than silently returning 0 — callers rely
-		// on the count for telemetry/auditing and a swallowed driver error
-		// would be misleading.
 		err = errors.Wrap(rErr, "failed to read RowsAffected for UserAccessTokens delete")
 		return
 	}
@@ -322,31 +327,6 @@ func (s SqlUserAccessTokenStore) DeleteByIds(tokenIDs []string) (deleted int64, 
 
 	deleted = rowCount
 	return
-}
-
-// placeholders returns "?, ?, ..." with n placeholders. The SQL store's
-// driver rewrites `?` to the dialect-specific placeholder via the query
-// wrapper, matching the style used elsewhere in this file.
-func placeholders(n int) string {
-	if n <= 0 {
-		return ""
-	}
-	buf := make([]byte, 0, 2*n)
-	for i := range n {
-		if i > 0 {
-			buf = append(buf, ',', ' ')
-		}
-		buf = append(buf, '?')
-	}
-	return string(buf)
-}
-
-func idsToArgs(ids []string) []any {
-	args := make([]any, len(ids))
-	for i, id := range ids {
-		args[i] = id
-	}
-	return args
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndDisableToken(transaction *sqlxTxWrapper, tokenId string) error {
