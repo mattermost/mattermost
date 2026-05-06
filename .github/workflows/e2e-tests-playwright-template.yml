@@ -136,7 +136,7 @@ jobs:
 
   run-tests:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 30
     continue-on-error: true
     needs:
       - generate-test-variables
@@ -155,8 +155,6 @@ jobs:
       TEST: playwright
       TEST_FILTER: "${{ inputs.test_filter }}"
       PW_SHARD: "${{ format('--shard={0}/{1}', matrix.worker_index, inputs.workers) }}"
-      PW_SHARD_INDEX: "${{ matrix.worker_index }}"
-      PW_SHARD_TOTAL: "${{ inputs.workers }}"
       BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}"
       BUILD_ID: "${{ inputs.build_id }}"
       CI_BASE_URL: "${{ inputs.test_type }}-test-${{ matrix.worker_index }}"
@@ -175,67 +173,6 @@ jobs:
       - name: ci/get-webapp-node-modules
         working-directory: webapp
         run: make node_modules
-      - name: ci/restore-test-durations
-        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        with:
-          path: e2e-tests/playwright/.test-durations.json
-          key: pw-test-durations-${{ inputs.test_type }}
-          restore-keys: pw-test-durations-
-      - name: ci/runner-prep-for-openldap
-        # Observed failure: "dependency failed to start: container
-        # mmserver-openldap-1 exited (1)" on ubuntu-24.04 runners — kills
-        # every ABAC/LDAP spec on the affected shard.
-        #
-        # Ubuntu 24.04 introduced an AppArmor profile that restricts the
-        # creation of unprivileged user namespaces. The osixia/openldap
-        # image's internal init scripts rely on this capability; blocking
-        # it produces an immediate exit(1) with no useful stderr. The
-        # container's own security_opt: apparmor:unconfined (already set
-        # in server/build/docker-compose.common.yml) isn't sufficient —
-        # that only unconfines slapd, not the container's entrypoint
-        # process. The actual switch is at the host-kernel level.
-        #
-        # Also ensure docker-compose is >= 2.36.0 — the 2.35.1 shipped on
-        # some ubuntu-24.04 images has a known `up` regression that
-        # manifests as random dependency-failed errors under load.
-        run: |
-          echo "Before: docker compose version"
-          docker compose version || true
-
-          # Disable the AppArmor user-namespace restriction. Idempotent;
-          # safe if the key doesn't exist (older kernel).
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
-
-          # If docker-compose is older than 2.36.0, install a newer one to
-          # the user's cli-plugins dir (takes precedence over the system copy).
-          CURRENT=$(docker compose version --short 2>/dev/null || echo "0.0.0")
-          NEED="2.36.0"
-          if [ "$(printf '%s\n' "$NEED" "$CURRENT" | sort -V | head -n1)" != "$NEED" ]; then
-            echo "Upgrading docker-compose from ${CURRENT} to 2.39.1"
-            mkdir -p "$HOME/.docker/cli-plugins"
-            curl -SL -o "$HOME/.docker/cli-plugins/docker-compose" \
-              "https://github.com/docker/compose/releases/download/v2.39.1/docker-compose-linux-x86_64"
-            chmod +x "$HOME/.docker/cli-plugins/docker-compose"
-          fi
-
-          echo "After: docker compose version"
-          docker compose version
-      - name: ci/pre-pull-playwright-image
-        # Transient MCR blocks ("The request is blocked") during `docker compose up`
-        # leave the playwright service missing and fail the whole shard. Pull early
-        # with backoff so a later attempt often succeeds before tests start.
-        run: |
-          set -euo pipefail
-          IMAGE="mcr.microsoft.com/playwright:v1.59.1-noble"
-          for attempt in $(seq 1 12); do
-            echo "docker pull ${IMAGE} (attempt ${attempt}/12)"
-            if docker pull "${IMAGE}"; then
-              exit 0
-            fi
-            sleep $((attempt * 25))
-          done
-          echo "::error::Failed to pull Playwright image ${IMAGE} after retries"
-          exit 1
       - name: ci/run-tests
         run: |
           make cloud-init
@@ -243,36 +180,6 @@ jobs:
       - name: ci/cloud-teardown
         if: always()
         run: make cloud-teardown
-      - name: ci/dump-docker-state-on-failure
-        # Always run a final docker-state capture so failures unrelated to
-        # openldap startup (e.g. server container later crashes) still produce
-        # logs we can inspect. The script's own retry loop dumps openldap
-        # state per-attempt; this step is a backstop covering the whole job.
-        if: failure()
-        run: |
-          set +e
-          DIAG="e2e-tests/docker-diagnostics/job-failure"
-          mkdir -p "$DIAG"
-          docker ps -a >"$DIAG/docker.ps.txt" 2>&1
-          docker version >"$DIAG/docker.version.txt" 2>&1
-          docker info >"$DIAG/docker.info.txt" 2>&1
-          for c in $(docker ps -a --format '{{.Names}}'); do
-            docker inspect "$c" >"$DIAG/$c.inspect.json" 2>&1
-            docker logs "$c" >"$DIAG/$c.log" 2>&1
-          done
-          uname -a >"$DIAG/host.uname.txt" 2>&1
-          free -m >"$DIAG/host.free.txt" 2>&1
-          df -h >"$DIAG/host.df.txt" 2>&1
-          sudo dmesg | tail -500 >"$DIAG/host.dmesg.tail.txt" 2>&1
-          sudo dmesg | grep -iE 'apparmor|denied|oom|killed|openldap|slapd' >"$DIAG/host.dmesg.relevant.txt" 2>&1
-      - name: ci/upload-docker-diagnostics
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        if: always()
-        with:
-          name: docker-diagnostics-playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-${{ matrix.worker_index }}
-          path: e2e-tests/docker-diagnostics/
-          retention-days: 7
-          if-no-files-found: ignore
       - name: ci/upload-results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         if: always()
@@ -328,16 +235,6 @@ jobs:
           # Merge blob reports using Playwright merge-reports (per docs)
           npm install --no-save @playwright/test
           npx playwright merge-reports --config merge.config.mjs ./shard-results/results/blob-report/
-      - name: ci/extract-test-durations
-        working-directory: e2e-tests/playwright
-        if: always()
-        run: node scripts/extract-durations.mjs results/reporter/results.json .test-durations.json || true
-      - name: ci/cache-test-durations
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
-        if: always()
-        with:
-          path: e2e-tests/playwright/.test-durations.json
-          key: pw-test-durations-${{ inputs.test_type }}-${{ github.run_id }}
       - name: ci/calculate
         id: calculate
         uses: ./.github/actions/calculate-playwright-results
@@ -353,14 +250,61 @@ jobs:
         id: record-end-time
         run: echo "end_time=$(date +%s)" >> $GITHUB_OUTPUT
 
-  # NB: retries for failing specs happen INLINE inside each shard's
-  # `ci/run-tests` step (see e2e-tests/.ci/server.run_playwright.sh).
-  # That reuses the already-running server+docker stack instead of
-  # paying ~4-7 min to provision a fresh one here, and it correctly
-  # handles the chrome + chrome-serial project split. The old
-  # standalone `run-failed-tests` job was removed because it was
-  # invoking `--project=chrome` against specs that only exist in
-  # chrome-serial, causing the retest to run zero tests.
+  run-failed-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs:
+      - run-tests
+      - calculate-results
+    if: >-
+      always() &&
+      needs.calculate-results.result == 'success' &&
+      needs.calculate-results.outputs.failed != '0' &&
+      fromJSON(needs.calculate-results.outputs.failed_specs_count) <= 20
+    defaults:
+      run:
+        working-directory: e2e-tests
+    env:
+      SERVER: "${{ inputs.server }}"
+      MM_LICENSE: "${{ secrets.MM_LICENSE }}"
+      ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
+      TEST: playwright
+      BRANCH: "${{ inputs.branch }}-${{ inputs.test_type }}-retest"
+      BUILD_ID: "${{ inputs.build_id }}-retest"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/playwright/package-lock.json"
+      - name: ci/get-webapp-node-modules
+        working-directory: webapp
+        run: make node_modules
+      - name: ci/run-failed-specs
+        env:
+          SPEC_FILES: ${{ needs.calculate-results.outputs.failed_specs }}
+        run: |
+          echo "Retesting failed specs: $SPEC_FILES"
+          make cloud-init
+          make start-server run-specs
+      - name: ci/cloud-teardown
+        if: always()
+        run: make cloud-teardown
+      - name: ci/upload-retest-results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        if: always()
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: |
+            e2e-tests/playwright/logs/
+            e2e-tests/playwright/results/
+          retention-days: 5
 
   report:
     runs-on: ubuntu-24.04
@@ -368,6 +312,7 @@ jobs:
       - generate-test-variables
       - run-tests
       - calculate-results
+      - run-failed-tests
     if: always() && needs.calculate-results.result == 'success'
     outputs:
       passed: "${{ steps.final-results.outputs.passed }}"
@@ -390,23 +335,28 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/playwright/package-lock.json"
 
-      # Download merged results (uploaded by calculate-results). These blob
-      # reports already include the inline per-shard retry results, so no
-      # separate retest download/merge is needed here.
+      # Download merged results (uploaded by calculate-results)
       - name: ci/download-results
         uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
         with:
           name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-results
           path: e2e-tests/playwright/results/
 
-      # Calculate final results. Tests that failed in the first pass but
-      # passed on inline retry are reported as `flaky`, not `failed`, so
-      # no retest-results-path is needed.
+      # Download retest results (only if retest ran)
+      - name: ci/download-retest-results
+        if: needs.run-failed-tests.result != 'skipped'
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: playwright-${{ inputs.test_type }}-${{ inputs.server_edition }}-retest-results
+          path: e2e-tests/playwright/retest-results/
+
+      # Calculate results (with optional merge of retest results)
       - name: ci/calculate-results
         id: final-results
         uses: ./.github/actions/calculate-playwright-results
         with:
           original-results-path: e2e-tests/playwright/results/reporter/results.json
+          retest-results-path: ${{ needs.run-failed-tests.result != 'skipped' && 'e2e-tests/playwright/retest-results/results/reporter/results.json' || '' }}
 
       - name: ci/aws-configure
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
@@ -444,7 +394,9 @@ jobs:
         id: duration
         env:
           START_TIME: ${{ needs.generate-test-variables.outputs.start_time }}
-          FLAKY_COUNT: ${{ steps.final-results.outputs.flaky }}
+          FIRST_PASS_END_TIME: ${{ needs.calculate-results.outputs.end_time }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
+          RETEST_SPEC_COUNT: ${{ needs.calculate-results.outputs.failed_specs_count }}
           TEST_DURATION: ${{ steps.final-results.outputs.test_duration }}
         run: |
           NOW=$(date +%s)
@@ -453,22 +405,33 @@ jobs:
           SECONDS=$((ELAPSED % 60))
           DURATION="${MINUTES}m ${SECONDS}s"
 
-          # Duration icons: >20m high alert, >15m warning, otherwise clock.
-          # Retries now happen inline per-shard, so there's no separate
-          # first-pass/re-run breakdown — the shard wall-clock already
-          # includes any retries it needed.
-          if [ "$MINUTES" -ge 20 ]; then
-            DURATION_DISPLAY=":rotating_light: ${DURATION} | test: ${TEST_DURATION}"
-          elif [ "$MINUTES" -ge 15 ]; then
-            DURATION_DISPLAY=":warning: ${DURATION} | test: ${TEST_DURATION}"
+          # Compute first-pass and re-run durations
+          FIRST_PASS_ELAPSED=$((FIRST_PASS_END_TIME - START_TIME))
+          FP_MIN=$((FIRST_PASS_ELAPSED / 60))
+          FP_SEC=$((FIRST_PASS_ELAPSED % 60))
+          FIRST_PASS="${FP_MIN}m ${FP_SEC}s"
+
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RERUN_ELAPSED=$((NOW - FIRST_PASS_END_TIME))
+            RR_MIN=$((RERUN_ELAPSED / 60))
+            RR_SEC=$((RERUN_ELAPSED % 60))
+            RUN_BREAKDOWN=" (first-pass: ${FIRST_PASS}, re-run: ${RR_MIN}m ${RR_SEC}s)"
           else
-            DURATION_DISPLAY=":clock3: ${DURATION} | test: ${TEST_DURATION}"
+            RUN_BREAKDOWN=""
           fi
 
-          # Flaky indicator: tests that failed first pass but passed on
-          # inline retry. Signals retries did run.
-          if [ -n "$FLAKY_COUNT" ] && [ "$FLAKY_COUNT" -gt 0 ] 2>/dev/null; then
-            RETEST_DISPLAY=":repeat: ${FLAKY_COUNT} flaky"
+          # Duration icons: >20m high alert, >15m warning, otherwise clock
+          if [ "$MINUTES" -ge 20 ]; then
+            DURATION_DISPLAY=":rotating_light: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          elif [ "$MINUTES" -ge 15 ]; then
+            DURATION_DISPLAY=":warning: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          else
+            DURATION_DISPLAY=":clock3: ${DURATION}${RUN_BREAKDOWN} | test: ${TEST_DURATION}"
+          fi
+
+          # Retest indicator with spec count
+          if [ "$RETEST_RESULT" != "skipped" ]; then
+            RETEST_DISPLAY=":repeat: re-run ${RETEST_SPEC_COUNT} spec(s)"
           else
             RETEST_DISPLAY=""
           fi
@@ -542,6 +505,7 @@ jobs:
           COMMIT_STATUS_MESSAGE: ${{ steps.final-results.outputs.commit_status_message }}
           FAILED_TESTS: ${{ steps.final-results.outputs.failed_tests }}
           DURATION_DISPLAY: ${{ steps.duration.outputs.duration_display }}
+          RETEST_RESULT: ${{ needs.run-failed-tests.result }}
         run: |
           {
             echo "## E2E Test Results - Playwright ${TEST_TYPE}"
@@ -573,9 +537,10 @@ jobs:
             echo "| commit_status_message | ${COMMIT_STATUS_MESSAGE} |"
             echo "| failed_specs | ${FAILED_SPECS:-none} |"
             echo "| duration | ${DURATION_DISPLAY} |"
-            # Flaky > 0 means some tests needed the inline retry to pass.
-            if [ -n "$FLAKY" ] && [ "$FLAKY" -gt 0 ] 2>/dev/null; then
-              echo "| retried (flaky) | ${FLAKY} |"
+            if [ "$RETEST_RESULT" != "skipped" ]; then
+              echo "| retested | Yes |"
+            else
+              echo "| retested | No |"
             fi
 
             echo ""

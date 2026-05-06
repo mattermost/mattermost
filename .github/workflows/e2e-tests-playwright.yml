@@ -170,8 +170,8 @@ jobs:
     uses: ./.github/workflows/e2e-tests-playwright-template.yml
     with:
       test_type: full
-      test_filter: "--grep-invert @visual"
-      workers: 8
+      test_filter: '--grep-invert "@visual"'
+      workers: 4
       enabled_docker_services: "postgres inbucket minio openldap elasticsearch keycloak"
       commit_sha: ${{ inputs.commit_sha }}
       branch: ${{ needs.generate-build-variables.outputs.branch }}
