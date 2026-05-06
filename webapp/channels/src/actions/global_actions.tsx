@@ -30,6 +30,7 @@ import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {clearOptimisticMutations} from 'actions/pages';
 import {handleNewPost} from 'actions/post_actions';
+import {clearOptimisticMutations} from 'actions/pages';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
