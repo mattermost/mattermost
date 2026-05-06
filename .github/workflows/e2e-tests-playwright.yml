@@ -161,9 +161,9 @@ jobs:
           echo "Posted success for ${CONTEXT_NAME}"
 
   # ── Routing fork ─────────────────────────────────────────────────────
-  # vars.E2E_USE_TEST_IO_DISPATCH selects v1 (Playwright matrix + S3) vs
-  # v2 (test system io). vars.E2E_USE_STAGING_TEST_IO_URL controls whether
-  # v2 hits the staging or production deployment (default: staging).
+  # vars.E2E_USE_TEST_IO_DISPATCH selects between v1 (legacy) and v2.
+  # vars.E2E_USE_STAGING_TEST_IO_URL toggles v2's staging vs production
+  # endpoint (default: staging).
 
   playwright-full-v1:
     needs:

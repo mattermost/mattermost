@@ -1,10 +1,9 @@
 ---
 name: E2E Tests - Playwright Template (v2 - test system io dispatch)
 
-# Drop-in replacement for e2e-tests-playwright-template.yml
-#
-# Authenticates to test system io via GitHub Actions OIDC.
-# The calling job MUST grant `id-token: write`
+# Delegates Playwright spec dispatch + reporting to test system io.
+# Authenticates via GitHub Actions OIDC; calling job MUST grant
+# `id-token: write`.
 
 on:
   workflow_call:
@@ -97,6 +96,7 @@ permissions:
   contents: read
   statuses: write
   id-token: write
+  pull-requests: write
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
@@ -124,6 +124,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     outputs:
       composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
       workers-matrix: ${{ steps.matrix.outputs.workers }}
@@ -137,20 +138,24 @@ jobs:
       - name: ci/composite-identity
         id: composite-identity
         env:
+          CONTEXT_NAME: ${{ inputs.context_name }}
           MM_SHA: ${{ inputs.commit_sha }}
           MM_BRANCH: ${{ inputs.branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # The `name` field passed to test system io is the same string
-          # GitHub uses as the commit-status context, so the dashboard's
-          # run identity and the PR's check identity always refer to the
-          # same thing.
+          # Derive the test-system-io run name from the GitHub commit-status
+          # context: drop the `e2e-test/` prefix (the framework name already
+          # implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The commit-status context itself
+          # stays unchanged elsewhere — branch protection rules depend on it.
+          NAME="${CONTEXT_NAME#e2e-test/}"
+          NAME="${NAME//\//-}"
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
               --arg repo "${{ github.repository }}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${{ inputs.context_name }}" \
+              --arg name "${NAME}" \
               --arg attempt "${GITHUB_RUN_ATTEMPT}" \
               --arg branch "${MM_BRANCH}" \
               --arg pr "${PR_NUMBER}" \
@@ -160,7 +165,7 @@ jobs:
               --arg repo "${{ github.repository }}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${{ inputs.context_name }}" \
+              --arg name "${NAME}" \
               --arg attempt "${GITHUB_RUN_ATTEMPT}" \
               --arg branch "${MM_BRANCH}" \
               '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch}')
@@ -181,6 +186,10 @@ jobs:
           total-reports-expected: ${{ inputs.workers }}
           retest-on-fail: ${{ inputs.retest_on_fail }}
           playwright-project: ${{ inputs.playwright_project }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          test-type: full
+          server-edition: ${{ inputs.server_edition }}
 
   workers:
     name: dispatch-run-${{ matrix.worker_index }}
@@ -224,9 +233,8 @@ jobs:
       - name: ci/start-server
         working-directory: e2e-tests
         run: make start-server
-      # Install packages + build so per-spec dispatch can use `npx playwright test`.
-      # Run the `setup` project once so per-spec runs can pass --no-deps
-      # and skip plugin-load + server-deployment checks.
+      # Build once + run the `setup` project so per-spec dispatches can
+      # pass --no-deps and skip plugin-load + server-deployment checks.
       - name: ci/prepare-playwright
         working-directory: e2e-tests/playwright
         run: |
@@ -268,6 +276,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -289,6 +298,9 @@ jobs:
           server-image: ${{ env.SERVER_IMAGE }}
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
+          server-edition: ${{ inputs.server_edition }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:

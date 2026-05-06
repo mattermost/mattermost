@@ -1,11 +1,9 @@
 ---
 name: E2E Tests - Cypress Template (v2 - test system io dispatch)
 
-# Drop-in replacement for e2e-tests-cypress-template.yml that delegates
-# spec dispatch + reporting to test system io.
-#
-# Authenticates to test system io via GitHub Actions OIDC. The calling
-# job MUST grant `id-token: write`.
+# Delegates Cypress spec dispatch + reporting to test system io.
+# Authenticates via GitHub Actions OIDC; calling job MUST grant
+# `id-token: write`.
 
 on:
   workflow_call:
@@ -132,6 +130,7 @@ permissions:
   contents: read
   statuses: write
   id-token: write
+  pull-requests: write
 
 env:
   SERVER_IMAGE: "${{ inputs.server_image_repo }}/${{ inputs.server_edition == 'fips' && 'mattermost-enterprise-fips-edition' || inputs.server_edition == 'team' && 'mattermost-team-edition' || 'mattermost-enterprise-edition' }}:${{ inputs.server_image_tag }}"
@@ -159,6 +158,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     outputs:
       composite-identity-json: ${{ steps.composite-identity.outputs.composite-identity-json }}
       workers-matrix: ${{ steps.matrix.outputs.workers }}
@@ -172,22 +172,25 @@ jobs:
       - name: ci/composite-identity
         id: composite-identity
         env:
+          CONTEXT_NAME: ${{ inputs.context_name }}
           MM_SHA: ${{ inputs.commit_sha }}
           MM_BRANCH: ${{ inputs.branch }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          # The `name` field passed to test system io is the same string
-          # GitHub uses as the commit-status context, so the dashboard's
-          # run identity and the PR's check identity always refer to the
-          # same thing.
-          # gh_pr_number is optional in the composite-identity payload; only
-          # include it when we actually have one.
+          # Derive the test-system-io run name from the GitHub commit-status
+          # context: drop the `e2e-test/` prefix (the framework name already
+          # implies E2E in the dashboard) and swap remaining `/` for `-` so
+          # the dashboard URL is path-safe. The commit-status context itself
+          # stays unchanged elsewhere — branch protection rules depend on it.
+          NAME="${CONTEXT_NAME#e2e-test/}"
+          NAME="${NAME//\//-}"
+          # gh_pr_number is optional; include it only when present.
           if [ -n "$PR_NUMBER" ]; then
             COMPOSITE_IDENTITY=$(jq -nc \
               --arg repo "${{ github.repository }}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${{ inputs.context_name }}" \
+              --arg name "${NAME}" \
               --arg attempt "${GITHUB_RUN_ATTEMPT}" \
               --arg branch "${MM_BRANCH}" \
               --arg pr "${PR_NUMBER}" \
@@ -197,7 +200,7 @@ jobs:
               --arg repo "${{ github.repository }}" \
               --arg sha "${MM_SHA}" \
               --arg run_id "${GITHUB_RUN_ID}" \
-              --arg name "${{ inputs.context_name }}" \
+              --arg name "${NAME}" \
               --arg attempt "${GITHUB_RUN_ATTEMPT}" \
               --arg branch "${MM_BRANCH}" \
               '{repository:$repo, commit_sha:$sha, gh_run_id:$run_id, name:$name, gh_run_attempt:$attempt, branch:$branch}')
@@ -223,6 +226,10 @@ jobs:
           cypress-skip-on: ${{ inputs.cypress_skip_on }}
           cypress-sort-first: ${{ inputs.cypress_sort_first }}
           cypress-sort-last: ${{ inputs.cypress_sort_last }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          test-type: ${{ inputs.test_type }}
+          server-edition: ${{ inputs.server_edition }}
 
   workers:
     name: dispatch-run-${{ matrix.worker_index }}
@@ -242,9 +249,8 @@ jobs:
       MM_LICENSE: "${{ secrets.MM_LICENSE }}"
       ENABLED_DOCKER_SERVICES: "${{ inputs.enabled_docker_services }}"
       TEST: cypress
-      # Stock cypress invocations set TZ=Etc/UTC via cross-env. The dispatch
-      # adapter spawns `npx cypress run` directly without cross-env, so set
-      # the timezone here — several specs assume UTC for date rendering.
+      # The dispatch adapter invokes `npx cypress run` directly (no
+      # cross-env), so pin TZ here — several specs assume UTC.
       TZ: Etc/UTC
       BRANCH: "${{ inputs.branch }}"
       BUILD_ID: "${{ inputs.build_id }}"
@@ -273,11 +279,9 @@ jobs:
       - name: ci/start-server
         working-directory: e2e-tests
         run: make start-server
-      # The cypress container's bind mount on `e2e-tests/cypress/` means
-      # `server.prepare.sh` already ran `npm i` against the same node_modules
-      # we'll use here. Re-run `npm ci` in the host context to replace any
-      # platform-specific native binaries with host-built ones, since the
-      # dispatch adapter spawns `npx cypress run` from the host.
+      # `npm ci` in the host context replaces the container-built native
+      # binaries with host-built ones, since the dispatch adapter spawns
+      # `npx cypress run` on the host.
       - name: ci/prepare-cypress
         working-directory: e2e-tests/cypress
         run: npm ci
@@ -315,6 +319,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
     outputs:
       commit_status_description: ${{ steps.summary.outputs.commit_status_description }}
       webhook_payload: ${{ steps.summary.outputs.webhook_payload }}
@@ -336,6 +341,9 @@ jobs:
           server-image: ${{ env.SERVER_IMAGE }}
           pr-number: ${{ inputs.pr_number }}
           ref-branch: ${{ inputs.ref_branch }}
+          server-edition: ${{ inputs.server_edition }}
+          post-pr-comment: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: ci/publish-webhook
         if: inputs.enable_reporting && env.REPORT_WEBHOOK_URL != ''
         env:
