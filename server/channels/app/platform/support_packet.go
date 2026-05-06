@@ -386,7 +386,9 @@ func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
+	// Drain the body so the underlying TCP connection can be reused.
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))
 	return nil
 }
 
