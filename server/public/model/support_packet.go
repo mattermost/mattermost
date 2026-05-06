@@ -104,6 +104,22 @@ type SupportPacketDiagnostics struct {
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 		Error         string   `yaml:"error,omitempty"`
 	} `yaml:"elastic"`
+
+	OAuthProviders OAuthProviders `yaml:"oauth_providers,omitempty"`
+}
+
+// OAuthProviderStatus reports the connectivity status of a single OAuth2/OpenID Connect provider.
+type OAuthProviderStatus struct {
+	Status string `yaml:"status,omitempty"` // ok / fail / disabled
+	Error  string `yaml:"error,omitempty"`
+}
+
+// OAuthProviders aggregates the connectivity status for the configured OAuth2/OpenID Connect providers.
+type OAuthProviders struct {
+	GitLab    OAuthProviderStatus `yaml:"gitlab,omitempty"`
+	Google    OAuthProviderStatus `yaml:"google,omitempty"`
+	Office365 OAuthProviderStatus `yaml:"office365,omitempty"`
+	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
 }
 
 type SupportPacketStats struct {

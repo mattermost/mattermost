@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -286,6 +287,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.Notifications.Email.Status = model.StatusDisabled
 	}
 
+	/* OAuth2 / OpenID Connect Providers */
+	d.OAuthProviders.GitLab = probeOAuthProvider(rctx.Context(), &ps.Config().GitLabSettings)
+	d.OAuthProviders.Google = probeOAuthProvider(rctx.Context(), &ps.Config().GoogleSettings)
+	d.OAuthProviders.Office365 = probeOAuthProvider(rctx.Context(), ps.Config().Office365Settings.SSOSettings())
+	d.OAuthProviders.OpenID = probeOAuthProvider(rctx.Context(), &ps.Config().OpenIdSettings)
+
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
@@ -309,6 +316,78 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		Body:     b,
 	}
 	return fileData, rErr.ErrorOrNil()
+}
+
+// probeOAuthProvider checks connectivity for an OAuth2/OpenID Connect provider.
+// If the provider has a DiscoveryEndpoint configured, it issues an HTTP GET to
+// that URL and verifies the response is a valid OIDC discovery document.
+// Otherwise it probes the TokenEndpoint host: any HTTP response (including
+// 4xx/5xx) is treated as reachable, since token endpoints typically reject GETs.
+func probeOAuthProvider(ctx context.Context, sso *model.SSOSettings) model.OAuthProviderStatus {
+	if !model.SafeDereference(sso.Enable) {
+		return model.OAuthProviderStatus{Status: model.StatusDisabled}
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	if discoveryEndpoint := model.SafeDereference(sso.DiscoveryEndpoint); discoveryEndpoint != "" {
+		if err := probeOIDCDiscovery(ctx, discoveryEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	if tokenEndpoint := model.SafeDereference(sso.TokenEndpoint); tokenEndpoint != "" {
+		if err := probeOAuthTokenEndpoint(ctx, tokenEndpoint); err != nil {
+			return model.OAuthProviderStatus{Status: model.StatusFail, Error: err.Error()}
+		}
+		return model.OAuthProviderStatus{Status: model.StatusOk}
+	}
+
+	return model.OAuthProviderStatus{Status: model.StatusFail, Error: "no discovery or token endpoint configured"}
+}
+
+func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("discovery endpoint returned unexpected status %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return errors.Wrap(err, "failed to read discovery response")
+	}
+	var doc struct {
+		Issuer string `json:"issuer"`
+	}
+	if err := json.Unmarshal(body, &doc); err != nil {
+		return errors.Wrap(err, "discovery endpoint did not return valid JSON")
+	}
+	if doc.Issuer == "" {
+		return fmt.Errorf("discovery endpoint response missing required 'issuer' field")
+	}
+	return nil
+}
+
+func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tokenURL, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	resp.Body.Close()
+	return nil
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
