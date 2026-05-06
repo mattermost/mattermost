@@ -41,7 +41,7 @@ let testUserAttributes: CustomProfileAttribute[];
 let team: Team;
 let adminUser: UserProfile;
 let testUser: UserProfile;
-let attributeFieldsMap: Record<string, UserPropertyField>;
+let attributeFieldsMap: Record<string, UserPropertyField> = {};
 let adminClient: Client4;
 let systemConsolePage: SystemConsolePage;
 
@@ -245,6 +245,11 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test.afterEach(async ({pw}) => {
+        // When beforeEach was skipped (e.g. test.skip()), attributeFieldsMap stays
+        // empty and there is nothing server-side to clean up.
+        if (Object.keys(attributeFieldsMap).length === 0) {
+            return;
+        }
         // Clean up custom user attribute fields
         const {adminClient: cleanupClient} = await pw.getAdminClient();
         await deleteCustomProfileAttributes(cleanupClient, attributeFieldsMap);
