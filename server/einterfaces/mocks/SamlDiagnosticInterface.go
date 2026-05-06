@@ -16,31 +16,21 @@ type SamlDiagnosticInterface struct {
 }
 
 // RunSupportPacketTest provides a mock function with given fields: rctx, settings
-func (_m *SamlDiagnosticInterface) RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) (string, string) {
+func (_m *SamlDiagnosticInterface) RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) error {
 	ret := _m.Called(rctx, settings)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RunSupportPacketTest")
 	}
 
-	var r0 string
-	var r1 string
-	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) (string, string)); ok {
-		return rf(rctx, settings)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) string); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.SamlSettings) error); ok {
 		r0 = rf(rctx, settings)
 	} else {
-		r0 = ret.Get(0).(string)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, model.SamlSettings) string); ok {
-		r1 = rf(rctx, settings)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // NewSamlDiagnosticInterface creates a new instance of SamlDiagnosticInterface. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.

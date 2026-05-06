@@ -420,7 +420,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(model.StatusOk, "")
+		).Return(nil)
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
 		th.Service.samlDiagnostic = diagMock
@@ -451,7 +451,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(model.StatusFail, "SAML metadata URL is not configured")
+		).Return(errors.New("SAML metadata URL is not configured"))
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
 		th.Service.samlDiagnostic = diagMock
@@ -481,7 +481,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(model.StatusFail, "SAML metadata URL returned unexpected status 503")
+		).Return(errors.New("SAML metadata URL returned unexpected status 503"))
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
 		th.Service.samlDiagnostic = diagMock
@@ -511,7 +511,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 			"RunSupportPacketTest",
 			mock.AnythingOfType("*request.Context"),
 			mock.AnythingOfType("model.SamlSettings"),
-		).Return(model.StatusFail, "enterprise check failed")
+		).Return(errors.New("enterprise check failed"))
 		originalSAMLDiag := th.Service.samlDiagnostic
 		t.Cleanup(func() {
 			th.Service.samlDiagnostic = originalSAMLDiag

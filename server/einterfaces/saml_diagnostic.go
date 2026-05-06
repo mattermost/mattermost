@@ -9,5 +9,5 @@ import (
 )
 
 type SamlDiagnosticInterface interface {
-	RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) (status string, errorMessage string)
+	RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) error
 }
