@@ -33,6 +33,7 @@ export type StateProps = {
     isFlaggedPosts: boolean;
     isPinnedPosts: boolean;
     isChannelFiles: boolean;
+    isSearch: boolean;
     isMobileView: boolean;
     crossTeamSearchEnabled: boolean;
 }

@@ -35,6 +35,7 @@ export type PostType = 'system_add_remove' |
 'custom_spillage_report' |
 'system_autotranslation' |
 'burn_on_read' |
+'system_shared_chan_state' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';

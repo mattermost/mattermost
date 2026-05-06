@@ -223,7 +223,6 @@ type ChannelStore interface {
 	GetPrivateChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (model.ChannelList, error)
-	GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error)
 	GetTeamChannels(teamID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
@@ -421,6 +420,7 @@ type PostStore interface {
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
+	GetPostRemindersForPost(postId string) ([]*model.PostReminder, error)
 	DeleteAllPostRemindersForPost(postId string) error
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
