@@ -577,12 +577,12 @@ func (_m *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, erro
 	return r0, r1
 }
 
-// GetSupportPacketDatabaseDiagnostics provides a mock function with given fields: ctx
-func (_m *Store) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+// GetDiagnostics provides a mock function with given fields: ctx
+func (_m *Store) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
 	ret := _m.Called(ctx)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetSupportPacketDatabaseDiagnostics")
+		panic("no return value specified for GetDiagnostics")
 	}
 
 	var r0 *store.SupportPacketDatabaseDiagnostics

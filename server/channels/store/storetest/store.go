@@ -196,7 +196,7 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	}, nil
 }
 
-func (s *Store) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+func (s *Store) GetDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
 	return &store.SupportPacketDatabaseDiagnostics{}, nil
 }
 

@@ -317,12 +317,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 }
 
 func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostics *model.SupportPacketDiagnostics) error {
-	storeDiagnostics, err := ps.Store.GetSupportPacketDatabaseDiagnostics(ctx)
-	if err != nil {
-		return errors.Wrap(err, "error while collecting support packet database diagnostics")
-	}
-
+	storeDiagnostics, err := ps.Store.GetDiagnostics(ctx)
 	if storeDiagnostics == nil {
+		if err != nil {
+			return errors.Wrap(err, "error while collecting support packet database diagnostics")
+		}
 		return nil
 	}
 
@@ -348,6 +347,10 @@ func (ps *PlatformService) applyStoreDiagnostics(ctx context.Context, diagnostic
 	diagnostics.Database.WaitingForLockCount = storeDiagnostics.WaitingForLockCount
 	diagnostics.Database.PostsDeadTuples = storeDiagnostics.PostsDeadTuples
 	diagnostics.Database.PostsLastAutovacuum = storeDiagnostics.PostsLastAutovacuum
+
+	if err != nil {
+		return errors.Wrap(err, "error while collecting support packet database diagnostics")
+	}
 
 	return nil
 }

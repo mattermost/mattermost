@@ -81,7 +81,7 @@ type Store interface {
 	TotalSearchDbConnections() int
 	MasterDBStats() sql.DBStats
 	ReplicaDBStats() sql.DBStats
-	GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*SupportPacketDatabaseDiagnostics, error)
+	GetDiagnostics(ctx context.Context) (*SupportPacketDatabaseDiagnostics, error)
 	ReplicaLagTime() error
 	ReplicaLagAbs() error
 	CheckIntegrity() <-chan model.IntegrityCheckResult

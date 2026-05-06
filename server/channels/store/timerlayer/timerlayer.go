@@ -14486,8 +14486,8 @@ func (s *TimerLayer) ReplicaDBStats() sql.DBStats {
 	return s.Store.ReplicaDBStats()
 }
 
-func (s *TimerLayer) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
-	return s.Store.GetSupportPacketDatabaseDiagnostics(ctx)
+func (s *TimerLayer) GetDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+	return s.Store.GetDiagnostics(ctx)
 }
 
 func (s *TimerLayer) UnlockFromMaster() {
