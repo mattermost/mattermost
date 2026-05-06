@@ -145,7 +145,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	for i := 1; i <= 3; i++ {
 		field := &model.PropertyField{
 			GroupID:    cpaID,
-			Name:       fmt.Sprintf("Field %d", i),
+			Name:       fmt.Sprintf("field_%d", i),
 			Type:       model.PropertyFieldTypeText,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
