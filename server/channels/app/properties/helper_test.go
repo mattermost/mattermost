@@ -65,6 +65,19 @@ func RequestContextWithCallerID(rctx request.CTX, callerID string) request.CTX {
 	return rctx.WithContext(ctx)
 }
 
+// setPluginCheckerForTests sets the plugin checker on the AccessControlHook for testing.
+func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	for _, hook := range ps.hooks {
+		if ach, ok := hook.(*AccessControlHook); ok {
+			ach.setPluginCheckerForTests(pluginChecker)
+		}
+	}
+}
+
+func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker) {
+	h.pluginChecker = pluginChecker
+}
+
 func (th *TestHelper) RegisterCPAPropertyGroup(tb testing.TB) *TestHelper {
 	// Register the CPA group so requiresAccessControl can always look it up
 	group, groupErr := th.service.RegisterPropertyGroup(&model.PropertyGroup{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2})

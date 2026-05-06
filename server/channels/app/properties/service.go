@@ -59,12 +59,3 @@ func (ps *PropertyService) extractCallerID(rctx request.CTX) string {
 	}
 	return ps.callerIDExtractor(rctx)
 }
-
-// setPluginCheckerForTests sets the plugin checker on the AccessControlHook for testing.
-func (ps *PropertyService) setPluginCheckerForTests(pluginChecker PluginChecker) {
-	for _, hook := range ps.hooks {
-		if ach, ok := hook.(*AccessControlHook); ok {
-			ach.setPluginCheckerForTests(pluginChecker)
-		}
-	}
-}

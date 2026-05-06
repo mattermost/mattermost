@@ -86,10 +86,6 @@ func (h *AccessControlHook) isGroupManaged(groupID string) bool {
 	return ok
 }
 
-func (h *AccessControlHook) setPluginCheckerForTests(pluginChecker PluginChecker) {
-	h.pluginChecker = pluginChecker
-}
-
 // Field Pre-Hooks
 
 // PreCreatePropertyField enforces access control on field creation.
