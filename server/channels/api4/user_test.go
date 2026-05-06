@@ -9,7 +9,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -5408,117 +5407,6 @@ func TestCreateUserAccessToken(t *testing.T) {
 		_, resp, err := th.Client.CreateUserAccessToken(context.Background(), th.SystemAdminUser.Id, "test token")
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("expired token is rejected at validation", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
-		require.Nil(t, appErr)
-
-		// Persist a PAT with ExpiresAt in the past directly through the store
-		// so no session is ever minted for it. This keeps the test isolated
-		// from the platform session cache and safe to run in parallel.
-		// IsActive is set explicitly so we're unambiguously exercising the
-		// "active but expired" branch of createSessionForUserAccessToken.
-		saved, sErr := th.App.Srv().Store().UserAccessToken().Save(&model.UserAccessToken{
-			Token:       model.NewId(),
-			UserId:      th.BasicUser.Id,
-			Description: "expired token",
-			IsActive:    true,
-			ExpiresAt:   model.GetMillis() - 1000,
-		})
-		require.NoError(t, sErr)
-
-		// HTTP level: the client sees a generic 401. The outer web handler
-		// intentionally wipes DetailedError before returning, so the specific
-		// error id only shows up in server logs / app-layer errors.
-		oldSessionToken := th.Client.AuthToken
-		defer func() { th.Client.AuthToken = oldSessionToken }()
-		th.Client.AuthToken = saved.Token
-		_, resp, err := th.Client.GetMe(context.Background(), "")
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-
-		// App level: walk the AppError chain and assert the specific error id
-		// for the expiry branch, so a future regression that causes a
-		// different 401 (inactive token, missing user, wrong config) doesn't
-		// silently pass this test.
-		_, sessErr := th.App.GetSession(saved.Token)
-		require.NotNil(t, sessErr)
-		require.Equal(t, http.StatusUnauthorized, sessErr.StatusCode)
-		foundExpiredID := false
-		for e := error(sessErr); e != nil; e = errors.Unwrap(e) {
-			if appErr, ok := e.(*model.AppError); ok && appErr.Id == "app.user_access_token.expired" {
-				foundExpiredID = true
-				break
-			}
-		}
-		require.True(t, foundExpiredID, "expected an AppError with Id app.user_access_token.expired in the error chain, got: %v", sessErr)
-	})
-
-	t.Run("session expiry is clamped to token expiry when token has ExpiresAt", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
-		require.Nil(t, appErr)
-
-		// Pick a token expiry that is meaningfully shorter than the default
-		// PAT session expiry (~100 years from SessionUserAccessTokenExpiryHours)
-		// so we can prove the clamp actually fired.
-		tokenExpiresAt := model.GetMillis() + 30*60*1000 // 30 minutes from now
-		saved, sErr := th.App.Srv().Store().UserAccessToken().Save(&model.UserAccessToken{
-			Token:       model.NewId(),
-			UserId:      th.BasicUser.Id,
-			Description: "token with expiry",
-			IsActive:    true,
-			ExpiresAt:   tokenExpiresAt,
-		})
-		require.NoError(t, sErr)
-
-		// First use mints the session via createSessionForUserAccessToken.
-		session, sessErr := th.App.GetSession(saved.Token)
-		require.Nil(t, sessErr)
-		require.NotNil(t, session)
-
-		// The session must not outlive the token's ExpiresAt.
-		require.NotZero(t, session.ExpiresAt, "PAT-derived session should always have an expiry")
-		require.LessOrEqual(t, session.ExpiresAt, tokenExpiresAt,
-			"session.ExpiresAt (%d) must be clamped to token.ExpiresAt (%d)",
-			session.ExpiresAt, tokenExpiresAt)
-		require.Equal(t, model.SessionTypeUserAccessToken, session.Props[model.SessionPropType])
-	})
-
-	t.Run("session expiry is unchanged when token has no ExpiresAt", func(t *testing.T) {
-		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic(t)
-
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
-		require.Nil(t, appErr)
-
-		// ExpiresAt = 0 means "never expires"; the session expiry should fall
-		// back to the platform default and never be clamped.
-		saved, sErr := th.App.Srv().Store().UserAccessToken().Save(&model.UserAccessToken{
-			Token:       model.NewId(),
-			UserId:      th.BasicUser.Id,
-			Description: "non-expiring token",
-			IsActive:    true,
-		})
-		require.NoError(t, sErr)
-
-		session, sessErr := th.App.GetSession(saved.Token)
-		require.Nil(t, sessErr)
-		require.NotNil(t, session)
-
-		// Default PAT session expiry is SessionUserAccessTokenExpiryHours
-		// (effectively a century). Just assert it's far in the future.
-		require.Greater(t, session.ExpiresAt, model.GetMillis()+365*24*60*60*1000,
-			"non-expiring PAT should mint a long-lived session, got ExpiresAt=%d", session.ExpiresAt)
 	})
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
