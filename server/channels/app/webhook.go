@@ -886,10 +886,10 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 		if rootPost.RootId != "" {
-			threadRootID = rootPost.RootId
-		} else {
-			threadRootID = rootPost.Id
+			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
+
+		threadRootID = rootPost.Id
 	}
 
 	overrideUsername := hook.Username
