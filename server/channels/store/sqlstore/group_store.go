@@ -798,6 +798,7 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupSyncable.DeleteAt = groupTeam.DeleteAt
 		groupSyncable.UpdateAt = groupTeam.UpdateAt
 		groupSyncable.Type = syncableType
+		groupSyncable.SchemeAdmin = groupTeam.SchemeAdmin
 	case model.GroupSyncableTypeChannel:
 		groupChannel := result.(*groupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
@@ -807,6 +808,7 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 		groupSyncable.DeleteAt = groupChannel.DeleteAt
 		groupSyncable.UpdateAt = groupChannel.UpdateAt
 		groupSyncable.Type = syncableType
+		groupSyncable.SchemeAdmin = groupChannel.SchemeAdmin
 	default:
 		return nil, fmt.Errorf("unable to convert syncableType: %s", syncableType.String())
 	}
@@ -1836,7 +1838,7 @@ func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID stri
 func (s *SqlGroupStore) PermittedSyncableAdmins(syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	builder := s.getQueryBuilder().Select("UserId").
 		From(fmt.Sprintf("Group%ss", syncableType)).
-		Join(fmt.Sprintf("GroupMembers ON GroupMembers.GroupId = Group%ss.GroupId AND Group%[1]ss.SchemeAdmin = TRUE AND GroupMembers.DeleteAt = 0", syncableType.String())).Where(fmt.Sprintf("Group%[1]ss.%[1]sId = ?", syncableType.String()), syncableID)
+		Join(fmt.Sprintf("GroupMembers ON GroupMembers.GroupId = Group%ss.GroupId AND Group%[1]ss.SchemeAdmin = TRUE AND Group%[1]ss.DeleteAt = 0 AND GroupMembers.DeleteAt = 0", syncableType.String())).Where(fmt.Sprintf("Group%[1]ss.%[1]sId = ?", syncableType.String()), syncableID)
 
 	var userIDs []string
 	if err := s.GetMaster().SelectBuilder(&userIDs, builder); err != nil {
