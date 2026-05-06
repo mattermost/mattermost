@@ -14,7 +14,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,9 +36,7 @@ type SqlXExecutor interface {
 	NamedExec(query string, arg any) (sql.Result, error)
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	NamedQuery(query string, arg any) (*sqlx.Rows, error)
-	QueryRowX(query string, args ...any) *sqlx.Row
-	QueryX(query string, args ...any) (*sqlx.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
 	Select(dest any, query string, args ...any) error
 }
 
@@ -112,6 +109,8 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, rctx, ss) })
 	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, rctx, ss) })
 	t.Run("ChannelDeleteMemberStore", func(t *testing.T) { testChannelDeleteMemberStore(t, rctx, ss) })
+	t.Run("GetAllChannelMembersForUser", func(t *testing.T) { testChannelStoreGetAllChannelMembersForUser(t, rctx, ss) })
+	t.Run("GetChannelsMemberCount", func(t *testing.T) { testChannelStoreGetChannelsMemberCount(t, rctx, ss) })
 	t.Run("GetChannels", func(t *testing.T) { testChannelStoreGetChannels(t, rctx, ss) })
 	t.Run("GetChannelsByUser", func(t *testing.T) { testChannelStoreGetChannelsByUser(t, rctx, ss) })
 	t.Run("GetAllChannels", func(t *testing.T) { testChannelStoreGetAllChannels(t, rctx, ss, s) })
@@ -3723,6 +3722,125 @@ func testChannelDeleteMemberStore(t *testing.T, rctx request.CTX, ss store.Store
 	count, nErr = ss.Channel().GetMemberCount(o1.ChannelId, false)
 	require.NoError(t, nErr)
 	require.EqualValues(t, 0, count, "should have removed all members")
+}
+
+func testChannelStoreGetAllChannelMembersForUser(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	channel, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, nErr)
+
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userId,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		SchemeUser:  true,
+	})
+	require.NoError(t, nErr)
+
+	t.Run("map value contains channel_user role for plain member", func(t *testing.T) {
+		result, err := ss.Channel().GetAllChannelMembersForUser(rctx, userId, false, false)
+		require.NoError(t, err)
+		roles, ok := result[channel.Id]
+		require.True(t, ok, "channel should be present in result")
+		assert.Contains(t, roles, model.ChannelUserRoleId)
+	})
+
+	t.Run("channel scheme default user role appears in map value", func(t *testing.T) {
+		scheme, nErr := ss.Scheme().Save(&model.Scheme{
+			Name:        model.NewId(),
+			DisplayName: model.NewId(),
+			Scope:       model.SchemeScopeChannel,
+		})
+		require.NoError(t, nErr)
+		defer func() { _, err := ss.Scheme().Delete(scheme.Id); require.NoError(t, err) }()
+
+		schemChannel, nErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      model.NewId(),
+			DisplayName: "Schemed Channel",
+			Name:        NewTestID(),
+			Type:        model.ChannelTypeOpen,
+			SchemeId:    &scheme.Id,
+		}, -1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   schemChannel.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+			SchemeUser:  true,
+		})
+		require.NoError(t, nErr)
+
+		result, err := ss.Channel().GetAllChannelMembersForUser(rctx, userId, false, false)
+		require.NoError(t, err)
+		roles, ok := result[schemChannel.Id]
+		require.True(t, ok, "schemed channel should be present in result")
+		assert.Contains(t, roles, scheme.DefaultChannelUserRole)
+		assert.NotContains(t, roles, model.ChannelUserRoleId)
+	})
+}
+
+func testChannelStoreGetChannelsMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+
+	ch1, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Channel 1",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, nErr)
+
+	ch2, nErr := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Channel 2",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, nErr)
+
+	for i := range 3 {
+		u, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: model.NewId(),
+		})
+		require.NoError(t, err)
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   ch1.Id,
+			UserId:      u.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+		if i < 2 {
+			_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+				ChannelId:   ch2.Id,
+				UserId:      u.Id,
+				NotifyProps: model.GetDefaultChannelNotifyProps(),
+			})
+			require.NoError(t, nErr)
+		}
+	}
+
+	t.Run("counts per channel are correct", func(t *testing.T) {
+		counts, err := ss.Channel().GetChannelsMemberCount([]string{ch1.Id, ch2.Id})
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), counts[ch1.Id])
+		assert.Equal(t, int64(2), counts[ch2.Id])
+	})
+
+	t.Run("unknown channel ID defaults to zero", func(t *testing.T) {
+		unknown := model.NewId()
+		counts, err := ss.Channel().GetChannelsMemberCount([]string{ch1.Id, unknown})
+		require.NoError(t, err)
+		assert.Equal(t, int64(3), counts[ch1.Id])
+		assert.Equal(t, int64(0), counts[unknown])
+	})
 }
 
 func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store) {
