@@ -41,7 +41,7 @@
   "peerDependencies": {
     "@babel/runtime-corejs3": "^7.17.8",
     "@mattermost/compass-icons": "0.1.53",
-    "@mattermost/shared": "11.7.0",
+    "@mattermost/shared": "11.8.0",
     "classnames": "^2.3.1",
     "lodash": "^4.17.21",
     "react-intl": "*",
