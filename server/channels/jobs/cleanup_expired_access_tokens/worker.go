@@ -66,7 +66,6 @@ func cleanupExpired(
 	for range maxIter {
 		expired, err := store.GetExpiredBefore(cutoff, limit)
 		if err != nil {
-			logger.Error("Failed to read expired personal access tokens", mlog.Err(err))
 			return err
 		}
 		if len(expired) == 0 {
@@ -80,7 +79,6 @@ func cleanupExpired(
 
 		deleted, err := store.DeleteByIds(ids)
 		if err != nil {
-			logger.Error("Failed to delete expired personal access tokens", mlog.Err(err))
 			return err
 		}
 		totalDeleted += deleted
