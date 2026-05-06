@@ -42,6 +42,26 @@ func enableBurnOnReadFeature(th *TestHelper) {
 	})
 }
 
+// isolatedTeamChannelWithTeamScheme creates a fresh team (with its own team scheme) and a channel on that team.
+// Permission edits target scheme-specific role names so parallel api4 tests do not mutate built-in channel_user,
+// and upload_file is revoked on the team scheme's channel user role so MergeChannelHigherScopedPermissions does not
+// reintroduce it from the higher scope (model.Role.MergeChannelHigherScopedPermissions).
+func isolatedTeamChannelWithTeamScheme(t *testing.T, th *TestHelper) (*model.Channel, *model.Scheme) {
+	t.Helper()
+	require.NoError(t, th.App.SetPhase2PermissionsMigrationStatus(true))
+
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+	th.LinkUserToTeam(t, th.BasicUser, team)
+
+	scheme := th.SetupTeamScheme(t)
+	team.SchemeId = &scheme.Id
+	_, appErr := th.App.UpdateTeamScheme(team)
+	require.Nil(t, appErr)
+
+	ch := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team.Id)
+	return ch, scheme
+}
+
 func TestCreatePost(t *testing.T) {
 	mainHelper.Parallel(t)
 
@@ -288,18 +308,23 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("should prevent creating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		th.LoginBasic(t)
+
+		ch, scheme := isolatedTeamChannelWithTeamScheme(t, th)
+		require.NotEmpty(t, scheme.DefaultChannelUserRole)
+
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		}()
 
 		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: ch.Id,
 			Message:   "Test post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -310,13 +335,17 @@ func TestCreatePost(t *testing.T) {
 	})
 
 	t.Run("should allow creating post with files when user has upload_file permission", func(t *testing.T) {
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), th.BasicChannel.Id, "test-file.txt")
+		th.LoginBasic(t)
+
+		ch, _ := isolatedTeamChannelWithTeamScheme(t, th)
+
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
 		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
+			ChannelId: ch.Id,
 			Message:   "Test post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -1735,26 +1764,29 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should prevent updating post with files when user lacks upload_file permission in target channel", func(t *testing.T) {
+		ch, scheme := isolatedTeamChannelWithTeamScheme(t, th)
+		require.NotEmpty(t, scheme.DefaultChannelUserRole)
+
 		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Post without files",
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, ch, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), channel.Id, "test-file.txt")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
-		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		defer func() {
-			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, model.ChannelUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionUploadFile.Id, scheme.DefaultChannelUserRole)
 		}()
 
 		updatePost := &model.Post{
 			Id:        postWithoutFiles.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
@@ -1765,21 +1797,23 @@ func TestUpdatePost(t *testing.T) {
 	})
 
 	t.Run("should allow updating post with files when user has upload_file permission", func(t *testing.T) {
+		ch, _ := isolatedTeamChannelWithTeamScheme(t, th)
+
 		postWithoutFiles, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 			UserId:    th.BasicUser.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Post without files",
-		}, channel, model.CreatePostFlags{SetOnline: true})
+		}, ch, model.CreatePostFlags{SetOnline: true})
 		require.Nil(t, appErr)
 
-		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), channel.Id, "test-file.txt")
+		fileResp, resp, err := client.UploadFile(context.Background(), []byte("test file data"), ch.Id, "test-file.txt")
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
 		fileId := fileResp.FileInfos[0].Id
 
 		updatePost := &model.Post{
 			Id:        postWithoutFiles.Id,
-			ChannelId: channel.Id,
+			ChannelId: ch.Id,
 			Message:   "Updated post with file",
 			FileIds:   model.StringArray{fileId},
 		}
