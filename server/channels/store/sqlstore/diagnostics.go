@@ -16,39 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-const (
-	pgDiagnosticsQueryTimeout = 10 * time.Second
-
-	pgStatDatabaseQuery = `
-SELECT
-    COALESCE(blks_hit::double precision / NULLIF(blks_hit + blks_read, 0), 0) AS cache_hit_ratio,
-    deadlocks,
-    temp_files,
-    temp_bytes,
-    xact_rollback
-FROM pg_stat_database
-WHERE datname = current_database()`
-
-	pgStatActivityQuery = `
-SELECT
-    COUNT(*) FILTER (WHERE state = 'idle in transaction') AS idle_in_transaction_count,
-    EXTRACT(EPOCH FROM COALESCE(
-        MAX(clock_timestamp() - query_start) FILTER (WHERE state = 'active' AND query_start IS NOT NULL),
-        interval '0 second'
-    )) AS longest_query_duration_seconds,
-    COUNT(*) FILTER (WHERE wait_event_type = 'Lock') AS waiting_for_lock_count
-FROM pg_stat_activity
-WHERE datname = current_database()`
-
-	pgStatUserTablesQuery = `
-SELECT
-    n_dead_tup,
-    last_autovacuum
-FROM pg_stat_user_tables
-WHERE lower(relname) = 'posts'
-  AND schemaname = current_schema()
-LIMIT 1`
-)
+const pgDiagnosticsQueryTimeout = 10 * time.Second
 
 func (ss *SqlStore) GetDiagnostics(ctx context.Context) (*store.DatabaseDiagnostics, error) {
 	diagnostics := &store.DatabaseDiagnostics{}
@@ -124,7 +92,17 @@ func collectPGStatDatabaseDiagnostics(ctx context.Context, db *sqlx.DB, diagnost
 		XactRollback  int64   `db:"xact_rollback"`
 	}
 
-	if err := db.GetContext(ctx, &row, pgStatDatabaseQuery); err != nil {
+	const query = `
+SELECT
+    COALESCE(blks_hit::double precision / NULLIF(blks_hit + blks_read, 0), 0) AS cache_hit_ratio,
+    deadlocks,
+    temp_files,
+    temp_bytes,
+    xact_rollback
+FROM pg_stat_database
+WHERE datname = current_database()`
+
+	if err := db.GetContext(ctx, &row, query); err != nil {
 		return err
 	}
 
@@ -145,7 +123,18 @@ func collectPGStatActivityDiagnostics(ctx context.Context, db *sqlx.DB, diagnost
 		WaitingForLockCount         int64   `db:"waiting_for_lock_count"`
 	}
 
-	if err := db.GetContext(ctx, &row, pgStatActivityQuery); err != nil {
+	const query = `
+SELECT
+    COUNT(*) FILTER (WHERE state = 'idle in transaction') AS idle_in_transaction_count,
+    EXTRACT(EPOCH FROM COALESCE(
+        MAX(clock_timestamp() - query_start) FILTER (WHERE state = 'active' AND query_start IS NOT NULL),
+        interval '0 second'
+    )) AS longest_query_duration_seconds,
+    COUNT(*) FILTER (WHERE wait_event_type = 'Lock') AS waiting_for_lock_count
+FROM pg_stat_activity
+WHERE datname = current_database()`
+
+	if err := db.GetContext(ctx, &row, query); err != nil {
 		return err
 	}
 
@@ -162,7 +151,16 @@ func collectPGStatUserTablesDiagnostics(ctx context.Context, db *sqlx.DB, diagno
 		LastAutovacuum sql.NullTime `db:"last_autovacuum"`
 	}
 
-	if err := db.GetContext(ctx, &row, pgStatUserTablesQuery); err != nil {
+	const query = `
+SELECT
+    n_dead_tup,
+    last_autovacuum
+FROM pg_stat_user_tables
+WHERE lower(relname) = 'posts'
+  AND schemaname = current_schema()
+LIMIT 1`
+
+	if err := db.GetContext(ctx, &row, query); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil
 		}
