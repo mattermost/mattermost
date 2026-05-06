@@ -19,6 +19,7 @@ export type FlakyTest = {
 
 const failureTags = new Set(["failure", "error"]);
 const flakyFailureTags = new Set(["flakyfailure", "flakyerror"]);
+const skippedTags = new Set(["skipped"]);
 
 function asArray<T>(value: T | T[] | undefined): T[] {
     if (value === undefined) {
@@ -29,21 +30,39 @@ function asArray<T>(value: T | T[] | undefined): T[] {
 }
 
 function normalizeTestcase(testcase: Record<string, unknown>): Attempt {
-    const childTags = Object.keys(testcase).map((key) => key.toLowerCase());
-    const flakyFailures = childTags.reduce((count, tag) => {
-        if (!flakyFailureTags.has(tag)) {
-            return count;
-        }
+    const countChildren = (tags: Set<string>) => {
+        return Object.entries(testcase).reduce((count, [key, value]) => {
+            if (!tags.has(key.toLowerCase())) {
+                return count;
+            }
 
-        const matchingKey = Object.keys(testcase).find((key) => key.toLowerCase() === tag);
-        return count + asArray(matchingKey ? testcase[matchingKey] : undefined).length;
-    }, 0);
+            return count + asArray(value).length;
+        }, 0);
+    };
+
+    const flakyFailures = countChildren(flakyFailureTags);
 
     return {
-        failed: childTags.some((tag) => failureTags.has(tag)),
-        skipped: childTags.includes("skipped"),
+        failed: countChildren(failureTags) > 0,
+        skipped: countChildren(skippedTags) > 0,
         flakyFailures,
     };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+}
+
+function collectTestcases(node: unknown): Record<string, unknown>[] {
+    if (!isRecord(node)) {
+        return [];
+    }
+
+    const ownTestcases = asArray(node.testcase).filter(isRecord);
+    const suiteTestcases = asArray(node.testsuite).flatMap((suite) => collectTestcases(suite));
+    const suitesTestcases = asArray(node.testsuites).flatMap((suite) => collectTestcases(suite));
+
+    return [...ownTestcases, ...suiteTestcases, ...suitesTestcases];
 }
 
 function testcaseKey(testcase: Record<string, unknown>): TestKey {
@@ -56,21 +75,6 @@ function testcaseKey(testcase: Record<string, unknown>): TestKey {
 
 function keyValue(key: TestKey): string {
     return JSON.stringify([key.classname, key.name, key.file]);
-}
-
-function collectTestcases(node: unknown): Record<string, unknown>[] {
-    if (!node || typeof node !== "object") {
-        return [];
-    }
-
-    const record = node as Record<string, unknown>;
-    const ownTestcases = asArray(record.testcase).filter(
-        (value): value is Record<string, unknown> => typeof value === "object" && value !== null,
-    );
-    const suiteTestcases = asArray(record.testsuite).flatMap((suite) => collectTestcases(suite));
-    const suitesTestcases = asArray(record.testsuites).flatMap((suite) => collectTestcases(suite));
-
-    return [...ownTestcases, ...suiteTestcases, ...suitesTestcases];
 }
 
 export function classifyFlakyTests(reportXml: string): FlakyTest[] {
