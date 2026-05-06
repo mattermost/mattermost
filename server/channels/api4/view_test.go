@@ -21,9 +21,20 @@ func setupViewTest(t *testing.T) *TestHelper {
 }
 
 func makeTestViewForAPI() *model.View {
+	kanban := &model.KanbanProps{
+		GroupBy: model.KanbanGroupBy{
+			FieldID: model.NewId(),
+			Columns: []model.KanbanColumn{
+				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
+				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
+			},
+		},
+	}
+	props, _ := kanban.ToProps()
 	return &model.View{
 		Title: "Test Kanban",
 		Type:  model.ViewTypeKanban,
+		Props: props,
 	}
 }
 
