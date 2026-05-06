@@ -830,7 +830,6 @@ const ChannelInviteModalComponent = (props: Props) => {
             valueWithImage={true}
             backButtonText={defineMessage({id: 'multiselect.cancel', defaultMessage: 'Cancel'})}
             backButtonClick={closeMembersInviteModal}
-            backButtonClass={'btn-tertiary tertiary-button'}
             customNoOptionsMessage={props.emailInvitationsEnabled ? customNoOptionsMessage : null}
         />
     );

@@ -7,6 +7,7 @@ import {defineMessage, FormattedDate, FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import {Button} from '@mattermost/shared/components/button';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {uploadLicense} from 'mattermost-redux/actions/admin';
@@ -197,8 +198,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             </div>
             <div className='content-footer'>
                 <div className='btn-upload-wrapper'>
-                    <button
-                        className={`btn ${(fileObj?.name && fileObj?.name.length > 0) && 'btn-primary'}`}
+                    <Button
+                        emphasis='primary'
                         disabled={!(fileObj?.name && fileObj?.name.length > 0)}
                         onClick={handleSubmit}
                         id='upload-button'
@@ -212,7 +213,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 defaultMessage='Upload'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </div>
             </div>
         </>
@@ -268,8 +269,8 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                 </div>
                 <div className='content-footer'>
                     <div className='btn-upload-wrapper'>
-                        <button
-                            className='btn btn-primary'
+                        <Button
+                            emphasis='primary'
                             onClick={handleOnClose}
                             id='done-button'
                         >
@@ -277,7 +278,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
                                 id='admin.license.modal.done'
                                 defaultMessage='Done'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </>

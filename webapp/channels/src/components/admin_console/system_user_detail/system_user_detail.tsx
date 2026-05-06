@@ -13,6 +13,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 import ReactSelect from 'react-select';
 
 import {SyncIcon, PowerPlugOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -1367,8 +1368,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         })}
                                         disabled={this.state.user?.auth_service !== Constants.MAGIC_LINK_SERVICE}
                                     >
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.toggleOpenModalResetPassword}
                                             disabled={this.state.user?.auth_service === Constants.MAGIC_LINK_SERVICE}
                                         >
@@ -1376,22 +1377,22 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.resetPwd'
                                                 defaultMessage='Reset Password'
                                             />
-                                        </button>
+                                        </Button>
                                     </WithTooltip>
                                     {this.state.user?.mfa_active && (
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.handleRemoveMFA}
                                         >
                                             <FormattedMessage
                                                 id='admin.user_item.resetMfa'
                                                 defaultMessage='Remove MFA'
                                             />
-                                        </button>
+                                        </Button>
                                     )}
                                     {this.state.user?.delete_at !== 0 && (
-                                        <button
-                                            className='btn btn-secondary'
+                                        <Button
+                                            emphasis='secondary'
                                             onClick={this.handleActivateUser}
                                             disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
@@ -1400,11 +1401,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage='Activate'
                                             />
                                             {this.getManagedByLdapText()}
-                                        </button>
+                                        </Button>
                                     )}
                                     {this.state.user?.delete_at === 0 && (
-                                        <button
-                                            className='btn btn-secondary btn-danger'
+                                        <Button
+                                            emphasis='secondary'
+                                            variant='destructive'
                                             onClick={this.toggleOpenModalDeactivateMember}
                                             disabled={this.state.user?.auth_service === Constants.LDAP_SERVICE}
                                         >
@@ -1413,13 +1415,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage='Deactivate'
                                             />
                                             {this.getManagedByLdapText()}
-                                        </button>
+                                        </Button>
                                     )}
 
                                     {
                                         this.props.showManageUserSettings &&
-                                        <button
-                                            className='manageUserSettingsBtn btn btn-tertiary'
+                                        <Button
+                                            emphasis='tertiary'
+                                            className='manageUserSettingsBtn'
                                             onClick={this.openConfirmEditUserSettingsModal}
                                             id='manageUserSettingsBtn'
                                         >
@@ -1427,7 +1430,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 id='admin.user_item.manageSettings'
                                                 defaultMessage='Manage User Settings'
                                             />
-                                        </button>
+                                        </Button>
                                     }
 
                                     {
@@ -1442,8 +1445,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 defaultMessage: 'Please upgrade to Enterprise to manage user settings',
                                             })}
                                         >
-                                            <button
-                                                className='manageUserSettingsBtn btn disabled'
+                                            <Button
+                                                emphasis='tertiary'
+                                                className='manageUserSettingsBtn disabled'
+                                                disabled={true}
                                             >
                                                 <div className='RestrictedIndicator__content'>
                                                     <i className={classNames('RestrictedIndicator__icon-tooltip', 'icon', 'icon-key-variant')}/>
@@ -1452,7 +1457,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     id='admin.user_item.manageSettings'
                                                     defaultMessage='Manage User Settings'
                                                 />
-                                            </button>
+                                            </Button>
                                         </WithTooltip>
                                     }
                                 </>
@@ -1471,9 +1476,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             })}
                             button={
                                 <div className='add-team-button'>
-                                    <button
+                                    <Button
                                         type='button'
-                                        className='btn btn-primary'
+                                        emphasis='primary'
                                         onClick={this.toggleOpenTeamSelectorModal}
                                         disabled={this.state.isLoading}
                                     >
@@ -1481,7 +1486,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             id='admin.userManagement.userDetail.addTeam'
                                             defaultMessage='Add Team'
                                         />
-                                    </button>
+                                    </Button>
                                 </div>
                             }
                         >
@@ -1515,9 +1520,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             onClick={this.handleSubmit}
                         />
                         {this.hasUnsavedChanges() && (
-                            <button
+                            <Button
                                 type='button'
-                                className='btn btn-tertiary'
+                                emphasis='tertiary'
                                 onClick={this.handleCancel}
                                 disabled={this.state.isSaving}
                                 style={{marginLeft: '12px'}}
@@ -1526,7 +1531,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     id='admin.user_item.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </button>
+                            </Button>
                         )}
                     </div>
                     <div
@@ -1570,7 +1575,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             )}
                         </div>
                     }
-                    confirmButtonClass='btn btn-danger'
+                    confirmButtonVariant='destructive'
                     confirmButtonText={
                         <FormattedMessage
                             id='deactivate_member_modal.deactivate'
@@ -1602,7 +1607,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     message={
                         this.renderConfirmModal()
                     }
-                    confirmButtonClass='btn btn-primary'
                     confirmButtonText={
                         <FormattedMessage
                             id='admin.userDetail.saveChangesModal.save'

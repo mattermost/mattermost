@@ -167,7 +167,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"
@@ -385,7 +385,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             role="alert"
           />
           <button
-            class="btn btn-primary "
+            class="btn btn-primary"
             data-testid="saveSetting"
             id="saveSetting"
             type="submit"

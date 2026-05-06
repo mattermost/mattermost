@@ -673,8 +673,7 @@ function PolicyDetails({
                             defaultMessage='Delete Policy'
                         />
                     }
-                    confirmButtonClassName='btn btn-danger'
-                    isDeleteModal={true}
+                    confirmButtonVariant='destructive'
                     compassDesign={true}
                 >
                     <FormattedMessage
