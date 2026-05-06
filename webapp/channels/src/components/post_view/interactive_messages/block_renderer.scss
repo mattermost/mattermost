@@ -12,6 +12,18 @@
 }
 
 .mm-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    p {
+        margin: 0;
+    }
+
+    button {
+        align-self: flex-start;
+    }
+
     // Markdown `mm_action:` links in text blocks behave like buttons (handled in message_html_to_component).
     .mm-action-md-link {
         cursor: pointer;

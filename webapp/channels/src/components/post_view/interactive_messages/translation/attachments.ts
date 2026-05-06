@@ -18,11 +18,11 @@ import {isUrlSafe} from 'utils/url';
 
 import {normaliseButtonStyle} from './shared';
 
-/** Matches legacy `.attachment__author-icon` in `_webhooks.scss` (14×14). Markdown: `![alt](url =WxH)`. */
-const AUTHOR_ICON_MARKDOWN_SIZE = ' =14x14';
+/** Matches legacy `.attachment__author-icon` in `_webhooks.scss` (14×14). */
+const AUTHOR_ICON_MAX_PX = 14;
 
 /** Matches legacy `.attachment__footer-icon` in `message_attachment.tsx` (16×16). */
-const FOOTER_ICON_MARKDOWN_SIZE = ' =16x16';
+const FOOTER_ICON_MAX_PX = 16;
 
 /** Placeholder so the stretch column still exists when the body is otherwise empty (thumb-only attachment). */
 const COLUMN_PLACEHOLDER_TEXT = '\u200b';
@@ -50,13 +50,15 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
 
         const prefixItems: MmBlock[] = [];
 
-        const authorText = buildAttachmentAuthorMarkdown(
-            typeof a.author_name === 'string' ? a.author_name : undefined,
-            typeof a.author_link === 'string' ? a.author_link : undefined,
-            typeof a.author_icon === 'string' ? a.author_icon : undefined,
+        const authorBlock = wrapInlineAuthorBlocks(
+            buildAttachmentAuthorBlocks(
+                typeof a.author_name === 'string' ? a.author_name : undefined,
+                typeof a.author_link === 'string' ? a.author_link : undefined,
+                typeof a.author_icon === 'string' ? a.author_icon : undefined,
+            ),
         );
-        if (authorText) {
-            prefixItems.push({type: 'text', text: authorText});
+        if (authorBlock) {
+            prefixItems.push(authorBlock);
         }
 
         if (typeof a.title === 'string' && a.title) {
@@ -94,13 +96,26 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
 
         if (typeof a.footer === 'string' && a.footer) {
             const footerBody = truncate(a.footer, {length: Constants.MAX_ATTACHMENT_FOOTER_LENGTH, omission: '…'});
-            const icon = typeof a.footer_icon === 'string' && a.footer_icon ? `![](${a.footer_icon}${FOOTER_ICON_MARKDOWN_SIZE}) ` : '';
-            mainBodyItems.push({
+            const footerIconUrl =
+                typeof a.footer_icon === 'string' && a.footer_icon ? a.footer_icon : undefined;
+            const footerPieces: MmBlock[] = [];
+            if (footerIconUrl) {
+                footerPieces.push({
+                    type: 'image',
+                    url: footerIconUrl,
+                    alt_text: 'Attachment footer icon',
+                    size: 'auto',
+                    max_width: FOOTER_ICON_MAX_PX,
+                    max_height: FOOTER_ICON_MAX_PX,
+                });
+            }
+            footerPieces.push({
                 type: 'text',
-                text: `${icon}${footerBody}`,
+                text: footerBody,
                 is_subtle: true,
                 size: 'small',
             });
+            mainBodyItems.push(wrapHorizontalFooterRow(footerPieces));
         }
 
         let actionsBlock: MmBlock | null = null;
@@ -166,26 +181,69 @@ export function translateAttachments(attachments: unknown[]): MmBlock[] {
     return result;
 }
 
-function buildAttachmentAuthorMarkdown(
+function buildAttachmentAuthorBlocks(
     authorName: string | undefined,
     authorLink: string | undefined,
     authorIcon: string | undefined,
-): string | null {
-    const parts: string[] = [];
+): MmBlock[] {
+    const blocks: MmBlock[] = [];
     if (authorIcon) {
-        parts.push(`![](${authorIcon}${AUTHOR_ICON_MARKDOWN_SIZE})`);
+        blocks.push({
+            type: 'image',
+            url: authorIcon,
+            alt_text: 'Attachment author icon',
+            size: 'auto',
+            max_width: AUTHOR_ICON_MAX_PX,
+            max_height: AUTHOR_ICON_MAX_PX,
+        });
     }
-    if (authorName) {
-        if (authorLink && isUrlSafe(authorLink)) {
-            parts.push(`[${authorName}](${authorLink})`);
-        } else {
-            parts.push(authorName);
-        }
+    const nameMarkdown = buildAttachmentAuthorNameMarkdown(authorName, authorLink);
+    if (nameMarkdown) {
+        blocks.push({type: 'text', text: nameMarkdown});
     }
-    if (parts.length === 0) {
+    return blocks;
+}
+
+function buildAttachmentAuthorNameMarkdown(
+    authorName: string | undefined,
+    authorLink: string | undefined,
+): string | null {
+    if (!authorName) {
         return null;
     }
-    return parts.join(' ');
+    if (authorLink && isUrlSafe(authorLink)) {
+        return `[${authorName}](${authorLink})`;
+    }
+    return authorName;
+}
+
+/** Single block, or a horizontal row when both author icon and name are present. */
+function wrapInlineAuthorBlocks(blocks: MmBlock[]): MmBlock | null {
+    if (blocks.length === 0) {
+        return null;
+    }
+    if (blocks.length === 1) {
+        return blocks[0];
+    }
+    return {
+        type: 'container',
+        flow: 'horizontal',
+        gap: 'small',
+        content: blocks,
+    };
+}
+
+/** Footer text alone stays a single text block; icon + text uses a horizontal container. */
+function wrapHorizontalFooterRow(blocks: MmBlock[]): MmBlock {
+    if (blocks.length === 1) {
+        return blocks[0];
+    }
+    return {
+        type: 'container',
+        flow: 'horizontal',
+        gap: 'small',
+        content: blocks,
+    };
 }
 
 function buildAttachmentTitleMarkdown(title: string, titleLink: string | undefined): string {
@@ -309,6 +367,7 @@ function translateAttachmentActions(actions: unknown[]) {
     const result: MmContainerBlock = {
         type: 'container',
         flow: 'horizontal',
+        gap: 'medium',
         content: [],
     };
     for (const action of actions) {
