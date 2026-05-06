@@ -3001,3 +3001,17 @@ func TestExperimentalSettingsEnableWatermarkDefault(t *testing.T) {
 		require.True(t, *cfg.ExperimentalSettings.EnableWatermark)
 	})
 }
+
+func TestElasticsearchSettingsSetDefaults(t *testing.T) {
+	t.Run("EnableSearchPublicChannelsWithoutMembership defaults to true when nil", func(t *testing.T) {
+		s := ElasticsearchSettings{}
+		s.SetDefaults()
+		require.True(t, *s.EnableSearchPublicChannelsWithoutMembership)
+	})
+
+	t.Run("EnableSearchPublicChannelsWithoutMembership preserves explicit false", func(t *testing.T) {
+		s := ElasticsearchSettings{EnableSearchPublicChannelsWithoutMembership: NewPointer(false)}
+		s.SetDefaults()
+		require.False(t, *s.EnableSearchPublicChannelsWithoutMembership)
+	})
+}

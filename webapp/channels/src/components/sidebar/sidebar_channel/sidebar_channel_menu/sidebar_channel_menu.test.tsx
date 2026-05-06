@@ -7,7 +7,7 @@ import type {ChannelType} from '@mattermost/types/channels';
 
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {canPopout, isChannelPopoutWindow} from 'utils/popouts/popout_windows';
 import {TestHelper} from 'utils/test_helper';
@@ -67,6 +67,18 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_menu', () => {
         const menuButton = screen.getByRole('button', {name: /channel options/i});
         await user.click(menuButton);
         await screen.findByRole('menu', {name: 'Edit channel menu'});
+
+        // Tooltip-on-hover is opened by `userEvent.click` before the click reaches
+        // the button; the menu opening then dismisses it via a fade-out transition.
+        // Wait for the tooltip portal child to fully unmount so snapshots are
+        // deterministic and don't capture the in-flight fade-out (which is
+        // sensitive to timer scheduling and CI load).
+        const portal = document.getElementById('root-portal');
+        if (portal) {
+            await waitFor(() => {
+                expect(within(portal).queryByRole('tooltip', {hidden: true})).not.toBeInTheDocument();
+            });
+        }
     };
 
     test('should match snapshot and contain correct buttons', async () => {

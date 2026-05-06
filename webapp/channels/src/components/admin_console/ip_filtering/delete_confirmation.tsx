@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
 import './delete_confirmation.scss';
@@ -39,20 +40,21 @@ export default function DeleteConfirmationModal({onExited, onConfirm, filterToDe
                 )}
             </Modal.Body>
             <Modal.Footer>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-tertiary'
+                    emphasis='tertiary'
                     onClick={onExited}
                 >
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
-                </button>
-                <button
+                </Button>
+                <Button
                     type='button'
-                    className='btn btn-primary btn-danger'
+                    emphasis='primary'
+                    variant='destructive'
                     onClick={() => onConfirm?.(filterToDelete!)}
                 >
                     {formatMessage({id: 'admin.ip_filtering.delete_filter', defaultMessage: 'Delete filter'})}
-                </button>
+                </Button>
             </Modal.Footer>
         </Modal>
     );

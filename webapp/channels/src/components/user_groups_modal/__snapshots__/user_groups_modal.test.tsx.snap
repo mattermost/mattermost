@@ -50,7 +50,7 @@ exports[`component/user_groups_modal should match snapshot with groups 1`] = `
                     User Groups
                   </h1>
                   <button
-                    class="user-groups-create btn btn-secondary btn-sm"
+                    class="btn btn-secondary btn-sm"
                   >
                     Create Group
                   </button>
@@ -325,7 +325,7 @@ exports[`component/user_groups_modal should match snapshot without groups 1`] = 
                     User Groups
                   </h1>
                   <button
-                    class="user-groups-create btn btn-secondary btn-sm"
+                    class="btn btn-secondary btn-sm"
                   >
                     Create Group
                   </button>

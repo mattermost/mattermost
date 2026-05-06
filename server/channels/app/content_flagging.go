@@ -10,12 +10,14 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/public/utils"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/pkg/errors"
 )
 
@@ -585,14 +587,23 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "api.data_spillage.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
-	appErr = a.PermanentDeletePostDataRetainStub(rctx, flaggedPost, reviewerId)
-	if appErr != nil {
-		return appErr
-	}
-
 	groupId, err := a.ContentFlaggingGroupId()
 	if err != nil {
 		return model.NewAppError("PermanentDeleteFlaggedPost", "app.data_spillage.get_group.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	deletionReport, appErr := a.PermanentDeletePostDataRetainStub(rctx, flaggedPost, reviewerId)
+
+	// Send the deletion report even if there is an error as there can be partial deletion of data
+	// which must be reported to the reviewers.
+	if deletionReport != nil {
+		a.Srv().Go(func() {
+			a.sendDeletionReportToReviewers(rctx, flaggedPost.Id, deletionReport, groupId)
+		})
+	}
+
+	if appErr != nil {
+		return appErr
 	}
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
@@ -655,67 +666,193 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	return nil
 }
 
-func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Post, deleteByID string) *model.AppError {
-	// when a post is removed, the following things need to be done
-	// 1. Hard delete corresponding file infos - covered
-	// 2. Hard delete file infos associated to post's edit history - NA
-	// 3. Hard delete post's edit history - NA
-	// 4. Hard delete the files from file storage - covered
-	// 5. Hard delete post's priority data - missing
-	// 6. Hard delete post's post acknowledgements - missing
-	// 7. Hard delete post reminders - missing
-	// 8. Scrub the post's content - message, props - missing
+func (a *App) sendDeletionReportToReviewers(rctx request.CTX, flaggedPostId string, report *model.PostDeletionReport, contentFlaggingGroupId string) {
+	reportFileName := fmt.Sprintf("deletion_report_%s.md", flaggedPostId)
 
-	editHistories, appErr := a.GetEditHistoryForPost(post.Id)
+	_, appErr := a.postReviewerMessage(rctx, "", contentFlaggingGroupId, flaggedPostId, report, reportFileName)
 	if appErr != nil {
-		if appErr.StatusCode != http.StatusNotFound {
-			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", post.Id))
+		rctx.Logger().Error("Failed to send deletion report to reviewers", mlog.Err(appErr), mlog.String("post_id", flaggedPostId))
+	}
+}
+
+func (a *App) PermanentDeletePostDataRetainStub(rctx request.CTX, post *model.Post, deleteByID string) (*model.PostDeletionReport, *model.AppError) {
+	report := &model.PostDeletionReport{
+		PostID:    post.Id,
+		Timestamp: time.Now().UTC(),
+	}
+
+	a.deleteFiles(rctx, post.Id, report)
+	a.deleteEditHistories(rctx, post.Id, deleteByID, report)
+
+	var nfErr *store.ErrNotFound
+
+	// Handling persistent notification
+	persistentNotification, err := a.Srv().Store().PostPersistentNotification().GetSingle(post.Id)
+	if err != nil && !errors.As(err, &nfErr) {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get persistent notification for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	}
+
+	if (err == nil && persistentNotification == nil) || errors.As(err, &nfErr) {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+	} else {
+		if deleteErr := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); deleteErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete persistent notifications for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepFailed, "", []string{deleteErr.Error()})
+		} else {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.persistent_notifications"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 		}
 	}
 
-	for _, editHistory := range editHistories {
-		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, deleteByID); deletePostAppErr != nil {
-			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
+	// Handling post acknowledgements
+	acknowledgements, appErr := a.GetAcknowledgementsForPost(post.Id)
+	if appErr != nil {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get post acknowledgements for the post", mlog.Err(appErr), mlog.String("post_id", post.Id))
+	}
+
+	if appErr == nil && len(acknowledgements) == 0 {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+	} else {
+		if deleteErr := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); deleteErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepFailed, "", []string{deleteErr.Error()})
+		} else {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.acknowledgements"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
 		}
 	}
 
-	if filesDeleteAppErr := a.PermanentDeleteFilesByPost(rctx, post.Id); filesDeleteAppErr != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete files for the post", mlog.Err(filesDeleteAppErr), mlog.String("post_id", post.Id))
+	// Handling post priority
+	postPriorityData, appErr := a.GetPriorityForPost(post.Id)
+	if appErr != nil {
+		// we can still attempt a deletion even if retrieval failed
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get post priority for the post", mlog.Err(appErr), mlog.String("post_id", post.Id))
 	}
 
-	if err := a.DeletePriorityForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	if appErr == nil && postPriorityData == nil {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+	} else {
+		if deleteErr := a.DeletePriorityForPost(post.Id); deleteErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post priority for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepFailed, "", []string{deleteErr.Error()})
+		} else {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.priority_data"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
+		}
 	}
 
-	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post acknowledgements for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	reminders, err := a.Srv().Store().Post().GetPostRemindersForPost(post.Id)
+	if err != nil && !errors.As(err, &nfErr) {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
 	}
 
-	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); err != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	if (err == nil && len(reminders) == 0) || errors.As(err, &nfErr) {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+	} else {
+		if deleteErr := a.Srv().Store().Post().DeleteAllPostRemindersForPost(post.Id); deleteErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete post reminders for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepFailed, "", []string{deleteErr.Error()})
+		} else {
+			report.AddStep(i18n.TranslationId("app.data_spillage.report.step.reminders"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.deleted"), nil)
+		}
 	}
 
-	if err := a.Srv().Store().Post().PermanentDeleteAssociatedData([]string{post.Id}); err != nil {
-		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete associated data for the post", mlog.Err(err), mlog.String("post_id", post.Id))
+	if deleteErr := a.Srv().Store().Post().PermanentDeleteAssociatedData([]string{post.Id}); deleteErr != nil {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete associated data for the post", mlog.Err(deleteErr), mlog.String("post_id", post.Id))
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.thread_data"), model.StepFailed, "", []string{deleteErr.Error()})
+	} else {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.thread_data"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.thread_data_deleted"), nil)
 	}
+
+	postStepErrors := []string{}
+	postStepFailed := false
 
 	scrubPost(post)
-	_, err := a.Srv().Store().Post().Overwrite(rctx, post)
+	_, err = a.Srv().Store().Post().Overwrite(rctx, post)
 	if err != nil {
 		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to scrub post content", mlog.Err(err), mlog.String("post_id", post.Id))
+		postStepErrors = append(postStepErrors, fmt.Sprintf("Failed to scrub post content: %s", err.Error()))
+		postStepFailed = true
 	}
 
 	// If the post is not already deleted, delete it now.
+	var deletePostErr *model.AppError
 	if post.DeleteAt == 0 {
 		// DeletePost is called to care of WebSocket events, cache invalidation, search index removal,
-		// persistent notification removal and other cleanup tasks that need to happen on post deletion.
-		_, appErr = a.DeletePost(rctx, post.Id, deleteByID)
-		if appErr != nil {
-			return appErr
+		// and other cleanup tasks that need to happen on post deletion.
+		_, deletePostErr = a.DeletePost(rctx, post.Id, deleteByID)
+		if deletePostErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to delete the post after scrubbing content", mlog.Err(deletePostErr), mlog.String("post_id", post.Id))
+
+			postStepErrors = append(postStepErrors, deletePostErr.Error())
+			postStepFailed = true
 		}
 	}
 
-	return nil
+	if postStepFailed {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.post_itself"), model.StepFailed, "", postStepErrors)
+	} else {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.post_itself"), model.StepSuccess, i18n.TranslationId("app.data_spillage.report.detail.post_scrubbed_deleted"), nil)
+	}
+
+	return report, deletePostErr
+}
+
+func (a *App) deleteEditHistories(rctx request.CTX, postId, deleteByID string, report *model.PostDeletionReport) {
+	editHistories, appErr := a.GetEditHistoryForPost(postId)
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to get edit history for post", mlog.Err(appErr), mlog.String("post_id", postId))
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepFailed, i18n.TranslationId("app.data_spillage.report.detail.failed_retrieve_edit_history"), []string{appErr.Error()})
+
+		return
+	}
+
+	if len(editHistories) == 0 {
+		report.AddStep(i18n.TranslationId("app.data_spillage.report.step.edit_histories"), model.StepNotApplicable, i18n.TranslationId("app.data_spillage.report.detail.no_data_found"), nil)
+		return
+	}
+
+	step := model.DeletionStepResult{
+		Name:     i18n.TranslationId("app.data_spillage.report.step.edit_histories"),
+		SubSteps: make([]model.DeletionSubStep, 0, len(editHistories)),
+	}
+
+	allSuccess := true
+	anySuccess := false
+
+	for _, editHistory := range editHistories {
+		subStep := model.DeletionSubStep{Name: editHistory.Id}
+
+		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, deleteByID); deletePostAppErr != nil {
+			rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
+			subStep.Status = model.StepFailed
+			subStep.Errors = []string{deletePostAppErr.Error()}
+			allSuccess = false
+		} else {
+			subStep.Status = model.StepSuccess
+			anySuccess = true
+		}
+
+		step.SubSteps = append(step.SubSteps, subStep)
+	}
+
+	if allSuccess {
+		step.Status = model.StepSuccess
+	} else if anySuccess {
+		step.Status = model.StepPartial
+	} else {
+		step.Status = model.StepFailed
+	}
+
+	cleared := model.CountSubStepSuccesses(step.SubSteps)
+	total := len(step.SubSteps)
+	step.Detail = i18n.TranslationId("app.data_spillage.report.detail.revisions_cleared")
+	step.DetailParams = map[string]any{"Count": cleared, "Total": total}
+	report.Steps = append(report.Steps, step)
+}
+
+func (a *App) deleteFiles(rctx request.CTX, postId string, report *model.PostDeletionReport) {
+	appErr := a.PermanentDeleteFilesByPost(rctx, postId, report)
+	if appErr != nil {
+		rctx.Logger().Error("PermanentDeletePostDataRetainStub: Failed to permanently delete files for the post", mlog.Err(appErr), mlog.String("post_id", postId))
+	}
 }
 
 func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
@@ -1072,7 +1209,7 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 	}
 
 	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1086,7 +1223,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1100,7 +1237,7 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
 	}
 
-	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId, nil, "")
 }
 
 func (a *App) getReporterUserId(flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1169,7 +1306,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	return a.postContentReviewBotMessage(rctx, message, userId)
 }
 
-func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string) ([]*model.Post, *model.AppError) {
+func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string, report *model.PostDeletionReport, reportFileName string) ([]*model.Post, *model.AppError) {
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(contentFlaggingGroupId)
 	if appErr != nil {
 		return nil, appErr
@@ -1204,14 +1341,45 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			continue
 		}
 
+		// Determine the post message and file data, localizing per-reviewer if a report is provided
+		postMessage := message
+		var postFileData []byte
+		var postFileName string
+
+		if report != nil {
+			T := i18n.GetUserTranslations("")
+			// Fetch reviewer user to get their locale
+			reviewerUserId := channel.GetOtherUserIdForDM(reviewerPost.UserId)
+			reviewer, userErr := a.GetUser(reviewerUserId)
+			if userErr != nil {
+				rctx.Logger().Error("Failed to get reviewer user for localization, falling back to default locale", mlog.Err(userErr), mlog.String("user_id", reviewerPost.UserId))
+			} else {
+				T = i18n.GetUserTranslations(reviewer.Locale)
+			}
+
+			postMessage = report.RenderSummary(T)
+			postFileData = []byte(report.Render(T))
+			postFileName = reportFileName
+		}
+
 		post := &model.Post{
-			Message:   message,
+			Message:   postMessage,
 			UserId:    contentReviewBot.UserId,
 			ChannelId: reviewerPost.ChannelId,
 			RootId:    postId,
 		}
 
-		// We can ignore the membership since the post itself is does not have a permalink
+		// Upload file attachment if provided
+		if len(postFileData) > 0 {
+			fileInfo, uploadErr := a.UploadFile(rctx, postFileData, reviewerPost.ChannelId, postFileName)
+			if uploadErr != nil {
+				// When the report fails to upload, the details aren't lost as the logs of any item which failed to be deleted are still in the server logs.
+				rctx.Logger().Error("Failed to upload report file attachment, appending to message", mlog.Err(uploadErr), mlog.String("post_id", postId))
+			} else {
+				post.FileIds = []string{fileInfo.Id}
+			}
+		}
+
 		createdPost, _, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create assign reviewer post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("post_id", postId))
