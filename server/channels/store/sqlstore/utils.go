@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"net/url"
 	"strconv"
@@ -93,11 +92,6 @@ func finalizeTransactionX(transaction *sqlxTxWrapper, perr *error) {
 	if err := transaction.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
 		*perr = merror.Append(*perr, err)
 	}
-}
-
-func deferClose(c io.Closer, perr *error) {
-	err := c.Close()
-	*perr = merror.Append(*perr, err)
 }
 
 // removeNonAlphaNumericUnquotedTerms removes all unquoted words that only contain

@@ -209,7 +209,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			require.NoError(t, err)
 
 			// Query the data
-			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTest ORDER BY id`)
+			rows, err := sqlStore.GetMaster().QueryContext(t.Context(), `SELECT id, value FROM MapTest ORDER BY id`)
 			require.NoError(t, err)
 			defer rows.Close()
 
@@ -248,7 +248,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			require.NoError(t, err)
 
 			// Query the data
-			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTestDefaults`)
+			rows, err := sqlStore.GetMaster().QueryContext(t.Context(), `SELECT id, value FROM MapTestDefaults`)
 			require.NoError(t, err)
 			defer rows.Close()
 
@@ -288,7 +288,7 @@ func TestScanRowsIntoMap(t *testing.T) {
 			require.NoError(t, err)
 
 			// Query the empty table
-			rows, err := sqlStore.GetMaster().Query(`SELECT id, value FROM MapTestEmpty`)
+			rows, err := sqlStore.GetMaster().QueryContext(t.Context(), `SELECT id, value FROM MapTestEmpty`)
 			require.NoError(t, err)
 			defer rows.Close()
 

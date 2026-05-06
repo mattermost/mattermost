@@ -1542,6 +1542,43 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 		}, profiles)
 	})
 
+	t.Run("Props, NotifyProps and Timezone are scanned correctly", func(t *testing.T) {
+		u4, err := ss.User().Save(rctx, &model.User{
+			Email:    MakeEmail(),
+			Username: "u4" + model.NewId(),
+			Props: model.StringMap{
+				"custom_key": "custom_value",
+			},
+			NotifyProps: model.StringMap{
+				model.EmailNotifyProp: model.UserNotifyAll,
+			},
+			Timezone: model.StringMap{
+				"automaticTimezone":    "America/New_York",
+				"manualTimezone":       "",
+				"useAutomaticTimezone": "true",
+			},
+		})
+		require.NoError(t, err)
+		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
+
+		_, nErr := ss.Channel().SaveMember(rctx, &model.ChannelMember{
+			ChannelId:   c1.Id,
+			UserId:      u4.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, nErr)
+
+		profiles, err := ss.User().GetAllProfilesInChannel(t.Context(), c1.Id, false)
+		require.NoError(t, err)
+		require.Contains(t, profiles, u4.Id)
+
+		got := profiles[u4.Id]
+		assert.Equal(t, "custom_value", got.Props["custom_key"])
+		assert.Equal(t, model.UserNotifyAll, got.NotifyProps[model.EmailNotifyProp])
+		assert.Equal(t, "America/New_York", got.Timezone["automaticTimezone"])
+		assert.Equal(t, "true", got.Timezone["useAutomaticTimezone"])
+	})
+
 	ss.User().InvalidateProfilesInChannelCacheByUser(u1.Id)
 	ss.User().InvalidateProfilesInChannelCache(c2.Id)
 }

@@ -222,28 +222,15 @@ func (s *SqlRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 		return nil, errors.Wrap(err, "role_tosql")
 	}
 
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
-	if err != nil {
+	var dbRoles []Role
+	if err := s.GetReplica().Select(&dbRoles, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Roles")
 	}
 
-	roles := []*model.Role{}
-	defer rows.Close()
-	for rows.Next() {
-		var role Role
-		err = rows.Scan(
-			&role.Id, &role.Name, &role.DisplayName, &role.Description,
-			&role.CreateAt, &role.UpdateAt, &role.DeleteAt, &role.Permissions,
-			&role.SchemeManaged, &role.BuiltIn, &role.SchemeId)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to scan values")
-		}
-		roles = append(roles, role.ToModel())
+	roles := make([]*model.Role, len(dbRoles))
+	for i := range dbRoles {
+		roles[i] = dbRoles[i].ToModel()
 	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "unable to iterate over rows")
-	}
-
 	return roles, nil
 }
 

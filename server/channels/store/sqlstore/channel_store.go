@@ -2202,7 +2202,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (_ map[string]string, err error) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
 	query := s.getQueryBuilder().
 		Select(`
 				ChannelMembers.ChannelId, ChannelMembers.Roles, ChannelMembers.SchemeGuest,
@@ -2228,24 +2228,17 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(rctx request.CTX, userId st
 		return nil, errors.Wrap(err, "channel_tosql")
 	}
 
-	rows, err := s.SqlStore.DBXFromContext(rctx.Context()).Query(queryString, args...)
-	if err != nil {
+	var members []allChannelMember
+	if err = s.SqlStore.DBXFromContext(rctx.Context()).SelectCtx(rctx.Context(), &members, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find ChannelMembers, TeamScheme and ChannelScheme data")
 	}
-	defer deferClose(rows, &err)
 
-	scanner := func(rows *sql.Rows) (string, string, error) {
-		var cm allChannelMember
-		err = rows.Scan(
-			&cm.ChannelId, &cm.Roles, &cm.SchemeGuest, &cm.SchemeUser,
-			&cm.SchemeAdmin, &cm.TeamSchemeDefaultGuestRole, &cm.TeamSchemeDefaultUserRole,
-			&cm.TeamSchemeDefaultAdminRole, &cm.ChannelSchemeDefaultGuestRole,
-			&cm.ChannelSchemeDefaultUserRole, &cm.ChannelSchemeDefaultAdminRole,
-		)
+	result := make(map[string]string, len(members))
+	for _, cm := range members {
 		k, v := cm.Process()
-		return k, v, errors.Wrap(err, "unable to scan columns")
+		result[k] = v
 	}
-	return scanRowsIntoMap(rows, scanner, nil)
+	return result, nil
 }
 
 func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[string]int64, err error) {
@@ -2264,26 +2257,22 @@ func (s SqlChannelStore) GetChannelsMemberCount(channelIDs []string) (_ map[stri
 		return nil, errors.Wrap(err, "channels_member_count_tosql")
 	}
 
-	rows, err := s.GetReplica().Query(queryString, args...)
-	if err != nil {
+	var counts []struct {
+		ChannelId string
+		Count     int64
+	}
+	if err = s.GetReplica().Select(&counts, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to fetch member counts")
 	}
-	defer rows.Close()
 
-	// Initialize default values map
-	defaults := make(map[string]int64, len(channelIDs))
+	result := make(map[string]int64, len(channelIDs))
 	for _, channelID := range channelIDs {
-		defaults[channelID] = 0
+		result[channelID] = 0
 	}
-
-	scanner := func(rows *sql.Rows) (string, int64, error) {
-		var channelID string
-		var count int64
-		err := rows.Scan(&channelID, &count)
-		return channelID, count, errors.Wrap(err, "failed to scan row")
+	for _, row := range counts {
+		result[row.ChannelId] = row.Count
 	}
-
-	return scanRowsIntoMap(rows, scanner, defaults)
+	return result, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
@@ -2917,20 +2906,19 @@ func (s SqlChannelStore) AnalyticsCountAll(teamId string) (map[model.ChannelType
 		return nil, errors.Wrap(err, "AnalyticsCountAll_ToSql")
 	}
 
-	rows, err := s.GetReplica().Query(sqlStr, args...)
-	if err != nil {
+	var counts []struct {
+		Type  model.ChannelType
+		Count int64
+	}
+	if err := s.GetReplica().Select(&counts, sqlStr, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to count Channels by type")
 	}
-	defer rows.Close()
 
-	scanner := func(rows *sql.Rows) (model.ChannelType, int64, error) {
-		var channelType model.ChannelType
-		var count int64
-		err := rows.Scan(&channelType, &count)
-		return channelType, count, errors.Wrap(err, "unable to scan row")
+	result := make(map[model.ChannelType]int64, len(counts))
+	for _, row := range counts {
+		result[row.Type] = row.Count
 	}
-
-	return scanRowsIntoMap(rows, scanner, nil)
+	return result, nil
 }
 
 func (s SqlChannelStore) GetMembersForUser(teamID string, userID string) (model.ChannelMembers, error) {

@@ -574,7 +574,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 	if err != nil {
 		return nil, errors.Wrap(err, "users_get_tosql")
 	}
-	row := us.SqlStore.DBXFromContext(ctx).QueryRow(queryString, args...)
+	row := us.SqlStore.DBXFromContext(ctx).QueryRowContext(ctx, queryString, args...)
 
 	var user model.User
 	var props, notifyProps, timezone []byte
@@ -927,47 +927,16 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 		Where("Users.DeleteAt = 0").
 		OrderBy("Users.Username ASC")
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_all_profiles_in_channel_tosql")
-	}
-
-	users := []*model.User{}
-	rows, err := us.SqlStore.DBXFromContext(ctx).Query(queryString, args...)
-	if err != nil {
+	var users []*model.User
+	if err := us.SqlStore.DBXFromContext(ctx).SelectBuilder(&users, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
-	defer rows.Close()
-	for rows.Next() {
-		var user model.User
-		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps, &user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
-			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
-		}
-		if err = json.Unmarshal(props, &user.Props); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal user props")
-		}
-		if err = json.Unmarshal(notifyProps, &user.NotifyProps); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal user notify props")
-		}
-		if err = json.Unmarshal(timezone, &user.Timezone); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal user timezone")
-		}
-		users = append(users, &user)
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, errors.Wrap(err, "error while iterating over rows")
-	}
-
-	userMap := make(map[string]*model.User)
-
+	userMap := make(map[string]*model.User, len(users))
 	for _, u := range users {
 		u.Sanitize(map[string]bool{})
 		userMap[u.Id] = u
 	}
-
 	return userMap, nil
 }
 

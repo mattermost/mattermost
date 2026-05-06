@@ -807,50 +807,37 @@ func (s *SqlRetentionPolicyStore) GetChannelPoliciesCountForUser(userID string) 
 	return count, nil
 }
 
-func scanRetentionIdsForDeletion(rows *sql.Rows) ([]*model.RetentionIdsForDeletion, error) {
-	idsForDeletion := []*model.RetentionIdsForDeletion{}
-	for rows.Next() {
-		var row model.RetentionIdsForDeletion
-		if err := rows.Scan(
-			&row.Id, &row.TableName, pq.Array(&row.Ids),
-		); err != nil {
-			return nil, errors.Wrap(err, "unable to scan columns")
-		}
-
-		idsForDeletion = append(idsForDeletion, &row)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "error while iterating over rows")
-	}
-	return idsForDeletion, nil
-}
-
 func (s *SqlRetentionPolicyStore) GetIdsForDeletionByTableName(tableName string, limit int) ([]*model.RetentionIdsForDeletion, error) {
+	type retentionIdsForDeletionRow struct {
+		Id        string
+		TableName string
+		Ids       pq.StringArray
+	}
+
 	query := s.getQueryBuilder().
 		Select("Id", "TableName", "Ids").
 		From("RetentionIdsForDeletion").
-		Where(
-			sq.Eq{"TableName": tableName},
-		).
+		Where(sq.Eq{"TableName": tableName}).
 		Limit(uint64(limit))
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_ids_for_deletion_tosql")
-	}
-
-	rows, err := s.GetReplica().DB.Query(queryString, args...)
-	if err != nil {
+	var dbRows []retentionIdsForDeletionRow
+	if err := s.GetReplica().SelectBuilder(&dbRows, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get ids for deletion")
 	}
-	defer rows.Close()
 
-	idsForDeletion, err := scanRetentionIdsForDeletion(rows)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to scan ids for deletion")
+	result := make([]*model.RetentionIdsForDeletion, len(dbRows))
+	for i, row := range dbRows {
+		ids := []string(row.Ids)
+		if ids == nil {
+			ids = []string{}
+		}
+		result[i] = &model.RetentionIdsForDeletion{
+			Id:        row.Id,
+			TableName: row.TableName,
+			Ids:       ids,
+		}
 	}
-
-	return idsForDeletion, nil
+	return result, nil
 }
 
 func insertRetentionIdsForDeletion(txn *sqlxTxWrapper, row *model.RetentionIdsForDeletion, s *SqlStore) error {
@@ -1023,23 +1010,9 @@ func genericRetentionPoliciesDeletion(
 		primaryKeysStr := "(" + strings.Join(r.PrimaryKeys, ",") + ")"
 
 		query = fmt.Sprintf("DELETE FROM %s WHERE %s IN (%s) RETURNING %s.%s", r.Table, primaryKeysStr, query, r.Table, r.PrimaryKeys[0])
-		var rows *sql.Rows
-		rows, err = txn.Query(query, args...)
-		if err != nil {
+		var ids []string
+		if err = txn.Select(&ids, query, args...); err != nil {
 			return 0, errors.Wrap(err, "failed to delete "+r.Table)
-		}
-
-		defer rows.Close()
-		ids := []string{}
-		for rows.Next() {
-			var id string
-			if err = rows.Scan(&id); err != nil {
-				return 0, errors.Wrap(err, "unable to scan from rows")
-			}
-			ids = append(ids, id)
-		}
-		if err = rows.Err(); err != nil {
-			return 0, errors.Wrap(err, "failed while iterating over rows")
 		}
 		rowsAffected = int64(len(ids))
 

@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -15,6 +17,7 @@ import (
 )
 
 func TestRetentionPolicyStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("GetIdsForDeletionByTableName", func(t *testing.T) { testRetentionPolicyStoreGetIdsForDeletionByTableName(t, ss, s) })
 	t.Run("Save", func(t *testing.T) { testRetentionPolicyStoreSave(t, rctx, ss, s) })
 	t.Run("Patch", func(t *testing.T) { testRetentionPolicyStorePatch(t, rctx, ss, s) })
 	t.Run("Get", func(t *testing.T) { testRetentionPolicyStoreGet(t, rctx, ss, s) })
@@ -177,6 +180,80 @@ func restoreRetentionPolicy(t *testing.T, ss store.Store, policy *model.Retentio
 	_, err := ss.RetentionPolicy().Patch(policy)
 	require.NoError(t, err)
 	checkRetentionPolicyLikeThisExists(t, ss, policy)
+}
+
+func testRetentionPolicyStoreGetIdsForDeletionByTableName(t *testing.T, ss store.Store, s SqlStore) {
+	ph := s.GetQueryPlaceholder()
+
+	insertRow := func(t *testing.T, tableName string, ids []string) string {
+		t.Helper()
+		id := model.NewId()
+		q, err := ph.ReplacePlaceholders(`INSERT INTO RetentionIdsForDeletion (Id, TableName, Ids) VALUES (?, ?, ?)`)
+		require.NoError(t, err)
+		_, err = s.GetMaster().Exec(q, id, tableName, pq.Array(ids))
+		require.NoError(t, err)
+		return id
+	}
+
+	cleanup := func() {
+		_, err := s.GetMaster().Exec("DELETE FROM RetentionIdsForDeletion")
+		require.NoError(t, err)
+	}
+	defer cleanup()
+
+	t.Run("Ids array is scanned correctly", func(t *testing.T) {
+		defer cleanup()
+		ids := []string{model.NewId(), model.NewId(), model.NewId()}
+		insertedId := insertRow(t, "Posts", ids)
+
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 100)
+		require.NoError(t, err)
+		require.Len(t, rows, 1)
+		assert.Equal(t, insertedId, rows[0].Id)
+		assert.Equal(t, "Posts", rows[0].TableName)
+		assert.ElementsMatch(t, ids, rows[0].Ids)
+	})
+
+	t.Run("filters by TableName", func(t *testing.T) {
+		defer cleanup()
+		insertRow(t, "Posts", []string{model.NewId()})
+		insertRow(t, "Posts", []string{model.NewId()})
+		insertRow(t, "FileInfo", []string{model.NewId()})
+
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 100)
+		require.NoError(t, err)
+		assert.Len(t, rows, 2)
+
+		rows, err = ss.RetentionPolicy().GetIdsForDeletionByTableName("FileInfo", 100)
+		require.NoError(t, err)
+		assert.Len(t, rows, 1)
+	})
+
+	t.Run("respects limit", func(t *testing.T) {
+		defer cleanup()
+		for range 5 {
+			insertRow(t, "Posts", []string{model.NewId()})
+		}
+
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 3)
+		require.NoError(t, err)
+		assert.Len(t, rows, 3)
+	})
+
+	t.Run("NULL Ids column maps to empty slice", func(t *testing.T) {
+		defer cleanup()
+		id := model.NewId()
+		q, err := ph.ReplacePlaceholders(`INSERT INTO RetentionIdsForDeletion (Id, TableName, Ids) VALUES (?, ?, NULL)`)
+		require.NoError(t, err)
+		_, err = s.GetMaster().Exec(q, id, "Posts")
+		require.NoError(t, err)
+
+		rows, err := ss.RetentionPolicy().GetIdsForDeletionByTableName("Posts", 100)
+		require.NoError(t, err)
+		require.Len(t, rows, 1)
+		assert.NotNil(t, rows[0].Ids)
+		assert.Empty(t, rows[0].Ids)
+	})
 }
 
 func testRetentionPolicyStoreSave(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
