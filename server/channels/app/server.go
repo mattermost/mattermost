@@ -403,16 +403,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.platform.SetupFeatureFlags()
 
-	// Initialize the audit logger before registering jobs so that workers
-	// constructed via initJobs() (e.g. cleanup_expired_access_tokens) always
-	// receive a non-nil audit logger. License-dependent audit configuration
-	// happens later, but that only affects target routing, not the logger
-	// instance itself.
-	if s.Audit == nil {
-		s.Audit = &audit.Audit{}
-		s.Audit.Init(audit.DefMaxQueueSize)
-	}
-
 	s.initJobs()
 
 	if ipFilteringInterface != nil {
@@ -1670,7 +1660,7 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupExpiredAccessTokens,
-		cleanup_expired_access_tokens.MakeWorker(s.Jobs, s.Audit),
+		cleanup_expired_access_tokens.MakeWorker(s.Jobs),
 		cleanup_expired_access_tokens.MakeScheduler(s.Jobs),
 	)
 
