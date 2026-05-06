@@ -17,6 +17,7 @@ import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+import AlertTag from 'components/widgets/tag/alert_tag';
 
 import {getChannelIconComponent} from 'utils/channel_utils';
 import Constants, {ModalIdentifiers} from 'utils/constants';
@@ -44,6 +45,14 @@ interface Props extends WrappedComponentProps {
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
     showRecommendedFilter?: boolean;
+
+    /**
+     * Set of channel ids the current user matches the membership policy for.
+     * Rows in this set render a "Recommended" tag in the All / Public views;
+     * the tag is suppressed in the Recommended-filter view because every row
+     * there is already a recommendation, which would make the tag noise.
+     */
+    recommendedChannelIds?: Set<string>;
 }
 
 type State = {
@@ -129,6 +138,14 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             memberCount = this.props.channelsMemberCount[channel.id];
         }
 
+        // Show the badge on cross-cut views (All / Public) where it adds
+        // signal. Hide it inside the Recommended filter — every row there is
+        // already recommended, so the tag would be redundant noise.
+        const isRecommendedRow = (
+            this.props.recommendedChannelIds?.has(channel.id) &&
+            this.props.filter !== Filter.Recommended
+        );
+
         const membershipIndicator = this.isMemberOfChannel(channel.id) ? (
             <div
                 id='membershipIndicatorContainer'
@@ -209,6 +226,20 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         {channelTypeIcon}
                         <span id='channelName'>{channel.display_name}</span>
                         {sharedChannelIcon}
+                        {isRecommendedRow && (
+                            <AlertTag
+                                className='browse-channels__recommended-tag'
+                                testId={`recommendedTag-${channel.name}`}
+                                text={this.props.intl.formatMessage({
+                                    id: 'more_channels.recommended_tag',
+                                    defaultMessage: 'Recommended',
+                                })}
+                                tooltipTitle={this.props.intl.formatMessage({
+                                    id: 'more_channels.recommended_tag.tooltip',
+                                    defaultMessage: 'You match the membership policy for this channel',
+                                })}
+                            />
+                        )}
                     </div>
                     {channelPurposeContainer}
                 </div>

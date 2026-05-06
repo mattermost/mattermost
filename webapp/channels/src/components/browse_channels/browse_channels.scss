@@ -159,6 +159,15 @@
                         color: var(--center-channel-color);
                         font-weight: 500;
                     }
+
+                    .browse-channels__recommended-tag {
+                        // The tag inherits AlertTag base styles. Snug
+                        // spacing keeps it close to the channel name so it
+                        // reads as a row decoration rather than a separate
+                        // entity, mirroring the equivalent tag in the
+                        // channel_invite modal.
+                        margin-left: 8px;
+                    }
                 }
 
                 #channelPurposeContainer {

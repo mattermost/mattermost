@@ -406,6 +406,15 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             </>
         );
 
+        // Compute the set of channel ids that the current user matches the
+        // membership policy for. Used by SearchableChannelList to decorate
+        // matching rows with the "Recommended" badge regardless of which
+        // filter (All / Public / Recommended) is active. Memoising this set
+        // outside render would be over-engineering: the recommendedChannels
+        // list is small (capped server-side at 2k entries) and changes only
+        // on initial load / explicit refresh.
+        const recommendedChannelIds = new Set(this.state.recommendedChannels.map((c) => c.id));
+
         const body = this.state.loading ? <LoadingScreen/> : (
             <>
                 <SearchableChannelList
@@ -425,6 +434,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     hideJoinedChannelsPreference={this.handleShowJoinedChannelsPreference}
                     rememberHideJoinedChannelsChecked={shouldHideJoinedChannels}
                     channelsMemberCount={this.props.channelsMemberCount}
+                    recommendedChannelIds={recommendedChannelIds}
                 />
                 {serverError}
             </>

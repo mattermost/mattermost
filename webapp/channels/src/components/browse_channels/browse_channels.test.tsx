@@ -694,6 +694,49 @@ describe('components/BrowseChannels', () => {
         });
     });
 
+    test('Recommended badge renders on matching channel rows in the All view and disappears when filtered to Recommended', async () => {
+        const recommendedChannel = TestHelper.getChannelMock({
+            id: 'recommended-channel-id',
+            team_id: 'team_1',
+            display_name: 'Recommended Channel',
+            name: 'recommended-channel',
+            type: 'O',
+        });
+
+        const getChannels = jest.fn().mockResolvedValue({
+            data: [defaultChannel, recommendedChannel],
+        });
+        const getRecommendedChannelsForUser = jest.fn().mockResolvedValue({data: [recommendedChannel]});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            channels: [defaultChannel, recommendedChannel],
+            actions: {...baseProps.actions, getChannels, getRecommendedChannelsForUser},
+        };
+
+        renderWithContext(<BrowseChannels {...props}/>);
+
+        // All view: badge is on the matching row only.
+        await waitFor(() => {
+            expect(screen.getByTestId('recommendedTag-recommended-channel')).toBeInTheDocument();
+        });
+        expect(screen.queryByTestId('recommendedTag-default-channel')).not.toBeInTheDocument();
+
+        // Switch to the Recommended filter — the badge would be redundant
+        // (every row is recommended), so it must be suppressed there. Wait
+        // for the filter switch to commit (default channel must disappear)
+        // before asserting the badge is gone, otherwise we race the
+        // pre-filter render where the badge is correctly still mounted.
+        await user.click(screen.getByLabelText('Channel type filter'));
+        await user.click(await screen.findByText('Recommended channels'));
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('ChannelRow-default-channel')).not.toBeInTheDocument();
+        });
+        expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
+        expect(screen.queryByTestId('recommendedTag-recommended-channel')).not.toBeInTheDocument();
+    });
+
     test('Recommended filter entry is hidden when ABAC is disabled', async () => {
         renderWithContext(<BrowseChannels {...baseProps}/>);
 
