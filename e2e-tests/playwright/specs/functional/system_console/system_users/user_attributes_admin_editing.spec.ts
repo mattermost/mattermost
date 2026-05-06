@@ -133,8 +133,43 @@ test.describe('System Console - Admin User Profile Editing', () => {
         testUser = await pw.createNewUserProfile(adminClient, {prefix: 'admin-edit-target-'});
         await adminClient.addToTeam(team.id, testUser.id);
 
+        // Pre-cleanup: delete any stale UAAE-prefixed fields from previous runs that
+        // may have leaked past afterEach (e.g. from a crashed test). The server enforces
+        // a 20-field limit; stale fields silently block creation of our fresh ones.
+        // The 'UAAE_' prefix is unique to this suite so deleting them is safe even when
+        // other test suites run concurrently on the same server.
+        try {
+            const existingFields = await adminClient.getCustomProfileAttributeFields();
+            const staleUaaeFields = existingFields.filter((f) => f.name.startsWith('UAAE_'));
+            if (staleUaaeFields.length > 0) {
+                const staleMap: Record<string, UserPropertyField> = {};
+                for (const f of staleUaaeFields) {
+                    staleMap[f.id] = f;
+                }
+                await deleteCustomProfileAttributes(adminClient, staleMap);
+            }
+        } catch {
+            // Best-effort — if cleanup fails, proceed and let the real error surface below.
+        }
+
         // Set up custom user attribute fields
         attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, testUserAttributes);
+
+        // Fail fast if any expected field was not created — setupCustomProfileAttributeFields
+        // silently swallows 422 errors (e.g. 20-field server limit), leaving the map incomplete.
+        // Without this check the test would only time out 30 s later at the UI assertion with a
+        // misleading "element not found" error.
+        const missingFields = testUserAttributes
+            .map((a) => a.name)
+            .filter((name) => !Object.values(attributeFieldsMap).some((f) => f.name === name));
+        if (missingFields.length > 0) {
+            const all = await adminClient.getCustomProfileAttributeFields().catch(() => []);
+            throw new Error(
+                `CPA field creation failed for: [${missingFields.join(', ')}]. ` +
+                    `Server currently has ${all.length} fields: [${all.map((f) => f.name).join(', ')}]. ` +
+                    `Possible 20-field limit breach — check for leaked fields from other test suites.`,
+            );
+        }
 
         // Fields reused by name can still carry access_mode=source_only from another suite; the admin
         // user detail page hides those (system_user_detail.tsx) so no CPA labels ever appear.
