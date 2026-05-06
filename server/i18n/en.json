@@ -5200,7 +5200,7 @@
   },
   {
     "id": "app.access_control.get_channel_role.app_error",
-    "translation": ""
+    "translation": "Unable to get channel role for the user. Please try again."
   },
   {
     "id": "app.access_control.insufficient_permissions",
@@ -7574,7 +7574,7 @@
   },
   {
     "id": "app.pap.save_policy.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Permission rule names must be unique within the policy."
   },
   {
     "id": "app.pap.search_access_control_policies.app_error",
@@ -7582,59 +7582,59 @@
   },
   {
     "id": "app.pap.simulate.attribute_refresh",
-    "translation": ""
+    "translation": "Failed to refresh attributes for the simulation."
   },
   {
     "id": "app.pap.simulate.compile_failed",
-    "translation": ""
+    "translation": "Failed to compile the policy for simulation."
   },
   {
     "id": "app.pap.simulate.compile_union",
-    "translation": ""
+    "translation": "Failed to compile the union expression for the simulation."
   },
   {
     "id": "app.pap.simulate.driver_not_found",
-    "translation": ""
+    "translation": "Database driver not configured for the simulation."
   },
   {
     "id": "app.pap.simulate.feature_disabled",
-    "translation": ""
+    "translation": "The permission policies feature is currently disabled."
   },
   {
     "id": "app.pap.simulate.invalid_policy",
-    "translation": ""
+    "translation": "The policy is not valid."
   },
   {
     "id": "app.pap.simulate.missing_actions",
-    "translation": ""
+    "translation": "At least one action is required for simulation."
   },
   {
     "id": "app.pap.simulate.missing_policy",
-    "translation": ""
+    "translation": "A policy is required for simulation."
   },
   {
     "id": "app.pap.simulate.missing_users",
-    "translation": ""
+    "translation": "At least one user is required for simulation."
   },
   {
     "id": "app.pap.simulate.search_users",
-    "translation": ""
+    "translation": "Failed to search users for the simulation."
   },
   {
     "id": "app.pap.simulate.sqlize",
-    "translation": ""
+    "translation": "Failed to build the simulation query."
   },
   {
     "id": "app.pap.simulate.too_many_users",
-    "translation": ""
+    "translation": "Too many users requested. Maximum allowed is {{.Max}}."
   },
   {
     "id": "app.pap.simulate.unavailable",
-    "translation": ""
+    "translation": "Policy Administration Point is not initialized."
   },
   {
     "id": "app.pap.simulate.unsupported_type",
-    "translation": ""
+    "translation": "Policy type \"{{.Type}}\" is not supported by the simulator."
   },
   {
     "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
@@ -10552,11 +10552,11 @@
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
-    "translation": ""
+    "translation": "Membership cannot be combined with other actions in the same rule."
   },
   {
     "id": "model.access_policy.is_valid.actions.permission_type.app_error",
-    "translation": ""
+    "translation": "Permission action rules are only allowed on channel policies."
   },
   {
     "id": "model.access_policy.is_valid.id.app_error",
@@ -10580,15 +10580,15 @@
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
-    "translation": ""
+    "translation": "Permission rules require a non-empty unique name within the policy max length."
   },
   {
     "id": "model.access_policy.is_valid.rule_name_unique.app_error",
-    "translation": ""
+    "translation": "Permission rule names must be unique within the policy."
   },
   {
     "id": "model.access_policy.is_valid.rule_role.app_error",
-    "translation": ""
+    "translation": "Invalid role for the rule."
   },
   {
     "id": "model.access_policy.is_valid.rules.app_error",

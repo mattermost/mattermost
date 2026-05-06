@@ -172,6 +172,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         mockActions.getChannelPolicy.mockClear();
         mockActions.saveChannelPolicy.mockClear();
         mockActions.searchUsers.mockClear();
+        mockActions.simulatePolicy.mockClear();
+        mockActions.simulatePolicyForUsers.mockClear();
         mockUseChannelAccessControlActions.mockReturnValue(mockActions);
         mockUseChannelSystemPolicies.mockReturnValue({
             policies: [],

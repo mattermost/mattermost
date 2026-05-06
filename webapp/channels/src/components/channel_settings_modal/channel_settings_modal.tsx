@@ -63,6 +63,15 @@ function getFirstVisibleTab(shouldShowInfoTab: boolean, shouldShowAccessRulesTab
     if (shouldShowAccessRulesTab) {
         return ChannelSettingsTabs.ACCESS_RULES;
     }
+
+    // Invariant (see callsite): `shouldShowPermissionsPolicyTab`
+    // implies `shouldShowAccessRulesTab` because it is computed as
+    // `shouldShowAccessRulesTab && permissionPoliciesEnabled`. The
+    // ACCESS_RULES branch above therefore already returns whenever
+    // PERMISSIONS_POLICY is visible, so the branch below is currently
+    // unreachable. We keep it as a defensive fallback so this helper
+    // stays correct if that derivation is relaxed (e.g. permissions
+    // policies become independently visible without access rules).
     if (shouldShowPermissionsPolicyTab) {
         return ChannelSettingsTabs.PERMISSIONS_POLICY;
     }

@@ -33,8 +33,13 @@ type Subject struct {
 	// This is separate from custom profile attributes since it's a first-class system concept.
 	//
 	// Deprecated: prefer ScopedRoles which can express both system and
-	// channel-scoped roles. Role is still populated for backward compatibility
-	// and is treated as a system-scoped role when ScopedRoles is empty.
+	// channel-scoped roles. Role is still populated for backward
+	// compatibility and acts as the system-scope fallback inside
+	// RoleForScope: a system-scope lookup returns Role whenever
+	// ScopedRoles has no entry whose Scope is system — including
+	// when the slice is empty AND when it contains only
+	// channel-scoped entries. Populating ScopedRoles with non-system
+	// entries does NOT suppress this fallback.
 	Role string `json:"role"`
 	// ScopedRoles carries roles paired with the scope they apply to (system
 	// or channel). The PDP uses this slice to match a rule's scoped Role
@@ -47,8 +52,10 @@ type Subject struct {
 }
 
 // RoleForScope returns the role assigned to this subject within the given
-// scope. It first checks ScopedRoles; for the system scope it falls back to
-// the legacy Role field when ScopedRoles is empty.
+// scope. It first walks ScopedRoles for a matching Scope; for the system
+// scope it falls back to the legacy Role field whenever no system-scoped
+// entry exists in ScopedRoles (including when the slice is empty or
+// contains only channel-scoped entries).
 func (s *Subject) RoleForScope(scope string) string {
 	for _, sr := range s.ScopedRoles {
 		if sr.Scope == scope {
@@ -134,8 +141,20 @@ const (
 	// to the same effective decision (e.g. an inherited parent policy).
 	PolicySimulationBlameSourceChannelPolicy = "channel_policy"
 	// PolicySimulationBlameSourceSystemPermission means the deny came from a
-	// higher-scoped, persisted system permission policy.
+	// truly higher-scoped, persisted permission policy. Distinct from
+	// PolicySimulationBlameSourcePeerPolicy (same-scope) — the simulator
+	// emits both as system_permission, but the public-server reclassifies
+	// peer-scope blame entries before the response leaves the server. The
+	// expression of an upper-scoped policy is intentionally not exposed
+	// to the simulate UI to preserve scope privacy.
 	PolicySimulationBlameSourceSystemPermission = "system_permission"
+	// PolicySimulationBlameSourcePeerPolicy means the deny came from another
+	// persisted policy at the SAME scope as the draft (same Type and same
+	// ParentID). It's carved out of system_permission by the public-server
+	// post-processing so the picker can show the peer's name + the failing
+	// rule's CEL expression instead of an opaque "upper-scoped policy"
+	// chip — at the editing scope, peers are visible to the author.
+	PolicySimulationBlameSourcePeerPolicy = "peer_policy"
 	// PolicySimulationBlameSourceNoApplicablePolicy is a synthetic blame
 	// source emitted by the simulator when the draft policy does not apply
 	// to a candidate user (e.g. a system_user user is added to test a
@@ -206,6 +225,87 @@ type PolicySimulationBlame struct {
 	// Role is the scoped role (system_* or channel_*) of the contributing
 	// rule or policy. Useful for explaining hierarchy fallbacks.
 	Role string `json:"role,omitempty"`
+	// Expression is the CEL text of the contributing rule. Only populated
+	// for blame entries at the draft's own scope (this_rule, sibling_rule,
+	// sibling_saved, peer_policy). Truly upper-scoped sources
+	// (system_permission, channel_policy) deliberately omit this field so
+	// the simulate UI can't leak the expression of a policy outside the
+	// editing scope.
+	Expression string `json:"expression,omitempty"`
+	// EvaluationTree is the per-node evaluation breakdown of the
+	// contributing rule, mirroring the boolean shape of the CEL
+	// expression's AST. Same scope-privacy rule as Expression: only
+	// populated for draft-side / peer-policy blame; truly upper-scoped
+	// sources omit it. The simulate UI renders it as a structured
+	// AND/OR/NOT tree showing exactly which sub-expression(s) produced
+	// the deny.
+	EvaluationTree *PolicySimulationEvaluationNode `json:"evaluation_tree,omitempty"`
+}
+
+// Kind values for PolicySimulationEvaluationNode.Kind. Compound kinds
+// carry children; leaf kinds carry attribute / actual / expected
+// metadata. PolicySimulationEvaluationKindOther is the catch-all for
+// shapes the simulator doesn't decompose (bare attribute reference,
+// ternary, unknown call).
+const (
+	PolicySimulationEvaluationKindAnd      = "and"
+	PolicySimulationEvaluationKindOr       = "or"
+	PolicySimulationEvaluationKindNot      = "not"
+	PolicySimulationEvaluationKindCompare  = "compare"
+	PolicySimulationEvaluationKindFunction = "function"
+	PolicySimulationEvaluationKindOther    = "other"
+)
+
+// Outcome values for PolicySimulationEvaluationNode.Outcome. Mirrors
+// the three-way truth result of CEL evaluation — a clean true/false,
+// or an error condition (missing attribute, type mismatch).
+const (
+	PolicySimulationEvaluationOutcomeTrue  = "true"
+	PolicySimulationEvaluationOutcomeFalse = "false"
+	PolicySimulationEvaluationOutcomeError = "error"
+)
+
+// PolicySimulationEvaluationNode is a single node in the evaluation
+// tree returned by the simulate-by-users endpoint when the simulator
+// is asked to explain a deny. The tree mirrors the boolean shape of
+// the failing rule's CEL expression — short-circuit branches are
+// walked regardless of their parent's outcome so the consumer can
+// render the state of every clause, not just the first one that
+// decided the verdict.
+type PolicySimulationEvaluationNode struct {
+	// Kind classifies the node (compound vs leaf vs other). One of the
+	// PolicySimulationEvaluationKind* constants above.
+	Kind string `json:"kind"`
+	// Expression is the textual form of THIS subtree, suitable for the
+	// UI to render a snippet without rebuilding text from the AST.
+	Expression string `json:"expression"`
+	// Outcome is the per-node verdict. One of the
+	// PolicySimulationEvaluationOutcome* constants.
+	Outcome string `json:"outcome"`
+	// Error is a human-readable description of an evaluation-time
+	// failure. Populated only when Outcome == "error".
+	Error string `json:"error,omitempty"`
+	// Operator names the leaf operation: "==", "!=", "<", ">", ">=",
+	// "<=", "in", "startsWith", "endsWith", "contains". Empty for
+	// compound and other nodes.
+	Operator string `json:"operator,omitempty"`
+	// Attribute is the user-attribute path the leaf references when
+	// it could be unambiguously identified
+	// (e.g. user.attributes.region). Empty when the leaf does not
+	// reference an attribute or when both sides are non-attribute
+	// expressions.
+	Attribute string `json:"attribute,omitempty"`
+	// ActualValue is a display-formatted rendering of the user's
+	// value for Attribute. Empty when the attribute is missing — a
+	// missing attribute is also reflected in Outcome="error".
+	ActualValue string `json:"actual_value,omitempty"`
+	// ExpectedValue is a display-formatted rendering of the literal
+	// (or list of literals) the leaf compared against. Empty when the
+	// other side is itself an attribute reference.
+	ExpectedValue string `json:"expected_value,omitempty"`
+	// Children are the operands of a compound node, walked in
+	// expression order. Empty for leaf and other nodes.
+	Children []PolicySimulationEvaluationNode `json:"children,omitempty"`
 }
 
 // PolicySimulationActionDecision is the per-action verdict for a single user.
@@ -234,6 +334,12 @@ type PolicySimulationSession struct {
 	// using the session's own session.* attributes (the user's profile
 	// attributes are constant across sessions).
 	Decisions map[string]PolicySimulationActionDecision `json:"decisions,omitempty"`
+	// Attributes is the session-attribute snapshot the simulator used when
+	// evaluating this session (network_status, device_managed, ip_range,
+	// etc.). Surfaced to the picker's "Decision details" view so the
+	// author can read the deny like an evaluation trace. Optional — omitted
+	// when the simulator hasn't populated it.
+	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
 // PolicySimulationUserResult is one row in the simulation response.
@@ -248,6 +354,12 @@ type PolicySimulationUserResult struct {
 	// Sessions is the optional per-session breakdown. Empty/nil falls back
 	// to the user-level Decisions only.
 	Sessions []PolicySimulationSession `json:"sessions,omitempty"`
+	// Attributes is the user profile attribute snapshot the simulator used
+	// when evaluating this user (department, region, clearance, etc.).
+	// Surfaced to the picker's "Decision details" view so the author can
+	// read the deny as an evaluation trace. Optional — omitted when the
+	// simulator hasn't populated it.
+	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
 // PolicySimulationResponse is the body returned by cel/simulate.
@@ -285,17 +397,22 @@ type PolicySimulationUserOverride struct {
 // PolicyEvaluationScope* constants enumerate the supported evaluation
 // scopes for /cel/simulate_users.
 const (
-	// PolicyEvaluationScopeThisPolicy evaluates only the draft policy
-	// passed in the request. This is the authoring-time view: it surfaces
-	// only the rules the author is editing right now, with sibling/system
-	// blame attribution where relevant. Default when the request omits
-	// EvaluationScope (preserves pre-existing behaviour).
-	PolicyEvaluationScopeThisPolicy = "this_policy"
-	// PolicyEvaluationScopeAll co-evaluates the draft alongside any other
-	// persisted permission policies that govern the same channel/scope
-	// (parent policies, system permission policies). This mirrors the PEP's
-	// at-request-time semantics so the picker can preview the effective
-	// decision the user would actually experience.
+	// PolicyEvaluationScopeThisRule evaluates ONLY the rule the author is
+	// editing — sibling rules in the same policy, system permission
+	// policies, and any other peer policies are excluded. This is the
+	// authoring-time "what does this rule alone do?" view: useful for
+	// iterating on a single rule's expression without other rules
+	// shadowing or compensating for it. Parent inheritance is still
+	// honoured (engine.GetScopedRule returns child∧parent), so the
+	// preview reflects what the rule would do at evaluation time, just
+	// without the sibling rules' contribution. Default when the request
+	// omits EvaluationScope.
+	PolicyEvaluationScopeThisRule = "this_rule"
+	// PolicyEvaluationScopeAll co-evaluates every contributing program —
+	// the entire draft policy (all rules), persisted system permission
+	// policies, parent policies — exactly as the live PDP would at
+	// request time. This is the "what verdict will the user actually
+	// experience?" view.
 	PolicyEvaluationScopeAll = "all"
 )
 
@@ -325,8 +442,7 @@ type PolicySimulationByUsersParams struct {
 	// session-attribute overrides.
 	Users []PolicySimulationUserOverride `json:"users"`
 	// EvaluationScope selects whether the simulator considers only the
-	// draft Policy (this_policy) or co-evaluates other persisted policies
-	// that govern the same scope (all). Empty defaults to this_policy on
-	// the server to preserve pre-existing behaviour for older clients.
+	// rule under simulation (this_rule) or co-evaluates every contributing
+	// program (all). Empty defaults to this_rule on the server.
 	EvaluationScope string `json:"evaluation_scope,omitempty"`
 }

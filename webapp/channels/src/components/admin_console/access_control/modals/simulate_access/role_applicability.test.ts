@@ -4,8 +4,11 @@
 import {
     channelRolesMatchingTarget,
     draftRoleAppliesToSubjectRole,
+    isChannelRole,
+    pickChannelRoleFromTokens,
     pickSystemRoleFromTokens,
     roleChain,
+    userIsSystemAdmin,
     userMatchesTargetRole,
 } from './role_applicability';
 
@@ -133,5 +136,74 @@ describe('userMatchesTargetRole', () => {
 
     test('channel scope without channelMemberRole rejects (defensive)', () => {
         expect(userMatchesTargetRole({roles: 'system_user'}, 'channel_admin', 'channel')).toBe(false);
+    });
+
+    test('system scope with a channel-scoped target role accepts every user (system-console permission policy edge case)', () => {
+        // System-console permission policies live at system scope but
+        // their rules carry channel_* role names because the rules
+        // govern per-channel actions. Without channel context the
+        // picker can't determine applicability, so it must defer to
+        // the server's no_applicable_policy attribution at simulate
+        // time — every user is a candidate, and the simulator marks
+        // mismatches at evaluation. Without this carve-out NOBODY
+        // would appear in the picker for channel-targeting system
+        // rules, since channel_* never appears in a system role chain.
+        expect(userMatchesTargetRole({roles: 'system_user'}, 'channel_user', 'system')).toBe(true);
+        expect(userMatchesTargetRole({roles: 'system_admin'}, 'channel_user', 'system')).toBe(true);
+        expect(userMatchesTargetRole({roles: 'system_user'}, 'channel_admin', 'system')).toBe(true);
+        expect(userMatchesTargetRole({roles: 'system_guest'}, 'channel_guest', 'system')).toBe(true);
+    });
+
+    test('system scope with a system-scoped target role still applies the chain (regression guard)', () => {
+        expect(userMatchesTargetRole({roles: 'system_user'}, 'system_user', 'system')).toBe(true);
+        expect(userMatchesTargetRole({roles: 'system_user'}, 'system_admin', 'system')).toBe(false);
+    });
+});
+
+describe('isChannelRole', () => {
+    test('recognises the three channel-scoped roles', () => {
+        expect(isChannelRole('channel_admin')).toBe(true);
+        expect(isChannelRole('channel_user')).toBe(true);
+        expect(isChannelRole('channel_guest')).toBe(true);
+    });
+
+    test('rejects system-scoped roles, empty input, and unknown tokens', () => {
+        expect(isChannelRole('system_admin')).toBe(false);
+        expect(isChannelRole('system_user')).toBe(false);
+        expect(isChannelRole('system_guest')).toBe(false);
+        expect(isChannelRole('')).toBe(false);
+        expect(isChannelRole('custom_role')).toBe(false);
+    });
+});
+
+describe('pickChannelRoleFromTokens', () => {
+    test('picks channel_admin when present, even alongside channel_user', () => {
+        // ChannelMember.roles is space-separated and admins typically
+        // carry both tokens. The picker treats them as effective admins.
+        expect(pickChannelRoleFromTokens('channel_user channel_admin')).toBe('channel_admin');
+        expect(pickChannelRoleFromTokens('channel_admin channel_user')).toBe('channel_admin');
+    });
+
+    test('falls back through channel_guest before channel_user', () => {
+        expect(pickChannelRoleFromTokens('channel_guest')).toBe('channel_guest');
+        expect(pickChannelRoleFromTokens('channel_user')).toBe('channel_user');
+    });
+
+    test('returns empty for empty input or no recognised tokens', () => {
+        expect(pickChannelRoleFromTokens('')).toBe('');
+        expect(pickChannelRoleFromTokens('custom_channel_role')).toBe('');
+    });
+});
+
+describe('userIsSystemAdmin', () => {
+    test('returns true when system_admin appears in role tokens', () => {
+        expect(userIsSystemAdmin({roles: 'system_admin'})).toBe(true);
+        expect(userIsSystemAdmin({roles: 'system_user system_admin'})).toBe(true);
+    });
+
+    test('returns false for non-admins', () => {
+        expect(userIsSystemAdmin({roles: 'system_user'})).toBe(false);
+        expect(userIsSystemAdmin({roles: 'system_guest'})).toBe(false);
+        expect(userIsSystemAdmin({roles: ''})).toBe(false);
     });
 });

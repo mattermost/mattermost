@@ -604,7 +604,7 @@ function ChannelSettingsPermissionsPolicyTab({
                     <i className='icon icon-information-outline'/>
                     <FormattedMessage
                         id='channel_settings.permissions_policy.or_hint'
-                        defaultMessage='Multiple rules with the same role and action are combined with OR.'
+                        defaultMessage='When several rules apply to the same role and action, a user is allowed if any one of them allows them. A system-level policy may still deny the permission even when this channel policy allows it.'
                     />
                 </div>
             )}

@@ -203,16 +203,27 @@ export type AccessControlPolicyActiveUpdate = {
 /**
  * Sources of deny attribution returned by the simulate endpoint.
  *
- * - `this_rule`     — deny came from the rule the author is editing.
- * - `sibling_rule`  — deny came from another rule in the same draft policy.
- * - `channel_policy`— deny came from a sibling channel-policy rule.
- * - `system_permission` — deny came from a higher-scoped system permission policy.
+ * - `this_rule`         — deny came from the rule the author is editing.
+ * - `sibling_rule`      — deny came from another rule in the same draft policy.
+ * - `sibling_saved`     — sibling rule converted a draft-side deny into an allow.
+ * - `peer_policy`       — deny came from another persisted policy at the SAME
+ *                         scope as the draft (same Type and ParentID). The
+ *                         public-server reclassifies system_permission entries
+ *                         to peer_policy when the blamed policy is at the
+ *                         editing scope so the picker can show its name + the
+ *                         failing rule's expression.
+ * - `channel_policy`    — deny came from a higher-scoped channel/parent policy.
+ *                         Treated as opaque (no expression exposed).
+ * - `system_permission` — deny came from a TRULY higher-scoped permission
+ *                         policy. Treated as opaque.
+ * - `no_applicable_policy` — synthetic vacuous-allow marker.
  */
 export const POLICY_SIMULATION_BLAME_SOURCES = {
     THIS_RULE: 'this_rule',
     SIBLING_RULE: 'sibling_rule',
     CHANNEL_POLICY: 'channel_policy',
     SYSTEM_PERMISSION: 'system_permission',
+    PEER_POLICY: 'peer_policy',
     NO_APPLICABLE_POLICY: 'no_applicable_policy',
     SIBLING_SAVED: 'sibling_saved',
 } as const;
@@ -226,6 +237,110 @@ export type PolicySimulationBlame = {
     policy_name?: string;
     rule_name?: string;
     role?: string;
+
+    /** CEL text of the contributing rule. Only populated for blame
+     *  entries at the draft's own scope (this_rule, sibling_rule,
+     *  sibling_saved, peer_policy). Truly upper-scoped sources omit
+     *  this so the picker can't leak the expression of a policy
+     *  outside the editing scope. */
+    expression?: string;
+
+    /** Per-node evaluation trace for the contributing rule, mirroring
+     *  the Go cel_utils.EvaluationNode struct. Same scope-privacy
+     *  rule as `expression`: only populated for draft-side and
+     *  peer-policy blame. The picker renders this as a structured
+     *  AND/OR/NOT tree showing exactly which sub-expression(s)
+     *  produced the deny — when absent the modal falls back to the
+     *  flat expression text. */
+    evaluation_tree?: PolicySimulationEvaluationNode;
+};
+
+/**
+ * Classifier for nodes in PolicySimulationEvaluationNode trees.
+ *
+ * - `and` / `or` / `not`     — boolean compounds; carry `children`.
+ * - `compare`                — binary operator leaf (==, !=, <, in, ...).
+ * - `function`               — receiver-style function leaf (.startsWith,
+ *                              .endsWith, .contains).
+ * - `other`                  — any shape we don't decompose (bare
+ *                              attribute reference, ternary, ...). The
+ *                              outcome is still meaningful but
+ *                              attribute / actual / expected may be
+ *                              absent.
+ */
+export const POLICY_SIMULATION_EVALUATION_NODE_KIND = {
+    AND: 'and',
+    OR: 'or',
+    NOT: 'not',
+    COMPARE: 'compare',
+    FUNCTION: 'function',
+    OTHER: 'other',
+} as const;
+
+export type PolicySimulationEvaluationNodeKind =
+    typeof POLICY_SIMULATION_EVALUATION_NODE_KIND[keyof typeof POLICY_SIMULATION_EVALUATION_NODE_KIND];
+
+/**
+ * Three-way outcome for an evaluation node, mirroring the Go
+ * cel_utils.EvaluationOutcome. Errors (missing attributes, type
+ * mismatches) propagate up compound nodes only when no concrete
+ * short-circuit applies (any false → false in AND, any true → true
+ * in OR).
+ */
+export const POLICY_SIMULATION_EVALUATION_OUTCOME = {
+    TRUE: 'true',
+    FALSE: 'false',
+    ERROR: 'error',
+} as const;
+
+export type PolicySimulationEvaluationOutcome =
+    typeof POLICY_SIMULATION_EVALUATION_OUTCOME[keyof typeof POLICY_SIMULATION_EVALUATION_OUTCOME];
+
+/**
+ * Per-node entry in a PolicySimulationBlame.evaluation_tree. The
+ * structure mirrors the boolean shape of the failing rule's CEL
+ * expression — every conjunct/disjunct/negation gets its own node
+ * with an Outcome, and leaves carry the attribute path + the user's
+ * actual value alongside the expected literal.
+ *
+ * JSON shape matches the Go struct verbatim; new optional fields can
+ * be added without breaking existing renderers.
+ */
+export type PolicySimulationEvaluationNode = {
+    kind: PolicySimulationEvaluationNodeKind;
+
+    /** Textual form of THIS subtree, suitable for rendering a snippet
+     *  without rebuilding text from the AST. */
+    expression: string;
+
+    outcome: PolicySimulationEvaluationOutcome;
+
+    /** Human-readable evaluation-time error (e.g. missing attribute,
+     *  type mismatch). Populated only when `outcome === 'error'`. */
+    error?: string;
+
+    /** Operator string for leaf nodes: `==`, `!=`, `<`, `<=`, `>`,
+     *  `>=`, `in`, `startsWith`, `endsWith`, `contains`. Empty for
+     *  compound and `other` nodes. */
+    operator?: string;
+
+    /** User-attribute path on a leaf comparison
+     *  (e.g. `user.attributes.region`). Empty when the leaf does not
+     *  reference an attribute or when both sides are non-attribute
+     *  expressions. */
+    attribute?: string;
+
+    /** Display-formatted user value for `attribute`. Empty when the
+     *  attribute is missing — `outcome` will be `error` in that case. */
+    actual_value?: string;
+
+    /** Display-formatted literal the leaf compared against. Empty
+     *  when the other side is itself an attribute reference. */
+    expected_value?: string;
+
+    /** Operands of a compound node, walked in expression order. Empty
+     *  for leaf and `other` nodes. */
+    children?: PolicySimulationEvaluationNode[];
 };
 
 export type PolicySimulationActionDecision = {
@@ -259,6 +374,12 @@ export type PolicySimulationSession = {
     /** Per-action verdicts for this specific session. Same shape as the
      *  user-level `decisions` map. */
     decisions?: Record<string, PolicySimulationActionDecision>;
+
+    /** Session-attribute snapshot the simulator used when evaluating
+     *  this session (network_status, device_managed, ip_range, etc.).
+     *  Surfaced in the per-row "Decision details" view so the author
+     *  can read the deny like an evaluation trace. Optional. */
+    attributes?: Record<string, string>;
 };
 
 export type PolicySimulationUserResult = {
@@ -269,6 +390,12 @@ export type PolicySimulationUserResult = {
      *  a Recent activity expand row revealing one decision chip per
      *  session. Empty/undefined falls back to a single user-level chip. */
     sessions?: PolicySimulationSession[];
+
+    /** User profile attribute snapshot the simulator used when
+     *  evaluating this user (department, region, clearance, etc.).
+     *  Surfaced in the per-row "Decision details" view so the author
+     *  can read the deny like an evaluation trace. Optional. */
+    attributes?: Record<string, string>;
 };
 
 export type PolicySimulationResponse = {
@@ -279,13 +406,17 @@ export type PolicySimulationResponse = {
 
 /**
  * Scope for the simulate-by-users evaluation:
- *  - 'all'         — co-evaluate the draft against any other persisted
- *                    permission policies that govern the same channel/scope
- *                    (parent + system permission policies). Mirrors the
- *                    PEP's behaviour at request time.
- *  - 'this_policy' — evaluate only the draft policy. Authoring view.
+ *  - 'all'       — co-evaluate every contributing program (the entire
+ *                  draft policy, persisted system permission policies,
+ *                  parent policies). Mirrors the PEP's behaviour at
+ *                  request time.
+ *  - 'this_rule' — evaluate ONLY the rule the author is editing. Sibling
+ *                  rules in the same policy and any other policies are
+ *                  excluded so the picker can answer "what does this
+ *                  rule alone do?" without other rules shadowing it.
+ *                  Parent inheritance is still honoured.
  */
-export type PolicyEvaluationScope = 'all' | 'this_policy';
+export type PolicyEvaluationScope = 'all' | 'this_rule';
 
 export type PolicySimulationParams = {
     policy: AccessControlPolicy;
@@ -326,9 +457,8 @@ export type PolicySimulationByUsersParams = {
     team_id?: string;
     users: PolicySimulationUserOverride[];
 
-    /** Evaluation scope. Defaults to 'this_policy' on the server when
-     *  omitted to preserve the existing authoring-only semantics. The
-     *  picker UI exposes this as a "Evaluate against: All policies / This
-     *  policy only" toggle. */
+    /** Evaluation scope. Defaults to 'this_rule' on the server when
+     *  omitted. The picker UI exposes this as an "Evaluate against:
+     *  All policies / This rule only" toggle. */
     evaluation_scope?: PolicyEvaluationScope;
 };

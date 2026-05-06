@@ -1,0 +1,112 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Styles for AddUsersInline — the "+ Add users" trigger button and the
+// FloatingPortal popover that hosts the search input + result list.
+// The trigger sits inside SimulateAccessModal's subheader; the popover
+// is portaled to <body>, which is why the popover rules are
+// flat (`.SimulateAccessModal__addUsersPanel`) and live outside any
+// `.SimulateAccessModal { ... }` ancestor selector.
+
+.SimulateAccessModal__addUsersWrap {
+    flex-shrink: 0;
+}
+
+.SimulateAccessModal__addUsers {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-weight: 600;
+    gap: 4px;
+
+    i {
+        font-size: 16px;
+    }
+}
+
+.SimulateAccessModal__addUsersResults {
+    max-height: 360px;
+    margin-top: 10px;
+    overflow-y: auto;
+}
+
+.SimulateAccessModal__addUsersHint {
+    padding: 12px 8px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 13px;
+}
+
+.SimulateAccessModal__addUsersResult {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    gap: 12px;
+    text-align: left;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    // Keyboard focus must stay visibly indicated. The hover branch
+    // above lights the row's background; here we add a focus ring on
+    // top of that so a user tabbing through the result list can still
+    // tell where they are. Mirrors the focus-ring pattern used by
+    // .SimulateAccessModal__rowChipButton.
+    &:focus-visible {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        outline: 2px solid var(--button-bg);
+        outline-offset: -2px;
+    }
+
+    img {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        border-radius: 50%;
+    }
+}
+
+.SimulateAccessModal__addUsersResultMeta {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
+.SimulateAccessModal__addUsersResultName {
+    overflow: hidden;
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.SimulateAccessModal__addUsersResultEmail {
+    overflow: hidden;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// FloatingPortal popovers live OUTSIDE .SimulateAccessModal so their
+// rules apply at <body> level. Bootstrap's modal stack uses 1050
+// (.modal-backdrop) / 1055 — we stay above that so the panel never
+// gets clipped by, or sits behind, the modal itself.
+.SimulateAccessModal__addUsersPanel {
+    z-index: 1080;
+    width: 480px;
+    max-width: 90vw;
+    padding: 14px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}

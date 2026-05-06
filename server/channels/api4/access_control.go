@@ -413,20 +413,9 @@ func simulatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasTeamPermission := !hasSystemPermission && params.TeamID != "" &&
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), params.TeamID, model.PermissionManageTeamAccessRules)
-
-	if !hasSystemPermission && !hasTeamPermission {
-		if params.ChannelID == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, params.ChannelID, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
-		}
+	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
+	if !ok {
+		return
 	}
 
 	resp, appErr := c.App.SimulateAccessControlPolicy(c.AppContext, params)
@@ -448,6 +437,59 @@ func simulatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// authorizeSimulatePolicy checks the caller's permission to simulate a
+// policy and returns whether they have system-level access — used by
+// the caller to scope SanitizeProfile.
+//
+// Authorization order:
+//   - system admin: always.
+//   - team admin: only when teamID is set AND any provided channelID
+//     resolves to a channel in that team. Without this guard a team
+//     admin could simulate a policy for any channel by pairing their
+//     team_id with a foreign channel_id; the cross-team check forces
+//     the auth to fall through to HasPermissionToChannel for any
+//     channel outside the admin's team.
+//   - channel admin: when channelID is set, via HasPermissionToChannel
+//     (which already covers the channel's actual team admins).
+//
+// On failure the function sets the appropriate permission error on `c`
+// and returns ok=false. Callers MUST early-return when ok=false.
+func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPermission bool, ok bool) {
+	hasSystemPermission = c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
+	if hasSystemPermission {
+		return true, true
+	}
+
+	// Team admin shortcut — but only when the channel (if any) actually
+	// belongs to that team. Mismatched channel/team IDs fall through to
+	// the channel-level check below, so a team admin gets exactly the
+	// permissions they have on the actual target channel and nothing
+	// wider.
+	if teamID != "" && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		if channelID == "" {
+			return false, true
+		}
+		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
+		if appErr == nil && channel.TeamId == teamID {
+			return false, true
+		}
+		// Channel doesn't exist, isn't in the team, or fetch failed —
+		// drop the team-admin shortcut and let the channel-level check
+		// below decide.
+	}
+
+	if channelID == "" {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return false, false
+	}
+	hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelID, model.PermissionManageChannelAccessRules)
+	if !hasChannelPermission {
+		c.SetPermissionError(model.PermissionManageChannelAccessRules)
+		return false, false
+	}
+	return false, true
 }
 
 // simulatePolicyForUsers is the picker-driven counterpart to simulatePolicy.
@@ -487,26 +529,15 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	switch params.EvaluationScope {
-	case "", model.PolicyEvaluationScopeThisPolicy, model.PolicyEvaluationScopeAll:
+	case "", model.PolicyEvaluationScopeThisRule, model.PolicyEvaluationScopeAll:
 	default:
 		c.SetInvalidParam("evaluation_scope")
 		return
 	}
 
-	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasTeamPermission := !hasSystemPermission && params.TeamID != "" &&
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), params.TeamID, model.PermissionManageTeamAccessRules)
-
-	if !hasSystemPermission && !hasTeamPermission {
-		if params.ChannelID == "" {
-			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-		hasChannelPermission, _ := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, params.ChannelID, model.PermissionManageChannelAccessRules)
-		if !hasChannelPermission {
-			c.SetPermissionError(model.PermissionManageChannelAccessRules)
-			return
-		}
+	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
+	if !ok {
+		return
 	}
 
 	resp, appErr := c.App.SimulateAccessControlPolicyForUsers(c.AppContext, params)

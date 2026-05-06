@@ -493,10 +493,23 @@ function TableEditor({
                     onClick={onTestClick ?? (() => setShowTestResults(true))}
                     disabled={(testButtonDisabled ?? false) || disabled || (!onTestClick && !value) || userWouldBeExcluded}
                     disabledTooltip={
-                        userWouldBeExcluded ? formatMessage({
+
+                        // Precedence: an explicit parent-supplied
+                        // tooltip paired with `testButtonDisabled`
+                        // wins (the parent already chose what the
+                        // user should see and why), then the
+                        // user-excluded message, then any other
+                        // testButtonTooltip the parent passed
+                        // alongside other disable reasons. The
+                        // earlier `userWouldBeExcluded ? … : tooltip`
+                        // ternary silenced parent hints whenever the
+                        // self-exclusion check happened to also
+                        // be true.
+                        (testButtonDisabled && testButtonTooltip) ||
+                        (userWouldBeExcluded ? formatMessage({
                             id: 'admin.access_control.table_editor.user_excluded_tooltip',
                             defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                        }) : testButtonTooltip
+                        }) : testButtonTooltip)
                     }
                     label={testButtonLabel}
                 />

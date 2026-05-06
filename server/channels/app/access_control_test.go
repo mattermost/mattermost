@@ -1998,18 +1998,26 @@ func TestGetSubjectChannelRole(t *testing.T) {
 		assert.Equal(t, model.ChannelAdminRoleId, role)
 	})
 
-	t.Run("returns guess for non-member with system_user role", func(t *testing.T) {
+	// Non-members have no channel-scoped role to report, regardless of
+	// their system role. The function's contract — documented in the
+	// docstring — is to return ("", nil) and let the caller decide;
+	// previously it synthesised a guess from systemRoles (channel_user
+	// for system_user, channel_guest for system_guest), which leaked
+	// channel-scope data from the user's system membership. Callers
+	// (attachChannelScopedRole, simulator subject builders) now gate
+	// on the empty string and skip the channel scope.
+	t.Run("returns empty role for non-member with system_user role", func(t *testing.T) {
 		nonMemberID := model.NewId()
 		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemUserRoleId)
 		require.Nil(t, appErr)
-		assert.Equal(t, model.ChannelUserRoleId, role)
+		assert.Equal(t, "", role)
 	})
 
-	t.Run("returns channel_guest when system_guest used as fallback for non-member", func(t *testing.T) {
+	t.Run("returns empty role for non-member regardless of system role", func(t *testing.T) {
 		nonMemberID := model.NewId()
 		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemGuestRoleId)
 		require.Nil(t, appErr)
-		assert.Equal(t, model.ChannelGuestRoleId, role)
+		assert.Equal(t, "", role)
 	})
 }
 
@@ -2155,12 +2163,15 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 	})
 }
 
-// TestFilterResponseToDraftScope locks down the post-processing that
-// turns a full-stack simulator response into a "this policy only" view.
-// Upper-scoped blame entries (system permission, inherited channel
-// policy) are dropped; denies that have no remaining draft-side blame
-// flip back to allow because the draft alone would not have denied.
-func TestFilterResponseToDraftScope(t *testing.T) {
+// TestFilterResponseToEditingRuleScope locks down the post-processing
+// that turns a full-stack simulator response into a "this rule only"
+// view. Upper-scoped blame entries (system_permission, peer_policy,
+// inherited channel_policy) and sibling_rule entries are dropped;
+// denies that have no remaining editing-rule-side blame flip back to
+// allow because the rule alone would not have denied. The simulator
+// already restricts contributions, so this filter is the defensive
+// backstop.
+func TestFilterResponseToEditingRuleScope(t *testing.T) {
 	t.Run("deny attributed only to upper-scoped policy flips to allow", func(t *testing.T) {
 		resp := &model.PolicySimulationResponse{
 			Results: []model.PolicySimulationUserResult{{
@@ -2176,7 +2187,7 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 			}},
 		}
 
-		filterResponseToDraftScope(resp)
+		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
 		assert.True(t, dec.Decision, "deny solely from upper-scoped blame must flip to allow")
@@ -2199,7 +2210,7 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 			}},
 		}
 
-		filterResponseToDraftScope(resp)
+		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["download_file_attachment"]
 		assert.False(t, dec.Decision, "deny that the draft itself produces must remain a deny")
@@ -2222,7 +2233,7 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 			}},
 		}
 
-		filterResponseToDraftScope(resp)
+		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
 		assert.True(t, dec.Decision)
@@ -2245,7 +2256,7 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 			}},
 		}
 
-		filterResponseToDraftScope(resp)
+		filterResponseToEditingRuleScope(resp, "")
 
 		dec := resp.Results[0].Decisions["upload_file_attachment"]
 		assert.True(t, dec.Decision, "channel_policy blame is upper-scoped, so the deny must flip to allow")
@@ -2291,7 +2302,7 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 			}},
 		}
 
-		filterResponseToDraftScope(resp)
+		filterResponseToEditingRuleScope(resp, "")
 
 		userDec := resp.Results[0].Decisions["upload_file_attachment"]
 		assert.True(t, userDec.Decision, "user-level deny solely from upper-scoped flips to allow")
@@ -2303,5 +2314,318 @@ func TestFilterResponseToDraftScope(t *testing.T) {
 		assert.False(t, sess2Dec.Decision, "session-level deny with this_rule blame stays a deny")
 		require.Len(t, sess2Dec.Blame, 1)
 		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, sess2Dec.Blame[0].Source)
+	})
+
+	t.Run("peer_policy blame is dropped in this_rule mode (peers are not the editing rule)", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u6"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourcePeerPolicy, PolicyName: "IL5 Block", RuleName: "r1", Expression: "user.attributes.clearance == \"il5\""},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "deny coming from a peer policy is irrelevant in this rule mode and must flip to allow")
+		assert.Empty(t, dec.Blame)
+	})
+
+	// This is the regression that motivated the toggle rename: when
+	// editing rule "channel_users" and the policy ALSO has a sibling
+	// "channel_admins" rule that allowed the candidate, the picker
+	// previously surfaced the sibling allow under "this policy only".
+	// In "this rule only" mode that sibling_rule blame must be dropped.
+	t.Run("sibling_rule blame is dropped in this_rule mode (only the editing rule counts)", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u7"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingRule, RuleName: "channel_admins"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "channel_users")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "sibling-rule deny must flip to allow when scoped to a specific editing rule")
+		assert.Empty(t, dec.Blame)
+	})
+
+	// When two different rules both emit this_rule blame on the same
+	// decision (theoretically possible if the simulator's contribution
+	// restriction misfires) the filter keeps only the entry whose
+	// rule_name matches the editing rule. Belt-and-suspenders defence
+	// behind the simulator's contribution gate.
+	t.Run("this_rule blame is filtered to the editing rule by name", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u8"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "channel_admins"},
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "channel_users"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToEditingRuleScope(resp, "channel_users")
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.False(t, dec.Decision, "deny from the editing rule survives")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, "channel_users", dec.Blame[0].RuleName,
+			"only the editing rule's blame is kept; the other this_rule entry is dropped")
+	})
+}
+
+// TestEnrichBlameForDraftScope locks down the post-processing that
+// turns the simulator's raw response into the picker-friendly view: it
+// (a) injects expression text on draft-side blame entries, (b)
+// reclassifies system_permission blame whose blamed policy lives at
+// the same scope as the draft (same Type + same Imports) into
+// peer_policy and copies its expression in too, (c) leaves truly
+// upper-scoped sources expression-less so the UI cannot leak them.
+func TestEnrichBlameForDraftScope(t *testing.T) {
+	t.Helper()
+
+	t.Run("draft-side blame (this_rule / sibling_rule / sibling_saved) gains the expression from params.Policy.Rules", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:   "draft1",
+			Type: model.AccessControlPolicyTypePermission,
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "r1", Expression: "user.attributes.region == \"us\""},
+				{Name: "r2", Expression: "user.attributes.department == \"engineering\""},
+			},
+		}
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "r1"},
+						},
+					},
+					"download_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingRule, RuleName: "r2"},
+						},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		uploadBlame := resp.Results[0].Decisions["upload_file_attachment"].Blame[0]
+		assert.Equal(t, "user.attributes.region == \"us\"", uploadBlame.Expression, "this_rule blame must receive the rule's expression")
+
+		downloadBlame := resp.Results[0].Decisions["download_file_attachment"].Blame[0]
+		assert.Equal(t, "user.attributes.department == \"engineering\"", downloadBlame.Expression, "sibling_rule blame must receive the rule's expression")
+
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("system_permission blame whose blamed policy shares scope with the draft is reclassified to peer_policy and gains its expression", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "rd", Expression: "true"},
+			},
+		}
+		peer := &model.AccessControlPolicy{
+			ID:      "peer1",
+			Name:    "IL5 Block",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "p1", Expression: "user.attributes.clearance == \"il5\""},
+			},
+		}
+		mockACS.On("GetPolicy", mock.Anything, "peer1").Return(peer, (*model.AppError)(nil))
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u2"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceSystemPermission,
+							PolicyID:   "peer1",
+							PolicyName: "IL5 Block",
+							RuleName:   "p1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, dec.Blame[0].Source, "same-scope blame must be reclassified to peer_policy")
+		assert.Equal(t, "user.attributes.clearance == \"il5\"", dec.Blame[0].Expression, "the failing rule's expression must be injected from the peer policy")
+		assert.Equal(t, "IL5 Block", dec.Blame[0].PolicyName)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("system_permission blame whose blamed policy lives at a different scope stays opaque and gets no expression", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{}, // top-level (system console) draft.
+		}
+		upperScoped := &model.AccessControlPolicy{
+			ID:      "upper1",
+			Name:    "Org Wide Lockdown",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{"some-parent-id"}, // a child of some other parent — different scope.
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "u1", Expression: "user.attributes.region == \"sandbox\""},
+			},
+		}
+		mockACS.On("GetPolicy", mock.Anything, "upper1").Return(upperScoped, (*model.AppError)(nil))
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceSystemPermission,
+							PolicyID:   "upper1",
+							PolicyName: "Org Wide Lockdown",
+							RuleName:   "u1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceSystemPermission, dec.Blame[0].Source, "different-scope blame must stay system_permission")
+		assert.Empty(t, dec.Blame[0].Expression, "upper-scoped blame must NEVER carry the expression — that would leak content of a policy outside the editing scope")
+	})
+
+	t.Run("channel_policy blame is never reclassified or enriched", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:   "draft1",
+			Type: model.AccessControlPolicyTypePermission,
+		}
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u4"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{{
+							Source:     model.PolicySimulationBlameSourceChannelPolicy,
+							PolicyID:   "channel-policy-1",
+							PolicyName: "Parent",
+							RuleName:   "r1",
+						}},
+					},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceChannelPolicy, dec.Blame[0].Source, "channel_policy blame must never be reclassified")
+		assert.Empty(t, dec.Blame[0].Expression)
+		mockACS.AssertNotCalled(t, "GetPolicy", mock.Anything, mock.Anything)
+	})
+
+	t.Run("session-level decisions are enriched alongside the user-level ones, and GetPolicy is cached per policy_id", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		draft := &model.AccessControlPolicy{
+			ID:      "draft1",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+		}
+		peer := &model.AccessControlPolicy{
+			ID:      "peer1",
+			Name:    "IL5 Block",
+			Type:    model.AccessControlPolicyTypePermission,
+			Imports: []string{},
+			Rules: []model.AccessControlPolicyRule{
+				{Name: "p1", Expression: "user.attributes.clearance == \"il5\""},
+			},
+		}
+
+		// Set up GetPolicy with .Once() so the assertion below proves
+		// caching: even though peer1 appears in three blame entries
+		// across the response, the helper must only resolve it once
+		// for the request.
+		mockACS.On("GetPolicy", mock.Anything, "peer1").Return(peer, (*model.AppError)(nil)).Once()
+
+		makeBlame := func() []model.PolicySimulationBlame {
+			return []model.PolicySimulationBlame{{
+				Source:     model.PolicySimulationBlameSourceSystemPermission,
+				PolicyID:   "peer1",
+				PolicyName: "IL5 Block",
+				RuleName:   "p1",
+			}}
+		}
+
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u5"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+				},
+				Sessions: []model.PolicySimulationSession{
+					{ID: "s1", Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+					}},
+					{ID: "s2", Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {Decision: false, Blame: makeBlame()},
+					}},
+				},
+			}},
+		}
+
+		enrichBlameForDraftScope(request.EmptyContext(nil), mockACS, draft, resp)
+
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Decisions["upload_file_attachment"].Blame[0].Source)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Sessions[0].Decisions["upload_file_attachment"].Blame[0].Source)
+		assert.Equal(t, model.PolicySimulationBlameSourcePeerPolicy, resp.Results[0].Sessions[1].Decisions["upload_file_attachment"].Blame[0].Source)
+		mockACS.AssertExpectations(t)
 	})
 }

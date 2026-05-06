@@ -1,6 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Frame-level styles for the picker modal: the GenericModal flex chain,
+// the subheader band (description copy + "+ Add users"), the controls
+// band (permission filter + "Evaluate against" segmented toggle), the
+// table scaffolding, and the custom footer (summary + Close / Re-run).
+// Component-specific styles live in sibling .scss files imported by the
+// component that owns them:
+//   - add_users_inline.scss        — "+ Add users" trigger + popover
+//   - picker_row.scss              — per-user row layout
+//   - decision_chip.scss           — every chip variant
+//   - session_row.scss             — per-session unfold rows
+//   - session_attribute_editor.scss — pencil-icon popover
+//   - decision_details_modal.scss   — stacked details modal + AST trace
+
 .SimulateAccessModal {
     // Widen the picker so the result chip + recent-activity column
     // don't fight the user-name column for breathing room. 720px fits
@@ -11,34 +24,48 @@
     max-width: min(720px, 90vw) !important;
     margin-top: 5vh !important;
 
-    .GenericModal__body {
-        padding: 0 !important;
-    }
-
-    // Let the modal-content height track its actual content. The
-    // earlier min-height: 420px stretched the body via flex:1 so the
-    // footer was pushed to the bottom of an almost-empty modal,
-    // leaving a visible gap above it in the empty/1-row states. With
-    // the min-height gone the footer always sits immediately below the
-    // last row (or empty state) and bottom spacing stays consistent
-    // regardless of how many users are picked.
+    // Cap the modal height and stack the header / body / footer as a
+    // flex column so the body region can claim the remaining space.
     .modal-content {
         display: flex;
         max-height: 90vh;
         flex-direction: column;
     }
 
-    // Subheader / controls / body / summary share a 16px horizontal
-    // gutter so the row content "snaps" to the modal edges instead of
-    // sitting in a narrow centred strip. The original 32px gutter left
-    // unused real estate to the right of every row in the screenshots.
+    // React-Bootstrap renders <Modal.Body> as a `.modal-body` wrapper
+    // around <GenericModal__body>. Both layers need to be flex columns
+    // with min-height:0 so the inner __body's `flex: 1 1 auto;
+    // overflow-y: auto` actually has something to size against.
+    // Without the .modal-body rule the body just expands to its content
+    // height and pushes the Re-run / Close footer below the modal frame
+    // — exactly the regression we hit with 12+ picked users.
+    .modal-body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+    }
 
+    .GenericModal__body {
+        display: flex;
+        overflow: hidden;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        padding: 0 !important;
+    }
+
+    // Subheader / controls / body / summary share a 32px horizontal
+    // gutter so the row content "snaps" to the modal edges instead of
+    // sitting in a narrow centred strip.
     // align-items: center so the "+ Add users" button vertically
     // centers against the multi-line description copy. With flex-start
     // the button hugs the top of a 2-line description and reads as
     // mis-aligned.
     &__subheader {
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: space-between;
         padding: 0 32px 12px;
@@ -52,92 +79,15 @@
         }
     }
 
-    &__addUsersWrap {
-        flex-shrink: 0;
-    }
-
-    &__addUsers {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 14px;
-        border-radius: 4px;
-        font-weight: 600;
-        gap: 4px;
-
-        i {
-            font-size: 16px;
-        }
-    }
-
-    &__addUsersResults {
-        max-height: 360px;
-        margin-top: 10px;
-        overflow-y: auto;
-    }
-
-    &__addUsersHint {
-        padding: 12px 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 13px;
-    }
-
-    &__addUsersResult {
-        display: flex;
-        width: 100%;
-        align-items: center;
-        padding: 8px 10px;
-        border: 0;
-        border-radius: 6px;
-        background: transparent;
-        cursor: pointer;
-        gap: 12px;
-        text-align: left;
-
-        &:hover,
-        &:focus-visible {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            outline: 0;
-        }
-
-        img {
-            width: 36px;
-            height: 36px;
-            flex-shrink: 0;
-            border-radius: 50%;
-        }
-    }
-
-    &__addUsersResultMeta {
-        display: flex;
-        min-width: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-    }
-
-    &__addUsersResultName {
-        overflow: hidden;
-        color: var(--center-channel-color);
-        font-size: 14px;
-        font-weight: 600;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    &__addUsersResultEmail {
-        overflow: hidden;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    // Toggle ("Evaluate against") row + "show only denied" filter share a
-    // single horizontal band sitting between the subheader and the table.
-    // Aligning them on a shared row keeps the controls scannable; the
-    // dense Compass spacing (8px above the table) matches the rest of the
+    // Controls band sandwiched between the subheader and the table —
+    // hosts the permission filter dropdown on the left and the
+    // "Evaluate against" segmented toggle on the right. Aligning them
+    // on a shared row keeps the controls scannable; the dense Compass
+    // spacing (8px above the table) matches the rest of the
     // admin-console editors.
     &__controls {
         display: flex;
+        flex-shrink: 0;
         align-items: center;
         justify-content: space-between;
         padding: 0 32px 12px;
@@ -186,17 +136,72 @@
         }
     }
 
-    &__deniedFilter {
+    // Compact, low-chrome dropdown trigger used by the permission filter
+    // on the left side of the controls row. Mattermost's `btn-transparent`
+    // provides the base reset; we add inline-flex alignment, a tighter
+    // padding, and a max-width so an unusually long action label
+    // ellipsizes instead of expanding the row past the modal width.
+    // The negative `margin-left` cancels the button's own padding-left
+    // so the label's text-start lines up with the 32px modal gutter
+    // (used by the subheader copy directly above and the empty-state /
+    // table content below). Without this shift the label reads ~8px
+    // further right than every other line in the modal — visually
+    // distracting even though the button's hover/focus surface is still
+    // where the eye expects.
+    &__filterButton {
         display: inline-flex;
+        max-width: 240px;
         align-items: center;
-        margin: 0;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
+        padding: 4px 8px;
+        margin-left: -12px;
+        color: var(--center-channel-color);
         font-size: 13px;
+        font-weight: 600;
         gap: 6px;
 
-        input[type='checkbox'] {
-            margin: 0;
+        // Force line-height to the controls row's 18px so the button
+        // is the same height as the segmented "Evaluate against"
+        // buttons next to it. The base `.btn` class otherwise applies
+        // line-height: 1.5 * 14px = 21px, which makes the dropdown
+        // taller than the segmented control and shifts the label's
+        // baseline ~2px below the rest of the row.
+        line-height: 18px;
+    }
+
+    // No hover background on the permission filter trigger — the
+    // chevron + cursor pointer is enough affordance, and a hover
+    // surface here would compete with the adjacent segmented control
+    // which also lights up on hover. The class is repeated in the
+    // selector to bump specificity from (0,2,0) up to (0,3,0) so we
+    // win over the global `.btn-transparent:hover` rule shipped from
+    // _buttons.scss without resorting to !important.
+    &__filterButton.SimulateAccessModal__filterButton {
+        &:hover,
+        &:focus,
+        &:active {
+            background: transparent;
+            box-shadow: none;
         }
+
+        // Keyboard focus must remain visibly indicated (WCAG 2.4.7):
+        // we suppress the global hover/focus tints above, so add an
+        // explicit accessible focus ring for keyboard navigation.
+        // Mirrors the .SimulateAccessModal__rowChipButton pattern
+        // (outline 2px solid + 2px offset against --button-bg) so
+        // every focusable trigger inside the picker shares the same
+        // ring.
+        &:focus-visible {
+            background: transparent;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__filterButtonLabel {
+        overflow: hidden;
+        min-width: 0;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     // Body has no horizontal padding so the table — and its row
@@ -274,322 +279,17 @@
         }
     }
 
-    &__row {
-        cursor: default;
-
-        &--expandable {
-            cursor: pointer;
-        }
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-        }
-
-        &--expanded {
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-        }
-    }
-
-    &__rowUser {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    &__rowAvatar {
-        flex-shrink: 0;
-    }
-
-    &__rowName {
-        display: flex;
-        min-width: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-        line-height: 18px;
-    }
-
-    &__rowDisplayName {
-        overflow: hidden;
-        color: var(--center-channel-color);
-        font-size: 14px;
-        font-weight: 600;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    &__rowUsername {
-        overflow: hidden;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    // Center the RESULT column above its pill: the chip is rendered
-    // as inline-flex so text-align: center on the td shifts the chip
-    // to the column's centerline; combined with the same rule on the
-    // th, the "RESULT" label sits visually centered over the pill
-    // instead of hugging the cell's left edge.
-    // The result-cell intrinsic width comes from the chip itself; the
-    // first-child `width: 100%` rule on the USER cell does the actual
-    // pushing right, so this column needs no width override of its own.
+    // Center the RESULT column above its pill: the chip is rendered as
+    // inline-flex so text-align: center on the td shifts the chip to
+    // the column's centerline; combined with the same rule on the th,
+    // the "RESULT" label sits visually centered over the pill instead
+    // of hugging the cell's left edge. The result-cell intrinsic width
+    // comes from the chip itself; the first-child `width: 100%` rule
+    // on the USER cell does the actual pushing right, so this column
+    // needs no width override of its own.
     &__table th:nth-child(2),
     &__table td.SimulateAccessModal__rowResult {
         text-align: center;
-    }
-
-    &__rowActivity {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-
-    &__rowActivityLabel {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-
-        i {
-            font-size: 14px;
-            opacity: 0.7;
-        }
-    }
-
-    &__rowActivityEmpty {
-        color: rgba(var(--center-channel-color-rgb), 0.4);
-    }
-
-    &__rowActions {
-        width: 88px;
-        text-align: right;
-        white-space: nowrap;
-    }
-
-    &__rowConfigure,
-    &__rowRemove {
-        display: inline-flex;
-        width: 28px;
-        height: 28px;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: 0;
-        border-radius: 4px;
-        background: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        cursor: pointer;
-        vertical-align: middle;
-
-        &:hover {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: var(--center-channel-color);
-        }
-
-        i {
-            font-size: 16px;
-        }
-    }
-
-    &__rowConfigure {
-
-        // Highlight the pencil with a subtle frame matching image 3 so
-        // it reads as a primary affordance per row, not a footnote.
-        border: 1px solid rgba(var(--button-bg-rgb), 0.32);
-        border-radius: 4px;
-        margin-right: 4px;
-        color: var(--button-bg);
-
-        &:hover {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
-        }
-    }
-
-    // Indented child rows inside the unfold. The bullet ("—") column
-    // gives the eye an explicit anchor that "this is a session under the
-    // row above"; without it the device label can read like a primary
-    // user row.
-    &__sessionRow {
-        background: rgba(var(--center-channel-color-rgb), 0.03);
-
-        td {
-            padding: 8px 12px;
-            font-size: 13px;
-        }
-    }
-
-    &__sessionMeta {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    &__sessionDot {
-        width: 36px;
-        flex-shrink: 0;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-        font-size: 14px;
-        text-align: center;
-    }
-
-    &__sessionDevice {
-        color: var(--center-channel-color);
-        font-size: 13px;
-        font-weight: 600;
-        line-height: 18px;
-    }
-
-    &__sessionLastActive {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 12px;
-        line-height: 16px;
-    }
-
-    &__rowChip {
-        display: inline-flex;
-        overflow: hidden;
-        max-width: 240px;
-        align-items: center;
-        padding: 2px 10px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        gap: 4px;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-
-        &--allow {
-            background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.16);
-            color: var(--online-indicator, #06a77d);
-        }
-
-        &--allow-saved {
-            background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.12);
-            color: var(--online-indicator, #06a77d);
-        }
-
-        &--deny {
-            background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.16);
-            color: var(--error-text);
-        }
-
-        &--pending {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-        }
-
-        &--not-applicable {
-            background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        &--mixed {
-            background: rgba(var(--away-indicator-rgb, 255, 188, 66), 0.18);
-            color: var(--away-indicator, #b07700);
-        }
-
-        &--stacked {
-            padding: 4px 10px;
-            border: 0;
-            cursor: pointer;
-            font: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            line-height: 16px;
-
-            &:disabled {
-                cursor: default;
-            }
-
-            &:hover:not(:disabled),
-            &:focus-visible {
-                filter: brightness(0.96);
-                outline: 0;
-            }
-        }
-    }
-
-    &__rowChipLabel {
-        overflow: hidden;
-        min-width: 0;
-        flex: 0 1 auto;
-        text-overflow: ellipsis;
-    }
-
-    &__rowChipCount {
-        display: inline-flex;
-        min-width: 18px;
-        height: 18px;
-        align-items: center;
-        justify-content: center;
-        padding: 0 5px;
-        border-radius: 9px;
-        background: rgba(255, 255, 255, 0.55);
-        color: inherit;
-        font-size: 11px;
-        font-weight: 600;
-    }
-
-    &__rowChipChevron {
-        margin-right: -4px;
-        font-size: 14px;
-        opacity: 0.7;
-    }
-
-    &__breakdownHeader {
-        display: flex;
-        align-items: center;
-        margin-bottom: 16px;
-        gap: 12px;
-    }
-
-    &__breakdownAvatar {
-        flex-shrink: 0;
-    }
-
-    &__breakdownIdentity {
-        display: flex;
-        flex-direction: column;
-        line-height: 18px;
-    }
-
-    &__breakdownDisplayName {
-        color: var(--center-channel-color);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
-    &__breakdownUsername {
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 12px;
-    }
-
-    &__breakdownList {
-        display: flex;
-        flex-direction: column;
-        padding: 0 0 24px;
-        margin: 0;
-        gap: 4px;
-        list-style: none;
-    }
-
-    &__breakdownItem {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 12px;
-        border-radius: 6px;
-        background: rgba(var(--center-channel-color-rgb), 0.04);
-        gap: 12px;
-    }
-
-    &__breakdownItemLabel {
-        overflow: hidden;
-        min-width: 0;
-        flex: 1 1 auto;
-        color: var(--center-channel-color);
-        font-size: 13px;
-        font-weight: 600;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
     // Custom footer row: row-count summary on the left, action buttons
@@ -619,97 +319,4 @@
         align-items: center;
         gap: 8px;
     }
-}
-
-// FloatingPortal popovers live OUTSIDE .SimulateAccessModal so their
-// rules apply at <body> level. Bootstrap's modal stack uses 1050
-// (.modal-backdrop) / 1055 — we stay above that so the panel never
-// gets clipped by, or sits behind, the modal itself.
-.SimulateAccessModal__addUsersPanel {
-    z-index: 1080;
-    width: 480px;
-    max-width: 90vw;
-    padding: 14px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 8px;
-    background: var(--center-channel-bg);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.SimulateAccessModal__editorPanel {
-    z-index: 1080;
-    width: 520px;
-    max-width: 90vw;
-    padding: 16px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 8px;
-    background: var(--center-channel-bg);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-}
-
-.SimulateAccessModal__editorForm {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.SimulateAccessModal__editorTitle {
-    color: var(--center-channel-color);
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.SimulateAccessModal__editorDescription {
-    color: rgba(var(--center-channel-color-rgb), 0.72);
-    font-size: 13px;
-    line-height: 18px;
-}
-
-.SimulateAccessModal__editorEmpty {
-    padding: 24px 0;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    font-size: 13px;
-    text-align: center;
-}
-
-// Two-column responsive grid mirrors image 3: pairs of fields share a
-// row on wide displays, collapse to a single column on narrow popovers.
-.SimulateAccessModal__editorGrid {
-    display: grid;
-    gap: 12px 16px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    @media (max-width: 480px) {
-        grid-template-columns: 1fr;
-    }
-}
-
-.SimulateAccessModal__editorField {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.SimulateAccessModal__editorFieldLabel {
-    color: var(--center-channel-color);
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.SimulateAccessModal__editorFieldInput,
-.SimulateAccessModal__editorFieldSelect {
-    height: 32px;
-    padding: 4px 10px;
-    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-    border-radius: 4px;
-    background: var(--center-channel-bg);
-    color: var(--center-channel-color);
-    font-size: 13px;
-}
-
-.SimulateAccessModal__editorActions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 4px;
-    gap: 8px;
 }

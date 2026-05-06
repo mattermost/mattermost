@@ -2331,6 +2331,18 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) { cfg.FeatureFlags.AttributeBasedAccessControl = true }).InitBasic(t)
 
 	t.Run("returns 501 when permission policies feature flag is disabled", func(t *testing.T) {
+		// Set the Enterprise Advanced license up-front so any future
+		// license-level middleware ahead of the handler can't be the
+		// reason for a 501 here. With the license valid, the only
+		// remaining thing that can flip the response is the
+		// FeatureFlag below — which is the contract under test.
+		// Sibling sub-tests (rejects empty users / system admin
+		// reaches the service mock) follow the same pattern of
+		// setting but not clearing the license; the helper is
+		// scoped to this Test* function.
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.FeatureFlags.PermissionPolicies = false
 		})
@@ -2340,7 +2352,12 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			Users:  []model.PolicySimulationUserOverride{{UserID: model.NewId()}},
 		})
 		resp, err := th.SystemAdminClient.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
-		require.NoError(t, err)
+		// `DoAPIPost` surfaces any non-2xx response as an error
+		// carrying the server's AppError text, so we expect an error
+		// here ("Permission policies feature is not enabled.") and
+		// assert the 501 status code on the response itself —
+		// matching the pattern in sibling sub-tests.
+		require.Error(t, err)
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})

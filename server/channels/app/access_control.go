@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const attributeViewRefreshInterval = 30 * time.Second
@@ -211,14 +212,27 @@ func (a *App) SimulateAccessControlPolicy(rctx request.CTX, params model.PolicyS
 // server to search; the response returns per-user, per-action decisions
 // with blame attribution.
 //
-// When EvaluationScope == "this_policy" the response is post-processed
-// to drop blame entries that came from upper-scoped policies (system
-// permission policies, inherited parent policies). If a deny was
-// produced *solely* by those upper-scoped contributors the decision is
-// flipped back to allow — evaluating the draft policy alone would not
-// have denied. This filter is applied here (not in the enterprise PDP)
-// so the picker UX honours the "this policy only" toggle even when the
-// underlying simulator co-evaluates the full stack.
+// Post-processing happens in two stages before the response leaves the
+// server:
+//
+//  1. enrichBlameForDraftScope inspects every blame entry. Same-scope
+//     entries (this_rule / sibling_rule / sibling_saved against the
+//     draft, or system_permission entries whose blamed policy shares the
+//     draft's scope) gain the failing rule's CEL Expression so the picker
+//     can render an evaluation trace. system_permission entries that turn
+//     out to be at the draft's scope are reclassified to peer_policy.
+//     Truly upper-scoped entries (system_permission with a different
+//     scope, channel_policy) are deliberately left expression-less so
+//     the UI cannot leak the contents of a policy outside the editing
+//     scope.
+//  2. filterResponseToEditingRuleScope (only when EvaluationScope ==
+//     "this_rule") is a defensive backstop that strips any non-editing-
+//     rule blame entries that may have leaked through despite the
+//     simulator restricting contributions to the editing rule. The
+//     simulator side does the heavy lifting (skipping sibling rules and
+//     system permission policies entirely); this filter drops anything
+//     that isn't a draft-side blame on the editing rule and flips
+//     orphaned denies back to allow.
 //
 // Returns NotImplemented when the access control service is unavailable
 // (no enterprise license / ABAC disabled).
@@ -233,37 +247,218 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		return nil, appErr
 	}
 
-	if resp != nil && params.EvaluationScope == model.PolicyEvaluationScopeThisPolicy {
-		filterResponseToDraftScope(resp)
+	if resp != nil {
+		enrichBlameForDraftScope(rctx, acs, params.Policy, resp)
+		if isThisRuleScope(params.EvaluationScope) {
+			filterResponseToEditingRuleScope(resp, params.RuleName)
+		}
 	}
 
 	return resp, nil
 }
 
-// filterResponseToDraftScope mutates resp so every action decision (top
-// level + per session) only reflects contributions from the draft policy
-// being edited. Blame entries from upper-scoped sources (system
-// permission, inherited channel policy) are dropped; denies that have
-// no remaining draft-side blame after filtering are flipped to allow,
-// because the draft alone would not have denied them.
-func filterResponseToDraftScope(resp *model.PolicySimulationResponse) {
+// isThisRuleScope returns true when the simulator should run in
+// "this rule only" mode. Empty defaults to this_rule for backward
+// compatibility with older clients that don't set EvaluationScope.
+func isThisRuleScope(scope string) bool {
+	return scope == "" || scope == model.PolicyEvaluationScopeThisRule
+}
+
+// enrichBlameForDraftScope walks the simulator response and:
+//   - copies the failing rule's expression into draft-side blame entries
+//     (this_rule / sibling_rule / sibling_saved) using params.Policy.Rules
+//     as the source — only if the simulator hasn't already populated it.
+//   - reclassifies system_permission blame entries whose blamed policy
+//     lives at the SAME scope as the draft (same Type and same Imports
+//     parent set) to peer_policy, populating the failing rule's
+//     expression in from the blamed policy's Rules when the simulator
+//     left it empty. acs.GetPolicy is consulted once per unique
+//     policy_id and cached for the request.
+//   - **defensively strips Expression and EvaluationTree from blame
+//     entries whose final source is truly upper-scoped**
+//     (system_permission, channel_policy). The simulator may attach
+//     these fields unconditionally for ergonomics; the privacy
+//     boundary is enforced here so the UI never receives the contents
+//     of a policy outside the editing scope.
+func enrichBlameForDraftScope(rctx request.CTX, acs einterfaces.AccessControlServiceInterface, draft *model.AccessControlPolicy, resp *model.PolicySimulationResponse) {
+	if resp == nil || draft == nil {
+		return
+	}
+	draftRules := buildRulesIndex(draft)
+	cache := map[string]*model.AccessControlPolicy{}
+
+	enrichDecisions := func(decisions map[string]model.PolicySimulationActionDecision) {
+		for action, dec := range decisions {
+			for j := range dec.Blame {
+				enrichBlameEntry(rctx, acs, draft, draftRules, cache, &dec.Blame[j])
+			}
+			decisions[action] = dec
+		}
+	}
+
 	for i := range resp.Results {
-		resp.Results[i].Decisions = filterDecisionsToDraftScope(resp.Results[i].Decisions)
-		for j := range resp.Results[i].Sessions {
-			resp.Results[i].Sessions[j].Decisions = filterDecisionsToDraftScope(resp.Results[i].Sessions[j].Decisions)
+		enrichDecisions(resp.Results[i].Decisions)
+		for k := range resp.Results[i].Sessions {
+			enrichDecisions(resp.Results[i].Sessions[k].Decisions)
 		}
 	}
 }
 
-func filterDecisionsToDraftScope(decisions map[string]model.PolicySimulationActionDecision) map[string]model.PolicySimulationActionDecision {
+func enrichBlameEntry(rctx request.CTX, acs einterfaces.AccessControlServiceInterface, draft *model.AccessControlPolicy, draftRules map[string]string, cache map[string]*model.AccessControlPolicy, blame *model.PolicySimulationBlame) {
+	if blame == nil {
+		return
+	}
+	switch blame.Source {
+	case model.PolicySimulationBlameSourceThisRule,
+		model.PolicySimulationBlameSourceSiblingRule,
+		model.PolicySimulationBlameSourceSiblingSaved:
+		// Same-scope draft blame: backfill expression if the simulator
+		// didn't pre-populate it.
+		if blame.Expression == "" {
+			if expr, ok := draftRules[blame.RuleName]; ok {
+				blame.Expression = expr
+			}
+		}
+	case model.PolicySimulationBlameSourceSystemPermission:
+		// Peer-vs-upper distinction lives here: load the blamed
+		// policy, compare scope to the draft, and either reclassify
+		// (peer_policy with expression preserved/backfilled) or strip
+		// the leaked details.
+		if blame.PolicyID == "" {
+			stripUpperScopedFields(blame)
+			return
+		}
+		blamed, cached := cache[blame.PolicyID]
+		if !cached {
+			policy, appErr := acs.GetPolicy(rctx, blame.PolicyID)
+			if appErr != nil {
+				policy = nil
+			}
+			cache[blame.PolicyID] = policy
+			blamed = policy
+		}
+		if blamed == nil || !samePeerScope(draft, blamed) {
+			stripUpperScopedFields(blame)
+			return
+		}
+		blame.Source = model.PolicySimulationBlameSourcePeerPolicy
+		if blame.Expression == "" {
+			for _, r := range blamed.Rules {
+				if r.Name == blame.RuleName {
+					blame.Expression = r.Expression
+					break
+				}
+			}
+		}
+	case model.PolicySimulationBlameSourceChannelPolicy:
+		// channel_policy is always upper-scoped from a draft's view —
+		// the parent or an inherited resource policy. Strip
+		// expression / tree details so the UI keeps the chip opaque.
+		stripUpperScopedFields(blame)
+	}
+}
+
+// stripUpperScopedFields clears the fields that would leak the contents
+// of an out-of-scope policy if the simulator attached them. Called
+// whenever a blame entry's final source is determined to live above
+// the editing scope.
+func stripUpperScopedFields(blame *model.PolicySimulationBlame) {
+	blame.Expression = ""
+	blame.EvaluationTree = nil
+}
+
+// buildRulesIndex maps rule_name -> CEL expression for a policy. Rules
+// without a name (legacy v0.3 membership rules) are skipped because the
+// blame entries reference rules by name — anonymous rules would never
+// match.
+func buildRulesIndex(policy *model.AccessControlPolicy) map[string]string {
+	if policy == nil {
+		return nil
+	}
+	out := make(map[string]string, len(policy.Rules))
+	for _, r := range policy.Rules {
+		if r.Name == "" {
+			continue
+		}
+		out[r.Name] = r.Expression
+	}
+	return out
+}
+
+// samePeerScope reports whether two policies live at the same scope.
+// Policies are peers when they share the same Type, the same Scope +
+// ScopeID (so a team-scoped permission policy is never treated as a
+// peer of a system-scoped one with the same imports), and the same
+// parent imports set (order-insensitive). Two policies with no Imports
+// (top-level system policies) count as peers of one another. A policy
+// and its parent are NOT peers — the parent has a smaller / different
+// imports set.
+func samePeerScope(a, b *model.AccessControlPolicy) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	if a.Type != b.Type {
+		return false
+	}
+	if a.Scope != b.Scope || a.ScopeID != b.ScopeID {
+		return false
+	}
+	return importsEqual(a.Imports, b.Imports)
+}
+
+func importsEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	if len(a) == 0 {
+		return true
+	}
+	aa := append([]string(nil), a...)
+	bb := append([]string(nil), b...)
+	slices.Sort(aa)
+	slices.Sort(bb)
+	for i := range aa {
+		if aa[i] != bb[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// filterResponseToEditingRuleScope is the defensive post-process for the
+// "this rule only" evaluation scope. The simulator already restricts
+// contributions to just the editing rule (no sibling rules, no system
+// permission policies, no peer policies), so in practice this function
+// only runs over an already-clean response. It exists to backstop
+// any blame entry that leaked through, drop anything that isn't a
+// draft-side entry on the editing rule, and flip orphaned denies back
+// to allow.
+//
+// editingRuleName is the rule the author is currently simulating; when
+// non-empty, only this_rule blame entries that explicitly target that
+// rule survive. When empty (e.g. an unnamed draft rule) the filter
+// drops everything except this_rule, sibling_saved, and
+// no_applicable_policy regardless of the rule_name field — sibling
+// rules in the same policy are never kept in this mode.
+func filterResponseToEditingRuleScope(resp *model.PolicySimulationResponse, editingRuleName string) {
+	for i := range resp.Results {
+		resp.Results[i].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Decisions, editingRuleName)
+		for j := range resp.Results[i].Sessions {
+			resp.Results[i].Sessions[j].Decisions = filterDecisionsToEditingRuleScope(resp.Results[i].Sessions[j].Decisions, editingRuleName)
+		}
+	}
+}
+
+func filterDecisionsToEditingRuleScope(decisions map[string]model.PolicySimulationActionDecision, editingRuleName string) map[string]model.PolicySimulationActionDecision {
 	if len(decisions) == 0 {
 		return decisions
 	}
 	for action, dec := range decisions {
-		filtered := filterBlameToDraftScope(dec.Blame)
+		filtered := filterBlameToEditingRuleScope(dec.Blame, editingRuleName)
 		if !dec.Decision && len(filtered) == 0 {
-			// The deny was caused only by upper-scoped policies; with
-			// the draft alone this user would have been allowed.
+			// The deny had no editing-rule cause — flip to allow so
+			// the picker accurately reports "this rule alone would
+			// have allowed this user."
 			dec.Decision = true
 			dec.Blame = nil
 		} else {
@@ -274,26 +469,35 @@ func filterDecisionsToDraftScope(decisions map[string]model.PolicySimulationActi
 	return decisions
 }
 
-// draftBlameSources lists the blame sources that originate inside the
-// draft policy itself (or are synthetic markers about how the draft
-// applies). Anything else is upper-scoped and is dropped when the
-// caller asks for "this policy only" evaluation.
-var draftBlameSources = map[string]struct{}{
+// editingRuleBlameSources lists the blame sources that originate inside
+// the editing rule itself (or are synthetic markers about how the rule
+// applies). Anything else — peer_policy (same scope, different policy),
+// system_permission, channel_policy, and even sibling_rule (same policy,
+// different rule) — is dropped when the caller asks for "this rule only".
+var editingRuleBlameSources = map[string]struct{}{
 	model.PolicySimulationBlameSourceThisRule:           {},
-	model.PolicySimulationBlameSourceSiblingRule:        {},
 	model.PolicySimulationBlameSourceSiblingSaved:       {},
 	model.PolicySimulationBlameSourceNoApplicablePolicy: {},
 }
 
-func filterBlameToDraftScope(blame []model.PolicySimulationBlame) []model.PolicySimulationBlame {
+func filterBlameToEditingRuleScope(blame []model.PolicySimulationBlame, editingRuleName string) []model.PolicySimulationBlame {
 	if len(blame) == 0 {
 		return nil
 	}
 	out := blame[:0:0]
 	for _, b := range blame {
-		if _, ok := draftBlameSources[b.Source]; ok {
-			out = append(out, b)
+		if _, ok := editingRuleBlameSources[b.Source]; !ok {
+			continue
 		}
+		// Defensive: when the editing rule's name is known, only keep
+		// blame entries that explicitly target it. The simulator's
+		// contribution restriction already enforces this; this is the
+		// belt-and-suspenders for any edge case where the simulator
+		// emits a this_rule-tagged blame from a different rule.
+		if editingRuleName != "" && b.RuleName != "" && b.RuleName != editingRuleName {
+			continue
+		}
+		out = append(out, b)
 	}
 	if len(out) == 0 {
 		return nil
@@ -872,8 +1076,15 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID, systemR
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			// Not a member: derive a best-effort channel role from system roles.
-			return guessChannelRoleFromSystemRoles(systemRoles), nil
+			// Not a member: return an empty role and let the caller
+			// decide what "no resource role" means for them. We used
+			// to fabricate a role from the user's system roles here,
+			// but that synthesised channel-scope information from
+			// data the user has no actual channel membership behind —
+			// callers (e.g. attachChannelScopedRole in file.go) now
+			// gate on the empty string and skip the channel scope
+			// rather than evaluating against a guess.
+			return "", nil
 		}
 		return "", model.NewAppError("GetSubjectChannelRole", "app.access_control.get_channel_role.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
