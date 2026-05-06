@@ -357,7 +357,7 @@ func probeOIDCDiscovery(ctx context.Context, discoveryURL string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer drainAndCloseBody(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("discovery endpoint returned unexpected status %d", resp.StatusCode)
 	}
@@ -386,10 +386,17 @@ func probeOAuthTokenEndpoint(ctx context.Context, tokenURL string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
-	// Drain the body so the underlying TCP connection can be reused.
-	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))
+	defer drainAndCloseBody(resp.Body)
 	return nil
+}
+
+// drainAndCloseBody fully reads and discards an HTTP response body (up to 1 MiB
+// to bound a misbehaving server) and closes it. Draining before closing allows
+// net/http to return the underlying TCP connection to the idle pool for
+// keep-alive reuse on subsequent requests.
+func drainAndCloseBody(body io.ReadCloser) {
+	_, _ = io.Copy(io.Discard, io.LimitReader(body, 1<<20))
+	_ = body.Close()
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
@@ -408,7 +415,7 @@ func testPushProxyConnection(ctx context.Context, serverURL string) error {
 	if err != nil {
 		return err
 	}
-	resp.Body.Close()
+	defer drainAndCloseBody(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("push proxy returned unexpected status %d", resp.StatusCode)
 	}
