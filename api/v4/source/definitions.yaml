@@ -4927,6 +4927,10 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap was marked as read
+        viewed_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was marked as viewed (set in bulk when the recaps page is opened)
         total_message_count:
           type: integer
           description: Total number of messages summarized across all channels

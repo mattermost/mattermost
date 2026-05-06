@@ -84,7 +84,6 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
         }
     }
 
-    const buttonClass = 'btn btn-danger';
     const button = (
         <FormattedMessage
             id='leave_private_channel_modal.leave'
@@ -97,7 +96,7 @@ const LeaveChannelModal = ({actions, channel, callback, onExited}: Props) => {
             show={show}
             title={title}
             message={message}
-            confirmButtonClass={buttonClass}
+            confirmButtonVariant='destructive'
             confirmButtonText={button}
             onConfirm={handleSubmit}
             onCancel={handleHide}

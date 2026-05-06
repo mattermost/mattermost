@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
@@ -72,14 +73,15 @@ const PlanUpgradeButton = (): JSX.Element | null => {
         <WithTooltip
             title={formatMessage({id: 'pricing_modal.btn.tooltip', defaultMessage: 'Only visible to system admins'})}
         >
-            <button
+            <Button
                 id='UpgradeButton'
                 aria-haspopup='dialog'
                 onClick={() => openPricingModal()}
-                className='btn btn-primary btn-xs'
+                emphasis='primary'
+                size='xs'
             >
                 {formatMessage({id: 'pricing_modal.btn.viewPlans', defaultMessage: 'View plans'})}
-            </button>
+            </Button>
         </WithTooltip>);
 };
 

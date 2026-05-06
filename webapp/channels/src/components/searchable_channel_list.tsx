@@ -5,7 +5,12 @@ import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages, injectIntl, type WrappedComponentProps} from 'react-intl';
 
+<<<<<<< cursor/MM-68591-ed9d
 import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon, LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
+=======
+import {ArchiveOutlineIcon, CheckIcon, ChevronDownIcon, GlobeIcon, LockOutlineIcon, AccountOutlineIcon, GlobeCheckedIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
+>>>>>>> master
 import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -199,15 +204,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         );
 
-        const joinViewChannelButtonClass = classNames('btn btn-sm', {
-            'btn-secondary outlineButton': this.isMemberOfChannel(channel.id),
-            'btn-primary primaryButton': !this.isMemberOfChannel(channel.id),
-        });
+        const joinViewChannelButtonEmphasis = this.isMemberOfChannel(channel.id) ? 'secondary' : 'primary';
+        const joinViewChannelButtonClass = this.isMemberOfChannel(channel.id) ? 'outlineButton' : 'primaryButton';
 
         const joinViewChannelButton = (
-            <button
+            <Button
                 id='joinViewChannelButton'
                 onClick={(e) => this.handleJoin(channel, e)}
+                emphasis={joinViewChannelButtonEmphasis}
+                size='sm'
                 className={joinViewChannelButtonClass}
                 disabled={Boolean(this.state.joiningChannel)}
                 tabIndex={-1}
@@ -222,7 +227,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                         defaultMessage={this.isMemberOfChannel(channel.id) ? 'View' : 'Join'}
                     />
                 </LoadingWrapper>
-            </button>
+            </Button>
         );
 
         const sharedChannelIcon = channel.shared ? (
@@ -437,8 +442,10 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
 
             if (channelsToDisplay.length >= this.props.channelsPerPage && pageEnd < this.props.channels.length) {
                 nextButton = (
-                    <button
-                        className='btn btn-sm btn-tertiary filter-control filter-control__next'
+                    <Button
+                        emphasis='tertiary'
+                        size='sm'
+                        className='filter-control filter-control__next'
                         onClick={this.nextPage}
                         disabled={this.state.nextDisabled}
                         aria-label={this.props.intl.formatMessage({id: 'more_channels.next', defaultMessage: 'Next'})}
@@ -447,14 +454,16 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                             id='more_channels.next'
                             defaultMessage='Next'
                         />
-                    </button>
+                    </Button>
                 );
             }
 
             if (this.state.page > 0) {
                 previousButton = (
-                    <button
-                        className='btn btn-sm btn-tertiary filter-control filter-control__prev'
+                    <Button
+                        emphasis='tertiary'
+                        size='sm'
+                        className='filter-control filter-control__prev'
                         onClick={this.previousPage}
                         aria-label={this.props.intl.formatMessage({id: 'more_channels.prev', defaultMessage: 'Previous'})}
                     >
@@ -462,7 +471,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
                             id='more_channels.prev'
                             defaultMessage='Previous'
                         />
-                    </button>
+                    </Button>
                 );
             }
         }

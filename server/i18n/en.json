@@ -8293,6 +8293,10 @@
     "translation": "Failed to mark recap as read."
   },
   {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Failed to mark recaps as viewed."
+  },
+  {
     "id": "app.recap.permission_denied",
     "translation": "No permission for recap."
   },

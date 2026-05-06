@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 type Props = {
@@ -17,13 +18,13 @@ type Props = {
 // This component can be used in the card header
 const TitleAndButtonCardHeader: React.FC<Props> = (props: Props) => {
     let button = (
-        <button
+        <Button
             disabled={props.isDisabled}
-            className='btn btn-primary'
+            emphasis='primary'
             onClick={props.onClick}
         >
             {props.buttonText}
-        </button>
+        </Button>
     );
 
     if (props.isDisabled && props.tooltipText) {
