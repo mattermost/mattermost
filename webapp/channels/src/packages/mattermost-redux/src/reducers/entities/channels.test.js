@@ -1348,4 +1348,77 @@ describe('myMembers', () => {
             expect(nextState).toBe(state);
         });
     });
+
+    describe('recommendedChannelIdsByTeam', () => {
+        // The action is dispatched in batches with RECEIVED_CHANNELS in the
+        // getRecommendedChannelsForUser thunk; we test the reducer in isolation
+        // here so any future refactor of the thunk doesn't accidentally weaken
+        // this contract without a clear failure signal.
+        it('replaces the team entry on RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM', () => {
+            const state = deepFreeze({
+                entities: {
+                    channels: {
+                        recommendedChannelIdsByTeam: {team_1: ['c_old']},
+                    },
+                },
+            });
+
+            const nextState = channelsReducer(state.entities.channels, {
+                type: ChannelTypes.RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM,
+                data: {teamId: 'team_1', channelIds: ['c_a', 'c_b']},
+            });
+
+            expect(nextState.recommendedChannelIdsByTeam).toEqual({team_1: ['c_a', 'c_b']});
+        });
+
+        it('records an empty list as "fetched, no recommendations" rather than dropping the key', () => {
+            const nextState = channelsReducer({
+                recommendedChannelIdsByTeam: {team_2: ['x']},
+            }, {
+                type: ChannelTypes.RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM,
+                data: {teamId: 'team_3', channelIds: []},
+            });
+
+            expect(nextState.recommendedChannelIdsByTeam.team_2).toEqual(['x']);
+            expect(nextState.recommendedChannelIdsByTeam.team_3).toEqual([]);
+        });
+
+        it('drops the leaving channel id from every team list on LEAVE_CHANNEL', () => {
+            const nextState = channelsReducer({
+                recommendedChannelIdsByTeam: {
+                    team_1: ['c_keep', 'c_left'],
+                    team_2: ['c_left', 'c_other'],
+                },
+            }, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {id: 'c_left'},
+            });
+
+            expect(nextState.recommendedChannelIdsByTeam).toEqual({
+                team_1: ['c_keep'],
+                team_2: ['c_other'],
+            });
+        });
+
+        it('returns the same reference when LEAVE_CHANNEL touches no recommendation list', () => {
+            // Reference equality matters here — components that subscribe to
+            // this slice would re-render on every channel leave otherwise.
+            const initial = {
+                recommendedChannelIdsByTeam: {team_1: ['c_a']},
+            };
+            const nextState = channelsReducer(initial, {
+                type: ChannelTypes.LEAVE_CHANNEL,
+                data: {id: 'c_unrelated'},
+            });
+            expect(nextState.recommendedChannelIdsByTeam).toBe(initial.recommendedChannelIdsByTeam);
+        });
+
+        it('clears the slice on LOGOUT_SUCCESS', () => {
+            const nextState = channelsReducer({
+                recommendedChannelIdsByTeam: {team_1: ['c']},
+            }, {type: UserTypes.LOGOUT_SUCCESS});
+
+            expect(nextState.recommendedChannelIdsByTeam).toEqual({});
+        });
+    });
 });

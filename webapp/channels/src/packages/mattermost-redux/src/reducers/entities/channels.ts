@@ -942,6 +942,62 @@ function roles(state: RelationOneToOne<Channel, Set<string>> = {}, action: MMRed
     }
 }
 
+// recommendedChannelIdsByTeam tracks which channel ids the current user has
+// been told they match the membership policy for, keyed by team id. Source
+// is the recommended-public-channels endpoint
+// (GET /api/v4/teams/{team_id}/channels/recommended), evaluated server-side
+// against the user's CPA attributes. Consumers — the Browse Channels modal
+// and the quick channel switcher — read this slice to decide whether to
+// render the "Recommended" badge on a row.
+//
+// Cache reset hooks:
+//   - LOGOUT_SUCCESS clears everything (matches the rest of the reducer
+//     family).
+//   - LEAVE_CHANNEL drops the channel id from every team it's listed under,
+//     so a row the user just joined doesn't keep showing "Recommended"
+//     once it moves to their joined-channel list.
+function recommendedChannelIdsByTeam(state: Record<string, string[]> = {}, action: MMReduxAction): Record<string, string[]> {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_RECOMMENDED_CHANNEL_IDS_FOR_TEAM: {
+        const {teamId, channelIds} = (action.data ?? {}) as {teamId?: string; channelIds?: string[]};
+        if (!teamId) {
+            return state;
+        }
+        return {
+            ...state,
+            [teamId]: channelIds || [],
+        };
+    }
+    case ChannelTypes.LEAVE_CHANNEL: {
+        const channelId: string | undefined = action.data?.id;
+        if (!channelId) {
+            return state;
+        }
+
+        // Walk every team's recommendation list and drop this id. We don't
+        // know which team(s) the channel was listed under, and the lists
+        // are bounded server-side at recommendedPublicChannelsScanCap (2000),
+        // so the cost is trivial relative to keeping a stale "Recommended"
+        // tag on a channel the user just joined.
+        let changed = false;
+        const next: Record<string, string[]> = {};
+        for (const teamId of Object.keys(state)) {
+            const ids = state[teamId];
+            const filtered = ids.filter((id) => id !== channelId);
+            if (filtered.length !== ids.length) {
+                changed = true;
+            }
+            next[teamId] = filtered;
+        }
+        return changed ? next : state;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function restrictedDMs(state: ChannelsState['restrictedDMs'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ChannelTypes.RECEIVED_IS_DM_RESTRICTED: {
@@ -999,6 +1055,13 @@ export default combineReducers({
 
     // object where key is the channel id and value is the member count for the channel
     channelsMemberCount,
+
+    // object where every key is a team id and value is the list of channel
+    // ids in that team that the current user matches the ABAC membership
+    // policy for. Populated by getRecommendedChannelsForUser; consumed by
+    // BrowseChannels and the quick channel switcher to render the
+    // "Recommended" tag.
+    recommendedChannelIdsByTeam,
 
     restrictedDMs,
 });

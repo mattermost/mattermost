@@ -19,6 +19,12 @@ describe('components/QuickSwitchModal', () => {
         onExited: jest.fn(),
         showTeamSwitcher: false,
         isMobileView: false,
+
+        // ABAC defaults to off so the recommendation fetch doesn't fire in
+        // unrelated tests; the dedicated mount-fetch test below flips it
+        // and asserts the action is called.
+        accessControlEnabled: false,
+        currentTeamId: 'team_1',
         actions: {
             joinChannelById: jest.fn().mockResolvedValue({data: true}),
             switchToChannel: jest.fn().mockImplementation(() => {
@@ -28,12 +34,55 @@ describe('components/QuickSwitchModal', () => {
                 return Promise.resolve({error});
             }),
             closeRightHandSide: jest.fn(),
+            getRecommendedChannelsForUser: jest.fn().mockResolvedValue({data: []}),
         },
     };
 
     it('should match snapshot', () => {
         const {container} = renderWithContext(<QuickSwitchModal {...baseProps}/>);
         expect(container).toMatchSnapshot();
+    });
+
+    it('does not fetch recommended channels on mount when access control is disabled', () => {
+        // Cheap server-side short-circuit: even when ABAC is off the
+        // endpoint returns empty, but we still want to skip the
+        // round-trip on the client to keep the open-time fast on
+        // non-Enterprise installations.
+        renderWithContext(<QuickSwitchModal {...baseProps}/>);
+        expect(baseProps.actions.getRecommendedChannelsForUser).not.toHaveBeenCalled();
+    });
+
+    it('fetches recommended channels for the current team on mount when access control is enabled', () => {
+        const fetchMock = jest.fn().mockResolvedValue({data: []});
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            actions: {
+                ...baseProps.actions,
+                getRecommendedChannelsForUser: fetchMock,
+            },
+        };
+        renderWithContext(<QuickSwitchModal {...props}/>);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('team_1');
+    });
+
+    it('does not fetch recommended channels when current team is empty', () => {
+        // Defensive guard: the action requires a team id and would 404
+        // server-side without one. Empty currentTeamId can happen during
+        // team-switch transitions; the switcher must still mount cleanly.
+        const fetchMock = jest.fn();
+        const props = {
+            ...baseProps,
+            accessControlEnabled: true,
+            currentTeamId: '',
+            actions: {
+                ...baseProps.actions,
+                getRecommendedChannelsForUser: fetchMock,
+            },
+        };
+        renderWithContext(<QuickSwitchModal {...props}/>);
+        expect(fetchMock).not.toHaveBeenCalled();
     });
 
     describe('handleSubmit', () => {

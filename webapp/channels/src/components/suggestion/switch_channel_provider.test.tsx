@@ -1473,6 +1473,147 @@ describe('SwitchChannelSuggestion', () => {
         expect(suggestion).toHaveAccessibleDescription(`5 unread notifications ~${channel3.name} Public channel`);
     });
 
+    describe('Recommended badge', () => {
+        // The badge gating lives in mapStateToPropsForSwitchChannelSuggestion:
+        // public + non-archived + non-member + present in
+        // recommendedChannelIdsByTeam[team_id]. Each test below pokes one
+        // of those preconditions to lock in the contract.
+        function makeStateWithRecommendation(channel: Channel, recommendedTeamId: string, recommendedChannelIds: string[]): any {
+            return {
+                entities: {
+                    channels: {
+                        channels: {[channel.id]: channel},
+                        myMembers: {}, // user is NOT a member of `channel`
+                        recommendedChannelIdsByTeam: {[recommendedTeamId]: recommendedChannelIds},
+                    },
+                    teams: {
+                        teams: {[team1.id]: team1},
+                        myMembers: {[team1.id]: TestHelper.getTeamMembershipMock({team_id: team1.id, user_id: currentUserId})},
+                    },
+                },
+            };
+        }
+
+        test('renders the badge on a non-joined public channel that is in the team recommendation set', () => {
+            const channel = TestHelper.getChannelMock({
+                id: 'rec_channel',
+                team_id: 'team1',
+                name: 'rec-channel',
+                display_name: 'Recommended Channel',
+                type: General.OPEN_CHANNEL,
+                delete_at: 0,
+            });
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={channel.name}
+                    item={{channel, name: channel.name, deactivated: false}}
+                />,
+                makeStateWithRecommendation(channel, 'team1', [channel.id]),
+            );
+
+            expect(screen.getByTestId(`recommendedTag-${channel.name}`)).toBeInTheDocument();
+        });
+
+        test('does not render the badge on a non-recommended public channel', () => {
+            const channel = TestHelper.getChannelMock({
+                id: 'plain_channel',
+                team_id: 'team1',
+                name: 'plain-channel',
+                display_name: 'Plain Channel',
+                type: General.OPEN_CHANNEL,
+                delete_at: 0,
+            });
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={channel.name}
+                    item={{channel, name: channel.name, deactivated: false}}
+                />,
+                makeStateWithRecommendation(channel, 'team1', ['some_other_id']),
+            );
+
+            expect(screen.queryByTestId(`recommendedTag-${channel.name}`)).not.toBeInTheDocument();
+        });
+
+        test('does not render the badge on a private channel even when listed (defensive — the server filter excludes private channels, but the row should never trust that alone)', () => {
+            const channel = TestHelper.getChannelMock({
+                id: 'private_channel',
+                team_id: 'team1',
+                name: 'private-channel',
+                display_name: 'Private Channel',
+                type: General.PRIVATE_CHANNEL,
+                delete_at: 0,
+            });
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={channel.name}
+                    item={{channel, name: channel.name, deactivated: false}}
+                />,
+                makeStateWithRecommendation(channel, 'team1', [channel.id]),
+            );
+
+            expect(screen.queryByTestId(`recommendedTag-${channel.name}`)).not.toBeInTheDocument();
+        });
+
+        test('does not render the badge for cross-team rows whose team has no recommendation set fetched', () => {
+            // Switcher search returns hits from every team; we only fetch
+            // recommendations for the active team. A row from another team
+            // must render without the badge — absence here means "we didn't
+            // fetch", not "you don't match".
+            const channel = TestHelper.getChannelMock({
+                id: 'cross_team_channel',
+                team_id: 'team2',
+                name: 'cross-team-channel',
+                display_name: 'Cross Team Channel',
+                type: General.OPEN_CHANNEL,
+                delete_at: 0,
+            });
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={channel.name}
+                    item={{channel, name: channel.name, deactivated: false}}
+                />,
+                makeStateWithRecommendation(channel, 'team1', [channel.id]),
+            );
+
+            expect(screen.queryByTestId(`recommendedTag-${channel.name}`)).not.toBeInTheDocument();
+        });
+
+        test('does not render the badge when the user is already a member of the channel', () => {
+            const channel = TestHelper.getChannelMock({
+                id: 'joined_channel',
+                team_id: 'team1',
+                name: 'joined-channel',
+                display_name: 'Joined Channel',
+                type: General.OPEN_CHANNEL,
+                delete_at: 0,
+            });
+
+            const state = makeStateWithRecommendation(channel, 'team1', [channel.id]);
+            state.entities.channels.myMembers = {
+                [channel.id]: TestHelper.getChannelMembershipMock({channel_id: channel.id, user_id: currentUserId}),
+            };
+
+            renderWithContext(
+                <ConnectedSwitchChannelSuggestion
+                    {...baseProps}
+                    term={channel.name}
+                    item={{channel, name: channel.name, deactivated: false}}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId(`recommendedTag-${channel.name}`)).not.toBeInTheDocument();
+        });
+    });
+
     describe('layout and tooltip behavior for long names', () => {
         const longTeam1 = TestHelper.getTeamMock({
             id: 'team1',

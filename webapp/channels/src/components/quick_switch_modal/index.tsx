@@ -5,8 +5,12 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {getRecommendedChannelsForUser} from 'mattermost-redux/actions/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+
 import {joinChannelById, switchToChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -19,6 +23,13 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
+
+        // Used to decide whether to fetch the per-team recommendation set on
+        // mount. The action short-circuits server-side when ABAC is off, but
+        // skipping the round-trip on the client too keeps the switcher's
+        // open-time cheap on non-Enterprise installations.
+        accessControlEnabled: isChannelAccessControlEnabled(state),
+        currentTeamId: getCurrentTeamId(state),
     };
 }
 
@@ -28,6 +39,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             joinChannelById,
             switchToChannel,
             closeRightHandSide,
+            getRecommendedChannelsForUser,
         }, dispatch),
     };
 }
