@@ -680,24 +680,12 @@ func (h *Hub) Start() {
 				// also clearing the session token so the next
 				// IsBasicAuthenticated check short-circuits instead
 				// of re-fetching from the cache.
-				userIDs := make(map[string]struct{})
 				for webConn := range connIndex.All() {
 					webConn.InvalidateCache()
 					webConn.SetSessionToken("")
-					userIDs[webConn.UserId] = struct{}{}
 				}
-
-				if !*h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
-					continue
-				}
-
-				for userID := range userIDs {
-					if err := connIndex.InvalidateCMCacheForUser(userID); err != nil {
-						h.platform.Log().Error("Error while invalidating channel member cache", mlog.String("user_id", userID), mlog.Err(err))
-						for conn := range connIndex.ForUser(userID) {
-							closeAndRemoveConn(connIndex, conn)
-						}
-					}
+				if *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+					connIndex.clearChannels()
 				}
 			case activity := <-h.activity:
 				for webConn := range connIndex.ForUser(activity.userID) {
@@ -990,6 +978,16 @@ func (i *hubConnectionIndex) ForUser(id string) iter.Seq[*WebConn] {
 // ForChannel returns all connections for a channelID.
 func (i *hubConnectionIndex) ForChannel(channelID string) iter.Seq[*WebConn] {
 	return maps.Keys(i.byChannelID[channelID])
+}
+
+// clearChannels empties the channel-routing index in one shot. Intended
+// for paths that have already invalidated every conn registered with
+// the hub: any broadcast addressed to a channel will be filtered out
+// upstream by ShouldSendEvent, so the routing entries are dead weight
+// until conns either re-handshake or fully reconnect (both of which
+// repopulate the index via Add).
+func (i *hubConnectionIndex) clearChannels() {
+	clear(i.byChannelID)
 }
 
 // ForUserActiveCount returns the number of active connections for a userID
