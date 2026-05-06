@@ -415,17 +415,22 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SAML enabled with reachable metadata URL", func(t *testing.T) {
-		metadataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}))
-		defer metadataServer.Close()
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(model.StatusOk, "")
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")
@@ -441,6 +446,16 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SAML enabled with missing metadata URL", func(t *testing.T) {
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(model.StatusFail, "SAML metadata URL is not configured")
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
+
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
 			cfg.SamlSettings.Verify = model.NewPointer(false)
@@ -461,17 +476,22 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SAML enabled with metadata URL returning non-200", func(t *testing.T) {
-		metadataServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}))
-		defer metadataServer.Close()
+		diagMock := &emocks.SamlDiagnosticInterface{}
+		diagMock.On(
+			"RunSupportPacketTest",
+			mock.AnythingOfType("*request.Context"),
+			mock.AnythingOfType("model.SamlSettings"),
+		).Return(model.StatusFail, "SAML metadata URL returned unexpected status 503")
+		originalSAMLDiag := th.Service.samlDiagnostic
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAMLDiag })
+		th.Service.samlDiagnostic = diagMock
 
 		th.Service.UpdateConfig(func(cfg *model.Config) {
 			cfg.SamlSettings.Enable = model.NewPointer(true)
 			cfg.SamlSettings.Verify = model.NewPointer(false)
 			cfg.SamlSettings.Encrypt = model.NewPointer(false)
 			cfg.SamlSettings.IdpURL = model.NewPointer("http://localhost:8484/realms/mattermost/protocol/saml")
-			cfg.SamlSettings.IdpMetadataURL = model.NewPointer(metadataServer.URL)
+			cfg.SamlSettings.IdpMetadataURL = model.NewPointer("http://localhost:8484/metadata")
 			cfg.SamlSettings.IdpDescriptorURL = model.NewPointer("http://localhost:8484/realms/mattermost")
 			cfg.SamlSettings.ServiceProviderIdentifier = model.NewPointer("mattermost")
 			cfg.SamlSettings.IdpCertificateFile = model.NewPointer("saml-idp.crt")

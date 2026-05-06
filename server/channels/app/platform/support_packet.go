@@ -296,7 +296,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Push Notifications */
 	if model.SafeDereference(ps.Config().EmailSettings.SendPushNotifications) {
 		pushServerURL := model.SafeDereference(ps.Config().EmailSettings.PushNotificationServer)
-		if pushErr := testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
+		if pushErr := ps.testPushProxyConnection(rctx.Context(), pushServerURL); pushErr != nil {
 			d.Notifications.Push.Status = model.StatusFail
 			d.Notifications.Push.Error = pushErr.Error()
 		} else {
@@ -319,7 +319,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 }
 
 // TODO: move this into its own push proxy package once one exists (see also pushNotificationClient in server.go)
-func testPushProxyConnection(ctx context.Context, serverURL string) error {
+func (ps *PlatformService) testPushProxyConnection(ctx context.Context, serverURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	versionURL, err := url.JoinPath(serverURL, "version")
