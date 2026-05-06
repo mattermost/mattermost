@@ -64,91 +64,87 @@ func makeTokens(n int, base int64) []*model.UserAccessToken {
 	return out
 }
 
-func TestCleanupExpiredHappyPathSingleBatch(t *testing.T) {
+func TestCleanupExpired(t *testing.T) {
 	logger := mlog.CreateConsoleTestLogger(t)
-	tokens := makeTokens(3, 1000)
-	store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
-	err := cleanupExpired(logger, store, 9999, 1000, 10)
-	require.NoError(t, err)
+	t.Run("happy path single batch", func(t *testing.T) {
+		tokens := makeTokens(3, 1000)
+		store := &fakeStore{batches: [][]*model.UserAccessToken{tokens}}
 
-	// Exactly one DeleteByIds call with the three token ids. A partial first
-	// batch (len < limit) must short-circuit the loop, so GetExpiredBefore is
-	// called exactly once.
-	require.Len(t, store.deletedIDs, 1)
-	require.Len(t, store.deletedIDs[0], 3)
-	require.Equal(t, 1, store.getCalls)
-}
+		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		require.NoError(t, err)
 
-func TestCleanupExpiredEmptyResultIsNoOp(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
-	store := &fakeStore{} // no batches, no errors
+		// Exactly one DeleteByIds call with the three token ids. A partial first
+		// batch (len < limit) must short-circuit the loop, so GetExpiredBefore is
+		// called exactly once.
+		require.Len(t, store.deletedIDs, 1)
+		require.Len(t, store.deletedIDs[0], 3)
+		require.Equal(t, 1, store.getCalls)
+	})
 
-	err := cleanupExpired(logger, store, 9999, 1000, 10)
-	require.NoError(t, err)
+	t.Run("empty result is no-op", func(t *testing.T) {
+		store := &fakeStore{} // no batches, no errors
 
-	require.Equal(t, 1, store.getCalls)
-	require.Empty(t, store.deletedIDs)
-}
+		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		require.NoError(t, err)
 
-func TestCleanupExpiredFullBatchTriggersNextIteration(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
-	const limit = 5
-	first := makeTokens(limit, 1000) // full batch -> loop continues
-	second := makeTokens(2, 2000)    // partial batch -> loop stops
-	store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
+		require.Equal(t, 1, store.getCalls)
+		require.Empty(t, store.deletedIDs)
+	})
 
-	err := cleanupExpired(logger, store, 9999, limit, 10)
-	require.NoError(t, err)
+	t.Run("full batch triggers next iteration", func(t *testing.T) {
+		const limit = 5
+		first := makeTokens(limit, 1000) // full batch -> loop continues
+		second := makeTokens(2, 2000)    // partial batch -> loop stops
+		store := &fakeStore{batches: [][]*model.UserAccessToken{first, second}}
 
-	// Two iterations total: the full batch keeps the loop going, the partial
-	// batch stops it before maxIter.
-	require.Equal(t, 2, store.getCalls)
-	require.Len(t, store.deletedIDs, 2)
-	require.Len(t, store.deletedIDs[0], limit)
-	require.Len(t, store.deletedIDs[1], 2)
-}
+		err := cleanupExpired(logger, store, 9999, limit, 10)
+		require.NoError(t, err)
 
-func TestCleanupExpiredMaxIterCap(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
-	const limit = 3
-	const maxIter = 2
-	store := &fakeStore{batches: [][]*model.UserAccessToken{
-		makeTokens(limit, 1000),
-		makeTokens(limit, 2000),
-		makeTokens(limit, 3000), // never reached
-	}}
+		require.Equal(t, 2, store.getCalls)
+		require.Len(t, store.deletedIDs, 2)
+		require.Len(t, store.deletedIDs[0], limit)
+		require.Len(t, store.deletedIDs[1], 2)
+	})
 
-	err := cleanupExpired(logger, store, 9999, limit, maxIter)
-	require.NoError(t, err)
+	t.Run("max iter cap", func(t *testing.T) {
+		const limit = 3
+		const maxIter = 2
+		store := &fakeStore{batches: [][]*model.UserAccessToken{
+			makeTokens(limit, 1000),
+			makeTokens(limit, 2000),
+			makeTokens(limit, 3000), // never reached
+		}}
 
-	require.Equal(t, maxIter, store.getCalls, "loop must cap at maxIter")
-	require.Len(t, store.deletedIDs, maxIter)
-}
+		err := cleanupExpired(logger, store, 9999, limit, maxIter)
+		require.NoError(t, err)
 
-func TestCleanupExpiredGetErrorPropagates(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
-	wantErr := errors.New("get failed")
-	store := &fakeStore{
-		batches:  [][]*model.UserAccessToken{makeTokens(2, 1000)},
-		getErrAt: 1,
-		getErr:   wantErr,
-	}
+		require.Equal(t, maxIter, store.getCalls, "loop must cap at maxIter")
+		require.Len(t, store.deletedIDs, maxIter)
+	})
 
-	err := cleanupExpired(logger, store, 9999, 1000, 10)
-	require.ErrorIs(t, err, wantErr)
-	require.Empty(t, store.deletedIDs, "delete must not run when get fails")
-}
+	t.Run("get error propagates", func(t *testing.T) {
+		wantErr := errors.New("get failed")
+		store := &fakeStore{
+			batches:  [][]*model.UserAccessToken{makeTokens(2, 1000)},
+			getErrAt: 1,
+			getErr:   wantErr,
+		}
 
-func TestCleanupExpiredDeleteErrorPropagates(t *testing.T) {
-	logger := mlog.CreateConsoleTestLogger(t)
-	wantErr := errors.New("delete failed")
-	store := &fakeStore{
-		batches:   [][]*model.UserAccessToken{makeTokens(2, 1000)},
-		deleteErr: wantErr,
-	}
+		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		require.ErrorIs(t, err, wantErr)
+		require.Empty(t, store.deletedIDs, "delete must not run when get fails")
+	})
 
-	err := cleanupExpired(logger, store, 9999, 1000, 10)
-	require.ErrorIs(t, err, wantErr)
-	require.Len(t, store.deletedIDs, 1, "DeleteByIds was called once before failing")
+	t.Run("delete error propagates", func(t *testing.T) {
+		wantErr := errors.New("delete failed")
+		store := &fakeStore{
+			batches:   [][]*model.UserAccessToken{makeTokens(2, 1000)},
+			deleteErr: wantErr,
+		}
+
+		err := cleanupExpired(logger, store, 9999, 1000, 10)
+		require.ErrorIs(t, err, wantErr)
+		require.Len(t, store.deletedIDs, 1, "DeleteByIds was called once before failing")
+	})
 }
