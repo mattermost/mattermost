@@ -287,21 +287,28 @@ export const SwitchChannelSuggestion = React.forwardRef<HTMLLIElement, Props>(({
     let tag = null;
     let customStatus = null;
     if (isRecommendedRow) {
-        // Recommended-row rendering can only fire on public channels (gated
-        // in the connect mapper), and BotTag/GuestTag only fire on DM rows,
-        // so the two paths are mutually exclusive — no risk of clobbering
-        // the bot/guest signal here.
+        // Spec (PR #36275 review mockup
+        // https://github.com/user-attachments/assets/384ced48-2493-445a-a947-a708c681f75e):
+        // pill-style tag with light blue background and --button-bg blue
+        // text, positioned at the end of the row's primary column. The
+        // AlertTag `primary` variant is exactly that visual treatment, so
+        // we reuse it rather than rolling a one-off span. Tooltip carries
+        // the longer-form explanation that doesn't fit in the pill.
+        // Recommended-row rendering can only fire on public channels
+        // (gated in the connect mapper) and BotTag/GuestTag only fire on
+        // DM rows, so the two paths are mutually exclusive.
         tag = (
             <AlertTag
                 className='switch-channel-suggestion__recommended-tag'
                 testId={`recommendedTag-${channel.name}`}
+                variant='primary'
                 text={formatMessage({
-                    id: 'quick_switch_modal.recommended_tag',
+                    id: 'quick_switch_modal.recommended',
                     defaultMessage: 'Recommended',
                 })}
                 tooltipTitle={formatMessage({
-                    id: 'quick_switch_modal.recommended_tag.tooltip',
-                    defaultMessage: 'You match the membership policy for this channel',
+                    id: 'quick_switch_modal.recommended_indicator',
+                    defaultMessage: 'Recommended for membership',
                 })}
             />
         );
