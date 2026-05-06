@@ -5,10 +5,8 @@ package filestore
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -30,16 +28,6 @@ func TestAzureFileBackendTestSuite(t *testing.T) {
 	if port == "" {
 		port = "10000"
 	}
-
-	// Skip when Azurite isn't reachable. CI doesn't currently bring it up;
-	// the dedicated test-infra ticket (MM-68661) wires Azurite into the CI
-	// docker-compose so this branch goes away once that lands.
-	addr := net.JoinHostPort(host, port)
-	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
-	if err != nil {
-		t.Skipf("Azurite not reachable at %s: %v", addr, err)
-	}
-	conn.Close()
 
 	suite.Run(t, &FileBackendTestSuite{
 		settings: FileBackendSettings{
