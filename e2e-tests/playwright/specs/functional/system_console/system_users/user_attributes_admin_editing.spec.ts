@@ -371,101 +371,160 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 
-        // # Find CPA email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
-        await workEmailInput.scrollIntoViewIfNeeded();
-        const originalEmail = await workEmailInput.inputValue();
+        // Protect against mid-test field deletion by concurrent CPA test suites.
+        //
+        // Root cause: other spec files call setupCustomProfileAttributeFields() which has an
+        // early-return that picks up ANY existing fields on the server — including our UAAE
+        // fields. When those other suites finish, their afterEach calls deleteCustomProfileAttributes()
+        // which deletes our fields from the server. The server then publishes a
+        // WebsocketEventCPAFieldDeleted event. The browser receives it and re-fetches
+        // GET /api/v4/custom_profile_attributes/fields. With our fields gone, Redux loses them.
+        // In system_user_detail.tsx, handleCpaValueChange uses
+        //   const field = customProfileAttributeFields.find(f => f.id === fieldId)
+        // When field === undefined (field gone from Redux), the validation block is skipped
+        // entirely, so the .field-error div is never rendered and this test times out.
+        //
+        // Fix: intercept the fields GET during this test and always return the known set,
+        // so any mid-test server deletion doesn't propagate to the browser's Redux store.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
 
-        // # Enter invalid email
-        await workEmailInput.clear();
-        await workEmailInput.fill('not-an-email');
+        try {
+            // # Find CPA email field (Work Email)
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+            await workEmailInput.scrollIntoViewIfNeeded();
+            const originalEmail = await workEmailInput.inputValue();
 
-        // * Verify inline validation error appears (async client-side validation in CI)
-        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-        await expect(fieldError).toBeVisible({timeout: 30000});
-        await expect(fieldError).toContainText('Invalid email address');
+            // # Enter invalid email
+            await workEmailInput.clear();
+            await workEmailInput.fill('not-an-email');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            await expect(fieldError).toBeVisible({timeout: 30000});
+            await expect(fieldError).toContainText('Invalid email address');
 
-        // * Verify Cancel button is visible and enabled
-        await expect(userDetail.cancelButton).toBeVisible();
-        await expect(userDetail.cancelButton).toBeEnabled();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
 
-        // # Test the cancel functionality
-        await userDetail.cancel();
+            // * Verify Cancel button is visible and enabled
+            await expect(userDetail.cancelButton).toBeVisible();
+            await expect(userDetail.cancelButton).toBeEnabled();
 
-        // * Verify email reverts to original value
-        await expect(workEmailInput).toHaveValue(originalEmail);
+            // # Test the cancel functionality
+            await userDetail.cancel();
 
-        // * Verify validation error disappears
-        await expect(fieldError).not.toBeVisible();
+            // * Verify email reverts to original value
+            await expect(workEmailInput).toHaveValue(originalEmail);
 
-        // * Verify Cancel button disappears
-        await expect(userDetail.cancelButton).not.toBeVisible();
+            // * Verify validation error disappears
+            await expect(fieldError).not.toBeVisible();
 
-        // * Verify Save button remains disabled (no unsaved changes)
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify Cancel button disappears
+            await expect(userDetail.cancelButton).not.toBeVisible();
+
+            // * Verify Save button remains disabled (no unsaved changes)
+            await expect(userDetail.saveButton).toBeDisabled();
+        } finally {
+            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
+        }
     });
 
     test('Should validate invalid URL and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 
-        // # Find custom URL field (Personal Website)
-        const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
-        const originalUrl = await urlInput.inputValue();
+        // Same mid-test field-deletion guard as the email validation test above.
+        // See "Should validate invalid email" for the full root-cause explanation.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
 
-        // # Enter invalid URL (specifically the one mentioned: "<%>")
-        await urlInput.clear();
-        await urlInput.fill('<%>');
+        try {
+            // # Find custom URL field (Personal Website)
+            const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
+            const originalUrl = await urlInput.inputValue();
 
-        // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
-        await expect(fieldError).toBeVisible();
-        await expect(fieldError).toContainText('Invalid URL');
+            // # Enter invalid URL (specifically the one mentioned: "<%>")
+            await urlInput.clear();
+            await urlInput.fill('<%>');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
+            await expect(fieldError).toBeVisible();
+            await expect(fieldError).toContainText('Invalid URL');
 
-        // * Verify Cancel button is visible
-        await expect(userDetail.cancelButton).toBeVisible();
-        await expect(userDetail.cancelButton).toBeEnabled();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
 
-        // # Test cancel functionality
-        await userDetail.cancel();
+            // * Verify Cancel button is visible
+            await expect(userDetail.cancelButton).toBeVisible();
+            await expect(userDetail.cancelButton).toBeEnabled();
 
-        // * Verify URL reverts to original value
-        await expect(urlInput).toHaveValue(originalUrl);
+            // # Test cancel functionality
+            await userDetail.cancel();
 
-        // * Verify validation error disappears
-        await expect(fieldError).not.toBeVisible();
+            // * Verify URL reverts to original value
+            await expect(urlInput).toHaveValue(originalUrl);
 
-        // * Verify Cancel button disappears
-        await expect(userDetail.cancelButton).not.toBeVisible();
+            // * Verify validation error disappears
+            await expect(fieldError).not.toBeVisible();
+
+            // * Verify Cancel button disappears
+            await expect(userDetail.cancelButton).not.toBeVisible();
+        } finally {
+            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
+        }
     });
 
     test('Should validate invalid email in custom email attribute', async () => {
         const {userDetail} = systemConsolePage.users;
         const {userCard} = userDetail;
 
-        // # Find custom email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+        // Same mid-test field-deletion guard as the other validation tests.
+        // See "Should validate invalid email and show error with cancel option" for the
+        // full root-cause explanation.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
 
-        // # Enter invalid email
-        await workEmailInput.clear();
-        await workEmailInput.fill('not-an-email-either');
+        try {
+            // # Find custom email field (Work Email)
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
 
-        // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-        await expect(fieldError).toBeVisible();
-        await expect(fieldError).toContainText('Invalid email address');
+            // # Enter invalid email
+            await workEmailInput.clear();
+            await workEmailInput.fill('not-an-email-either');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            await expect(fieldError).toBeVisible();
+            await expect(fieldError).toContainText('Invalid email address');
 
-        // * Verify Cancel button is available
-        await expect(userDetail.cancelButton).toBeVisible();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
+
+            // * Verify Cancel button is available
+            await expect(userDetail.cancelButton).toBeVisible();
+        } finally {
+            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
+        }
     });
 
     test('Should show save/cancel buttons when changes are made', async () => {
