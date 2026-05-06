@@ -7,7 +7,7 @@ on:
       - master
  
 concurrency:
-  group: ${{ format('docs-impact-{0}-{1}', github.event.pull_request.number, github.event.action) }}
+  group: ${{ format('docs-impact-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) }}
   cancel-in-progress: true
  
 permissions:
