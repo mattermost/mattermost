@@ -35,7 +35,7 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 
 	ds := &DatabaseStore{
 		driverName:     *mainHelper.GetSQLSettings().DriverName,
-		db:             mainHelper.GetSQLStore().GetMaster().DB,
+		db:             mainHelper.GetSQLStore().GetMaster().Sqlx(),
 		dataSourceName: *mainHelper.Settings.DataSource,
 	}
 
