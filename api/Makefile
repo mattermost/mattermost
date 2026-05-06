@@ -1,18 +1,19 @@
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: build build-v4 clean playbooks
+.PHONY: build build-v4 clean playbooks agents
 
 V4_YAML = $(ROOT)/v4/html/static/mattermost-openapi-v4.yaml
 
 V4_SRC = $(ROOT)/v4/source
 PLAYBOOKS_SRC = $(ROOT)/playbooks
+AGENTS_SRC = $(ROOT)/agents
 
 build: build-v4
 
-build-v4: node_modules playbooks
+build-v4: node_modules playbooks agents
 	@echo Building mattermost openapi yaml for v4
 
-	@if [ -r $(PLAYBOOKS_SRC)/merged-tags.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-tags.yaml > $(V4_YAML); else cat $(V4_SRC)/introduction.yaml > $(V4_YAML); fi
+	@if [ -r $(AGENTS_SRC)/merged-tags.yaml ]; then cat $(AGENTS_SRC)/merged-tags.yaml > $(V4_YAML); elif [ -r $(PLAYBOOKS_SRC)/merged-tags.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-tags.yaml > $(V4_YAML); else cat $(V4_SRC)/introduction.yaml > $(V4_YAML); fi
 	@cat $(V4_SRC)/users.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/status.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/teams.yaml >> $(V4_YAML)
@@ -68,7 +69,8 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/agents.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/properties.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
-	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
+	@if [ -r $(AGENTS_SRC)/paths.yaml ]; then cat $(AGENTS_SRC)/paths.yaml >> $(V4_YAML); fi
+	@if [ -r $(AGENTS_SRC)/merged-definitions.yaml ]; then cat $(AGENTS_SRC)/merged-definitions.yaml >> $(V4_YAML); elif [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
 	@echo Extracting code samples
 	cd server && go run . $(V4_YAML)
 
@@ -96,3 +98,9 @@ playbooks:
 	cd playbooks && node extract.js
 	cd playbooks && node merge-definitions.js $(V4_SRC)/definitions.yaml
 	cd playbooks && node merge-tags.js $(V4_SRC)/introduction.yaml
+
+agents:
+	@echo Fetching Agents OpenAPI spec
+	cd agents && node extract.js
+	cd agents && node merge-definitions.js $(PLAYBOOKS_SRC)/merged-definitions.yaml $(V4_SRC)/definitions.yaml
+	cd agents && node merge-tags.js $(PLAYBOOKS_SRC)/merged-tags.yaml $(V4_SRC)/introduction.yaml

@@ -12,6 +12,8 @@ v4/html/index.html
 node_modules
 playbooks/*.yaml
 !playbooks/tags.yaml
+agents/*.yaml
+!agents/tags.yaml
 
 # IDEs
 .idea/

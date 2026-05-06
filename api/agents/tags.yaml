@@ -1,0 +1,32 @@
+---
+tags:
+  - name: AgentsPluginAgents
+    description: User-created AI agents
+  - name: AgentsPluginBridge
+    description: Inter-plugin LLM bridge endpoints
+  - name: AgentsPluginChannels
+    description: Channel analysis endpoints
+  - name: AgentsPluginConversations
+    description: Conversation history endpoints
+  - name: AgentsPluginCustomPrompts
+    description: Custom prompt endpoints
+  - name: AgentsPluginMCP
+    description: Model Context Protocol endpoints
+  - name: AgentsPluginAdmin
+    description: System administrator endpoints
+  - name: AgentsPluginPosts
+    description: Post action endpoints
+  - name: AgentsPluginSearch
+    description: Semantic search endpoints
+x-tagGroups:
+  - name: Agents plugin
+    tags:
+      - AgentsPluginAgents
+      - AgentsPluginBridge
+      - AgentsPluginChannels
+      - AgentsPluginConversations
+      - AgentsPluginCustomPrompts
+      - AgentsPluginMCP
+      - AgentsPluginAdmin
+      - AgentsPluginPosts
+      - AgentsPluginSearch

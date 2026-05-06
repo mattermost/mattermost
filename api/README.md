@@ -11,7 +11,7 @@ All documentation is available under the terms of a [Creative Commons License](h
 We're accepting pull requests! See something that could be documented better or is missing documentation? Make a PR and we'll gladly accept it.
 
 All the documentation is written in YAML and found in the [v4/source](v4/source) directories. APIv4 documentation is in the [v4 directory](v4).
-APIs for [Playbooks](https://github.com/mattermost/mattermost-plugin-playbooks) are retrieved from GitHub at build time and integrated into the final YAML file.
+APIs for [Playbooks](https://github.com/mattermost/mattermost-plugin-playbooks) and the [Agents plugin](https://github.com/mattermost/mattermost-plugin-agents) are retrieved from GitHub at build time and integrated into the final YAML file.
 
 * When adding a new route, please add it to the correct file. For example, a channel route will go in [channels.yaml](v4/source/channels.yaml).
 * To add a new tag, please do so in [introduction.yaml](v4/source/introduction.yaml)
