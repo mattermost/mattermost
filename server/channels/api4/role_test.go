@@ -323,6 +323,63 @@ func TestPatchRole(t *testing.T) {
 		Permissions: &[]string{"create_direct_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
+	t.Run("system manager cannot patch system_user", func(t *testing.T) {
+		systemUserRole, appErr := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := append([]string{}, systemUserRole.Permissions...)
+		require.NotContains(t, originalPermissions, model.PermissionEditOtherUsers.Id)
+
+		patchedPermissions := append([]string{}, originalPermissions...)
+		patchedPermissions = append(patchedPermissions, model.PermissionEditOtherUsers.Id)
+
+		th.LoginSystemManager(t)
+
+		_, systemUserResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemUserRole.Id, &model.RolePatch{
+			Permissions: &patchedPermissions,
+		})
+		if assert.Error(t, err, "system_manager must not be able to patch system_user") {
+			CheckForbiddenStatus(t, systemUserResp)
+		}
+
+		systemUserRole, appErr = th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, originalPermissions, systemUserRole.Permissions)
+		assert.NotContains(t, systemUserRole.Permissions, model.PermissionEditOtherUsers.Id, "system_manager must not be able to inject privileged permissions into system_user")
+	})
+
+	t.Run("system manager cannot patch system_guest", func(t *testing.T) {
+		license := model.NewTestLicense()
+		license.Features.GuestAccountsPermissions = model.NewPointer(true)
+		th.App.Srv().SetLicense(license)
+		t.Cleanup(func() {
+			th.App.Srv().SetLicense(nil)
+		})
+
+		systemGuestRole, appErr := th.App.GetRoleByName(th.Context, model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+
+		originalPermissions := append([]string{}, systemGuestRole.Permissions...)
+		require.NotContains(t, originalPermissions, model.PermissionEditOtherUsers.Id)
+
+		patchedPermissions := append([]string{}, originalPermissions...)
+		patchedPermissions = append(patchedPermissions, model.PermissionEditOtherUsers.Id)
+
+		th.LoginSystemManager(t)
+
+		_, systemGuestResp, err := th.SystemManagerClient.PatchRole(context.Background(), systemGuestRole.Id, &model.RolePatch{
+			Permissions: &patchedPermissions,
+		})
+		if assert.Error(t, err, "system_manager must not be able to patch system_guest") {
+			CheckForbiddenStatus(t, systemGuestResp)
+		}
+
+		systemGuestRole, appErr = th.App.GetRoleByName(th.Context, model.SystemGuestRoleId)
+		require.Nil(t, appErr)
+		assert.ElementsMatch(t, originalPermissions, systemGuestRole.Permissions)
+		assert.NotContains(t, systemGuestRole.Permissions, model.PermissionEditOtherUsers.Id, "system_manager must not be able to inject privileged permissions into system_guest")
+	})
+
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		received, _, err := client.PatchRole(context.Background(), role.Id, patch)
 		require.NoError(t, err)

@@ -23,6 +23,7 @@ var (
 		"UpdateAt",
 		"DeleteAt",
 		"ReadAt",
+		"ViewedAt",
 		"TotalMessageCount",
 		"Status",
 		"BotID",
@@ -72,6 +73,7 @@ func (s *SqlRecapStore) recapToMap(recap *model.Recap) map[string]any {
 		"UpdateAt":          recap.UpdateAt,
 		"DeleteAt":          recap.DeleteAt,
 		"ReadAt":            recap.ReadAt,
+		"ViewedAt":          recap.ViewedAt,
 		"TotalMessageCount": recap.TotalMessageCount,
 		"Status":            recap.Status,
 		"BotID":             recap.BotID,
@@ -157,6 +159,8 @@ func (s *SqlRecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
 			"UpdateAt":          recap.UpdateAt,
 			"TotalMessageCount": recap.TotalMessageCount,
 			"Status":            recap.Status,
+			"ReadAt":            recap.ReadAt,
+			"ViewedAt":          recap.ViewedAt,
 		}).
 		Where(sq.Eq{"Id": recap.Id})
 
@@ -201,6 +205,34 @@ func (s *SqlRecapStore) MarkRecapAsRead(id string) error {
 	}
 
 	return nil
+}
+
+func (s *SqlRecapStore) MarkRecapsAsViewed(userId string, statuses []string) ([]string, error) {
+	if len(statuses) == 0 {
+		return nil, nil
+	}
+
+	now := model.GetMillis()
+
+	query, args, err := s.getQueryBuilder().
+		Update("Recaps").
+		SetMap(map[string]any{
+			"ViewedAt": now,
+			"UpdateAt": now,
+		}).
+		Where(sq.Eq{"UserId": userId, "ViewedAt": 0, "DeleteAt": 0, "Status": statuses}).
+		Suffix("RETURNING Id").
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build MarkRecapsAsViewed query")
+	}
+
+	var ids []string
+	if err := s.GetMaster().Select(&ids, query, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to mark recaps as viewed for userId=%s", userId)
+	}
+
+	return ids, nil
 }
 
 func (s *SqlRecapStore) DeleteRecap(id string) error {

@@ -15,10 +15,11 @@ import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
 
 import {getHistory} from 'utils/browser_history';
 import {getChannelIconComponent} from 'utils/channel_utils';
+
+import AdminChannelSharedIndicator from './admin_channel_shared_indicator';
 
 import './channel_list.scss';
 
@@ -195,9 +196,9 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             );
 
             const sharedChannelIcon = channel.shared ? (
-                <SharedChannelIndicator
+                <AdminChannelSharedIndicator
+                    channelId={channel.id}
                     className='channel-icon'
-                    withTooltip={true}
                 />
             ) : null;
 

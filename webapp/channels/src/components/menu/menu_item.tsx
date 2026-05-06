@@ -7,7 +7,9 @@ import {styled} from '@mui/material/styles';
 import cloneDeep from 'lodash/cloneDeep';
 import React, {
     Children,
+    forwardRef,
     useContext,
+    useRef,
 } from 'react';
 import type {
     ReactElement,
@@ -86,6 +88,12 @@ export interface Props extends MuiMenuItemProps {
     forceCloseOnSelect?: boolean;
 
     /**
+     * When true, selecting this item will not close the menu.
+     * Inverse of forceCloseOnSelect for non-checkbox/radio roles.
+     */
+    disableCloseOnSelect?: boolean;
+
+    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
@@ -128,7 +136,7 @@ Props,
  * });
  *
  */
-export function MenuItem(props: Props) {
+export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
     const {
         leadingElement,
         labels,
@@ -139,6 +147,7 @@ export function MenuItem(props: Props) {
         onClick,
         role = 'menuitem',
         forceCloseOnSelect = false,
+        disableCloseOnSelect = false,
         ...otherProps
     } = props;
 
@@ -147,12 +156,18 @@ export function MenuItem(props: Props) {
 
     const isMobileView = useSelector(getIsMobileView);
 
+    // MUI ButtonBase calls both onKeyDown and onClick with the same
+    // keydown event for Enter, so handleClick runs twice per activation.
+    // Dedupe by native event identity — no timing hacks needed, and the
+    // ref is naturally cleared when a new event comes through.
+    const lastHandledEventRef = useRef<Event | null>(null);
+
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
             // unless forceCloseOnSelect is set to true.
             // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
-            if (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect) {
+            if (disableCloseOnSelect || (isRoleCheckboxOrRadio(role) && !forceCloseOnSelect)) {
                 event.stopPropagation();
             } else {
                 // close submenu first if it is open
@@ -166,10 +181,13 @@ export function MenuItem(props: Props) {
                 }
             }
 
-            if (onClick) {
-                // If the menu is in mobile view, we execute the click event immediately.
-                // If the menu item is a checkbox or radio button, we execute the click event immediately.
-                if (isMobileView || isRoleCheckboxOrRadio(role)) {
+            if (onClick && event.nativeEvent !== lastHandledEventRef.current) {
+                lastHandledEventRef.current = event.nativeEvent;
+
+                // Execute immediately when the menu isn't closing on select
+                // (mobile modal, checkbox/radio, or disableCloseOnSelect).
+                // Otherwise defer to after the close animation.
+                if (isMobileView || isRoleCheckboxOrRadio(role) || disableCloseOnSelect) {
                     onClick(event);
                 } else {
                     // Clone the event since we delay the click handler until after the menu has closed.
@@ -192,6 +210,7 @@ export function MenuItem(props: Props) {
 
     return (
         <MenuItemStyled
+            ref={ref}
             disableRipple={true}
             disableTouchRipple={true}
             isDestructive={isDestructive}
@@ -208,7 +227,8 @@ export function MenuItem(props: Props) {
             {children}
         </MenuItemStyled>
     );
-}
+});
+MenuItem.displayName = 'MenuItem';
 
 interface MenuItemStyledProps extends MuiMenuItemProps {
     isDestructive?: boolean;
@@ -323,27 +343,17 @@ export const MenuItemStyled = styled(MuiMenuItem, {
 );
 
 /**
- * Use this function to check if the menu item was pressed as per WAI-ARIA guidelines.
- * @param event - The event to check if the menu item was pressed by mouse or keyboard. Either a mouse event or a keyboard event.
- * @returns true if the menu item was pressed by mouse's "Primary" key or keyboard's "Space" or "Enter" key
- **/
+ * Checks if the menu item was activated per WAI-ARIA guidelines.
+ * Returns true for primary mouse click or Enter/Space keydown.
+ */
 function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
     if (event.type === EventTypes.KEY_DOWN) {
         const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
-        if (isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE)) {
-            return true;
-        }
-
-        return false;
-    } else if (event.type === EventTypes.CLICK) {
-        const mouseEvent = event as MouseEvent<HTMLLIElement>;
-        if (mouseEvent.button === 0) {
-            return true;
-        }
-
-        return false;
+        return isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE);
     }
-
+    if (event.type === EventTypes.CLICK) {
+        return (event as MouseEvent<HTMLLIElement>).button === 0;
+    }
     return false;
 }
 

@@ -93,6 +93,46 @@
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+  "/api/v4/recaps/mark_viewed":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Mark all of the authenticated user's finished recaps as viewed
+      description: >
+        Mark every not-yet-viewed completed or failed recap belonging to the
+        authenticated user as viewed at the current time. Pending and
+        processing recaps are not affected. Returns the IDs of the recaps
+        that were updated. The server broadcasts a `recap_updated` WebSocket
+        event for each affected recap.
+
+        Typically called once when the recaps page is opened so the sidebar
+        unread badge can be cleared in bulk.
+
+        ##### Permissions
+
+        Must be authenticated. Operates only on the authenticated user's
+        own recaps.
+
+        __Minimum server version__: 11.2
+      operationId: MarkRecapsAsViewed
+      responses:
+        "200":
+          description: Recaps marked as viewed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recap_ids:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs of the recaps that were updated
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "501":
+          description: AI Recaps feature flag is disabled
   "/api/v4/recaps/{recap_id}":
     get:
       tags:

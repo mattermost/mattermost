@@ -3534,6 +3534,126 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestGetUsersNotInChannelAbacMatchOnly exercises the dispatcher in
+// getUsers that decides whether to apply ABAC filtering based on the
+// channel type and the abac_match_only query parameter. The underlying
+// ABAC store path (GetUsersNotInAbacChannel) has its own coverage in
+// app/user_test.go; here we only assert the dispatch wiring.
+func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.True(t, ok, "SetLicense should return true")
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	teamId := th.BasicTeam.Id
+	user1 := th.CreateUser(t)
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user1, th.BasicTeam)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+
+	privateChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypePrivate, th.BasicTeam.Id)
+	publicChannel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, th.BasicTeam.Id)
+
+	// Add BasicUser as a member so th.Client (a regular user) has
+	// PermissionReadChannel on the target — the endpoint isn't sys-admin gated,
+	// it just requires read access on the channel. Membership is added before
+	// the ABAC policy is saved so the AddUserToChannel path doesn't go through
+	// the policy gate (which is unrelated to what we're testing here).
+	th.AddUserToChannel(t, th.BasicUser, privateChannel)
+	th.AddUserToChannel(t, th.BasicUser, publicChannel)
+
+	saveChannelPolicy := func(channelID string) {
+		policy := &model.AccessControlPolicy{
+			ID:       channelID,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Revision: 1,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Active:   true,
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{"membership"}, Expression: "true"},
+			},
+		}
+		_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, policy)
+		require.NoError(t, err)
+		// PolicyEnforced is computed at channel-fetch time and cached. Adding
+		// BasicUser as a member above populated the cache with PolicyEnforced=false;
+		// invalidate so ChannelAccessControlled (the dispatcher's gate) sees the
+		// freshly-saved policy on subsequent reads.
+		th.App.Srv().Store().Channel().InvalidateChannel(channelID)
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, channelID)
+		})
+	}
+	saveChannelPolicy(privateChannel.Id)
+	saveChannelPolicy(publicChannel.Id)
+
+	mockACS := &mocks.AccessControlServiceInterface{}
+	originalACS := th.App.Srv().Channels().AccessControl
+	th.App.Srv().Channels().AccessControl = mockACS
+	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = originalACS })
+
+	// QueryUsersForResource is the ABAC path; whenever it is hit, we return
+	// only user1 — that's the signal the dispatcher routed to the filtered
+	// branch. user2 only ever appears via the unfiltered store path.
+	//
+	// The third argument is pinned to the actual action constant
+	// (`AccessControlPolicyActionMembership`) so the mock matches the real
+	// call site in App.GetUsersNotInAbacChannel — using `"*"` here would
+	// silently never match and the whole test would PASS by accident on the
+	// fall-through path.
+	mockACS.On("QueryUsersForResource",
+		mock.Anything,
+		mock.AnythingOfType("string"),
+		model.AccessControlPolicyActionMembership,
+		mock.Anything,
+	).Return([]*model.User{user1}, int64(1), nil).Maybe()
+
+	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
+		t.Helper()
+		query := url.Values{}
+		query.Set("in_team", teamId)
+		query.Set("not_in_channel", channelID)
+		query.Set("page", "0")
+		query.Set("per_page", "200")
+		if abacMatchOnly {
+			query.Set("abac_match_only", "true")
+		}
+		resp, err := th.Client.DoAPIGet(context.Background(), "/users?"+query.Encode(), "")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		defer resp.Body.Close()
+
+		var users []*model.User
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&users))
+		ids := make([]string, 0, len(users))
+		for _, u := range users {
+			ids = append(ids, u.Id)
+		}
+		return ids
+	}
+
+	t.Run("private policy channel: ABAC filter applied without flag", func(t *testing.T) {
+		ids := listUsers(t, privateChannel.Id, false)
+		require.Contains(t, ids, user1.Id)
+		require.NotContains(t, ids, user2.Id, "private policy channel must hard-gate non-matching users")
+	})
+
+	t.Run("public policy channel: full list returned without flag", func(t *testing.T) {
+		ids := listUsers(t, publicChannel.Id, false)
+		require.Contains(t, ids, user1.Id)
+		require.Contains(t, ids, user2.Id, "public policy channel without abac_match_only must return non-matching users so callers can annotate them")
+	})
+
+	t.Run("public policy channel: ABAC filter applied with abac_match_only=true", func(t *testing.T) {
+		ids := listUsers(t, publicChannel.Id, true)
+		require.Contains(t, ids, user1.Id)
+		require.NotContains(t, ids, user2.Id, "abac_match_only=true on a public policy channel must drop non-matching users")
+	})
+}
+
 func TestGetUsersInGroup(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
