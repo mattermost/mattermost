@@ -865,15 +865,14 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 	}
 
 	threadRootID := ""
-	if trimmedRoot := strings.TrimSpace(req.RootId); trimmedRoot != "" {
-		if !model.IsValidId(trimmedRoot) {
+	if rootId := req.RootId; rootId != "" {
+		if !model.IsValidId(rootId) {
 			return model.NewAppError("HandleIncomingWebhook", "api.context.invalid_param.app_error", map[string]any{"Name": "root_id"}, "", http.StatusBadRequest)
 		}
-		postList, nErr := a.Srv().Store().Post().Get(rctx, trimmedRoot, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
+		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
 		if nErr != nil {
 			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 		}
-		rootPost := postList.Posts[trimmedRoot]
 		if rootPost == nil {
 			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
