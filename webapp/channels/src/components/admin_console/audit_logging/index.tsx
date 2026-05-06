@@ -5,10 +5,11 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import {removeAuditCertificate, uploadAuditCertificate} from 'actions/admin_actions';
 
 import useGetCloudInstallationStatus from 'components/common/hooks/useGetCloudInstallationStatus';
-import WithTooltip from 'components/with_tooltip';
 
 import FileUploadSetting from '../file_upload_setting';
 import RemoveFileSetting from '../remove_file_setting';

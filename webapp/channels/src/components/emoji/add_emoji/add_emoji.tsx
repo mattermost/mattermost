@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -344,12 +345,12 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                             <div className='col-md-5 col-sm-8'>
                                 <div>
                                     <div className='add-emoji__upload'>
-                                        <button className='btn btn-primary'>
+                                        <Button emphasis='primary'>
                                             <FormattedMessage
                                                 id='add_emoji.image.button'
                                                 defaultMessage='Select'
                                             />
-                                        </button>
+                                        </Button>
                                         <input
                                             id='select-emoji'
                                             type='file'
@@ -385,7 +386,6 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                             </Link>
                             <SpinnerButton
                                 data-testid='save-button'
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={defineMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}

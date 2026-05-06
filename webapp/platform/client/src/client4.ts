@@ -3475,6 +3475,13 @@ export default class Client4 {
         );
     };
 
+    markRecapsAsViewed = () => {
+        return this.doFetch<{recap_ids: string[]}>(
+            `${this.getRecapsRoute()}/mark_viewed`,
+            {method: 'post'},
+        );
+    };
+
     regenerateRecap = (recapId: string) => {
         return this.doFetch<Recap>(
             `${this.getRecapsRoute()}/${recapId}/regenerate`,

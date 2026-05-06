@@ -6,6 +6,7 @@ import type {ChangeEvent, SyntheticEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {Bot as BotType} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
@@ -402,7 +403,8 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='mt-2'>
                                     <SaveButton
-                                        btnClass='btn-sm btn-primary'
+                                        emphasis='primary'
+                                        size='sm'
                                         savingMessage={
                                             <FormattedMessage
                                                 id='user.settings.tokens.save'
@@ -411,15 +413,16 @@ export default class Bot extends React.PureComponent<Props, State> {
                                         }
                                         saving={false}
                                     />
-                                    <button
-                                        className='btn btn-sm btn-tertiary'
+                                    <Button
+                                        emphasis='tertiary'
+                                        size='sm'
                                         onClick={this.closeCreateToken}
                                     >
                                         <FormattedMessage
                                             id='user.settings.tokens.cancel'
                                             defaultMessage='Cancel'
                                         />
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </form>
@@ -461,15 +464,16 @@ export default class Bot extends React.PureComponent<Props, State> {
                         {this.state.token.token}
                     </strong>
                     <div className='mt-2'>
-                        <button
-                            className='btn btn-sm btn-primary'
+                        <Button
+                            emphasis='primary'
+                            size='sm'
                             onClick={this.closeCreateToken}
                         >
                             <FormattedMessage
                                 id='bot.create_token.close'
                                 defaultMessage='Close'
                             />
-                        </button>
+                        </Button>
                     </div>
                 </div>,
             );

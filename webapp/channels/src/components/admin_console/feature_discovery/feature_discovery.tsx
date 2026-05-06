@@ -5,6 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -90,8 +91,9 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         } = this.props;
         return (
             <div className='purchase-card'>
-                <button
-                    className='btn btn-primary btn-lg'
+                <Button
+                    emphasis='primary'
+                    size='lg'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         this.contactSalesFunc();
@@ -101,7 +103,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
                         defaultMessage='Contact sales'
                     />
-                </button>
+                </Button>
                 <ExternalLink
                     location='feature_discovery'
                     className='btn btn-tertiary btn-lg'
@@ -133,8 +135,8 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         if (isCloud) {
             // In cloud, only option is to contact sales.
             ctaPrimaryButton = (
-                <button
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     data-testid='featureDiscovery_primaryCallToAction'
                     onClick={() => {
                         this.contactSalesFunc();
@@ -144,7 +146,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                         id='admin.ldap_feature_discovery_cloud.call_to_action.primary_sales'
                         defaultMessage='Contact sales'
                     />
-                </button>
+                </Button>
             );
         }
 
