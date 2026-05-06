@@ -196,8 +196,8 @@ func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error
 	}, nil
 }
 
-func (s *Store) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
-	return &model.SupportPacketDatabaseDiagnostics{}, nil
+func (s *Store) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+	return &store.SupportPacketDatabaseDiagnostics{}, nil
 }
 
 func (s *Store) AssertExpectations(t mock.TestingT) bool {

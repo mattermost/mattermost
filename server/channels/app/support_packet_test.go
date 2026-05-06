@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	smocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -147,7 +148,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 		mockStore.On("MasterDBStats").Return(sql.DBStats{})
 		mockStore.On("ReplicaDBStats").Return(sql.DBStats{})
 		mockStore.On("GetInternalMasterDB").Return((*sql.DB)(nil))
-		mockStore.On("GetSupportPacketDatabaseDiagnostics", mock.Anything).Return(&model.SupportPacketDatabaseDiagnostics{}, nil)
+		mockStore.On("GetSupportPacketDatabaseDiagnostics", mock.Anything).Return(&store.SupportPacketDatabaseDiagnostics{}, nil)
 		mockStore.On("GetSchemaDefinition").Return(&model.SupportPacketDatabaseSchema{
 			Tables: []model.DatabaseTable{},
 		}, nil)

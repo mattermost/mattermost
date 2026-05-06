@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -64,8 +65,8 @@ func (s sqlQueryRowScanner) QueryRowContext(ctx context.Context, query string, a
 	return s.db.QueryRowContext(ctx, query, args...)
 }
 
-func (ss *SqlStore) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
-	diagnostics := &model.SupportPacketDatabaseDiagnostics{}
+func (ss *SqlStore) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+	diagnostics := &store.SupportPacketDatabaseDiagnostics{}
 	applyDBPoolStats(diagnostics, ss.MasterDBStats(), ss.ReplicaDBStats())
 
 	if ss.DriverName() != model.DatabaseDriverPostgres {
@@ -80,14 +81,14 @@ func (ss *SqlStore) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*m
 	return diagnostics, err
 }
 
-func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sql.DB) (*model.SupportPacketDatabaseDiagnostics, error) {
+func collectPostgresDatabaseDiagnostics(ctx context.Context, db *sql.DB) (*store.SupportPacketDatabaseDiagnostics, error) {
 	if db == nil {
 		return nil, errors.New("postgres diagnostics query failed: no master database connection")
 	}
 	return collectPostgresDatabaseDiagnosticsWithQueryer(ctx, sqlQueryRowScanner{db: db})
 }
 
-func collectPostgresDatabaseDiagnosticsWithQueryer(ctx context.Context, queryer queryRowScanner) (*model.SupportPacketDatabaseDiagnostics, error) {
+func collectPostgresDatabaseDiagnosticsWithQueryer(ctx context.Context, queryer queryRowScanner) (*store.SupportPacketDatabaseDiagnostics, error) {
 	if queryer == nil {
 		return nil, errors.New("postgres diagnostics query failed: no master database connection")
 	}
@@ -96,7 +97,7 @@ func collectPostgresDatabaseDiagnosticsWithQueryer(ctx context.Context, queryer 
 		ctx = context.Background()
 	}
 
-	diagnostics := &model.SupportPacketDatabaseDiagnostics{}
+	diagnostics := &store.SupportPacketDatabaseDiagnostics{}
 	var rErr *multierror.Error
 
 	databaseCtx, cancelDatabase := context.WithTimeout(ctx, pgDiagnosticsQueryTimeout)
@@ -120,7 +121,7 @@ func collectPostgresDatabaseDiagnosticsWithQueryer(ctx context.Context, queryer 
 	return diagnostics, rErr.ErrorOrNil()
 }
 
-func applyDBPoolStats(diagnostics *model.SupportPacketDatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
+func applyDBPoolStats(diagnostics *store.SupportPacketDatabaseDiagnostics, masterDBStats, replicaDBStats sql.DBStats) {
 	diagnostics.MasterConnectionsInUse = masterDBStats.InUse
 	diagnostics.MasterConnectionsIdle = masterDBStats.Idle
 	diagnostics.MasterPoolWaitCount = masterDBStats.WaitCount
@@ -136,7 +137,7 @@ func applyDBPoolStats(diagnostics *model.SupportPacketDatabaseDiagnostics, maste
 	diagnostics.ReplicaConnectionsClosedMaxLifetime = replicaDBStats.MaxLifetimeClosed
 }
 
-func mergePostgresDiagnostics(target, source *model.SupportPacketDatabaseDiagnostics) {
+func mergePostgresDiagnostics(target, source *store.SupportPacketDatabaseDiagnostics) {
 	target.CacheHitRatio = source.CacheHitRatio
 	target.Deadlocks = source.Deadlocks
 	target.TempFiles = source.TempFiles
@@ -149,7 +150,7 @@ func mergePostgresDiagnostics(target, source *model.SupportPacketDatabaseDiagnos
 	target.PostsLastAutovacuum = source.PostsLastAutovacuum
 }
 
-func collectPGStatDatabaseDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatDatabaseDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
 	var (
 		cacheHitRatio float64
 		deadlocks     int64
@@ -172,7 +173,7 @@ func collectPGStatDatabaseDiagnostics(ctx context.Context, queryer queryRowScann
 	return nil
 }
 
-func collectPGStatActivityDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatActivityDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
 	var (
 		idleInTransactionCount      int64
 		longestQueryDurationSeconds float64
@@ -190,7 +191,7 @@ func collectPGStatActivityDiagnostics(ctx context.Context, queryer queryRowScann
 	return nil
 }
 
-func collectPGStatUserTablesDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *model.SupportPacketDatabaseDiagnostics) error {
+func collectPGStatUserTablesDiagnostics(ctx context.Context, queryer queryRowScanner, diagnostics *store.SupportPacketDatabaseDiagnostics) error {
 	var (
 		postsDeadTuples int64
 		lastAutovacuum  sql.NullTime

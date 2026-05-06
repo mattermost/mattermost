@@ -50,8 +50,8 @@ func (s *fixedDBStatsStore) ReplicaDBStats() sql.DBStats {
 	return s.replicaStats
 }
 
-func (s *fixedDBStatsStore) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
-	diagnostics := &model.SupportPacketDatabaseDiagnostics{
+func (s *fixedDBStatsStore) GetSupportPacketDatabaseDiagnostics(_ context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
+	diagnostics := &store.SupportPacketDatabaseDiagnostics{
 		MasterConnectionsInUse:              s.masterStats.InUse,
 		MasterConnectionsIdle:               s.masterStats.Idle,
 		MasterPoolWaitCount:                 s.masterStats.WaitCount,

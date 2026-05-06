@@ -18313,7 +18313,7 @@ func (s *RetryLayer) ReplicaDBStats() sql.DBStats {
 	return s.Store.ReplicaDBStats()
 }
 
-func (s *RetryLayer) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*model.SupportPacketDatabaseDiagnostics, error) {
+func (s *RetryLayer) GetSupportPacketDatabaseDiagnostics(ctx context.Context) (*store.SupportPacketDatabaseDiagnostics, error) {
 	return s.Store.GetSupportPacketDatabaseDiagnostics(ctx)
 }
 
