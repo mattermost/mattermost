@@ -88,7 +88,10 @@ func (ss *SqlStore) getDatabaseCollation() (string, error) {
 		return "", errors.Wrap(err, "failed to build database collation query")
 	}
 
-	err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbCollation)
+	ctx, cancel := ss.analyticsContext()
+	defer cancel()
+
+	err = ss.GetMaster().QueryRowContext(ctx, sqlString, args...).Scan(&dbCollation)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get database collation")
 	}
@@ -112,7 +115,10 @@ func (ss *SqlStore) getDatabaseEncoding() (string, error) {
 		return "", errors.Wrap(err, "failed to build database encoding query")
 	}
 
-	err = ss.GetMaster().DB.QueryRow(sqlString, args...).Scan(&dbEncoding)
+	ctx, cancel := ss.analyticsContext()
+	defer cancel()
+
+	err = ss.GetMaster().QueryRowContext(ctx, sqlString, args...).Scan(&dbEncoding)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get database encoding")
 	}
@@ -142,7 +148,10 @@ func (ss *SqlStore) getTableOptions() (map[string]map[string]string, error) {
 		return nil, errors.Wrap(err, "failed to build table options query")
 	}
 
-	optionsRows, err := ss.GetMaster().DB.Query(optionsSql, optionsArgs...)
+	ctx, cancel := ss.analyticsContext()
+	defer cancel()
+
+	optionsRows, err := ss.GetMaster().QueryContext(ctx, optionsSql, optionsArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query table options")
 	}
@@ -204,7 +213,10 @@ func (ss *SqlStore) getTableSchemaInformation() (map[string]*model.DatabaseTable
 		return nil, nil, errors.Wrap(err, "failed to build schema information query")
 	}
 
-	rows, err := ss.GetMaster().DB.Query(schemaSql, schemaArgs...)
+	ctx, cancel := ss.analyticsContext()
+	defer cancel()
+
+	rows, err := ss.GetMaster().QueryContext(ctx, schemaSql, schemaArgs...)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to query schema information")
 	}
@@ -275,7 +287,10 @@ func (ss *SqlStore) getTableIndexes() (map[string][]model.DatabaseIndex, error) 
 		return nil, errors.Wrap(err, "failed to build index query")
 	}
 
-	rows, err := ss.GetMaster().DB.Query(indexSql, indexArgs...)
+	ctx, cancel := ss.analyticsContext()
+	defer cancel()
+
+	rows, err := ss.GetMaster().QueryContext(ctx, indexSql, indexArgs...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query index information")
 	}
