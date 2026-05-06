@@ -40,11 +40,21 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
 
     const handleHide = () => setShow(false);
 
-    const handleMuteInstead = () => {
-        if (channel && currentUserId && actions.muteChannel) {
-            actions.muteChannel(currentUserId, channel.id);
+    const handleMuteInstead = async () => {
+        if (!channel || !currentUserId || !actions.muteChannel) {
+            handleHide();
+            return;
         }
-        handleHide();
+
+        // Keep the modal open on failure so the user can retry or choose to leave instead.
+        try {
+            const result = await actions.muteChannel(currentUserId, channel.id);
+            if (result?.data) {
+                handleHide();
+            }
+        } catch {
+            // Intentionally left empty: keep the modal open on errors.
+        }
     };
 
     const isPolicyEnforcedPublicChannel =
@@ -74,7 +84,6 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                 className='btn btn-danger'
                 onClick={handleSubmit}
                 id='confirmModalButton'
-                autoFocus={true}
             >
                 <FormattedMessage
                     id='leave_policy_channel_modal.leave'
@@ -83,6 +92,8 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
             </button>
         );
 
+        // Default focus goes to the non-destructive option so pressing Enter
+        // does not immediately confirm leaving the channel.
         let secondaryButton;
         if (!isMuted && currentUserId && actions.muteChannel) {
             secondaryButton = (
@@ -91,6 +102,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                     className='btn btn-tertiary'
                     onClick={handleMuteInstead}
                     id='leavePolicyChannelMuteButton'
+                    autoFocus={true}
                 >
                     <FormattedMessage
                         id='leave_policy_channel_modal.mute_instead'
@@ -105,6 +117,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
                     className='btn btn-tertiary'
                     onClick={handleHide}
                     id='cancelModalButton'
+                    autoFocus={true}
                 >
                     <FormattedMessage
                         id='confirm_modal.cancel'

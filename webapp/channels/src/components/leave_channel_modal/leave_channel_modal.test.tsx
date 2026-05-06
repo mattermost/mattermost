@@ -139,7 +139,7 @@ describe('components/LeaveChannelModal', () => {
             policy_enforced: true,
         };
 
-        const muteChannel = jest.fn();
+        const muteChannel = jest.fn().mockResolvedValue({data: true});
         const leaveChannel = jest.fn().mockResolvedValue({data: true});
 
         renderWithContext(
@@ -165,6 +165,41 @@ describe('components/LeaveChannelModal', () => {
         });
         expect(muteChannel).toHaveBeenCalledWith('user-1', policyChannel.id);
         expect(leaveChannel).not.toHaveBeenCalled();
+    });
+
+    test('should keep modal open when Mute instead fails', async () => {
+        const policyChannel = {
+            ...channels['town-square'],
+            policy_enforced: true,
+        };
+
+        const muteChannel = jest.fn().mockResolvedValue({error: {message: 'mute failed'}});
+        const leaveChannel = jest.fn().mockResolvedValue({data: true});
+        const onExited = jest.fn();
+
+        renderWithContext(
+            <LeaveChannelModal
+                channel={policyChannel}
+                currentUserId={'user-1'}
+                isMuted={false}
+                onExited={onExited}
+                actions={{
+                    leaveChannel,
+                    muteChannel,
+                }}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'Mute instead'}));
+
+        await waitFor(() => {
+            expect(muteChannel).toHaveBeenCalledTimes(1);
+        });
+
+        // Modal stays open on failure so the user can retry or choose to leave instead.
+        expect(screen.getByRole('button', {name: 'Mute instead'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Leave channel'})).toBeInTheDocument();
+        expect(onExited).not.toHaveBeenCalled();
     });
 
     test('should hide mute hint when channel is already muted', async () => {
