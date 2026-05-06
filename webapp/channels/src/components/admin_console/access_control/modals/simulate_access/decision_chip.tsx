@@ -18,11 +18,15 @@ const blameSourceMessages = defineMessages({
     },
     [POLICY_SIMULATION_BLAME_SOURCES.CHANNEL_POLICY]: {
         id: 'admin.access_control.simulate_access.blame.channel_policy',
-        defaultMessage: 'channel policy',
+        defaultMessage: 'upper-scoped policy',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.SYSTEM_PERMISSION]: {
         id: 'admin.access_control.simulate_access.blame.system_permission',
         defaultMessage: 'upper-scoped policy',
+    },
+    [POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY]: {
+        id: 'admin.access_control.simulate_access.blame.peer_policy',
+        defaultMessage: 'peer policy',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY]: {
         id: 'admin.access_control.simulate_access.blame.no_applicable_policy',
@@ -33,6 +37,18 @@ const blameSourceMessages = defineMessages({
         defaultMessage: 'sibling rule',
     },
 });
+
+// Order of preference when more than one blame entry is present on a
+// decision. We surface same-scope blame first because the chip has
+// space for one source label, and "Denied · IL5 Block" is more useful
+// than "Denied · upper-scoped policy" when both contributors denied.
+const DENY_BLAME_PRIORITY: string[] = [
+    POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+    POLICY_SIMULATION_BLAME_SOURCES.SIBLING_RULE,
+    POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY,
+    POLICY_SIMULATION_BLAME_SOURCES.SYSTEM_PERMISSION,
+    POLICY_SIMULATION_BLAME_SOURCES.CHANNEL_POLICY,
+];
 
 type Props = {
     decision: PolicySimulationActionDecision | undefined;
@@ -122,7 +138,7 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         );
     }
 
-    const blame = decision.blame?.[0];
+    const blame = pickPrimaryDenyBlame(decision.blame);
     const blameLabel = blame ? blameSourceLabel(blame, formatMessage) : '';
 
     return (
@@ -154,10 +170,35 @@ function hasBlame(blame: PolicySimulationBlame[] | undefined, source: string): b
     return blame.some((b) => b.source === source);
 }
 
+function pickPrimaryDenyBlame(blame: PolicySimulationBlame[] | undefined): PolicySimulationBlame | undefined {
+    if (!blame || blame.length === 0) {
+        return undefined;
+    }
+    let best: PolicySimulationBlame | undefined;
+    let bestRank = DENY_BLAME_PRIORITY.length;
+    for (const b of blame) {
+        const rank = DENY_BLAME_PRIORITY.indexOf(b.source);
+        if (rank === -1 || rank >= bestRank) {
+            continue;
+        }
+        best = b;
+        bestRank = rank;
+    }
+    return best ?? blame[0];
+}
+
 function blameSourceLabel(
     blame: PolicySimulationBlame,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
 ): string {
+    // Peer-policy blame surfaces the actual policy name on the chip
+    // (e.g. "Denied · IL5 Block") because at the editing scope peers
+    // are visible and naming them is useful. Falls back to the generic
+    // "peer policy" label only when the simulator didn't include a
+    // policy name.
+    if (blame.source === POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY && blame.policy_name) {
+        return blame.policy_name;
+    }
     const sourceMsg = blameSourceMessages[blame.source as keyof typeof blameSourceMessages];
     if (!sourceMsg) {
         return blame.source;

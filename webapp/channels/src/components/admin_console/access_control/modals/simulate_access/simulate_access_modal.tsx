@@ -29,12 +29,13 @@ import type {
     PolicySimulationSession,
     PolicySimulationUserOverride,
 } from '@mattermost/types/access_control';
+import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control';
 import type {UserPropertyField} from '@mattermost/types/properties';
 import {SESSION_ATTRIBUTES_GROUP_ID, supportsOptions} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {simulatePolicyForUsers} from 'mattermost-redux/actions/access_control';
-import {searchProfiles} from 'mattermost-redux/actions/users';
+import {getProfiles, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -45,8 +46,8 @@ import Input from 'components/widgets/inputs/input/input';
 import {aggregateDecisions} from './decision_aggregate';
 import type {AggregateDecisionState} from './decision_aggregate';
 import DecisionChip from './decision_chip';
-import PermissionBreakdownModal from './permission_breakdown_modal';
-import {channelRolesMatchingTarget, userMatchesTargetRole} from './role_applicability';
+import DecisionDetailsModal from './decision_details_modal';
+import {pickChannelRoleFromTokens, userIsSystemAdmin, userMatchesTargetRole} from './role_applicability';
 import type {TargetScope} from './role_applicability';
 
 import './simulate_access_modal.scss';
@@ -108,6 +109,11 @@ type RowState = {
 type UserDecisionsBundle = {
     decisions?: Record<string, PolicySimulationActionDecision>;
     sessions?: PolicySimulationSession[];
+
+    /** User profile attribute snapshot returned by the simulator
+     *  (department, region, etc.). Surfaced inside DecisionDetailsModal
+     *  as part of the evaluation trace. */
+    attributes?: Record<string, string>;
 };
 
 /**
@@ -214,7 +220,7 @@ function SimulateAccessModal({
         if (data) {
             for (const r of data.results) {
                 if (r.user) {
-                    next.set(r.user.id, {decisions: r.decisions, sessions: r.sessions});
+                    next.set(r.user.id, {decisions: r.decisions, sessions: r.sessions, attributes: r.attributes});
                 }
             }
         }
@@ -480,15 +486,15 @@ function SimulateAccessModal({
                         <button
                             type='button'
                             className={classNames('SimulateAccessModal__scopeSegment', {
-                                'SimulateAccessModal__scopeSegment--active': scope === 'this_policy',
+                                'SimulateAccessModal__scopeSegment--active': scope === 'this_rule',
                             })}
-                            aria-pressed={scope === 'this_policy'}
-                            data-testid='simulate-access-scope-this-policy'
-                            onClick={() => handleScopeChange('this_policy')}
+                            aria-pressed={scope === 'this_rule'}
+                            data-testid='simulate-access-scope-this-rule'
+                            onClick={() => handleScopeChange('this_rule')}
                         >
                             <FormattedMessage
-                                id='admin.access_control.simulate_access.scope.this_policy'
-                                defaultMessage='This policy only'
+                                id='admin.access_control.simulate_access.scope.this_rule'
+                                defaultMessage='This rule only'
                             />
                         </button>
                     </div>
@@ -574,6 +580,7 @@ function SimulateAccessModal({
                                     actionLabels={actionLabels}
                                     pending={pending}
                                     bundle={results.get(row.user.id)}
+                                    policy={policy}
                                     sessionAttributeFields={sessionAttributeFields}
                                     sessionAttributesEnabled={sessionAttributesEnabled}
                                     expanded={expandedUserIds.has(row.user.id)}
@@ -589,6 +596,31 @@ function SimulateAccessModal({
 
         </GenericModal>
     );
+}
+
+/**
+ * Returns true when a single-action chip should open
+ * DecisionDetailsModal on click. We surface details for outcomes where
+ * the modal has something useful to say:
+ *   - Denies: rule + expression + attribute trace.
+ *   - Allows whose only blame is `sibling_saved`: surfaces the rule
+ *     that flipped a draft-side deny back to allow.
+ *
+ * Pending, plain-allow (no blame) and not-applicable chips stay
+ * static — there's nothing the modal would show beyond the chip
+ * itself.
+ */
+function shouldShowDecisionDetails(decision: PolicySimulationActionDecision | undefined): boolean {
+    if (!decision) {
+        return false;
+    }
+    if (!decision.decision) {
+        return true;
+    }
+    if (!decision.blame) {
+        return false;
+    }
+    return decision.blame.some((b) => b.source === POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED);
 }
 
 /**
@@ -653,11 +685,14 @@ type AddUsersInlineProps = {
  * keyboard events for menu-item navigation, which makes the search input
  * un-typeable.
  *
- * Channel-scope filtering is intentionally conservative: full
- * channel-membership resolution requires an extra round-trip the picker
- * doesn't make today, so the helper short-circuits to true for channel
- * scope. The server-side draftAppliesToSubject defence still rejects
- * inapplicable users by returning a "no_applicable_policy" blame.
+ * Channel-scope filtering applies the role-chain applicability check by
+ * bulk-fetching the candidates' channel memberships
+ * (Client4.getChannelMembersByIds) so members whose channel role doesn't
+ * match the rule's targetRole are hidden from the picker. Sysadmins pass
+ * through unconditionally — they act as effective channel admins on
+ * every channel via the system_admin override and would otherwise be
+ * silently dropped by the membership lookup (sysadmins are typically
+ * not channel members).
  */
 function AddUsersInline({onAdd, excludeIdsKey, excludeIds, targetRole, targetScope, teamId, channelId}: AddUsersInlineProps): JSX.Element {
     const dispatch = useDispatch();
@@ -693,13 +728,20 @@ function AddUsersInline({onAdd, excludeIdsKey, excludeIds, targetRole, targetSco
     excludeIdsRef.current = excludeIds;
 
     useEffect(() => {
-        if (!term) {
-            setResults([]);
+        if (!open) {
+            // No-op while the popover is closed — avoids burning a
+            // request on a hidden dropdown when the parent re-renders
+            // (e.g. after a row is added).
             return undefined;
         }
 
         let cancelled = false;
         setLoading(true);
+        // No debounce on the initial pre-populate fetch — the popover
+        // just opened and we want results to appear immediately. The
+        // typing-driven case still gets the standard debounce so we
+        // don't fire a request per keystroke.
+        const debounce = term ? USER_SEARCH_DEBOUNCE_MS : 0;
         const handle = window.setTimeout(async () => {
             const opts: Record<string, any> = {limit: USER_SEARCH_LIMIT};
             if (teamId) {
@@ -707,35 +749,150 @@ function AddUsersInline({onAdd, excludeIdsKey, excludeIds, targetRole, targetSco
             }
 
             if (targetScope === 'channel' && channelId) {
+                // Scope to channel members only; do NOT pass
+                // channel_roles. The server's channel_roles SQL
+                // clause has an `AND Users.Roles NOT LIKE
+                // %system_admin%` exclusion built into every branch
+                // (admin / user / guest) so passing it would silently
+                // drop sysadmins from the picker — even when a
+                // sysadmin is a member of the channel they're
+                // editing. Instead the picker filters channel-role
+                // applicability client-side below, after a separate
+                // bulk-fetch of the candidates' channel memberships,
+                // and lets sysadmins through unconditionally (they
+                // act as effective channel admins on every channel
+                // via the system_admin override).
                 opts.in_channel_id = channelId;
-                const channelRoles = channelRolesMatchingTarget(targetRole);
-                if (channelRoles.length > 0) {
-                    opts.channel_roles = channelRoles;
-                }
             }
-            const action = await dispatch(searchProfiles(term, opts));
-            if (cancelled) {
+
+            // Pre-populate with first-page profiles when the user
+            // hasn't typed anything yet — saves them having to type to
+            // see ANY result. Channel-scope drafts use the channel's
+            // member list (already paginated, already cached); system-
+            // scope falls back to the general profiles endpoint
+            // optionally scoped to a team. The role-applicability
+            // pipeline below applies uniformly to both branches, so a
+            // bare "click + Add users" gives the same filtered view a
+            // typed search would.
+            let found: UserProfile[];
+            if (term) {
+                const action = await dispatch(searchProfiles(term, opts));
+                if (cancelled) {
+                    return;
+                }
+                found = (action as ActionResult<UserProfile[]>).data ?? [];
+            } else if (targetScope === 'channel' && channelId) {
+                const action = await dispatch(
+                    getProfilesInChannel(channelId, 0, USER_SEARCH_LIMIT),
+                );
+                if (cancelled) {
+                    return;
+                }
+                found = (action as ActionResult<UserProfile[]>).data ?? [];
+            } else {
+                const profileOpts: Record<string, any> = {};
+                if (teamId) {
+                    profileOpts.in_team = teamId;
+                }
+                const action = await dispatch(
+                    getProfiles(0, USER_SEARCH_LIMIT, profileOpts),
+                );
+                if (cancelled) {
+                    return;
+                }
+                found = (action as ActionResult<UserProfile[]>).data ?? [];
+            }
+
+            const candidates = found.filter((u) => !excludeIdsRef.current.has(u.id));
+            if (candidates.length === 0) {
+                setResults([]);
+                setLoading(false);
                 return;
             }
-            const found: UserProfile[] = (action as ActionResult<UserProfile[]>).data ?? [];
-            const filtered = found.filter((u) => {
-                if (excludeIdsRef.current.has(u.id)) {
-                    return false;
+
+            // System scope: filter on the user's stored role tokens
+            // alone — there's no channel-membership context to
+            // reason about.
+            if (targetScope !== 'channel' || !channelId) {
+                const filtered = candidates.filter((u) =>
+                    userMatchesTargetRole(u, targetRole, targetScope),
+                );
+                setResults(filtered);
+                setLoading(false);
+                return;
+            }
+
+            // Channel scope, no role constraint: keep all members.
+            if (!targetRole) {
+                setResults(candidates);
+                setLoading(false);
+                return;
+            }
+
+            // Channel scope with a role constraint: bulk-fetch the
+            // candidates' channel memberships in a single
+            // round-trip, then apply role-chain applicability on the
+            // client. Sysadmins pass through unconditionally —
+            // they're effective admins regardless of channel
+            // membership.
+            const sysadmins = candidates.filter(userIsSystemAdmin);
+            const nonSysadmins = candidates.filter((u) => !userIsSystemAdmin(u));
+
+            let memberRoleByUserId = new Map<string, string>();
+            if (nonSysadmins.length > 0) {
+                try {
+                    const members = await Client4.getChannelMembersByIds(
+                        channelId,
+                        nonSysadmins.map((u) => u.id),
+                    );
+                    if (cancelled) {
+                        return;
+                    }
+                    memberRoleByUserId = new Map(
+                        members.map((m) => [m.user_id, m.roles ?? '']),
+                    );
+                } catch {
+                    // Best-effort: if the membership lookup fails we
+                    // fall back to "no channel role" for everyone,
+                    // which excludes regular members per
+                    // userMatchesTargetRole semantics. That's the
+                    // conservative outcome when authoring a
+                    // role-targeted rule.
                 }
-                if (targetScope === 'channel' && channelId) {
-                    return true;
-                }
-                return userMatchesTargetRole(u, targetRole, targetScope);
+            }
+
+            const filteredNonSysadmins = nonSysadmins.filter((u) => {
+                const channelMemberRole = pickChannelRoleFromTokens(
+                    memberRoleByUserId.get(u.id) ?? '',
+                );
+                return userMatchesTargetRole(u, targetRole, 'channel', channelMemberRole);
             });
-            setResults(filtered);
+
+            // Preserve the search ordering by walking `candidates`
+            // and including each user when it's in the kept set.
+            const keep = new Set([
+                ...sysadmins.map((u) => u.id),
+                ...filteredNonSysadmins.map((u) => u.id),
+            ]);
+            setResults(candidates.filter((u) => keep.has(u.id)));
             setLoading(false);
-        }, USER_SEARCH_DEBOUNCE_MS);
+        }, debounce);
 
         return () => {
             cancelled = true;
             window.clearTimeout(handle);
         };
-    }, [term, dispatch, excludeIdsKey, targetRole, targetScope, teamId, channelId]);
+    }, [open, term, dispatch, excludeIdsKey, targetRole, targetScope, teamId, channelId]);
+
+    // Reset cached results whenever the popover closes so reopening
+    // shows a fresh fetch (and a brief loading state) instead of stale
+    // data from the previous session.
+    useEffect(() => {
+        if (!open) {
+            setResults([]);
+            setTerm('');
+        }
+    }, [open]);
 
     return (
         <div className='SimulateAccessModal__addUsersWrap'>
@@ -834,6 +991,12 @@ type PickerRowProps = {
     pending: boolean;
     bundle?: UserDecisionsBundle;
 
+    /** Draft policy currently being edited. Forwarded to
+     *  DecisionDetailsModal so it can fall back to a client-side
+     *  expression lookup for draft-side blame entries when the
+     *  simulator didn't pre-populate `blame.expression`. */
+    policy: AccessControlPolicy;
+
     /** Session-attribute property fields used to render the pencil-icon
      *  override editor. Empty array → pencil button is hidden. */
     sessionAttributeFields: UserPropertyField[];
@@ -850,6 +1013,7 @@ function PickerRow({
     actionLabels,
     pending,
     bundle,
+    policy,
     sessionAttributeFields,
     sessionAttributesEnabled,
     expanded,
@@ -859,32 +1023,55 @@ function PickerRow({
 }: PickerRowProps): JSX.Element {
     const {formatMessage} = useIntl();
     const {user} = row;
-    const [showBreakdown, setShowBreakdown] = useState(false);
+    const [showDetails, setShowDetails] = useState(false);
 
     // Single-action rows render the regular DecisionChip directly so the
     // per-rule blame label stays visible without a click. Multi-action
-    // rows collapse to a stacked Allowed/Mixed/Denied chip and reveal the
-    // breakdown via PermissionBreakdownModal.
+    // rows collapse to a stacked Allowed/Mixed/Denied chip and reveal
+    // the per-action breakdown via DecisionDetailsModal.
     const aggregate = useMemo(
         () => aggregateDecisions(actions, bundle?.decisions, pending),
         [actions, bundle, pending],
     );
 
+    // For single-action rows the chip is the only deny affordance, so
+    // wrap it in a button when there's something to drill into. We open
+    // the same DecisionDetailsModal the multi-action stacked chip uses,
+    // just with one action in the body — that's the canonical "Why
+    // denied?" surface across the picker.
     const chipNode = useMemo(() => {
         if (actions.length <= 1) {
             const action = actions[0];
-            return (
+            const decision = action ? bundle?.decisions?.[action] : undefined;
+            const chip = (
                 <DecisionChip
-                    decision={action ? bundle?.decisions?.[action] : undefined}
+                    decision={decision}
                     pending={pending}
                 />
+            );
+            const drillable = !pending && shouldShowDecisionDetails(decision);
+            if (!drillable) {
+                return chip;
+            }
+            return (
+                <button
+                    type='button'
+                    className='SimulateAccessModal__rowChipButton'
+                    data-testid='simulate-access-row-chip-button'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDetails(true);
+                    }}
+                >
+                    {chip}
+                </button>
             );
         }
         return (
             <StackedDecisionChip
                 state={aggregate}
                 count={actions.length}
-                onClick={() => setShowBreakdown(true)}
+                onClick={() => setShowDetails(true)}
             />
         );
     }, [actions, aggregate, bundle, pending]);
@@ -1028,14 +1215,16 @@ function PickerRow({
                     />
                 ))
             ) : null}
-            {showBreakdown ? (
-                <PermissionBreakdownModal
-                    onExited={() => setShowBreakdown(false)}
+            {showDetails ? (
+                <DecisionDetailsModal
+                    onExited={() => setShowDetails(false)}
                     user={user}
                     actions={actions}
                     actionLabels={actionLabels}
                     decisions={bundle?.decisions}
                     pending={pending}
+                    policy={policy}
+                    userAttributes={bundle?.attributes}
                 />
             ) : null}
         </>
@@ -1440,11 +1629,11 @@ const stackedStateTestId: Record<AggregateDecisionState, string> = {
 
 /**
  * Multi-action rollup chip on the parent row. Clicking opens
- * PermissionBreakdownModal so the author can drill into per-permission
- * decisions. The label is intentionally compact ("Allowed", "Denied",
- * "Mixed") because the actual blame attribution lives in the breakdown
- * modal — we don't want to lose information, just defer it from the row
- * scan.
+ * DecisionDetailsModal so the author can drill into per-permission
+ * decisions, the failing rule, and the attribute snapshot. The label
+ * is intentionally compact ("Allowed", "Denied", "Mixed") because the
+ * actual blame attribution lives in the details modal — we don't want
+ * to lose information, just defer it from the row scan.
  */
 function StackedDecisionChip({state, count, onClick}: StackedDecisionChipProps): JSX.Element {
     const label = sessionStateLabel(state);

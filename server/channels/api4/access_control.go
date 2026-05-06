@@ -487,7 +487,7 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	switch params.EvaluationScope {
-	case "", model.PolicyEvaluationScopeThisPolicy, model.PolicyEvaluationScopeAll:
+	case "", model.PolicyEvaluationScopeThisRule, model.PolicyEvaluationScopeAll:
 	default:
 		c.SetInvalidParam("evaluation_scope")
 		return
