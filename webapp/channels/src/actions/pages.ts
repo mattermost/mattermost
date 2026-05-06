@@ -82,6 +82,11 @@ function isLatestOptimistic(pageId: string, id: number): boolean {
     return latestOptimisticMutations.get(pageId) === id;
 }
 
+export function clearOptimisticMutations(): void {
+    latestOptimisticMutations.clear();
+    nextOptimisticMutationId = 1;
+}
+
 // requireWikiId resolves the wiki_id for a cached page. The pages reducer silently
 // skips the byWiki membership update when wiki_id is absent, which orphans the page
 // from hierarchy queries. Callers that need the page to land in byWiki must abort
@@ -203,8 +208,7 @@ export function fetchChannelWikis(channelId: string): ActionFuncAsync {
 
             return {data: wikis};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -231,8 +235,7 @@ export function fetchWiki(wikiId: string): ActionFuncAsync<Wiki> {
 
             return {data: wiki};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -263,8 +266,7 @@ export function updateWiki(wikiId: string, patch: {title?: string; description?:
 
             return {data: updatedWiki};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -283,8 +285,7 @@ export function deleteWiki(wikiId: string): ActionFuncAsync {
 
             return {data: true};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            handleApiError(error, dispatch, getState, {showErrorBar: true});
             return {error};
         }
     };
@@ -302,8 +303,7 @@ export function moveWikiToChannel(wikiId: string, targetChannelId: string): Acti
 
             return {data: wiki};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            handleApiError(error, dispatch, getState, {showErrorBar: true});
             return {error};
         }
     };
@@ -315,8 +315,7 @@ export function fetchPage(pageId: string, wikiId: string): ActionFuncAsync<Page>
         try {
             data = await Client4.getPage(wikiId, pageId) as Page;
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
 
@@ -336,8 +335,7 @@ export function fetchChannelDefaultPage(channelId: string): ActionFuncAsync<Page
         try {
             data = await Client4.getChannelDefaultWikiPage(channelId) as Page;
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
 
@@ -504,8 +502,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 }
             }
 
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            handleApiError(error, dispatch, getState, {showErrorBar: true});
             return {error};
         } finally {
             dispatch({type: WikiTypes.PUBLISH_DRAFT_COMPLETED, data: {draftId}});
@@ -523,8 +520,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 
             return {data: pageDraft.page_id};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -578,8 +574,7 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
                 dispatch(fetchPage(pageId, wikiId));
             }
 
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -622,8 +617,7 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
                 }
             }
 
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -748,8 +742,7 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
                 dispatch(fetchPage(pageId, wikiId));
             }
 
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -833,8 +826,7 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
                 dispatch(batchActions(revertActions));
             }
 
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -858,8 +850,7 @@ export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<P
 
             return {data: duplicatedPage};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            handleApiError(error, dispatch, getState, {showErrorBar: true});
             return {error};
         }
     };
@@ -874,8 +865,7 @@ export function publishPage(wikiId: string, pageId: string): ActionFuncAsync<Pos
             });
             return {data};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -903,8 +893,7 @@ export function getPageComments(wikiId: string, pageId: string): ActionFuncAsync
 
             return {data: comments};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -916,8 +905,7 @@ export function getPageBreadcrumb(wikiId: string, pageId: string): ActionFuncAsy
             const breadcrumb = await Client4.getPageBreadcrumb(wikiId, pageId);
             return {data: breadcrumb};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -939,8 +927,7 @@ export function createPageComment(wikiId: string, pageId: string, message: strin
 
             return {data: comment};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -962,8 +949,7 @@ export function createPageCommentReply(wikiId: string, pageId: string, parentCom
 
             return {data: reply};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -981,8 +967,7 @@ export function resolvePageComment(wikiId: string, pageId: string, commentId: st
 
             return {data: resolvedComment};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1000,8 +985,7 @@ export function unresolvePageComment(wikiId: string, pageId: string, commentId: 
 
             return {data: unresolvedComment};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1019,8 +1003,7 @@ export function fetchPageStatusField(): ActionFuncAsync {
 
             return {data: field};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1052,8 +1035,7 @@ export function updatePageStatus(postId: string, status: string, wikiId: string)
 
             return {data: true};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1065,8 +1047,7 @@ export function getPageVersionHistory(wikiId: string, pageId: string): ActionFun
             const versionHistory = await Client4.getPageVersionHistory(wikiId, pageId);
             return {data: versionHistory};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1124,8 +1105,7 @@ export function setPageTranslationMetadata(
 
             return {data};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };
@@ -1179,8 +1159,7 @@ export function addPageTranslationReference(
 
             return {data};
         } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            handleApiError(error, dispatch, getState);
             return {error};
         }
     };

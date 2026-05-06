@@ -148,7 +148,7 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
-import {refetchWikiBundle} from 'actions/wiki_actions';
+import {fetchWikiBundle} from 'actions/wiki_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {makePageDraftKey} from 'selectors/page_drafts';
 import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
@@ -351,7 +351,7 @@ export function reconnect() {
             const wikiId = wikiMatch[1];
 
             // Force reload to ensure we have latest data after reconnect
-            dispatch(refetchWikiBundle(wikiId));
+            dispatch(fetchWikiBundle(wikiId));
         }
     }
 

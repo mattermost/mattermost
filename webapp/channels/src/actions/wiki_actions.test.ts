@@ -5,7 +5,7 @@ import mockStore from 'tests/test_store';
 
 import * as draftsActions from './page_drafts';
 import * as pagesActions from './pages';
-import {fetchWikiBundle, refetchWikiBundle} from './wiki_actions';
+import {fetchWikiBundle} from './wiki_actions';
 
 jest.mock('./pages');
 jest.mock('./page_drafts');
@@ -132,7 +132,7 @@ describe('wiki_actions', () => {
         });
     });
 
-    describe('refetchWikiBundle', () => {
+    describe('fetchWikiBundle', () => {
         it('should always fetch regardless of cache state', async () => {
             const stateWithFullCache = {
                 entities: {
@@ -158,7 +158,7 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(stateWithFullCache);
 
-            await testStore.dispatch(refetchWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
             expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
             expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');
@@ -182,7 +182,7 @@ describe('wiki_actions', () => {
 
             const testStore = await mockStore(stateWithEmptyCache);
 
-            await testStore.dispatch(refetchWikiBundle('wiki1'));
+            await testStore.dispatch(fetchWikiBundle('wiki1'));
 
             expect(mockFetchPages).toHaveBeenCalledWith('wiki1');
             expect(mockFetchDrafts).toHaveBeenCalledWith('wiki1');

@@ -108,7 +108,6 @@ export function updateWiki(wiki: Wiki): ActionFuncAsync<Wiki> {
 export function deleteWiki(wikiId: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
-            // Get the channel ID before deletion so the reducer can clean up byChannel
             const state = getState();
             const wiki = state.entities.wikis.byId[wikiId];
             const channelId = wiki?.channel_id;
@@ -132,17 +131,11 @@ export function deleteWiki(wikiId: string): ActionFuncAsync<boolean> {
 export function moveWikiToChannel(wikiId: string, targetChannelId: string): ActionFuncAsync<Wiki> {
     return async (dispatch, getState) => {
         try {
-            // Get the old channel ID before the move so the reducer can clean up
-            const state = getState();
-            const existingWiki = state.entities.wikis.byId[wikiId];
-            const oldChannelId = existingWiki?.channel_id;
-
             const wiki = await Client4.moveWikiToChannel(wikiId, targetChannelId);
 
             dispatch({
                 type: WikiTypes.RECEIVED_WIKI,
                 data: wiki,
-                oldChannelId,
             });
 
             return {data: wiki};

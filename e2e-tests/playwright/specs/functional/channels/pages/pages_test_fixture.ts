@@ -169,13 +169,20 @@ export const testWithRegularUser: ReturnType<typeof base.extend<PermissionsTestF
                 config.TeamSettings.LockTeammateNameDisplay = false;
                 await adminClient.updateConfig(config);
 
-                // Ensure wiki/page permissions are in channel_user role.
-                // We ALWAYS patch the role to trigger cache invalidation across all HA nodes.
+                // Ensure wiki/page permissions are in channel_user and channel_guest roles.
+                // We ALWAYS patch the roles to trigger cache invalidation across all HA nodes.
                 const channelUserRole = await adminClient.getRoleByName('channel_user');
                 const allPermissions = new Set([...channelUserRole.permissions, ...WIKI_PAGE_PERMISSIONS]);
 
                 await adminClient.patchRole(channelUserRole.id, {
                     permissions: Array.from(allPermissions),
+                });
+
+                const channelGuestRole = await adminClient.getRoleByName('channel_guest');
+                const guestPermissions = new Set([...channelGuestRole.permissions, 'read_page']);
+
+                await adminClient.patchRole(channelGuestRole.id, {
+                    permissions: Array.from(guestPermissions),
                 });
 
                 // Wait for HA cluster nodes to sync role cache.

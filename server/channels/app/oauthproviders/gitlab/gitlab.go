@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -19,13 +18,30 @@ import (
 type GitLabProvider struct {
 }
 
+// GitLabID accepts both JSON integers (real GitLab) and JSON strings (Mattermost as provider).
+type GitLabID string
+
+func (id *GitLabID) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err == nil {
+		*id = GitLabID(s)
+		return nil
+	}
+	var n json.Number
+	if err := json.Unmarshal(data, &n); err != nil {
+		return errors.New("cannot unmarshal id field")
+	}
+	*id = GitLabID(n.String())
+	return nil
+}
+
 type GitLabUser struct {
-	Id                int64  `json:"id"`
-	Username          string `json:"username"`
-	Login             string `json:"login"`
-	Email             string `json:"email"`
-	Name              string `json:"name"`
-	PreferredUsername string `json:"preferred_username"`
+	Id                GitLabID `json:"id"`
+	Username          string   `json:"username"`
+	Login             string   `json:"login"`
+	Email             string   `json:"email"`
+	Name              string   `json:"name"`
+	PreferredUsername string   `json:"preferred_username"`
 }
 
 func init() {
@@ -39,8 +55,6 @@ func userFromGitLabUser(logger mlog.LoggerIFace, glu *GitLabUser, settings *mode
 	// set username in order of preference
 	var username string
 	if settings != nil && model.SafeDereference(settings.UsePreferredUsername) && glu.PreferredUsername != "" {
-		// to maintain consistency with other providers, we split the username by @ (if present) and
-		// take the first part (but only for the preferred username)
 		username = strings.Split(glu.PreferredUsername, "@")[0]
 	} else if glu.Username != "" {
 		username = glu.Username
@@ -79,8 +93,8 @@ func gitLabUserFromJSON(data io.Reader) (*GitLabUser, error) {
 }
 
 func (glu *GitLabUser) IsValid() error {
-	if glu.Id == 0 {
-		return errors.New("user id can't be 0")
+	if glu.Id == "" {
+		return errors.New("user id can't be empty")
 	}
 
 	if glu.Email == "" {
@@ -91,7 +105,7 @@ func (glu *GitLabUser) IsValid() error {
 }
 
 func (glu *GitLabUser) getAuthData() string {
-	return strconv.FormatInt(glu.Id, 10)
+	return string(glu.Id)
 }
 
 func (gp *GitLabProvider) GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User, settings *model.SSOSettings) (*model.User, error) {

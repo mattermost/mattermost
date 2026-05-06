@@ -1316,6 +1316,38 @@ func (a *App) getAddManageAgentPermissionsMigration() (permissionsMap, error) {
 	}, nil
 }
 
+func (a *App) getAddPagePermissionsMigration() (permissionsMap, error) {
+	return permissionsMap{
+		permissionTransformation{
+			On:  isRole(model.ChannelGuestRoleId),
+			Add: []string{model.PermissionReadPage.Id},
+		},
+		permissionTransformation{
+			On: isRole(model.ChannelUserRoleId),
+			Add: []string{
+				model.PermissionReadPage.Id,
+				model.PermissionCreatePage.Id,
+				model.PermissionEditPage.Id,
+				model.PermissionDeleteOwnPage.Id,
+			},
+		},
+		permissionTransformation{
+			On: isRole(model.ChannelAdminRoleId),
+			Add: []string{
+				model.PermissionReadPage.Id,
+				model.PermissionCreatePage.Id,
+				model.PermissionEditPage.Id,
+				model.PermissionDeleteOwnPage.Id,
+				model.PermissionDeletePage.Id,
+			},
+		},
+		permissionTransformation{
+			On:  isRole(model.TeamAdminRoleId),
+			Add: []string{model.PermissionDeletePage.Id},
+		},
+	}, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1377,6 +1409,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddSharedChannelManagerPermissions, Migration: a.getAddSharedChannelManagerPermissionsMigration},
 		{Key: model.MigrationKeyRestoreManageOAuthPermission, Migration: a.getRestoreManageOAuthPermissionMigration},
 		{Key: model.MigrationKeyAddManageAgentPermissions, Migration: a.getAddManageAgentPermissionsMigration},
+		{Key: model.MigrationKeyAddPagePermissions, Migration: a.getAddPagePermissionsMigration},
 	}
 
 	roles, err := s.Store().Role().GetAll()

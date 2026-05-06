@@ -142,7 +142,8 @@ func (a *App) CreatePageWithChannel(rctx request.CTX, channel *model.Channel, ti
 
 	createdPage, createErr := a.Srv().Store().Page().CreatePage(rctx, page, message)
 	if createErr != nil {
-		if strings.Contains(createErr.Error(), "invalid_content") {
+		var invErr *store.ErrInvalidInput
+		if errors.As(createErr, &invErr) {
 			return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(createErr)
 		}
 		return nil, model.NewAppError("CreatePage", "app.page.create.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
@@ -247,7 +248,8 @@ func (a *App) UpdatePage(rctx request.CTX, page *model.Post, title, content, sea
 		if errors.As(storeErr, &nfErr) {
 			return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "", http.StatusNotFound).Wrap(storeErr)
 		}
-		if strings.Contains(storeErr.Error(), "invalid_content") {
+		var invErr *store.ErrInvalidInput
+		if errors.As(storeErr, &invErr) {
 			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, "", http.StatusBadRequest).Wrap(storeErr)
 		}
 		return nil, model.NewAppError("UpdatePage", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)

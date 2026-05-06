@@ -330,7 +330,11 @@ func getPageVersionHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	perPage := c.Params.PerPage
+	if perPage > model.PostEditHistoryLimit {
+		perPage = model.PostEditHistoryLimit
+	}
+	versionHistory, appErr := c.App.GetPageVersionHistory(c.AppContext, c.Params.PageId, c.Params.Page*perPage, perPage)
 	if appErr != nil {
 		c.Err = appErr
 		return

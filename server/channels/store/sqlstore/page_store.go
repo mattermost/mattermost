@@ -991,7 +991,7 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 
 		if content != "" {
 			if vErr := model.ValidateTipTapDocument(content); vErr != nil {
-				return errors.Wrap(vErr, "invalid_content")
+				return store.NewErrInvalidInput("Page", "content", "invalid TipTap document").Wrap(vErr)
 			}
 			currentPost.Message = content
 			needsHistory = true

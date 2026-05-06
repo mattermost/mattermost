@@ -51,7 +51,7 @@ func TestCreateOAuthUser(t *testing.T) {
 	})
 
 	t.Run("create user successfully", func(t *testing.T) {
-		glUser := oauthgitlab.GitLabUser{Id: 42, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+		glUser := oauthgitlab.GitLabUser{Id: oauthgitlab.GitLabID("42"), Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 		js, jsonErr := json.Marshal(glUser)
 		require.NoError(t, jsonErr)
 
@@ -496,8 +496,8 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 
 	var user, user2 *model.User
 	var gitlabUserObj oauthgitlab.GitLabUser
-	user, gitlabUserObj = createGitlabUser(t, th.App, th.Context, 1, username, email)
-	user2, _ = createGitlabUser(t, th.App, th.Context, 2, username2, email2)
+	user, gitlabUserObj = createGitlabUser(t, th.App, th.Context, "1", username, email)
+	user2, _ = createGitlabUser(t, th.App, th.Context, "2", username2, email2)
 
 	t.Run("UpdateUsername", func(t *testing.T) {
 		t.Run("NoExistingUserWithSameUsername", func(t *testing.T) {
@@ -793,8 +793,8 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 	return payload
 }
 
-func createGitlabUser(t *testing.T, a *App, rctx request.CTX, id int64, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
-	gitlabUserObj := oauthgitlab.GitLabUser{Id: id, Username: username, Login: "user1", Email: email, Name: "Test User"}
+func createGitlabUser(t *testing.T, a *App, rctx request.CTX, id string, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
+	gitlabUserObj := oauthgitlab.GitLabUser{Id: oauthgitlab.GitLabID(id), Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 
 	var user *model.User

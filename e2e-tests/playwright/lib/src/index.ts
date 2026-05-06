@@ -76,8 +76,6 @@ export {
 
 export {TestArgs, ScreenshotOptions} from './types';
 
-export {getAdminClient} from './server';
-
 export {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
