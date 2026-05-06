@@ -28,7 +28,7 @@ import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/acce
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
-import TestAccessRuleModal from 'components/admin_console/access_control/modals/test_access_rule/test_access_rule_modal';
+import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import * as Menu from 'components/menu';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
@@ -986,8 +986,15 @@ function PermissionRuleEditor({
                             // Replace the legacy expression-only test with the
                             // dual-lane simulation modal so the author can see
                             // how their rule interacts with system permission
-                            // policies.
+                            // policies. Re-label "Test access rule" → "Simulate
+                            // rules" to match the modal's full rule-set scope.
                             onTestClick={() => setShowTest(true)}
+                            testButtonLabel={
+                                <FormattedMessage
+                                    id='admin.permission_policies.editor.simulate_rules'
+                                    defaultMessage='Simulate rules'
+                                />
+                            }
                         />
                     )}
                 </div>
@@ -1136,7 +1143,7 @@ function PermissionRuleEditor({
             </div>
 
             {showTest && (
-                <TestAccessRuleModal
+                <SimulateAccessModal
                     isStacked={true}
                     onExited={() => setShowTest(false)}
                     policy={buildSimulationPolicy(draft)}

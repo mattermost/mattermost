@@ -486,6 +486,12 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("team_id")
 		return
 	}
+	switch params.EvaluationScope {
+	case "", model.PolicyEvaluationScopeThisPolicy, model.PolicyEvaluationScopeAll:
+	default:
+		c.SetInvalidParam("evaluation_scope")
+		return
+	}
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	hasTeamPermission := !hasSystemPermission && params.TeamID != "" &&

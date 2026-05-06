@@ -9,27 +9,27 @@ import {POLICY_SIMULATION_BLAME_SOURCES} from '@mattermost/types/access_control'
 
 const blameSourceMessages = defineMessages({
     [POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE]: {
-        id: 'admin.access_control.test_access_rule.blame.this_rule',
+        id: 'admin.access_control.simulate_access.blame.this_rule',
         defaultMessage: 'this rule',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.SIBLING_RULE]: {
-        id: 'admin.access_control.test_access_rule.blame.sibling_rule',
+        id: 'admin.access_control.simulate_access.blame.sibling_rule',
         defaultMessage: 'sibling rule',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.CHANNEL_POLICY]: {
-        id: 'admin.access_control.test_access_rule.blame.channel_policy',
+        id: 'admin.access_control.simulate_access.blame.channel_policy',
         defaultMessage: 'channel policy',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.SYSTEM_PERMISSION]: {
-        id: 'admin.access_control.test_access_rule.blame.system_permission',
+        id: 'admin.access_control.simulate_access.blame.system_permission',
         defaultMessage: 'upper-scoped policy',
     },
     [POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY]: {
-        id: 'admin.access_control.test_access_rule.blame.no_applicable_policy',
+        id: 'admin.access_control.simulate_access.blame.no_applicable_policy',
         defaultMessage: "policy doesn't apply to this user",
     },
     [POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED]: {
-        id: 'admin.access_control.test_access_rule.blame.sibling_saved',
+        id: 'admin.access_control.simulate_access.blame.sibling_saved',
         defaultMessage: 'sibling rule',
     },
 });
@@ -48,8 +48,7 @@ type Props = {
  * sibling rule, or an upper-scoped system policy.
  *
  * States:
- *   - pending → grey "Evaluating…" while a debounced simulate dispatch is
- *     in flight.
+ *   - pending → grey "Evaluating…" while a simulate dispatch is in flight.
  *   - ALLOW with sibling_saved blame → green "Allowed · sibling rule"
  *     because the editing rule alone would have denied (OR-bucket saved
  *     them).
@@ -65,11 +64,11 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
     if (pending || !decision) {
         return (
             <span
-                className='TestAccessRuleModal__rowChip TestAccessRuleModal__rowChip--pending'
-                data-testid='test-rule-row-chip-pending'
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--pending'
+                data-testid='simulate-access-row-chip-pending'
             >
                 <FormattedMessage
-                    id='admin.access_control.test_access_rule.chip.pending'
+                    id='admin.access_control.simulate_access.chip.pending'
                     defaultMessage='Evaluating…'
                 />
             </span>
@@ -84,8 +83,8 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY)) {
             return (
                 <span
-                    className='TestAccessRuleModal__rowChip TestAccessRuleModal__rowChip--not-applicable'
-                    data-testid='test-rule-row-chip-not-applicable'
+                    className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--not-applicable'
+                    data-testid='simulate-access-row-chip-not-applicable'
                 >
                     <FormattedMessage {...blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.NO_APPLICABLE_POLICY]}/>
                 </span>
@@ -98,11 +97,11 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
         if (hasBlame(decision.blame, POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED)) {
             return (
                 <span
-                    className='TestAccessRuleModal__rowChip TestAccessRuleModal__rowChip--allow-saved'
-                    data-testid='test-rule-row-chip-allow-saved'
+                    className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--allow-saved'
+                    data-testid='simulate-access-row-chip-allow-saved'
                 >
                     <FormattedMessage
-                        id='admin.access_control.test_access_rule.chip.allow_with_blame'
+                        id='admin.access_control.simulate_access.chip.allow_with_blame'
                         defaultMessage='Allowed · {source}'
                         values={{source: formatMessage(blameSourceMessages[POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED])}}
                     />
@@ -112,11 +111,11 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
 
         return (
             <span
-                className='TestAccessRuleModal__rowChip TestAccessRuleModal__rowChip--allow'
-                data-testid='test-rule-row-chip-allow'
+                className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--allow'
+                data-testid='simulate-access-row-chip-allow'
             >
                 <FormattedMessage
-                    id='admin.access_control.test_access_rule.chip.allow'
+                    id='admin.access_control.simulate_access.chip.allow'
                     defaultMessage='Allowed'
                 />
             </span>
@@ -128,19 +127,19 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
 
     return (
         <span
-            className='TestAccessRuleModal__rowChip TestAccessRuleModal__rowChip--deny'
-            data-testid='test-rule-row-chip-deny'
+            className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--deny'
+            data-testid='simulate-access-row-chip-deny'
             title={blame?.rule_name || blame?.policy_name || ''}
         >
             {blameLabel ? (
                 <FormattedMessage
-                    id='admin.access_control.test_access_rule.chip.deny_with_blame'
+                    id='admin.access_control.simulate_access.chip.deny_with_blame'
                     defaultMessage='Denied · {source}'
                     values={{source: blameLabel}}
                 />
             ) : (
                 <FormattedMessage
-                    id='admin.access_control.test_access_rule.chip.deny'
+                    id='admin.access_control.simulate_access.chip.deny'
                     defaultMessage='Denied'
                 />
             )}

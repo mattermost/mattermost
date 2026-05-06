@@ -2154,3 +2154,154 @@ func TestGetRecommendedPublicChannelsForUser(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 }
+
+// TestFilterResponseToDraftScope locks down the post-processing that
+// turns a full-stack simulator response into a "this policy only" view.
+// Upper-scoped blame entries (system permission, inherited channel
+// policy) are dropped; denies that have no remaining draft-side blame
+// flip back to allow because the draft alone would not have denied.
+func TestFilterResponseToDraftScope(t *testing.T) {
+	t.Run("deny attributed only to upper-scoped policy flips to allow", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u1"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSystemPermission, PolicyName: "Org IL5"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToDraftScope(resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "deny solely from upper-scoped blame must flip to allow")
+		assert.Empty(t, dec.Blame, "blame must be cleared when the deny no longer applies")
+	})
+
+	t.Run("deny with both this_rule and upper-scoped blame stays a deny but loses the upper entry", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u2"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"download_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1"},
+							{Source: model.PolicySimulationBlameSourceSystemPermission, PolicyName: "Org IL5"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToDraftScope(resp)
+
+		dec := resp.Results[0].Decisions["download_file_attachment"]
+		assert.False(t, dec.Decision, "deny that the draft itself produces must remain a deny")
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, dec.Blame[0].Source)
+	})
+
+	t.Run("allow with sibling_saved blame is preserved", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u3"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: true,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSiblingSaved},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToDraftScope(resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision)
+		require.Len(t, dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceSiblingSaved, dec.Blame[0].Source)
+	})
+
+	t.Run("inherited channel_policy blame is treated as upper-scoped", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u4"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceChannelPolicy, PolicyName: "Parent"},
+						},
+					},
+				},
+			}},
+		}
+
+		filterResponseToDraftScope(resp)
+
+		dec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, dec.Decision, "channel_policy blame is upper-scoped, so the deny must flip to allow")
+		assert.Empty(t, dec.Blame)
+	})
+
+	t.Run("per-session decisions are filtered alongside the user-level ones", func(t *testing.T) {
+		resp := &model.PolicySimulationResponse{
+			Results: []model.PolicySimulationUserResult{{
+				User: &model.User{Id: "u5"},
+				Decisions: map[string]model.PolicySimulationActionDecision{
+					"upload_file_attachment": {
+						Decision: false,
+						Blame: []model.PolicySimulationBlame{
+							{Source: model.PolicySimulationBlameSourceSystemPermission},
+						},
+					},
+				},
+				Sessions: []model.PolicySimulationSession{{
+					ID:     "s1",
+					Device: "Macbook",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{
+								{Source: model.PolicySimulationBlameSourceSystemPermission},
+							},
+						},
+					},
+				}, {
+					ID:     "s2",
+					Device: "iPhone",
+					Decisions: map[string]model.PolicySimulationActionDecision{
+						"upload_file_attachment": {
+							Decision: false,
+							Blame: []model.PolicySimulationBlame{
+								{Source: model.PolicySimulationBlameSourceThisRule, RuleName: "rule1"},
+								{Source: model.PolicySimulationBlameSourceSystemPermission},
+							},
+						},
+					},
+				}},
+			}},
+		}
+
+		filterResponseToDraftScope(resp)
+
+		userDec := resp.Results[0].Decisions["upload_file_attachment"]
+		assert.True(t, userDec.Decision, "user-level deny solely from upper-scoped flips to allow")
+
+		sess1Dec := resp.Results[0].Sessions[0].Decisions["upload_file_attachment"]
+		assert.True(t, sess1Dec.Decision, "session-level deny solely from upper-scoped flips to allow")
+
+		sess2Dec := resp.Results[0].Sessions[1].Decisions["upload_file_attachment"]
+		assert.False(t, sess2Dec.Decision, "session-level deny with this_rule blame stays a deny")
+		require.Len(t, sess2Dec.Blame, 1)
+		assert.Equal(t, model.PolicySimulationBlameSourceThisRule, sess2Dec.Blame[0].Source)
+	})
+}

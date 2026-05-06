@@ -13,7 +13,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import TestAccessRuleModal from 'components/admin_console/access_control/modals/test_access_rule/test_access_rule_modal';
+import SimulateAccessModal from 'components/admin_console/access_control/modals/simulate_access/simulate_access_modal';
 import BlockableLink from 'components/admin_console/blockable_link';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
@@ -545,6 +545,25 @@ function PermissionPolicyDetails({
                                                 attribute: attr.name,
                                                 values: [],
                                             }))}
+
+                                            // Both editor modes route the test
+                                            // button through SimulateAccessModal:
+                                            // the legacy TestResultsModal only
+                                            // searched users that match the
+                                            // expression, which doesn't surface
+                                            // upper-scoped denies that the
+                                            // permission-policy author needs to
+                                            // see. The label is also re-tagged to
+                                            // "Simulate rules" since the modal
+                                            // simulates the full rule set, not a
+                                            // single expression.
+                                            onTestClick={() => setShowTest(true)}
+                                            testButtonLabel={
+                                                <FormattedMessage
+                                                    id='admin.permission_policies.editor.simulate_rules'
+                                                    defaultMessage='Simulate rules'
+                                                />
+                                            }
                                         />
                                     ) : (
                                         <TableEditor
@@ -561,12 +580,13 @@ function PermissionPolicyDetails({
                                             }}
                                             enableUserManagedAttributes={accessControlSettings.EnableUserManagedAttributes}
                                             actions={abacActions}
-
-                                            // Replace the legacy expression-only modal with the
-                                            // dual-lane simulation so authors can preview how
-                                            // their draft interacts with other persisted system
-                                            // permission policies.
                                             onTestClick={() => setShowTest(true)}
+                                            testButtonLabel={
+                                                <FormattedMessage
+                                                    id='admin.permission_policies.editor.simulate_rules'
+                                                    defaultMessage='Simulate rules'
+                                                />
+                                            }
                                         />
                                     )}
                                 </Card.Body>
@@ -738,7 +758,7 @@ function PermissionPolicyDetails({
                     )}
 
                     {showTest && (
-                        <TestAccessRuleModal
+                        <SimulateAccessModal
                             onExited={() => setShowTest(false)}
                             policy={{
                                 id: policyId || '',

@@ -211,6 +211,15 @@ func (a *App) SimulateAccessControlPolicy(rctx request.CTX, params model.PolicyS
 // server to search; the response returns per-user, per-action decisions
 // with blame attribution.
 //
+// When EvaluationScope == "this_policy" the response is post-processed
+// to drop blame entries that came from upper-scoped policies (system
+// permission policies, inherited parent policies). If a deny was
+// produced *solely* by those upper-scoped contributors the decision is
+// flipped back to allow — evaluating the draft policy alone would not
+// have denied. This filter is applied here (not in the enterprise PDP)
+// so the picker UX honours the "this policy only" toggle even when the
+// underlying simulator co-evaluates the full stack.
+//
 // Returns NotImplemented when the access control service is unavailable
 // (no enterprise license / ABAC disabled).
 func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError) {
@@ -219,7 +228,77 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 		return nil, model.NewAppError("SimulateAccessControlPolicyForUsers", "app.pap.simulate.unavailable", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	return acs.SimulatePolicyForUsers(rctx, params)
+	resp, appErr := acs.SimulatePolicyForUsers(rctx, params)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if resp != nil && params.EvaluationScope == model.PolicyEvaluationScopeThisPolicy {
+		filterResponseToDraftScope(resp)
+	}
+
+	return resp, nil
+}
+
+// filterResponseToDraftScope mutates resp so every action decision (top
+// level + per session) only reflects contributions from the draft policy
+// being edited. Blame entries from upper-scoped sources (system
+// permission, inherited channel policy) are dropped; denies that have
+// no remaining draft-side blame after filtering are flipped to allow,
+// because the draft alone would not have denied them.
+func filterResponseToDraftScope(resp *model.PolicySimulationResponse) {
+	for i := range resp.Results {
+		resp.Results[i].Decisions = filterDecisionsToDraftScope(resp.Results[i].Decisions)
+		for j := range resp.Results[i].Sessions {
+			resp.Results[i].Sessions[j].Decisions = filterDecisionsToDraftScope(resp.Results[i].Sessions[j].Decisions)
+		}
+	}
+}
+
+func filterDecisionsToDraftScope(decisions map[string]model.PolicySimulationActionDecision) map[string]model.PolicySimulationActionDecision {
+	if len(decisions) == 0 {
+		return decisions
+	}
+	for action, dec := range decisions {
+		filtered := filterBlameToDraftScope(dec.Blame)
+		if !dec.Decision && len(filtered) == 0 {
+			// The deny was caused only by upper-scoped policies; with
+			// the draft alone this user would have been allowed.
+			dec.Decision = true
+			dec.Blame = nil
+		} else {
+			dec.Blame = filtered
+		}
+		decisions[action] = dec
+	}
+	return decisions
+}
+
+// draftBlameSources lists the blame sources that originate inside the
+// draft policy itself (or are synthetic markers about how the draft
+// applies). Anything else is upper-scoped and is dropped when the
+// caller asks for "this policy only" evaluation.
+var draftBlameSources = map[string]struct{}{
+	model.PolicySimulationBlameSourceThisRule:           {},
+	model.PolicySimulationBlameSourceSiblingRule:        {},
+	model.PolicySimulationBlameSourceSiblingSaved:       {},
+	model.PolicySimulationBlameSourceNoApplicablePolicy: {},
+}
+
+func filterBlameToDraftScope(blame []model.PolicySimulationBlame) []model.PolicySimulationBlame {
+	if len(blame) == 0 {
+		return nil
+	}
+	out := blame[:0:0]
+	for _, b := range blame {
+		if _, ok := draftBlameSources[b.Source]; ok {
+			out = append(out, b)
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func (a *App) AssignAccessControlPolicyToChannels(rctx request.CTX, parentID string, channelIDs []string) ([]*model.AccessControlPolicy, *model.AppError) {

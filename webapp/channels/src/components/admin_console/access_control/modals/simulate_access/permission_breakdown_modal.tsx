@@ -27,7 +27,7 @@ type Props = {
 /**
  * Stacked sub-modal that breaks a row's aggregate chip down to the
  * per-permission decisions. Mounted with `isStacked={true}` so it sits
- * above the main TestAccessRuleModal without dismounting it. Read-only —
+ * above the main SimulateAccessModal without dismounting it. Read-only —
  * decisions are passed in by the picker; the modal doesn't re-dispatch
  * the simulator.
  *
@@ -51,8 +51,8 @@ export default function PermissionBreakdownModal({
 
     return (
         <GenericModal
-            id='testAccessRulePermissionBreakdownModal'
-            className='TestAccessRuleModal__breakdown a11y__modal'
+            id='simulateAccessPermissionBreakdownModal'
+            className='SimulateAccessModal__breakdown a11y__modal'
             show={true}
             onHide={onExited}
             onExited={onExited}
@@ -61,22 +61,22 @@ export default function PermissionBreakdownModal({
             showCloseButton={true}
             bodyPadding={true}
             ariaLabel={formatMessage({
-                id: 'admin.access_control.test_access_rule.breakdown.title',
+                id: 'admin.access_control.simulate_access.breakdown.title',
                 defaultMessage: 'Permission decisions',
             })}
             modalHeaderText={
                 <FormattedMessage
-                    id='admin.access_control.test_access_rule.breakdown.title'
+                    id='admin.access_control.simulate_access.breakdown.title'
                     defaultMessage='Permission decisions'
                 />
             }
         >
-            <div className='TestAccessRuleModal__breakdownHeader'>
+            <div className='SimulateAccessModal__breakdownHeader'>
                 {/* ProfilePicture with userId opens the standard profile
                   * popover on click — matches the affordance from the
                   * picker row so authors can drill into attribute/role
                   * details from this drilled-down view too. */}
-                <div className='TestAccessRuleModal__breakdownAvatar'>
+                <div className='SimulateAccessModal__breakdownAvatar'>
                     <ProfilePicture
                         src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                         userId={user.id}
@@ -84,21 +84,21 @@ export default function PermissionBreakdownModal({
                         size='lg'
                     />
                 </div>
-                <div className='TestAccessRuleModal__breakdownIdentity'>
-                    <span className='TestAccessRuleModal__breakdownDisplayName'>
+                <div className='SimulateAccessModal__breakdownIdentity'>
+                    <span className='SimulateAccessModal__breakdownDisplayName'>
                         {displayUsername(user, 'full_name') || user.username}
                     </span>
-                    <span className='TestAccessRuleModal__breakdownUsername'>{`@${user.username}`}</span>
+                    <span className='SimulateAccessModal__breakdownUsername'>{`@${user.username}`}</span>
                 </div>
             </div>
-            <ul className='TestAccessRuleModal__breakdownList'>
+            <ul className='SimulateAccessModal__breakdownList'>
                 {actions.map((action) => (
                     <li
                         key={action}
-                        className='TestAccessRuleModal__breakdownItem'
-                        data-testid={`test-rule-breakdown-${action}`}
+                        className='SimulateAccessModal__breakdownItem'
+                        data-testid={`simulate-access-breakdown-${action}`}
                     >
-                        <span className='TestAccessRuleModal__breakdownItemLabel'>
+                        <span className='SimulateAccessModal__breakdownItemLabel'>
                             {actionLabels?.[action] ?? action}
                         </span>
                         <DecisionChip

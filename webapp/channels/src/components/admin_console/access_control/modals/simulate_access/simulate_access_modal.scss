@@ -1,0 +1,715 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.SimulateAccessModal {
+    // Widen the picker so the result chip + recent-activity column
+    // don't fight the user-name column for breathing room. 720px fits
+    // the column layout comfortably without dwarfing the host
+    // ChannelSettingsModal (920px), and we respect the viewport on
+    // small windows.
+    width: 720px !important;
+    max-width: min(720px, 90vw) !important;
+    margin-top: 5vh !important;
+
+    .GenericModal__body {
+        padding: 0 !important;
+    }
+
+    // Let the modal-content height track its actual content. The
+    // earlier min-height: 420px stretched the body via flex:1 so the
+    // footer was pushed to the bottom of an almost-empty modal,
+    // leaving a visible gap above it in the empty/1-row states. With
+    // the min-height gone the footer always sits immediately below the
+    // last row (or empty state) and bottom spacing stays consistent
+    // regardless of how many users are picked.
+    .modal-content {
+        display: flex;
+        max-height: 90vh;
+        flex-direction: column;
+    }
+
+    // Subheader / controls / body / summary share a 16px horizontal
+    // gutter so the row content "snaps" to the modal edges instead of
+    // sitting in a narrow centred strip. The original 32px gutter left
+    // unused real estate to the right of every row in the screenshots.
+
+    // align-items: center so the "+ Add users" button vertically
+    // centers against the multi-line description copy. With flex-start
+    // the button hugs the top of a 2-line description and reads as
+    // mis-aligned.
+    &__subheader {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px 12px;
+        gap: 16px;
+
+        p {
+            margin: 0;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 13px;
+            line-height: 18px;
+        }
+    }
+
+    &__addUsersWrap {
+        flex-shrink: 0;
+    }
+
+    &__addUsers {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-weight: 600;
+        gap: 4px;
+
+        i {
+            font-size: 16px;
+        }
+    }
+
+    &__addUsersResults {
+        max-height: 360px;
+        margin-top: 10px;
+        overflow-y: auto;
+    }
+
+    &__addUsersHint {
+        padding: 12px 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+    }
+
+    &__addUsersResult {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        padding: 8px 10px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        cursor: pointer;
+        gap: 12px;
+        text-align: left;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            outline: 0;
+        }
+
+        img {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 50%;
+        }
+    }
+
+    &__addUsersResultMeta {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+    }
+
+    &__addUsersResultName {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__addUsersResultEmail {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Toggle ("Evaluate against") row + "show only denied" filter share a
+    // single horizontal band sitting between the subheader and the table.
+    // Aligning them on a shared row keeps the controls scannable; the
+    // dense Compass spacing (8px above the table) matches the rest of the
+    // admin-console editors.
+    &__controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 32px 12px;
+        gap: 16px;
+    }
+
+    &__scopeToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__scopeLabel {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+    }
+
+    &__scopeSegments {
+        display: inline-flex;
+        padding: 2px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+
+    &__scopeSegment {
+        padding: 4px 12px;
+        border: 0;
+        border-radius: 3px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+
+        &:hover:not(.SimulateAccessModal__scopeSegment--active) {
+            background: rgba(var(--center-channel-color-rgb), 0.06);
+            color: var(--center-channel-color);
+        }
+
+        &--active {
+            background: var(--center-channel-bg);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            color: var(--center-channel-color);
+        }
+    }
+
+    &__deniedFilter {
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+        gap: 6px;
+
+        input[type='checkbox'] {
+            margin: 0;
+        }
+    }
+
+    // Body has no horizontal padding so the table — and its row
+    // borders — span the modal edge-to-edge. The 32px content gutter
+    // that matches the modal header / subheader is re-introduced via
+    // the first/last table cell padding overrides below, so each row
+    // still has the same inner padding as the rest of the modal but
+    // the gray separators between rows reach all the way to the edge.
+    &__body {
+        min-height: 0;
+        flex: 1 1 auto;
+        padding: 0 0 16px;
+        overflow-y: auto;
+    }
+
+    &__empty {
+        padding: 48px 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 13px;
+        text-align: center;
+    }
+
+    // USER column takes all the slack (`width: 100%` on the first
+    // column) so the result chip and the trailing pencil/x icons hug
+    // the right edge. The other columns sit at their intrinsic content
+    // size via `width: 1%; white-space: nowrap` — the classic flex-tab
+    // pattern for tables. When session attributes aren't configured,
+    // the RECENT ACTIVITY column is omitted entirely (see the
+    // `--noActivity` modifier).
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th {
+            padding: 0 12px 8px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-align: left;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        th:first-child,
+        td:first-child {
+            width: 100%;
+
+            // First cell carries the 32px left gutter so USER header +
+            // avatar/name align with the modal header / subheader text,
+            // while the row's bottom border still reaches the modal's
+            // left edge (the body itself has 0 horizontal padding).
+            padding-left: 32px;
+        }
+
+        th:not(:first-child),
+        td:not(:first-child) {
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        // Last cell carries the 32px right gutter for the trailing X
+        // button — same reason as the first-cell rule above.
+        th:last-child,
+        td:last-child {
+            padding-right: 32px;
+        }
+    }
+
+    &__row {
+        cursor: default;
+
+        &--expandable {
+            cursor: pointer;
+        }
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &--expanded {
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__rowUser {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__rowAvatar {
+        flex-shrink: 0;
+    }
+
+    &__rowName {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        line-height: 18px;
+    }
+
+    &__rowDisplayName {
+        overflow: hidden;
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__rowUsername {
+        overflow: hidden;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Center the RESULT column above its pill: the chip is rendered
+    // as inline-flex so text-align: center on the td shifts the chip
+    // to the column's centerline; combined with the same rule on the
+    // th, the "RESULT" label sits visually centered over the pill
+    // instead of hugging the cell's left edge.
+    // The result-cell intrinsic width comes from the chip itself; the
+    // first-child `width: 100%` rule on the USER cell does the actual
+    // pushing right, so this column needs no width override of its own.
+    &__table th:nth-child(2),
+    &__table td.SimulateAccessModal__rowResult {
+        text-align: center;
+    }
+
+    &__rowActivity {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__rowActivityLabel {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+
+        i {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    }
+
+    &__rowActivityEmpty {
+        color: rgba(var(--center-channel-color-rgb), 0.4);
+    }
+
+    &__rowActions {
+        width: 88px;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    &__rowConfigure,
+    &__rowRemove {
+        display: inline-flex;
+        width: 28px;
+        height: 28px;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        vertical-align: middle;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        i {
+            font-size: 16px;
+        }
+    }
+
+    &__rowConfigure {
+
+        // Highlight the pencil with a subtle frame matching image 3 so
+        // it reads as a primary affordance per row, not a footnote.
+        border: 1px solid rgba(var(--button-bg-rgb), 0.32);
+        border-radius: 4px;
+        margin-right: 4px;
+        color: var(--button-bg);
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+    }
+
+    // Indented child rows inside the unfold. The bullet ("—") column
+    // gives the eye an explicit anchor that "this is a session under the
+    // row above"; without it the device label can read like a primary
+    // user row.
+    &__sessionRow {
+        background: rgba(var(--center-channel-color-rgb), 0.03);
+
+        td {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+    }
+
+    &__sessionMeta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    &__sessionDot {
+        width: 36px;
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        font-size: 14px;
+        text-align: center;
+    }
+
+    &__sessionDevice {
+        color: var(--center-channel-color);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 18px;
+    }
+
+    &__sessionLastActive {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    &__rowChip {
+        display: inline-flex;
+        overflow: hidden;
+        max-width: 240px;
+        align-items: center;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        gap: 4px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        &--allow {
+            background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.16);
+            color: var(--online-indicator, #06a77d);
+        }
+
+        &--allow-saved {
+            background: rgba(var(--online-indicator-rgb, 6, 167, 125), 0.12);
+            color: var(--online-indicator, #06a77d);
+        }
+
+        &--deny {
+            background: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.16);
+            color: var(--error-text);
+        }
+
+        &--pending {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        &--not-applicable {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &--mixed {
+            background: rgba(var(--away-indicator-rgb, 255, 188, 66), 0.18);
+            color: var(--away-indicator, #b07700);
+        }
+
+        &--stacked {
+            padding: 4px 10px;
+            border: 0;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+
+            &:disabled {
+                cursor: default;
+            }
+
+            &:hover:not(:disabled),
+            &:focus-visible {
+                filter: brightness(0.96);
+                outline: 0;
+            }
+        }
+    }
+
+    &__rowChipLabel {
+        overflow: hidden;
+        min-width: 0;
+        flex: 0 1 auto;
+        text-overflow: ellipsis;
+    }
+
+    &__rowChipCount {
+        display: inline-flex;
+        min-width: 18px;
+        height: 18px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        border-radius: 9px;
+        background: rgba(255, 255, 255, 0.55);
+        color: inherit;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    &__rowChipChevron {
+        margin-right: -4px;
+        font-size: 14px;
+        opacity: 0.7;
+    }
+
+    &__breakdownHeader {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+
+    &__breakdownAvatar {
+        flex-shrink: 0;
+    }
+
+    &__breakdownIdentity {
+        display: flex;
+        flex-direction: column;
+        line-height: 18px;
+    }
+
+    &__breakdownDisplayName {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__breakdownUsername {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+    }
+
+    &__breakdownList {
+        display: flex;
+        flex-direction: column;
+        padding: 0 0 24px;
+        margin: 0;
+        gap: 4px;
+        list-style: none;
+    }
+
+    &__breakdownItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 6px;
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        gap: 12px;
+    }
+
+    &__breakdownItemLabel {
+        overflow: hidden;
+        min-width: 0;
+        flex: 1 1 auto;
+        color: var(--center-channel-color);
+        font-size: 13px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    // Custom footer row: row-count summary on the left, action buttons
+    // on the right, all on one line. Replaces GenericModal's default
+    // right-aligned-only footer so the summary and the buttons share
+    // vertical space instead of stacking and wasting the strip below
+    // the table.
+    &__footer {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    &__summary {
+        // 4px nudge so the count line sits flush with the modal's
+        // content gutter (the GenericModal footer's own left padding
+        // lands a few pixels short of where the table rows start).
+        padding-left: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 13px;
+    }
+
+    &__footerActions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+// FloatingPortal popovers live OUTSIDE .SimulateAccessModal so their
+// rules apply at <body> level. Bootstrap's modal stack uses 1050
+// (.modal-backdrop) / 1055 — we stay above that so the panel never
+// gets clipped by, or sits behind, the modal itself.
+.SimulateAccessModal__addUsersPanel {
+    z-index: 1080;
+    width: 480px;
+    max-width: 90vw;
+    padding: 14px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.SimulateAccessModal__editorPanel {
+    z-index: 1080;
+    width: 520px;
+    max-width: 90vw;
+    padding: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.SimulateAccessModal__editorForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.SimulateAccessModal__editorTitle {
+    color: var(--center-channel-color);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.SimulateAccessModal__editorDescription {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.SimulateAccessModal__editorEmpty {
+    padding: 24px 0;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 13px;
+    text-align: center;
+}
+
+// Two-column responsive grid mirrors image 3: pairs of fields share a
+// row on wide displays, collapse to a single column on narrow popovers.
+.SimulateAccessModal__editorGrid {
+    display: grid;
+    gap: 12px 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.SimulateAccessModal__editorField {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.SimulateAccessModal__editorFieldLabel {
+    color: var(--center-channel-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.SimulateAccessModal__editorFieldInput,
+.SimulateAccessModal__editorFieldSelect {
+    height: 32px;
+    padding: 4px 10px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    font-size: 13px;
+}
+
+.SimulateAccessModal__editorActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+    gap: 8px;
+}
