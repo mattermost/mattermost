@@ -233,9 +233,42 @@ export type PolicySimulationActionDecision = {
     blame?: PolicySimulationBlame[];
 };
 
+/**
+ * Per-session decision row for the simulate UI's "Recent activity" expand.
+ *
+ * The simulator can return one entry per active session for a user so the
+ * picker can surface why two sessions of the same person come back with
+ * different verdicts (e.g. one session is on a managed device, the other
+ * isn't). System admins see the user's real recent sessions; channel admins
+ * receive a single synthetic session populated with default values that
+ * they can override via the per-row session-attribute editor.
+ */
+export type PolicySimulationSession = {
+    /** Stable session identifier. May be empty for synthetic sessions. */
+    id?: string;
+
+    /** Human label for the device/client (e.g. "MacBook Pro"). */
+    device?: string;
+
+    /** Network classification (e.g. "WiFi", "VPN", "Mobile"). */
+    network?: string;
+
+    /** Last-active timestamp in milliseconds since epoch. */
+    last_active_at?: number;
+
+    /** Per-action verdicts for this specific session. Same shape as the
+     *  user-level `decisions` map. */
+    decisions?: Record<string, PolicySimulationActionDecision>;
+};
+
 export type PolicySimulationUserResult = {
     user: UserProfile;
     decisions?: Record<string, PolicySimulationActionDecision>;
+
+    /** Optional per-session breakdown. When populated the picker renders
+     *  a Recent activity expand row revealing one decision chip per
+     *  session. Empty/undefined falls back to a single user-level chip. */
+    sessions?: PolicySimulationSession[];
 };
 
 export type PolicySimulationResponse = {
@@ -243,6 +276,16 @@ export type PolicySimulationResponse = {
     total: number;
     expression_only?: boolean;
 };
+
+/**
+ * Scope for the simulate-by-users evaluation:
+ *  - 'all'         — co-evaluate the draft against any other persisted
+ *                    permission policies that govern the same channel/scope
+ *                    (parent + system permission policies). Mirrors the
+ *                    PEP's behaviour at request time.
+ *  - 'this_policy' — evaluate only the draft policy. Authoring view.
+ */
+export type PolicyEvaluationScope = 'all' | 'this_policy';
 
 export type PolicySimulationParams = {
     policy: AccessControlPolicy;
@@ -282,4 +325,10 @@ export type PolicySimulationByUsersParams = {
     channel_id?: string;
     team_id?: string;
     users: PolicySimulationUserOverride[];
+
+    /** Evaluation scope. Defaults to 'this_policy' on the server when
+     *  omitted to preserve the existing authoring-only semantics. The
+     *  picker UI exposes this as a "Evaluate against: All policies / This
+     *  policy only" toggle. */
+    evaluation_scope?: PolicyEvaluationScope;
 };

@@ -171,8 +171,9 @@ export function searchUsersForExpression(expression: string, term: string, after
 /**
  * Run the dual-lane PDP simulation against a draft policy and return per-user,
  * per-action ALLOW/DENY decisions with blame attribution. Used by the
- * permission-rule "Test access rule" workflow so authors can see how their
- * draft interacts with persisted higher-scoped policies before saving.
+ * permission-rule "Simulate rules" workflow (SimulateAccessModal) so authors
+ * can see how their draft interacts with persisted higher-scoped policies
+ * before saving.
  *
  * The redux action only forwards profiles into the user store on success;
  * decisions and blame metadata stay on the returned data and are consumed

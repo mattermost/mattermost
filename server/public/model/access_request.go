@@ -214,13 +214,40 @@ type PolicySimulationActionDecision struct {
 	Blame    []PolicySimulationBlame `json:"blame,omitempty"`
 }
 
+// PolicySimulationSession is the per-session breakdown entry for the
+// simulate-by-users response. Populated when the caller requests per-session
+// evaluation (typically a system admin: their active sessions are individually
+// evaluated so the picker can show why two sessions of the same user come
+// back with different verdicts). Channel admins receive at most a single
+// synthetic session populated with default values that they can override
+// through the per-row session-attribute editor.
+type PolicySimulationSession struct {
+	// ID is the persistent session identifier. Empty for synthetic sessions.
+	ID string `json:"id,omitempty"`
+	// Device is a human-readable device/client label (e.g. "MacBook Pro").
+	Device string `json:"device,omitempty"`
+	// Network classifies the connection (e.g. "WiFi", "VPN", "Mobile").
+	Network string `json:"network,omitempty"`
+	// LastActiveAt is the last-active timestamp in milliseconds since epoch.
+	LastActiveAt int64 `json:"last_active_at,omitempty"`
+	// Decisions maps action name → verdict for THIS session specifically,
+	// using the session's own session.* attributes (the user's profile
+	// attributes are constant across sessions).
+	Decisions map[string]PolicySimulationActionDecision `json:"decisions,omitempty"`
+}
+
 // PolicySimulationUserResult is one row in the simulation response.
 type PolicySimulationUserResult struct {
 	User *User `json:"user"`
 	// Decisions maps action name → verdict. Always populated when the
 	// simulation request had non-empty Actions; nil when ExpressionOnly is
-	// true (fallback mode).
+	// true (fallback mode). When Sessions is populated, this represents the
+	// "headline" decision (e.g. from the most-recently-active session) so
+	// the picker can render a single chip without consulting Sessions.
 	Decisions map[string]PolicySimulationActionDecision `json:"decisions,omitempty"`
+	// Sessions is the optional per-session breakdown. Empty/nil falls back
+	// to the user-level Decisions only.
+	Sessions []PolicySimulationSession `json:"sessions,omitempty"`
 }
 
 // PolicySimulationResponse is the body returned by cel/simulate.
@@ -255,12 +282,30 @@ type PolicySimulationUserOverride struct {
 	SessionOverrides map[string]string `json:"session_overrides,omitempty"`
 }
 
+// PolicyEvaluationScope* constants enumerate the supported evaluation
+// scopes for /cel/simulate_users.
+const (
+	// PolicyEvaluationScopeThisPolicy evaluates only the draft policy
+	// passed in the request. This is the authoring-time view: it surfaces
+	// only the rules the author is editing right now, with sibling/system
+	// blame attribution where relevant. Default when the request omits
+	// EvaluationScope (preserves pre-existing behaviour).
+	PolicyEvaluationScopeThisPolicy = "this_policy"
+	// PolicyEvaluationScopeAll co-evaluates the draft alongside any other
+	// persisted permission policies that govern the same channel/scope
+	// (parent policies, system permission policies). This mirrors the PEP's
+	// at-request-time semantics so the picker can preview the effective
+	// decision the user would actually experience.
+	PolicyEvaluationScopeAll = "all"
+)
+
 // PolicySimulationByUsersParams is the request body for
 // /access_control_policies/cel/simulate_users.
 //
 // Unlike PolicySimulationParams (which searches for matching users) this
-// variant takes an explicit user list. Useful for the picker-based "Test
-// access rule" UX where the author hand-selects who they want to dry-run.
+// variant takes an explicit user list. Useful for the picker-based
+// "Simulate access" UX where the author hand-selects who they want to
+// dry-run.
 type PolicySimulationByUsersParams struct {
 	// Policy is the draft policy as it currently sits in the editor. Not
 	// persisted; compiled in-memory only.
@@ -279,4 +324,9 @@ type PolicySimulationByUsersParams struct {
 	// Users is the explicit set of users to evaluate, with per-user
 	// session-attribute overrides.
 	Users []PolicySimulationUserOverride `json:"users"`
+	// EvaluationScope selects whether the simulator considers only the
+	// draft Policy (this_policy) or co-evaluates other persisted policies
+	// that govern the same scope (all). Empty defaults to this_policy on
+	// the server to preserve pre-existing behaviour for older clients.
+	EvaluationScope string `json:"evaluation_scope,omitempty"`
 }

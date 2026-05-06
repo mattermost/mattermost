@@ -96,6 +96,11 @@ interface TableEditorProps {
     /** Tooltip shown when the test button is disabled. Useful for explaining
      *  why simulation is unavailable (e.g. no attributes loaded). */
     testButtonTooltip?: string;
+
+    /** Optional label override for the test button. Lets the
+     *  permission-rule editor render "Simulate rules" instead of the
+     *  default "Test access rule" copy. */
+    testButtonLabel?: React.ReactNode;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
@@ -179,6 +184,7 @@ function TableEditor({
     onTestClick,
     testButtonDisabled,
     testButtonTooltip,
+    testButtonLabel,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -492,6 +498,7 @@ function TableEditor({
                             defaultMessage: 'You cannot test access rules that would exclude you from the channel',
                         }) : testButtonTooltip
                     }
+                    label={testButtonLabel}
                 />
             </div>
 

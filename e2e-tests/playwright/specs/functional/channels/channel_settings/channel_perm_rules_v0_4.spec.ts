@@ -6,8 +6,9 @@
  *   - Tab visibility is gated by ABAC + license + PermissionPolicies feature flag.
  *   - The list view exposes Add rule, search, and a paginated rules table.
  *   - Adding a permission rule (name, role, actions) and committing returns to the list.
- *   - Per-rule expression uses the same TableEditor as Membership Policy (with
- *     its built-in "Test access rule" button).
+ *   - Per-rule expression uses the same TableEditor as Membership Policy, but
+ *     re-labelled "Simulate rules" — the button opens the dual-lane
+ *     SimulateAccessModal instead of the legacy expression-only one.
  *   - Duplicate rule names surface a save-time error.
  *
  * @reference Channel-scoped permission policies (v0.4)
