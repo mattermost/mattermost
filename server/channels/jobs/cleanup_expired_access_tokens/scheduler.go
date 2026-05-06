@@ -14,7 +14,7 @@ const schedFreq = 1 * time.Hour
 
 func MakeScheduler(jobServer *jobs.JobServer) *jobs.PeriodicScheduler {
 	isEnabled := func(cfg *model.Config) bool {
-		return true
+		return *cfg.ServiceSettings.EnableUserAccessTokens
 	}
 	return jobs.NewPeriodicScheduler(jobServer, model.JobTypeCleanupExpiredAccessTokens, schedFreq, isEnabled)
 }
