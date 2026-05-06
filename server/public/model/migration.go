@@ -65,4 +65,5 @@ const (
 	MigrationKeyAccessControlPolicyV0_3                = "access_control_policy_v0_3_migration"
 	MigrationKeyAddManageAgentPermissions              = "add_manage_agent_permissions"
 	MigrationKeyAddPagePermissions                     = "add_page_permissions"
+	MigrationKeyAddEditFileAttachmentPermission        = "add_edit_file_attachment_permission"
 )

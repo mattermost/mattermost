@@ -417,17 +417,25 @@ export class GroupDetails extends React.PureComponent<Props, State> {
 
     roleChangeKey = (groupTeamOrChannel: {
         type?: SyncableType;
+        id?: string;
         team_id?: string;
         channel_id?: string;
     }) => {
-        let id;
-        if (
-            this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
-            SyncableType.Team
-        ) {
-            id = groupTeamOrChannel.team_id;
-        } else {
-            id = groupTeamOrChannel.channel_id;
+        // Items in itemsToRemove use a generic `id`, while items coming from
+        // teamsToAdd/channelsToAdd use `team_id`/`channel_id`. The key must
+        // be identical regardless of source so the dedup in
+        // handleRemovedTeamsAndChannels and handleAddedTeamsAndChannels
+        // matches the key produced by onChangeRoles.
+        let id = groupTeamOrChannel.id;
+        if (!id) {
+            if (
+                this.syncableTypeFromEntryType(groupTeamOrChannel.type) ===
+                SyncableType.Team
+            ) {
+                id = groupTeamOrChannel.team_id;
+            } else {
+                id = groupTeamOrChannel.channel_id;
+            }
         }
         return `${id}/${groupTeamOrChannel.type}`;
     };

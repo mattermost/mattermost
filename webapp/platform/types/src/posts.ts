@@ -38,6 +38,7 @@ export type PostType = 'system_add_remove' |
 'page' |
 'page_comment' |
 'page_draft' |
+'system_shared_chan_state' |
 '';
 
 export type PostEmbedType = 'image' | 'link' | 'message_attachment' | 'opengraph' | 'permalink';

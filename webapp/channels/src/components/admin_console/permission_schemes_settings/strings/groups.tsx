@@ -175,6 +175,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Add and delete reactions on posts.',
         },
     }),
+    guest_edit_file_attachment: defineMessages({
+        name: {
+            id: 'admin.permissions.group.guest_edit_file_attachment.name',
+            defaultMessage: 'Edit Attachments',
+        },
+        description: {
+            id: 'admin.permissions.group.guest_edit_file_attachment.description',
+            defaultMessage: 'Allow users to add or remove file attachments when editing posts.',
+        },
+    }),
     guest_create_post: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_create_post.name',

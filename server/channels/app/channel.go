@@ -2518,15 +2518,6 @@ func (a *App) GetChannelPinnedPostCount(rctx request.CTX, channelID string) (int
 	return count, nil
 }
 
-func (a *App) GetChannelCounts(rctx request.CTX, teamID string, userID string) (*model.ChannelCounts, *model.AppError) {
-	counts, err := a.Srv().Store().Channel().GetChannelCounts(teamID, userID)
-	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "app.channel.get_channel_counts.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return counts, nil
-}
-
 func (a *App) GetChannelUnread(rctx request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError) {
 	channelUnread, err := a.Srv().Store().Channel().GetChannelUnread(channelID, userID)
 	if err != nil {

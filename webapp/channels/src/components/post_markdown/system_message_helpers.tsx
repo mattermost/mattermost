@@ -392,6 +392,39 @@ function renderAutoTranslationChangeMessage(post: Post): ReactNode {
     );
 }
 
+function renderSharedChannelStateMessage(post: Post): ReactNode {
+    const state = ensureString(post.props?.shared_channel_state);
+    const workspaceName = ensureString(post.props?.workspace_name);
+
+    if (state === 'shared') {
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.now_shared'
+                defaultMessage='This channel is now shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    if (state === 'unshared') {
+        if (workspaceName === '') {
+            return (
+                <FormattedMessage
+                    id='shared_channel.system_message.no_longer_shared_unknown'
+                    defaultMessage='This channel is no longer shared with another workspace.'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.no_longer_shared'
+                defaultMessage='This channel is no longer shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    return null;
+}
+
 function renderMeMessage(post: Post): ReactNode {
     // Trim off the leading and trailing asterisk added to /me messages
     const message = post.message.replace(/^\*|\*$/g, '');
@@ -614,6 +647,7 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
     [Posts.POST_TYPES.AUTO_TRANSLATION_CHANGE]: renderAutoTranslationChangeMessage,
+    [Posts.POST_TYPES.SHARED_CHANNEL_STATE]: renderSharedChannelStateMessage,
 };
 
 export type AddMemberProps = {

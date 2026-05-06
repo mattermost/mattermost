@@ -183,6 +183,7 @@ var PermissionManageLicenseInformation *Permission
 var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
 var PermissionManageChannelAccessRules *Permission
+var PermissionEditFileAttachment *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -1396,6 +1397,13 @@ func initializePermissions() {
 
 	PermissionManageChannelAccessRules = &Permission{
 		"manage_channel_access_rules",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionEditFileAttachment = &Permission{
+		"edit_file_attachment",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2663,6 +2671,7 @@ func initializePermissions() {
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
 		PermissionManageChannelAccessRules,
+		PermissionEditFileAttachment,
 	}
 
 	GroupScopedPermissions := []*Permission{

@@ -373,6 +373,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row  read-only combined"
+                        id="guests-guest_edit_file_attachment"
+                      >
+                        <div
+                          class="permission-check "
+                          data-testid="guests-guest_edit_file_attachment-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Edit Attachments
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Allow users to add or remove file attachments when editing posts.
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only combined"
                         id="guests-guest_delete_post"
                       >
                         <div
@@ -1120,6 +1143,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -1998,6 +2040,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -3126,6 +3187,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           </div>
                         </div>
                         <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
+                        </div>
+                        <div
                           class="permission-group"
                         >
                           <div
@@ -4045,6 +4125,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -4758,6 +4857,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row  combined"
+                        id="guests-guest_edit_file_attachment"
+                      >
+                        <div
+                          class="permission-check "
+                          data-testid="guests-guest_edit_file_attachment-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Edit Attachments
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Allow users to add or remove file attachments when editing posts.
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  combined"
                         id="guests-guest_delete_post"
                       >
                         <div
@@ -5505,6 +5627,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -6383,6 +6524,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -7511,6 +7671,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           </div>
                         </div>
                         <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
+                        </div>
+                        <div
                           class="permission-group"
                         >
                           <div
@@ -8430,6 +8609,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -9144,6 +9342,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row  read-only combined"
+                        id="guests-guest_edit_file_attachment"
+                      >
+                        <div
+                          class="permission-check "
+                          data-testid="guests-guest_edit_file_attachment-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Edit Attachments
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Allow users to add or remove file attachments when editing posts.
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  read-only combined"
                         id="guests-guest_delete_post"
                       >
                         <div
@@ -9891,6 +10112,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -10769,6 +11009,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -11897,6 +12156,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           </div>
                         </div>
                         <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
+                        </div>
+                        <div
                           class="permission-group"
                         >
                           <div
@@ -12816,6 +13094,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -13529,6 +13826,29 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                     >
                       <div
                         class="permission-group-row  combined"
+                        id="guests-guest_edit_file_attachment"
+                      >
+                        <div
+                          class="permission-check "
+                          data-testid="guests-guest_edit_file_attachment-checkbox"
+                        />
+                        <span
+                          class="permission-name"
+                        >
+                          Edit Attachments
+                        </span>
+                        <span
+                          class="permission-description"
+                        >
+                          Allow users to add or remove file attachments when editing posts.
+                        </span>
+                      </div>
+                    </div>
+                    <div
+                      class="permission-group"
+                    >
+                      <div
+                        class="permission-group-row  combined"
                         id="guests-guest_delete_post"
                       >
                         <div
@@ -14276,6 +14596,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="all_users-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="all_users-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -15154,6 +15493,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
@@ -16282,6 +16640,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                           </div>
                         </div>
                         <div
+                          class="permission-row"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
+                        </div>
+                        <div
                           class="permission-group"
                         >
                           <div
@@ -17201,6 +17578,25 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
                               </span>
                             </div>
                           </div>
+                        </div>
+                        <div
+                          class="permission-row read-only"
+                          id="-posts-edit_file_attachment"
+                        >
+                          <div
+                            class="permission-check "
+                            data-testid="-posts-edit_file_attachment-checkbox"
+                          />
+                          <span
+                            class="permission-name"
+                          >
+                            Edit Attachments
+                          </span>
+                          <span
+                            class="permission-description"
+                          >
+                            Allow users to add or remove file attachments when editing posts.
+                          </span>
                         </div>
                         <div
                           class="permission-group"
