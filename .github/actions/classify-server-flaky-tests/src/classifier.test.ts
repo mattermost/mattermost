@@ -123,18 +123,20 @@ describe("classifyFlakyTests", () => {
 });
 
 describe("buildMarkdown", () => {
-    it("escapes markdown table cells", () => {
+    it("renders markdown metacharacters as inert table text", () => {
         const markdown = buildMarkdown([
             {
                 failedAttempts: 2,
                 key: {
-                    classname: "pkg|example",
+                    classname: "pkg|example & <b>tag</b>",
                     file: "",
-                    name: "Test\\Pipe|Name",
+                    name: "Test[spoof](https://example.com) *bold* `code` _u_ ~s~\nPipe|Bang!",
                 },
             },
         ]);
 
-        expect(markdown).toContain("| Test\\\\Pipe\\|Name | pkg\\|example | 2 |");
+        expect(markdown).toContain(
+            "| Test&#91;spoof&#93;&#40;https://example.com&#41; &#42;bold&#42; &#96;code&#96; &#95;u&#95; &#126;s&#126; Pipe&#124;Bang&#33; | pkg&#124;example &amp; &lt;b&gt;tag&lt;/b&gt; | 2 |",
+        );
     });
 });

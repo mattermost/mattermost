@@ -23113,7 +23113,7 @@ function classifyFlakyTests(reportXml) {
   });
 }
 function escapeMarkdownCell(value) {
-  return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
+  return value.replace(/\r?\n/g, " ").replace(/&/g, "&amp;").replace(/\\/g, "&#92;").replace(/\|/g, "&#124;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\[/g, "&#91;").replace(/\]/g, "&#93;").replace(/\(/g, "&#40;").replace(/\)/g, "&#41;").replace(/\*/g, "&#42;").replace(/_/g, "&#95;").replace(/`/g, "&#96;").replace(/~/g, "&#126;").replace(/!/g, "&#33;");
 }
 function buildMarkdown(flakyTests) {
   const rows = [
