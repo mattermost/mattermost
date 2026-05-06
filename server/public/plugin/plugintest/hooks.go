@@ -75,24 +75,6 @@ func (_m *Hooks) ChannelWillBeArchived(c *plugin.Context, channel *model.Channel
 	return r0
 }
 
-// ChannelWillBeMoved provides a mock function with given fields: c, channel, fromTeamID, toTeamID
-func (_m *Hooks) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID string, toTeamID string) string {
-	ret := _m.Called(c, channel, fromTeamID, toTeamID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ChannelWillBeMoved")
-	}
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel, string, string) string); ok {
-		r0 = rf(c, channel, fromTeamID, toTeamID)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	return r0
-}
-
 // ChannelWillBeRestored provides a mock function with given fields: c, channel
 func (_m *Hooks) ChannelWillBeRestored(c *plugin.Context, channel *model.Channel) string {
 	ret := _m.Called(c, channel)

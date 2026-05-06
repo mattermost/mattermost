@@ -2028,61 +2028,6 @@ func (s *hooksRPCServer) ChannelWillBeUpdated(args *Z_ChannelWillBeUpdatedArgs, 
 }
 
 func init() {
-	hookNameToId["ChannelWillBeMoved"] = ChannelWillBeMovedID
-}
-
-type Z_ChannelWillBeMovedArgs struct {
-	A *Context
-	B *model.Channel
-	C string
-	D string
-}
-
-type Z_ChannelWillBeMovedReturns struct {
-	A string
-}
-
-func (g *hooksRPCClient) ChannelWillBeMoved(c *Context, channel *model.Channel, fromTeamID, toTeamID string) string {
-	_args := &Z_ChannelWillBeMovedArgs{c, channel, fromTeamID, toTeamID}
-	_returns := &Z_ChannelWillBeMovedReturns{}
-	if g.implemented[ChannelWillBeMovedID] {
-		if err := g.client.Call("Plugin.ChannelWillBeMoved", _args, _returns); err != nil {
-			g.log.Error("RPC call ChannelWillBeMoved to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A
-}
-
-// ChannelWillBeMovedWithRPCErr returns the same values as ChannelWillBeMoved, with an additional trailing error
-// for the RPC transport — always the LAST return slot.
-func (g *hooksRPCClient) ChannelWillBeMovedWithRPCErr(c *Context, channel *model.Channel, fromTeamID, toTeamID string) (string, error) {
-	_args := &Z_ChannelWillBeMovedArgs{c, channel, fromTeamID, toTeamID}
-	_returns := &Z_ChannelWillBeMovedReturns{}
-	var _err error
-	if g.implemented[ChannelWillBeMovedID] {
-		_err = g.client.Call("Plugin.ChannelWillBeMoved", _args, _returns)
-		if _err != nil {
-			// Reset _returns so partial gob decoding can't leak non-zero
-			// values past a transport failure (HooksWithRPCErr contract).
-			_returns = &Z_ChannelWillBeMovedReturns{}
-			g.log.Debug("RPC call ChannelWillBeMoved to plugin failed.", mlog.Err(_err))
-		}
-	}
-	return _returns.A, _err
-}
-
-func (s *hooksRPCServer) ChannelWillBeMoved(args *Z_ChannelWillBeMovedArgs, returns *Z_ChannelWillBeMovedReturns) error {
-	if hook, ok := s.impl.(interface {
-		ChannelWillBeMoved(c *Context, channel *model.Channel, fromTeamID, toTeamID string) string
-	}); ok {
-		returns.A = hook.ChannelWillBeMoved(args.A, args.B, args.C, args.D)
-	} else {
-		return encodableError(fmt.Errorf("Hook ChannelWillBeMoved called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
 	hookNameToId["ChannelWillBeRestored"] = ChannelWillBeRestoredID
 }
 
@@ -2436,8 +2381,6 @@ type HooksWithRPCErr interface {
 	OnSAMLLoginWithRPCErr(c *Context, user *model.User, assertion *saml2.AssertionInfo) (error, error)
 
 	ChannelWillBeUpdatedWithRPCErr(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string, error)
-
-	ChannelWillBeMovedWithRPCErr(c *Context, channel *model.Channel, fromTeamID, toTeamID string) (string, error)
 
 	ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error)
 

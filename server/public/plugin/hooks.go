@@ -69,12 +69,11 @@ const (
 	TeamMemberWillBeAddedID                   = 50
 	ChannelWillBeArchivedID                   = 51
 	ChannelWillBeUpdatedID                    = 52
-	ChannelWillBeMovedID                      = 53
-	ChannelWillBeRestoredID                   = 54
-	ScheduledPostWillBeCreatedID              = 55
-	DraftWillBeUpsertedID                     = 56
-	RecapWillBeProcessedID                    = 57
-	MessageWillBeRewrittenByAIID              = 58
+	ChannelWillBeRestoredID                   = 53
+	ScheduledPostWillBeCreatedID              = 54
+	DraftWillBeUpsertedID                     = 55
+	RecapWillBeProcessedID                    = 56
+	MessageWillBeRewrittenByAIID              = 57
 	TotalHooksID                              = iota
 )
 
@@ -485,14 +484,6 @@ type Hooks interface {
 	//
 	// Minimum server version: 11.8
 	ChannelWillBeUpdated(c *Context, newChannel, oldChannel *model.Channel) (*model.Channel, string)
-
-	// ChannelWillBeMoved is invoked before a channel is moved between teams. Fires from
-	// app.MoveChannel before the store's direct Channel().Update call.
-	//
-	// To reject, return a non-empty string. Empty string allows the move.
-	//
-	// Minimum server version: 11.8
-	ChannelWillBeMoved(c *Context, channel *model.Channel, fromTeamID, toTeamID string) string
 
 	// ChannelWillBeRestored is invoked before an archived channel is un-archived. Fires from
 	// app.RestoreChannel before the store's Channel().Restore call. Sibling of

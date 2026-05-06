@@ -343,13 +343,6 @@ func (hooks *hooksTimerLayer) ChannelWillBeUpdated(c *Context, newChannel, oldCh
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) ChannelWillBeMoved(c *Context, channel *model.Channel, fromTeamID, toTeamID string) string {
-	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.ChannelWillBeMoved(c, channel, fromTeamID, toTeamID)
-	hooks.recordTime(startTime, "ChannelWillBeMoved", true)
-	return _returnsA
-}
-
 func (hooks *hooksTimerLayer) ChannelWillBeRestored(c *Context, channel *model.Channel) string {
 	startTime := timePkg.Now()
 	_returnsA := hooks.hooksImpl.ChannelWillBeRestored(c, channel)
@@ -649,13 +642,6 @@ func (hooks *hooksTimerLayer) ChannelWillBeUpdatedWithRPCErr(c *Context, newChan
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeUpdatedWithRPCErr(c, newChannel, oldChannel)
 	hooks.recordTime(startTime, "ChannelWillBeUpdatedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
-}
-
-func (hooks *hooksTimerLayer) ChannelWillBeMovedWithRPCErr(c *Context, channel *model.Channel, fromTeamID, toTeamID string) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelWillBeMovedWithRPCErr(c, channel, fromTeamID, toTeamID)
-	hooks.recordTime(startTime, "ChannelWillBeMovedWithRPCErr", _returnsRPCErr == nil)
-	return _returnsA, _returnsRPCErr
 }
 
 func (hooks *hooksTimerLayer) ChannelWillBeRestoredWithRPCErr(c *Context, channel *model.Channel) (string, error) {

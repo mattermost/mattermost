@@ -3276,43 +3276,6 @@ func TestHookRPCChannelWillBeUpdated(t *testing.T) {
 	})
 }
 
-func TestHookRPCChannelWillBeMoved(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost/server/public/plugin"
-			"github.com/mattermost/mattermost/server/public/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) ChannelWillBeMoved(c *plugin.Context, channel *model.Channel, fromTeamID, toTeamID string) string {
-			return "rpc test rejected"
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-	}, th.App, th.NewPluginAPI)
-	defer tearDown()
-
-	require.Len(t, pluginIDs, 1)
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginIDs[0])
-	require.NoError(t, err)
-
-	ch := &model.Channel{Id: model.NewId(), TeamId: th.BasicTeam.Id, Type: model.ChannelTypeOpen, DisplayName: "moved"}
-	reason := hooks.ChannelWillBeMoved(&plugin.Context{}, ch, "fromTeamA", "toTeamB")
-	require.Equal(t, "rpc test rejected", reason)
-}
-
 func TestHookRPCChannelWillBeRestored(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
