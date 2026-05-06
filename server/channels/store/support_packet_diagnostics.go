@@ -6,11 +6,7 @@ package store
 import "time"
 
 // SupportPacketDatabaseDiagnostics is a snapshot of database health and pool
-// state — connection pool counters for the master and replica handles plus, on
-// Postgres, runtime stats sourced from pg_stat_database, pg_stat_activity, and
-// pg_stat_user_tables (cache hit ratio, deadlocks, temp file usage, idle-in-
-// transaction sessions, longest running query, lock waits, and dead-tuple
-// state for the posts table). Pointer fields are nil when the underlying
+// state. Pointer fields are nil when the underlying
 // metric is unavailable (non-Postgres driver, query failure, or no matching
 // row).
 type SupportPacketDatabaseDiagnostics struct {
