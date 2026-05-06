@@ -5615,10 +5615,6 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
-    "id": "app.channel.move_channel.rejected_by_plugin",
-    "translation": "Channel move rejected by plugin: {{.Reason}}"
-  },
-  {
     "id": "app.channel.patch_channel_members_notify_props.app_error",
     "translation": "Unable to update channel members' notify props."
   },

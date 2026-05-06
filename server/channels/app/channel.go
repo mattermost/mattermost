@@ -3547,16 +3547,6 @@ func (a *App) MoveChannel(rctx request.CTX, team *model.Team, channel *model.Cha
 		}
 	}
 
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rejectionReason = hooks.ChannelWillBeMoved(pluginContext, channel, channel.TeamId, team.Id)
-		return rejectionReason == ""
-	}, plugin.ChannelWillBeMovedID)
-	if rejectionReason != "" {
-		return model.NewAppError("MoveChannel", "app.channel.move_channel.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
-	}
-
 	if nErr := a.Srv().Store().Channel().UpdateSidebarChannelCategoryOnMove(channel, team.Id); nErr != nil {
 		return model.NewAppError("MoveChannel", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
