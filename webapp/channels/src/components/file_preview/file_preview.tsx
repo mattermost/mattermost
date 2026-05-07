@@ -5,12 +5,12 @@ import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import FilenameOverlay from 'components/file_attachment/filename_overlay';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants, {FileTypes} from 'utils/constants';
 import * as Utils from 'utils/utils';

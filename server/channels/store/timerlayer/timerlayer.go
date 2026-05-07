@@ -1673,22 +1673,6 @@ func (s *TimerLayerChannelStore) GetByNamesIncludeDeleted(teamID string, names [
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetChannelCounts(teamID, userID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetChannelCounts", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	start := time.Now()
 
@@ -8745,6 +8729,22 @@ func (s *TimerLayerRecapStore) MarkRecapAsRead(id string) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.MarkRecapAsRead", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerRecapStore) MarkRecapsAsViewed(userId string, statuses []string) ([]string, error) {
+	start := time.Now()
+
+	result, err := s.RecapStore.MarkRecapsAsViewed(userId, statuses)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RecapStore.MarkRecapsAsViewed", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {

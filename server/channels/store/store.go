@@ -223,7 +223,6 @@ type ChannelStore interface {
 	GetPrivateChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsForTeam(teamID string, offset int, limit int) (model.ChannelList, error)
 	GetPublicChannelsByIdsForTeam(teamID string, channelIds []string) (model.ChannelList, error)
-	GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error)
 	GetTeamChannels(teamID string) (model.ChannelList, error)
 	GetAll(teamID string) ([]*model.Channel, error)
 	GetChannelsByIds(channelIds []string, includeDeleted bool) ([]*model.Channel, error)
@@ -1334,6 +1333,7 @@ type RecapStore interface {
 	GetRecapsForUser(userId string, page, perPage int) ([]*model.Recap, error)
 	UpdateRecapStatus(id, status string) error
 	MarkRecapAsRead(id string) error
+	MarkRecapsAsViewed(userId string, statuses []string) ([]string, error)
 	DeleteRecap(id string) error
 	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error

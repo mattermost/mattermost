@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {DialogSubmission} from '@mattermost/types/integrations';
 
 import {
@@ -259,22 +260,21 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                         {this.state.error && (
                             <div className='error-text'>{this.state.error}</div>
                         )}
-                        <button
+                        <Button
                             id='interactiveDialogCancel'
                             type='button'
-                            className='btn btn-tertiary cancel-button'
+                            emphasis='tertiary'
                             onClick={this.onHide}
                         >
                             <FormattedMessage
                                 id='interactive_dialog.cancel'
                                 defaultMessage='Cancel'
                             />
-                        </button>
+                        </Button>
                         <SpinnerButton
                             id='interactiveDialogSubmit'
                             type='submit'
                             autoFocus={!elements || elements.length === 0}
-                            className='btn btn-primary save-button'
                             spinning={this.state.submitting}
                             spinningText={
                                 <FormattedMessage

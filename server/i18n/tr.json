@@ -10532,10 +10532,6 @@
     "translation": "Kanalda grup kısıtlaması olduğundan erişim denetim ilkeleri uygulanamaz."
   },
   {
-    "id": "app.pap.access_control.channel_not_private",
-    "translation": "Erişim denetimi ilkeleri yalnızca özel kanallara uygulanabilir."
-  },
-  {
     "id": "app.pap.access_control.channel_shared",
     "translation": "Paylaşılan kanallara erişim denetim ilkesi uygulanamaz."
   },

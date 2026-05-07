@@ -5475,10 +5475,6 @@
     "translation": "Unable to get the channels for the provided scheme."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
     "id": "app.channel.get_channels.get.app_error",
     "translation": "Unable to get the channels."
   },
@@ -8291,6 +8287,10 @@
   {
     "id": "app.recap.mark_read.app_error",
     "translation": "Failed to mark recap as read."
+  },
+  {
+    "id": "app.recap.mark_viewed.app_error",
+    "translation": "Failed to mark recaps as viewed."
   },
   {
     "id": "app.recap.permission_denied",
