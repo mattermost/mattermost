@@ -1,0 +1,270 @@
+  /api/v4/cards:
+    post:
+      tags:
+        - cards
+      summary: Create a card post
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Create a new card post (`type` is always `card`; do not send `type` in the body).
+
+        This route is only available when the server was started with the Integrated Boards feature flag enabled.
+
+        `POST /api/v4/posts` may also be used to create card posts when `type` is `card` and the same checks apply.
+
+        ##### Permissions
+
+        Same as creating a regular post in the channel (`create_post`, optional `upload_file` when attaching files, etc.).
+      operationId: CreateCard
+      parameters:
+        - name: set_online
+          in: query
+          description: Whether to set the user status as online or not.
+          required: false
+          schema:
+            type: boolean
+      requestBody:
+        required: true
+        description: Post fields for the new card (same shape as creating a post; `type` is ignored).
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - message
+              properties:
+                channel_id:
+                  type: string
+                  description: The channel ID for the card post
+                message:
+                  type: string
+                  description: The message contents
+                root_id:
+                  type: string
+                  description: Optional root post ID if the card is part of a thread
+                file_ids:
+                  type: array
+                  items:
+                    type: string
+                props:
+                  type: object
+                metadata:
+                  type: object
+      responses:
+        "201":
+          description: Card post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  "/api/v4/cards/{post_id}":
+    put:
+      tags:
+        - cards
+      summary: Update a card post
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Fully update a card post by ID. Only registered when the Integrated Boards feature flag was enabled at server startup.
+
+        ##### Permissions
+
+        Collaborative card updates require `edit_post` for the channel (see server documentation for card permission model).
+      operationId: UpdateCard
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID of the card
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: string
+                message:
+                  type: string
+                is_pinned:
+                  type: boolean
+                file_ids:
+                  type: array
+                  items:
+                    type: string
+                props:
+                  type: object
+      responses:
+        "200":
+          description: Card updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    delete:
+      tags:
+        - cards
+      summary: Delete a card post
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Soft-delete or permanently delete a card post. Same semantics as `DELETE /api/v4/posts/{post_id}`.
+
+        ##### Permissions
+
+        Requires `delete_post` on the channel for collaborative deletion when applicable.
+
+        ##### Permanent deletion
+
+        Pass `permanent=true` to permanently delete (requires `manage_system` and API post deletion enabled).
+      operationId: DeleteCard
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID of the card
+          required: true
+          schema:
+            type: string
+        - name: permanent
+          in: query
+          description: Set to `true` to permanently delete the post
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Card deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/cards/{post_id}/patch":
+    put:
+      tags:
+        - cards
+      summary: Patch a card post
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Partially update a card post. Same field semantics as `PUT /api/v4/posts/{post_id}/patch`.
+
+        ##### Permissions
+
+        Requires `edit_post` for the channel for collaborative edits when applicable.
+      operationId: PatchCard
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID of the card
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_pinned:
+                  type: boolean
+                message:
+                  type: string
+                file_ids:
+                  type: array
+                  items:
+                    type: string
+                has_reactions:
+                  type: boolean
+                props:
+                  type: string
+      responses:
+        "200":
+          description: Card patched
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  "/api/v4/cards/{post_id}/edit_history":
+    get:
+      tags:
+        - cards
+      summary: Get edit history for a card post
+      description: |
+        *__Experimental__: This endpoint is experimental and may change or be removed in a future release.*
+
+        Returns prior versions of a card post for edit history.
+
+        ##### Permissions
+
+        Requires `edit_post` for the channel.
+      operationId: GetCardEditHistory
+      parameters:
+        - name: post_id
+          in: path
+          description: Post ID of the card
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Edit history retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"

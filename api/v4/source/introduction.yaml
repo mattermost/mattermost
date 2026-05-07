@@ -400,6 +400,10 @@ tags:
     description: Endpoints for creating, getting and interacting with channels.
   - name: posts
     description: Endpoints for creating, getting and interacting with posts.
+  - name: cards
+    description: >
+      Experimental endpoints for creating and updating integrated board card posts (`POST /api/v4/cards`, etc.).
+      These routes are only mounted when the Integrated Boards feature flag is enabled at server startup.
   - name: files
     description: Endpoints for uploading and interacting with files.
   - name: uploads

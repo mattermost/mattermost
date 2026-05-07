@@ -232,6 +232,10 @@
     "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
   },
   {
+    "id": "api.card.not_card_post.app_error",
+    "translation": "This endpoint only operates on card posts."
+  },
+  {
     "id": "api.channel.add_guest.added",
     "translation": "%v added to the channel as guest by %v."
   },

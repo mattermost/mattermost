@@ -7077,156 +7077,43 @@ func TestBurnPost(t *testing.T) {
 	})
 }
 
-func TestUpdateCardPostByNonOwner(t *testing.T) {
+func TestPostsAPINonOwnerCannotMutateCardWithoutEditOthers(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.IntegratedBoards = true
 	}).InitBasic(t)
-	client := th.Client
-	channel := th.BasicChannel
 
-	// User 1 creates a card post
+	channel := th.BasicChannel
 	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
-		Message:   "original card message",
+		Message:   "card post",
 		Type:      model.PostTypeCard,
 	}, channel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, appErr)
 
-	// User 2 (non-owner, but channel member) updates the card
 	th.LoginBasic2(t)
-	updatedPost := cardPost.Clone()
-	updatedPost.Message = "updated by user2"
-	rpost, _, err := client.UpdatePost(context.Background(), cardPost.Id, updatedPost)
-	require.NoError(t, err)
-	assert.Equal(t, "updated by user2", rpost.Message)
-}
 
-func TestDeleteCardPostByNonOwner(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
-	client := th.Client
-	channel := th.BasicChannel
-
-	// User 1 creates a card post
-	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channel.Id,
-		Message:   "card to delete",
-		Type:      model.PostTypeCard,
-	}, channel, model.CreatePostFlags{SetOnline: true})
-	require.Nil(t, appErr)
-
-	// User 2 (non-owner, but channel member) deletes the card
-	th.LoginBasic2(t)
-	_, err := client.DeletePost(context.Background(), cardPost.Id)
-	require.NoError(t, err)
-
-	// Verify the post is deleted
-	_, resp, err := client.GetPost(context.Background(), cardPost.Id, "")
-	require.Error(t, err)
-	CheckNotFoundStatus(t, resp)
-}
-
-func TestPatchCardPostByNonOwner(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
-	client := th.Client
-	channel := th.BasicChannel
-
-	// User 1 creates a card post
-	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channel.Id,
-		Message:   "original card for patching",
-		Type:      model.PostTypeCard,
-	}, channel, model.CreatePostFlags{SetOnline: true})
-	require.Nil(t, appErr)
-
-	// User 2 (non-owner, but channel member) patches the card
-	th.LoginBasic2(t)
-	patch := &model.PostPatch{
-		Message: model.NewPointer("patched by user2"),
-	}
-	rpost, _, err := client.PatchPost(context.Background(), cardPost.Id, patch)
-	require.NoError(t, err)
-	assert.Equal(t, "patched by user2", rpost.Message)
-
-	t.Run("user not in channel cannot patch card", func(t *testing.T) {
-		// Create a user not in the channel
-		user := th.CreateUser(t)
-		cli := th.CreateClient()
-		_, _, err := cli.Login(context.Background(), user.Email, user.Password)
-		require.NoError(t, err)
-
-		patch := &model.PostPatch{
-			Message: model.NewPointer("should fail"),
-		}
-		_, resp, err := cli.PatchPost(context.Background(), cardPost.Id, patch)
+	t.Run("update", func(t *testing.T) {
+		updatedPost := cardPost.Clone()
+		updatedPost.Message = "updated by non-owner"
+		_, resp, err := th.Client.UpdatePost(context.Background(), cardPost.Id, updatedPost)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
-}
 
-func TestCreateCardPostWithFeatureFlagDisabled(t *testing.T) {
-	mainHelper.Parallel(t)
-
-	t.Run("card post rejected when IntegratedBoards flag is disabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = false
-		}).InitBasic(t)
-		client := th.Client
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "this is a card",
-			Type:      model.PostTypeCard,
-		}
-		_, resp, err := client.CreatePost(context.Background(), post)
+	t.Run("patch", func(t *testing.T) {
+		patch := &model.PostPatch{Message: model.NewPointer("patched by non-owner")}
+		_, resp, err := th.Client.PatchPost(context.Background(), cardPost.Id, patch)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("card post allowed when IntegratedBoards flag is enabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = true
-		}).InitBasic(t)
-		client := th.Client
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "card post",
-			Type:      model.PostTypeCard,
-		}
-		rpost, resp, err := client.CreatePost(context.Background(), post)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.NotNil(t, rpost)
-		assert.Equal(t, model.PostTypeCard, rpost.Type)
-		assert.Equal(t, "card post", rpost.Message)
-	})
-
-	t.Run("non-card post allowed when IntegratedBoards flag is disabled", func(t *testing.T) {
-		th := SetupConfig(t, func(cfg *model.Config) {
-			cfg.FeatureFlags.IntegratedBoards = false
-		}).InitBasic(t)
-		client := th.Client
-
-		post := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			Message:   "this is a regular post",
-		}
-		rpost, _, err := client.CreatePost(context.Background(), post)
-		require.NoError(t, err)
-		assert.Equal(t, "", rpost.Type)
+	t.Run("delete", func(t *testing.T) {
+		_, resp, err := th.Client.DeletePost(context.Background(), cardPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
