@@ -43,7 +43,7 @@ let adminUser: UserProfile;
 let testUser: UserProfile;
 let attributeFieldsMap: Record<string, UserPropertyField> = {};
 let adminClient: Client4;
-let systemConsolePage: SystemConsolePage;
+let systemConsolePage: SystemConsolePage | undefined;
 
 test.describe('System Console - Admin User Profile Editing', () => {
     test.beforeEach(async ({pw}) => {
@@ -205,15 +205,36 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await systemConsolePage.goto();
         await systemConsolePage.toBeVisible();
         await systemConsolePage.sidebar.users.click();
-        await systemConsolePage.users.toBeVisible();
+        await systemConsolePage!.users.toBeVisible();
 
         // Search for target user and navigate to user detail page
-        await systemConsolePage.users.searchUsers(testUser.email);
-        const userRow = systemConsolePage.users.usersTable.getRowByIndex(0);
+        await systemConsolePage!.users.searchUsers(testUser.email);
+        const userRow = systemConsolePage!.users.usersTable.getRowByIndex(0);
         await userRow.container.getByText(testUser.email).click();
 
         // Wait for the initial navigation to the user detail page.
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
+
+        // Freeze the CPA fields API response for this test's entire lifetime.
+        //
+        // Other concurrent CPA spec files call setupCustomProfileAttributeFields() which has
+        // an early-return bug: if ANY fields exist on the server it returns them all, including
+        // our UAAE fields. Their afterEach then deletes those stolen fields. The server emits
+        // WebsocketEventCPAFieldDeleted; the browser re-fetches GET /api/v4/custom_profile_attributes/fields;
+        // fields disappear from Redux. The CPA section in system_user_detail.tsx hides when
+        // cpaFields.length === 0, so both the beforeEach assertions and the test-body validation
+        // checks fail.
+        //
+        // Setting the intercept BEFORE page.reload() means the reload's fetch also hits the
+        // frozen response, protecting the initial field-visibility assertions.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
 
         // Reload the page to clear the Redux CPA field cache.
         //
@@ -229,8 +250,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // empty store and unconditionally fetches the current (freshly created) fields.
         await systemConsolePage.page.reload();
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
-        await systemConsolePage.users.userDetail.userCard.container.waitFor({state: 'visible'});
-        const {userCard} = systemConsolePage.users.userDetail;
+        await systemConsolePage!.users.userDetail.userCard.container.waitFor({state: 'visible'});
+        const {userCard} = systemConsolePage!.users.userDetail;
         await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.department)).toBeVisible({timeout: 30_000});
         await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail)).toBeVisible({timeout: 30_000});
     });
@@ -241,13 +262,16 @@ test.describe('System Console - Admin User Profile Editing', () => {
         if (Object.keys(attributeFieldsMap).length === 0) {
             return;
         }
+        // Remove the fields API intercept BEFORE deleting server-side so the real
+        // deletion calls are not intercepted.
+        await systemConsolePage?.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
         // Clean up custom user attribute fields
         const {adminClient: cleanupClient} = await pw.getAdminClient();
         await deleteCustomProfileAttributes(cleanupClient, attributeFieldsMap);
     });
 
     test('MM-65126 Should edit custom user attributes from system console', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
         // # Find and edit Department field (custom text attribute)
@@ -268,7 +292,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should display user attributes in two-column layout', async () => {
-        const {userCard} = systemConsolePage.users.userDetail;
+        const {userCard} = systemConsolePage!.users.userDetail;
 
         // * Verify two-column layout exists
         await expect(userCard.twoColumnLayout).toBeVisible();
@@ -281,12 +305,12 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // * Verify custom user attributes are present
         for (const field of testUserAttributes) {
             await expect(
-                systemConsolePage.page.locator('label').filter({hasText: new RegExp(field.name)}),
+                systemConsolePage!.page.locator('label').filter({hasText: new RegExp(field.name)}),
             ).toBeVisible();
         }
 
         // * Verify we have input fields (at least 4-5 total)
-        const inputElements = systemConsolePage.page.locator('input, select');
+        const inputElements = systemConsolePage!.page.locator('input, select');
         const inputCount = await inputElements.count();
         expect(inputCount).toBeGreaterThan(4);
 
@@ -296,7 +320,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should edit system email attribute and save', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {emailInput} = userDetail.userCard;
 
         // # Enter new valid email
@@ -315,7 +339,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should edit custom select attribute and save', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
         // # Find Location select field
@@ -339,7 +363,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should display custom multiselect attribute and save form', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
         // * Verify Skills multiselect component is displayed
@@ -368,167 +392,108 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should validate invalid email and show error with cancel option', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // Protect against mid-test field deletion by concurrent CPA test suites.
-        //
-        // Root cause: other spec files call setupCustomProfileAttributeFields() which has an
-        // early-return that picks up ANY existing fields on the server — including our UAAE
-        // fields. When those other suites finish, their afterEach calls deleteCustomProfileAttributes()
-        // which deletes our fields from the server. The server then publishes a
-        // WebsocketEventCPAFieldDeleted event. The browser receives it and re-fetches
-        // GET /api/v4/custom_profile_attributes/fields. With our fields gone, Redux loses them.
-        // In system_user_detail.tsx, handleCpaValueChange uses
-        //   const field = customProfileAttributeFields.find(f => f.id === fieldId)
-        // When field === undefined (field gone from Redux), the validation block is skipped
-        // entirely, so the .field-error div is never rendered and this test times out.
-        //
-        // Fix: intercept the fields GET during this test and always return the known set,
-        // so any mid-test server deletion doesn't propagate to the browser's Redux store.
-        const frozenFields = Object.values(attributeFieldsMap);
-        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(frozenFields),
-            });
-        });
+        // # Find CPA email field (Work Email)
+        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+        await workEmailInput.scrollIntoViewIfNeeded();
+        const originalEmail = await workEmailInput.inputValue();
 
-        try {
-            // # Find CPA email field (Work Email)
-            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
-            await workEmailInput.scrollIntoViewIfNeeded();
-            const originalEmail = await workEmailInput.inputValue();
+        // # Enter invalid email
+        await workEmailInput.clear();
+        await workEmailInput.fill('not-an-email');
 
-            // # Enter invalid email
-            await workEmailInput.clear();
-            await workEmailInput.fill('not-an-email');
+        // * Verify inline validation error appears
+        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+        await expect(fieldError).toBeVisible({timeout: 30000});
+        await expect(fieldError).toContainText('Invalid email address');
 
-            // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-            await expect(fieldError).toBeVisible({timeout: 30000});
-            await expect(fieldError).toContainText('Invalid email address');
+        // * Verify Save button is disabled due to validation error
+        await expect(userDetail.saveButton).toBeDisabled();
 
-            // * Verify Save button is disabled due to validation error
-            await expect(userDetail.saveButton).toBeDisabled();
+        // * Verify Cancel button is visible and enabled
+        await expect(userDetail.cancelButton).toBeVisible();
+        await expect(userDetail.cancelButton).toBeEnabled();
 
-            // * Verify Cancel button is visible and enabled
-            await expect(userDetail.cancelButton).toBeVisible();
-            await expect(userDetail.cancelButton).toBeEnabled();
+        // # Test the cancel functionality
+        await userDetail.cancel();
 
-            // # Test the cancel functionality
-            await userDetail.cancel();
+        // * Verify email reverts to original value
+        await expect(workEmailInput).toHaveValue(originalEmail);
 
-            // * Verify email reverts to original value
-            await expect(workEmailInput).toHaveValue(originalEmail);
+        // * Verify validation error disappears
+        await expect(fieldError).not.toBeVisible();
 
-            // * Verify validation error disappears
-            await expect(fieldError).not.toBeVisible();
+        // * Verify Cancel button disappears
+        await expect(userDetail.cancelButton).not.toBeVisible();
 
-            // * Verify Cancel button disappears
-            await expect(userDetail.cancelButton).not.toBeVisible();
-
-            // * Verify Save button remains disabled (no unsaved changes)
-            await expect(userDetail.saveButton).toBeDisabled();
-        } finally {
-            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
-        }
+        // * Verify Save button remains disabled (no unsaved changes)
+        await expect(userDetail.saveButton).toBeDisabled();
     });
 
     test('Should validate invalid URL and show error with cancel option', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // Same mid-test field-deletion guard as the email validation test above.
-        // See "Should validate invalid email" for the full root-cause explanation.
-        const frozenFields = Object.values(attributeFieldsMap);
-        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(frozenFields),
-            });
-        });
+        // # Find custom URL field (Personal Website)
+        const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
+        const originalUrl = await urlInput.inputValue();
 
-        try {
-            // # Find custom URL field (Personal Website)
-            const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
-            const originalUrl = await urlInput.inputValue();
+        // # Enter invalid URL (specifically the one mentioned: "<%>")
+        await urlInput.clear();
+        await urlInput.fill('<%>');
 
-            // # Enter invalid URL (specifically the one mentioned: "<%>")
-            await urlInput.clear();
-            await urlInput.fill('<%>');
+        // * Verify inline validation error appears
+        const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
+        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toContainText('Invalid URL');
 
-            // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
-            await expect(fieldError).toBeVisible();
-            await expect(fieldError).toContainText('Invalid URL');
+        // * Verify Save button is disabled due to validation error
+        await expect(userDetail.saveButton).toBeDisabled();
 
-            // * Verify Save button is disabled due to validation error
-            await expect(userDetail.saveButton).toBeDisabled();
+        // * Verify Cancel button is visible
+        await expect(userDetail.cancelButton).toBeVisible();
+        await expect(userDetail.cancelButton).toBeEnabled();
 
-            // * Verify Cancel button is visible
-            await expect(userDetail.cancelButton).toBeVisible();
-            await expect(userDetail.cancelButton).toBeEnabled();
+        // # Test cancel functionality
+        await userDetail.cancel();
 
-            // # Test cancel functionality
-            await userDetail.cancel();
+        // * Verify URL reverts to original value
+        await expect(urlInput).toHaveValue(originalUrl);
 
-            // * Verify URL reverts to original value
-            await expect(urlInput).toHaveValue(originalUrl);
+        // * Verify validation error disappears
+        await expect(fieldError).not.toBeVisible();
 
-            // * Verify validation error disappears
-            await expect(fieldError).not.toBeVisible();
-
-            // * Verify Cancel button disappears
-            await expect(userDetail.cancelButton).not.toBeVisible();
-        } finally {
-            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
-        }
+        // * Verify Cancel button disappears
+        await expect(userDetail.cancelButton).not.toBeVisible();
     });
 
     test('Should validate invalid email in custom email attribute', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // Same mid-test field-deletion guard as the other validation tests.
-        // See "Should validate invalid email and show error with cancel option" for the
-        // full root-cause explanation.
-        const frozenFields = Object.values(attributeFieldsMap);
-        await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(frozenFields),
-            });
-        });
+        // # Find custom email field (Work Email)
+        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
 
-        try {
-            // # Find custom email field (Work Email)
-            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+        // # Enter invalid email
+        await workEmailInput.clear();
+        await workEmailInput.fill('not-an-email-either');
 
-            // # Enter invalid email
-            await workEmailInput.clear();
-            await workEmailInput.fill('not-an-email-either');
+        // * Verify inline validation error appears
+        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+        await expect(fieldError).toBeVisible();
+        await expect(fieldError).toContainText('Invalid email address');
 
-            // * Verify inline validation error appears
-            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-            await expect(fieldError).toBeVisible();
-            await expect(fieldError).toContainText('Invalid email address');
+        // * Verify Save button is disabled due to validation error
+        await expect(userDetail.saveButton).toBeDisabled();
 
-            // * Verify Save button is disabled due to validation error
-            await expect(userDetail.saveButton).toBeDisabled();
-
-            // * Verify Cancel button is available
-            await expect(userDetail.cancelButton).toBeVisible();
-        } finally {
-            await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields');
-        }
+        // * Verify Cancel button is available
+        await expect(userDetail.cancelButton).toBeVisible();
     });
 
     test('Should show save/cancel buttons when changes are made', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
         // * Initially, Save should be disabled and Cancel should not be visible
@@ -560,7 +525,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
     });
 
     test('Should save all user attribute changes atomically', async () => {
-        const {userDetail} = systemConsolePage.users;
+        const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
         // # Make changes to both system and custom attributes

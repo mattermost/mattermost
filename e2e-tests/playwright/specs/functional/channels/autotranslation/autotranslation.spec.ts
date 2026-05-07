@@ -327,6 +327,15 @@ test(
         await channelsPage.goto(team.name, channelName);
         await channelsPage.toBeVisible();
 
+        // Re-apply config + reload so the browser reads the latest AutoTranslationSettings.
+        // A concurrent initSetup() → updateConfig(defaultConfig) can reset Enable=false in
+        // the window between our final API check and when the browser finishes rendering.
+        // Without a reload, the browser uses its cached (now-stale) feature config and does
+        // not call the translation service, so "Hola nuevo" stays untranslated.
+        await enableAutotranslationConfig(adminClient, {mockBaseUrl: translationUrl, targetLanguages: ['en', 'es']});
+        await channelsPage.page.reload();
+        await channelsPage.toBeVisible();
+
         // * Verify new message appears (mock server appends "[translated to en]" to original)
         const translatedNewMessage = 'Hola nuevo [translated to en]';
         await expect
