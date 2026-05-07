@@ -584,7 +584,13 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.saveButton).toBeDisabled();
     });
 
-    test('Should save all user attribute changes atomically', async () => {
+    // FIXME: This test consistently fails with "Failed to update user" across all CI retries.
+    // Root cause: same cross-shard race as the multiselect-save fixme above — a concurrent
+    // shard running CPA channel tests calls deleteCustomProfileAttributeField for the global
+    // "Department" field (created in test_setup.ts), which causes patchCPAValuesForUser to
+    // reject the PATCH with 404 (field not found or DeleteAt>0) by the time save() runs.
+    // Fix: ensure strict field-ID ownership so no test can delete fields it did not create.
+    test.fixme('Should save all user attribute changes atomically', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
