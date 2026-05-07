@@ -215,23 +215,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // Wait for the initial navigation to the user detail page.
         await systemConsolePage.page.waitForURL(`**/admin_console/user_management/user/${testUser.id}`);
 
-        // Freeze the CPA fields API response for this test's entire lifetime.
-        //
-        // Concurrent CPA channel tests run on other shards against the same server.  When
-        // they create or delete any CPA field, the server broadcasts a WebSocket event that
-        // causes the browser to re-fetch GET /api/v4/custom_profile_attributes/fields.  If
-        // that re-fetch returns fewer fields than the test expects, the CPA section in
-        // system_user_detail.tsx hides (cpaFields.length === 0) and both the beforeEach
-        // assertions and the validation-test body checks fail.
-        //
-        // deleteCustomProfileAttributes now uses ownership tracking (__ownedIds) so channel
-        // tests no longer delete fields they didn't create.  The frozen intercept below
-        // remains as a belt-and-suspenders guard against any other source of field churn
-        // (e.g. a parallel shard creating a new field that temporarily hits the 20-field
-        // limit, triggering an unexpected deletion).
-        //
-        // Setting the intercept BEFORE page.reload() means the reload's fetch also hits the
-        // frozen response, protecting the initial field-visibility assertions.
+        // Freeze the fields API so concurrent shard activity (field creates/deletes) cannot
+        // trigger a WebSocket-driven re-fetch that wipes the CPA section from Redux mid-test.
         const frozenFields = Object.values(attributeFieldsMap);
         await systemConsolePage.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
             await route.fulfill({

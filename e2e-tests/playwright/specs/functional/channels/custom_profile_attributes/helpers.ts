@@ -52,11 +52,7 @@ export type CustomProfileAttribute = {
     };
 };
 
-/**
- * A map of custom profile attribute field IDs to field objects that also tracks
- * which fields were freshly created (owned) vs reused from pre-existing server fields.
- * Callers that only read the map by field ID continue to work unchanged.
- */
+/** Like Record<string, UserPropertyField> but tracks which field IDs this call created (vs reused). */
 export type CpaFieldsMap = Record<string, UserPropertyField> & {
     __ownedIds: Set<string>;
 };
@@ -385,8 +381,7 @@ export async function setupCustomProfileAttributeFields(
     // Create fields sequentially, reusing any that already exist by name
     for (const field of attributeFields) {
         if (field.name && existingByName[field.name]) {
-            // Reuse the existing field — record it in the map but do NOT
-            // add it to ownedIds; this field belongs to some other caller.
+            // Reuse existing field — not owned by this call, so skip ownedIds.
             const existing = existingByName[field.name];
             fieldsMap[existing.id] = existing;
         } else {
@@ -395,12 +390,7 @@ export async function setupCustomProfileAttributeFields(
                 fieldsMap[createdField.id] = createdField;
                 ownedIds.add(createdField.id);
             } catch {
-                // Creation failed — likely a race with a parallel test that created
-                // the same field name between our getCustomProfileAttributeFields()
-                // call and this createCustomProfileAttributeField() call.
-                // Re-fetch to pick up the field the other test just created.
-                // NOTE: the field was created by another caller so we do NOT add
-                // its ID to ownedIds — we treat it as borrowed.
+                // Race: another shard created the field first — re-fetch and borrow it (not owned).
                 try {
                     const currentFields = await adminClient.getCustomProfileAttributeFields();
                     const raceCreated = currentFields.find((f) => f.name === field.name);
@@ -408,17 +398,13 @@ export async function setupCustomProfileAttributeFields(
                         fieldsMap[raceCreated.id] = raceCreated;
                     }
                 } catch {
-                    // nothing to do — fieldsMap will be missing this field and the
-                    // test will surface a clear error via getFieldIdByName()
+                    // ignore — missing field surfaces via getFieldIdByName()
                 }
             }
         }
     }
 
-    // Attach __ownedIds as a NON-ENUMERABLE own property so it is invisible to
-    // Object.keys() / Object.values() / Object.entries() / JSON.stringify().
-    // Callers that iterate the map (e.g. `Object.values(attributeFieldsMap)` to
-    // build a frozen route response) must not receive the Set as a spurious entry.
+    // Non-enumerable so Object.keys/values/entries/JSON.stringify skip it.
     Object.defineProperty(fieldsMap, '__ownedIds', {
         value: ownedIds,
         enumerable: false,
@@ -524,9 +510,7 @@ export async function deleteCustomProfileAttributes(
     adminClient: Client4,
     attributes: Record<string, UserPropertyField>,
 ): Promise<void> {
-    // Only delete fields we actually created — never borrowed/reused fields.
-    // When __ownedIds is missing (legacy caller that assembled its own map),
-    // treat all keys as owned to preserve existing behaviour.
+    // Only delete owned fields; fall back to all keys for legacy callers without __ownedIds.
     const ownedIds: Set<string> =
         '__ownedIds' in attributes ? (attributes as CpaFieldsMap).__ownedIds : new Set(Object.keys(attributes));
 
@@ -539,8 +523,7 @@ export async function deleteCustomProfileAttributes(
         }
     }
 
-    // Verify that specifically OUR fields were deleted (not all fields — other
-    // concurrent tests may have their own fields still present on the server).
+    // Verify only owned fields were deleted (concurrent tests may still have their own fields).
     if (ownedIds.size === 0) {
         return;
     }
