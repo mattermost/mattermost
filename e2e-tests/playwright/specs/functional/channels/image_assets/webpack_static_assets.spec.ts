@@ -16,47 +16,37 @@ import {expect, test} from '@mattermost/playwright-lib';
  *  - no <img> in the DOM has naturalWidth === 0 (failed to decode)
  */
 
-test(
-    'app loads without any broken image assets on the main channel view',
-    {tag: '@image_assets'},
-    async ({pw}) => {
-        const {user} = await pw.initSetup();
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+test('app loads without any broken image assets on the main channel view', {tag: '@image_assets'}, async ({pw}) => {
+    const {user} = await pw.initSetup();
+    const {page, channelsPage} = await pw.testBrowser.login(user);
 
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
 
-        // # Collect image/font load errors on reload so the response listener is
-        // active before any requests fire.
-        const failedImageUrls: string[] = [];
-        page.on('response', (response) => {
-            const url = response.url();
-            const isImage = /\.(png|jpg|jpeg|svg|gif|woff2|woff)(\?|$)/.test(url);
-            if (isImage && response.status() >= 400) {
-                failedImageUrls.push(`${response.status()} ${url}`);
-            }
-        });
+    // # Collect image/font load errors on reload so the response listener is
+    // active before any requests fire.
+    const failedImageUrls: string[] = [];
+    page.on('response', (response) => {
+        const url = response.url();
+        const isImage = /\.(png|jpg|jpeg|svg|gif|woff2|woff)(\?|$)/.test(url);
+        if (isImage && response.status() >= 400) {
+            failedImageUrls.push(`${response.status()} ${url}`);
+        }
+    });
 
-        await page.reload();
-        await channelsPage.toBeVisible();
+    await page.reload();
+    await channelsPage.toBeVisible();
 
-        // * No image/font requests should return 4xx or 5xx
-        expect(
-            failedImageUrls,
-            `Failed asset requests:\n${failedImageUrls.join('\n')}`,
-        ).toHaveLength(0);
+    // * No image/font requests should return 4xx or 5xx
+    expect(failedImageUrls, `Failed asset requests:\n${failedImageUrls.join('\n')}`).toHaveLength(0);
 
-        // * No <img> element should have naturalWidth === 0 (means the file was
-        // served but the browser could not decode it — typical of a sharp corruption)
-        const brokenImages = await page.evaluate(() => {
-            return Array.from(document.querySelectorAll('img'))
-                .filter((img) => img.complete && img.naturalWidth === 0 && Boolean(img.src))
-                .map((img) => img.src);
-        });
+    // * No <img> element should have naturalWidth === 0 (means the file was
+    // served but the browser could not decode it — typical of a sharp corruption)
+    const brokenImages = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('img'))
+            .filter((img) => img.complete && img.naturalWidth === 0 && Boolean(img.src))
+            .map((img) => img.src);
+    });
 
-        expect(
-            brokenImages,
-            `Broken <img> elements found:\n${brokenImages.join('\n')}`,
-        ).toHaveLength(0);
-    },
-);
+    expect(brokenImages, `Broken <img> elements found:\n${brokenImages.join('\n')}`).toHaveLength(0);
+});

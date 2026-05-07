@@ -3,19 +3,18 @@
 
 import React from 'react';
 
+// All pdfjs-dist/* imports map to the same file via moduleNameMapper.
+// Use the imported reference directly — separate jest.mock() calls for different
+// pdfjs paths resolve to the same key and silently overwrite each other.
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
 
 import {render, renderWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
-const mockGetDocument = jest.fn();
-
-jest.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
-    getDocument: (params: unknown) => mockGetDocument(params),
-}));
-
-jest.mock('pdfjs-dist/build/pdf.worker.min.mjs', () => ({}));
+const mockGetDocument = pdfjsLib.getDocument as jest.Mock;
 
 describe('component/PDFPreview', () => {
     const requiredProps: Props = {

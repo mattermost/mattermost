@@ -418,8 +418,9 @@ if (DEV) {
     config.devtool = 'source-map';
 
     // Optimize images in production builds.
-    // GIFs are excluded: animated GIFs (e.g. Customize-Your-Experience.gif)
-    // can lose frames or grow in size when processed by sharp.
+    // GIFs are excluded from sharp: animated GIFs (e.g. Customize-Your-Experience.gif)
+    // lose frames or grow in size when re-encoded by sharp.
+    // SVGs are handled by a separate svgoMinify pass (sharp cannot optimize SVGs).
     config.optimization = {
         ...config.optimization,
         minimizer: [
@@ -432,7 +433,17 @@ if (DEV) {
                         encodeOptions: {
                             jpeg: {mozjpeg: true},
                             png: {},
-                            webp: {},
+                        },
+                    },
+                },
+            }),
+            new ImageMinimizerPlugin({
+                minimizer: {
+                    implementation: ImageMinimizerPlugin.svgoMinify,
+                    options: {
+                        encodeOptions: {
+                            multipass: true,
+                            plugins: ['preset-default'],
                         },
                     },
                 },
