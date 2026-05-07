@@ -136,6 +136,14 @@
                             opacity: 0.73;
                         }
                     }
+
+                    &.same--user.post--bot {
+                        .post__header {
+                            height: auto;
+                            margin-left: 0;
+                            float: none;
+                        }
+                    }
                 }
             }
 
