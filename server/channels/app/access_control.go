@@ -1063,12 +1063,20 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	if channelID != "" {
 		channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
 		if appErr != nil {
-			rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; proceeding without it",
+			// Fail closed: a transient channel-member lookup failure must
+			// not silently produce a subject without a channel-scoped
+			// role — the resource lane evaluator would then evaluate
+			// against an empty role and let the user through any
+			// channel-role-targeted rules. Propagate the error so the
+			// caller treats the build as a denial.
+			rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; aborting subject build",
 				mlog.String("user_id", userID),
 				mlog.String("channel_id", channelID),
 				mlog.Err(appErr),
 			)
-		} else {
+			return nil, appErr
+		}
+		if channelRole != "" {
 			subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
 		}
 	}

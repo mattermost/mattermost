@@ -10572,7 +10572,7 @@
   },
   {
     "id": "model.access_policy.is_valid.rule_name.app_error",
-    "translation": "Permission rules require a non-empty unique name within the policy max length."
+    "translation": "Permission rules require a non-empty name within the policy max length."
   },
   {
     "id": "model.access_policy.is_valid.rule_name_unique.app_error",

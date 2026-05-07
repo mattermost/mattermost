@@ -175,6 +175,15 @@ export default function PickerRow({
         if (!expandable) {
             return;
         }
+
+        // Only act on Enter/Space when the keystroke originated on the
+        // <tr> itself. Without this guard a chip-button or pencil-icon
+        // descendant's space/enter would be hijacked by the row's
+        // expand handler before the inner control gets to run, breaking
+        // keyboard interaction with anything inside the row.
+        if (e.target !== e.currentTarget) {
+            return;
+        }
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onToggleExpand(user.id);

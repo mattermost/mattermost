@@ -16,13 +16,14 @@ import {
 } from '@floating-ui/react';
 import React, {useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfiles, getProfilesInChannel, searchProfiles} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
@@ -67,14 +68,13 @@ type Props = {
  * Channel-scope filtering applies the role-chain applicability check by
  * bulk-fetching the candidates' channel memberships
  * (Client4.getChannelMembersByIds) so members whose channel role doesn't
- * match the rule's targetRole are hidden from the picker. Sysadmins pass
- * through unconditionally — they act as effective channel admins on
- * every channel via the system_admin override and would otherwise be
- * silently dropped by the membership lookup (sysadmins are typically
- * not channel members).
+ * match the rule's targetRole are hidden from the picker. Pre-populate
+ * lists channel members only; the signed-in system admin is merged in when
+ * missing from that roster so they can still add themselves.
  */
 export default function AddUsersInline({onAdd, excludeIdsKey, excludeIds, targetRole, targetScope, teamId, channelId}: Props): JSX.Element {
     const dispatch = useDispatch();
+    const currentUser = useSelector(getCurrentUser);
     const {formatMessage} = useIntl();
     const [term, setTerm] = useState('');
     const [results, setResults] = useState<UserProfile[]>([]);
@@ -146,14 +146,18 @@ export default function AddUsersInline({onAdd, excludeIdsKey, excludeIds, target
             }
 
             // Pre-populate with first-page profiles when the user
-            // hasn't typed anything yet — saves them having to type to
-            // see ANY result. Channel-scope drafts use the channel's
-            // member list (already paginated, already cached); system-
-            // scope falls back to the general profiles endpoint
-            // optionally scoped to a team. The role-applicability
-            // pipeline below applies uniformly to both branches, so a
-            // bare "click + Add users" gives the same filtered view a
-            // typed search would.
+            // hasn't typed anything yet — saves them having to type
+            // to see ANY result.
+            //
+            // Channel scope: use channel members only (`getProfilesInChannel`).
+            // Plain `getProfiles` + `in_team` is far too broad (often an entire
+            // team or worse). Typed search still passes `in_channel_id` so
+            // results stay channel-scoped there too.
+            //
+            // The channel roster can omit a system admin who is not a member
+            // record for this channel; merge the signed-in user when they're a
+            // sysadmin and missing so authors can still pick themselves without
+            // listing everyone.
             let found: UserProfile[];
             if (term) {
                 const action = await dispatch(searchProfiles(term, opts));
@@ -169,6 +173,15 @@ export default function AddUsersInline({onAdd, excludeIdsKey, excludeIds, target
                     return;
                 }
                 found = (action as ActionResult<UserProfile[]>).data ?? [];
+
+                if (
+                    currentUser &&
+                    userIsSystemAdmin(currentUser) &&
+                    !excludeIdsRef.current.has(currentUser.id) &&
+                    !found.some((u) => u.id === currentUser.id)
+                ) {
+                    found = [currentUser, ...found].slice(0, USER_SEARCH_LIMIT);
+                }
             } else {
                 const profileOpts: Record<string, any> = {};
                 if (teamId) {
@@ -268,7 +281,7 @@ export default function AddUsersInline({onAdd, excludeIdsKey, excludeIds, target
             cancelled = true;
             window.clearTimeout(handle);
         };
-    }, [open, term, dispatch, excludeIdsKey, targetRole, targetScope, teamId, channelId]);
+    }, [open, term, dispatch, excludeIdsKey, targetRole, targetScope, teamId, channelId, currentUser]);
 
     // Reset cached results whenever the popover closes so reopening
     // shows a fresh fetch (and a brief loading state) instead of stale

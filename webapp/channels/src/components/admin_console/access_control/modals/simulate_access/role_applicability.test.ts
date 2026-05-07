@@ -79,6 +79,12 @@ describe('draftRoleAppliesToSubjectRole — channel scope', () => {
 
     test('channel_guest draft only applies to channel guests', () => {
         expect(draftRoleAppliesToSubjectRole('channel_guest', 'channel', 'channel_admin')).toBe(false);
+
+        // Channel users do NOT inherit guest scope (guest is a separate
+        // role, not a fallback target). The earlier suite was missing
+        // this assertion, so a regression that flipped the fallback
+        // would have gone uncaught.
+        expect(draftRoleAppliesToSubjectRole('channel_guest', 'channel', 'channel_user')).toBe(false);
         expect(draftRoleAppliesToSubjectRole('channel_guest', 'channel', 'channel_guest')).toBe(true);
     });
 });

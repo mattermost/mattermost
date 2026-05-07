@@ -25,6 +25,11 @@ import {enableABACConfig, ensureDepartmentAttribute, createPrivateChannel} from 
 test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
     test.beforeEach(async ({pw}) => {
         await pw.skipIfNoLicense();
+        // Skip the suite when the feature flag is OFF on the server
+        // rather than relying on the tab's UI presence as a proxy —
+        // a UI-based guard would silently mask a regression in the
+        // tab visibility logic itself.
+        await pw.skipIfFeatureFlagNotSet('PermissionPolicies', true);
     });
 
     test('MM-PP_v0_4_c1 Permissions Policy tab visible on private channel when feature flag enabled', async ({pw}) => {
@@ -41,15 +46,9 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         const channelSettings = await channelsPage.openChannelSettings();
         const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
 
-        // The Permissions Policy tab is only rendered when the
-        // PermissionPolicies feature flag is enabled. Skip the test on
-        // environments where it isn't.
-        if (!(await permissionsTab.isVisible())) {
-            test.skip(true, 'PermissionPolicies feature flag is disabled in this environment');
-            await channelSettings.close();
-            return;
-        }
-
+        // Suite-level feature-flag guard already covers PermissionPolicies;
+        // assert visibility unconditionally so a regression in the tab's
+        // render gate would surface as a test failure.
         await expect(permissionsTab).toBeVisible();
 
         // # Open Permissions Policy
@@ -82,11 +81,7 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         const channelSettings = await channelsPage.openChannelSettings();
         const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
-        if (!(await permissionsTab.isVisible())) {
-            test.skip(true, 'PermissionPolicies feature flag is disabled in this environment');
-            await channelSettings.close();
-            return;
-        }
+        await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
 
         const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');
@@ -133,11 +128,7 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         const channelSettings = await channelsPage.openChannelSettings();
         const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
-        if (!(await permissionsTab.isVisible())) {
-            test.skip(true, 'PermissionPolicies feature flag is disabled in this environment');
-            await channelSettings.close();
-            return;
-        }
+        await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
 
         const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');

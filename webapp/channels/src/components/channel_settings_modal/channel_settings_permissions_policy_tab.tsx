@@ -6,6 +6,7 @@ import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
@@ -438,6 +439,13 @@ function ChannelSettingsPermissionsPolicyTab({
             name: channel.display_name,
             type: 'channel',
 
+            // Pin the schema version: v0.4 is the only version that
+            // accepts per-role permission rules. Without this the
+            // server's defaulting could pick an older version, the
+            // permission rules would fail validation, and the save
+            // would silently drop them.
+            version: ACCESS_CONTROL_POLICY_VERSION_V0_4,
+
             // Active flag is owned by the Membership Policy tab; pass through
             // whatever value the loaded policy had so saving permission rules
             // never silently changes membership auto-sync state.
@@ -563,9 +571,8 @@ function ChannelSettingsPermissionsPolicyTab({
                         defaultMessage='Channel permission rules'
                     />
                 </h3>
-                <button
-                    type='button'
-                    className='btn btn-primary ChannelSettingsModal__permissionsPolicyAddRule'
+                <Button
+                    className='ChannelSettingsModal__permissionsPolicyAddRule'
                     onClick={startNew}
                     disabled={!attributesLoaded}
                     data-testid='permissions-policy-add-rule'
@@ -575,7 +582,7 @@ function ChannelSettingsPermissionsPolicyTab({
                         id='channel_settings.permissions_policy.add_rule'
                         defaultMessage='Add rule'
                     />
-                </button>
+                </Button>
             </div>
 
             <div className='ChannelSettingsModal__permissionsPolicySearch'>

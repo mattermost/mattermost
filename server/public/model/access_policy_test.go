@@ -646,6 +646,38 @@ func TestAccessPolicyVersionV0_4(t *testing.T) {
 }
 
 func TestInheritV0_4(t *testing.T) {
+	t.Run("v0.4 child can import v0.4 parent", func(t *testing.T) {
+		// Same-version happy path: a v0.4 channel policy importing
+		// another v0.4 parent should be accepted (Inherit only blocks
+		// v0.4 children importing pre-v0.3 parents).
+		parentID := NewId()
+		parent := &AccessControlPolicy{
+			ID:       parentID,
+			Type:     AccessControlPolicyTypeParent,
+			Name:     "Parent V04",
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+		child := &AccessControlPolicy{
+			ID:       NewId(),
+			Type:     AccessControlPolicyTypeChannel,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_4,
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionMembership},
+				Expression: "true",
+			}},
+		}
+
+		err := child.Inherit(parent)
+		require.Nil(t, err)
+		require.Contains(t, child.Imports, parentID)
+	})
+
 	t.Run("v0.4 child can import v0.3 parent", func(t *testing.T) {
 		parentID := NewId()
 		parent := &AccessControlPolicy{

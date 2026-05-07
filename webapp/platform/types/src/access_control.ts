@@ -132,9 +132,19 @@ export function hasOverlappingPermissionRules(rules?: AccessControlPolicyRule[])
  * Replaces or inserts the membership rule in an existing rules array while
  * preserving all non-membership rules (e.g. file_upload, file_download).
  * If expression is empty the membership rule is removed.
+ *
+ * Legacy v0.1/v0.2 policies stored the membership rule with a wildcard
+ * action (`actions: ['*']`) instead of the explicit `membership` action;
+ * `getMembershipRule` already treats both shapes equivalently. Mirror
+ * that here so a wildcard membership rule isn't preserved alongside the
+ * newly inserted explicit one — the user would otherwise end up with
+ * two membership rules in the same payload.
  */
 export function buildRulesWithMembership(existingRules: AccessControlPolicyRule[], expression: string): AccessControlPolicyRule[] {
-    const otherRules = existingRules.filter((r) => !r.actions?.includes(ACCESS_CONTROL_ACTION_MEMBERSHIP));
+    const otherRules = existingRules.filter((r) =>
+        !r.actions?.includes(ACCESS_CONTROL_ACTION_MEMBERSHIP) &&
+        !r.actions?.includes('*'),
+    );
     if (!expression.trim()) {
         return otherRules;
     }
@@ -359,6 +369,7 @@ export type PolicySimulationActionDecision = {
  * they can override via the per-row session-attribute editor.
  */
 export type PolicySimulationSession = {
+
     /** Stable session identifier. May be empty for synthetic sessions. */
     id?: string;
 
@@ -429,7 +440,17 @@ export type PolicyEvaluationScope = 'all' | 'this_rule';
 export type PolicySimulationUserOverride = {
     user_id: string;
     use_active_session?: boolean;
-    session_overrides?: Record<string, string>;
+
+    /**
+     * Replaces individual `session.*` attributes for this user only.
+     * Values can be strings, booleans, or numbers — the server-side
+     * model is `map[string]any` and CEL rules expect untyped values
+     * (e.g. `user.session.device_managed == true` requires `true` as
+     * a boolean, not the string `"true"`). A `Record<string, string>`
+     * type would force callers to stringify booleans/numbers and
+     * silently break those comparisons.
+     */
+    session_overrides?: Record<string, unknown>;
 };
 
 /**

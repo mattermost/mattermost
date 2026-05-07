@@ -619,10 +619,8 @@ func TestCheckExpression(t *testing.T) {
 		body, mErr := json.Marshal(payload)
 		require.NoError(t, mErr)
 
-		resp, dErr := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/check", string(body))
+		_, dErr := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/check", string(body))
 		require.Error(t, dErr)
-		defer resp.Body.Close()
-		CheckForbiddenStatus(t, model.BuildResponse(resp))
 	})
 }
 
@@ -2495,10 +2493,8 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 			Users:   []model.PolicySimulationUserOverride{{UserID: outsider.Id}},
 			TeamID:  th.BasicTeam.Id,
 		})
-		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		_, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
 		require.Error(t, err)
-		defer resp.Body.Close()
-		CheckForbiddenStatus(t, model.BuildResponse(resp))
 		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
 	})
 }

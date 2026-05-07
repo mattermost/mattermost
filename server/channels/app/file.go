@@ -1520,7 +1520,14 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 		}
 	}
 
-	abacSubject := a.buildFileDownloadSubject(rctx, userID)
+	abacSubject, abacSubjectErr := a.buildFileDownloadSubject(rctx, userID)
+	if abacSubjectErr != nil {
+		// Fail closed: a transient subject-build failure must not silently
+		// allow files through. Surface the error to the caller — the
+		// search returns 5xx instead of leaking files past a policy that
+		// would have denied them.
+		return false, abacSubjectErr
+	}
 
 	channelPermission := make(map[string]bool)
 	filteredFiles := make(map[string]*model.FileInfo)
@@ -1559,18 +1566,28 @@ func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.
 	return allFilesHaveMembership, nil
 }
 
-// buildFileDownloadSubject returns a fully populated ABAC Subject for the user
-// when ABAC is active, or nil when ABAC is not configured / not enabled.
-func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.Subject {
+// buildFileDownloadSubject returns a fully populated ABAC Subject for the
+// user when ABAC is active. The error return distinguishes the two
+// failure modes that used to share `nil`:
+//   - (nil, nil): ABAC isn't configured/enabled; the file download path
+//     is allowed without further checks.
+//   - (subject, nil): ABAC is active; caller should evaluate.
+//   - (nil, err): a transient lookup failure (GetUser /
+//     BuildAccessControlSubject). The caller MUST treat this as a
+//     denial; the previous behaviour returned `nil` here too which
+//     `hasFileDownloadPermission` interpreted as "ABAC disabled,
+//     allow" — i.e. a transient DB blip silently bypassed
+//     download_file_attachment policies.
+func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) (*model.Subject, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil {
-		return nil
+		return nil, nil
 	}
 	if !*a.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		return nil
+		return nil, nil
 	}
 	if !a.Config().FeatureFlags.PermissionPolicies {
-		return nil
+		return nil, nil
 	}
 
 	user, err := a.GetUser(userID)
@@ -1579,7 +1596,7 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 			mlog.String("user_id", userID),
 			mlog.Err(err),
 		)
-		return nil
+		return nil, err
 	}
 
 	// channelID is intentionally empty here: the subject is reused across many
@@ -1591,9 +1608,9 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 			mlog.String("user_id", userID),
 			mlog.Err(appErr),
 		)
-		return nil
+		return nil, appErr
 	}
-	return subject
+	return subject, nil
 }
 
 // attachChannelScopedRole returns a copy of the subject with the channel-scoped

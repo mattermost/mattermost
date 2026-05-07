@@ -372,6 +372,7 @@
   "admin.access_control.simulate_access.details.trace.and": "ALL of the following must hold (AND)",
   "admin.access_control.simulate_access.details.trace.not": "NONE of the following may hold (NOT)",
   "admin.access_control.simulate_access.details.trace.or": "ANY of the following may hold (OR)",
+  "admin.access_control.simulate_access.details.trace.unknown": "Unknown compound evaluation",
   "admin.access_control.simulate_access.details.user_attributes": "User attributes",
   "admin.access_control.simulate_access.editor.apply": "Apply",
   "admin.access_control.simulate_access.editor.cancel": "Cancel",

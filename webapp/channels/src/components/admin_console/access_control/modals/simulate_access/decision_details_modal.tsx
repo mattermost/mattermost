@@ -563,11 +563,23 @@ function CompoundLabel({kind}: CompoundLabelProps): JSX.Element {
             />
         );
     case POLICY_SIMULATION_EVALUATION_NODE_KIND.NOT:
-    default:
         return (
             <FormattedMessage
                 id='admin.access_control.simulate_access.details.trace.not'
                 defaultMessage='NONE of the following may hold (NOT)'
+            />
+        );
+    default:
+        // A new compound kind landed on the server but the UI hasn't
+        // been taught about it yet. Render a generic label so the
+        // trace doesn't lie ("NONE…" used to be the silent fallback)
+        // and warn loudly so a developer notices in dev builds.
+        // eslint-disable-next-line no-console
+        console.warn('CompoundLabel: unknown evaluation node kind', kind);
+        return (
+            <FormattedMessage
+                id='admin.access_control.simulate_access.details.trace.unknown'
+                defaultMessage='Unknown compound evaluation'
             />
         );
     }

@@ -23,9 +23,12 @@ jest.mock('mattermost-redux/actions/access_control', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
-    searchProfiles: (term: string, opts: any) => () => mockSearchProfiles(term, opts),
-    getProfilesInChannel: (channelId: string, page: number, perPage: number) => () => mockGetProfilesInChannel(channelId, page, perPage),
-    getProfiles: (page: number, perPage: number, opts: any) => () => mockGetProfiles(page, perPage, opts),
+
+    // Match real thunks (async functions) so redux-thunk always invokes these.
+    searchProfiles: (term: string, opts: any) => async () => mockSearchProfiles(term, opts),
+    getProfilesInChannel: (channelId: string, page: number, perPage: number) => async () =>
+        mockGetProfilesInChannel(channelId, page, perPage),
+    getProfiles: (page: number, perPage: number, opts: any) => async () => mockGetProfiles(page, perPage, opts),
 }));
 
 const draftPolicy: AccessControlPolicy = {
@@ -1118,16 +1121,22 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        // Open the picker; do NOT type anything — the pre-populate
-        // path is the contract under test.
-        await userEvent.click(screen.getByRole('button', {name: /Add users/i}));
+        const dialog = await screen.findByRole('dialog');
 
-        await waitFor(() => {
-            expect(mockGetProfilesInChannel).toHaveBeenCalledWith('channel-id-1', 0, expect.any(Number));
-        });
+        // Open the picker; do NOT type anything — the pre-populate
+        // path is the contract under test. Scope to this modal so we do
+        // not click another surface's control when multiple suites render.
+        await userEvent.click(within(dialog).getByRole('button', {name: /Add users/i}));
+
+        await waitFor(
+            () => {
+                expect(mockGetProfilesInChannel).toHaveBeenCalledWith('channel-id-1', 0, expect.any(Number));
+            },
+            {timeout: 5000},
+        );
 
         // The fetched member appears in the dropdown without any
-        // search input.
+        // search input (results render in a portal, not inside dialog).
         await screen.findByRole('button', {name: new RegExp(channelMember.username)});
 
         // searchProfiles must NOT have been called: pre-populate uses
@@ -1150,11 +1159,15 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        await userEvent.click(screen.getByRole('button', {name: /Add users/i}));
+        const dialog = await screen.findByRole('dialog');
+        await userEvent.click(within(dialog).getByRole('button', {name: /Add users/i}));
 
-        await waitFor(() => {
-            expect(mockGetProfiles).toHaveBeenCalled();
-        });
+        await waitFor(
+            () => {
+                expect(mockGetProfiles).toHaveBeenCalled();
+            },
+            {timeout: 5000},
+        );
 
         await screen.findByRole('button', {name: new RegExp(profile.username)});
         expect(mockSearchProfiles).not.toHaveBeenCalled();

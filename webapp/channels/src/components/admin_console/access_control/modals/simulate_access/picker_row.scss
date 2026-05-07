@@ -109,8 +109,9 @@
 }
 
 .SimulateAccessModal__rowConfigure {
-    // Highlight the pencil with a subtle frame matching image 3 so it
-    // reads as a primary affordance per row, not a footnote.
+    // Highlight the pencil with a subtle frame per the design spec
+    // so it reads as a primary affordance per row and is visually
+    // distinct from the adjacent remove button.
     border: 1px solid rgba(var(--button-bg-rgb), 0.32);
     border-radius: 4px;
     margin-right: 4px;

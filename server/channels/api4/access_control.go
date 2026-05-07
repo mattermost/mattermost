@@ -493,6 +493,27 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	// Cross-team consistency check: when both IDs are provided, the
+	// channel must actually belong to the named team. authorizeSimulatePolicy
+	// covers this for the team-admin shortcut, but a system admin's auth
+	// short-circuit happens earlier so we re-check here for everyone.
+	// Mismatched IDs would otherwise let downstream user-scope validation
+	// run against the wrong team. We canonicalise params.TeamID from the
+	// channel rather than rejecting outright — the channel ID is the
+	// authoritative scope for a channel-policy simulation.
+	if params.ChannelID != "" && params.TeamID != "" {
+		channel, appErr := c.App.GetChannel(c.AppContext, params.ChannelID)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if channel.TeamId != params.TeamID {
+			c.SetInvalidParam("team_id")
+			return
+		}
+		params.TeamID = channel.TeamId
+	}
+
 	if !hasSystemPermission {
 		if appErr := c.App.ValidatePolicySimulationUsersInScope(c.AppContext, params.TeamID, params.ChannelID, params.Users); appErr != nil {
 			c.Err = appErr

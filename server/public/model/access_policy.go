@@ -457,17 +457,22 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 		}
 
 		// Permission rules require a Name (unique within policy) and a Role.
+		// Normalise once: TrimSpace lets the empty-/length-/uniqueness
+		// checks share the same view of the name, so authoring errors
+		// like "Uploads" vs "Uploads " are caught as duplicates instead
+		// of slipping through and forming two visually identical rules.
 		if hasPermission {
-			if strings.TrimSpace(rule.Name) == "" || len(rule.Name) > MaxPolicyNameLength {
+			n := strings.TrimSpace(rule.Name)
+			if n == "" || len(n) > MaxPolicyNameLength {
 				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_name.app_error", nil, "permission rules require a non-empty name within the policy max length", 400)
 			}
 			if !allowedChannelRolesV0_4[rule.Role] {
 				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_role.app_error", nil, fmt.Sprintf("invalid channel role: %q", rule.Role), 400)
 			}
-			if _, exists := seenNames[rule.Name]; exists {
-				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_name_unique.app_error", nil, fmt.Sprintf("duplicate rule name: %q", rule.Name), 400)
+			if _, exists := seenNames[n]; exists {
+				return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_name_unique.app_error", nil, fmt.Sprintf("duplicate rule name: %q", n), 400)
 			}
-			seenNames[rule.Name] = struct{}{}
+			seenNames[n] = struct{}{}
 		}
 
 		// Membership rules must not carry a role.

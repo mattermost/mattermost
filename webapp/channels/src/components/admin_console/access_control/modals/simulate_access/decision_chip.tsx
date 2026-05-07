@@ -165,11 +165,22 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
     const blame = pickPrimaryDenyBlame(decision.blame);
     const blameLabel = blame ? blameSourceLabel(blame, formatMessage) : '';
 
+    // Only same-scope blame is allowed to expose the contributing
+    // rule/policy name in the tooltip. Upper-scoped sources
+    // (system_permission, channel_policy) deliberately leave the
+    // tooltip blank — the public-server's privacy boundary already
+    // strips their `expression` and `evaluation_tree`, and surfacing
+    // the rule/policy name here would leak metadata the author
+    // shouldn't see at this scope.
+    const blameTooltip = blame && SAME_SCOPE_BLAME_SOURCES.has(blame.source) ?
+        (blame.rule_name || blame.policy_name || '') :
+        '';
+
     return (
         <span
             className='SimulateAccessModal__rowChip SimulateAccessModal__rowChip--deny'
             data-testid='simulate-access-row-chip-deny'
-            title={blame?.rule_name || blame?.policy_name || ''}
+            title={blameTooltip}
         >
             <CloseCircleIcon
                 size={ICON_SIZE}
@@ -196,6 +207,18 @@ export default function DecisionChip({decision, pending}: Props): JSX.Element {
 // the icon-state mapping in one place — single source of truth for
 // "what does an allow look like in the picker".
 export const ChipIcon = {Allow: CheckCircleIcon, Deny: CloseCircleIcon, Mixed: MinusCircleIcon, NotApplicable: MinusCircleOutlineIcon};
+
+// Blame sources that originate at (or below) the editing scope and are
+// safe to expose detail about in the chip tooltip. Upper-scoped sources
+// (system_permission, channel_policy) are deliberately omitted — the
+// public-server's privacy boundary strips their expression/tree, and
+// the chip-level rule/policy-name leak should follow the same rule.
+const SAME_SCOPE_BLAME_SOURCES = new Set<string>([
+    POLICY_SIMULATION_BLAME_SOURCES.THIS_RULE,
+    POLICY_SIMULATION_BLAME_SOURCES.SIBLING_RULE,
+    POLICY_SIMULATION_BLAME_SOURCES.SIBLING_SAVED,
+    POLICY_SIMULATION_BLAME_SOURCES.PEER_POLICY,
+]);
 
 function hasBlame(blame: PolicySimulationBlame[] | undefined, source: string): boolean {
     if (!blame || blame.length === 0) {
