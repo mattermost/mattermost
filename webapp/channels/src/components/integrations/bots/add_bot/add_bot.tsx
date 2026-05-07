@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
@@ -517,7 +518,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     {removeImageIcon}
                                 </div>
                                 <div
-                                    className='btn btn-primary btn-file'
+                                    className={buttonClassNames({emphasis: 'primary'}, 'btn-file')}
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
@@ -714,7 +715,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 errors={[this.state.error]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={`/${this.props.team.name}/integrations/bots`}
                             >
                                 <FormattedMessage
