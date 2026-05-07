@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -1797,6 +1798,171 @@ func TestHookMessagesWillBeConsumed(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "mwbc_plugin:message", post.Message)
 	})
+}
+
+func TestUpdatePostFiresConsumeHook(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ConsumePostHook = true
+	}).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"strings"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = strings.ToUpper(post.Message)
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	wsMessages, closeWS := connectFakeWebSocket(t, th, th.BasicUser.Id, "", []model.WebsocketEventType{
+		model.WebsocketEventPosted,
+		model.WebsocketEventPostEdited,
+	})
+	defer closeWS()
+
+	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "original body",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+	require.Nil(t, err)
+
+	drainTimeout := time.After(500 * time.Millisecond)
+drainLoop:
+	for {
+		select {
+		case <-wsMessages:
+		case <-drainTimeout:
+			break drainLoop
+		}
+	}
+
+	editedMessage := "edited body"
+	patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
+		Message: &editedMessage,
+	}, nil)
+	require.Nil(t, err)
+
+	require.Equal(t, "EDITED BODY", patchedPost.Message)
+
+	timeout := time.After(5 * time.Second)
+	for {
+		select {
+		case ev := <-wsMessages:
+			if ev.EventType() != model.WebsocketEventPostEdited {
+				continue
+			}
+			postJSON, ok := ev.GetData()["post"].(string)
+			require.True(t, ok, "post field in websocket event should be a JSON string")
+			var wsPost model.Post
+			require.NoError(t, json.Unmarshal([]byte(postJSON), &wsPost))
+			assert.Equal(t, "EDITED BODY", wsPost.Message)
+			return
+		case <-timeout:
+			require.Fail(t, "timed out waiting for post_edited websocket event")
+		}
+	}
+}
+
+func TestUpdatePostNoConsumeHookWhenFlagDisabled(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ConsumePostHook = false
+	}).InitBasic(t)
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", mock.Anything).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"strings"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+			for _, post := range posts {
+				post.Message = strings.ToUpper(post.Message)
+			}
+			return posts
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	t.Cleanup(tearDown)
+
+	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "original body",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+	require.Nil(t, err)
+
+	editedMessage := "edited body"
+	patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
+		Message: &editedMessage,
+	}, nil)
+	require.Nil(t, err)
+
+	assert.Equal(t, "edited body", patchedPost.Message)
+}
+
+func TestUpdatePostNoOpWhenNoPlugin(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ConsumePostHook = true
+	}).InitBasic(t)
+
+	basePost, _, err := th.App.CreatePost(th.Context, &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "original body",
+	}, th.BasicChannel, model.CreatePostFlags{SetOnline: false})
+	require.Nil(t, err)
+
+	editedMessage := "edited body"
+	patchedPost, _, err := th.App.PatchPost(th.Context, basePost.Id, &model.PostPatch{
+		Message: &editedMessage,
+	}, nil)
+	require.Nil(t, err)
+
+	assert.Equal(t, "edited body", patchedPost.Message)
 }
 
 func TestHookPreferencesHaveChanged(t *testing.T) {
