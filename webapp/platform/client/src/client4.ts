@@ -378,14 +378,6 @@ export default class Client4 {
         return `${this.getPostsRoute()}/${postId}`;
     }
 
-    getCardsRoute() {
-        return `${this.getBaseRoute()}/cards`;
-    }
-
-    getCardRoute(postId: string) {
-        return `${this.getCardsRoute()}/${postId}`;
-    }
-
     getReactionsRoute() {
         return `${this.getBaseRoute()}/reactions`;
     }
@@ -2427,14 +2419,6 @@ export default class Client4 {
         return result;
     };
 
-    /** Creates a card post via `/cards`; server sets type to `card`. Alternatively use `createPost` with `type: card`. */
-    createCard = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
-        return this.doFetch<Post>(
-            `${this.getCardsRoute()}`,
-            {method: 'post', body: JSON.stringify(post)},
-        );
-    };
-
     createPostEphemeral = async (userID: string, post: PartialExcept<Post, 'channel_id' | 'message'>) => {
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}/ephemeral`,
@@ -2446,13 +2430,6 @@ export default class Client4 {
     updatePost = (post: Post) => {
         return this.doFetch<Post>(
             `${this.getPostRoute(post.id)}`,
-            {method: 'put', body: JSON.stringify(post)},
-        );
-    };
-
-    updateCard = (post: Post) => {
-        return this.doFetch<Post>(
-            `${this.getCardRoute(post.id)}`,
             {method: 'put', body: JSON.stringify(post)},
         );
     };
@@ -2471,23 +2448,9 @@ export default class Client4 {
         );
     };
 
-    patchCard = (postPatch: PartialExcept<Post, 'id'>) => {
-        return this.doFetch<Post>(
-            `${this.getCardRoute(postPatch.id)}/patch`,
-            {method: 'put', body: JSON.stringify(postPatch)},
-        );
-    };
-
     deletePost = (postId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getPostRoute(postId)}`,
-            {method: 'delete'},
-        );
-    };
-
-    deleteCard = (postId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getCardRoute(postId)}`,
             {method: 'delete'},
         );
     };
@@ -2691,13 +2654,6 @@ export default class Client4 {
     getPostEditHistory = (postId: string) => {
         return this.doFetch<Post[]>(
             `${this.getPostRoute(postId)}/edit_history`,
-            {method: 'get'},
-        );
-    };
-
-    getCardEditHistory = (postId: string) => {
-        return this.doFetch<Post[]>(
-            `${this.getCardRoute(postId)}/edit_history`,
             {method: 'get'},
         );
     };
