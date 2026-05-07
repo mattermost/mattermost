@@ -73,7 +73,9 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
 
     test('renders webhooks sorted alphabetically by display name', async () => {
         renderWithContext(
-            <InstalledIncomingWebhooks {...defaultProps} />,
+            <InstalledIncomingWebhooks
+                {...defaultProps}
+            />,
             initialState,
         );
 
@@ -99,7 +101,9 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
         const props = {...defaultProps, incomingHooks: hooks};
 
         renderWithContext(
-            <InstalledIncomingWebhooks {...props} />,
+            <InstalledIncomingWebhooks
+                {...props}
+            />,
             initialState,
         );
 
@@ -135,7 +139,9 @@ describe('components/integrations/InstalledIncomingWebhooks', () => {
         };
 
         renderWithContext(
-            <InstalledIncomingWebhooks {...props} />,
+            <InstalledIncomingWebhooks
+                {...props}
+            />,
             initialState,
         );
 
