@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationParams, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
@@ -4937,28 +4937,12 @@ export default class Client4 {
     };
 
     /**
-     * Simulate the dual-lane PDP decision for a draft (unsaved) policy. The
-     * server compiles the draft in-memory, evaluates it against persisted
-     * higher-scoped permission policies, and returns per-user, per-action
-     * ALLOW/DENY decisions with blame attribution.
-     *
-     * When `actions` is omitted the response degrades into expression-only
-     * mode (legacy /cel/test result) so the editor can render a "no
-     * permission selected" preview.
-     */
-    simulateAccessControlPolicy = (params: PolicySimulationParams) => {
-        return this.doFetch<PolicySimulationResponse>(
-            `${this.getBaseRoute()}/access_control_policies/cel/simulate`,
-            {method: 'post', body: JSON.stringify(params)},
-        );
-    };
-
-    /**
-     * Picker-driven counterpart to simulateAccessControlPolicy: the caller
-     * sends explicit user IDs (with optional per-user session attribute
-     * overrides) and the server returns per-user, per-action decisions plus
-     * blame attribution. Used by the "Test access rule" modal that lets
-     * authors hand-pick which users to dry-run a policy against.
+     * Simulate the dual-lane PDP decision for a draft (unsaved) policy
+     * against an explicit set of users. The server compiles the draft
+     * in-memory, layers on persisted higher-scoped permission policies,
+     * and returns per-user, per-action ALLOW/DENY decisions plus blame
+     * attribution. Backs the picker-based "Simulate access" modal in
+     * the System Console and Channel Settings.
      */
     simulateAccessControlPolicyForUsers = (params: PolicySimulationByUsersParams) => {
         return this.doFetch<PolicySimulationResponse>(

@@ -389,38 +389,6 @@ func (_m *PolicyAdministrationPointInterface) SavePolicy(rctx request.CTX, polic
 	return r0, r1
 }
 
-// SimulatePolicy provides a mock function with given fields: rctx, params
-func (_m *PolicyAdministrationPointInterface) SimulatePolicy(rctx request.CTX, params model.PolicySimulationParams) (*model.PolicySimulationResponse, *model.AppError) {
-	ret := _m.Called(rctx, params)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SimulatePolicy")
-	}
-
-	var r0 *model.PolicySimulationResponse
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationParams) (*model.PolicySimulationResponse, *model.AppError)); ok {
-		return rf(rctx, params)
-	}
-	if rf, ok := ret.Get(0).(func(request.CTX, model.PolicySimulationParams) *model.PolicySimulationResponse); ok {
-		r0 = rf(rctx, params)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PolicySimulationResponse)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(request.CTX, model.PolicySimulationParams) *model.AppError); ok {
-		r1 = rf(rctx, params)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // SimulatePolicyForUsers provides a mock function with given fields: rctx, params
 func (_m *PolicyAdministrationPointInterface) SimulatePolicyForUsers(rctx request.CTX, params model.PolicySimulationByUsersParams) (*model.PolicySimulationResponse, *model.AppError) {
 	ret := _m.Called(rctx, params)

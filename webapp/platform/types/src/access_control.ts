@@ -401,7 +401,6 @@ export type PolicySimulationUserResult = {
 export type PolicySimulationResponse = {
     results: PolicySimulationUserResult[];
     total: number;
-    expression_only?: boolean;
 };
 
 /**
@@ -417,17 +416,6 @@ export type PolicySimulationResponse = {
  *                  Parent inheritance is still honoured.
  */
 export type PolicyEvaluationScope = 'all' | 'this_rule';
-
-export type PolicySimulationParams = {
-    policy: AccessControlPolicy;
-    actions?: string[];
-    rule_name?: string;
-    channel_id?: string;
-    team_id?: string;
-    term?: string;
-    limit?: number;
-    after?: string;
-};
 
 /**
  * Per-user payload for the picker-driven /cel/simulate_users endpoint. The
@@ -445,9 +433,9 @@ export type PolicySimulationUserOverride = {
 };
 
 /**
- * Request body for /cel/simulate_users. Used by the picker-based "Test access
- * rule" UX where the author hand-picks specific users instead of asking the
- * server to search.
+ * Request body for /cel/simulate_users. Used by the picker-based
+ * "Simulate access" UX where the author hand-picks specific users to
+ * dry-run a draft policy against.
  */
 export type PolicySimulationByUsersParams = {
     policy: AccessControlPolicy;

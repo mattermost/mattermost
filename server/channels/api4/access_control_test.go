@@ -594,6 +594,36 @@ func TestCheckExpression(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.Empty(t, errors, "expected no errors")
 	})
+
+	t.Run("team admin cannot pair team_id with channel from another team", func(t *testing.T) {
+		_ = setupTeamAdminABAC(t, th)
+
+		teamAdminUser := th.CreateUser(t)
+		makeTeamAdminAndLogin(t, th, teamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		otherTeam := th.CreateTeam(t)
+		otherChannel, _, err := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      otherTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        "other-" + model.NewId(),
+			DisplayName: "Other team channel",
+		})
+		require.NoError(t, err)
+
+		payload := map[string]string{
+			"expression": "true",
+			"teamId":     th.BasicTeam.Id,
+			"channelId":  otherChannel.Id,
+		}
+		body, mErr := json.Marshal(payload)
+		require.NoError(t, mErr)
+
+		resp, dErr := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/check", string(body))
+		require.Error(t, dErr)
+		defer resp.Body.Close()
+		CheckForbiddenStatus(t, model.BuildResponse(resp))
+	})
 }
 
 func TestTestExpression(t *testing.T) {
@@ -2435,6 +2465,41 @@ func TestSimulatePolicyForUsers(t *testing.T) {
 		defer resp.Body.Close()
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		mockACS.AssertCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
+	})
+
+	t.Run("rejects delegated simulate when user is not in team scope", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = true
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.PermissionPolicies = false
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockACS
+
+		th.AddPermissionToRole(t, model.PermissionManageTeamAccessRules.Id, model.TeamAdminRoleId)
+		teamAdminUser := th.CreateUser(t)
+		makeTeamAdminAndLogin(t, th, teamAdminUser, th.BasicTeam)
+		defer th.LoginBasic(t)
+
+		outsider := th.CreateUser(t)
+
+		body := mustMarshal(t, model.PolicySimulationByUsersParams{
+			Policy:  &model.AccessControlPolicy{ID: model.NewId(), Type: model.AccessControlPolicyTypeChannel, Version: model.AccessControlPolicyVersionV0_4},
+			Actions: []string{model.AccessControlPolicyActionUploadFileAttachment},
+			Users:   []model.PolicySimulationUserOverride{{UserID: outsider.Id}},
+			TeamID:  th.BasicTeam.Id,
+		})
+		resp, err := th.Client.DoAPIPost(context.Background(), "/access_control_policies/cel/simulate_users", string(body))
+		require.Error(t, err)
+		defer resp.Body.Close()
+		CheckForbiddenStatus(t, model.BuildResponse(resp))
+		mockACS.AssertNotCalled(t, "SimulatePolicyForUsers", mock.Anything, mock.Anything)
 	})
 }
 

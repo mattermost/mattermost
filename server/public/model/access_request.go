@@ -49,6 +49,27 @@ type Subject struct {
 	// An attribute may be single-valued or multi-valued and can be a primitive type
 	// (string, boolean, number) or a complex type like a JSON object or array.
 	Attributes map[string]any `json:"attributes"`
+	// Session carries environmental / per-session attributes that policy
+	// authors reference as `user.session.<key>` (e.g. user.session.network_status,
+	// user.session.client_type, user.session.device_managed, user.session.ip_range,
+	// user.session.platform, user.session.device_id).
+	//
+	// Session lives under the Subject — not as a sibling top-level CEL
+	// variable — because every value here is keyed to the requesting
+	// principal: the network the user is currently on, the client they're
+	// using, whether their device is MDM-managed, etc. Modeling it as part
+	// of the Subject keeps the Subject the single source of truth for
+	// "everything we know about the requester at decision time" and
+	// matches OpenID AuthZen's subject.properties / subject.session shape.
+	//
+	// The simulator populates this map from the picker's session-attribute
+	// overrides and the requesting admin's active-session snapshot. The
+	// live PDP populates it from rctx.Session() once the production wiring
+	// for environmental telemetry lands; until then SavePolicy rejects
+	// rules that reference user.session.* (see access_control.administration
+	// in the enterprise repo) so authors cannot ship a control whose
+	// production behaviour silently diverges from the simulator preview.
+	Session map[string]any `json:"session,omitempty"`
 }
 
 // RoleForScope returns the role assigned to this subject within the given
@@ -66,6 +87,70 @@ func (s *Subject) RoleForScope(scope string) string {
 		return s.Role
 	}
 	return ""
+}
+
+// RolesForScope returns every role assigned to this subject within the
+// given scope, preserving the order they appear in ScopedRoles. Unlike
+// RoleForScope it does NOT fall back to the legacy Role field — callers
+// that need legacy single-role fallback should keep using RoleForScope.
+//
+// The current PDP only ever populates one entry per scope, so this
+// helper returns at most a single-element slice today. It exists to
+// give multi-role-per-scope consumers (a future capability — Mattermost
+// users can carry multiple system roles like "system_user system_admin")
+// a stable accessor that won't change shape when the underlying
+// invariant is relaxed.
+//
+// Returns nil when no entry matches the scope.
+func (s *Subject) RolesForScope(scope string) []string {
+	var roles []string
+	for _, sr := range s.ScopedRoles {
+		if sr.Scope == scope {
+			roles = append(roles, sr.Role)
+		}
+	}
+	return roles
+}
+
+// SetScopedRole upserts a single role for the given scope, preserving
+// the per-scope uniqueness invariant the PDP currently relies on. If an
+// entry for the scope already exists, its role is replaced (keeping its
+// position in ScopedRoles); any later duplicates with the same scope
+// are removed. If no entry exists, a new one is appended.
+//
+// Passing an empty role removes every entry for the scope. This mirrors
+// the convention used by the channel-scope hot path in
+// attachChannelScopedRole, where an empty channel role lookup means "no
+// channel role applies — drop any stale entry from the cached subject."
+//
+// Passing an empty scope is a no-op (defensive — the PDP never
+// constructs scope="" entries).
+//
+// SetScopedRole always allocates a fresh ScopedRoles backing array, so
+// it is safe to call on a Subject whose ScopedRoles slice is aliased
+// with another Subject (e.g. the per-user cached Subject reused across
+// many channels in attachChannelScopedRole).
+func (s *Subject) SetScopedRole(scope, role string) {
+	if scope == "" {
+		return
+	}
+	updated := false
+	out := make([]ScopedRole, 0, len(s.ScopedRoles)+1)
+	for _, sr := range s.ScopedRoles {
+		if sr.Scope != scope {
+			out = append(out, sr)
+			continue
+		}
+		if role == "" || updated {
+			continue
+		}
+		out = append(out, ScopedRole{Scope: scope, Role: role})
+		updated = true
+	}
+	if !updated && role != "" {
+		out = append(out, ScopedRole{Scope: scope, Role: role})
+	}
+	s.ScopedRoles = out
 }
 
 type SubjectSearchOptions struct {
@@ -171,42 +256,6 @@ const (
 	// sibling did". Simulation-only.
 	PolicySimulationBlameSourceSiblingSaved = "sibling_saved"
 )
-
-// PolicySimulationParams is the request body for the cel/simulate endpoint.
-//
-// When Actions is empty the simulation falls back to expression-only mode:
-// the response carries Total + Results without per-action Decisions, mirroring
-// the legacy /cel/test result so the editor can render a "no permission
-// selected" preview.
-type PolicySimulationParams struct {
-	// Policy is the draft policy as the author currently has it in the editor.
-	// It is NOT persisted by the simulate endpoint; it is compiled in-memory
-	// for evaluation only.
-	Policy *AccessControlPolicy `json:"policy"`
-	// Actions is the set of permission actions to simulate (e.g.
-	// upload_file_attachment, download_file_attachment). When empty the
-	// simulator falls back to expression-only matching using the rule's
-	// expression — useful while the author has not yet selected a permission.
-	Actions []string `json:"actions,omitempty"`
-	// RuleName identifies which rule in Policy.Rules the author is editing
-	// (used for blame attribution). Optional. When set, denies originating
-	// from this rule are tagged source=this_rule; other denies in the same
-	// draft are tagged source=sibling_rule.
-	RuleName string `json:"rule_name,omitempty"`
-	// ChannelID provides resource context for delegated channel admins and
-	// for resource-lane evaluation when Policy.Type == "channel".
-	ChannelID string `json:"channel_id,omitempty"`
-	// TeamID provides team context for team-level delegated admins.
-	TeamID string `json:"team_id,omitempty"`
-	// Term is a prefix filter on candidate user names/usernames (same
-	// semantics as QueryExpressionParams.Term).
-	Term string `json:"term"`
-	// Limit caps the number of users returned in this page.
-	Limit int `json:"limit"`
-	// After is the pagination cursor: the user ID of the last result in the
-	// previous page.
-	After string `json:"after"`
-}
 
 // PolicySimulationBlame attributes a deny decision back to the rule or policy
 // that caused it.
@@ -362,15 +411,10 @@ type PolicySimulationUserResult struct {
 	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
-// PolicySimulationResponse is the body returned by cel/simulate.
+// PolicySimulationResponse is the body returned by cel/simulate_users.
 type PolicySimulationResponse struct {
 	Results []PolicySimulationUserResult `json:"results"`
 	Total   int64                        `json:"total"`
-	// ExpressionOnly is true when the request omitted Actions and the
-	// simulator fell back to a single-expression match. In that mode
-	// Decisions is nil for every result and the consumer should render the
-	// "no permission selected" UX.
-	ExpressionOnly bool `json:"expression_only,omitempty"`
 }
 
 // PolicySimulationUserOverride captures the per-user inputs the picker UI
@@ -391,7 +435,13 @@ type PolicySimulationUserOverride struct {
 	// user only. Applied on top of the active-session snapshot when both
 	// are set, so a future "configure" panel can shadow specific values
 	// without discarding the rest of the active session.
-	SessionOverrides map[string]string `json:"session_overrides,omitempty"`
+	//
+	// Mirrors the shape of Subject.Session (map[string]any) so the picker
+	// can carry mixed-typed session attributes (e.g. boolean
+	// device_managed alongside string network_status) without coercing
+	// everything through string. Nested maps / slices flow through to the
+	// CEL evaluator unchanged.
+	SessionOverrides map[string]any `json:"session_overrides,omitempty"`
 }
 
 // PolicyEvaluationScope* constants enumerate the supported evaluation
@@ -419,20 +469,21 @@ const (
 // PolicySimulationByUsersParams is the request body for
 // /access_control_policies/cel/simulate_users.
 //
-// Unlike PolicySimulationParams (which searches for matching users) this
-// variant takes an explicit user list. Useful for the picker-based
-// "Simulate access" UX where the author hand-selects who they want to
-// dry-run.
+// The picker-based "Simulate access" UX hand-selects users to dry-run a
+// draft policy against. Each user is run through the same dual-lane PDP
+// path the live request would take and the response carries per-user,
+// per-action ALLOW/DENY decisions plus blame attribution.
 type PolicySimulationByUsersParams struct {
 	// Policy is the draft policy as it currently sits in the editor. Not
 	// persisted; compiled in-memory only.
 	Policy *AccessControlPolicy `json:"policy"`
-	// Actions is the set of permission actions to simulate. Required for
-	// the per-user simulator (no expression-only fallback here — a picker
-	// only makes sense once an action is in scope).
+	// Actions is the set of permission actions to simulate. Required —
+	// a picker UX only makes sense once an action is in scope.
 	Actions []string `json:"actions"`
-	// RuleName identifies which rule in Policy.Rules the author is editing
-	// (used for blame attribution). Same semantics as PolicySimulationParams.
+	// RuleName identifies which rule in Policy.Rules the author is
+	// editing (used for blame attribution). Optional. When set, denies
+	// originating from this rule are tagged source=this_rule; other
+	// denies in the same draft are tagged source=sibling_rule.
 	RuleName string `json:"rule_name,omitempty"`
 	// ChannelID and TeamID provide context for delegated admin auth and
 	// channel-scope evaluation.

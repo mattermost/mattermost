@@ -1598,23 +1598,29 @@ func (a *App) buildFileDownloadSubject(rctx request.CTX, userID string) *model.S
 
 // attachChannelScopedRole returns a copy of the subject with the channel-scoped
 // ScopedRole entry replaced for the given channelID. It's used in hot paths
-// where the same per-user Subject is reused across many channels.
+// where the same per-user Subject is reused across many channels — Subject
+// is taken by value and SetScopedRole always allocates a fresh ScopedRoles
+// backing array, so the caller's cached Subject is not mutated.
+//
+// Errors from GetSubjectChannelRole (e.g. transient channel-member store
+// failures) are surfaced as a structured warn log; the channel-scope role
+// is then left empty. This is safe to keep as a soft failure because the
+// resource-policy evaluator now fails secure on a missing channel role
+// when the policy governs the requested action (PolicyGovernsAction in
+// the engine cache). Without that downstream guard, swallowing the error
+// here would let a DB blip turn into an ABAC bypass — the log surface is
+// kept so operators can still detect the underlying infra issue.
 func (a *App) attachChannelScopedRole(rctx request.CTX, subject model.Subject, userID, channelID string) model.Subject {
-	channelRole, _ := a.GetSubjectChannelRole(rctx, userID, channelID, subject.Role)
-	scoped := make([]model.ScopedRole, 0, len(subject.ScopedRoles)+1)
-	for _, sr := range subject.ScopedRoles {
-		if sr.Scope == model.AccessControlSubjectScopeChannel {
-			continue
-		}
-		scoped = append(scoped, sr)
+	channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
+	if appErr != nil {
+		rctx.Logger().Warn(
+			"Failed to resolve channel-scoped role for ABAC subject; treating as no channel role (resource-lane fail-secure will apply when the policy governs the action)",
+			mlog.String("user_id", userID),
+			mlog.String("channel_id", channelID),
+			mlog.Err(appErr),
+		)
 	}
-	if channelRole != "" {
-		scoped = append(scoped, model.ScopedRole{
-			Scope: model.AccessControlSubjectScopeChannel,
-			Role:  channelRole,
-		})
-	}
-	subject.ScopedRoles = scoped
+	subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
 	return subject
 }
 

@@ -1993,29 +1993,22 @@ func TestGetSubjectChannelRole(t *testing.T) {
 	t.Run("returns channel_admin for channel creator (SchemeAdmin)", func(t *testing.T) {
 		// BasicUser is the creator of BasicChannel and is auto-promoted to
 		// channel admin via SchemeAdmin.
-		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser.Id, th.BasicChannel.Id, th.BasicUser.Roles)
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, th.BasicUser.Id, th.BasicChannel.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.ChannelAdminRoleId, role)
 	})
 
-	// Non-members have no channel-scoped role to report, regardless of
-	// their system role. The function's contract — documented in the
-	// docstring — is to return ("", nil) and let the caller decide;
-	// previously it synthesised a guess from systemRoles (channel_user
-	// for system_user, channel_guest for system_guest), which leaked
-	// channel-scope data from the user's system membership. Callers
-	// (attachChannelScopedRole, simulator subject builders) now gate
-	// on the empty string and skip the channel scope.
-	t.Run("returns empty role for non-member with system_user role", func(t *testing.T) {
+	// Non-members have no channel-scoped role to report. The function's
+	// contract — documented in the docstring — is to return ("", nil)
+	// and let the caller decide; previously it synthesised a guess from
+	// the caller-supplied systemRoles (channel_user for system_user,
+	// channel_guest for system_guest), which leaked channel-scope data
+	// from the user's system membership. Callers (attachChannelScopedRole,
+	// simulator subject builders) now gate on the empty string and skip
+	// the channel scope.
+	t.Run("returns empty role for non-member", func(t *testing.T) {
 		nonMemberID := model.NewId()
-		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemUserRoleId)
-		require.Nil(t, appErr)
-		assert.Equal(t, "", role)
-	})
-
-	t.Run("returns empty role for non-member regardless of system role", func(t *testing.T) {
-		nonMemberID := model.NewId()
-		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id, model.SystemGuestRoleId)
+		role, appErr := th.App.GetSubjectChannelRole(th.Context, nonMemberID, th.BasicChannel.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, "", role)
 	})

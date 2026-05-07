@@ -758,6 +758,129 @@ func TestSubjectRoleForScope(t *testing.T) {
 	})
 }
 
+func TestSubjectRolesForScope(t *testing.T) {
+	t.Run("returns every entry matching the scope in order", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+				{Scope: AccessControlSubjectScopeChannel, Role: ChannelAdminRoleId},
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemAdminRoleId},
+			},
+		}
+		require.Equal(t, []string{SystemUserRoleId, SystemAdminRoleId}, s.RolesForScope(AccessControlSubjectScopeSystem))
+		require.Equal(t, []string{ChannelAdminRoleId}, s.RolesForScope(AccessControlSubjectScopeChannel))
+	})
+
+	t.Run("returns nil when no entry matches", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+			},
+		}
+		require.Nil(t, s.RolesForScope(AccessControlSubjectScopeChannel))
+	})
+
+	t.Run("does NOT fall back to legacy Role for system scope", func(t *testing.T) {
+		s := &Subject{Role: SystemAdminRoleId}
+		require.Nil(t, s.RolesForScope(AccessControlSubjectScopeSystem))
+	})
+}
+
+func TestSubjectSetScopedRole(t *testing.T) {
+	t.Run("appends when scope is absent", func(t *testing.T) {
+		s := &Subject{}
+		s.SetScopedRole(AccessControlSubjectScopeSystem, SystemUserRoleId)
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+		}, s.ScopedRoles)
+	})
+
+	t.Run("replaces in place when scope already exists", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+				{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+			},
+		}
+		s.SetScopedRole(AccessControlSubjectScopeSystem, SystemAdminRoleId)
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemAdminRoleId},
+			{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+		}, s.ScopedRoles)
+	})
+
+	t.Run("collapses duplicate scope entries to one", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+				{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemGuestRoleId},
+			},
+		}
+		s.SetScopedRole(AccessControlSubjectScopeSystem, SystemAdminRoleId)
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemAdminRoleId},
+			{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+		}, s.ScopedRoles)
+	})
+
+	t.Run("empty role removes every entry for the scope", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+				{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemGuestRoleId},
+			},
+		}
+		s.SetScopedRole(AccessControlSubjectScopeSystem, "")
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeChannel, Role: ChannelUserRoleId},
+		}, s.ScopedRoles)
+	})
+
+	t.Run("empty role on absent scope is a no-op", func(t *testing.T) {
+		s := &Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+			},
+		}
+		s.SetScopedRole(AccessControlSubjectScopeChannel, "")
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+		}, s.ScopedRoles)
+	})
+
+	t.Run("empty scope is a no-op", func(t *testing.T) {
+		original := []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+		}
+		s := &Subject{ScopedRoles: original}
+		s.SetScopedRole("", SystemAdminRoleId)
+		require.Equal(t, original, s.ScopedRoles)
+	})
+
+	t.Run("does not mutate aliased backing array", func(t *testing.T) {
+		// Mirrors the attachChannelScopedRole hot path: a cached Subject is
+		// passed by value, its ScopedRoles slice header is copied but the
+		// backing array is shared. SetScopedRole must allocate a fresh array
+		// so the cached Subject's ScopedRoles is not corrupted.
+		cached := Subject{
+			ScopedRoles: []ScopedRole{
+				{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+			},
+		}
+		copyOfCached := cached
+		copyOfCached.SetScopedRole(AccessControlSubjectScopeChannel, ChannelAdminRoleId)
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+		}, cached.ScopedRoles, "cached Subject's ScopedRoles must not be mutated")
+		require.Equal(t, []ScopedRole{
+			{Scope: AccessControlSubjectScopeSystem, Role: SystemUserRoleId},
+			{Scope: AccessControlSubjectScopeChannel, Role: ChannelAdminRoleId},
+		}, copyOfCached.ScopedRoles)
+	})
+}
+
 func TestInheritV0_3(t *testing.T) {
 	t.Run("successful inherit", func(t *testing.T) {
 		parentID := NewId()

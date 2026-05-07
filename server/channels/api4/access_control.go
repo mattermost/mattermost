@@ -24,7 +24,6 @@ func (api *API) InitAccessControlPolicy() {
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
-	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate", api.APISessionRequired(simulatePolicy)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/simulate_users", api.APISessionRequired(simulatePolicyForUsers)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/validate_requester", api.APISessionRequired(validateExpressionAgainstRequester)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/autocomplete/fields", api.APISessionRequired(getFieldsAutocomplete)).Methods(http.MethodGet)
@@ -262,10 +261,7 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		teamID := checkExpressionRequest.TeamId
-		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
-		if !hasTeamPermission {
+		if !teamAdminCELContextOK(c, channelId, checkExpressionRequest.TeamId) {
 			if channelId == "" {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -315,8 +311,7 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
-	hasTeamPermission := !hasSystemPermission && teamID != "" &&
-		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
+	hasTeamPermission := !hasSystemPermission && teamAdminCELContextOK(c, channelId, teamID)
 
 	if !hasSystemPermission && !hasTeamPermission {
 		if channelId == "" {
@@ -375,68 +370,29 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// simulatePolicy runs the dual-lane PDP simulation against a draft policy
-// (not persisted) plus any higher-scoped persisted permission policies, and
-// returns per-user, per-action ALLOW/DENY decisions with blame attribution.
-//
-// Permission gates mirror cel/test:
-//   - System admins: full access.
-//   - Team admins (with PermissionManageTeamAccessRules on the team): when a
-//     team_id is present in the body.
-//   - Channel admins (with PermissionManageChannelAccessRules on the channel):
-//     when a channel_id is present in the body.
-//
-// The endpoint also requires the PermissionPolicies feature flag.
-func simulatePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().FeatureFlags.PermissionPolicies {
-		c.Err = model.NewAppError("simulatePolicy", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
+// teamAdminCELContextOK reports whether the session may use the delegated
+// team-admin shortcut for CEL tooling: valid team_id, ManageTeamAccessRules on
+// that team, and when a channel_id is supplied it must resolve to a channel in
+// that same team. Prevents pairing a team the admin manages with an unrelated
+// channel solely to satisfy the channel branch of auth.
+func teamAdminCELContextOK(c *Context, channelID, teamID string) bool {
+	if teamID == "" || !model.IsValidId(teamID) {
+		return false
 	}
-
-	var params model.PolicySimulationParams
-	if jsonErr := json.NewDecoder(r.Body).Decode(&params); jsonErr != nil {
-		c.SetInvalidParamWithErr("simulation", jsonErr)
-		return
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
+		return false
 	}
-
-	if params.Policy == nil {
-		c.SetInvalidParam("policy")
-		return
+	if channelID == "" {
+		return true
 	}
-
-	if params.ChannelID != "" && !model.IsValidId(params.ChannelID) {
-		c.SetInvalidParam("channel_id")
-		return
+	if !model.IsValidId(channelID) {
+		return false
 	}
-	if params.TeamID != "" && !model.IsValidId(params.TeamID) {
-		c.SetInvalidParam("team_id")
-		return
-	}
-
-	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
-	if !ok {
-		return
-	}
-
-	resp, appErr := c.App.SimulateAccessControlPolicy(c.AppContext, params)
+	channel, appErr := c.App.GetChannel(c.AppContext, channelID)
 	if appErr != nil {
-		c.Err = appErr
-		return
+		return false
 	}
-
-	for i := range resp.Results {
-		c.App.SanitizeProfile(resp.Results[i].User, hasSystemPermission)
-	}
-
-	js, err := json.Marshal(resp)
-	if err != nil {
-		c.Err = model.NewAppError("simulatePolicy", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(js); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	return channel.TeamId == teamID
 }
 
 // authorizeSimulatePolicy checks the caller's permission to simulate a
@@ -462,22 +418,8 @@ func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPer
 		return true, true
 	}
 
-	// Team admin shortcut — but only when the channel (if any) actually
-	// belongs to that team. Mismatched channel/team IDs fall through to
-	// the channel-level check below, so a team admin gets exactly the
-	// permissions they have on the actual target channel and nothing
-	// wider.
-	if teamID != "" && c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules) {
-		if channelID == "" {
-			return false, true
-		}
-		channel, appErr := c.App.GetChannel(c.AppContext, channelID)
-		if appErr == nil && channel.TeamId == teamID {
-			return false, true
-		}
-		// Channel doesn't exist, isn't in the team, or fetch failed —
-		// drop the team-admin shortcut and let the channel-level check
-		// below decide.
+	if teamAdminCELContextOK(c, channelID, teamID) {
+		return false, true
 	}
 
 	if channelID == "" {
@@ -492,14 +434,25 @@ func authorizeSimulatePolicy(c *Context, channelID, teamID string) (hasSystemPer
 	return false, true
 }
 
-// simulatePolicyForUsers is the picker-driven counterpart to simulatePolicy.
-// The caller submits an explicit set of user IDs (with optional per-user
-// session attribute overrides) instead of asking the server to search; the
-// response carries per-user, per-action ALLOW/DENY decisions plus blame
-// attribution for any deny.
+// simulatePolicyForUsers runs the dual-lane PDP simulation against a draft
+// policy (not persisted) plus any higher-scoped persisted permission
+// policies, for an explicit set of user IDs (with optional per-user session
+// attribute overrides). The response carries per-user, per-action
+// ALLOW/DENY decisions plus blame attribution for any deny — used by the
+// "Simulate access" picker UX in the System Console and Channel Settings.
 //
-// Permission gates mirror cel/simulate (system, team, channel admins) and
-// the PermissionPolicies feature flag.
+// Permission gates:
+//   - System admins: full access.
+//   - Team admins (with PermissionManageTeamAccessRules on the team): when a
+//     team_id is present in the body and any provided channel_id resolves
+//     to a channel in that team.
+//   - Channel admins (with PermissionManageChannelAccessRules on the
+//     channel): when a channel_id is present in the body.
+//
+// Non-system admins may only simulate users who belong to the request's
+// channel (when channel_id is set) or team (team-scoped simulation).
+// The endpoint also requires the PermissionPolicies feature flag and an
+// Enterprise Advanced license. Returns 501 when ABAC is unavailable.
 func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.Config().FeatureFlags.PermissionPolicies {
 		c.Err = model.NewAppError("simulatePolicyForUsers", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
@@ -538,6 +491,13 @@ func simulatePolicyForUsers(c *Context, w http.ResponseWriter, r *http.Request) 
 	hasSystemPermission, ok := authorizeSimulatePolicy(c, params.ChannelID, params.TeamID)
 	if !ok {
 		return
+	}
+
+	if !hasSystemPermission {
+		if appErr := c.App.ValidatePolicySimulationUsersInScope(c.AppContext, params.TeamID, params.ChannelID, params.Users); appErr != nil {
+			c.Err = appErr
+			return
+		}
 	}
 
 	resp, appErr := c.App.SimulateAccessControlPolicyForUsers(c.AppContext, params)
@@ -587,9 +547,7 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		hasTeamPermission := teamID != "" &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
-		if !hasTeamPermission {
+		if !teamAdminCELContextOK(c, channelId, teamID) {
 			if channelId == "" {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -1093,9 +1051,7 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
-		if !hasTeamPermission {
+		if !teamAdminCELContextOK(c, channelId, teamID) {
 			if channelId == "" {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return
@@ -1168,10 +1124,7 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	hasSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasSystemPermission {
-		teamID := cel.TeamId
-		hasTeamPermission := teamID != "" && model.IsValidId(teamID) &&
-			c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamID, model.PermissionManageTeamAccessRules)
-		if !hasTeamPermission {
+		if !teamAdminCELContextOK(c, channelId, cel.TeamId) {
 			if channelId == "" {
 				c.SetPermissionError(model.PermissionManageSystem)
 				return

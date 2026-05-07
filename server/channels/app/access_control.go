@@ -190,27 +190,11 @@ func (a *App) TestExpression(rctx request.CTX, expression string, opts model.Sub
 	return res, count, nil
 }
 
-// SimulateAccessControlPolicy proxies to the enterprise PDP service so the
-// /cel/simulate handler can preview how a draft policy interacts with
-// persisted higher-scoped policies. The simulator returns per-user, per-
-// action ALLOW/DENY decisions plus blame attribution.
-//
-// Returns NotImplemented when the access control service is unavailable
-// (no enterprise license / ABAC disabled).
-func (a *App) SimulateAccessControlPolicy(rctx request.CTX, params model.PolicySimulationParams) (*model.PolicySimulationResponse, *model.AppError) {
-	acs := a.Srv().ch.AccessControl
-	if acs == nil {
-		return nil, model.NewAppError("SimulateAccessControlPolicy", "app.pap.simulate.unavailable", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
-	}
-
-	return acs.SimulatePolicy(rctx, params)
-}
-
-// SimulateAccessControlPolicyForUsers is the picker-driven counterpart to
-// SimulateAccessControlPolicy. The caller picks users explicitly (with
-// optional per-user session attribute overrides) instead of asking the
-// server to search; the response returns per-user, per-action decisions
-// with blame attribution.
+// SimulateAccessControlPolicyForUsers proxies to the enterprise PDP
+// service so the /cel/simulate_users handler can preview how a draft
+// policy would resolve for an explicit set of users. The caller picks
+// users (with optional per-user session attribute overrides); the
+// response carries per-user, per-action decisions with blame attribution.
 //
 // Post-processing happens in two stages before the response leaves the
 // server:
@@ -255,6 +239,48 @@ func (a *App) SimulateAccessControlPolicyForUsers(rctx request.CTX, params model
 	}
 
 	return resp, nil
+}
+
+// ValidatePolicySimulationUsersInScope ensures every user listed for a delegated
+// (non-system-admin) simulation belongs to the channel when channel_id is set,
+// otherwise to the team when team_id is set. Call only after the caller has
+// passed authorizeSimulatePolicy.
+func (a *App) ValidatePolicySimulationUsersInScope(rctx request.CTX, teamID, channelID string, users []model.PolicySimulationUserOverride) *model.AppError {
+	if channelID != "" {
+		if !model.IsValidId(channelID) {
+			return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "channel_id"}, "", http.StatusBadRequest)
+		}
+		for _, u := range users {
+			if u.UserID == "" || !model.IsValidId(u.UserID) {
+				return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
+			}
+			if _, err := a.Srv().Store().Channel().GetMember(rctx, channelID, u.UserID); err != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(err, &nfErr) {
+					return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.access_control_policy.simulate.users_out_of_scope.app_error", nil, "user_id="+u.UserID, http.StatusForbidden)
+				}
+				return model.NewAppError("ValidatePolicySimulationUsersInScope", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+		return nil
+	}
+	if teamID != "" {
+		if !model.IsValidId(teamID) {
+			return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "team_id"}, "", http.StatusBadRequest)
+		}
+		for _, u := range users {
+			if u.UserID == "" || !model.IsValidId(u.UserID) {
+				return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.context.invalid_param.app_error", map[string]any{"Name": "user_id"}, "", http.StatusBadRequest)
+			}
+			if _, appErr := a.GetTeamMember(rctx, teamID, u.UserID); appErr != nil {
+				if appErr.StatusCode == http.StatusNotFound {
+					return model.NewAppError("ValidatePolicySimulationUsersInScope", "api.access_control_policy.simulate.users_out_of_scope.app_error", nil, "user_id="+u.UserID, http.StatusForbidden)
+				}
+				return appErr
+			}
+		}
+	}
+	return nil
 }
 
 // isThisRuleScope returns true when the simulator should run in
@@ -1033,23 +1059,17 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 	}
 
 	subject.Role = roles
-	subject.ScopedRoles = []model.ScopedRole{{
-		Scope: model.AccessControlSubjectScopeSystem,
-		Role:  ResolveSystemRole(roles),
-	}}
+	subject.SetScopedRole(model.AccessControlSubjectScopeSystem, ResolveSystemRole(roles))
 	if channelID != "" {
-		channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID, roles)
+		channelRole, appErr := a.GetSubjectChannelRole(rctx, userID, channelID)
 		if appErr != nil {
 			rctx.Logger().Warn("Failed to resolve channel-scoped role for ABAC subject; proceeding without it",
 				mlog.String("user_id", userID),
 				mlog.String("channel_id", channelID),
 				mlog.Err(appErr),
 			)
-		} else if channelRole != "" {
-			subject.ScopedRoles = append(subject.ScopedRoles, model.ScopedRole{
-				Scope: model.AccessControlSubjectScopeChannel,
-				Role:  channelRole,
-			})
+		} else {
+			subject.SetScopedRole(model.AccessControlSubjectScopeChannel, channelRole)
 		}
 	}
 
@@ -1057,21 +1077,23 @@ func (a *App) BuildAccessControlSubject(rctx request.CTX, userID string, roles s
 }
 
 // GetSubjectChannelRole returns the channel-scoped role identifier
-// (channel_admin / channel_user / channel_guest) for the given user in the
-// given channel. systemRoles is the user's space-separated system roles
-// string, used as a fallback signal when the channel member lookup fails or
-// the membership has no scheme flags set.
+// (channel_admin / channel_user / channel_guest) for the given user in
+// the given channel.
 //
 // Resolution order:
 //  1. Look up ChannelMember; map SchemeAdmin → channel_admin, SchemeUser → channel_user,
 //     SchemeGuest → channel_guest.
 //  2. Inspect the Roles tokens on the channel member for the channel role names.
-//  3. Fall back to system_guest → channel_guest, otherwise channel_user.
 //
-// Returns ("", nil) when the user is not a member of the channel and a
-// channel role cannot be inferred (caller decides what to do — typically
-// treats this as "no resource-lane decision contributed").
-func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID, systemRoles string) (string, *model.AppError) {
+// Returns ("", nil) when no channel role can be determined — either
+// because the user is not a member of the channel, or because the
+// ChannelMember row exists but is in an inconsistent shape (no scheme
+// flag set and no recognised channel-role token in Roles). Callers
+// (e.g. attachChannelScopedRole, BuildAccessControlSubject) gate on the
+// empty string and skip the channel scope rather than evaluating against
+// a fabricated role. Inconsistent-row cases are logged at WARN with the
+// row's flags and Roles for operator triage.
+func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
 	cm, err := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -1105,7 +1127,26 @@ func (a *App) GetSubjectChannelRole(rctx request.CTX, userID, channelID, systemR
 		}
 	}
 
-	return guessChannelRoleFromSystemRoles(systemRoles), nil
+	// ChannelMember row exists but neither the scheme flags nor the
+	// Roles tokens identify a recognised channel role. This shouldn't
+	// happen on healthy data — schemes set SchemeUser by default, and
+	// pre-scheme rows still carry channel_user / channel_admin /
+	// channel_guest tokens. We used to fall back to guessing from the
+	// user's system roles here, but that fabricated channel-scope
+	// information from system-scope data and silently masked the
+	// underlying inconsistency. Returning "" makes the caller skip the
+	// channel scope (same as the not-a-member path) and the WARN log
+	// surfaces the row state so operators can investigate.
+	rctx.Logger().Warn(
+		"Channel member exists but channel role could not be resolved; treating as no channel scope",
+		mlog.String("user_id", userID),
+		mlog.String("channel_id", channelID),
+		mlog.String("roles", cm.Roles),
+		mlog.Bool("scheme_admin", cm.SchemeAdmin),
+		mlog.Bool("scheme_user", cm.SchemeUser),
+		mlog.Bool("scheme_guest", cm.SchemeGuest),
+	)
+	return "", nil
 }
 
 // ResolveSystemRole returns the highest-precedence base system role token
@@ -1125,15 +1166,6 @@ func ResolveSystemRole(roles string) string {
 		return model.SystemUserRoleId
 	}
 	return model.SystemUserRoleId
-}
-
-func guessChannelRoleFromSystemRoles(systemRoles string) string {
-	for t := range strings.FieldsSeq(systemRoles) {
-		if t == model.SystemGuestRoleId {
-			return model.ChannelGuestRoleId
-		}
-	}
-	return model.ChannelUserRoleId
 }
 
 // refreshAttributeViewIfStale refreshes the materialized AttributeView if the last

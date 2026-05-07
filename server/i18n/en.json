@@ -60,6 +60,10 @@
     "translation": "Permission policies feature is not enabled."
   },
   {
+    "id": "api.access_control_policy.simulate.users_out_of_scope.app_error",
+    "translation": "All users in the simulation must be members of the team or channel in the request."
+  },
+  {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "You cannot remove an acknowledgment in an archived channel."
   },
@@ -7577,6 +7581,10 @@
     "translation": "Permission rule names must be unique within the policy."
   },
   {
+    "id": "app.pap.save_policy.user_session_unsupported.app_error",
+    "translation": "Session attributes are not supported for policy simulation."
+  },
+  {
     "id": "app.pap.search_access_control_policies.app_error",
     "translation": "Could not search access control policies."
   },
@@ -7587,14 +7595,6 @@
   {
     "id": "app.pap.simulate.compile_failed",
     "translation": "Failed to compile the policy for simulation."
-  },
-  {
-    "id": "app.pap.simulate.compile_union",
-    "translation": "Failed to compile the union expression for the simulation."
-  },
-  {
-    "id": "app.pap.simulate.driver_not_found",
-    "translation": "Database driver not configured for the simulation."
   },
   {
     "id": "app.pap.simulate.feature_disabled",
@@ -7615,14 +7615,6 @@
   {
     "id": "app.pap.simulate.missing_users",
     "translation": "At least one user is required for simulation."
-  },
-  {
-    "id": "app.pap.simulate.search_users",
-    "translation": "Failed to search users for the simulation."
-  },
-  {
-    "id": "app.pap.simulate.sqlize",
-    "translation": "Failed to build the simulation query."
   },
   {
     "id": "app.pap.simulate.too_many_users",

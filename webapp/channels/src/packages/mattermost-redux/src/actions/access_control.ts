@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult, PolicySimulationParams, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
+import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -169,40 +169,16 @@ export function searchUsersForExpression(expression: string, term: string, after
 }
 
 /**
- * Run the dual-lane PDP simulation against a draft policy and return per-user,
- * per-action ALLOW/DENY decisions with blame attribution. Used by the
- * permission-rule "Simulate rules" workflow (SimulateAccessModal) so authors
- * can see how their draft interacts with persisted higher-scoped policies
- * before saving.
+ * Run the dual-lane PDP simulation against a draft policy for an explicit
+ * set of users (with optional per-user session attribute overrides) and
+ * return per-user, per-action ALLOW/DENY decisions with blame attribution.
+ * Backs the picker-based "Simulate access" modal in the System Console
+ * and Channel Settings so authors can see how a draft interacts with
+ * persisted higher-scoped policies before saving.
  *
  * The redux action only forwards profiles into the user store on success;
  * decisions and blame metadata stay on the returned data and are consumed
  * directly by the modal.
- */
-export function simulatePolicy(params: PolicySimulationParams): ActionFuncAsync<PolicySimulationResponse> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.simulateAccessControlPolicy(params);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-
-        const profiles = data.results?.map((r) => r.user).filter(Boolean) ?? [];
-        if (profiles.length > 0) {
-            dispatch({type: UserTypes.RECEIVED_PROFILES, data: profiles});
-        }
-
-        return {data};
-    };
-}
-
-/**
- * Picker-driven simulator: takes an explicit user list (with optional per-user
- * session attribute overrides) and returns per-user, per-action ALLOW/DENY
- * decisions with blame attribution. Mirrors simulatePolicy's profile-store
- * dispatch on success so other components can read the freshly fetched users.
  */
 export function simulatePolicyForUsers(params: PolicySimulationByUsersParams): ActionFuncAsync<PolicySimulationResponse> {
     return async (dispatch, getState) => {
