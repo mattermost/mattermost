@@ -97,6 +97,13 @@ func (c *Context) AcceptLanguage() string {
 	return c.acceptLanguage
 }
 
+// ConnectionId returns the identifier of the WebSocket connection associated
+// with the request, when present. It is populated from the "Connection-Id"
+// HTTP header that authenticated clients set when they have an active
+// WebSocket connection, allowing handlers and plugins to correlate an HTTP
+// request with its originating WebSocket connection. Returns an empty string
+// when the header is absent (e.g., requests from clients without an active
+// WebSocket connection or from non-WebSocket integrations).
 func (c *Context) ConnectionId() string {
 	return c.connectionId
 }
