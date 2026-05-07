@@ -1,12 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React from 'react';
 
-export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary';
-export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
-export type ButtonVariant = '' | 'destructive' | 'inverted';
+import {buttonClassNames, type ButtonEmphasis, type ButtonSize, type ButtonVariant} from './button_classes';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
@@ -33,46 +30,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     variant?: ButtonVariant;
 }
 
-const emphasisClasses = {
-    primary: 'btn-primary',
-    secondary: 'btn-secondary',
-    tertiary: 'btn-tertiary',
-    quaternary: 'btn-quaternary',
-};
-const sizeClasses = {
-    xs: 'btn-xs',
-    sm: 'btn-sm',
-    md: '',
-    lg: 'btn-lg',
-};
-const variantClasses = {
-    '': '',
-    destructive: 'btn-danger',
-    inverted: 'btn-inverted',
-};
-
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     children,
     className,
-    emphasis = 'primary',
-    size = 'md',
-    variant = '',
+
+    emphasis,
+    size,
+    variant,
 
     ...otherProps
 }, ref) => {
-    let emphasisClass = emphasisClasses[emphasis];
-    const sizeClass = sizeClasses[size];
-    const variantClass = variantClasses[variant];
-
-    if (emphasis === 'primary' && variant === 'destructive') {
-        // TODO in the current CSS, btn-primary overrides btn-danger
-        emphasisClass = '';
-    }
-
     return (
         <button
             ref={ref}
-            className={classNames('btn', emphasisClass, sizeClass, variantClass, className)}
+            className={buttonClassNames({emphasis, size, variant}, className)}
             {...otherProps}
         >
             {children}

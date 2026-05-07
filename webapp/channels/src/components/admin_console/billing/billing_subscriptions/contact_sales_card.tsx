@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import CloudTrialSvg from 'components/common/svg_images_components/cloud_trial_svg';
@@ -143,7 +143,7 @@ const ContactSalesCard = (props: Props) => {
                     <ExternalLink
                         location='contact_sales_card'
                         href={contactSalesLink}
-                        className='btn btn-tertiary PrivateCloudCard__actionButton'
+                        className={buttonClassNames({emphasis: 'tertiary'}, 'PrivateCloudCard__actionButton')}
                     >
                         <FormattedMessage
                             id='admin.billing.subscription.privateCloudCard.contactSales'

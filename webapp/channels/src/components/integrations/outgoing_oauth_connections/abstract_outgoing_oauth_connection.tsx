@@ -9,7 +9,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -502,7 +502,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             errors={[props.serverError, storedError]}
                         />
                         <Link
-                            className='btn btn-tertiary'
+                            className={buttonClassNames({emphasis: 'tertiary'})}
                             to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
                         >
                             <FormattedMessage

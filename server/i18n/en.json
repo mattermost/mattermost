@@ -2629,10 +2629,6 @@
     "translation": "api endpoint requires a license"
   },
   {
-    "id": "api.managed_category.feature_not_available.app_error",
-    "translation": "Managed channel categories are not available."
-  },
-  {
     "id": "api.marshal_error",
     "translation": "Failed to marshal."
   },

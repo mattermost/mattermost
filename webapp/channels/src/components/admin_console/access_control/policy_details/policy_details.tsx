@@ -6,6 +6,7 @@ import React, {useState, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import {buttonClassNames} from '@mattermost/shared/components/button';
 import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import {getMembershipRule, buildRulesWithMembership} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
@@ -705,7 +706,7 @@ function PolicyDetails({
                     }
                 />
                 <BlockableLink
-                    className='btn btn-quaternary'
+                    className={buttonClassNames({emphasis: 'quaternary'})}
                     to='/admin_console/system_attributes/membership_policies'
                 >
                     <FormattedMessage

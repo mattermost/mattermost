@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useState, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {shallowEqual, useSelector} from 'react-redux';
 import {components} from 'react-select';
 import type {ClearIndicatorProps, GroupBase, OptionProps, Options, OptionsOrGroups} from 'react-select';
 import CreatableSelect from 'react-select/creatable';
@@ -12,25 +12,28 @@ import CreatableSelect from 'react-select/creatable';
 import {FolderOutlineIcon, FolderPlusOutlineIcon} from '@mattermost/compass-icons/components';
 import type {GlobalState} from '@mattermost/types/store';
 
-import {getManagedCategoryMappings} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import './managed_category_selector.scss';
+import './category_selector.scss';
 
 type Option = {
     label: string;
     value: string;
 };
 
-type Props = {
+export type CategorySelectorProps = {
     value?: string;
     onChange: (categoryName: string | undefined) => void;
+    getOptions: (state: GlobalState, teamId: string) => string[];
+    label?: string;
+    placeholder?: string;
+    helpText?: string;
     menuPortalTargetId?: string;
     disabled?: boolean;
 };
 
 const IndicatorsContainer = (props: any) => (
-    <div className='ManagedCategorySelector__indicatorsContainer'>
+    <div className='CategorySelector__indicatorsContainer'>
         <components.IndicatorsContainer {...props}/>
     </div>
 );
@@ -46,17 +49,17 @@ const DropdownIndicator = () => (
 );
 
 const Control = (props: any) => (
-    <div className='ManagedCategorySelector__controlContainer'>
+    <div className='CategorySelector__controlContainer'>
         <components.Control {...props}/>
     </div>
 );
 
 const ValueContainer = ({children, ...props}: any) => (
     <components.ValueContainer {...props}>
-        <div className='ManagedCategorySelector__valueContainerInner'>
+        <div className='CategorySelector__valueContainerInner'>
             <FolderOutlineIcon
                 size={16}
-                className='ManagedCategorySelector__folderIcon'
+                className='CategorySelector__folderIcon'
             />
             {children}
         </div>
@@ -70,7 +73,7 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
 
     return (
         <div
-            className={classNames('ManagedCategorySelector__option', {
+            className={classNames('CategorySelector__option', {
                 selected: props.isSelected,
                 focused: props.isFocused,
             })}
@@ -83,17 +86,19 @@ const OptionComponent = (props: OptionProps<Option, false, GroupBase<Option>>) =
     );
 };
 
-export default function ManagedCategorySelector({value, onChange, menuPortalTargetId, disabled}: Props) {
+export default function CategorySelector({value, onChange, getOptions, label, placeholder, helpText, menuPortalTargetId, disabled}: CategorySelectorProps) {
     const {formatMessage} = useIntl();
     const [focused, setFocused] = useState(false);
 
     const teamId = useSelector(getCurrentTeamId);
-    const managedMappings = useSelector((state: GlobalState) => getManagedCategoryMappings(state, teamId));
+    const selectOptionNames = useCallback(
+        (state: GlobalState) => getOptions(state, teamId ?? ''),
+        [getOptions, teamId],
+    );
+    const optionNames = useSelector(selectOptionNames, shallowEqual);
     const options: Option[] = useMemo(() => {
-        const uniqueNames = [...new Set(Object.values(managedMappings ?? []))];
-        uniqueNames.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
-        return uniqueNames.map((name) => ({label: name, value: name}));
-    }, [managedMappings]);
+        return optionNames.map((name) => ({label: name, value: name}));
+    }, [optionNames]);
 
     const selectedOption: Option | null = value ? {label: value, value} : null;
 
@@ -105,8 +110,8 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
     const formatCreateLabel = useCallback((inputValue: string) => {
         return (
             <>
-                <span className='ManagedCategorySelector__createLabelPrefix'>
-                    {formatMessage({id: 'managed_category.create_new_prefix', defaultMessage: 'Create new category: '})}
+                <span className='CategorySelector__createLabelPrefix'>
+                    {formatMessage({id: 'default_category.create_new_prefix', defaultMessage: 'Create new category: '})}
                 </span>
                 <span>{inputValue}</span>
             </>
@@ -133,11 +138,12 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
     }, []);
 
     const portalTarget = menuPortalTargetId ? document.getElementById(menuPortalTargetId) : undefined;
-    const legend = formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'});
+    const legend = label ?? formatMessage({id: 'default_category.label', defaultMessage: 'Default category (optional)'});
+    const placeholderText = placeholder ?? formatMessage({id: 'default_category.placeholder', defaultMessage: 'Choose a default category (optional)'});
     const showLegend = Boolean(focused || value);
 
     return (
-        <div className='ManagedCategorySelector Input_container'>
+        <div className='CategorySelector Input_container'>
             <fieldset
                 className={classNames('Input_fieldset', {
                     Input_fieldset___legend: showLegend,
@@ -154,7 +160,7 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
                     onKeyDown={onKeyDown}
                 >
                     <CreatableSelect<Option>
-                        classNamePrefix='ManagedCategory'
+                        classNamePrefix='CategorySelector'
                         className={classNames('Input', {Input__focus: showLegend})}
                         components={{IndicatorsContainer, ClearIndicator, DropdownIndicator, Option: OptionComponent, Control, ValueContainer}}
                         isClearable={true}
@@ -163,12 +169,17 @@ export default function ManagedCategorySelector({value, onChange, menuPortalTarg
                         onChange={handleChange}
                         formatCreateLabel={formatCreateLabel}
                         isValidNewOption={isValidNewOption}
-                        placeholder={focused ? formatMessage({id: 'managed_category.placeholder_focused', defaultMessage: 'Select category or type a new one'}) : formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
+                        placeholder={focused ? formatMessage({id: 'default_category.placeholder_focused', defaultMessage: 'Select category or type a new one'}) : placeholderText}
                         menuPortalTarget={portalTarget ?? undefined}
                         isDisabled={disabled}
                     />
                 </div>
             </fieldset>
+            {helpText && (
+                <div className='Input___customMessage Input___info'>
+                    <span>{helpText}</span>
+                </div>
+            )}
         </div>
     );
 }

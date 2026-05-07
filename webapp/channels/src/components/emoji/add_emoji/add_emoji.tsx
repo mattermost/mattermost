@@ -6,7 +6,7 @@ import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -376,7 +376,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 error={this.state.error}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={'/' + this.props.team.name + '/emoji'}
                             >
                                 <FormattedMessage
