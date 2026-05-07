@@ -6472,10 +6472,6 @@
     "translation": "Não é possível obter canais por ids."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Não é possível obter as contagens de canais."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Encontramos um erro ao atualizar a equipe."
   },

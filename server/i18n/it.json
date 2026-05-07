@@ -6388,10 +6388,6 @@
     "translation": "Impossibile recuperare canali per id"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Impossibile ottenere il numero dei canali"
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Riscontrato un errore nell'aggiornamento della squadra"
   },

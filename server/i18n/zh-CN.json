@@ -6450,10 +6450,6 @@
     "translation": "无法以 id 获得频道。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "无法获取频道数。"
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "无法以指定的日期计算消息数。"
   },

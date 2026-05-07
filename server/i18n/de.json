@@ -6287,10 +6287,6 @@
     "translation": "Konnte die Kanäle nicht nach IDs abrufen."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Konnte die Anzahl der Kanäle nicht laden."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Es trat ein Fehler beim Aktualisieren des Teams auf."
   },

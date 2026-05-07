@@ -6448,10 +6448,6 @@
     "translation": "無法移除頻道成員。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "無法取得頻道數量。"
-  },
-  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "無法取得頻道類型數量。"
   },

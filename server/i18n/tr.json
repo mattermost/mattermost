@@ -6239,10 +6239,6 @@
     "translation": "Kodlara göre kanallar alınamadı."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Kanal sayıları alınamadı."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "Belirtilen tarihten sonraki ileti sayıları belirlenemedi."
   },

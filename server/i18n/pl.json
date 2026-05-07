@@ -6292,10 +6292,6 @@
     "translation": "Nie można uzyskać kanałów według identyfikatorów."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nie można uzyskać liczby kanałów."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Napotkaliśmy błąd aktualizując zespół."
   },

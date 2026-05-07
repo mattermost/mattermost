@@ -6474,10 +6474,6 @@
     "translation": "チャンネルを取得できませんでした。"
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "チャンネル数を取得できませんでした。"
-  },
-  {
     "id": "api.user.update_password.user_and_hashed.app_error",
     "translation": "システム管理者のみがハッシュ化されたパスワードを設定できます。"
   },

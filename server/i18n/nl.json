@@ -6311,10 +6311,6 @@
     "translation": "CWS login is verboden."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Kan het aantal kanalen niet tellen."
-  },
-  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "We kunnen de kanalen typen niet tellen."
   },

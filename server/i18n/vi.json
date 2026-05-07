@@ -8418,10 +8418,6 @@
     "translation": "Không thể đếm các bài viết khẩn cấp kể từ ngày nhất định."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Không thể lấy được số lượng kênh."
-  },
-  {
     "id": "app.channel.get_channels_by_ids.app_error",
     "translation": "Không thể lấy kênh theo id."
   },

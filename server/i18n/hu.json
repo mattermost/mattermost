@@ -3928,10 +3928,6 @@
     "translation": "Nem sikerült lekérni a csatornákat."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Nem sikerült lekérni a csatornák mennyiségét."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Nem sikerült lekérni a csatornákat a megadott sémához."
   },

@@ -6556,10 +6556,6 @@
     "translation": "Невозможно получить каналы."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Невозможно получить количество каналов."
-  },
-  {
     "id": "app.team.update.updating.app_error",
     "translation": "Возникла ошибка обновления команды."
   },

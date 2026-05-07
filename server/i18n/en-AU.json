@@ -4124,10 +4124,6 @@
     "translation": "Unable to get the channels."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Unable to get the channel counts."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Unable to get the channels for the provided scheme."
   },

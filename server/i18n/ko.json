@@ -6310,10 +6310,6 @@
     "translation": "채널 유형의 갯수를 가져올 수 없습니다."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "채널 갯수를 가져올 수 없습니다."
-  },
-  {
     "id": "app.channel.get_member_count.app_error",
     "translation": "채널 구성원 수를 가져올 수 없습니다."
   },

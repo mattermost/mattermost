@@ -6312,10 +6312,6 @@
     "translation": "Немагчыма атрымаць каналы."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "Немагчыма атрымаць колькасць каналаў."
-  },
-  {
     "id": "app.channel.get_by_scheme.app_error",
     "translation": "Немагчыма атрымаць каналы для дадзенай схемы."
   },

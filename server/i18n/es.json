@@ -6468,10 +6468,6 @@
     "translation": "No se pudo obtener los canales por ids."
   },
   {
-    "id": "app.channel.get_channel_counts.get.app_error",
-    "translation": "No se puede obtener el número de canales."
-  },
-  {
     "id": "app.channel.count_posts_since.app_error",
     "translation": "No se pueden contar los mensajes desde la fecha proporcionada."
   },
