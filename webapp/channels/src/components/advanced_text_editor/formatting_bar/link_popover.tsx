@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useFloating, offset, flip, shift, useDismiss, useInteractions} from '@floating-ui/react';
 import type {Editor} from '@tiptap/react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
@@ -16,15 +17,7 @@ import {
 
 const POPOVER_WIDTH = 496;
 
-const Backdrop = styled.div`
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-`;
-
 const PopoverContainer = styled.div`
-    position: fixed;
-    z-index: 101;
     width: ${POPOVER_WIDTH}px;
     border-radius: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -32,6 +25,7 @@ const PopoverContainer = styled.div`
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     display: flex;
     flex-direction: column;
+    z-index: 101;
 `;
 
 const Row = styled.div`
@@ -126,16 +120,35 @@ function getExistingLinkData(editor: Editor): {href: string; text: string} | nul
 
 const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const {formatMessage} = useIntl();
-    const urlRef = useRef<HTMLInputElement>(null);
     const isEditing = editor.isActive('link');
     const existingData = getExistingLinkData(editor);
 
     const [displayText, setDisplayText] = useState(() => existingData?.text || getSelectionText(editor));
     const [url, setUrl] = useState(() => existingData?.href || '');
 
+    // Focus the URL input on next paint. rAF rather than autoFocus so we
+    // don't trigger jsx-a11y/no-autofocus warnings, and don't race with the
+    // floating-ui mount sequence.
+    const urlInputRef = useRef<HTMLInputElement>(null);
     useEffect(() => {
-        setTimeout(() => urlRef.current?.focus(), 0);
+        const raf = requestAnimationFrame(() => urlInputRef.current?.focus());
+        return () => cancelAnimationFrame(raf);
     }, []);
+
+    const {refs, floatingStyles, context} = useFloating({
+        open: true,
+        onOpenChange: (open) => {
+            if (!open) {
+                onClose();
+            }
+        },
+        placement: 'top-start',
+        middleware: [offset(4), flip(), shift({padding: 8})],
+        elements: {reference: anchorEl ?? undefined},
+    });
+
+    const dismiss = useDismiss(context);
+    const {getFloatingProps} = useInteractions([dismiss]);
 
     const handleSave = useCallback(() => {
         if (!url) {
@@ -190,92 +203,74 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const isUrlDirty = url.length > 0;
     const isSaved = isEditing && !isUrlDirty ? false : isEditing;
 
-    let bottom = 0;
-    let left = 0;
-    if (anchorEl) {
-        const rect = anchorEl.getBoundingClientRect();
-        bottom = (window.innerHeight - rect.top) + 4;
-        left = rect.left;
-
-        if (left + POPOVER_WIDTH > window.innerWidth) {
-            left = window.innerWidth - POPOVER_WIDTH - 8;
-        }
-    }
-
     const popover = (
-        <>
-            <Backdrop
-                onClick={() => {
-                    editor.chain().focus().run();
-                    onClose();
-                }}
-            />
-            <PopoverContainer
-                style={{bottom, left}}
-                onKeyDown={handleKeyDown}
-                onMouseDown={(e) => e.stopPropagation()}
-            >
+        <PopoverContainer
+            ref={refs.setFloating}
+            style={floatingStyles}
+            onKeyDown={handleKeyDown}
+            onMouseDown={(e) => e.stopPropagation()}
+            {...getFloatingProps()}
+        >
+            <Row>
+                <RowIcon>
+                    <LinkVariantIcon
+                        size={18}
+                        color='currentColor'
+                    />
+                </RowIcon>
+                <RowInput
+                    ref={urlInputRef}
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
+                />
+                {isUrlDirty && (
+                    <HintText>
+                        <span>{formatMessage({id: 'wysiwyg.link.save_hint', defaultMessage: '↵ ENTER to save'})}</span>
+                    </HintText>
+                )}
+                {isSaved && (
+                    <IconButton
+                        type='button'
+                        onClick={handleOpenExternal}
+                        title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
+                    >
+                        <OpenInNewIcon
+                            size={18}
+                            color='currentColor'
+                        />
+                    </IconButton>
+                )}
+                {isSaved && (
+                    <IconButton
+                        type='button'
+                        className='danger'
+                        onClick={handleRemove}
+                        title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
+                    >
+                        <TrashCanOutlineIcon
+                            size={18}
+                            color='currentColor'
+                        />
+                    </IconButton>
+                )}
+            </Row>
+            {!hasSelection && !isEditing && (
                 <Row>
                     <RowIcon>
-                        <LinkVariantIcon
+                        <TextBoxOutlineIcon
                             size={18}
                             color='currentColor'
                         />
                     </RowIcon>
                     <RowInput
-                        ref={urlRef}
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder={formatMessage({id: 'wysiwyg.link.placeholder', defaultMessage: 'Type or paste a link'})}
+                        value={displayText}
+                        onChange={(e) => setDisplayText(e.target.value)}
+                        placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
                     />
-                    {isUrlDirty && (
-                        <HintText>
-                            <span>{formatMessage({id: 'wysiwyg.link.save_hint', defaultMessage: '↵ ENTER to save'})}</span>
-                        </HintText>
-                    )}
-                    {isSaved && (
-                        <IconButton
-                            type='button'
-                            onClick={handleOpenExternal}
-                            title={formatMessage({id: 'wysiwyg.link.open', defaultMessage: 'Open link'})}
-                        >
-                            <OpenInNewIcon
-                                size={18}
-                                color='currentColor'
-                            />
-                        </IconButton>
-                    )}
-                    {isSaved && (
-                        <IconButton
-                            type='button'
-                            className='danger'
-                            onClick={handleRemove}
-                            title={formatMessage({id: 'wysiwyg.link.remove', defaultMessage: 'Remove link'})}
-                        >
-                            <TrashCanOutlineIcon
-                                size={18}
-                                color='currentColor'
-                            />
-                        </IconButton>
-                    )}
                 </Row>
-                {!hasSelection && !isEditing && (
-                    <Row>
-                        <RowIcon>
-                            <TextBoxOutlineIcon
-                                size={18}
-                                color='currentColor'
-                            />
-                        </RowIcon>
-                        <RowInput
-                            value={displayText}
-                            onChange={(e) => setDisplayText(e.target.value)}
-                            placeholder={formatMessage({id: 'wysiwyg.link.display_text', defaultMessage: 'Display text'})}
-                        />
-                    </Row>
-                )}
-            </PopoverContainer>
-        </>
+            )}
+        </PopoverContainer>
     );
 
     return createPortal(popover, document.body);

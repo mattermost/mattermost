@@ -10,8 +10,7 @@ import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -209,7 +208,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const [linkPopoverEditor, setLinkPopoverEditor] = useState<Editor | null>(null);
-    const linkButtonRef = useRef<HTMLElement | null>(null);
+    const [linkPopoverAnchor, setLinkPopoverAnchor] = useState<HTMLElement | null>(null);
+    const visibleLinkButtonRef = useRef<HTMLElement | null>(null);
+    const hiddenLinkButtonRef = useRef<HTMLElement | null>(null);
 
     const additionalControlsCount = useMemo(() => {
         return Array.isArray(additionalControls) ? additionalControls.filter(Boolean).length : 0;
@@ -226,11 +227,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         }
 
         editor.on('selectionUpdate', forceUpdate);
-        editor.on('transaction', forceUpdate);
 
         return () => {
             editor.off('selectionUpdate', forceUpdate);
-            editor.off('transaction', forceUpdate);
         };
     }, [getWysiwygEditor]);
 
@@ -265,7 +264,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * function signature as if we would define it directly in the props of
      * the FormattingIcon component. This should improve render-performance
      */
-    const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
+    const makeFormattingHandler = useCallback((mode: MarkdownMode, fromHidden = false) => () => {
         if (disableControls) {
             return;
         }
@@ -273,6 +272,9 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         const wysiwygEditor = getWysiwygEditor?.();
         if (wysiwygEditor && !wysiwygEditor.isDestroyed) {
             if (mode === 'link') {
+                const anchor = (fromHidden ? hiddenLinkButtonRef.current : visibleLinkButtonRef.current) ??
+                    visibleLinkButtonRef.current ?? hiddenLinkButtonRef.current;
+                setLinkPopoverAnchor(anchor);
                 setLinkPopoverEditor(wysiwygEditor);
                 return;
             }
@@ -337,7 +339,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                         {mode === 'link' && getWysiwygEditor ? (
                             <span
                                 ref={(el) => {
-                                    linkButtonRef.current = el;
+                                    visibleLinkButtonRef.current = el;
                                 }}
                             >
                                 <FormattingIcon
@@ -415,13 +417,13 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                                 <span
                                     key={mode}
                                     ref={(el) => {
-                                        linkButtonRef.current = el;
+                                        hiddenLinkButtonRef.current = el;
                                     }}
                                 >
                                     <FormattingIcon
                                         mode={mode}
                                         className='control'
-                                        onClick={makeFormattingHandler(mode)}
+                                        onClick={makeFormattingHandler(mode, true)}
                                         disabled={disableControls}
                                         isActive={wysiwygEditor ? isWysiwygMarkActive(wysiwygEditor, mode) : undefined}
                                     />
@@ -445,8 +447,11 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             {linkPopoverEditor && !linkPopoverEditor.isDestroyed && (
                 <LinkPopover
                     editor={linkPopoverEditor}
-                    anchorEl={linkButtonRef.current}
-                    onClose={() => setLinkPopoverEditor(null)}
+                    anchorEl={linkPopoverAnchor}
+                    onClose={() => {
+                        setLinkPopoverEditor(null);
+                        setLinkPopoverAnchor(null);
+                    }}
                 />
             )}
         </FormattingBarContainer>

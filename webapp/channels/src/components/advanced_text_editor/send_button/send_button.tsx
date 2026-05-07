@@ -8,6 +8,7 @@ import {useSelector} from 'react-redux';
 
 import {SendIcon} from '@mattermost/compass-icons/components';
 import type {ShortcutDefinition} from '@mattermost/shared/components/tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
@@ -16,7 +17,6 @@ import {isSendOnCtrlEnter} from 'selectors/preferences';
 
 import {SendPostOptions} from 'components/advanced_text_editor/send_button/send_post_options';
 import {ShortcutKeys} from 'components/shortcut_key';
-import WithTooltip from 'components/with_tooltip';
 
 import './send_button.scss';
 

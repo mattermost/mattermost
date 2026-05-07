@@ -9,11 +9,16 @@ import {Extension} from '@tiptap/core';
 // in list items. A non-indented line after a list item ends the list, while
 // standard CommonMark would continue the item's paragraph.
 //
-// This extension hooks into the Markdown extension's internal marked instance
+// This extension hooks into the Markdown extension's marked instance
 // and overrides the list tokenizer to always break on non-indented lines,
 // matching the server's rendering behavior. This is a fork of marked v17's
 // Tokenizer.list() method with one change: the lazy continuation branch
 // (itemContents += '\n' + nextLine) is replaced with a break.
+//
+// The override is registered on whatever marked instance the editor's
+// MarkdownManager is using. Callers are expected to pass a per-editor marked
+// instance to `Markdown.configure({marked: ...})` so this override doesn't
+// leak into the shared global marked singleton across multiple editors.
 
 function expandTabs(line: string, indent = 0): string {
     let col = indent;
@@ -254,6 +259,15 @@ function mattermostListTokenizer(this: any, srcParam: string) {
     return list;
 }
 
+// WeakSet of marked instances we've already patched. `marked.use` is additive
+// (calling it multiple times stacks tokenizers), so without this guard a
+// remounted/HMR-reloaded editor would register the override repeatedly on the
+// same instance. Per editor each gets its own marked instance via
+// `Markdown.configure({marked: ...})`, but if a caller forgets to pass one,
+// all editors share the global marked singleton — the WeakSet keeps that case
+// idempotent too.
+const patchedInstances = new WeakSet<object>();
+
 export const MattermostListCompat = Extension.create({
     name: 'mattermostListCompat',
 
@@ -268,10 +282,16 @@ export const MattermostListCompat = Extension.create({
             return;
         }
 
+        if (patchedInstances.has(markedInstance as unknown as object)) {
+            return;
+        }
+
         markedInstance.use({
             tokenizer: {
                 list: mattermostListTokenizer,
             },
         });
+
+        patchedInstances.add(markedInstance as unknown as object);
     },
 });

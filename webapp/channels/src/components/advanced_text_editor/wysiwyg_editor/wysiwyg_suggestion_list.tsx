@@ -3,7 +3,11 @@
 
 import type {Editor} from '@tiptap/react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {createPortal} from 'react-dom';
+import {useDispatch, useSelector} from 'react-redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
@@ -17,14 +21,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
-import store from 'stores/redux_store';
 
 import AtMentionProvider from 'components/suggestion/at_mention_provider';
 import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
 import CommandProvider from 'components/suggestion/command_provider/command_provider';
 import EmoticonProvider from 'components/suggestion/emoticon_provider';
 import SuggestionList from 'components/suggestion/suggestion_list';
-import type {SuggestionResults} from 'components/suggestion/suggestion_results';
+import type {ProviderResults, SuggestionResults} from 'components/suggestion/suggestion_results';
 import {normalizeResultsFromProvider, countResults} from 'components/suggestion/suggestion_results';
 
 import type {GlobalState} from 'types/store';
@@ -62,6 +65,8 @@ function getTextBeforeCursor(editor: Editor): string {
 }
 
 const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
+    const dispatch = useDispatch();
+
     const [results, setResults] = useState<SuggestionResults>(EMPTY_RESULTS);
     const [pretext, setPretext] = useState('');
     const [selection, setSelection] = useState('');
@@ -92,11 +97,9 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
     const priorityProfiles = useSelector((state: GlobalState) => getProfilesForThread(state, rootId ?? ''));
     const delayChannelAutocomplete = config.DelayChannelAutocomplete === 'true';
 
-    const containerRef = useRef<HTMLDivElement>(null);
     const matchedPretextRef = useRef('');
 
     const providers = useMemo(() => {
-        const dispatch = store.dispatch;
         return [
             new CommandProvider({
                 teamId: currentTeamId,
@@ -114,14 +117,14 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
                 defaultAgent,
             }),
             new ChannelMentionProvider(
-                (term: string, success: (channels: any) => void, error: (err: any) => void) => dispatch(autocompleteChannels(term, success, error)),
+                (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => dispatch(autocompleteChannels(term, success, error)),
                 delayChannelAutocomplete,
             ),
             new EmoticonProvider(),
         ];
-    }, [currentUserId, channelId, rootId, currentTeamId, autocompleteGroups, priorityProfiles, defaultAgent, delayChannelAutocomplete]);
+    }, [dispatch, currentUserId, channelId, rootId, currentTeamId, autocompleteGroups, priorityProfiles, defaultAgent, delayChannelAutocomplete]);
 
-    const handleReceivedSuggestions = useCallback((suggestions: any) => {
+    const handleReceivedSuggestions = useCallback((suggestions: ProviderResults) => {
         const normalized = normalizeResultsFromProvider(suggestions);
         const terms = getAllTerms(normalized);
 
@@ -278,23 +281,19 @@ const WysiwygSuggestionList = ({editor, channelId, rootId}: Props) => {
         return null;
     }
 
-    return (
-        <div
-            ref={containerRef}
-            style={{position: 'relative'}}
-        >
-            <SuggestionList
-                inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
-                open={isOpen}
-                pretext={pretext}
-                cleared={false}
-                results={results}
-                selection={selection}
-                onCompleteWord={handleCompleteWord}
-                onItemHover={handleItemHover}
-                position='top'
-            />
-        </div>
+    return createPortal(
+        <SuggestionList
+            inputRef={editorDomRef as React.RefObject<HTMLDivElement>}
+            open={isOpen}
+            pretext={pretext}
+            cleared={false}
+            results={results}
+            selection={selection}
+            onCompleteWord={handleCompleteWord}
+            onItemHover={handleItemHover}
+            position='top'
+        />,
+        document.body,
     );
 };
 

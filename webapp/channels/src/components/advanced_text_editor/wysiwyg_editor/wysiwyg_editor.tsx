@@ -8,20 +8,61 @@ import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
 import {TableRow} from '@tiptap/extension-table-row';
-import {Markdown} from '@tiptap/markdown';
+import {Markdown, MarkdownManager} from '@tiptap/markdown';
+import type {MarkdownExtensionOptions} from '@tiptap/markdown';
 import {splitListItem} from '@tiptap/pm/schema-list';
 import {EditorContent, useEditor} from '@tiptap/react';
 import type {Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import debounce from 'lodash/debounce';
 import {common, createLowlight} from 'lowlight';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 
 import {MattermostListCompat} from './mattermost_list_extension';
 import WysiwygSuggestionList from './wysiwyg_suggestion_list';
 
+// Build a fresh marked instance per editor so the Mattermost list-tokenizer
+// override registered by `MattermostListCompat` doesn't leak into the shared
+// global marked singleton across editors. We grab the `Marked` constructor
+// off a throwaway MarkdownManager at module load — this avoids importing
+// `marked` directly (the workspace's top-level `marked` is a legacy fork
+// without the `Marked` class export).
+type MarkedClass = new () => unknown;
+let cachedMarkedCtor: MarkedClass | null = null;
+
+function getMarkedConstructor(): MarkedClass | null {
+    if (cachedMarkedCtor) {
+        return cachedMarkedCtor;
+    }
+    const probe = new MarkdownManager({extensions: []});
+    const instance = probe.instance as unknown as {constructor: MarkedClass} | undefined;
+    if (instance?.constructor) {
+        cachedMarkedCtor = instance.constructor;
+    }
+    return cachedMarkedCtor;
+}
+
+function createPerEditorMarked(): unknown {
+    const Ctor = getMarkedConstructor();
+    if (!Ctor) {
+        return undefined;
+    }
+    return new Ctor();
+}
+
 import './wysiwyg_editor.scss';
 
 const lowlight = createLowlight(common);
+
+// Heuristic to detect markdown in pasted plain text. Module-level so the regex
+// is compiled once. Patterns require boundaries to avoid false positives
+// like `my__var` or unbalanced asterisks in regular prose.
+const MARKDOWN_PASTE_PATTERNS = /(?:^#{1,6}\s|^[*-]\s|^\d+\.\s|^>\s|\*\*\S.*?\S\*\*|\b__\S.*?\S__\b|~~\S.*?\S~~|`[^`\n]+`|^\|.*\|$|\[[^\]]+\]\([^)]+\))/m;
+
+// Debounce per-keystroke markdown serialization to avoid running the marked
+// tokenizer on every character. Draft autosave is debounced upstream so this
+// keeps latency imperceptible while saving work.
+const SERIALIZE_DEBOUNCE_MS = 100;
 
 export type WysiwygEditorHandle = {
     getEditor: () => Editor | null;
@@ -81,6 +122,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
     const onFocusRef = useRef(onFocus);
     const onBlurRef = useRef(onBlur);
     const onEditLatestPostRef = useRef(onEditLatestPost);
+    const placeholderRef = useRef(placeholderText ?? '');
 
     useEffect(() => {
         onSubmitRef.current = onSubmit;
@@ -114,11 +156,28 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     const editorRef = useRef<Editor | null>(null);
 
+    const debouncedOnChange = useMemo(() => {
+        const fn = debounce((md: string) => {
+            onChangeRef.current(md);
+        }, SERIALIZE_DEBOUNCE_MS);
+        return fn;
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            debouncedOnChange.cancel();
+        };
+    }, [debouncedOnChange]);
+
     const handleUpdate = useCallback(({editor}: {editor: Editor}) => {
         let md = editor.getMarkdown().trimEnd();
+
+        // The @tiptap/markdown serializer leaves &nbsp; artifacts around empty
+        // paragraphs at the start/end of the document. Strip them so the
+        // emitted markdown round-trips cleanly.
         md = md.replace(/\n\n&nbsp;\n/g, '\n').replace(/\n\n&nbsp;$/g, '').replace(/^&nbsp;$/, '');
-        onChangeRef.current(md);
-    }, []);
+        debouncedOnChange(md);
+    }, [debouncedOnChange]);
 
     const editor = useEditor({
         extensions: [
@@ -136,7 +195,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                 linkOnPaste: true,
             }),
             Placeholder.configure({
-                placeholder: placeholderText ?? '',
+                placeholder: () => placeholderRef.current,
                 showOnlyCurrent: true,
             }),
             Table.configure({resizable: false, cellMinWidth: 80}),
@@ -145,6 +204,12 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             TableHeader,
             Markdown.configure({
                 markedOptions: {gfm: true},
+
+                // The `marked` option is typed as `typeof marked` (the global
+                // function), but tiptap-markdown actually only uses the `use`,
+                // `Lexer`, `lexer` and `setOptions` surface, all of which a
+                // `new Marked()` instance also exposes.
+                marked: createPerEditorMarked() as MarkdownExtensionOptions['marked'],
             }),
             MattermostListCompat,
         ],
@@ -178,8 +243,7 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
                     return false;
                 }
 
-                const markdownPatterns = /(?:^#{1,6}\s|^\*\s|^-\s|^\d+\.\s|^>\s|\*\*|__|~~|`[^`]|^\|.*\|$|\[.*\]\(.*\))/m;
-                if (!markdownPatterns.test(text)) {
+                if (!MARKDOWN_PASTE_PATTERNS.test(text)) {
                     return false;
                 }
 
@@ -284,41 +348,59 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
         onFocus: () => onFocusRef.current?.(),
         onBlur: () => onBlurRef.current?.(),
         onUpdate: handleUpdate,
-    }, [channelId]);
+
+        // Intentionally an empty deps array: the editor instance must be
+        // stable across channel/root changes. Per-channel state (channelId
+        // attribute, content reset, placeholder) is synced imperatively in
+        // the effects below, which is far cheaper than tearing down the
+        // entire ProseMirror tree on every channel switch.
+    }, []);
 
     useEffect(() => {
         editorRef.current = editor;
     }, [editor]);
 
     useImperativeHandle(ref, () => ({
-        getEditor: () => editor,
+        getEditor: () => editorRef.current,
         insertText: (text: string) => {
-            if (editor && !editor.isDestroyed) {
-                const {state} = editor;
+            const ed = editorRef.current;
+            if (ed && !ed.isDestroyed) {
+                const {state} = ed;
                 const {from} = state.selection;
                 const charBefore = from > 0 ? state.doc.textBetween(from - 1, from) : '';
                 const needsSpace = charBefore.length > 0 && !(/\s/).test(charBefore);
                 const content = needsSpace ? ` ${text} ` : `${text} `;
-                editor.chain().focus().insertContent({type: 'text', text: content}).run();
+                ed.chain().focus().insertContent({type: 'text', text: content}).run();
             }
         },
         focus: () => {
-            if (editor && !editor.isDestroyed) {
-                editor.commands.focus();
+            const ed = editorRef.current;
+            if (ed && !ed.isDestroyed) {
+                ed.commands.focus();
             }
         },
         blur: () => {
-            if (editor && !editor.isDestroyed) {
-                editor.commands.blur();
+            const ed = editorRef.current;
+            if (ed && !ed.isDestroyed) {
+                ed.commands.blur();
             }
         },
         getInputBox: () => {
-            if (editor && !editor.isDestroyed) {
-                return editor.view.dom as HTMLElement;
+            const ed = editorRef.current;
+            if (ed && !ed.isDestroyed) {
+                return ed.view.dom as HTMLElement;
             }
             return null;
         },
-    }), [editor]);
+    }), []);
+
+    // Keep the data-channel-id attribute in sync without rebuilding the editor.
+    useEffect(() => {
+        if (!editor || editor.isDestroyed) {
+            return;
+        }
+        (editor.view.dom as HTMLElement).setAttribute('data-channel-id', channelId);
+    }, [editor, channelId]);
 
     const lastValueRef = useRef(value);
     useEffect(() => {
@@ -335,9 +417,11 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
 
     // Keep the contenteditable root's DOM attributes (placeholder,
     // aria-placeholder, aria-disabled, data-disabled) in sync with props.
-    // useEditor's `attributes` are evaluated only when the editor is created,
-    // so we update them imperatively on each prop change.
+    // useEditor's `attributes` are only evaluated when the editor is created,
+    // and the Placeholder extension reads from `placeholderRef` via callback.
     useEffect(() => {
+        placeholderRef.current = placeholderText ?? '';
+
         if (!editor || editor.isDestroyed) {
             return;
         }
@@ -362,17 +446,6 @@ const WysiwygEditor = forwardRef<WysiwygEditorHandle, Props>(({
             editor.setEditable(!disabled);
         }
     }, [disabled, editor]);
-
-    useEffect(() => {
-        if (editor && !editor.isDestroyed) {
-            editor.extensionManager.extensions.forEach((ext) => {
-                if (ext.name === 'placeholder') {
-                    ext.options.placeholder = placeholderText ?? '';
-                    editor.view.dispatch(editor.state.tr);
-                }
-            });
-        }
-    }, [placeholderText, editor]);
 
     return (
         <div className={`WysiwygEditor${disabled ? ' WysiwygEditor--disabled' : ''}`}>
