@@ -7080,40 +7080,64 @@ func TestBurnPost(t *testing.T) {
 func TestPostsAPINonOwnerCannotMutateCardWithoutEditOthers(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := SetupConfig(t, func(cfg *model.Config) {
-		cfg.FeatureFlags.IntegratedBoards = true
-	}).InitBasic(t)
+	assertPostsAPINonOwnerForbiddenOnCard := func(t *testing.T, th *TestHelper, cardPost *model.Post) {
+		t.Helper()
+		th.LoginBasic2(t)
 
-	channel := th.BasicChannel
-	cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: channel.Id,
-		Message:   "card post",
-		Type:      model.PostTypeCard,
-	}, channel, model.CreatePostFlags{SetOnline: true})
-	require.Nil(t, appErr)
+		t.Run("update", func(t *testing.T) {
+			updatedPost := cardPost.Clone()
+			updatedPost.Message = "updated by non-owner"
+			_, resp, err := th.Client.UpdatePost(context.Background(), cardPost.Id, updatedPost)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 
-	th.LoginBasic2(t)
+		t.Run("patch", func(t *testing.T) {
+			patch := &model.PostPatch{Message: model.NewPointer("patched by non-owner")}
+			_, resp, err := th.Client.PatchPost(context.Background(), cardPost.Id, patch)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
 
-	t.Run("update", func(t *testing.T) {
-		updatedPost := cardPost.Clone()
-		updatedPost.Message = "updated by non-owner"
-		_, resp, err := th.Client.UpdatePost(context.Background(), cardPost.Id, updatedPost)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		t.Run("delete", func(t *testing.T) {
+			resp, err := th.Client.DeletePost(context.Background(), cardPost.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
+	}
+
+	t.Run("integrated_boards_enabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = true
+		}).InitBasic(t)
+
+		channel := th.BasicChannel
+		cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		assertPostsAPINonOwnerForbiddenOnCard(t, th, cardPost)
 	})
 
-	t.Run("patch", func(t *testing.T) {
-		patch := &model.PostPatch{Message: model.NewPointer("patched by non-owner")}
-		_, resp, err := th.Client.PatchPost(context.Background(), cardPost.Id, patch)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
+	t.Run("integrated_boards_disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.IntegratedBoards = false
+		}).InitBasic(t)
 
-	t.Run("delete", func(t *testing.T) {
-		resp, err := th.Client.DeletePost(context.Background(), cardPost.Id)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		channel := th.BasicChannel
+		cardPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: channel.Id,
+			Message:   "card post",
+			Type:      model.PostTypeCard,
+		}, channel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+
+		assertPostsAPINonOwnerForbiddenOnCard(t, th, cardPost)
 	})
 }
 

@@ -3698,11 +3698,7 @@ func (c *Client4) GetPostsByIds(ctx context.Context, postIds []string) ([]*Post,
 
 // GetEditHistoryForPost gets a list of posts by taking a post ids
 func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
-	js, err := json.Marshal(postId)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal edit history request: %w", err)
-	}
-	r, err := c.doAPIGet(ctx, c.postRoute(postId).Join("edit_history"), string(js))
+	r, err := c.doAPIGet(ctx, c.postRoute(postId).Join("edit_history"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3712,11 +3708,7 @@ func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*
 
 // GetCardEditHistoryForPost returns edit history for a card post.
 func (c *Client4) GetCardEditHistoryForPost(ctx context.Context, postId string) ([]*Post, *Response, error) {
-	js, err := json.Marshal(postId)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal edit history request: %w", err)
-	}
-	r, err := c.doAPIGet(ctx, c.cardRoute(postId).Join("edit_history"), string(js))
+	r, err := c.doAPIGet(ctx, c.cardRoute(postId).Join("edit_history"), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

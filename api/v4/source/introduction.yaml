@@ -402,7 +402,8 @@ tags:
     description: Endpoints for creating, getting and interacting with posts.
   - name: cards
     description: >
-      Experimental endpoints for creating and updating integrated board card posts (`POST /api/v4/cards`, etc.).
+      Experimental integrated board card post API: `POST /api/v4/cards`, `PUT /api/v4/cards/{post_id}`,
+      `PUT /api/v4/cards/{post_id}/patch`, `DELETE /api/v4/cards/{post_id}`, and `GET /api/v4/cards/{post_id}/edit_history`.
       These routes are only mounted when the Integrated Boards feature flag is enabled at server startup.
   - name: files
     description: Endpoints for uploading and interacting with files.

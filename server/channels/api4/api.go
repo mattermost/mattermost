@@ -507,6 +507,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitLdapLocal()
 	api.InitSystemLocal()
 	api.InitPostLocal()
+	api.InitCardLocal()
 	api.InitPreferenceLocal()
 	api.InitRoleLocal()
 	api.InitUploadLocal()
