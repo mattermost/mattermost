@@ -6,6 +6,8 @@ import isNil from 'lodash/isNil';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import ConfirmModal from 'components/confirm_modal';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
@@ -235,9 +237,9 @@ State
                 <td className='type'>{typeText}</td>
                 <td>{this.displayAssignedRolesDropdown()}</td>
                 <td className='text-right'>
-                    <button
+                    <Button
                         type='button'
-                        className='btn btn-tertiary'
+                        emphasis='tertiary'
                         onClick={() =>
                             this.setState({showConfirmationModal: true})
                         }
@@ -248,7 +250,7 @@ State
                             id='admin.group_settings.group_details.group_teams_and_channels_row.remove'
                             defaultMessage='Remove'
                         />
-                    </button>
+                    </Button>
                 </td>
             </tr>
         );

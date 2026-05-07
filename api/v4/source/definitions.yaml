@@ -1751,6 +1751,7 @@ components:
               type: boolean
             EnableTesting:
               type: boolean
+              description: Intended only for isolated non-production environments and must never be enabled in production.
             EnableDeveloper:
               type: boolean
             EnableSecurityFixAlert:
@@ -2233,6 +2234,7 @@ components:
               type: boolean
             EnableTesting:
               type: boolean
+              description: Intended only for isolated non-production environments and must never be enabled in production.
             EnableDeveloper:
               type: boolean
             EnableSecurityFixAlert:
@@ -5096,6 +5098,10 @@ components:
           type: integer
           format: int64
           description: The time in milliseconds the recap was marked as read
+        viewed_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was marked as viewed (set in bulk when the recaps page is opened)
         total_message_count:
           type: integer
           description: Total number of messages summarized across all channels

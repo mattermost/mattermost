@@ -274,7 +274,7 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         // * Check Tab behavior in MFA section
         cy.get('#mfaEdit').click();
         cy.get('#passwordEdit').focus().tab({shift: true}).tab().tab();
-        cy.get('.setting-list a.btn').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.get('.setting-list button.btn').should('have.class', 'a11y--active a11y--focused').tab();
         cy.get('#cancelSetting').should('have.class', 'a11y--active a11y--focused');
 
         // * Check Tab behavior in Sign-In Method if its available

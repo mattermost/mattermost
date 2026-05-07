@@ -5,6 +5,8 @@ import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';
@@ -28,7 +30,7 @@ function EmojiPickerCustomEmojiButton({customEmojisEnabled, currentTeamName, onC
         <AnyTeamPermissionGate permissions={[Permissions.CREATE_EMOJIS]}>
             <div className='emoji-picker__custom'>
                 <Link
-                    className='btn btn-tertiary btn-sm'
+                    className={buttonClassNames({emphasis: 'tertiary', size: 'sm'})}
                     to={`/${currentTeamName}/emoji`}
                     onClick={onClick}
                 >

@@ -32,6 +32,8 @@ const (
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v5"
 	managedCategorySetupDoneKey                    = "managed_category_setup_done"
+	managedCategoryMigrationVersion                = "v2"
+	cpaDisplayNameBackfillKey                      = "cpa_display_name_backfill_done"
 
 	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
 	ContentFlaggingPropertyNameStatus              = "status"
@@ -749,7 +751,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 
 	if len(propertiesToUpdate) > 0 {
 		if _, _, err := s.propertyService.UpdatePropertyFields(nil, group.ID, propertiesToUpdate); err != nil {
-			return fmt.Errorf("failed to update content flagging property fields: %w", err)
+			// Another server may have won the race and updated these fields
+			// concurrently (e.g. parallel tests sharing a database pool).
+			// Both servers write the same expected values, so tolerate the
+			// conflict but propagate any other error.
+			var conflictErr *store.ErrConflict
+			if !errors.As(err, &conflictErr) {
+				return fmt.Errorf("failed to update content flagging property fields: %w", err)
+			}
 		}
 	}
 
@@ -768,6 +777,18 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	if data != nil {
+		if data.Value == managedCategoryMigrationVersion {
+			return s.cacheManagedCategoryIDs()
+		}
+
+		if incrementErr := s.Store().PropertyGroup().IncrementVersion(model.ManagedCategoryPropertyGroupName); incrementErr != nil {
+			return fmt.Errorf("failed to increment managed category group version: %w", incrementErr)
+		}
+
+		if saveErr := s.Store().System().SaveOrUpdate(&model.System{Name: managedCategorySetupDoneKey, Value: managedCategoryMigrationVersion}); saveErr != nil {
+			return fmt.Errorf("failed to save managed category setup done flag: %w", saveErr)
+		}
+
 		return s.cacheManagedCategoryIDs()
 	}
 
@@ -803,6 +824,43 @@ func (s *Server) doSetupManagedCategoryProperties() error {
 	}
 
 	return s.cacheManagedCategoryIDs()
+}
+
+func (s *Server) doSetupCPADisplayNameBackfill(rctx request.CTX) error {
+	var nfErr *store.ErrNotFound
+	data, err := s.Store().System().GetByName(cpaDisplayNameBackfillKey)
+	if err != nil && !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query CPA display_name backfill migration: %w", err)
+	}
+
+	if data != nil {
+		return nil
+	}
+
+	// The properties package owns the actual field iteration and update logic.
+	// It deliberately bypasses the access-control layer for this single,
+	// well-defined backfill so it can update protected (e.g. UAS-managed) CPA
+	// fields whose source plugin is not the system. Keeping the bypass behind
+	// an explicitly named method on PropertyService avoids exposing a general
+	// "skip access control" surface from this package.
+	backfilled, skipped, err := s.propertyService.MigrateBackfillCPADisplayName(rctx)
+	if err != nil {
+		return fmt.Errorf("failed to backfill CPA display_name: %w", err)
+	}
+
+	mlog.Info("CPA display_name backfill migration completed",
+		mlog.Int("backfilled", backfilled),
+		mlog.Int("skipped", skipped),
+	)
+
+	if err := s.Store().System().SaveOrUpdate(&model.System{
+		Name:  cpaDisplayNameBackfillKey,
+		Value: "true",
+	}); err != nil {
+		return fmt.Errorf("failed to mark CPA display_name backfill as complete: %w", err)
+	}
+
+	return nil
 }
 
 func (s *Server) cacheManagedCategoryIDs() error {
@@ -1031,6 +1089,7 @@ func (s *Server) doAppMigrations() {
 		{"Delete Orphan Drafts Migration", s.doDeleteOrphanDraftsMigration},
 		{"Delete Invalid Dms Preferences Migration", s.doDeleteDmsPreferencesMigration},
 		{"Access Control Policy V0.3 Migration", s.doAccessControlPolicyV0_3Migration},
+		{"CPA DisplayName Backfill", s.doSetupCPADisplayNameBackfill},
 	}
 
 	rctx := request.EmptyContext(s.Log())
