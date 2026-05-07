@@ -89,12 +89,12 @@ function RemoveUserPropertyFieldModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
+            confirmButtonVariant='destructive'
             handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
-            isDeleteModal={true}
         >
             {message}
         </GenericModal>

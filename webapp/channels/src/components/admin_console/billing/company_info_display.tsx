@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 import CompanySvg from 'components/common/svg_images_components/company_svg';
 
@@ -16,7 +18,7 @@ const addInfoButton = (
     <div className='CompanyInfoDisplay__addInfo'>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='btn btn-primary CompanyInfoDisplay__addInfoButton'
+            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__addInfoButton')}
         >
             <i className='icon icon-plus'/>
             <FormattedMessage
@@ -41,7 +43,7 @@ const noCompanyInfoSection = (
         </div>
         <BlockableLink
             to='/admin_console/billing/company_info_edit'
-            className='btn btn-primary CompanyInfoDisplay__noCompanyInfo-link'
+            className={buttonClassNames({emphasis: 'primary'}, 'CompanyInfoDisplay__noCompanyInfo-link')}
         >
             <FormattedMessage
                 id='admin.billing.company_info.add'

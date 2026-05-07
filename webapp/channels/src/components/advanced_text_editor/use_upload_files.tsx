@@ -1,12 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo} from '@mattermost/types/files';
 
+import Permissions from 'mattermost-redux/constants/permissions';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
@@ -17,6 +21,7 @@ import FileUpload from 'components/file_upload';
 import type {FileUpload as FileUploadClass, TextEditorLocationType} from 'components/file_upload/file_upload';
 import type TextboxClass from 'components/textbox/textbox';
 
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 import type {WysiwygEditorHandle} from './wysiwyg_editor/wysiwyg_editor';
@@ -39,11 +44,24 @@ const useUploadFiles = (
     isPostBeingEdited?: boolean,
     wysiwygRef?: React.RefObject<WysiwygEditorHandle>,
 ): [React.ReactNode, React.ReactNode] => {
+    const intl = useIntl();
     const locale = useSelector(getCurrentLocale);
+    const canEditAttachments = useSelector((state: GlobalState) => {
+        const channel = getChannel(state, channelId);
+        return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.EDIT_FILE_ATTACHMENT) : true;
+    });
+    const editAttachmentsDisabled = isPostBeingEdited && !canEditAttachments;
 
     const [uploadsProgressPercent, setUploadsProgressPercent] = useState<{ [clientID: string]: FilePreviewInfo }>({});
 
     const fileUploadRef = useRef<FileUploadClass>(null);
+
+    const removeTooltip = useMemo(() => {
+        return editAttachmentsDisabled ? intl.formatMessage({
+            id: 'file_preview.no_edit_permission',
+            defaultMessage: 'Post attachments cannot be edited',
+        }) : undefined;
+    }, [editAttachmentsDisabled, intl]);
 
     const handleFileUploadChange = useCallback(() => {
         focusTextbox();
@@ -155,9 +173,10 @@ const useUploadFiles = (
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}
-                onRemove={removePreview}
+                onRemove={editAttachmentsDisabled ? undefined : removePreview}
                 uploadsInProgress={draft.uploadsInProgress}
                 uploadsProgressPercent={uploadsProgressPercent}
+                disabledRemoveTooltip={removeTooltip}
             />
         );
     }
@@ -169,7 +188,7 @@ const useUploadFiles = (
         postType = isThreadView ? 'thread' : 'comment';
     }
 
-    const fileUploadJSX = isDisabled ? null : (
+    const fileUploadJSX = (isDisabled || editAttachmentsDisabled) ? null : (
         <FileUpload
             ref={fileUploadRef}
             fileCount={getFileCount(draft)}

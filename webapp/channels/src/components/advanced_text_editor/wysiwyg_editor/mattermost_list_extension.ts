@@ -5,20 +5,12 @@
 
 import {Extension} from '@tiptap/core';
 
-// Mattermost's server-side markdown parser doesn't support lazy continuation
-// in list items. A non-indented line after a list item ends the list, while
-// standard CommonMark would continue the item's paragraph.
-//
-// This extension hooks into the Markdown extension's marked instance
-// and overrides the list tokenizer to always break on non-indented lines,
-// matching the server's rendering behavior. This is a fork of marked v17's
-// Tokenizer.list() method with one change: the lazy continuation branch
-// (itemContents += '\n' + nextLine) is replaced with a break.
-//
-// The override is registered on whatever marked instance the editor's
-// MarkdownManager is using. Callers are expected to pass a per-editor marked
-// instance to `Markdown.configure({marked: ...})` so this override doesn't
-// leak into the shared global marked singleton across multiple editors.
+// Mattermost's server-side markdown parser breaks list items on non-indented
+// lines, while CommonMark continues them via lazy paragraph continuation.
+// This extension swaps marked's list tokenizer for a fork that matches the
+// server. Callers are expected to pass a per-editor `marked` instance to
+// `Markdown.configure({marked: ...})` to avoid leaking the override into
+// the shared global marked singleton.
 
 function expandTabs(line: string, indent = 0): string {
     let col = indent;
@@ -36,9 +28,8 @@ function expandTabs(line: string, indent = 0): string {
     return expanded;
 }
 
-// Forked list tokenizer from marked v17.0.3 — the only change from upstream
-// is removing the lazy paragraph continuation in the else branch, replacing
-// it with a break statement.
+// Forked from marked v17.0.3 Tokenizer.list — the only change from upstream
+// is replacing the lazy paragraph continuation branch with a break.
 function mattermostListTokenizer(this: any, srcParam: string) {
     let src = srcParam;
     let cap = this.rules.block.list.exec(src);
@@ -147,9 +138,7 @@ function mattermostListTokenizer(this: any, srcParam: string) {
                 if (nextLineWithoutTabs.search(this.rules.other.nonSpaceChar) >= indent || !nextLine.trim()) {
                     itemContents += '\n' + nextLineWithoutTabs.slice(indent);
                 } else {
-                    // MATTERMOST FORK: always break on under-indented lines.
-                    // Standard marked does lazy paragraph continuation here,
-                    // but Mattermost's server parser ends the list item.
+                    // Mattermost fork: break instead of lazy continuation.
                     break;
                 }
 
@@ -259,13 +248,8 @@ function mattermostListTokenizer(this: any, srcParam: string) {
     return list;
 }
 
-// WeakSet of marked instances we've already patched. `marked.use` is additive
-// (calling it multiple times stacks tokenizers), so without this guard a
-// remounted/HMR-reloaded editor would register the override repeatedly on the
-// same instance. Per editor each gets its own marked instance via
-// `Markdown.configure({marked: ...})`, but if a caller forgets to pass one,
-// all editors share the global marked singleton — the WeakSet keeps that case
-// idempotent too.
+// `marked.use` is additive; this WeakSet keeps the override idempotent if
+// the extension is created against the same instance more than once.
 const patchedInstances = new WeakSet<object>();
 
 export const MattermostListCompat = Extension.create({

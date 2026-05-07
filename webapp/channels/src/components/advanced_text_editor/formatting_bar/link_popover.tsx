@@ -126,9 +126,6 @@ const LinkPopover = ({editor, anchorEl, onClose}: LinkPopoverProps) => {
     const [displayText, setDisplayText] = useState(() => existingData?.text || getSelectionText(editor));
     const [url, setUrl] = useState(() => existingData?.href || '');
 
-    // Focus the URL input on next paint. rAF rather than autoFocus so we
-    // don't trigger jsx-a11y/no-autofocus warnings, and don't race with the
-    // floating-ui mount sequence.
     const urlInputRef = useRef<HTMLInputElement>(null);
     useEffect(() => {
         const raf = requestAnimationFrame(() => urlInputRef.current?.focus());
