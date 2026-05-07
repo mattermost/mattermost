@@ -7,6 +7,7 @@ import {Modal, Fade} from 'react-bootstrap';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {AppCallResponse, AppField, AppForm, AppFormValues, AppSelectOption, FormResponseData, AppLookupResponse, AppFormValue} from '@mattermost/types/apps';
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -749,7 +750,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 key='submit'
                 type='submit'
                 autoFocus={!fields || fields.length === 0}
-                className='btn btn-primary save-button'
                 spinning={Boolean(this.state.submitting)}
                 spinningText={defineMessage({
                     id: 'interactive_dialog.submitting',
@@ -768,7 +768,6 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         id={'appsModalSubmit' + o.value}
                         key={o.value}
                         type='submit'
-                        className='btn btn-primary save-button'
                         spinning={this.state.submitting === o.value}
                         spinningText={o.label}
                         onClick={(e: React.MouseEvent) => this.handleSubmit(e, field.name, o.value)}
@@ -792,17 +791,17 @@ export class AppsForm extends React.PureComponent<Props, State> {
                             </div>
                         </div>
                     )}
-                    <button
+                    <Button
                         id='appsModalCancel'
                         type='button'
-                        className='btn btn-tertiary cancel-button'
+                        emphasis='tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='interactive_dialog.cancel'
                             defaultMessage='Cancel'
                         />
-                    </button>
+                    </Button>
                     {submitButtons}
                 </div>
             </>

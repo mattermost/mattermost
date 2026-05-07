@@ -3,9 +3,9 @@
 
 import type {ReactNode} from 'react';
 import React from 'react';
-import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import logoImage from 'images/logo.png';
@@ -18,7 +18,7 @@ export type Props = {
     teamURLInput: React.RefObject<HTMLInputElement>;
     onTeamURLChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
-    onSubmit: (e: React.MouseEvent<Button, MouseEvent>) => void;
+    onSubmit: (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     onBack: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     buttonText: ReactNode;
 };
@@ -116,9 +116,9 @@ export default function TeamUrlStep({teamURL, nameError, isLoading, teamURLInput
                     <Button
                         id='teamURLFinishButton'
                         type='submit'
-                        bsStyle='primary'
+                        emphasis='primary'
                         disabled={isLoading}
-                        onClick={(e: React.MouseEvent<Button, MouseEvent>) => onSubmit(e)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => onSubmit(e)}
                     >
                         {buttonText}
                     </Button>

@@ -55,13 +55,13 @@ exports[`components/SystemNotice should match snapshot for admin, admin notice 1
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again
@@ -118,13 +118,13 @@ exports[`components/SystemNotice should match snapshot for admin, regular notice
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again
@@ -181,13 +181,13 @@ exports[`components/SystemNotice should match snapshot for regular user, admin a
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again
@@ -252,13 +252,13 @@ exports[`components/SystemNotice should match snapshot for regular user, regular
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again
@@ -317,13 +317,13 @@ exports[`components/SystemNotice should match snapshot for show function returni
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again
@@ -380,7 +380,7 @@ exports[`components/SystemNotice should match snapshot for with allowForget equa
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
@@ -416,13 +416,13 @@ exports[`components/SystemNotice should match snapshot when a custom icon is pas
         class="system-notice__footer"
       >
         <button
-          class="btn btn-sm btn-primary"
+          class="btn btn-primary btn-sm"
           id="systemnotice_remindme"
         >
           Remind Me Later
         </button>
         <button
-          class="btn btn-sm btn-tertiary"
+          class="btn btn-tertiary btn-sm"
           id="systemnotice_dontshow"
         >
           Don't Show Again

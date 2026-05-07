@@ -4,6 +4,8 @@
 import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 
 import Constants from 'utils/constants';
@@ -50,15 +52,15 @@ export default function Confirm() {
                         defaultMessage='Your account is now secure. Next time you sign in, you will be asked to enter a code from your authenticator app on your phone.'
                     />
                 </p>
-                <button
+                <Button
                     type='submit'
-                    className='btn btn-primary'
+                    emphasis='primary'
                 >
                     <FormattedMessage
                         id='mfa.confirm.okay'
                         defaultMessage='Okay'
                     />
-                </button>
+                </Button>
             </form>
         </div>
     );
