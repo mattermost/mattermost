@@ -6164,7 +6164,7 @@
   "shortcuts.msgs.markdown.quote.mac": "引用：\tShift|⌥|9",
   "shortcuts.msgs.markdown.strike": "删除线：\tShift|Alt|X",
   "shortcuts.msgs.markdown.strike.mac": "删除线：\tShift|⌥|X",
-  "shortcuts.msgs.markdown.unordered": "项目列表\tShift|Alt|8",
+  "shortcuts.msgs.markdown.unordered": "项目列表：\tShift|Alt|8",
   "shortcuts.msgs.markdown.unordered.mac": "项目列表：\tShift|⌥|8",
   "shortcuts.msgs.reply": "回复频道中的最后一条消息：\tShift|Up",
   "shortcuts.msgs.reprint_next": "重新输入下一条消息：\tCtrl|Down",
