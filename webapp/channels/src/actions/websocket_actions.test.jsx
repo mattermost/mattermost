@@ -1699,7 +1699,7 @@ describe('handleChannelConvertedEvent', () => {
                         [channelId]: {
                             id: channelId,
                             team_id: 'currentTeamId',
-                            type: 'P',
+                            type: Constants.PRIVATE_CHANNEL,
                             name: 'test-channel',
                         },
                     },
@@ -1713,7 +1713,7 @@ describe('handleChannelConvertedEvent', () => {
             event: 'channel_converted',
             data: {
                 channel_id: channelId,
-                channel_type: 'O',
+                channel_type: Constants.OPEN_CHANNEL,
             },
         };
 
@@ -1723,19 +1723,19 @@ describe('handleChannelConvertedEvent', () => {
             type: 'RECEIVED_CHANNEL',
             data: expect.objectContaining({
                 id: channelId,
-                type: 'O',
+                type: Constants.OPEN_CHANNEL,
             }),
         });
     });
 
     test('should update channel type from public to private when channel_type is P', () => {
-        mockState.entities.channels.channels[channelId].type = 'O';
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
 
         const msg = {
             event: 'channel_converted',
             data: {
                 channel_id: channelId,
-                channel_type: 'P',
+                channel_type: Constants.PRIVATE_CHANNEL,
             },
         };
 
@@ -1745,13 +1745,13 @@ describe('handleChannelConvertedEvent', () => {
             type: 'RECEIVED_CHANNEL',
             data: expect.objectContaining({
                 id: channelId,
-                type: 'P',
+                type: Constants.PRIVATE_CHANNEL,
             }),
         });
     });
 
     test('should fall back to private when channel_type is not present (backwards compat)', () => {
-        mockState.entities.channels.channels[channelId].type = 'O';
+        mockState.entities.channels.channels[channelId].type = Constants.OPEN_CHANNEL;
 
         const msg = {
             event: 'channel_converted',
@@ -1766,7 +1766,7 @@ describe('handleChannelConvertedEvent', () => {
             type: 'RECEIVED_CHANNEL',
             data: expect.objectContaining({
                 id: channelId,
-                type: 'P',
+                type: Constants.PRIVATE_CHANNEL,
             }),
         });
     });
@@ -1776,7 +1776,7 @@ describe('handleChannelConvertedEvent', () => {
             event: 'channel_converted',
             data: {
                 channel_id: 'nonexistent-channel',
-                channel_type: 'O',
+                channel_type: Constants.OPEN_CHANNEL,
             },
         };
 
@@ -1805,7 +1805,7 @@ describe('handleChannelConvertedEvent', () => {
             event: 'channel_converted',
             data: {
                 channel_id: channelId,
-                channel_type: 'O',
+                channel_type: Constants.OPEN_CHANNEL,
             },
         };
 
@@ -1816,7 +1816,7 @@ describe('handleChannelConvertedEvent', () => {
             data: {
                 id: channelId,
                 team_id: 'currentTeamId',
-                type: 'O',
+                type: Constants.OPEN_CHANNEL,
                 name: 'test-channel',
             },
         });

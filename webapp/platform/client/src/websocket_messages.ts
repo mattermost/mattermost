@@ -193,7 +193,7 @@ export type ChannelUpdated = BaseWebSocketMessage<WebSocketEvents.ChannelUpdated
 
 export type ChannelConverted = BaseWebSocketMessage<WebSocketEvents.ChannelConverted, {
     channel_id: string;
-    channel_type?: 'O' | 'P';
+    channel_type?: ChannelType;
 }>;
 
 export type SharedChannelRemoteUpdated = BaseWebSocketMessage<WebSocketEvents.SharedChannelRemoteUpdated, {
