@@ -3176,7 +3176,7 @@ func TestUpdateUserActive(t *testing.T) {
 		// Confirm the bot is still active.
 		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
-		require.False(t, botUser.DeleteAt > 0, "bot should still be active")
+		require.Zero(t, botUser.DeleteAt, "bot should still be active")
 	})
 
 	t.Run("user with bot management permissions can deactivate bot accounts via user active endpoint", func(t *testing.T) {
