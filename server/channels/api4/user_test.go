@@ -3166,12 +3166,12 @@ func TestUpdateUserActive(t *testing.T) {
 		th.LoginBasic(t)
 
 		// A User Manager without bot permissions must be blocked.
-		// SessionHasPermissionToManageBot returns 404 (not 403) when the caller
-		// has no bot read access at all, to avoid leaking bot existence.
+		// Because the caller has neither PermissionReadOthersBots nor
+		// PermissionManageOthersBots, SessionHasPermissionToManageBot always
+		// returns 404 to avoid leaking the bot's existence.
 		resp, err := th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
 		require.Error(t, err)
-		require.True(t, resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusNotFound,
-			"expected 403 or 404, got %d", resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
 
 		// Confirm the bot is still active.
 		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
