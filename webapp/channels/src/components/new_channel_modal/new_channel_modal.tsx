@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -16,7 +16,7 @@ import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards'
 import {createChannel} from 'mattermost-redux/actions/channels';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
-import {areManagedCategoriesEnabled} from 'mattermost-redux/selectors/entities/channel_categories';
+import {areManagedCategoriesEnabled, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -24,8 +24,8 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
+import CategorySelector from 'components/category_selector/category_selector';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 
@@ -61,11 +61,14 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
+    const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
+
     const currentTeamId = useSelector(getCurrentTeam)?.id;
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
-    const enableManagedCategories = useSelector(areManagedCategoriesEnabled);
+    const showDefaultCategorySelector = useSelector(isChannelCategorySortingEnabled);
+    const showManagedCategorySelector = useSelector(areManagedCategoriesEnabled);
     const dispatch = useDispatch();
 
     const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
@@ -76,6 +79,7 @@ const NewChannelModal = () => {
     const [purposeError, setPurposeError] = useState('');
     const [serverError, setServerError] = useState('');
     const [channelInputError, setChannelInputError] = useState(false);
+    const [defaultCategoryName, setDefaultCategoryName] = useState<string | undefined>(undefined);
     const [managedCategoryName, setManagedCategoryName] = useState<string | undefined>(undefined);
 
     // create a board along with the channel
@@ -111,6 +115,7 @@ const NewChannelModal = () => {
             last_root_post_at: 0,
             scheme_id: '',
             update_at: 0,
+            default_category_name: defaultCategoryName,
             managed_category_name: managedCategoryName,
         };
 
@@ -288,11 +293,25 @@ const NewChannelModal = () => {
                     }}
                     onChange={handleOnTypeChange}
                 />
-                {enableManagedCategories && (
+                {showDefaultCategorySelector && (
                     <div className='new-channel-modal-managed-category'>
-                        <ManagedCategorySelector
+                        <CategorySelector
+                            value={defaultCategoryName}
+                            onChange={setDefaultCategoryName}
+                            getOptions={getSidebarCategoryNamesForTeam.current}
+                            menuPortalTargetId='new-channel-modal'
+                            helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                        />
+                    </div>
+                )}
+                {showManagedCategorySelector && (
+                    <div className='new-channel-modal-managed-category'>
+                        <CategorySelector
                             value={managedCategoryName}
                             onChange={setManagedCategoryName}
+                            getOptions={getSidebarCategoryNamesForTeam.current}
+                            label={formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'})}
+                            placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                             menuPortalTargetId='new-channel-modal'
                         />
                     </div>

@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {
     LogFilter,
     LogLevels,
@@ -244,7 +244,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                                 </Button>
                                 <ExternalLink
                                     location='download_logs'
-                                    className='btn btn-primary'
+                                    className={buttonClassNames({emphasis: 'primary'})}
                                     href={Client4.getUrl() + '/api/v4/logs/download'}
                                 >
                                     <FormattedMessage

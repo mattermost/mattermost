@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button, buttonClassNames} from '@mattermost/shared/components/button';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -106,7 +106,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 </Button>
                 <ExternalLink
                     location='feature_discovery'
-                    className='btn btn-tertiary btn-lg'
+                    className={buttonClassNames({emphasis: 'tertiary', size: 'lg'})}
                     href={learnMoreURL}
                     data-testid='featureDiscovery_secondaryCallToAction'
                 >
@@ -126,10 +126,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
 
         // by default we assume is not cloud, so the cta button is Start Trial (which will request a trial license)
         let ctaPrimaryButton = (
-            <StartTrialBtn
-                btnClass='btn btn-primary'
-                renderAsButton={true}
-            />
+            <StartTrialBtn renderAsButton={true}/>
         );
 
         if (isCloud) {
@@ -155,7 +152,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                 {ctaPrimaryButton}
                 <ExternalLink
                     location='feature_discovery'
-                    className='btn btn-secondary'
+                    className={buttonClassNames({emphasis: 'secondary'})}
                     href={learnMoreURL}
                     data-testid='featureDiscovery_secondaryCallToAction'
                 >
