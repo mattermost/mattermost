@@ -480,6 +480,10 @@ components:
         priority:
           type: string
           description: The priority label of a post, either empty, important, or urgent.
+          enum:
+            - ""
+            - important
+            - urgent
         requested_ack:
           type: boolean
           description: Whether the post author has requested acknowledgements.

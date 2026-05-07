@@ -19,8 +19,11 @@
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
+        - `manage_system` — `access_control_sync`
 
         When `job_type` is set, you must have the permission that matches that type (same mapping as above).
+
+        This endpoint does not accept `team_id`. To list `access_control_sync` jobs scoped to a team without `manage_system`, use `GET /api/v4/jobs/type/access_control_sync` with query parameter `team_id` set to the team GUID (requires `manage_team_access_rules` on that team).
       operationId: GetJobs
       parameters:
         - name: page
@@ -229,7 +232,7 @@
         __Minimum server version: 4.1__
 
         ##### Permissions
-        Must have permission to read the path `job_type`, using the same mapping as `GET /jobs`:
+        Must have permission to read the path `job_type`, using the same mapping as `GET /api/v4/jobs`:
 
         - `read_data_retention_job` — `data_retention`
         - `read_compliance_export_job` — `message_export`
@@ -237,13 +240,21 @@
         - `read_elasticsearch_post_aggregation_job` — `elasticsearch_post_aggregation`
         - `read_ldap_sync_job` — `ldap_sync`
         - `read_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `mobile_session_metadata`, `extract_content`
-        - `access_control_sync` — normally `manage_system`; if the query parameter `team_id` is set, team admins with `manage_team_access_rules` on that team may list `access_control_sync` jobs for that team without `manage_system`.
+        - `manage_system` — `access_control_sync`
+
+        When `job_type` is `access_control_sync` and query parameter `team_id` is set to a valid team GUID, team admins with `manage_team_access_rules` on that team may list jobs scoped to that team without `manage_system`. When `team_id` is set, results include only jobs whose stored data matches that team for the requested type.
       operationId: GetJobsByType
       parameters:
         - name: job_type
           in: path
           description: Job type
           required: true
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          description: |
+            Optional team GUID. When set, the server returns jobs of the given `job_type` whose job data includes this `team_id` (see server filtering). For `access_control_sync`, team admins with `manage_team_access_rules` on this team may use this parameter to read team-scoped jobs without `manage_system`.
           schema:
             type: string
         - name: page

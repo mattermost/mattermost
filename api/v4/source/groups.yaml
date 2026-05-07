@@ -314,7 +314,7 @@
         If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
-      operationId: LinkGroupSyncableTeamPath
+      operationId: LinkGroupSyncableForTeam
       parameters:
         - name: group_id
           in: path
@@ -355,7 +355,7 @@
         If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
-      operationId: UnlinkGroupSyncableTeamPath
+      operationId: UnlinkGroupSyncableForTeam
       parameters:
         - name: group_id
           in: path
@@ -400,7 +400,7 @@
         If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
-      operationId: LinkGroupSyncableChannelPath
+      operationId: LinkGroupSyncableForChannel
       parameters:
         - name: group_id
           in: path
@@ -444,7 +444,7 @@
         If the group has `allow_reference` disabled, also requires `sysconsole_read_user_management_groups`.
 
         __Minimum server version__: 5.11
-      operationId: UnlinkGroupSyncableChannelPath
+      operationId: UnlinkGroupSyncableForChannel
       parameters:
         - name: group_id
           in: path
@@ -485,7 +485,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: GetGroupSyncableTeamPath
+      operationId: GetGroupSyncableForTeamId
       parameters:
         - name: group_id
           in: path
@@ -528,7 +528,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: GetGroupSyncableChannelPath
+      operationId: GetGroupSyncableForChannelId
       parameters:
         - name: group_id
           in: path
@@ -571,7 +571,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: GetGroupSyncablesTeamPath
+      operationId: GetGroupSyncablesTeams
       parameters:
         - name: group_id
           in: path
@@ -610,7 +610,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: GetGroupSyncablesChannelPath
+      operationId: GetGroupSyncablesChannels
       parameters:
         - name: group_id
           in: path
@@ -650,7 +650,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: PatchGroupSyncableTeamPath
+      operationId: PatchGroupSyncableForTeam
       parameters:
         - name: group_id
           in: path
@@ -702,7 +702,7 @@
         Must have `manage_system` permission.
 
         __Minimum server version__: 5.11
-      operationId: PatchGroupSyncableChannelPath
+      operationId: PatchGroupSyncableForChannel
       parameters:
         - name: group_id
           in: path
