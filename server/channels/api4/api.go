@@ -468,8 +468,6 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.Preferences = api.BaseRoutes.User.PathPrefix("/preferences").Subrouter()
 	api.BaseRoutes.Posts = api.BaseRoutes.APIRoot.PathPrefix("/posts").Subrouter()
 	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.Cards = api.BaseRoutes.APIRoot.PathPrefix("/cards").Subrouter()
-	api.BaseRoutes.Card = api.BaseRoutes.Cards.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
 
 	api.BaseRoutes.Roles = api.BaseRoutes.APIRoot.PathPrefix("/roles").Subrouter()
