@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 import React from 'react';
 
 // All pdfjs-dist/* imports map to the same file via moduleNameMapper.
 // Use the imported reference directly — separate jest.mock() calls for different
 // pdfjs paths resolve to the same key and silently overwrite each other.
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 import PDFPreview from 'components/pdf_preview';
 import type {Props} from 'components/pdf_preview';
