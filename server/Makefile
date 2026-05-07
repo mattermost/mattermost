@@ -160,7 +160,7 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.2
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.6.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
@@ -179,7 +179,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
 	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.1%2Bac0a223-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.2%2B3b1ec24-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.3%2Bcab391a-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4%2B5855fe1-fips
 endif
 

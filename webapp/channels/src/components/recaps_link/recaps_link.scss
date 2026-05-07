@@ -77,5 +77,26 @@
             font-weight: 400;
         }
     }
+
+    .SidebarLink.unread-title .icon {
+        color: var(--sidebar-text);
+        opacity: 1;
+    }
+
+    .RecapsFailedIcon {
+        display: flex;
+        align-items: center;
+        color: var(--away-indicator);
+    }
+}
+
+#SidebarContainer .SidebarRecaps .SidebarLink:hover {
+    padding-right: 16px;
+
+    .badge,
+    .RecapsFailedIcon {
+        position: initial;
+        visibility: visible;
+    }
 }
 

@@ -889,36 +889,6 @@ func (_m *ChannelStore) GetByNamesIncludeDeleted(teamID string, names []string, 
 	return r0, r1
 }
 
-// GetChannelCounts provides a mock function with given fields: teamID, userID
-func (_m *ChannelStore) GetChannelCounts(teamID string, userID string) (*model.ChannelCounts, error) {
-	ret := _m.Called(teamID, userID)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetChannelCounts")
-	}
-
-	var r0 *model.ChannelCounts
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.ChannelCounts, error)); ok {
-		return rf(teamID, userID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelCounts); ok {
-		r0 = rf(teamID, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelCounts)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(teamID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetChannelMembersForExport provides a mock function with given fields: userID, teamID, includeArchivedChannel
 func (_m *ChannelStore) GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error) {
 	ret := _m.Called(userID, teamID, includeArchivedChannel)
