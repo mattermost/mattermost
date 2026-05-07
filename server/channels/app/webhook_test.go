@@ -84,6 +84,7 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 		})
 		require.NotNil(t, err)
 		assert.Equal(t, "api.post.create_post.channel_root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
 	t.Run("rejects invalid root_id", func(t *testing.T) {
@@ -93,6 +94,7 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 		})
 		require.NotNil(t, err)
 		assert.Equal(t, "api.context.invalid_param.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 }
 
