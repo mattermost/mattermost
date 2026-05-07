@@ -3512,50 +3512,6 @@ func (c *Client4) PatchCard(ctx context.Context, postId string, patch *PostPatch
 	return DecodeJSONFromResponse[*Post](r)
 }
 
-// CreateCardWithQuery is like CreateCard but appends query parameters to the request URL (for example set_online).
-func (c *Client4) CreateCardWithQuery(ctx context.Context, post *Post, query url.Values) (*Post, *Response, error) {
-	path, err := c.cardsRoute().String()
-	if err != nil {
-		return nil, nil, err
-	}
-	if len(query) > 0 {
-		path = path + "?" + query.Encode()
-	}
-	r, err := c.DoAPIPostJSON(ctx, path, post)
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*Post](r)
-}
-
-// CreateCardWithBody sends raw bytes as the POST body to /api/v4/cards.
-func (c *Client4) CreateCardWithBody(ctx context.Context, body []byte) (*http.Response, error) {
-	path, err := c.cardsRoute().String()
-	if err != nil {
-		return nil, err
-	}
-	return c.doAPIRequestBytes(ctx, http.MethodPost, c.APIURL+path, body, "")
-}
-
-// UpdateCardWithBody sends raw bytes as the PUT body to /api/v4/cards/{postId}.
-func (c *Client4) UpdateCardWithBody(ctx context.Context, postId string, body []byte) (*http.Response, error) {
-	path, err := c.cardRoute(postId).String()
-	if err != nil {
-		return nil, err
-	}
-	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+path, body, "")
-}
-
-// PatchCardWithBody sends raw bytes as the PUT body to /api/v4/cards/{postId}/patch.
-func (c *Client4) PatchCardWithBody(ctx context.Context, postId string, body []byte) (*http.Response, error) {
-	path, err := c.cardRoute(postId).Join("patch").String()
-	if err != nil {
-		return nil, err
-	}
-	return c.doAPIRequestBytes(ctx, http.MethodPut, c.APIURL+path, body, "")
-}
-
 // SetPostUnread marks channel where post belongs as unread on the time of the provided post.
 func (c *Client4) SetPostUnread(ctx context.Context, userId string, postId string, collapsedThreadsSupported bool) (*Response, error) {
 	reqData := map[string]bool{"collapsed_threads_supported": collapsedThreadsSupported}
