@@ -3211,9 +3211,10 @@ func TestUpdateUserActive(t *testing.T) {
 		_, err = th.Client.UpdateUserActive(context.Background(), bot.UserId, false)
 		require.NoError(t, err)
 
-		// Re-activate using system admin to leave state clean.
-		_, err = th.SystemAdminClient.UpdateUserActive(context.Background(), bot.UserId, true)
+		// Confirm the bot is now inactive.
+		botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
+		require.True(t, botUser.DeleteAt > 0, "bot should be inactive after deactivation")
 	})
 }
 
