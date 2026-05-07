@@ -21,8 +21,10 @@ func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetIncoming", func(t *testing.T) { testWebhookStoreGetIncoming(t, rctx, ss) })
 	t.Run("GetIncomingList", func(t *testing.T) { testWebhookStoreGetIncomingList(t, rctx, ss) })
 	t.Run("GetIncomingListByUser", func(t *testing.T) { testWebhookStoreGetIncomingListByUser(t, rctx, ss) })
+	t.Run("GetIncomingListByUserOrdering", func(t *testing.T) { testWebhookStoreGetIncomingListByUserOrdering(t, rctx, ss) })
 	t.Run("GetIncomingByTeam", func(t *testing.T) { testWebhookStoreGetIncomingByTeam(t, rctx, ss) })
 	t.Run("GetIncomingByTeamByUser", func(t *testing.T) { TestWebhookStoreGetIncomingByTeamByUser(t, rctx, ss) })
+	t.Run("GetIncomingByTeamByUserOrdering", func(t *testing.T) { testWebhookStoreGetIncomingByTeamByUserOrdering(t, rctx, ss) })
 	t.Run("GetIncomingByTeamByChannel", func(t *testing.T) { testWebhookStoreGetIncomingByChannel(t, rctx, ss) })
 	t.Run("DeleteIncoming", func(t *testing.T) { testWebhookStoreDeleteIncoming(t, rctx, ss) })
 	t.Run("DeleteIncomingByChannel", func(t *testing.T) { testWebhookStoreDeleteIncomingByChannel(t, rctx, ss) })
@@ -31,10 +33,12 @@ func TestWebhookStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetOutgoing", func(t *testing.T) { testWebhookStoreGetOutgoing(t, rctx, ss) })
 	t.Run("GetOutgoingList", func(t *testing.T) { testWebhookStoreGetOutgoingList(t, rctx, ss) })
 	t.Run("GetOutgoingListByUser", func(t *testing.T) { testWebhookStoreGetOutgoingListByUser(t, rctx, ss) })
+	t.Run("GetOutgoingListByUserOrdering", func(t *testing.T) { testWebhookStoreGetOutgoingListByUserOrdering(t, rctx, ss) })
 	t.Run("GetOutgoingByChannel", func(t *testing.T) { testWebhookStoreGetOutgoingByChannel(t, rctx, ss) })
 	t.Run("GetOutgoingByChannelByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByChannelByUser(t, rctx, ss) })
 	t.Run("GetOutgoingByTeam", func(t *testing.T) { testWebhookStoreGetOutgoingByTeam(t, rctx, ss) })
 	t.Run("GetOutgoingByTeamByUser", func(t *testing.T) { testWebhookStoreGetOutgoingByTeamByUser(t, rctx, ss) })
+	t.Run("GetOutgoingByTeamByUserOrdering", func(t *testing.T) { testWebhookStoreGetOutgoingByTeamByUserOrdering(t, rctx, ss) })
 	t.Run("DeleteOutgoing", func(t *testing.T) { testWebhookStoreDeleteOutgoing(t, rctx, ss) })
 	t.Run("DeleteOutgoingByChannel", func(t *testing.T) { testWebhookStoreDeleteOutgoingByChannel(t, rctx, ss) })
 	t.Run("DeleteOutgoingByUser", func(t *testing.T) { testWebhookStoreDeleteOutgoingByUser(t, rctx, ss) })
@@ -614,4 +618,106 @@ func testWebhookStoreCountOutgoing(t *testing.T, rctx request.CTX, ss store.Stor
 	r, err := ss.Webhook().AnalyticsOutgoingCount("")
 	require.NoError(t, err)
 	require.NotEqual(t, 0, r, "should have at least 1 outgoing hook")
+}
+
+// testWebhookStoreGetIncomingListByUserOrdering verifies that GetIncomingListByUser returns
+// webhooks sorted by DisplayName then Id, so paginated views remain stable across page navigations.
+func testWebhookStoreGetIncomingListByUserOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	hookC := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Charlie"}
+	hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Alpha"}
+	hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: model.NewId(), DisplayName: "Bravo"}
+
+	var err error
+	hookC, err = ss.Webhook().SaveIncoming(hookC)
+	require.NoError(t, err)
+	hookA, err = ss.Webhook().SaveIncoming(hookA)
+	require.NoError(t, err)
+	hookB, err = ss.Webhook().SaveIncoming(hookB)
+	require.NoError(t, err)
+
+	hooks, err := ss.Webhook().GetIncomingListByUser(userId, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, hooks, 3)
+	require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+	require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+	require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
+}
+
+// testWebhookStoreGetIncomingByTeamByUserOrdering verifies that GetIncomingByTeamByUser returns
+// webhooks sorted by DisplayName then Id, so paginated views remain stable across page navigations.
+func testWebhookStoreGetIncomingByTeamByUserOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamId := model.NewId()
+	userId := model.NewId()
+
+	hookC := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Charlie"}
+	hookA := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Alpha"}
+	hookB := &model.IncomingWebhook{ChannelId: model.NewId(), UserId: userId, TeamId: teamId, DisplayName: "Bravo"}
+
+	var err error
+	hookC, err = ss.Webhook().SaveIncoming(hookC)
+	require.NoError(t, err)
+	hookA, err = ss.Webhook().SaveIncoming(hookA)
+	require.NoError(t, err)
+	hookB, err = ss.Webhook().SaveIncoming(hookB)
+	require.NoError(t, err)
+
+	hooks, err := ss.Webhook().GetIncomingByTeamByUser(teamId, userId, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, hooks, 3)
+	require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+	require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+	require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
+}
+
+// testWebhookStoreGetOutgoingListByUserOrdering verifies that GetOutgoingListByUser returns
+// webhooks sorted by DisplayName then Id, so paginated views remain stable across page navigations.
+func testWebhookStoreGetOutgoingListByUserOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
+	creatorId := model.NewId()
+
+	hookC := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+	hookA := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+	hookB := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: model.NewId(), CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+	var err error
+	hookC, err = ss.Webhook().SaveOutgoing(hookC)
+	require.NoError(t, err)
+	hookA, err = ss.Webhook().SaveOutgoing(hookA)
+	require.NoError(t, err)
+	hookB, err = ss.Webhook().SaveOutgoing(hookB)
+	require.NoError(t, err)
+
+	hooks, err := ss.Webhook().GetOutgoingListByUser(creatorId, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, hooks, 3)
+	require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+	require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+	require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
+}
+
+// testWebhookStoreGetOutgoingByTeamByUserOrdering verifies that GetOutgoingByTeamByUser returns
+// webhooks sorted by DisplayName then Id, so paginated views remain stable across page navigations.
+func testWebhookStoreGetOutgoingByTeamByUserOrdering(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamId := model.NewId()
+	creatorId := model.NewId()
+
+	hookC := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Charlie"}
+	hookA := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Alpha"}
+	hookB := &model.OutgoingWebhook{ChannelId: model.NewId(), CreatorId: creatorId, TeamId: teamId, CallbackURLs: []string{"http://nowhere.com/"}, DisplayName: "Bravo"}
+
+	var err error
+	hookC, err = ss.Webhook().SaveOutgoing(hookC)
+	require.NoError(t, err)
+	hookA, err = ss.Webhook().SaveOutgoing(hookA)
+	require.NoError(t, err)
+	hookB, err = ss.Webhook().SaveOutgoing(hookB)
+	require.NoError(t, err)
+
+	hooks, err := ss.Webhook().GetOutgoingByTeamByUser(teamId, creatorId, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, hooks, 3)
+	require.Equal(t, hookA.Id, hooks[0].Id, "first result should be Alpha (alphabetical order)")
+	require.Equal(t, hookB.Id, hooks[1].Id, "second result should be Bravo (alphabetical order)")
+	require.Equal(t, hookC.Id, hooks[2].Id, "third result should be Charlie (alphabetical order)")
 }
