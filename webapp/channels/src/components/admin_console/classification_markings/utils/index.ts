@@ -254,3 +254,44 @@ export async function saveUpsertSystemValue(linkedFieldId: string, optionId: str
         {field_id: linkedFieldId, value: optionId},
     ]);
 }
+
+// --- Channel classification linked field API ---
+
+export const CHANNEL_LINKED_FIELD_NAME = 'channel_classification';
+export const CHANNEL_LINKED_OBJECT_TYPE = 'channel';
+
+export async function fetchChannelClassificationField(): Promise<PropertyField | undefined> {
+    const maxItems = 500;
+    let fetched = 0;
+    let cursorId: string | undefined;
+    let cursorCreateAt: number | undefined;
+
+    while (fetched < maxItems) {
+        const fields = await Client4.getPropertyFields(GROUP_NAME, CHANNEL_LINKED_OBJECT_TYPE, TARGET_TYPE, '', {cursorId, cursorCreateAt}); // eslint-disable-line no-await-in-loop
+        const found = fields.find((f: PropertyField) => f.name === CHANNEL_LINKED_FIELD_NAME && f.delete_at === 0 && f.linked_field_id);
+        if (found || fields.length === 0) {
+            return found;
+        }
+
+        fetched += fields.length;
+        const last = fields[fields.length - 1];
+        cursorId = last.id;
+        cursorCreateAt = last.create_at;
+    }
+
+    return undefined;
+}
+
+export async function saveCreateChannelLinkedField(templateFieldId: string): Promise<PropertyField> {
+    return Client4.createPropertyField(GROUP_NAME, CHANNEL_LINKED_OBJECT_TYPE, {
+        name: CHANNEL_LINKED_FIELD_NAME,
+        type: 'select' as PropertyField['type'],
+        target_type: TARGET_TYPE,
+        target_id: '',
+        linked_field_id: templateFieldId,
+    });
+}
+
+export async function saveDeleteChannelLinkedField(fieldId: string): Promise<void> {
+    await Client4.deletePropertyField(GROUP_NAME, CHANNEL_LINKED_OBJECT_TYPE, fieldId);
+}

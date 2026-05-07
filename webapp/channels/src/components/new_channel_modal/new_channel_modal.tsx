@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -13,6 +13,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {setNewChannelWithBoardPreference} from 'mattermost-redux/actions/boards';
 import {createChannel} from 'mattermost-redux/actions/channels';
+import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {areManagedCategoriesEnabled} from 'mattermost-redux/selectors/entities/channel_categories';
@@ -23,8 +24,17 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
+import {
+    CHANNEL_LINKED_OBJECT_TYPE,
+    GROUP_NAME,
+} from 'components/admin_console/classification_markings/utils';
+import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
+import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
+import DropdownInput from 'components/dropdown_input';
+import type {ValueType} from 'components/dropdown_input';
+import Toggle from 'components/toggle';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
 import WithTooltip from 'components/with_tooltip';
@@ -78,6 +88,26 @@ const NewChannelModal = () => {
     const [channelInputError, setChannelInputError] = useState(false);
     const [managedCategoryName, setManagedCategoryName] = useState<string | undefined>(undefined);
 
+    // Classification markings
+    const classification = useClassificationMarkings();
+    const [classificationEnabled, setClassificationEnabled] = useState(false);
+    const [selectedClassificationId, setSelectedClassificationId] = useState('');
+
+    const classificationOptions = useMemo((): ValueType[] => {
+        return classification.levels.map((level) => ({
+            value: level.id,
+            label: level.name,
+        }));
+    }, [classification.levels]);
+
+    const selectedClassificationOption = useMemo((): ValueType | undefined => {
+        return classificationOptions.find((o) => o.value === selectedClassificationId);
+    }, [classificationOptions, selectedClassificationId]);
+
+    const selectedClassificationLevel = useMemo(() => {
+        return classification.levels.find((l) => l.id === selectedClassificationId);
+    }, [classification.levels, selectedClassificationId]);
+
     // create a board along with the channel
     const createBoardFromChannelPlugin = useSelector((state: GlobalState) => state.plugins.components.CreateBoardFromTemplate);
     const newChannelWithBoardPulsatingDotState = useSelector((state: GlobalState) => getPreference(state, Preferences.APP_BAR, Preferences.NEW_CHANNEL_WITH_BOARD_TOUR_SHOWED, ''));
@@ -119,6 +149,20 @@ const NewChannelModal = () => {
             if (error) {
                 onCreateChannelError(error);
                 return;
+            }
+
+            // Save channel classification if selected
+            if (classificationEnabled && selectedClassificationId && classification.channelField) {
+                try {
+                    await Client4.patchPropertyValues(
+                        GROUP_NAME,
+                        CHANNEL_LINKED_OBJECT_TYPE,
+                        newChannel!.id,
+                        [{field_id: classification.channelField.id, value: selectedClassificationId}],
+                    );
+                } catch {
+                    // Classification save failure should not block channel creation
+                }
             }
 
             handleOnModalCancel();
@@ -222,7 +266,8 @@ const NewChannelModal = () => {
         e.stopPropagation();
     };
 
-    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError;
+    const classificationValid = !classificationEnabled || Boolean(selectedClassificationId);
+    const canCreate = displayName && !urlError && type && !purposeError && !serverError && canCreateFromPluggable && !channelInputError && classificationValid;
 
     const newBoardInfoIcon = (
         <WithTooltip
@@ -332,6 +377,78 @@ const NewChannelModal = () => {
                         />
                     }
                 </div>
+                {classification.available && (
+                    <div className='new-channel-modal-classification'>
+                        <div className='new-channel-modal-classification__header'>
+                            <div className='new-channel-modal-classification__header-text'>
+                                <h4>
+                                    <FormattedMessage
+                                        id='channel_modal.classification.toggle_label'
+                                        defaultMessage='Channel classification'
+                                    />
+                                </h4>
+                            </div>
+                            <Toggle
+                                id='channelClassificationToggle'
+                                toggled={classificationEnabled}
+                                onToggle={() => setClassificationEnabled(!classificationEnabled)}
+                                toggleClassName='btn-toggle-primary'
+                                size='btn-md'
+                                ariaLabel={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
+                            />
+                        </div>
+                        <p className='new-channel-modal-classification__description'>
+                            <FormattedMessage
+                                id='channel_modal.classification.toggle_description'
+                                defaultMessage='When enabled, classification markings will appear for this channel. Individual channels cannot have a classification level lower than the global classification level.'
+                            />
+                        </p>
+                        {classificationEnabled && (
+                            <div className='new-channel-modal-classification__fields'>
+                                <div className='new-channel-modal-classification__field-row'>
+                                    <label className='new-channel-modal-classification__field-label'>
+                                        <FormattedMessage
+                                            id='channel_modal.classification.level_label'
+                                            defaultMessage='Classification level'
+                                        />
+                                    </label>
+                                    <div className='new-channel-modal-classification__field-input'>
+                                        <DropdownInput
+                                            className='new-channel-modal-classification__level-dropdown'
+                                            name='channelClassificationLevel'
+                                            testId='channelClassificationLevel'
+                                            options={classificationOptions}
+                                            value={selectedClassificationOption}
+                                            onChange={(selected: ValueType) => setSelectedClassificationId(selected.value)}
+                                            isClearable={false}
+                                            required={true}
+                                            styles={classificationPresetDropdownStyles}
+                                        />
+                                    </div>
+                                </div>
+                                {selectedClassificationLevel && (
+                                    <div className='new-channel-modal-classification__field-row'>
+                                        <label className='new-channel-modal-classification__field-label'>
+                                            <FormattedMessage
+                                                id='channel_modal.classification.banner_label'
+                                                defaultMessage='Banner text'
+                                            />
+                                        </label>
+                                        <div className='new-channel-modal-classification__field-input'>
+                                            <div className='new-channel-modal-classification__banner-text'>
+                                                <span
+                                                    className='new-channel-modal-classification__banner-color'
+                                                    style={{backgroundColor: selectedClassificationLevel.color}}
+                                                />
+                                                <span>{`**${selectedClassificationLevel.name}**`}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </GenericModal>
     );

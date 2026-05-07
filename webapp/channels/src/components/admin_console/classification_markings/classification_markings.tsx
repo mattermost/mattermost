@@ -37,12 +37,15 @@ import {
     DEFAULT_GLOBAL_BANNER,
     DISPLAY_BANNER_TOP,
     actionsToGlobalBanner,
+    fetchChannelClassificationField,
     fetchClassificationField,
     fetchLinkedClassificationField,
     fetchSystemClassificationValue,
     processClassificationField,
+    saveCreateChannelLinkedField,
     saveCreateField,
     saveCreateLinkedField,
+    saveDeleteChannelLinkedField,
     saveDeleteField,
     saveDeleteLinkedField,
     savePatchField,
@@ -370,9 +373,14 @@ export default function ClassificationMarkings({disabled}: Props) {
                 savedLinked = await savePatchLinkedField(savedLinked.id, effectiveBanner);
             }
 
-            // Push saved fields into Redux eagerly so the banner updates
-            // atomically rather than waiting for out-of-order WS events.
-            dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+            // Ensure the channel_classification linked field exists as part of the set.
+            const existingChannelField = await fetchChannelClassificationField();
+            if (!existingChannelField) {
+                const savedChannelField = await saveCreateChannelLinkedField(savedTemplate.id);
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked, savedChannelField]}});
+            } else {
+                dispatch({type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [savedTemplate, savedLinked]}});
+            }
 
             setExistingField(savedTemplate);
             setExistingLinkedField(savedLinked);
@@ -383,7 +391,13 @@ export default function ClassificationMarkings({disabled}: Props) {
             setInitialGlobalBanner(effectiveBanner);
             setInitialEnabled(true);
         } else if (templateField) {
-            // Linked field must be deleted before the template (deletion protection).
+            // Linked fields must be deleted before the template (deletion protection).
+            // Order: channel field -> system field -> template.
+            const channelField = await fetchChannelClassificationField();
+            if (channelField) {
+                await saveDeleteChannelLinkedField(channelField.id);
+                dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: channelField.id}});
+            }
             if (linkedField) {
                 await saveDeleteLinkedField(linkedField.id);
                 dispatch({type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: linkedField.id}});
