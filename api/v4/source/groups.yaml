@@ -301,7 +301,7 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/teams/{syncable_id}/link":
+  "/api/v4/groups/{group_id}/teams/{team_id}/link":
     post:
       tags:
         - groups
@@ -322,7 +322,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: team_id
           in: path
           description: Team GUID.
           required: true
@@ -363,7 +363,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: team_id
           in: path
           description: Team GUID.
           required: true
@@ -384,7 +384,7 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/channels/{syncable_id}/link":
+  "/api/v4/groups/{group_id}/channels/{channel_id}/link":
     post:
       tags:
         - groups
@@ -408,7 +408,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: channel_id
           in: path
           description: Channel GUID.
           required: true
@@ -452,7 +452,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: channel_id
           in: path
           description: Channel GUID.
           required: true
@@ -473,7 +473,7 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/teams/{syncable_id}":
+  "/api/v4/groups/{group_id}/teams/{team_id}":
     get:
       tags:
         - groups
@@ -493,7 +493,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: team_id
           in: path
           description: Team GUID.
           required: true
@@ -516,7 +516,7 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/channels/{syncable_id}":
+  "/api/v4/groups/{group_id}/channels/{channel_id}":
     get:
       tags:
         - groups
@@ -536,7 +536,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: channel_id
           in: path
           description: Channel GUID.
           required: true
@@ -637,7 +637,7 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/teams/{syncable_id}/patch":
+  "/api/v4/groups/{group_id}/teams/{team_id}/patch":
     put:
       tags:
         - groups
@@ -658,7 +658,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: team_id
           in: path
           description: Team GUID.
           required: true
@@ -689,7 +689,7 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-  "/api/v4/groups/{group_id}/channels/{syncable_id}/patch":
+  "/api/v4/groups/{group_id}/channels/{channel_id}/patch":
     put:
       tags:
         - groups
@@ -710,7 +710,7 @@
           required: true
           schema:
             type: string
-        - name: syncable_id
+        - name: channel_id
           in: path
           description: Channel GUID.
           required: true
