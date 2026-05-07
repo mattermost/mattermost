@@ -345,6 +345,14 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifes
 	}
 }
 
+// RunMultiHookExcluding is like RunMultiHook but skips plugins whose IDs appear in excludePluginIDs.
+// Fail-open semantics are preserved.
+func (ch *Channels) RunMultiHookExcluding(excludePluginIDs []string, hookRunnerFunc func(plugin.Hooks, *model.Manifest) bool, hookId int) {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		env.RunMultiPluginHookExcluding(excludePluginIDs, hookRunnerFunc, hookId)
+	}
+}
+
 // RunMultiHookWithRPCErr dispatches a hook closure across active plugins, surfacing RPC transport
 // errors. Returns nil in two cases that callers must distinguish themselves: (a) the plugin
 // environment is unavailable (plugins disabled, or not yet initialized), so the closure was never
@@ -370,4 +378,14 @@ func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {
 	}
 
 	return hooks, nil
+}
+
+// HooksForPluginWithRPCErr returns the full *WithRPCErr hook surface for the named plugin.
+// Returns an error if the plugin environment is unavailable, the plugin is not found, or not active.
+func (ch *Channels) HooksForPluginWithRPCErr(id string) (plugin.HooksWithRPCErr, error) {
+	env := ch.GetPluginsEnvironment()
+	if env == nil {
+		return nil, errors.New("plugin environment not available")
+	}
+	return env.HooksForPluginWithRPCErr(id)
 }

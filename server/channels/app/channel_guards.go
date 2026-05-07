@@ -134,8 +134,17 @@ func (a *App) UnregisterChannelGuard(rctx request.CTX, channelID, pluginID strin
 		return model.NewAppError("UnregisterChannelGuard", "app.channel_guard.invalid_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.Srv().Store().ChannelGuard().Delete(rctx, channelID, pluginID); err != nil {
+	rowsAffected, err := a.Srv().Store().ChannelGuard().Delete(rctx, channelID, pluginID)
+	if err != nil {
 		return model.NewAppError("UnregisterChannelGuard", "app.channel_guard.unregister.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+	if rowsAffected == 0 {
+		a.Srv().Log().Warn(
+			"UnregisterChannelGuard removed no rows; pluginID does not match any guard for this channel",
+			mlog.String("error_id", "unregister_no_matching_guard"),
+			mlog.String("channel_id", channelID),
+			mlog.String("plugin_id", pluginID),
+		)
 	}
 
 	ch := a.Channels()

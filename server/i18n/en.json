@@ -5715,6 +5715,10 @@
     "translation": "Unable to update channel."
   },
   {
+    "id": "app.channel.update_channel.plugin_type_mutation.app_error",
+    "translation": "Plugin {{.PluginID}} attempted to mutate channel type via ChannelWillBeUpdated; type changes must go through the dedicated type-change path"
+  },
+  {
     "id": "app.channel.update_channel.rejected_by_plugin",
     "translation": "Channel update rejected by plugin: {{.Reason}}"
   },
@@ -7667,6 +7671,14 @@
   {
     "id": "app.plugin.get_statuses.app_error",
     "translation": "Unable to get plugin statuses."
+  },
+  {
+    "id": "app.plugin.guard_hook_failed.app_error",
+    "translation": "Operation rejected: claiming plugin {{.PluginID}} hook call failed"
+  },
+  {
+    "id": "app.plugin.inactive_guard.app_error",
+    "translation": "Operation rejected: a required plugin is not active"
   },
   {
     "id": "app.plugin.install.app_error",

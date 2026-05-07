@@ -3212,10 +3212,10 @@ func (s *TimerLayerChannelBookmarkStore) UpdateSortOrder(bookmarkID string, chan
 	return result, err
 }
 
-func (s *TimerLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) error {
+func (s *TimerLayerChannelGuardStore) Delete(rctx request.CTX, channelID string, pluginID string) (int64, error) {
 	start := time.Now()
 
-	err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
+	result, err := s.ChannelGuardStore.Delete(rctx, channelID, pluginID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3225,7 +3225,7 @@ func (s *TimerLayerChannelGuardStore) Delete(rctx request.CTX, channelID string,
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelGuardStore.Delete", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerChannelGuardStore) GetAll(rctx request.CTX) ([]*store.ChannelGuard, error) {
