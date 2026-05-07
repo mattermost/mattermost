@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.25.8
+go 1.25.9
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -55,6 +55,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
+	github.com/prometheus/common v0.67.5
 	github.com/redis/rueidis v1.0.73
 	github.com/reflog/dateconstraints v0.2.1
 	github.com/rs/cors v1.11.1
@@ -181,7 +182,6 @@ require (
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.26 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
-	github.com/prometheus/common v0.67.5 // indirect
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -228,5 +228,8 @@ require (
 	modernc.org/sqlite v1.48.0 // indirect
 )
 
-// See MM-66167 for more details.
-replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260120151306-2f9c67d7e57f
+// See MM-66167, MM-68222 for more details.
+replace github.com/vmihailenco/msgpack/v5 => github.com/mattermost/msgpack/v5 v5.0.0-20260408165622-cadfad56a815
+
+// See MM-63434 for more details.
+replace github.com/ledongthuc/pdf => github.com/jgheithcock/pdf v0.0.0-20260404175814-28cd6530c1fe

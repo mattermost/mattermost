@@ -14,7 +14,7 @@
 * Note: This test requires webhook server running. Initiate `npm run start:webhook` to start.
 */
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 const webhookUtils = require('../../../../utils/webhook_utils');
 
@@ -35,7 +35,7 @@ describe('Interactive Dialog - Multiselect', () => {
         cy.apiCreateTeam('test-team', 'Test Team').then(({team}) => {
             cy.visit(`/${team.name}`);
 
-            const webhookBaseUrl = Cypress.env().webhookBaseUrl;
+            const webhookBaseUrl = Cypress.expose().webhookBaseUrl;
 
             // Create command for tests with defaults
             const commandWithDefaults = {

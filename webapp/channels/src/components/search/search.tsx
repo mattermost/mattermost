@@ -6,6 +6,8 @@ import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {isDesktopApp, getDesktopVersion, isMacApp} from '@mattermost/shared/utils/user_agent';
+
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
@@ -24,7 +26,6 @@ import Popover from 'components/widgets/popover';
 import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import type {SearchType} from 'types/store/rhs';
 
@@ -100,6 +101,7 @@ const Search = ({
     isMobileView,
     isPinnedPosts,
     isRhsExpanded,
+    isSearch,
     isSearchingTerm,
     searchTerms = '',
     searchType,
@@ -168,10 +170,10 @@ const Search = ({
     }, [hideSearchBar, currentChannelName]);
 
     useEffect((): void => {
-        if (isMobileView && isSideBarRight) {
+        if (isMobileView && isSideBarRight && isSearch) {
             handleFocus();
         }
-    }, [isMobileView, isSideBarRight]);
+    }, [isMobileView, isSideBarRight, isSearch]);
 
     useEffect((): void => {
         if (!isMobileView) {

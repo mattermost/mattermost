@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {Channel} from '@mattermost/types/channels';
-import {ChainableT} from 'tests/types';
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../../support/env';
 import {SimpleUser} from '../../autocomplete/helpers';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import {newTestPassword} from '@/utils';
+import {ChainableT} from '@/types';
 
 const admin = getAdminAccount();
 
@@ -39,7 +41,7 @@ export function searchForChannel(name: string) {
         type(name);
 }
 
-function createChannel(channelType, teamId, userToAdd = null): ChainableT<Channel> {
+function createChannel(channelType: string, teamId: string, userToAdd: {email: string} | null = null): ChainableT<Channel> {
     // # Create a channel as sysadmin
     return cy.externalRequest({
         user: admin,
@@ -116,7 +118,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
     return {
         ironman: {
             username: withTimestamp('ironman', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Tony',
             last_name: 'Stark',
             email: createEmail('ironman', reverseTimeStamp),
@@ -124,7 +126,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         hulk: {
             username: withTimestamp('hulk', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Bruce',
             last_name: 'Banner',
             email: createEmail('hulk', reverseTimeStamp),
@@ -132,7 +134,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         hawkeye: {
             username: withTimestamp('hawkeye', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Clint',
             last_name: 'Barton',
             email: createEmail('hawkeye', reverseTimeStamp),
@@ -140,7 +142,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         deadpool: {
             username: withTimestamp('deadpool', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Wade',
             last_name: 'Wilson',
             email: createEmail('deadpool', reverseTimeStamp),
@@ -148,7 +150,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         captainamerica: {
             username: withTimestamp('captainamerica', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Steve',
             last_name: 'Rogers',
             email: createEmail('captainamerica', reverseTimeStamp),
@@ -156,7 +158,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         doctorstrange: {
             username: withTimestamp('doctorstrange', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Stephen',
             last_name: 'Strange',
             email: createEmail('doctorstrange', reverseTimeStamp),
@@ -164,7 +166,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         thor: {
             username: withTimestamp('thor', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Thor',
             last_name: 'Odinson',
             email: createEmail('thor', reverseTimeStamp),
@@ -172,7 +174,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         loki: {
             username: withTimestamp('loki', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'Loki',
             last_name: 'Odinson',
             email: createEmail('loki', reverseTimeStamp),
@@ -180,7 +182,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         dot: {
             username: withTimestamp('dot.dot', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'z1First',
             last_name: 'z1Last',
             email: createEmail('dot', reverseTimeStamp),
@@ -188,7 +190,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         dash: {
             username: withTimestamp('dash-dash', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'z2First',
             last_name: 'z2Last',
             email: createEmail('dash', reverseTimeStamp),
@@ -196,7 +198,7 @@ export function getTestUsers(): Record<string, SimpleUser> {
         },
         underscore: {
             username: withTimestamp('under_score', reverseTimeStamp),
-            password: 'passwd',
+            password: newTestPassword(),
             first_name: 'z3First',
             last_name: 'z3Last',
             email: createEmail('underscore', reverseTimeStamp),
@@ -205,17 +207,17 @@ export function getTestUsers(): Record<string, SimpleUser> {
     };
 }
 
-export function createPrivateChannel(teamId: string, userToAdd = null) {
+export function createPrivateChannel(teamId: string, userToAdd: {email: string} | null = null) {
     // # Create a private channel as sysadmin
     return createChannel('P', teamId, userToAdd);
 }
 
-export function createPublicChannel(teamId, userToAdd = null) {
+export function createPublicChannel(teamId: string, userToAdd: {email: string} | null = null) {
     // # Create a public channel as sysadmin
     return createChannel('O', teamId, userToAdd);
 }
 
-export function searchAndVerifyChannel(channel, shouldExist = true) {
+export function searchAndVerifyChannel(channel: Cypress.Channel, shouldExist = true) {
     const name = channel.display_name;
     searchForChannel(name);
 
@@ -229,7 +231,7 @@ export function searchAndVerifyChannel(channel, shouldExist = true) {
     }
 }
 
-export function searchAndVerifyUser(user) {
+export function searchAndVerifyUser(user: Cypress.UserProfile) {
     // # Start @ mentions autocomplete with username
     cy.uiGetPostTextBox().
         as('input').

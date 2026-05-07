@@ -160,9 +160,11 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+.planning/
 
 **/CLAUDE.local.md
 **/CLAUDE.md
+.claude
 .cursorrules
 .cursor/
 server/prev-report.xml

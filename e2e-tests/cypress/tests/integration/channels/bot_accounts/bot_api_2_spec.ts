@@ -14,7 +14,7 @@ import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Bot accounts ownership and API', () => {
     let newTeam: Team;
@@ -49,7 +49,9 @@ describe('Bot accounts ownership and API', () => {
 
         // # Create a test bot
         cy.apiCreateBot().then(({bot}) => {
-            ({user_id: botId, username: botUsername, display_name: botName} = bot);
+            botId = bot.user_id;
+            botUsername = bot.username;
+            botName = bot.display_name!;
             cy.apiPatchUserRoles(bot.user_id, ['system_admin', 'system_user']);
         });
     });
@@ -66,7 +68,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg1 = 'this is a bot message ' + botName;
 
                 // # Create a post
-                cy.apiCreatePost(channel.id, msg1 + ' to @sysadmin', '', {}, token);
+                cy.apiCreatePost(channel.id, msg1 + ' to @sysadmin', '', {}, token!);
 
                 // # Re-login to validate post presence
                 cy.apiAdminLogin();
@@ -87,7 +89,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg1 = 'this is a bot message ' + botName;
 
                 // # Post test message
-                cy.postBotMessage({message: msg1, token, channelId: channel.id});
+                cy.postBotMessage({message: msg1, token: token!, channelId: channel.id});
 
                 // # Validate post presence
                 cy.visit(`/${newTeam.name}/channels/` + channel.name);
@@ -104,7 +106,7 @@ describe('Bot accounts ownership and API', () => {
         // # Create token for the bot
         cy.apiAccessToken(botId, 'some text').then(({token}) => {
             const msg1 = 'this is a bot message ' + botName;
-            cy.postBotMessage({channelId: newChannel.id, message: msg1, props: {attachments: [{pretext: 'Look some text', text: 'This is text'}]}, token});
+            cy.postBotMessage({channelId: newChannel.id, message: msg1, props: {attachments: [{pretext: 'Look some text', text: 'This is text'}]}, token: token!});
 
             // # Visit test channel
             cy.visit(`/${newTeam.name}/channels/` + newChannel.name);
@@ -120,7 +122,7 @@ describe('Bot accounts ownership and API', () => {
             cy.apiUpdateConfig(newSettings);
 
             const msg2 = 'this is a bot message2 ' + botName;
-            cy.postBotMessage({channelId: newChannel.id, message: msg2, props: {attachments: [{pretext: 'Look some text', text: 'This is text'}]}, token});
+            cy.postBotMessage({channelId: newChannel.id, message: msg2, props: {attachments: [{pretext: 'Look some text', text: 'This is text'}]}, token: token!});
 
             cy.visit(`/${newTeam.name}/channels/` + newChannel.name);
 
@@ -161,7 +163,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg1 = 'this is a bot message ' + botName;
 
                 // # Create a post
-                cy.postBotMessage({channelId: channel.id, message: msg1, token});
+                cy.postBotMessage({channelId: channel.id, message: msg1, token: token!});
 
                 cy.visit(`/${newTeam.name}/channels/` + channel.name);
 
@@ -182,7 +184,7 @@ describe('Bot accounts ownership and API', () => {
                 cy.apiLogout();
 
                 // # Create a post
-                cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
+                cy.postBotMessage({channelId: channel.id, message: msg2, token: token!, failOnStatus: false}).then(({status}) => {
                     // * Validate that posting failed
                     expect(status).to.equal(401);
                 });
@@ -196,7 +198,7 @@ describe('Bot accounts ownership and API', () => {
                 // # Try to post again
 
                 // * Validate that posting works
-                cy.postBotMessage({channelId: channel.id, message: msg2, token});
+                cy.postBotMessage({channelId: channel.id, message: msg2, token: token!});
 
                 // * Validate post presence
                 cy.visit(`/${newTeam.name}/channels/` + channel.name);
@@ -217,7 +219,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg1 = 'this is a bot message ' + botName;
 
                 // # Create a post
-                cy.postBotMessage({channelId: channel.id, message: msg1, token});
+                cy.postBotMessage({channelId: channel.id, message: msg1, token: token!});
 
                 // # Validate post presence
                 cy.visit(`/${newTeam.name}/channels/` + channel.name);
@@ -232,7 +234,7 @@ describe('Bot accounts ownership and API', () => {
 
                 cy.findByText(`${botName} (@${botUsername})`).then((el) => {
                     // # Make sure it's on the screen
-                    cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+                    cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
                     cy.get(`#${id}_deactivate`).click();
                 });
 
@@ -240,7 +242,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg2 = 'this is a bot message2 ' + botName;
 
                 // # Create a post
-                cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
+                cy.postBotMessage({channelId: channel.id, message: msg2, token: token!, failOnStatus: false}).then(({status}) => {
                     // * Validate that posting failed
                     expect(status).to.equal(401);
                 });
@@ -251,12 +253,12 @@ describe('Bot accounts ownership and API', () => {
 
                 cy.findByText(`${botName} (@${botUsername})`).scrollIntoView().then((el) => {
                     // # Make sure it's on the screen
-                    cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+                    cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
                     cy.get(`#${id}_activate`).click().wait(TIMEOUTS.ONE_SEC);
 
                     // # Try to post again
                     // * Validate that posting works
-                    cy.postBotMessage({channelId: channel.id, message: msg2, token});
+                    cy.postBotMessage({channelId: channel.id, message: msg2, token: token!});
 
                     // # Validate post presence
                     cy.visit(`/${newTeam.name}/channels/` + channel.name);
@@ -278,7 +280,7 @@ describe('Bot accounts ownership and API', () => {
                 const msg1 = 'this is a bot message ' + botName;
 
                 // # Create a post
-                cy.postBotMessage({channelId: channel.id, message: msg1, token});
+                cy.postBotMessage({channelId: channel.id, message: msg1, token: token!});
 
                 // # Validate post presence
                 cy.visit(`/${newTeam.name}/channels/` + channel.name);
@@ -293,7 +295,7 @@ describe('Bot accounts ownership and API', () => {
 
                 cy.findByText(`${botName} (@${botUsername})`).scrollIntoView().then((el) => {
                     // # Make sure it's on the screen
-                    cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+                    cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
                     // # Delete token
                     cy.get(`#${id}_delete`).click();
@@ -303,7 +305,7 @@ describe('Bot accounts ownership and API', () => {
                     const msg2 = 'this is a bot message2 ' + botName;
 
                     // # Create a post
-                    cy.postBotMessage({channelId: channel.id, message: msg2, token, failOnStatus: false}).then(({status}) => {
+                    cy.postBotMessage({channelId: channel.id, message: msg2, token: token!, failOnStatus: false}).then(({status}) => {
                         // * Validate that posting failed
                         expect(status).to.equal(401);
                     });

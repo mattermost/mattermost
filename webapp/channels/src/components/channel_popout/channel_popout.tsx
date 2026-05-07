@@ -6,6 +6,7 @@ import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useParams} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ChannelType} from '@mattermost/types/channels';
 
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
@@ -23,8 +24,8 @@ import SidebarRight from 'components/sidebar_right';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Constants from 'utils/constants';
+import usePopoutFocus from 'utils/popouts/use_popout_focus';
 import usePopoutTitle from 'utils/popouts/use_popout_title';
-import {isDesktopApp} from 'utils/user_agent';
 
 import './channel_popout.scss';
 
@@ -48,6 +49,7 @@ export default function ChannelPopout() {
     const rhsOpen = useSelector(getIsRhsOpen);
 
     usePopoutTitle(getPopoutChannelTitle(channel?.type));
+    usePopoutFocus(channelId);
 
     useEffect(() => {
         if (teamId) {

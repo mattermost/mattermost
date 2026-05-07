@@ -6,6 +6,8 @@ import type {ChangeEvent, FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {buttonClassNames} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
@@ -18,7 +20,6 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import WithTooltip from 'components/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
@@ -517,7 +518,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     {removeImageIcon}
                                 </div>
                                 <div
-                                    className='btn btn-primary btn-file'
+                                    className={buttonClassNames({emphasis: 'primary'}, 'btn-file')}
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
@@ -714,7 +715,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 errors={[this.state.error]}
                             />
                             <Link
-                                className='btn btn-tertiary'
+                                className={buttonClassNames({emphasis: 'tertiary'})}
                                 to={`/${this.props.team.name}/integrations/bots`}
                             >
                                 <FormattedMessage
@@ -723,7 +724,6 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 />
                             </Link>
                             <SpinnerButton
-                                className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.adding}
                                 spinningText={buttonActiveText}

@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// This file implements the "User Attributes" feature (formerly "Custom
+// Profile Attributes" / CPA). Internal identifiers retain the old naming
+// for backward compatibility. See MM-68235.
+
 package app
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -13,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 const (
@@ -35,12 +39,11 @@ func (a *App) GetCPAField(rctx request.CTX, fieldID string) (*model.CPAField, *m
 
 	field, appErr := a.GetPropertyField(rctx, groupID, fieldID)
 	if appErr != nil {
-		switch {
-		case errors.Is(appErr, sql.ErrNoRows):
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		default:
-			return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
+		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.get_property_field.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(field)
@@ -105,6 +108,10 @@ func (a *App) CreateCPAField(rctx request.CTX, field *model.CPAField) (*model.CP
 		return nil, appErr
 	}
 
+	if appErr = model.ValidateCPAFieldName(field.Name); appErr != nil {
+		return nil, appErr
+	}
+
 	newField, appErr := a.CreatePropertyField(rctx, field.ToPropertyField(), false, "")
 	if appErr != nil {
 		return nil, appErr
@@ -127,6 +134,7 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 	if appErr != nil {
 		return nil, appErr
 	}
+	originalName := existingField.Name
 
 	shouldDeleteValues := false
 	if patch.Type != nil && *patch.Type != existingField.Type {
@@ -141,6 +149,14 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 		return nil, appErr
 	}
 
+	// Lenient grandfather: only validate Name against CEL rules when it actually changes.
+	// Pre-existing fields with invalid names remain editable on all other attrs.
+	if existingField.Name != originalName {
+		if appErr = model.ValidateCPAFieldName(existingField.Name); appErr != nil {
+			return nil, appErr
+		}
+	}
+
 	groupID, appErr := a.CpaGroupID()
 	if appErr != nil {
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
@@ -148,12 +164,11 @@ func (a *App) PatchCPAField(rctx request.CTX, fieldID string, patch *model.Prope
 
 	patchedField, appErr := a.UpdatePropertyField(rctx, groupID, existingField.ToPropertyField(), false, "")
 	if appErr != nil {
-		switch {
-		case errors.Is(appErr, sql.ErrNoRows):
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		default:
-			return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
+		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_update.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	cpaField, err := model.NewCPAFieldFromPropertyField(patchedField)
@@ -185,12 +200,11 @@ func (a *App) DeleteCPAField(rctx request.CTX, id string) *model.AppError {
 	}
 
 	if appErr := a.DeletePropertyField(rctx, groupID, id, false, ""); appErr != nil {
-		switch {
-		case errors.Is(appErr, sql.ErrNoRows):
+		var notFoundErr *store.ErrNotFound
+		if errors.As(appErr, &notFoundErr) {
 			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		default:
-			return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
+		return model.NewAppError("DeleteCPAField", "app.custom_profile_attributes.property_field_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldDeleted, "", "", "", nil, "")

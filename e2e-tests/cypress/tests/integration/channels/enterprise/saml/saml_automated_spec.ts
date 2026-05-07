@@ -11,9 +11,8 @@
 // Group: @channels @enterprise @saml
 // Skip:  @headless @electron @firefox // run on Chrome (headed) only
 
-import {UserCollection} from 'tests/support/okta_commands';
-
-import users from '../../../../fixtures/saml_users.json';
+import {UserCollection} from '@/support/okta_commands';
+import users from '@/fixtures/saml_users.json';
 
 //Manual Setup required: Follow the instructions mentioned in the mattermost/platform-private/config/saml-okta-setup.txt file
 context('LDAP SAML - Automated Tests (SAML TESTS)', () => {
@@ -25,7 +24,7 @@ context('LDAP SAML - Automated Tests (SAML TESTS)', () => {
         oktaBaseUrl,
         oktaMMAppName,
         oktaMMEntityId,
-    } = Cypress.env();
+    } = Cypress.expose();
     const idpUrl = `${oktaBaseUrl}/app/${oktaMMAppName}/${oktaMMEntityId}/sso/saml`;
     const idpMetadataUrl = `${oktaBaseUrl}/app/${oktaMMEntityId}/sso/saml/metadata`;
 
@@ -62,7 +61,8 @@ context('LDAP SAML - Automated Tests (SAML TESTS)', () => {
         },
     };
 
-    let testSettings;
+    // TestSettings type is not exported from saml_commands; uses SAMLUser | null for user field
+    let testSettings: any;
 
     //Note: the assumption is that this test suite runs on a clean setup (empty DB) which would ensure that the users are not present in the Mattermost instance beforehand
     describe('LDAP SAML - Automated Tests (SAML TESTS)', () => {

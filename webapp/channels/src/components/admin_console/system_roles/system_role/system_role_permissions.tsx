@@ -275,38 +275,6 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
             );
         }
 
-        if (this.props.role.name === Constants.PERMISSIONS_SECURE_CONNECTION_MANAGER) {
-            return (
-                <>
-                    <p>
-                        <FormattedMessage
-                            id='admin.permissions.roles.system_secure_connection_manager.introduction'
-                            defaultMessage='The built-in Secure Connection Manager role can be used to delegate the ability to create, manage, and remove <a>secure connections</a> to remote servers to users other than the System Admin.'
-                            values={{
-                                a: (chunks) => (
-                                    <ExternalLink
-                                        href='https://docs.mattermost.com/administration-guide/onboard/connected-workspaces.html'
-                                        location='adminConsoleSystemRoles'
-                                    >
-                                        {chunks}
-                                    </ExternalLink>
-                                ),
-                            }}
-                        />
-                    </p>
-                    <p>
-                        <FormattedMessage
-                            id='admin.permissions.roles.system_secure_connection_manager.permissions_info'
-                            defaultMessage='This role has the <b>manage_secure_connections</b> permission, which allows creating, editing, and deleting secure connections to remote servers.'
-                            values={{
-                                b: (chunks) => <b>{chunks}</b>,
-                            }}
-                        />
-                    </p>
-                </>
-            );
-        }
-
         if (this.props.role.name === Constants.PERMISSIONS_SYSTEM_USER_MANAGER) {
             let permissionsToShow: Record<string, boolean> = {};
             Object.keys(permissionsMap).forEach((permission) => {

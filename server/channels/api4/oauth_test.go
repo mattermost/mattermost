@@ -85,7 +85,7 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
-	t.Skip("https://mattermost.atlassian.net/browse/MM-62895")
+	// MM-62895: re-enabled to collect failure data (14mo, empty Jira description).
 
 	mainHelper.Parallel(t)
 

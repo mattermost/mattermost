@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -49,7 +50,6 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 
 import {Constants, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidPassword} from 'utils/password';
-import {isDesktopApp} from 'utils/user_agent';
 import {isValidUsername} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';

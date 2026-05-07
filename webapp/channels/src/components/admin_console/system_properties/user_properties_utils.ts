@@ -186,6 +186,20 @@ export const useUserPropertyFields = () => {
 
             return next;
         },
+        isEqual: (a, b) => {
+            if (a.order.length !== b.order.length) {
+                return false;
+            }
+            if (!a.order.every((id, i) => id === b.order[i])) {
+                return false;
+            }
+            const aKeys = Object.keys(a.data);
+            const bKeys = Object.keys(b.data);
+            if (aKeys.length !== bKeys.length) {
+                return false;
+            }
+            return aKeys.every((key) => a.data[key] === b.data[key]);
+        },
 
     }), []));
 

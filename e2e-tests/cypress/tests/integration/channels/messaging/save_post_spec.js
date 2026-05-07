@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @messaging
 
-import {verifySavedPost, verifyUnsavedPost} from '../../../support/ui/post';
+import {verifySavedPost, verifyUnsavedPost} from '@/support/ui/post';
 
 describe('Save Post', () => {
     before(() => {

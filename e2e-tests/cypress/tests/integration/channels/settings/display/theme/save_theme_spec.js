@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @account_setting
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Settings > Display > Theme > Save', () => {
     before(() => {

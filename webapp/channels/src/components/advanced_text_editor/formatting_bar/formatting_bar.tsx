@@ -9,8 +9,7 @@ import {CSSTransition} from 'react-transition-group';
 import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
@@ -130,6 +129,11 @@ interface FormattingBarProps {
      * e.g: message priority picker
      */
     additionalControls?: React.ReactNodeArray;
+
+    /**
+     * AI actions menu rendered at the far left of the formatting bar
+     */
+    aiActionsMenu?: React.ReactNode;
 }
 
 const DEFAULT_MIN_MODE_X_COORD = 55;
@@ -142,6 +146,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
         disableControls,
         location,
         additionalControls,
+        aiActionsMenu,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
 
@@ -225,6 +230,8 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
             ref={formattingBarRef}
             data-testid='formattingBarContainer'
         >
+            {aiActionsMenu}
+            {aiActionsMenu && showSeparators && <Separator/>}
             {controls.map((mode) => {
                 return (
                     <React.Fragment key={mode}>

@@ -88,18 +88,4 @@ export const rolesStrings: Record<string, Record<string, MessageDescriptor>> = {
             defaultMessage: 'System Role',
         },
     }),
-    system_secure_connection_manager: defineMessages({
-        name: {
-            id: 'admin.permissions.roles.system_secure_connection_manager.name',
-            defaultMessage: 'Secure Connection Manager',
-        },
-        description: {
-            id: 'admin.permissions.roles.system_secure_connection_manager.description',
-            defaultMessage: 'Can create, manage, and remove secure connections to remote servers.',
-        },
-        type: {
-            id: 'admin.permissions.roles.system_secure_connection_manager.type',
-            defaultMessage: 'System Role',
-        },
-    }),
 };

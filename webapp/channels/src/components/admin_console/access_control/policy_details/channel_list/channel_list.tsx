@@ -7,6 +7,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -15,7 +16,6 @@ import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Column, Row} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
-import WithTooltip from 'components/with_tooltip';
 
 import {getChannelIconComponent} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
@@ -39,6 +39,7 @@ type Props = WrappedComponentProps & {
     policyActiveStatusChanges?: PolicyActiveStatus[];
     onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
     saving?: boolean;
+    hideTeamColumn?: boolean;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -328,7 +329,7 @@ class ChannelList extends React.PureComponent<Props, State> {
     };
 
     getColumns = (): Column[] => {
-        return [
+        const columns: Column[] = [
             {
                 name: (
                     <FormattedMessage
@@ -338,9 +339,12 @@ class ChannelList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
                 fixed: true,
-                width: 7,
+                width: this.props.hideTeamColumn ? 10 : 7,
             },
-            {
+        ];
+
+        if (!this.props.hideTeamColumn) {
+            columns.push({
                 name: (
                     <FormattedMessage
                         id='admin.channel_settings.channel_list.teamHeader'
@@ -350,7 +354,10 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'team',
                 fixed: true,
                 width: 7,
-            },
+            });
+        }
+
+        columns.push(
             {
                 name: (
                     <div className='ChannelList__autoAddHeader'>
@@ -395,16 +402,18 @@ class ChannelList extends React.PureComponent<Props, State> {
                 field: 'autoAdd',
                 textAlign: 'center',
                 fixed: true,
-                width: 8,
+                width: this.props.hideTeamColumn ? 9 : 8,
             },
             {
                 name: '',
                 field: 'remove',
                 textAlign: 'right',
                 fixed: true,
-                width: 3,
+                width: this.props.hideTeamColumn ? 3 : 3,
             },
-        ];
+        );
+
+        return columns;
     };
 
     getRows = () => {
@@ -533,7 +542,7 @@ class ChannelList extends React.PureComponent<Props, State> {
             },
         };
 
-        const filterProps = {
+        const filterProps = this.props.hideTeamColumn ? undefined : {
             options: filterOptions,
             keys: ['teams'],
             onFilter: this.onFilter,

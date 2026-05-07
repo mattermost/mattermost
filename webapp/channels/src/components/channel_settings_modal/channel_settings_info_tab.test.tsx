@@ -500,6 +500,33 @@ describe('ChannelSettingsInfoTab', () => {
         expect(privateButton).toHaveClass('selected');
     });
 
+    it('should disable public/private selector when channel has membership policy enforced', async () => {
+        mockConvertToPrivatePermission = true;
+        mockConvertToPublicPermission = true;
+
+        const channelWithPolicy = {
+            ...mockChannel,
+            policy_enforced: true,
+        };
+
+        renderWithContext(
+            <ChannelSettingsInfoTab
+                {...baseProps}
+                channel={channelWithPolicy}
+            />,
+        );
+
+        const publicButton = screen.getByRole('button', {name: /Public Channel/});
+        const privateButton = screen.getByRole('button', {name: /Private Channel/});
+        expect(publicButton).toHaveClass('disabled');
+        expect(privateButton).toHaveClass('disabled');
+
+        await userEvent.hover(publicButton);
+        expect(
+            await screen.findByText(/This channel has a membership policy applied/i),
+        ).toBeInTheDocument();
+    });
+
     it('should show ConvertConfirmModal when converting from public to private', async () => {
         mockConvertToPrivatePermission = true;
 

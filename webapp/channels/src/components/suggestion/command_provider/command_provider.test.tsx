@@ -3,12 +3,12 @@
 
 import React from 'react';
 
+import * as UserAgent from '@mattermost/shared/utils/user_agent';
 import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import * as UserAgent from 'utils/user_agent';
 
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 

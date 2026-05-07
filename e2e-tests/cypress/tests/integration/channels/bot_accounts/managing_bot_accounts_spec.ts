@@ -12,8 +12,8 @@
 
 import {Team} from '@mattermost/types/teams';
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId} from '@/utils';
 
 describe('Managing bot accounts', () => {
     let newTeam: Team;
@@ -106,7 +106,7 @@ describe('Managing bot accounts', () => {
             // * Check that the previously created bot is listed
             cy.findByText(bot.fullDisplayName, {timeout: TIMEOUTS.ONE_MIN}).scrollIntoView().then((el) => {
                 // # Click the disable button
-                cy.wrap(el[0].parentElement.parentElement).find('button:nth-child(3)').should('be.visible').click();
+                cy.wrap(el[0].parentElement!.parentElement!).find('button:nth-child(3)').should('be.visible').click();
             });
 
             // * Check that the bot is in the 'disabled' section
@@ -122,7 +122,7 @@ describe('Managing bot accounts', () => {
             // * Check that the previously created bot is listed
             cy.findByText(bot.fullDisplayName, {timeout: TIMEOUTS.ONE_MIN}).scrollIntoView().then((el) => {
                 // # Click the disable button
-                cy.wrap(el[0].parentElement.parentElement).find('button:nth-child(3)').should('be.visible').click();
+                cy.wrap(el[0].parentElement!.parentElement!).find('button:nth-child(3)').should('be.visible').click();
             });
 
             // # Filter bot
@@ -131,7 +131,7 @@ describe('Managing bot accounts', () => {
             // # Re-enable the bot
             cy.get('.bot-list__disabled').scrollIntoView().findByText(bot.fullDisplayName, {timeout: TIMEOUTS.ONE_MIN}).scrollIntoView().then((el) => {
                 // # Click the enable button
-                cy.wrap(el[0].parentElement.parentElement).find('button:nth-child(1)').should('be.visible').click();
+                cy.wrap(el[0].parentElement!.parentElement!).find('button:nth-child(1)').should('be.visible').click();
             });
 
             // * Check that the bot is in the 'enabled' section
@@ -148,10 +148,10 @@ describe('Managing bot accounts', () => {
             // * Check that the previously created bot is listed
             cy.findByText(bot.fullDisplayName, {timeout: TIMEOUTS.ONE_MIN}).then((el) => {
                 // # Make sure it's on the screen
-                cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+                cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
                 // # Click the disable button
-                cy.wrap(el[0].parentElement.parentElement).find('button:nth-child(3)').should('be.visible').click();
+                cy.wrap(el[0].parentElement!.parentElement!).find('button:nth-child(3)').should('be.visible').click();
             });
 
             // * Validate that disabled section appears
@@ -185,7 +185,7 @@ describe('Managing bot accounts', () => {
                 cy.visit(`/${newTeam.name}/integrations/bots`);
 
                 // # Search for the other bot
-                cy.get('#searchInput', {timeout: TIMEOUTS.ONE_MIN}).type(bot.display_name);
+                cy.get('#searchInput', {timeout: TIMEOUTS.ONE_MIN}).type(bot.display_name!);
 
                 // * Validate that the plugin is disabled since it's owner is deactivate
                 cy.get('.bot-list__disabled').scrollIntoView().findByText(bot.fullDisplayName).scrollIntoView().should('be.visible');

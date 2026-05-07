@@ -3,7 +3,7 @@
 
 import path from 'path';
 
-import * as TIMEOUTS from '../../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 export function downloadAndUnzipExportFile(targetFolder = '') {
     // # Get the download link

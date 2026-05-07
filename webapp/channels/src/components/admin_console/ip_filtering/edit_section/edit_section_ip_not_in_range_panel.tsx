@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/shared/components/button';
 
 type IPNotInRangeErrorPanelProps = {
     currentUsersIP: string | null;
@@ -32,15 +33,15 @@ const IPNotInRangeErrorPanel = ({
                     id='admin.ip_filtering.include_your_ip'
                     defaultMessage='Include your IP address in at least one of the rules below to continue.'
                 />
-                <div
-                    className='btn btn-primary'
+                <Button
+                    emphasis='primary'
                     onClick={() => setShowAddModal(true)}
                 >
                     <FormattedMessage
                         id='admin.ip_filtering.add_your_ip'
                         defaultMessage='Add your IP address'
                     />
-                </div>
+                </Button>
             </div>
         </div>
     </div>

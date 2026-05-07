@@ -3257,6 +3257,94 @@ func TestSanitizePostMetadataForUser(t *testing.T) {
 		require.Equal(t, model.PostEmbedPermalink, sanitizedPost.Metadata.Embeds[0].Type)
 		require.False(t, isMemberForPreviews)
 	})
+
+	t.Run("permalink embed with PreviewPost type does not panic", func(t *testing.T) {
+		// Verify that the code correctly type-asserts embed.Data as *model.PreviewPost
+		// (not *model.Permalink) and does not panic.
+		refChannelID := th.BasicChannel.Id
+		fileID := model.NewId()
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: refChannelID,
+								FileIds:   model.StringArray{fileID},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: fileID, Name: "photo.png", Extension: "png"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		// With AccessControl == nil (no enterprise), sanitizeFileAttachmentsForUser returns early.
+		// The key assertion is that the function does NOT panic on the *model.PreviewPost type assertion.
+		sanitizedPost, isMemberForPreviews, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
+		require.True(t, isMemberForPreviews)
+
+		// Without enterprise ABAC, files should remain untouched.
+		require.Len(t, sanitizedPost.Metadata.Embeds, 1)
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Len(t, previewData.Post.Metadata.Files, 1, "files should be preserved when ABAC is not active")
+		assert.Len(t, previewData.Post.FileIds, 1)
+	})
+
+	t.Run("post with no top-level files still reaches embed sanitization without error", func(t *testing.T) {
+		// Verifies that the guard removal in SanitizePostMetadataForUser allows sanitization
+		// to proceed even when the post itself has no files, only permalink embeds with files.
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			FileIds:   model.StringArray{},
+			Metadata: &model.PostMetadata{
+				Files: nil,
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						Data: &model.PreviewPost{
+							PostID: model.NewId(),
+							Post: &model.Post{
+								Id:        model.NewId(),
+								ChannelId: th.BasicChannel.Id,
+								FileIds:   model.StringArray{model.NewId()},
+								Metadata: &model.PostMetadata{
+									Files: []*model.FileInfo{
+										{Id: model.NewId(), Name: "doc.pdf", Extension: "pdf"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		sanitizedPost, _, appErr := th.App.SanitizePostMetadataForUser(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, sanitizedPost)
+
+		// Without enterprise ABAC, the embed files should remain.
+		previewData, ok := sanitizedPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.NotNil(t, previewData.Post.Metadata.Files, "embed files should not be stripped without ABAC")
+	})
 }
 
 func TestGetLinkMetadataFromCache(t *testing.T) {

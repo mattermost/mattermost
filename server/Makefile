@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-elasticsearch test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-server-faketime
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -117,6 +117,7 @@ GO ?= go
 
 ifeq ($(FIPS_ENABLED),true)
 	BUILD_TAGS += requirefips
+	MMCTL_BUILD_TAGS += requirefips
 endif
 
 DELVE ?= dlv
@@ -159,15 +160,15 @@ TEMPLATES_DIR=templates
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.4
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.7.0
-PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.1
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.6.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.0
+PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.12.2
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.7.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.8.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
-PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.12.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2
+PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.13.0
+PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.3
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.0
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.6.1
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.4.1
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
@@ -177,9 +178,9 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.0%2Bc4449ac-fips
-	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.7.2%2B866e2dd-fips
-	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.2%2B4282c63-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.8.1%2Bac0a223-fips
+	PLUGIN_PACKAGES += mattermost-plugin-agents-v2.0.3%2Bcab391a-fips
+	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.2.4%2B5855fe1-fips
 endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
@@ -494,6 +495,15 @@ test-server-ee: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
 test-server-ee: check-prereqs-enterprise start-docker gotestsum ## Runs EE tests.
 	@echo Running only EE tests
 	$(GOBIN)/gotestsum --packages="$(EE_PACKAGES)" -- $(GOFLAGS) -timeout=20m
+
+ES_PACKAGES=$(shell $(GO) list ./enterprise/elasticsearch/...)
+
+test-server-elasticsearch: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
+test-server-elasticsearch: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)
+test-server-elasticsearch: export GOTESTSUM_JSONFILE := $(GOTESTSUM_JSONFILE)
+test-server-elasticsearch: check-prereqs-enterprise start-docker gotestsum ## Runs Elasticsearch tests.
+	@echo Running only Elasticsearch tests
+	$(GOBIN)/gotestsum --rerun-fails=3 --packages="$(ES_PACKAGES)" -- $(GOFLAGS) -timeout=20m
 
 test-server-quick: export GOTESTSUM_FORMAT := $(GOTESTSUM_FORMAT)
 test-server-quick: export GOTESTSUM_JUNITFILE := $(GOTESTSUM_JUNITFILE)

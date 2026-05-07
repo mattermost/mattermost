@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -28,7 +30,9 @@ type Props = {
     fileInfos: FilePreviewInfo[];
     uploadsInProgress?: string[];
     uploadsProgressPercent?: {[clientID: string]: FilePreviewInfo};
-}
+    compactMode?: boolean;
+    disabledRemoveTooltip?: string;
+};
 
 export default class FilePreview extends React.PureComponent<Props> {
     static defaultProps = {
@@ -85,34 +89,59 @@ export default class FilePreview extends React.PureComponent<Props> {
                 previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;
             }
 
+            if (this.props.compactMode) {
+                className += ' compact';
+            }
+
             previews.push(
                 <div
                     key={info.id}
                     className={className}
                 >
-                    <div className='post-image__thumbnail'>
-                        {previewImage}
-                    </div>
+                    <div className='post-image__thumbnail'>{previewImage}</div>
                     <div className='post-image__details'>
                         <div className='post-image__detail_wrapper'>
-                            <div className='post-image__detail'>
+                            <div
+                                className={classNames('post-image__detail', {
+                                    compact: this.props.compactMode,
+                                })}
+                            >
                                 <FilenameOverlay
                                     fileInfo={info}
-                                    compactDisplay={false}
+                                    compactDisplay={this.props.compactMode}
                                     canDownload={false}
                                 />
-                                {info.extension && <span className='post-image__type'>{info.extension.toUpperCase()}</span>}
-                                <span className='post-image__size'>{Utils.fileSizeToString(info.size)}</span>
+                                {info.extension && (
+                                    <span className='post-image__type'>
+                                        {info.extension.toUpperCase()}
+                                    </span>
+                                )}
+                                <span className='post-image__size'>
+                                    {Utils.fileSizeToString(info.size)}
+                                </span>
                             </div>
                         </div>
                         <div>
-                            {Boolean(this.props.onRemove) && (
+                            {this.props.onRemove && (
                                 <a
-                                    className='file-preview__remove'
+                                    className={classNames('file-preview__remove', {compact: this.props.compactMode})}
                                     onClick={this.handleRemove.bind(this, info.id)}
                                 >
                                     <i className='icon icon-close'/>
                                 </a>
+                            )}
+
+                            {!this.props.onRemove && this.props.disabledRemoveTooltip && (
+                                <WithTooltip
+                                    title={this.props.disabledRemoveTooltip}
+                                    isVertical={true}
+                                >
+                                    <span
+                                        className={classNames('file-preview__remove file-preview__remove--disabled', {compact: this.props.compactMode})}
+                                    >
+                                        <i className='icon icon-close'/>
+                                    </span>
+                                </WithTooltip>
                             )}
                         </div>
                     </div>
@@ -138,7 +167,7 @@ export default class FilePreview extends React.PureComponent<Props> {
         }
 
         return (
-            <div className='file-preview__container'>
+            <div className={classNames('file-preview__container', {compact: this.props.compactMode})}>
                 {previews}
             </div>
         );

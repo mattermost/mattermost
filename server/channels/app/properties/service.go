@@ -24,6 +24,7 @@ type PropertyService struct {
 	propertyAccess    *PropertyAccessService
 	callerIDExtractor CallerIDExtractor
 	groupCache        sync.Map // name -> *model.PropertyGroup
+	groupIDCache      sync.Map // id -> *model.PropertyGroup
 }
 
 type ServiceConfig struct {
@@ -58,9 +59,9 @@ func (ps *PropertyService) SetPropertyAccessService(pas *PropertyAccessService) 
 	ps.propertyAccess = pas
 }
 
-// requiresAccessControl checks if a group ID requires access control enforcement.
+// requiresAccessControlForGroupID checks if a group ID requires access control enforcement.
 // Currently, only the CPA group requires access control, but this may change in the future.
-func (ps *PropertyService) requiresAccessControl(groupID string) (bool, error) {
+func (ps *PropertyService) requiresAccessControlForGroupID(groupID string) (bool, error) {
 	group, err := ps.Group(model.CustomProfileAttributesPropertyGroupName)
 	if err != nil {
 		return false, fmt.Errorf("failed to check access control for group %q: %w", groupID, err)

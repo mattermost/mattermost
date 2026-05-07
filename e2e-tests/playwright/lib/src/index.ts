@@ -7,7 +7,8 @@ export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
-export {duration, wait} from './util';
+export {duration, getRandomId, wait, newTestPassword} from './util';
+export {LicenseSkus, appsPluginId, callsPluginId, playbooksPluginId} from './constant';
 
 export {
     ChannelsPage,
@@ -64,6 +65,8 @@ export {
 
 export {TestArgs, ScreenshotOptions} from './types';
 
+export {getAdminClient} from './server';
+
 export {
     enableAutotranslationConfig,
     disableAutotranslationConfig,
@@ -71,15 +74,22 @@ export {
     disableChannelAutotranslation,
     setUserChannelAutotranslation,
     setMockSourceLanguage,
-    hasAutotranslationLicense,
 } from './autotranslation_helpers';
 export type {EnableAutotranslationOptions} from './autotranslation_helpers';
+export {
+    hasAutotranslationLicense,
+    hasSharedChannelsLicense,
+    hasCustomPermissionsSchemesLicense,
+    licenseTier,
+} from './license_helpers';
 // ABAC (Attribute-Based Access Control) helpers
 export {
     createUserWithAttributes,
     enableABAC,
     disableABAC,
     navigateToABACPage,
+    navigateToPermissionPoliciesPage,
+    navigateToAttributeBasedAccessPage,
     createBasicPolicy,
     createAdvancedPolicy,
     editPolicy,

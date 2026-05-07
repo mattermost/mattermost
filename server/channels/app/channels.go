@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -60,6 +61,9 @@ type Channels struct {
 	// previously fetched notices
 	cachedNotices model.ProductNotices
 
+	managedCategoryGroupID string
+	managedCategoryFieldID string
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
@@ -69,6 +73,9 @@ type Channels struct {
 	Ldap             einterfaces.LdapInterface
 	AccessControl    einterfaces.AccessControlServiceInterface
 	Intune           einterfaces.IntuneInterface
+
+	attributeViewRefreshMut  sync.Mutex
+	attributeViewRefreshLast time.Time
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -318,6 +325,19 @@ func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks, manifes
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
+}
+
+// RunMultiHookWithRPCErr dispatches a hook closure across active plugins, surfacing RPC transport
+// errors. Returns nil in two cases that callers must distinguish themselves: (a) the plugin
+// environment is unavailable (plugins disabled, or not yet initialized), so the closure was never
+// invoked; (b) iteration completed and every closure invocation returned nil. Callers that need
+// fail-closed semantics on case (a) must check `ch.GetPluginsEnvironment() != nil` at the call site
+// before invoking — the right policy when plugins are disabled by config is caller-specific.
+func (ch *Channels) RunMultiHookWithRPCErr(hookRunnerFunc func(hooks plugin.HooksWithRPCErr, manifest *model.Manifest) (bool, error), hookId int) error {
+	if env := ch.GetPluginsEnvironment(); env != nil {
+		return env.RunMultiPluginHookWithRPCErr(hookRunnerFunc, hookId)
+	}
+	return nil
 }
 
 func (ch *Channels) HooksForPlugin(id string) (plugin.Hooks, error) {

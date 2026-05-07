@@ -3048,10 +3048,6 @@
     "translation": "Не удалось декодировать результаты поиска"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "{{.Backend}} уже остановлен."
-  },
-  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
     "translation": "{{.Backend}} отключён."
   },
@@ -4958,10 +4954,6 @@
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Недопустимое обновление участника команды: пользователь должен быть гостем или пользователем, но не обоими."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Срок действия корпоративной лицензии истёк, и некоторые функции могут быть отключены. Пожалуйста, обновите лицензию."
   },
   {
     "id": "api.user.create_user.guest_accounts.disabled.app_error",

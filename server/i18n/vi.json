@@ -3494,10 +3494,6 @@
     "translation": "Phải là một thời gian hợp lệ"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch đã bị dừng"
-  },
-  {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
     "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa."
   },
@@ -6048,10 +6044,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Thông báo đẩy được tải ID không được định cấu hình hoặc hỗ trợ trên máy chủ này."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Giấy phép Phiên bản Enterprise của bạn đã hết hạn và một số tính năng có thể bị tắt. Hãy gia hạn giấy phép của bạn ngay bây giờ."
   },
   {
     "id": "api.team.add_members.user_denied",

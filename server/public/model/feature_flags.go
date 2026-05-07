@@ -69,6 +69,14 @@ type FeatureFlags struct {
 
 	AttributeBasedAccessControl bool
 
+	// Mask non-held attribute values in the policy editor for delegated admins.
+	// Requires AttributeBasedAccessControl.
+	AttributeValueMasking bool
+
+	// Enable permission policies (file upload/download ABAC policies).
+	// Requires AttributeBasedAccessControl to also be enabled.
+	PermissionPolicies bool
+
 	ContentFlagging bool
 
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
@@ -85,6 +93,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable classification markings for banners at the system and channel level
+	ClassificationMarkings bool
+
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
 
@@ -100,6 +111,12 @@ type FeatureFlags struct {
 
 	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
 	CJKSearch bool
+
+	// Collect plugin metrics and serve them on the /metrics endpoint
+	AggregatePluginMetrics bool
+
+	// ManagedChannelCategories enables server-side managed sidebar category enforcement (Enterprise).
+	ManagedChannelCategories bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -128,6 +145,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.AttributeValueMasking = false
+	f.PermissionPolicies = false
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
@@ -136,6 +155,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileSSOCodeExchange = false
 
 	f.AutoTranslation = true
+
+	f.ClassificationMarkings = false
 
 	f.BurnOnRead = true
 
@@ -147,6 +168,10 @@ func (f *FeatureFlags) SetDefaults() {
 	f.IntegratedBoards = false
 
 	f.CJKSearch = false
+
+	f.AggregatePluginMetrics = false
+
+	f.ManagedChannelCategories = false
 }
 
 // ToMap returns the feature flags as a map[string]string

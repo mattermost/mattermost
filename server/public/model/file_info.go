@@ -8,11 +8,19 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 const (
 	FileinfoSortByCreated = "CreateAt"
 	FileinfoSortBySize    = "Size"
+
+	// MaxFilenameLength is the maximum length, in Unicode codepoints, of a
+	// sanitized FileInfo.Name. It matches the VARCHAR(256) width of the
+	// fileinfo.name column.
+	MaxFilenameLength = 256
 )
 
 // FileDownloadType represents the type of file download or access being performed.
@@ -46,31 +54,31 @@ type GetFileInfosOptions struct {
 }
 
 type FileInfo struct {
-	Id        string `json:"id"`
-	CreatorId string `json:"user_id"`
-	PostId    string `json:"post_id,omitempty"`
+	Id        string `json:"id" xml:"Id"`
+	CreatorId string `json:"user_id" xml:"CreatorId"`
+	PostId    string `json:"post_id,omitempty" xml:"PostId,omitempty"`
 	// ChannelId is the denormalized value from the corresponding post. Note that this value is
 	// potentially distinct from the ChannelId provided when the file is first uploaded and
 	// used to organize the directories in the file store, since in theory that same file
 	// could be attached to a post from a different channel (or not attached to a post at all).
-	ChannelId       string  `json:"channel_id"`
-	CreateAt        int64   `json:"create_at"`
-	UpdateAt        int64   `json:"update_at"`
-	DeleteAt        int64   `json:"delete_at"`
-	Path            string  `json:"-"` // not sent back to the client
-	ThumbnailPath   string  `json:"-"` // not sent back to the client
-	PreviewPath     string  `json:"-"` // not sent back to the client
-	Name            string  `json:"name"`
-	Extension       string  `json:"extension"`
-	Size            int64   `json:"size"`
-	MimeType        string  `json:"mime_type"`
-	Width           int     `json:"width,omitempty"`
-	Height          int     `json:"height,omitempty"`
-	HasPreviewImage bool    `json:"has_preview_image,omitempty"`
-	MiniPreview     *[]byte `json:"mini_preview"` // pointer to distinguish NULL (no preview) from empty data
-	Content         string  `json:"-"`
-	RemoteId        *string `json:"remote_id"`
-	Archived        bool    `json:"archived"`
+	ChannelId       string  `json:"channel_id" xml:"ChannelId"`
+	CreateAt        int64   `json:"create_at" xml:"CreateAt"`
+	UpdateAt        int64   `json:"update_at" xml:"UpdateAt"`
+	DeleteAt        int64   `json:"delete_at" xml:"DeleteAt"`
+	Path            string  `json:"-" xml:"-"` // not sent back to the client
+	ThumbnailPath   string  `json:"-" xml:"-"` // not sent back to the client
+	PreviewPath     string  `json:"-" xml:"-"` // not sent back to the client
+	Name            string  `json:"name" xml:"Name"`
+	Extension       string  `json:"extension" xml:"Extension"`
+	Size            int64   `json:"size" xml:"Size"`
+	MimeType        string  `json:"mime_type" xml:"MimeType"`
+	Width           int     `json:"width,omitempty" xml:"Width,omitempty"`
+	Height          int     `json:"height,omitempty" xml:"Height,omitempty"`
+	HasPreviewImage bool    `json:"has_preview_image,omitempty" xml:"HasPreviewImage,omitempty"`
+	MiniPreview     *[]byte `json:"mini_preview" xml:"-"` // pointer to distinguish NULL (no preview) from empty data
+	Content         string  `json:"-" xml:"-"`
+	RemoteId        *string `json:"remote_id" xml:"RemoteId"`
+	Archived        bool    `json:"archived" xml:"Archived"`
 }
 
 func (fi *FileInfo) Auditable() map[string]any {
@@ -131,7 +139,65 @@ func (fi *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.path.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
 	}
 
+	if fi.Name != "" && !IsValidFilename(fi.Name) {
+		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.name.app_error", nil, "id="+fi.Id, http.StatusBadRequest)
+	}
+
 	return nil
+}
+
+// IsValidFilename reports whether name is acceptable as FileInfo.Name.
+// It rejects empty strings, bare "." and "..", names exceeding
+// MaxFilenameLength, path separators, and ASCII control characters.
+// The input is not mutated; see SanitizeFilename for the mutating form.
+func IsValidFilename(name string) bool {
+	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	if utf8.RuneCountInString(name) > MaxFilenameLength {
+		return false
+	}
+	if strings.ContainsAny(name, `/\`) {
+		return false
+	}
+	return !strings.ContainsFunc(name, func(r rune) bool {
+		return r < 0x20 || r == 0x7f
+	})
+}
+
+// SanitizeFilename returns a canonical form of name suitable for
+// FileInfo.Name. It NFC-normalizes Unicode, removes ASCII control
+// characters, collapses backslashes to forward slashes, reduces the
+// value to its final path element via filepath.Base, and truncates
+// to MaxFilenameLength codepoints to match the DB column width.
+//
+// Returns an empty string when nothing usable remains (for example
+// when the input was "", ".", "..", "/", or entirely control
+// characters); callers should treat an empty result as a failure.
+func SanitizeFilename(name string) string {
+	if name == "" {
+		return ""
+	}
+
+	name = norm.NFC.String(name)
+	name = strings.Map(func(r rune) rune {
+		if r < 0x20 || r == 0x7f {
+			return -1
+		}
+		return r
+	}, name)
+	name = strings.ReplaceAll(name, `\`, "/")
+	name = filepath.Base(name)
+
+	if name == "." || name == ".." || name == string(filepath.Separator) {
+		return ""
+	}
+
+	if runes := []rune(name); len(runes) > MaxFilenameLength {
+		name = string(runes[:MaxFilenameLength])
+	}
+
+	return name
 }
 
 func (fi *FileInfo) IsImage() bool {

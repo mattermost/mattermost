@@ -48,6 +48,24 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
+// HasPermissionToFileAction provides a mock function with given fields: rctx, userID, roles, channelID, action
+func (_m *SuiteIFace) HasPermissionToFileAction(rctx request.CTX, userID string, roles string, channelID string, action string) bool {
+	ret := _m.Called(rctx, userID, roles, channelID, action)
+
+	if len(ret) == 0 {
+		panic("no return value specified for HasPermissionToFileAction")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, string) bool); ok {
+		r0 = rf(rctx, userID, roles, channelID, action)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // HasPermissionToReadChannel provides a mock function with given fields: rctx, userID, channel
 func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	ret := _m.Called(rctx, userID, channel)

@@ -152,6 +152,7 @@
         "Trace": false,
         "AtRestEncryptKey": "",
         "QueryTimeout": 30,
+        "AnalyticsQueryTimeout": 300,
         "DisableDatabaseSearch": false,
         "MigrationsStatementTimeoutSeconds": 100000,
         "ReplicaLagSettings": [],
@@ -178,7 +179,7 @@
         "AdvancedLoggingJSON": {}
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
+        "MinimumLength": 14,
         "Lowercase": false,
         "Number": false,
         "Uppercase": false,
