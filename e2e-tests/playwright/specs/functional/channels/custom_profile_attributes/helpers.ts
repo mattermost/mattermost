@@ -510,15 +510,24 @@ export async function deleteCustomProfileAttributes(
         }
     }
 
-    // Verify deletion was successful
+    // Verify that specifically OUR fields were deleted (not all fields — other
+    // concurrent tests may have their own fields still present on the server).
+    const idsToDelete = new Set(Object.keys(attributes));
+    if (idsToDelete.size === 0) {
+        return;
+    }
     try {
-        const response = await adminClient.getCustomProfileAttributeFields();
-        if (response && response.length > 0) {
+        const remaining = await adminClient.getCustomProfileAttributeFields();
+        const leakedFields = remaining.filter((f: {id: string}) => idsToDelete.has(f.id));
+        if (leakedFields.length > 0) {
             // eslint-disable-next-line no-console
-            console.log('Warning: Not all custom profile attributes were deleted');
+            console.log(
+                `Warning: ${leakedFields.length} field(s) were not deleted:`,
+                leakedFields.map((f: {id: string; name: string}) => f.name).join(', '),
+            );
         }
     } catch (error) {
         // eslint-disable-next-line no-console
-        console.log('Error checking if all fields were deleted:', error);
+        console.log('Error verifying field deletion:', error);
     }
 }

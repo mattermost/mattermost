@@ -368,13 +368,16 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    // FIXME: Concurrent CPA tests call setupCustomProfileAttributeFields() which has an
-    // early-return bug: if ANY fields exist on the server it returns them all (including
-    // ours), then their afterEach deletes those stolen fields. By the time save() runs
-    // here, the field IDs no longer exist on the server → "Failed to update user".
-    // The route intercept in beforeEach protects the browser's Redux state but cannot
-    // un-delete fields on the server. Fix requires patching setupCustomProfileAttributeFields
-    // in helpers.ts to never return fields it did not create itself.
+    // FIXME: This test consistently fails with "Failed to update user" across all CI retries.
+    // Root cause: patchCPAValuesForUser (server) rejects the save because the field ID is
+    // not found or has DeleteAt>0 at the time of the PATCH request.  The most likely trigger
+    // is a race on the shared CI server: a concurrent shard running CPA channel tests calls
+    // deleteCustomProfileAttributeField for the global "Department" field (created in
+    // test_setup.ts), which transiently pushes the server's CPA field state into an
+    // inconsistent window that our save lands in.  The page.route() intercept in beforeEach
+    // protects the browser's Redux state (field labels stay visible) but cannot prevent
+    // server-side rejection.  Fix: ensure strict field-ID ownership so no test can delete
+    // fields it did not create (see deleteCustomProfileAttributes in helpers.ts).
     test.fixme('Should display custom multiselect attribute and save form', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
