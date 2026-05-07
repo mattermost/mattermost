@@ -5,8 +5,6 @@ package api4
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,16 +33,10 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
+		created, resp, err := client.CreateBoard(context.Background(), board)
 		require.NoError(t, err)
-
-		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
-		require.NoError(t, err)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-
-		var created model.Channel
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&created))
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, created)
 		assert.Equal(t, model.ChannelTypeOpenBoard, created.Type)
 		assert.NotEmpty(t, created.Id)
 
@@ -82,13 +74,9 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
+		_, resp, err := client.CreateBoard(context.Background(), board)
 		require.NoError(t, err)
-
-		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
-		require.NoError(t, err)
-		defer resp.Body.Close()
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+		CheckCreatedStatus(t, resp)
 	})
 
 	t.Run("rejected when feature flag off", func(t *testing.T) {
@@ -103,12 +91,9 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th2.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
-		require.NoError(t, err)
-
-		resp, err := th2.Client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
+		_, resp, err := th2.Client.CreateBoard(context.Background(), board)
 		require.Error(t, err)
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		CheckNotFoundStatus(t, resp)
 	})
 
 	t.Run("rejected with empty display name", func(t *testing.T) {
@@ -119,12 +104,9 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
-		require.NoError(t, err)
-
-		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
+		_, resp, err := client.CreateBoard(context.Background(), board)
 		require.Error(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("rejected with whitespace-only display name", func(t *testing.T) {
@@ -135,12 +117,9 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
-		require.NoError(t, err)
-
-		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
+		_, resp, err := client.CreateBoard(context.Background(), board)
 		require.Error(t, err)
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		CheckBadRequestStatus(t, resp)
 	})
 
 	t.Run("board not in sidebar", func(t *testing.T) {
@@ -151,15 +130,9 @@ func TestCreateBoard(t *testing.T) {
 			TeamId:      th.BasicTeam.Id,
 		}
 
-		boardJSON, err := json.Marshal(board)
+		created, _, err := client.CreateBoard(context.Background(), board)
 		require.NoError(t, err)
-
-		resp, err := client.DoAPIPost(context.Background(), "/boards", string(boardJSON))
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		var created model.Channel
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&created))
+		require.NotNil(t, created)
 
 		// Verify board doesn't appear in sidebar
 		categories, _, catErr := client.GetSidebarCategoriesForTeamForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, "")

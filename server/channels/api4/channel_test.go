@@ -7180,50 +7180,20 @@ func TestChannelMemberSanitization(t *testing.T) {
 	})
 }
 
-func makeTestBoardView(creatorID string) *model.View {
-	kanban := &model.KanbanProps{
-		GroupBy: model.KanbanGroupBy{
-			FieldID: model.NewId(),
-			Columns: []model.KanbanColumn{
-				{ID: model.NewId(), Name: "Todo", OptionIDs: []string{model.NewId()}},
-				{ID: model.NewId(), Name: "Done", OptionIDs: []string{model.NewId()}},
-			},
-		},
-	}
-	props, _ := kanban.ToProps()
-	return &model.View{
-		Type:      model.ViewTypeKanban,
-		CreatorId: creatorID,
-		Title:     "Default View",
-		Props:     props,
-	}
-}
-
 func TestChannelEndpointsRejectBoards(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := setupBoardTest(t)
 	client := th.Client
 	ctx := context.Background()
 
-	// Insert a board channel directly via store (bypassing API since POST /boards doesn't exist yet)
-	boardChannel, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+	boardChannel, _, err := client.CreateBoard(ctx, &model.Channel{
 		TeamId:      th.BasicTeam.Id,
 		DisplayName: "Test Board",
 		Name:        "board-" + model.NewId(),
 		Type:        model.ChannelTypeOpenBoard,
-		CreatorId:   th.BasicUser.Id,
-	}, -1, makeTestBoardView(th.BasicUser.Id))
-	require.NoError(t, nErr)
-
-	// Add the user as a member so they can access it
-	_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
-		ChannelId:   boardChannel.Id,
-		UserId:      th.BasicUser.Id,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeAdmin: true,
-		SchemeUser:  true,
 	})
-	require.NoError(t, nErr)
+	require.NoError(t, err)
+	require.NotNil(t, boardChannel)
 
 	// --- WRITE operations ---
 
@@ -7348,39 +7318,26 @@ func TestChannelEndpointsRejectBoards(t *testing.T) {
 
 func TestChannelEndpointsExcludeBoards(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
+	th := setupBoardTest(t)
 	client := th.Client
 
-	// Insert board channels directly via store
-	openBoard, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+	openBoard, _, err := th.Client.CreateBoard(context.Background(), &model.Channel{
 		TeamId:      th.BasicTeam.Id,
 		DisplayName: "Open Board",
 		Name:        "open-board-" + model.NewId(),
 		Type:        model.ChannelTypeOpenBoard,
-		CreatorId:   th.BasicUser.Id,
-	}, -1, makeTestBoardView(th.BasicUser.Id))
-	require.NoError(t, nErr)
+	})
+	require.NoError(t, err)
+	require.NotNil(t, openBoard)
 
-	privateBoard, _, nErr := th.App.Srv().Store().Channel().SaveBoardChannel(th.Context, &model.Channel{
+	privateBoard, _, err := th.Client.CreateBoard(context.Background(), &model.Channel{
 		TeamId:      th.BasicTeam.Id,
 		DisplayName: "Private Board",
 		Name:        "private-board-" + model.NewId(),
 		Type:        model.ChannelTypePrivateBoard,
-		CreatorId:   th.BasicUser.Id,
-	}, -1, makeTestBoardView(th.BasicUser.Id))
-	require.NoError(t, nErr)
-
-	// Add user as member of both boards
-	for _, boardCh := range []*model.Channel{openBoard, privateBoard} {
-		_, nErr = th.App.Srv().Store().Channel().SaveMember(th.Context, &model.ChannelMember{
-			ChannelId:   boardCh.Id,
-			UserId:      th.BasicUser.Id,
-			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeAdmin: true,
-			SchemeUser:  true,
-		})
-		require.NoError(t, nErr)
-	}
+	})
+	require.NoError(t, err)
+	require.NotNil(t, privateBoard)
 
 	// Helper to check board IDs are not in a channel list
 	assertNoBoardsInList := func(t *testing.T, channels []*model.Channel) {
