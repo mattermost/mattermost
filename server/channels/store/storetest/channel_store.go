@@ -36,7 +36,6 @@ type SqlXExecutor interface {
 	NamedExec(query string, arg any) (sql.Result, error)
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	QueryRow(query string, args ...any) *sql.Row
 	Select(dest any, query string, args ...any) error
 }
 

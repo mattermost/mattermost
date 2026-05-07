@@ -55,7 +55,6 @@ type sqlxExecutor interface {
 	Exec(query string, args ...any) (sql.Result, error)
 	ExecBuilder(builder Builder) (sql.Result, error)
 	ExecRaw(query string, args ...any) (sql.Result, error)
-	QueryRow(query string, args ...any) *sql.Row
 	Select(dest any, query string, args ...any) error
 	SelectBuilder(dest any, builder Builder) error
 }
@@ -232,20 +231,6 @@ func (w *sqlxDBWrapper) SelectCtx(ctx context.Context, dest any, query string, a
 	return w.checkErr(w.db.SelectContext(ctx, dest, query, args...))
 }
 
-func (w *sqlxDBWrapper) QueryRow(query string, args ...any) *sql.Row {
-	query = w.db.Rebind(query)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
-
-	if w.trace {
-		defer func(then time.Time) {
-			printArgs(query, time.Since(then), args)
-		}(time.Now())
-	}
-
-	return w.db.QueryRowContext(ctx, query, args...)
-}
-
 // QueryRowContext forwards to the underlying DB with the caller-supplied context.
 // The caller is responsible for applying an appropriate timeout.
 func (w *sqlxDBWrapper) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
@@ -386,20 +371,6 @@ func (w *sqlxTxWrapper) Select(dest any, query string, args ...any) error {
 	}
 
 	return w.dbw.checkErr(w.tx.SelectContext(ctx, dest, query, args...))
-}
-
-func (w *sqlxTxWrapper) QueryRow(query string, args ...any) *sql.Row {
-	query = w.tx.Rebind(query)
-	ctx, cancel := context.WithTimeout(context.Background(), w.queryTimeout)
-	defer cancel()
-
-	if w.trace {
-		defer func(then time.Time) {
-			printArgs(query, time.Since(then), args)
-		}(time.Now())
-	}
-
-	return w.tx.QueryRowContext(ctx, query, args...)
 }
 
 func (w *sqlxTxWrapper) SelectBuilder(dest any, builder Builder) error {

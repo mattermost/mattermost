@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 
 	sq "github.com/mattermost/squirrel"
@@ -212,21 +211,25 @@ func (ps SqlPluginStore) Get(pluginId, key string) (*model.PluginKeyValue, error
 		Where(sq.Eq{"PluginId": pluginId}).
 		Where(sq.Eq{"PKey": key}).
 		Where(sq.Or{sq.Eq{"ExpireAt": 0}, sq.Gt{"ExpireAt": currentTime}})
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "plugin_tosql")
+	type pluginKVRow struct {
+		PluginId string `db:"pluginid"`
+		Key      string `db:"pkey"`
+		Value    []byte `db:"pvalue"`
+		ExpireAt int64  `db:"expireat"`
 	}
-
-	row := ps.GetReplica().QueryRow(queryString, args...)
-	var kv model.PluginKeyValue
-	if err := row.Scan(&kv.PluginId, &kv.Key, &kv.Value, &kv.ExpireAt); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("PluginKeyValue", fmt.Sprintf("pluginId=%s, key=%s", pluginId, key))
-		}
+	var rows []pluginKVRow
+	if err := ps.GetReplica().SelectBuilder(&rows, query); err != nil {
 		return nil, errors.Wrapf(err, "failed to get PluginKeyValue with pluginId=%s and key=%s", pluginId, key)
 	}
-
-	return &kv, nil
+	if len(rows) == 0 {
+		return nil, store.NewErrNotFound("PluginKeyValue", fmt.Sprintf("pluginId=%s, key=%s", pluginId, key))
+	}
+	return &model.PluginKeyValue{
+		PluginId: rows[0].PluginId,
+		Key:      rows[0].Key,
+		Value:    rows[0].Value,
+		ExpireAt: rows[0].ExpireAt,
+	}, nil
 }
 
 func (ps SqlPluginStore) Delete(pluginId, key string) error {
