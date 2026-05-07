@@ -57,23 +57,24 @@ func TestHandleIncomingWebhookRootId(t *testing.T) {
 		assert.Equal(t, root.Id, found.RootId)
 	})
 
-	t.Run("resolves root_id from a reply post id", func(t *testing.T) {
+	t.Run("rejects root_id pointing at a reply post", func(t *testing.T) {
 		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
 			Text:   "webhook via reply id",
 			RootId: reply.Id,
 		})
-		require.Nil(t, err)
-		list, err2 := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 10)
-		require.Nil(t, err2)
-		var found *model.Post
-		for _, p := range list.Posts {
-			if p.Message == "webhook via reply id" {
-				found = p
-				break
-			}
-		}
-		require.NotNil(t, found)
-		assert.Equal(t, root.Id, found.RootId)
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("rejects non-existent root_id", func(t *testing.T) {
+		err := th.App.HandleIncomingWebhook(th.Context, hook.Id, &model.IncomingWebhookRequest{
+			Text:   "missing root",
+			RootId: model.NewId(),
+		})
+		require.NotNil(t, err)
+		assert.Equal(t, "api.post.create_post.root_id.app_error", err.Id)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
 	t.Run("rejects root_id in a different channel", func(t *testing.T) {
