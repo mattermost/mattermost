@@ -38,10 +38,6 @@ test(
         await expect(modalTitle).toContainText('Confirm sending notifications to entire channel');
 
         // * Read the computed line-height of the modal title and assert correct spacing.
-        // The correct value is 28px (set in _modal.scss by MM-56352).
-        // MM-66442 incorrectly bumped this to 44px, causing the over-spaced title shown
-        // in the Rainforest "Target" baseline. The tight "Screen during failure" view
-        // (captured 26 Jan 2026) is the correct desired appearance.
         const lineHeight = await modalTitle.evaluate((el) => {
             return window.getComputedStyle(el).lineHeight;
         });
