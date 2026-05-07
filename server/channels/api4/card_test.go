@@ -187,9 +187,7 @@ func TestCreateCardRequestValidation(t *testing.T) {
 
 	t.Run("invalid JSON body", func(t *testing.T) {
 		r, err := client.DoAPIPost(context.Background(), "/cards", "not-json")
-		require.NoError(t, err)
-		defer r.Body.Close()
-		_, _ = io.Copy(io.Discard, r.Body)
+		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
@@ -266,9 +264,7 @@ func TestUpdateCardRequestValidation(t *testing.T) {
 
 	t.Run("invalid JSON body", func(t *testing.T) {
 		r, err := client.DoAPIPut(context.Background(), "/cards/"+cardPost.Id, "{")
-		require.NoError(t, err)
-		defer r.Body.Close()
-		_, _ = io.Copy(io.Discard, r.Body)
+		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
@@ -340,9 +336,7 @@ func TestPatchCardRequestValidation(t *testing.T) {
 
 	t.Run("invalid JSON body", func(t *testing.T) {
 		r, err := client.DoAPIPut(context.Background(), "/cards/"+cardPost.Id+"/patch", "not-json")
-		require.NoError(t, err)
-		defer r.Body.Close()
-		_, _ = io.Copy(io.Discard, r.Body)
+		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
 
