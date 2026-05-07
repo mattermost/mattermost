@@ -52,6 +52,15 @@ export type CustomProfileAttribute = {
     };
 };
 
+/**
+ * A map of custom profile attribute field IDs to field objects that also tracks
+ * which fields were freshly created (owned) vs reused from pre-existing server fields.
+ * Callers that only read the map by field ID continue to work unchanged.
+ */
+export type CpaFieldsMap = Record<string, UserPropertyField> & {
+    __ownedIds: Set<string>;
+};
+
 // Custom attribute definitions for user settings tests (with select/multiselect attributes)
 export const userSettingsAttributes: CustomProfileAttribute[] = [
     {
@@ -324,8 +333,9 @@ export async function updateCustomProfileAttributeVisibility(
 export async function setupCustomProfileAttributeFields(
     adminClient: Client4,
     attributes: CustomProfileAttribute[],
-): Promise<Record<string, UserPropertyField>> {
+): Promise<CpaFieldsMap> {
     const fieldsMap: Record<string, UserPropertyField> = {};
+    const ownedIds = new Set<string>();
 
     // Create the attribute fields array
     const attributeFields: UserPropertyFieldPatch[] = attributes.map((attr, index) => {
@@ -375,18 +385,22 @@ export async function setupCustomProfileAttributeFields(
     // Create fields sequentially, reusing any that already exist by name
     for (const field of attributeFields) {
         if (field.name && existingByName[field.name]) {
-            // Reuse the existing field — record it in the map and move on
+            // Reuse the existing field — record it in the map but do NOT
+            // add it to ownedIds; this field belongs to some other caller.
             const existing = existingByName[field.name];
             fieldsMap[existing.id] = existing;
         } else {
             try {
                 const createdField = await adminClient.createCustomProfileAttributeField(field);
                 fieldsMap[createdField.id] = createdField;
+                ownedIds.add(createdField.id);
             } catch {
                 // Creation failed — likely a race with a parallel test that created
                 // the same field name between our getCustomProfileAttributeFields()
                 // call and this createCustomProfileAttributeField() call.
                 // Re-fetch to pick up the field the other test just created.
+                // NOTE: the field was created by another caller so we do NOT add
+                // its ID to ownedIds — we treat it as borrowed.
                 try {
                     const currentFields = await adminClient.getCustomProfileAttributeFields();
                     const raceCreated = currentFields.find((f) => f.name === field.name);
@@ -401,7 +415,17 @@ export async function setupCustomProfileAttributeFields(
         }
     }
 
-    return fieldsMap;
+    // Attach __ownedIds as a NON-ENUMERABLE own property so it is invisible to
+    // Object.keys() / Object.values() / Object.entries() / JSON.stringify().
+    // Callers that iterate the map (e.g. `Object.values(attributeFieldsMap)` to
+    // build a frozen route response) must not receive the Set as a spurious entry.
+    Object.defineProperty(fieldsMap, '__ownedIds', {
+        value: ownedIds,
+        enumerable: false,
+        configurable: true,
+        writable: true,
+    });
+    return fieldsMap as CpaFieldsMap;
 }
 
 /**
@@ -500,8 +524,13 @@ export async function deleteCustomProfileAttributes(
     adminClient: Client4,
     attributes: Record<string, UserPropertyField>,
 ): Promise<void> {
-    // Delete each field
-    for (const id of Object.keys(attributes)) {
+    // Only delete fields we actually created — never borrowed/reused fields.
+    // When __ownedIds is missing (legacy caller that assembled its own map),
+    // treat all keys as owned to preserve existing behaviour.
+    const ownedIds: Set<string> =
+        '__ownedIds' in attributes ? (attributes as CpaFieldsMap).__ownedIds : new Set(Object.keys(attributes));
+
+    for (const id of ownedIds) {
         try {
             await adminClient.deleteCustomProfileAttributeField(id);
         } catch (error) {
@@ -512,13 +541,12 @@ export async function deleteCustomProfileAttributes(
 
     // Verify that specifically OUR fields were deleted (not all fields — other
     // concurrent tests may have their own fields still present on the server).
-    const idsToDelete = new Set(Object.keys(attributes));
-    if (idsToDelete.size === 0) {
+    if (ownedIds.size === 0) {
         return;
     }
     try {
         const remaining = await adminClient.getCustomProfileAttributeFields();
-        const leakedFields = remaining.filter((f: {id: string}) => idsToDelete.has(f.id));
+        const leakedFields = remaining.filter((f: {id: string}) => ownedIds.has(f.id));
         if (leakedFields.length > 0) {
             // eslint-disable-next-line no-console
             console.log(

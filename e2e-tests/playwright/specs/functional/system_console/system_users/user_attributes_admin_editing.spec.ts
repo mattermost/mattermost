@@ -217,13 +217,18 @@ test.describe('System Console - Admin User Profile Editing', () => {
 
         // Freeze the CPA fields API response for this test's entire lifetime.
         //
-        // Other concurrent CPA spec files call setupCustomProfileAttributeFields() which has
-        // an early-return bug: if ANY fields exist on the server it returns them all, including
-        // our UAAE fields. Their afterEach then deletes those stolen fields. The server emits
-        // WebsocketEventCPAFieldDeleted; the browser re-fetches GET /api/v4/custom_profile_attributes/fields;
-        // fields disappear from Redux. The CPA section in system_user_detail.tsx hides when
-        // cpaFields.length === 0, so both the beforeEach assertions and the test-body validation
-        // checks fail.
+        // Concurrent CPA channel tests run on other shards against the same server.  When
+        // they create or delete any CPA field, the server broadcasts a WebSocket event that
+        // causes the browser to re-fetch GET /api/v4/custom_profile_attributes/fields.  If
+        // that re-fetch returns fewer fields than the test expects, the CPA section in
+        // system_user_detail.tsx hides (cpaFields.length === 0) and both the beforeEach
+        // assertions and the validation-test body checks fail.
+        //
+        // deleteCustomProfileAttributes now uses ownership tracking (__ownedIds) so channel
+        // tests no longer delete fields they didn't create.  The frozen intercept below
+        // remains as a belt-and-suspenders guard against any other source of field churn
+        // (e.g. a parallel shard creating a new field that temporarily hits the 20-field
+        // limit, triggering an unexpected deletion).
         //
         // Setting the intercept BEFORE page.reload() means the reload's fetch also hits the
         // frozen response, protecting the initial field-visibility assertions.
@@ -368,17 +373,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    // FIXME: This test consistently fails with "Failed to update user" across all CI retries.
-    // Root cause: patchCPAValuesForUser (server) rejects the save because the field ID is
-    // not found or has DeleteAt>0 at the time of the PATCH request.  The most likely trigger
-    // is a race on the shared CI server: a concurrent shard running CPA channel tests calls
-    // deleteCustomProfileAttributeField for the global "Department" field (created in
-    // test_setup.ts), which transiently pushes the server's CPA field state into an
-    // inconsistent window that our save lands in.  The page.route() intercept in beforeEach
-    // protects the browser's Redux state (field labels stay visible) but cannot prevent
-    // server-side rejection.  Fix: ensure strict field-ID ownership so no test can delete
-    // fields it did not create (see deleteCustomProfileAttributes in helpers.ts).
-    test.fixme('Should display custom multiselect attribute and save form', async () => {
+    test('Should display custom multiselect attribute and save form', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -584,13 +579,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(userDetail.saveButton).toBeDisabled();
     });
 
-    // FIXME: This test consistently fails with "Failed to update user" across all CI retries.
-    // Root cause: same cross-shard race as the multiselect-save fixme above — a concurrent
-    // shard running CPA channel tests calls deleteCustomProfileAttributeField for the global
-    // "Department" field (created in test_setup.ts), which causes patchCPAValuesForUser to
-    // reject the PATCH with 404 (field not found or DeleteAt>0) by the time save() runs.
-    // Fix: ensure strict field-ID ownership so no test can delete fields it did not create.
-    test.fixme('Should save all user attribute changes atomically', async () => {
+    test('Should save all user attribute changes atomically', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
