@@ -1,0 +1,129 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {waitFor} from '@testing-library/react';
+import React from 'react';
+
+import type {RemoteCluster} from '@mattermost/types/remote_clusters';
+
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+
+import SecureConnectionCreateInviteModal from './secure_connection_create_invite_modal';
+
+const remoteCluster = {
+    remote_id: 'rc-1',
+    display_name: 'Acme',
+} as RemoteCluster;
+
+const shareResult = {
+    remoteCluster,
+    share: {invite: 'INVITE_CODE_XYZ', password: 'pa$$w0rd'},
+};
+
+describe('SecureConnectionCreateInviteModal', () => {
+    it('calls onConfirm on mount and renders the invite + password inputs once resolved', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        await waitFor(() => {
+            expect(screen.getByTestId('invite-code')).toHaveValue('INVITE_CODE_XYZ');
+        });
+        expect(screen.getByTestId('password')).toHaveValue('pa$$w0rd');
+    });
+
+    it('shows the "Connection created" title when creating and resolved', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                creating={true}
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Connection created')).toBeInTheDocument();
+        });
+    });
+
+    it('shows the default "Invitation code" title when not creating', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('heading', {name: 'Invitation code'})).toBeInTheDocument();
+        });
+    });
+
+    it('flips the confirm button label to "Done" once both invite and password are populated', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
+        });
+    });
+
+    it('renders the security warning notice when done', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Share these two separately to avoid a security compromise')).toBeInTheDocument();
+        });
+    });
+
+    it('does not invoke onConfirm again when the Done button is clicked', async () => {
+        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+        const user = userEvent.setup();
+
+        renderWithContext(
+            <SecureConnectionCreateInviteModal
+                onConfirm={onConfirm}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
+        });
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        await user.click(screen.getByRole('button', {name: 'Done'}));
+
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+    });
+});
