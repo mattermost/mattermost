@@ -5,8 +5,8 @@ package api4
 
 import (
 	"context"
-	"io"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -186,7 +186,7 @@ func TestCreateCardRequestValidation(t *testing.T) {
 	client := th.Client
 
 	t.Run("invalid JSON body", func(t *testing.T) {
-		r, err := client.DoAPIPost(context.Background(), "/cards", "not-json")
+		r, err := client.CreateCardWithBody(context.Background(), []byte("not-json"))
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
@@ -227,11 +227,13 @@ func TestCreateCardRequestValidation(t *testing.T) {
 			ChannelId: th.BasicChannel.Id,
 			Message:   "card with bad set_online query",
 		}
-		r, err := client.DoAPIPostJSON(context.Background(), "/cards?set_online=not-a-bool", post)
+		q := url.Values{}
+		q.Set("set_online", "not-a-bool")
+		rpost, resp, err := client.CreateCardWithQuery(context.Background(), post, q)
 		require.NoError(t, err)
-		defer r.Body.Close()
-		_, _ = io.Copy(io.Discard, r.Body)
-		require.Equal(t, http.StatusCreated, r.StatusCode)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, rpost)
+		assert.Equal(t, model.PostTypeCard, rpost.Type)
 	})
 }
 
@@ -263,7 +265,7 @@ func TestUpdateCardRequestValidation(t *testing.T) {
 	})
 
 	t.Run("invalid JSON body", func(t *testing.T) {
-		r, err := client.DoAPIPut(context.Background(), "/cards/"+cardPost.Id, "{")
+		r, err := client.UpdateCardWithBody(context.Background(), cardPost.Id, []byte("{"))
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
@@ -335,7 +337,7 @@ func TestPatchCardRequestValidation(t *testing.T) {
 	client := th.Client
 
 	t.Run("invalid JSON body", func(t *testing.T) {
-		r, err := client.DoAPIPut(context.Background(), "/cards/"+cardPost.Id+"/patch", "not-json")
+		r, err := client.PatchCardWithBody(context.Background(), cardPost.Id, []byte("not-json"))
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, r.StatusCode)
 	})
