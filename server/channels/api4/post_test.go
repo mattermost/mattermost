@@ -7111,7 +7111,7 @@ func TestPostsAPINonOwnerCannotMutateCardWithoutEditOthers(t *testing.T) {
 	})
 
 	t.Run("delete", func(t *testing.T) {
-		_, resp, err := th.Client.DeletePost(context.Background(), cardPost.Id)
+		resp, err := th.Client.DeletePost(context.Background(), cardPost.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
