@@ -254,6 +254,12 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userCard} = systemConsolePage!.users.userDetail;
         await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.department)).toBeVisible({timeout: 30_000});
         await expect(userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail)).toBeVisible({timeout: 30_000});
+
+        // Remove the intercept now that field visibility is confirmed.
+        // Keeping it active through the test body would intercept the save API call
+        // (which also hits the /fields endpoint during submit), causing "Failed to update user".
+        // Validation tests restore their own intercept via try/finally.
+        await systemConsolePage.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
     });
 
     test.afterEach(async ({pw}) => {
@@ -262,8 +268,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         if (Object.keys(attributeFieldsMap).length === 0) {
             return;
         }
-        // Remove the fields API intercept BEFORE deleting server-side so the real
-        // deletion calls are not intercepted.
+        // Safety-net unroute in case a validation test's try/finally was skipped by an
+        // earlier error, or the beforeEach unroute was never reached.
         await systemConsolePage?.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
         // Clean up custom user attribute fields
         const {adminClient: cleanupClient} = await pw.getAdminClient();
@@ -395,101 +401,145 @@ test.describe('System Console - Admin User Profile Editing', () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // # Find CPA email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
-        await workEmailInput.scrollIntoViewIfNeeded();
-        const originalEmail = await workEmailInput.inputValue();
+        // Re-apply the fields intercept for this validation test.
+        // Without it, a concurrent CPA test's afterEach can delete our fields via the
+        // setupCustomProfileAttributeFields early-return bug. The server then emits
+        // WebsocketEventCPAFieldDeleted; the browser re-fetches /fields; Redux clears;
+        // handleCpaValueChange finds field===undefined and skips setting the error state,
+        // so the field-error element never renders and the assertion times out.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage!.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
+        try {
+            // # Find CPA email field (Work Email)
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+            await workEmailInput.scrollIntoViewIfNeeded();
+            const originalEmail = await workEmailInput.inputValue();
 
-        // # Enter invalid email
-        await workEmailInput.clear();
-        await workEmailInput.fill('not-an-email');
+            // # Enter invalid email
+            await workEmailInput.clear();
+            await workEmailInput.fill('not-an-email');
 
-        // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-        await expect(fieldError).toBeVisible({timeout: 30000});
-        await expect(fieldError).toContainText('Invalid email address');
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            await expect(fieldError).toBeVisible({timeout: 30000});
+            await expect(fieldError).toContainText('Invalid email address');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
 
-        // * Verify Cancel button is visible and enabled
-        await expect(userDetail.cancelButton).toBeVisible();
-        await expect(userDetail.cancelButton).toBeEnabled();
+            // * Verify Cancel button is visible and enabled
+            await expect(userDetail.cancelButton).toBeVisible();
+            await expect(userDetail.cancelButton).toBeEnabled();
 
-        // # Test the cancel functionality
-        await userDetail.cancel();
+            // # Test the cancel functionality
+            await userDetail.cancel();
 
-        // * Verify email reverts to original value
-        await expect(workEmailInput).toHaveValue(originalEmail);
+            // * Verify email reverts to original value
+            await expect(workEmailInput).toHaveValue(originalEmail);
 
-        // * Verify validation error disappears
-        await expect(fieldError).not.toBeVisible();
+            // * Verify validation error disappears
+            await expect(fieldError).not.toBeVisible();
 
-        // * Verify Cancel button disappears
-        await expect(userDetail.cancelButton).not.toBeVisible();
+            // * Verify Cancel button disappears
+            await expect(userDetail.cancelButton).not.toBeVisible();
 
-        // * Verify Save button remains disabled (no unsaved changes)
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify Save button remains disabled (no unsaved changes)
+            await expect(userDetail.saveButton).toBeDisabled();
+        } finally {
+            await systemConsolePage!.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
+        }
     });
 
     test('Should validate invalid URL and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // # Find custom URL field (Personal Website)
-        const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
-        const originalUrl = await urlInput.inputValue();
+        // Re-apply the fields intercept — same race-condition guard as the email validation test.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage!.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
+        try {
+            // # Find custom URL field (Personal Website)
+            const urlInput = userCard.getFieldInputByExactLabel(cpaFieldNames.personalWebsite);
+            const originalUrl = await urlInput.inputValue();
 
-        // # Enter invalid URL (specifically the one mentioned: "<%>")
-        await urlInput.clear();
-        await urlInput.fill('<%>');
+            // # Enter invalid URL (specifically the one mentioned: "<%>")
+            await urlInput.clear();
+            await urlInput.fill('<%>');
 
-        // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
-        await expect(fieldError).toBeVisible();
-        await expect(fieldError).toContainText('Invalid URL');
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.personalWebsite);
+            await expect(fieldError).toBeVisible();
+            await expect(fieldError).toContainText('Invalid URL');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
 
-        // * Verify Cancel button is visible
-        await expect(userDetail.cancelButton).toBeVisible();
-        await expect(userDetail.cancelButton).toBeEnabled();
+            // * Verify Cancel button is visible
+            await expect(userDetail.cancelButton).toBeVisible();
+            await expect(userDetail.cancelButton).toBeEnabled();
 
-        // # Test cancel functionality
-        await userDetail.cancel();
+            // # Test cancel functionality
+            await userDetail.cancel();
 
-        // * Verify URL reverts to original value
-        await expect(urlInput).toHaveValue(originalUrl);
+            // * Verify URL reverts to original value
+            await expect(urlInput).toHaveValue(originalUrl);
 
-        // * Verify validation error disappears
-        await expect(fieldError).not.toBeVisible();
+            // * Verify validation error disappears
+            await expect(fieldError).not.toBeVisible();
 
-        // * Verify Cancel button disappears
-        await expect(userDetail.cancelButton).not.toBeVisible();
+            // * Verify Cancel button disappears
+            await expect(userDetail.cancelButton).not.toBeVisible();
+        } finally {
+            await systemConsolePage!.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
+        }
     });
 
     test('Should validate invalid email in custom email attribute', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
-        // # Find custom email field (Work Email)
-        const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
+        // Re-apply the fields intercept — same race-condition guard as the other validation tests.
+        const frozenFields = Object.values(attributeFieldsMap);
+        await systemConsolePage!.page.route('**/api/v4/custom_profile_attributes/fields', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(frozenFields),
+            });
+        });
+        try {
+            // # Find custom email field (Work Email)
+            const workEmailInput = userCard.getFieldInputByExactLabel(cpaFieldNames.workEmail);
 
-        // # Enter invalid email
-        await workEmailInput.clear();
-        await workEmailInput.fill('not-an-email-either');
+            // # Enter invalid email
+            await workEmailInput.clear();
+            await workEmailInput.fill('not-an-email-either');
 
-        // * Verify inline validation error appears
-        const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
-        await expect(fieldError).toBeVisible();
-        await expect(fieldError).toContainText('Invalid email address');
+            // * Verify inline validation error appears
+            const fieldError = userCard.getFieldError(cpaFieldNames.workEmail);
+            await expect(fieldError).toBeVisible();
+            await expect(fieldError).toContainText('Invalid email address');
 
-        // * Verify Save button is disabled due to validation error
-        await expect(userDetail.saveButton).toBeDisabled();
+            // * Verify Save button is disabled due to validation error
+            await expect(userDetail.saveButton).toBeDisabled();
 
-        // * Verify Cancel button is available
-        await expect(userDetail.cancelButton).toBeVisible();
+            // * Verify Cancel button is available
+            await expect(userDetail.cancelButton).toBeVisible();
+        } finally {
+            await systemConsolePage!.page.unroute('**/api/v4/custom_profile_attributes/fields').catch(() => {});
+        }
     });
 
     test('Should show save/cancel buttons when changes are made', async () => {
