@@ -3879,11 +3879,11 @@ func (s *RetryLayerChannelMemberHistoryStore) GetChannelsWithActivityDuring(star
 
 }
 
-func (s *RetryLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string, page, perPage int) ([]string, error) {
+func (s *RetryLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs, page, perPage)
+		result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs)
 		if err == nil {
 			return result, nil
 		}

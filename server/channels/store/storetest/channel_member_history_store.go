@@ -81,41 +81,16 @@ func testGetEverMembersInChannel(t *testing.T, rctx request.CTX, ss store.Store)
 	// user on a different channel only should not be returned.
 	require.NoError(t, ss.ChannelMemberHistory().LogJoinEvent(wrongChannelOnly, otherChannel.Id, baseTime))
 
-	// non-positive pagination and invalid page should return empty.
-	results, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, []string{user1, user2}, 0, 0)
-	require.NoError(t, err)
-	require.Empty(t, results)
-
-	results, err = ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, []string{user1, user2}, -1, 2)
+	// Empty candidates should return no rows.
+	results, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, nil)
 	require.NoError(t, err)
 	require.Empty(t, results)
 
 	// Filter to known candidates in this channel and ensure each user appears once.
 	candidates := []string{user1, user2, user3, user4, nonMember, wrongChannelOnly}
-	allResults, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 0, 10)
+	allResults, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{user1, user2, user3, user4}, allResults)
-
-	// Ensure paging walks all results deterministically.
-	page0, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 0, 2)
-	require.NoError(t, err)
-	page1, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 1, 2)
-	require.NoError(t, err)
-	page2, err := ss.ChannelMemberHistory().GetEverMembersInChannel(channel.Id, candidates, 2, 2)
-	require.NoError(t, err)
-	assert.Len(t, page0, 2)
-	assert.Len(t, page1, 2)
-	assert.Empty(t, page2)
-
-	pagedSet := make(map[string]struct{})
-	for _, id := range append(page0, page1...) {
-		pagedSet[id] = struct{}{}
-	}
-	assert.Len(t, pagedSet, 4)
-	for _, id := range []string{user1, user2, user3, user4} {
-		_, ok := pagedSet[id]
-		assert.True(t, ok)
-	}
 }
 
 func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {

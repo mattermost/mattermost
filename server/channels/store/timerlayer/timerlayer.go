@@ -3218,10 +3218,10 @@ func (s *TimerLayerChannelMemberHistoryStore) GetChannelsLeftSince(userID string
 	return result, err
 }
 
-func (s *TimerLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string, page, perPage int) ([]string, error) {
+func (s *TimerLayerChannelMemberHistoryStore) GetEverMembersInChannel(channelID string, userIDs []string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs, page, perPage)
+	result, err := s.ChannelMemberHistoryStore.GetEverMembersInChannel(channelID, userIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
