@@ -37,13 +37,6 @@
         flex: 1 1 auto;
         padding: 20px;
 
-        > .wrapper--admin {
-            display: flex;
-            overflow: auto;
-            height: 100%;
-            flex-direction: column;
-        }
-
         .admin-console__filters-rows {
             display: flex;
             flex-wrap: wrap;
@@ -196,7 +189,8 @@
     .log__panel {
         overflow: scroll;
         width: 100%;
-        height: calc(100vh - 280px);
+        min-height: 0;
+        flex: 1;
         padding: 10px;
         border: variables.$border-gray;
         margin-top: 14px;
@@ -610,6 +604,10 @@
     border: variables.$border-gray;
     margin: 20px 0 10px;
     background-color: variables.$white;
+
+    &--full-height {
+        max-height: none;
+    }
 }
 
 .admin-console__disabled-text {
@@ -1112,6 +1110,7 @@
 
 .admin-console .admin-console__content.admin-logs-content {
     display: flex;
+    overflow: hidden;
     max-width: none;
     height: 100%;
     flex-direction: column;
@@ -1148,7 +1147,8 @@
     }
 
     .LogTable {
-        height: 100%;
+        min-height: 0;
+        flex: 1;
 
         .DataGrid {
             display: flex;
@@ -1157,10 +1157,17 @@
 
             .DataGrid_rows {
                 overflow: auto;
-                height: 100%;
-                min-height: 100% !important;
+                min-height: 0 !important;
+                flex: 1;
             }
         }
+    }
+
+    .plain-log-list {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
     }
 }
 

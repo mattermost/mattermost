@@ -4,26 +4,12 @@
 import React from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {UserProfile} from '@mattermost/types/users';
 
 import LocalizedPlaceholderInput from 'components/localized_placeholder_input';
 
-type MFAControllerState = {
-    enforceMultifactorAuthentication: boolean;
-};
-
 type Props = {
-
-    /*
-     * Object containing enforceMultifactorAuthentication
-     */
-    state: MFAControllerState;
-
-    /*
-     * Function that updates parent component with state props
-     */
-    updateParent: (state: MFAControllerState) => void;
-
     currentUser: UserProfile;
     siteName?: string;
     enforceMultifactorAuthentication: boolean;
@@ -223,15 +209,15 @@ export default class Setup extends React.PureComponent<Props, State> {
                         />
                     </p>
                     {errorContent}
-                    <button
+                    <Button
                         type='submit'
-                        className='btn btn-primary'
+                        emphasis='primary'
                     >
                         <FormattedMessage
                             id='mfa.setup.save'
                             defaultMessage='Save'
                         />
-                    </button>
+                    </Button>
                 </form>
             </div>
         );

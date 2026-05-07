@@ -34,6 +34,7 @@ import {
     getMyCurrentChannelMembership as getMyCurrentChannelMembershipInternal,
     getUsers,
 } from 'mattermost-redux/selectors/entities/common';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     getTeammateNameDisplaySetting,
     isCollapsedThreadsEnabled,
@@ -67,6 +68,7 @@ import {
 } from 'mattermost-redux/utils/channel_utils';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
+import {getCurrentUserLocale} from './i18n';
 import {isPostPriorityEnabled} from './posts';
 import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
@@ -1454,4 +1456,79 @@ export const isDeactivatedDirectChannel = (state: GlobalState, channelId: string
 export function getChannelBanner(state: GlobalState, channelId: string): ChannelBanner | undefined {
     const channel = getChannel(state, channelId);
     return channel ? channel.banner_info : undefined;
+}
+
+// isChannelAutotranslated returns whether the channel is autotranslated
+// in general terms in this server.
+export function isChannelAutotranslated(state: GlobalState, channelId: string): boolean {
+    const channel = getChannel(state, channelId);
+    const config = getConfig(state);
+
+    if (!channel?.autotranslation || config?.EnableAutoTranslation !== 'true') {
+        return false;
+    }
+
+    // When autotranslation is restricted on DMs and GMs, do not consider them autotranslated
+    const isDMOrGM = channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL;
+    if (isDMOrGM && config?.RestrictDMAndGMAutotranslation === 'true') {
+        return false;
+    }
+
+    return true;
+}
+
+// isMyChannelAutotranslated returns whether the current user is seeing the autotranslated
+// version of the channel.
+export function isMyChannelAutotranslated(state: GlobalState, channelId: string): boolean {
+    if (!isChannelAutotranslated(state, channelId)) {
+        return false;
+    }
+
+    if (!isUserLanguageSupportedForAutotranslation(state)) {
+        return false;
+    }
+
+    const myChannelMember = getMyChannelMember(state, channelId);
+    return !myChannelMember?.autotranslation_disabled;
+}
+
+export function isUserLanguageSupportedForAutotranslation(state: GlobalState): boolean {
+    const locale = getCurrentUserLocale(state);
+    const config = getConfig(state);
+    if (config?.EnableAutoTranslation !== 'true') {
+        return false;
+    }
+    const targetLanguages = config?.AutoTranslationLanguages?.split(',').map((l) => l.trim()).filter(Boolean);
+    return Boolean(targetLanguages?.length && targetLanguages.includes(locale));
+}
+
+export function hasAutotranslationBecomeEnabled(state: GlobalState, channelOrMember: Channel | ChannelMembership) {
+    const autotranslationEnabled = getConfig(state)?.EnableAutoTranslation === 'true';
+
+    let existingChannel: Channel | undefined;
+    let existingMember: ChannelMembership | undefined;
+    let newChannel: Channel | undefined;
+    let newMember: ChannelMembership | undefined;
+    if ('channel_id' in channelOrMember) {
+        newMember = channelOrMember;
+        existingChannel = getChannel(state, newMember.channel_id);
+        existingMember = getMyChannelMember(state, newMember.channel_id);
+        newChannel = existingChannel;
+    } else {
+        newChannel = channelOrMember;
+        existingChannel = getChannel(state, newChannel.id);
+        existingMember = getMyChannelMember(state, newChannel.id);
+        newMember = existingMember;
+    }
+
+    if (!existingChannel || !existingMember) {
+        // channel is not in the state, so there is no need
+        // to reload posts
+        return false;
+    }
+
+    const wasTranslating = autotranslationEnabled && existingChannel.autotranslation && !existingMember.autotranslation_disabled;
+    const isTranslating = autotranslationEnabled && newChannel?.autotranslation && !newMember?.autotranslation_disabled;
+
+    return !wasTranslating && isTranslating;
 }

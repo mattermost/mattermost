@@ -94,6 +94,8 @@ type PlatformService struct {
 	searchConfigListenerId  string
 	searchLicenseListenerId string
 
+	esWatcher *searchEngineWatcher
+
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 
 	Jobs *jobs.JobServer
@@ -117,6 +119,24 @@ type PlatformService struct {
 	forceEnableRedis bool
 
 	pdpService einterfaces.PolicyDecisionPointInterface
+
+	startTime time.Time
+
+	// installTypeOverride overrides MM_INSTALL_TYPE in support packet diagnostics.
+	installTypeOverride string
+
+	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
+	logRootPathOverride string
+}
+
+// SetInstallTypeOverride sets the install type override for support packet diagnostics.
+func (ps *PlatformService) SetInstallTypeOverride(v string) {
+	ps.installTypeOverride = v
+}
+
+// SetLogRootPathOverride sets the log root path override for log file validation.
+func (ps *PlatformService) SetLogRootPathOverride(v string) {
+	ps.logRootPathOverride = v
 }
 
 type HookRunner interface {
@@ -132,6 +152,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		Store:               sc.Store,
 		clusterIFace:        sc.Cluster,
 		hashSeed:            maphash.MakeSeed(),
+		startTime:           time.Now(),
 		goroutineExitSignal: make(chan struct{}, 1),
 		goroutineBuffered:   make(chan struct{}, runtime.NumCPU()),
 		WebSocketRouter: &WebSocketRouter{
@@ -257,7 +278,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 			// Timer layer
 			// |
 			// Cache layer
-			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, ps.storeOptions...)
+			opts := append(ps.storeOptions, sqlstore.WithFeatureFlags(func() *model.FeatureFlags {
+				return ps.Config().FeatureFlags
+			}))
+			ps.sqlStore, err = sqlstore.New(ps.Config().SqlSettings, ps.Log(), ps.metricsIFace, opts...)
 			if err != nil {
 				return nil, err
 			}
@@ -461,6 +485,14 @@ func (ps *PlatformService) ShutdownMetrics() error {
 	return nil
 }
 
+// GetMetricsRouter returns the metrics router. This is primarily used for testing.
+func (ps *PlatformService) GetMetricsRouter() http.Handler {
+	if ps.metrics != nil {
+		return ps.metrics.router
+	}
+	return nil
+}
+
 func (ps *PlatformService) ShutdownConfig() error {
 	ps.RemoveConfigListener(ps.configListenerId)
 
@@ -635,7 +667,7 @@ func (ps *PlatformService) LdapDiagnostic() einterfaces.LdapDiagnosticInterface 
 	return ps.ldapDiagnostic
 }
 
-// DatabaseTypeAndSchemaVersion returns the Database type (postgres or mysql) and current version of the schema
+// DatabaseTypeAndSchemaVersion returns the database type and current version of the schema
 func (ps *PlatformService) DatabaseTypeAndSchemaVersion() (string, string, error) {
 	schemaVersion, err := ps.Store.GetDBSchemaVersion()
 	if err != nil {

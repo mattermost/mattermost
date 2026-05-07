@@ -29,14 +29,14 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
-    await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await reporterUserClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await reviewerUserClient.keepFlaggedPost(post.id, 'Retaining this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(reporterUser);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you flagged for review has been restored by a reviewer.`;
+    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you quarantined for review has been restored by a reviewer.`;
     await verifyReporterNotification(channelsPage, team.name, expected);
 });
 
@@ -64,13 +64,13 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
 
     const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
-    await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
+    await reporterUserClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await reviewerUserClient.removeFlaggedPost(post.id, 'Retaining this post after review');
 
     const {channelsPage} = await pw.testBrowser.login(reporterUser);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you flagged for review has been permanently removed by a reviewer.`;
+    const expected = `The post having ID ${post.id} in the channel ${townSquare.display_name} which you quarantined for review has been permanently removed by a reviewer.`;
     await verifyReporterNotification(channelsPage, team.name, expected);
 });

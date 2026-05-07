@@ -1,74 +1,60 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/UserProfile should match snapshot 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    hideStatus={false}
-    overwriteName=""
-    src="/api/v4/users/undefined/image?_=0"
-    triggerComponentAs="button"
-    triggerComponentClass="user-popover style--none"
-    userId="user_id"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
     nickname
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, when displayUsername is enabled 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    hideStatus={false}
-    overwriteName=""
-    src="/api/v4/users/undefined/image?_=0"
-    triggerComponentAs="button"
-    triggerComponentClass="user-popover style--none"
-    userId="user_id"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
     @username
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, when popover is disabled 1`] = `
-<div
-  className="user-popover"
->
-  nickname
+<div>
+  <div
+    class="user-popover"
+  >
+    nickname
+  </div>
 </div>
 `;
 
 exports[`components/UserProfile should match snapshot, when user is shared 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    hideStatus={false}
-    overwriteName=""
-    src="/api/v4/users/undefined/image?_=0"
-    triggerComponentAs="button"
-    triggerComponentClass="user-popover style--none"
-    userId="user_id"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
   >
     nickname
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;
 
 exports[`components/UserProfile should match snapshot, with colorization 1`] = `
-<Fragment>
-  <ProfilePopoverController
-    hideStatus={false}
-    overwriteName=""
-    src="/api/v4/users/undefined/image?_=0"
-    triggerComponentAs="button"
-    triggerComponentClass="user-popover style--none"
-    triggerComponentStyle={
-      Object {
-        "color": "#bbd279",
-      }
-    }
-    userId="user_id"
+<div>
+  <button
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="user-popover style--none"
+    style="color: rgb(187, 210, 121);"
   >
     nickname
-  </ProfilePopoverController>
-</Fragment>
+  </button>
+</div>
 `;

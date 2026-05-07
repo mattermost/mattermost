@@ -48,8 +48,7 @@ jest.mock('actions/storage', () => {
     };
 });
 
-jest.mock('utils/user_agent', () => ({
-    isIosClassic: jest.fn().mockReturnValueOnce(true).mockReturnValue(false),
+jest.mock('@mattermost/shared/utils/user_agent', () => ({
     isDesktopApp: jest.fn().mockReturnValue(false),
 }));
 
@@ -244,7 +243,7 @@ describe('Actions.Posts', () => {
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
                             onlyMentions: undefined,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                     {
@@ -263,7 +262,7 @@ describe('Actions.Posts', () => {
                             amountUrgent: 0,
                             channelId: 'other_channel_id',
                             fetchedChannelMember: false,
-                            teamId: undefined,
+                            teamId: '',
                         },
                     },
                 ],

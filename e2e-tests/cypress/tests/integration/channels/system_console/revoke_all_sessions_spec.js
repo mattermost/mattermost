@@ -10,8 +10,8 @@
 // Stage: @prod
 // Group: @channels @system_console
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getAdminAccount} from '../../../support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
 
 describe('System Console > User Management > Users', () => {
     const admin = getAdminAccount();

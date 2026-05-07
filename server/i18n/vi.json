@@ -2112,10 +2112,6 @@
     "translation": "Tên kênh không hợp lệ. ID người dùng không được phép có trong tên kênh cho các kênh tin nhắn không trực tiếp."
   },
   {
-    "id": "api.command_mute.not_member.error",
-    "translation": "Không thể tắt tiếng kênh {{.Channel}} vì bạn không phải là thành viên."
-  },
-  {
     "id": "app.import.validate_user_import_data.password_length.error",
     "translation": "Mật khẩu người dùng có độ dài không hợp lệ."
   },
@@ -3498,10 +3494,6 @@
     "translation": "Phải là một thời gian hợp lệ"
   },
   {
-    "id": "ent.elasticsearch.stop.already_stopped.app_error",
-    "translation": "Elasticsearch đã bị dừng"
-  },
-  {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
     "translation": "Mật khẩu của bạn phải chứa ít nhất {{.Min}} ký tự được tạo thành từ ít nhất một chữ cái viết hoa."
   },
@@ -4492,10 +4484,6 @@
     "translation": "Xác nhận Email"
   },
   {
-    "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Tài khoản người dùng dạng Tích hợp/Slack Bot với email {{.Email}} và password {{.Password}} đã được lưu trữ.\n"
-  },
-  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Đăng nhập thất bại vì mật khẩu không hợp lệ"
   },
@@ -4768,10 +4756,6 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Token không hợp lệ."
-  },
-  {
-    "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Tài khoản Slack với email {{.Email}} và password {{.Password}} đã được lưu nhập.\n"
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
@@ -5790,16 +5774,8 @@
     "translation": "Một hoặc nhiều quyền sau đây mà bạn đang cố gắng thêm hoặc xóa không được phép"
   },
   {
-    "id": "api.server.cws.health_check.app_error",
-    "translation": "Máy chủ CWS không khả dụng."
-  },
-  {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Dịch vụ chỉ có ở phiên bản Matter Extreme Enterprise"
-  },
-  {
-    "id": "api.server.cws.subscribe_to_newsletter.app_error",
-    "translation": "Máy chủ CWS không thể đăng ký nhận bản tin."
   },
   {
     "id": "api.server.hosted_signup_unavailable.error",
@@ -6068,10 +6044,6 @@
   {
     "id": "api.system.id_loaded.not_available.app_error",
     "translation": "Thông báo đẩy được tải ID không được định cấu hình hoặc hỗ trợ trên máy chủ này."
-  },
-  {
-    "id": "api.templates.remove_expired_license.body.title",
-    "translation": "Giấy phép Phiên bản Enterprise của bạn đã hết hạn và một số tính năng có thể bị tắt. Hãy gia hạn giấy phép của bạn ngay bây giờ."
   },
   {
     "id": "api.team.add_members.user_denied",

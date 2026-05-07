@@ -12,6 +12,7 @@ import (
 // ExtractSettings defines the features enabled/disable during the document text extraction.
 type ExtractSettings struct {
 	ArchiveRecursion bool
+	MaxFileSize      int64
 	MMPreviewURL     string
 	MMPreviewSecret  string
 }
@@ -44,7 +45,7 @@ func ExtractWithExtraExtractors(logger mlog.LoggerIFace, filename string, r io.R
 	enabledExtractors.Add(&plainExtractor{})
 
 	if enabledExtractors.Match(filename) {
-		return enabledExtractors.Extract(filename, r)
+		return enabledExtractors.Extract(filename, r, settings.MaxFileSize)
 	}
 	return "", nil
 }

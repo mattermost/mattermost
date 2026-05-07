@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import React from 'react';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsModal from './channel_settings_modal';
@@ -16,6 +17,7 @@ import ChannelSettingsModal from './channel_settings_modal';
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
 let mockManageChannelAccessRulesPermission = false;
+let mockManageSharedChannelsPermission = false;
 
 // Mock the channel banner selector
 jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
@@ -39,6 +41,12 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
             return mockManageChannelAccessRulesPermission;
         }
         return true;
+    }),
+    haveISystemPermission: jest.fn().mockImplementation((state, {permission}) => {
+        if (permission === 'manage_shared_channels') {
+            return mockManageSharedChannelsPermission;
+        }
+        return false;
     }),
 }));
 
@@ -142,8 +150,8 @@ describe('ChannelSettingsModal', () => {
         focusOriginElement: 'button1',
     };
 
-    function makeTestState() {
-        return {
+    function makeTestState(): GlobalState {
+        const state: DeepPartial<GlobalState> = {
             entities: {
                 channels: {
                     channels: {
@@ -160,16 +168,18 @@ describe('ChannelSettingsModal', () => {
                     license: {
                         SkuShortName: '',
                     },
+                    config: {},
                 },
             },
         };
+        return state as GlobalState;
     }
 
     beforeEach(() => {
-        jest.clearAllMocks();
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
         mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
+        mockManageSharedChannelsPermission = false;
     });
 
     it('should render the modal with correct header text', async () => {
@@ -177,7 +187,11 @@ describe('ChannelSettingsModal', () => {
 
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
-        expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        // Use wait for to ensure the component is completely loaded and avoid
+        // act related errors during test.
+        await waitFor(() => {
+            expect(screen.getByText('Channel Settings')).toBeInTheDocument();
+        });
     });
 
     it('should render Info tab by default', async () => {
@@ -328,6 +342,16 @@ describe('ChannelSettingsModal', () => {
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
     });
 
+    it('should show configuration tab when Connected Workspaces enabled and user has manage_shared_channels', async () => {
+        mockManageSharedChannelsPermission = true;
+
+        const testState = makeTestState();
+        testState.entities.general.config.ExperimentalSharedChannels = 'true';
+
+        renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+        expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
+    });
+
     describe('Access Control tab visibility', () => {
         it('should show Access Control tab for private channel when user has permission', async () => {
             mockManageChannelAccessRulesPermission = true;
@@ -342,9 +366,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should be visible
+            // The Membership Policy tab should be visible
             expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
-            expect(screen.getByText('Access Control')).toBeInTheDocument();
+            expect(screen.getByText('Membership Policy')).toBeInTheDocument();
         });
 
         it('should not show Access Control tab for private channel when user lacks permission', async () => {
@@ -360,12 +384,12 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible
+            // The Membership Policy tab should not be visible
             expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
-        it('should not show Access Control tab for public channel even with permission', async () => {
+        it('should show Access Control tab for public channel when user has permission', async () => {
             mockManageChannelAccessRulesPermission = true;
 
             const testState = makeTestState();
@@ -377,9 +401,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible for public channels
-            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            // Public channels are eligible for ABAC policies (advisory / auto-add),
+            // so the Access Rules tab should be available when the user can manage them.
+            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
         });
 
         it('should not show Access Control tab for public channel without permission', async () => {
@@ -394,9 +418,31 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible
+            // The Membership Policy tab should not be visible
             expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
+        });
+
+        it.each([
+            ['town-square', 'town-square'],
+            ['off-topic', 'off-topic'],
+        ])('should not show Access Control tab on %s default channel even with permission', async (_label, channelName) => {
+            // The server rejects ABAC policies on default channels via
+            // ValidateChannelEligibilityForAccessControl, so the tab would only
+            // let the user assemble rules they can never save.
+            mockManageChannelAccessRulesPermission = true;
+
+            const testState = makeTestState();
+            testState.entities.channels.channels[channelId].name = channelName;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
         it('should be able to navigate to Access Control tab when visible', async () => {
@@ -424,7 +470,7 @@ describe('ChannelSettingsModal', () => {
             expect(screen.getByText('Access Rules Tab Content')).toBeInTheDocument();
         });
 
-        it('should show correct tab label as "Access Control"', async () => {
+        it('should show correct tab label as "Membership Policy"', async () => {
             mockManageChannelAccessRulesPermission = true;
 
             const testState = makeTestState();
@@ -439,25 +485,24 @@ describe('ChannelSettingsModal', () => {
 
             // Verify the tab shows the correct label
             const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
-            expect(accessControlTab).toHaveTextContent('Access Control');
+            expect(accessControlTab).toHaveTextContent('Membership Policy');
         });
 
-        it('should show Access Control tab for default channel if private and user has permission', async () => {
+        it('should not show Membership Policy tab for shared channels', async () => {
             mockManageChannelAccessRulesPermission = true;
 
             const testState = makeTestState();
-            testState.entities.channels.channels[channelId].name = 'town-square';
             testState.entities.channels.channels[channelId].type = General.PRIVATE_CHANNEL;
+            testState.entities.channels.channels[channelId].shared = true;
 
             renderWithContext(<ChannelSettingsModal {...baseProps}/>, testState);
 
-            // Wait for the sidebar to load
             await waitFor(() => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // Access Control tab visibility is not restricted for default channel - only depends on channel type and permission
-            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
         it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
@@ -474,9 +519,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible for group-constrained channels
+            // The Membership Policy tab should not be visible for group-constrained channels
             expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
         it('should not show Access Control tab for group-constrained private channel without permission', async () => {
@@ -493,9 +538,9 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible (for multiple reasons)
+            // The Membership Policy tab should not be visible (for multiple reasons)
             expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
 
         it('should not show Access Control tab for group-constrained public channel', async () => {
@@ -511,17 +556,13 @@ describe('ChannelSettingsModal', () => {
                 expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
             });
 
-            // The Access Control tab should not be visible (for multiple reasons: public + group-constrained)
+            // The Membership Policy tab should not be visible (for multiple reasons: public + group-constrained)
             expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
-            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+            expect(screen.queryByText('Membership Policy')).not.toBeInTheDocument();
         });
     });
 
     describe('warn-once modal closing behavior', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('should close immediately when no unsaved changes exist', async () => {
             renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 

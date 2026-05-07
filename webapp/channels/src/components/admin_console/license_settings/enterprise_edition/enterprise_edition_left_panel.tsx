@@ -5,17 +5,22 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
+import AlertOutlineIcon from '@mattermost/compass-icons/components/alert-outline';
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getServerLimits} from 'mattermost-redux/selectors/entities/limits';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';
@@ -77,21 +82,29 @@ const EnterpriseEditionLeftPanel = ({
         fetchUnSanitizedLicense();
     }, [license]);
 
+    const serverLimits = useSelector(getServerLimits);
+    const config = useSelector(getConfig);
+    const guestAccountsEnabled = config?.EnableGuestAccounts === 'true';
+    const singleChannelGuestCount = guestAccountsEnabled ? (serverLimits?.singleChannelGuestCount ?? 0) : 0;
+    const singleChannelGuestLimit = guestAccountsEnabled ? (serverLimits?.singleChannelGuestLimit ?? 0) : 0;
+
     const skuName = getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true');
     const expirationDays = getRemainingDaysFromFutureTimestamp(parseInt(unsanitizedLicense.ExpiresAt, 10));
     const isEntrySku = unsanitizedLicense.SkuShortName === LicenseSkus.Entry;
 
     const viewPlansButton = isAirGapped ? null : (
-        <button
+        <Button
             id='enterprise_edition_view_plans'
             onClick={openPricingModal}
-            className='btn btn-tertiary btn-sm PlanDetails__viewPlansButton'
+            emphasis='tertiary'
+            size='sm'
+            className='PlanDetails__viewPlansButton'
         >
             {formatMessage({
                 id: 'workspace_limits.menu_limit.view_plans',
                 defaultMessage: 'View plans',
             })}
-        </button>
+        </Button>
     );
 
     // For Entry SKU, render a simplified panel
@@ -149,8 +162,8 @@ const EnterpriseEditionLeftPanel = ({
                             })}
                             disabled={!isLicenseSetByEnvVar}
                         >
-                            <button
-                                className='btn btn-primary upload-license-btn'
+                            <Button
+                                emphasis='primary'
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={isLicenseSetByEnvVar}
                             >
@@ -159,7 +172,7 @@ const EnterpriseEditionLeftPanel = ({
                                     id='admin.license.uploadLicense'
                                     defaultMessage='Upload license'
                                 />
-                            </button>
+                            </Button>
                         </WithTooltip>
                         <input
                             ref={fileInputRef}
@@ -207,15 +220,16 @@ const EnterpriseEditionLeftPanel = ({
             <div className='licenseInformation'>
                 <div className='licenseInformation__Header'>
                     <span className='licenseInformation__Title'>{'License details'}</span>
-                    <button
-                        className='btn btn-primary btn-sm add-seats-button '
+                    <Button
+                        emphasis='primary'
+                        size='sm'
                         onClick={openContactSales}
                     >
                         <FormattedMessage
                             id={'admin.license.enterpriseEdition.add.seats'}
                             defaultMessage='+ Add seats'
                         />
-                    </button>
+                    </Button>
                 </div>
                 {
                     renderLicenseContent(
@@ -227,10 +241,12 @@ const EnterpriseEditionLeftPanel = ({
                         skuName,
                         fileInputRef,
                         handleChange,
-                        statsActiveUsers,
+                        serverLimits?.activeUserCount ?? statsActiveUsers,
                         expirationDays,
                         isLicenseSetByEnvVar,
                         enableMattermostEntry,
+                        singleChannelGuestCount,
+                        singleChannelGuestLimit,
                     )
                 }
             </div>
@@ -258,9 +274,42 @@ const EnterpriseEditionLeftPanel = ({
     );
 };
 
-type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
+type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:'
 
-const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
+const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
+    if (legend === 'SINGLE-CHANNEL GUESTS:') {
+        const isGuestLimitExceeded = singleChannelGuestLimit > 0 && singleChannelGuestCount > singleChannelGuestLimit;
+
+        const warningContent = isGuestLimitExceeded ? (
+            <WithTooltip
+                title={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.title', defaultMessage: 'Limit reached for single-channel guests'})}
+                hint={defineMessage({id: 'admin.license.singleChannelGuests.limitReached.tooltip.hint', defaultMessage: 'The number of single-channel guests cannot exceed the total number of licensed seats'})}
+                className='single-channel-guest-license-tooltip'
+            >
+                <span className='single-channel-guest-limit-reached'>
+                    <FormattedMessage
+                        id='admin.license.singleChannelGuests.limitReached'
+                        defaultMessage='(Limit reached)'
+                    />
+                    <AlertOutlineIcon size={16}/>
+                </span>
+            </WithTooltip>
+        ) : null;
+
+        return (
+            <div
+                className='item-element'
+                key={'single-channel-guests-' + index.toString()}
+            >
+                <span className={classNames({legend: true, 'legend--over-seats-purchased': isGuestLimitExceeded})}>{legend}</span>
+                <span className={classNames({value: true, 'value--over-seats-purchased': isGuestLimitExceeded})}>
+                    {value}
+                    {warningContent}
+                </span>
+            </div>
+        );
+    }
+
     if (legend === 'ACTIVE USERS:') {
         const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({activeUsers, seatsPurchased});
         return (
@@ -330,6 +379,8 @@ const renderLicenseContent = (
     expirationDays: number,
     isLicenseSetByEnvVar: boolean,
     enableMattermostEntry: string | undefined,
+    singleChannelGuestCount: number,
+    singleChannelGuestLimit: number,
 ) => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
 
@@ -337,6 +388,7 @@ const renderLicenseContent = (
 
     const users = <FormattedNumber value={parseInt(license.Users, 10)}/>;
     const activeUsers = <FormattedNumber value={statsActiveUsers}/>;
+    const singleChannelGuestsValue = <FormattedNumber value={singleChannelGuestCount}/>;
     const startsAt = <FormattedDate value={new Date(parseInt(license.StartsAt, 10))}/>;
     const expiresAt = <FormattedDate value={new Date(parseInt(license.ExpiresAt, 10))}/>;
 
@@ -359,6 +411,7 @@ const renderLicenseContent = (
         {legend: 'EXPIRES:', value: expiresAt},
         {legend: 'LICENSED SEATS:', value: users},
         {legend: 'ACTIVE USERS:', value: activeUsers},
+        ...(singleChannelGuestLimit > 0 ? [{legend: 'SINGLE-CHANNEL GUESTS:' as const, value: singleChannelGuestsValue}] : []),
         {legend: 'EDITION:', value: sku},
         {legend: 'LICENSE ISSUED:', value: issued},
         {legend: 'NAME:', value: license.Name},
@@ -367,7 +420,7 @@ const renderLicenseContent = (
 
     return (
         <div className='licenseElements'>
-            {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays))}
+            {licenseValues.map(renderLicenseValues(statsActiveUsers, parseInt(license.Users, 10), expirationDays, singleChannelGuestCount, singleChannelGuestLimit))}
             <hr/>
             {renderAddNewLicenseButton(fileInputRef, handleChange, isLicenseSetByEnvVar)}
             {renderRemoveButton(handleRemove, isDisabled, removing, enableMattermostEntry)}
@@ -389,8 +442,8 @@ const renderAddNewLicenseButton = (
                 })}
                 disabled={!isLicenseSetByEnvVar}
             >
-                <button
-                    className={'btn btn-secondary'}
+                <Button
+                    emphasis='secondary'
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isLicenseSetByEnvVar}
                 >
@@ -398,7 +451,7 @@ const renderAddNewLicenseButton = (
                         id='admin.license.keyAddNew'
                         defaultMessage='Add a new license'
                     />
-                </button>
+                </Button>
             </WithTooltip>
             <input
                 ref={fileInputRef}
@@ -438,16 +491,16 @@ const renderRemoveButton = (
     return (
         <>
             <div className='remove-button'>
-                <button
+                <Button
                     type='button'
-                    className='btn btn-danger'
+                    variant='destructive'
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'
                     data-testid='remove-button'
                 >
                     {removeButtonText}
-                </button>
+                </Button>
             </div>
         </>
     );

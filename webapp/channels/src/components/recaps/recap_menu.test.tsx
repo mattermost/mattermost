@@ -57,10 +57,6 @@ describe('RecapMenu', () => {
         },
     ];
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render menu button', () => {
         renderWithContext(<RecapMenu actions={mockActions}/>);
 

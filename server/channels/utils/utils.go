@@ -198,6 +198,11 @@ func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error 
 	if config.ServiceSettings.SiteURL == nil {
 		return errors.New("SiteURL is not configured")
 	}
+
+	// Allow relative URLs (no scheme/host) - they're internal paths
+	if u.Scheme == "" && u.Host == "" {
+		return nil
+	}
 	siteURL, err := url.Parse(*config.ServiceSettings.SiteURL)
 	if err != nil {
 		return errors.Wrap(err, "failed to parse SiteURL from config")
@@ -271,4 +276,23 @@ func RoundOffToZeroesResolution(n float64, minResolution int) int64 {
 	tens := int64(math.Pow10(resolution))
 	significantDigits := int64(n) / tens
 	return significantDigits * tens
+}
+
+// SliceEqualUnordered returns true if both slices contain the same set of elements,
+// regardless of order.
+func SliceEqualUnordered[K comparable](a, b []K) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	set := make(map[K]int, len(a))
+	for _, id := range a {
+		set[id]++
+	}
+	for _, id := range b {
+		set[id]--
+		if set[id] < 0 {
+			return false
+		}
+	}
+	return true
 }

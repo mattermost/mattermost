@@ -118,7 +118,7 @@ func TestPostActionCookies(t *testing.T) {
 				CreateAt:  model.GetMillis(),
 				UpdateAt:  model.GetMillis(),
 				Props: map[string]any{
-					model.PostPropsAttachments: []*model.SlackAttachment{
+					model.PostPropsAttachments: []*model.MessageAttachment{
 						{
 							Title:     "some-title",
 							TitleLink: "https://some-url.com",

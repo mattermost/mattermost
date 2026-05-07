@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -34,16 +34,11 @@ const LearnMoreTrialModal = (
         onExited,
     }: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
-    const [embargoed, setEmbargoed] = useState(false);
     const dispatch = useDispatch();
 
     // Cloud conditions
     const license = useSelector(getLicense);
     const isCloud = license?.Cloud === 'true';
-
-    const handleEmbargoError = useCallback(() => {
-        setEmbargoed(true);
-    }, []);
 
     // close this modal once start trial btn is clicked and trial has started successfully
     const dismissAction = useCallback(() => {
@@ -52,7 +47,6 @@ const LearnMoreTrialModal = (
 
     const startTrialBtn = (
         <StartTrialBtn
-            handleEmbargoError={handleEmbargoError}
             onClick={dismissAction}
         />
     );
@@ -143,7 +137,6 @@ const LearnMoreTrialModal = (
                 dataSlides={getSlides}
                 id={'learnMoreTrialModalCarousel'}
                 infiniteSlide={false}
-                disableNextButton={embargoed}
                 btnsStyle={BtnStyle.CHEVRON}
                 actionButton={startTrialBtn}
             />

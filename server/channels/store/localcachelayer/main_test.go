@@ -24,8 +24,12 @@ var mainHelper *testlib.MainHelper
 
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
-	mockCacheProvider.On("NewCache", mock.Anything).
-		Return(cache.NewLRU(&cache.CacheOptions{Size: 128}), nil)
+	// Each NewCache call returns a fresh LRU so that caches are isolated
+	// from each other, matching production behaviour.
+	call := mockCacheProvider.On("NewCache", mock.Anything)
+	call.Run(func(args mock.Arguments) {
+		call.ReturnArguments = mock.Arguments{cache.NewLRU(&cache.CacheOptions{Size: 128}), nil}
+	})
 	mockCacheProvider.On("Type").Return("lru")
 	return &mockCacheProvider
 }
@@ -42,6 +46,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockStore.On("Reaction").Return(&mockReactionsStore)
 
 	mockAutoTranslationStore := mocks.AutoTranslationStore{}
+	// GetLatestPostUpdateAtForChannel now takes only channelID (no locale) since caching is per-channel
+	mockAutoTranslationStore.On("GetLatestPostUpdateAtForChannel", "channelId").Return(int64(5000), nil)
 	mockStore.On("AutoTranslation").Return(&mockAutoTranslationStore)
 
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
@@ -101,6 +107,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakeChannel2 := model.Channel{Id: "channel2", Name: "channel2-name"}
 	mockChannelStore := mocks.ChannelStore{}
 	mockChannelStore.On("ClearCaches").Return()
+	mockChannelStore.On("Save", mock.IsType(&request.Context{}), &fakeChannel1, int64(0)).Return(&fakeChannel1, nil)
+	mockChannelStore.On("Update", mock.IsType(&request.Context{}), &fakeChannel1).Return(&fakeChannel1, nil)
 	mockChannelStore.On("GetMemberCount", "id", true).Return(mockCount, nil)
 	mockChannelStore.On("GetMemberCount", "id", false).Return(mockCount, nil)
 	mockChannelStore.On("GetGuestCount", "id", true).Return(mockGuestCount, nil)
@@ -140,8 +148,10 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPostStoreEtagResult := fmt.Sprintf("%v.%v", model.CurrentVersion, 1)
 	mockPostStore.On("ClearCaches")
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
-	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", true, false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false, false, false).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", true, false, true).Return(mockPostStoreEtagResult)
+	mockPostStore.On("GetEtag", "channelId", false, false, true).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
@@ -197,7 +207,19 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
 
+	fakeTemporaryPost := model.TemporaryPost{
+		ID:       "123",
+		Type:     model.PostTypeBurnOnRead,
+		ExpireAt: model.GetMillis() + 300000,
+		Message:  "test message",
+		FileIDs:  []string{"file1"},
+	}
 	mockTemporaryPostStore := mocks.TemporaryPostStore{}
+	mockTemporaryPostStore.On("Save", mock.Anything, mock.AnythingOfType("*model.TemporaryPost")).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("Delete", mock.Anything, "123").Return(nil)
+	mockTemporaryPostStore.On("Get", mock.Anything, "123", false).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("Get", mock.Anything, "123", true).Return(&fakeTemporaryPost, nil)
+	mockTemporaryPostStore.On("InvalidateTemporaryPost", "123").Return()
 	mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
 
 	return &mockStore

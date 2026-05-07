@@ -40,7 +40,6 @@ OUTPUT_EXCLUDING_IGNORED=$(echo "$OUTPUT" | grep -Fv \
     -e 'Cannot find /api/v4/hosted_customer/confirm-expand method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/hosted_customer/invoices method: GET in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf method: GET in OpenAPI 3 spec.' \
-    -e 'Cannot find /api/v4/hosted_customer/subscribe-newsletter method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/license/review method: POST in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/license/review/status method: GET in OpenAPI 3 spec.' \
     -e 'Cannot find /api/v4/posts/{post_id}/edit_history method: GET in OpenAPI 3 spec.' \

@@ -1,14 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
-import Reaction from 'components/post_view/reaction';
-
+import {render, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ReactionList from './reaction_list';
+
+jest.mock('components/post_view/reaction', () => {
+    return {
+        __esModule: true,
+        default: (props: any) => (
+            <div data-testid={`reaction-${props.emojiName}`}/>
+        ),
+    };
+});
+
+jest.mock('./add_reaction_button', () => {
+    return {
+        __esModule: true,
+        default: () => (
+            <div data-testid='add-reaction-button'/>
+        ),
+    };
+});
 
 describe('components/ReactionList', () => {
     const reaction = {
@@ -44,19 +60,19 @@ describe('components/ReactionList', () => {
             reactions: {},
         };
 
-        const wrapper = shallow<ReactionList>(
+        const {container} = render(
             <ReactionList {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should render when there are reactions', () => {
-        const wrapper = shallow<ReactionList>(
+        const {container} = render(
             <ReactionList {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     /*
@@ -91,14 +107,16 @@ describe('components/ReactionList', () => {
             },
         };
 
-        const wrapper = shallow<ReactionList>(
+        const {rerender} = render(
             <ReactionList {...propsA}/>,
         );
-        const firstRender = wrapper.find(Reaction).map((node) => node.key);
+        const firstRender = screen.getAllByTestId(/^reaction-/).map((el) => el.getAttribute('data-testid'));
 
-        wrapper.setProps(propsB);
+        rerender(
+            <ReactionList {...propsB}/>,
+        );
 
-        const secondRender = wrapper.find(Reaction).map((node) => node.key);
+        const secondRender = screen.getAllByTestId(/^reaction-/).map((el) => el.getAttribute('data-testid'));
 
         expect(firstRender.length).toBe(2);
         expect(firstRender).toEqual(secondRender);

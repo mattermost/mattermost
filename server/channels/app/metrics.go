@@ -157,6 +157,8 @@ func (a *App) RegisterPerformanceReport(rctx request.CTX, report *model.Performa
 			a.Metrics().ObserveDesktopCpuUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value)
 		case model.DesktopClientMemoryUsage:
 			a.Metrics().ObserveDesktopMemoryUsage(commonLabels["platform"], commonLabels["desktop_app_version"], h.Labels["process"], h.Value/1000)
+		case model.PluginWebappPerf:
+			a.Metrics().ObservePluginWebappPerf(commonLabels["platform"], commonLabels["agent"], h.Labels["plugin_id"], h.Labels["plugin_metric_label"], h.Value)
 		default:
 			// we intentionally skip unknown metrics
 		}

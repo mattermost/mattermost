@@ -115,10 +115,6 @@ describe('CreateRecapModal', () => {
         },
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render modal with header including AI agent dropdown', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
@@ -269,6 +265,56 @@ describe('CreateRecapModal', () => {
         await waitFor(() => {
             expect(screen.getByRole('button', {name: /previous/i})).toBeInTheDocument();
         });
+    });
+
+    test('should not advance to next step when name is empty and show validation error', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('Agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
+        // Select a recap type but leave the name empty
+        const allUnreadsButton = screen.getByText('Recap all my unreads');
+        await userEvent.click(allUnreadsButton);
+
+        // Next button should be disabled since name is empty
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        expect(nextButton).toBeDisabled();
+
+        // We should still be on step 1
+        expect(screen.getByText('Give your recap a name')).toBeInTheDocument();
+        expect(screen.getByText('What type of recap would you like?')).toBeInTheDocument();
+    });
+
+    test('should enable Next on channel selection step when a checkbox is clicked', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('Agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
+        const nameInput = screen.getByPlaceholderText('Give your recap a name');
+        await userEvent.type(nameInput, 'Test Recap');
+
+        const selectedChannelsButton = screen.getByText('Recap selected channels');
+        await userEvent.click(selectedChannelsButton);
+
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        await userEvent.click(nextButton);
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText('Search and select channels')).toBeInTheDocument();
+        });
+
+        const channelCheckbox = screen.getAllByRole('checkbox')[0];
+        expect(nextButton).toBeDisabled();
+
+        await userEvent.click(channelCheckbox);
+
+        await waitFor(() => expect(nextButton).not.toBeDisabled());
     });
 
     test('should maintain selected bot across step navigation', async () => {

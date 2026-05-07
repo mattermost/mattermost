@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, StylesConfig} from 'react-select';
 
-import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -16,16 +16,12 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
+import type {OwnProps} from './index';
+
 type Limit = {
     value: number;
     label: string;
 };
-
-export type OwnProps = {
-    adminMode?: boolean;
-    userId: string;
-    userPreferences?: PreferencesType;
-}
 
 type Props = OwnProps & {
     active: boolean;

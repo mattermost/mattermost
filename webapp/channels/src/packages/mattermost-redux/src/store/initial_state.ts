@@ -9,6 +9,8 @@ const state: GlobalState = {
     entities: {
         agents: {
             agents: [],
+            llmServices: [],
+            agentsStatus: {available: false},
         },
         general: {
             config: {},
@@ -27,7 +29,6 @@ const state: GlobalState = {
             profiles: {},
             profilesInTeam: {},
             profilesNotInTeam: {},
-            profilesWithoutTeam: new Set(),
             profilesInChannel: {},
             profilesNotInChannel: {},
             profilesInGroup: {},
@@ -152,6 +153,7 @@ const state: GlobalState = {
             files: {},
             filesFromSearch: {},
             fileIdsByPostId: {},
+            rejectedFiles: new Set(),
         },
         emojis: {
             customEmoji: {},
@@ -185,6 +187,7 @@ const state: GlobalState = {
         channelCategories: {
             byId: {},
             orderByTeam: {},
+            managedCategoryMappings: {},
         },
         apps: {
             main: {
@@ -232,6 +235,11 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        properties: {
+            fields: {byObjectType: {}, byId: {}},
+            values: {byTargetId: {}, byFieldId: {}},
+            groups: {byId: {}, byName: {}},
+        },
     },
     errors: [],
     requests: {

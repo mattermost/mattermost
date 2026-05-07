@@ -44,7 +44,7 @@ func NewIndexerWorker(name string,
 	licenseFn func() *model.License,
 	createBulkProcessorFn func() error,
 	addItemToBulkProcessorFn func(indexName string, indexOp string, docID string, body io.ReadSeeker) error,
-	closeBulkProcessorFn func() error,
+	closeBulkProcessorFn func() (int64, error),
 ) *IndexerWorker {
 	return &IndexerWorker{
 		name:                   name,
@@ -79,7 +79,7 @@ type IndexerWorker struct {
 	license func() *model.License
 
 	createBulkProcessor    func() error
-	closeBulkProcessor     func() error
+	closeBulkProcessor     func() (int64, error)
 	addItemToBulkProcessor func(indexName, indexOp, docID string, body io.ReadSeeker) error
 }
 
@@ -113,7 +113,14 @@ type IndexingProgress struct {
 func (ip *IndexingProgress) CurrentProgress() int64 {
 	current := ip.DonePostsCount + ip.DoneChannelsCount + ip.DoneUsersCount + ip.DoneFilesCount
 	total := ip.TotalPostsCount + ip.TotalChannelsCount + ip.TotalFilesCount + ip.TotalUsersCount
-	return current * 100 / total
+	if total == 0 {
+		return 100
+	}
+	progress := current * 100 / total
+	if progress > 100 {
+		return 100
+	}
+	return progress
 }
 
 func (ip *IndexingProgress) IsDone(job *model.Job) bool {
@@ -232,9 +239,27 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 
 	err := worker.createBulkProcessor()
 	if err != nil {
-		worker.logger.Error("Worker: Failed to setup bulk processor", mlog.Err(err))
+		logger.Error("Worker: Failed to setup bulk processor", mlog.Err(err))
+		appErr := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.create_bulk_processor.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		if err2 := worker.jobServer.SetJobError(job, appErr); err2 != nil {
+			logger.Error("Worker: Failed to set job error", mlog.Err(err2), mlog.NamedErr("set_error", appErr))
+		}
 		return
 	}
+
+	// closeOnce ensures the bulk processor is flushed and closed exactly once
+	// regardless of which exit path is taken. numFailed is set by the first call
+	// and read by the success path; logging is handled by closeBulkProcessor itself.
+	var (
+		closeOnce sync.Once
+		numFailed int64
+	)
+	doClose := func() {
+		closeOnce.Do(func() {
+			numFailed, _ = worker.closeBulkProcessor()
+		})
+	}
+	defer doClose()
 
 	worker.initEntitiesToIndex(job)
 	progress, err := initProgress(logger, worker.jobServer, job, worker.backend)
@@ -247,14 +272,7 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 	cancelWatcherChan := make(chan struct{}, 1)
 	cancelContext = cancelContext.WithContext(cancelCtx)
 	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
-
-	defer func() {
-		cancelCancelWatcher()
-		err := worker.closeBulkProcessor()
-		if err != nil {
-			logger.Warn("Error while closing the bulk indexer", mlog.Err(err), mlog.String("job_id", job.Id))
-		}
-	}()
+	defer cancelCancelWatcher()
 
 	for {
 		select {
@@ -292,6 +310,11 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 			job.Data["done_users_count"] = strconv.FormatInt(progress.DoneUsersCount, 10)
 			job.Data["done_files_count"] = strconv.FormatInt(progress.DoneFilesCount, 10)
 
+			job.Data["total_posts_count"] = strconv.FormatInt(progress.TotalPostsCount, 10)
+			job.Data["total_channels_count"] = strconv.FormatInt(progress.TotalChannelsCount, 10)
+			job.Data["total_users_count"] = strconv.FormatInt(progress.TotalUsersCount, 10)
+			job.Data["total_files_count"] = strconv.FormatInt(progress.TotalFilesCount, 10)
+
 			job.Data["start_time"] = strconv.FormatInt(progress.LastEntityTime, 10)
 			job.Data["start_post_id"] = progress.LastPostID
 			job.Data["start_channel_id"] = progress.LastChannelID
@@ -309,6 +332,19 @@ func (worker *IndexerWorker) DoJob(job *model.Job) {
 			}
 
 			if progress.IsDone(job) {
+				doClose()
+				if numFailed > 0 {
+					logger.Error("Worker: Indexing job finished with bulk write failures; some documents were not indexed",
+						mlog.Int("num_failed", numFailed),
+						mlog.Int("done_posts_count", progress.DonePostsCount),
+					)
+					appErr := model.NewAppError("IndexerWorker", "ent.elasticsearch.indexer.do_job.bulk_failures.error",
+						map[string]any{"NumFailed": numFailed}, "", http.StatusInternalServerError)
+					if err2 := worker.jobServer.SetJobError(job, appErr); err2 != nil {
+						logger.Error("Worker: Failed to set job error", mlog.Err(err2), mlog.NamedErr("set_error", appErr))
+					}
+					return
+				}
 				if err := worker.jobServer.SetJobSuccess(job); err != nil {
 					logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 					if err2 := worker.jobServer.SetJobError(job, err); err2 != nil {
@@ -404,6 +440,10 @@ func (worker *IndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing, prog
 			*worker.jobServer.Config().ElasticsearchSettings.IndexPrefix+IndexBasePosts_MONTH, progress.Now, post.CreateAt)
 
 		if post.Type == model.PostTypeBurnOnRead {
+			continue
+		}
+		// FIXME(IntegratedBoardMVP): Temporarily excluded
+		if post.Type == model.PostTypeCard {
 			continue
 		}
 
@@ -793,25 +833,45 @@ func setStartEntityIDs(progress IndexingProgress, job *model.Job) IndexingProgre
 	return progress
 }
 
+// entityCountFallback returns the best available fallback for a total entity count when the
+// analytics query fails. It prefers a previously stored value from job.Data, then the hardcoded
+// estimate, and finally ensures the result is never less than what has already been processed.
+func entityCountFallback(job *model.Job, dataKey string, estimate, doneCount int64) int64 {
+	fallback := estimate
+	if stored, ok := job.Data[dataKey]; ok {
+		if v, err := strconv.ParseInt(stored, 10, 64); err == nil && v > 0 {
+			fallback = v
+		}
+	}
+	if doneCount > fallback {
+		fallback = doneCount
+	}
+	return fallback
+}
+
 func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress IndexingProgress, job *model.Job) IndexingProgress {
 	if job.Data["index_posts"] == "true" {
 		// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 		// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 		if count, err := jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
-			logger.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedPostCount", estimatedPostCount), mlog.Err(err))
-			progress.TotalPostsCount = estimatedPostCount
+			fallback := entityCountFallback(job, "total_posts_count", estimatedPostCount, progress.DonePostsCount)
+			logger.Warn("Worker: Failed to fetch total post count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackPostCount", fallback), mlog.Err(err))
+			progress.TotalPostsCount = fallback
 		} else {
 			progress.TotalPostsCount = count
+			job.Data["total_posts_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
 	if job.Data["index_channels"] == "true" {
 		// Same possible fail as above can happen when counting channels
 		if count, err := jobServer.Store.Channel().AnalyticsTypeCount("", ""); err != nil {
-			logger.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedChannelCount", estimatedChannelCount), mlog.Err(err))
-			progress.TotalChannelsCount = estimatedChannelCount
+			fallback := entityCountFallback(job, "total_channels_count", estimatedChannelCount, progress.DoneChannelsCount)
+			logger.Warn("Worker: Failed to fetch total channel count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackChannelCount", fallback), mlog.Err(err))
+			progress.TotalChannelsCount = fallback
 		} else {
 			progress.TotalChannelsCount = count
+			job.Data["total_channels_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
@@ -821,20 +881,24 @@ func setEntityCount(logger mlog.LoggerIFace, jobServer *jobs.JobServer, progress
 			IncludeBotAccounts: true, // This actually doesn't join with the bots table
 			// since ExcludeRegularUsers is set to false
 		}); err != nil {
-			logger.Warn("Worker: Failed to fetch total user count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedUserCount", estimatedUserCount), mlog.Err(err))
-			progress.TotalUsersCount = estimatedUserCount
+			fallback := entityCountFallback(job, "total_users_count", estimatedUserCount, progress.DoneUsersCount)
+			logger.Warn("Worker: Failed to fetch total user count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackUserCount", fallback), mlog.Err(err))
+			progress.TotalUsersCount = fallback
 		} else {
 			progress.TotalUsersCount = count
+			job.Data["total_users_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 
 	if job.Data["index_files"] == "true" {
 		// Same possible fail as above can happen when counting files
 		if count, err := jobServer.Store.FileInfo().CountAll(); err != nil {
-			logger.Warn("Worker: Failed to fetch total files count for job. An estimated value will be used for progress reporting.", mlog.Int("estimatedFilesCount", estimatedFilesCount), mlog.Err(err))
-			progress.TotalFilesCount = estimatedFilesCount
+			fallback := entityCountFallback(job, "total_files_count", estimatedFilesCount, progress.DoneFilesCount)
+			logger.Warn("Worker: Failed to fetch total files count for job. A fallback value will be used for progress reporting.", mlog.Int("fallbackFilesCount", fallback), mlog.Err(err))
+			progress.TotalFilesCount = fallback
 		} else {
 			progress.TotalFilesCount = count
+			job.Data["total_files_count"] = strconv.FormatInt(count, 10)
 		}
 	}
 

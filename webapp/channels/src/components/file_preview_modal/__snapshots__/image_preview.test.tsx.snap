@@ -1,43 +1,51 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/view_image/ImagePreview should match snapshot, with preview 1`] = `
-<a
-  className="image_preview"
-  href="#"
->
-  <img
-    alt="preview url image"
-    className="image_preview__image"
-    data-testid="imagePreview"
-    loading="lazy"
-    src="/api/v4/files/file_id_1/preview"
-  />
-</a>
+<div>
+  <a
+    class="image_preview"
+    href="#"
+  >
+    <img
+      alt="preview url image"
+      class="image_preview__image"
+      data-testid="imagePreview"
+      loading="lazy"
+      src="/api/v4/files/file_id_1/preview"
+    />
+  </a>
+</div>
 `;
 
 exports[`components/view_image/ImagePreview should match snapshot, with preview, cannot download 1`] = `
-<img
-  src="/api/v4/files/file_id_1/preview"
-/>
+<div>
+  <img
+    src="/api/v4/files/file_id_1/preview"
+  />
+</div>
 `;
 
 exports[`components/view_image/ImagePreview should match snapshot, without preview 1`] = `
-<a
-  className="image_preview"
-  href="#"
->
-  <img
-    alt="preview url image"
-    className="image_preview__image"
-    data-testid="imagePreview"
-    loading="lazy"
-    src="/api/v4/files/file_id?download=1"
-  />
-</a>
+<div>
+  <a
+    class="image_preview"
+    href="#"
+  >
+    <img
+      alt="preview url image"
+      class="image_preview__image"
+      data-testid="imagePreview"
+      loading="lazy"
+      src="/api/v4/files/file_id?download=1"
+    />
+  </a>
+</div>
 `;
 
 exports[`components/view_image/ImagePreview should match snapshot, without preview, cannot download 1`] = `
-<img
-  src="/api/v4/files/file_id?download=1"
-/>
+<div>
+  <img
+    src="/api/v4/files/file_id?download=1"
+  />
+</div>
 `;

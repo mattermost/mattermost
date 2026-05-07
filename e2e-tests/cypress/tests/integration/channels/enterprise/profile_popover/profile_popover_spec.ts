@@ -7,12 +7,13 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @enterprise @profile_popover
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {createPrivateChannel} from '../elasticsearch_autocomplete/helpers';
-import {getAdminAccount} from '../../../../support/env';
+
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+
 
 describe('Profile popover', () => {
     let testTeam: Cypress.Team;
@@ -96,7 +97,7 @@ describe('Profile popover', () => {
         cy.apiLogin(otherUser);
 
         // # Create a private channel
-        createPrivateChannel(testTeam.id, otherUser).then((channel) => {
+        createPrivateChannel(testTeam.id, otherUser as any).then((channel) => {
             privateChannel = channel;
         });
 

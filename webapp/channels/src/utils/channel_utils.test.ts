@@ -172,4 +172,48 @@ describe('Channel Utils', () => {
             expect(icon).toBe(GlobeIcon);
         });
     });
+
+    describe('getChannelRoutePathAndIdentifier', () => {
+        test('should return channels path and channel name for open channels', () => {
+            const channel = {type: Constants.OPEN_CHANNEL, name: 'town-square'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel);
+            expect(result).toEqual({path: 'channels', identifier: 'town-square'});
+        });
+
+        test('should return channels path and channel name for private channels', () => {
+            const channel = {type: Constants.PRIVATE_CHANNEL, name: 'secret-ops'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel);
+            expect(result).toEqual({path: 'channels', identifier: 'secret-ops'});
+        });
+
+        test('should return messages path and @username for DM channels when dmUsername is provided', () => {
+            const channel = {type: Constants.DM_CHANNEL, name: 'user1__user2'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel, 'johndoe');
+            expect(result).toEqual({path: 'messages', identifier: '@johndoe'});
+        });
+
+        test('should return messages path and channel name for DM channels when dmUsername is not provided', () => {
+            const channel = {type: Constants.DM_CHANNEL, name: 'user1__user2'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel);
+            expect(result).toEqual({path: 'messages', identifier: 'user1__user2'});
+        });
+
+        test('should return messages path and group id for GM channels', () => {
+            const channel = {type: Constants.GM_CHANNEL, name: 'abcdef1234567890abcdef1234567890abcdefgh'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel);
+            expect(result).toEqual({path: 'messages', identifier: 'abcdef1234567890abcdef1234567890abcdefgh'});
+        });
+
+        test('should ignore dmUsername for non-DM channels', () => {
+            const channel = {type: Constants.OPEN_CHANNEL, name: 'town-square'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel, 'johndoe');
+            expect(result).toEqual({path: 'channels', identifier: 'town-square'});
+        });
+
+        test('should ignore dmUsername for GM channels', () => {
+            const channel = {type: Constants.GM_CHANNEL, name: 'groupid1234'} as Channel;
+            const result = Utils.getChannelRoutePathAndIdentifier(channel, 'johndoe');
+            expect(result).toEqual({path: 'messages', identifier: 'groupid1234'});
+        });
+    });
 });

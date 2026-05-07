@@ -99,13 +99,13 @@ services:
     extends:
         file: build/docker-compose.common.yml
         service: loki
-  promtail:
-    container_name: mattermost-promtail
+  otel-collector:
+    container_name: mattermost-otel-collector
     ports:
-      - "3180:3180"
+      - "13133:13133"
     extends:
         file: build/docker-compose.common.yml
-        service: promtail
+        service: otel-collector
 
 networks:
   mm-test:

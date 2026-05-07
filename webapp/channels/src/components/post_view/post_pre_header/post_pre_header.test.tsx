@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import PostPreHeader from 'components/post_view/post_pre_header/post_pre_header';
-import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 describe('components/PostPreHeader', () => {
     const baseProps = {
@@ -25,12 +23,12 @@ describe('components/PostPreHeader', () => {
             isPinned: false,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
-        expect(wrapper.find('div')).toHaveLength(0);
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('div.post-pre-header')).toBeNull();
+        expect(container).toMatchSnapshot();
     });
 
     test('should not render anything if both skipFlagged and skipPinned are true', () => {
@@ -42,12 +40,12 @@ describe('components/PostPreHeader', () => {
             skipPinned: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
-        expect(wrapper.find('div')).toHaveLength(0);
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('div.post-pre-header')).toBeNull();
+        expect(container).toMatchSnapshot();
     });
 
     test('should properly handle flagged posts (and not pinned)', () => {
@@ -57,23 +55,26 @@ describe('components/PostPreHeader', () => {
             isPinned: false,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container, rerender} = renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
-        expect(wrapper.find('span.icon-pin')).toHaveLength(0);
-
-        expect(wrapper.find(FlagIconFilled)).toHaveLength(1);
-        expect(wrapper.find(FormattedMessage)).toHaveLength(1);
-        expect(wrapper.find(FormattedMessage).prop('defaultMessage')).toEqual('Saved');
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('span.icon-pin')).toBeNull();
+        expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
+        expect(screen.getByText('Saved')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
 
         // case of skipFlagged is true
-        wrapper.setProps({...props, skipFlagged: true});
+        rerender(
+            <PostPreHeader
+                {...props}
+                skipFlagged={true}
+            />,
+        );
 
-        expect(wrapper.find(FlagIconFilled)).toHaveLength(0);
-        expect(wrapper.find(FormattedMessage)).toHaveLength(0);
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
+        expect(screen.queryByText('Saved')).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     test('should properly handle pinned posts (and not flagged)', () => {
@@ -83,23 +84,26 @@ describe('components/PostPreHeader', () => {
             isPinned: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container, rerender} = renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
-        expect(wrapper.find(FlagIconFilled)).toHaveLength(0);
-
-        expect(wrapper.find('span.icon-pin')).toHaveLength(1);
-        expect(wrapper.find(FormattedMessage)).toHaveLength(1);
-        expect(wrapper.find(FormattedMessage).prop('defaultMessage')).toEqual('Pinned');
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
+        expect(container.querySelector('span.icon-pin')).not.toBeNull();
+        expect(screen.getByText('Pinned')).toBeInTheDocument();
+        expect(container).toMatchSnapshot();
 
         // case of skipPinned is true
-        wrapper.setProps({...props, skipPinned: true});
+        rerender(
+            <PostPreHeader
+                {...props}
+                skipPinned={true}
+            />,
+        );
 
-        expect(wrapper.find('span.icon-pin')).toHaveLength(0);
-        expect(wrapper.find(FormattedMessage)).toHaveLength(0);
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('span.icon-pin')).toBeNull();
+        expect(screen.queryByText('Pinned')).not.toBeInTheDocument();
+        expect(container).toMatchSnapshot();
     });
 
     describe('should properly handle posts that are flagged and pinned', () => {
@@ -110,16 +114,15 @@ describe('components/PostPreHeader', () => {
                 isPinned: true,
             };
 
-            const wrapper = shallowWithIntl(
+            const {container} = renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
-            expect(wrapper.find(FlagIconFilled)).toHaveLength(1);
-            expect(wrapper.find('span.icon-pin')).toHaveLength(1);
-            expect(wrapper.find(FormattedMessage)).toHaveLength(2);
-            expect(wrapper.find(FormattedMessage).first().prop('defaultMessage')).toEqual('Pinned');
-            expect(wrapper.find(FormattedMessage).last().prop('defaultMessage')).toEqual('Saved');
-            expect(wrapper).toMatchSnapshot();
+            expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
+            expect(container.querySelector('span.icon-pin')).not.toBeNull();
+            expect(screen.getByText('Pinned')).toBeInTheDocument();
+            expect(screen.getByText('Saved')).toBeInTheDocument();
+            expect(container).toMatchSnapshot();
         });
 
         test('skipFlagged is true', () => {
@@ -130,16 +133,14 @@ describe('components/PostPreHeader', () => {
                 skipFlagged: true,
             };
 
-            const wrapper = shallowWithIntl(
+            const {container} = renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
-            expect(wrapper.find(FlagIconFilled)).toHaveLength(0);
-
-            expect(wrapper.find('span.icon-pin')).toHaveLength(1);
-            expect(wrapper.find(FormattedMessage)).toHaveLength(1);
-            expect(wrapper.find(FormattedMessage).prop('defaultMessage')).toEqual('Pinned');
-            expect(wrapper).toMatchSnapshot();
+            expect(container.querySelector('.icon--post-pre-header svg')).toBeNull();
+            expect(container.querySelector('span.icon-pin')).not.toBeNull();
+            expect(screen.getByText('Pinned')).toBeInTheDocument();
+            expect(container).toMatchSnapshot();
         });
 
         test('skipPinned is true', () => {
@@ -150,39 +151,37 @@ describe('components/PostPreHeader', () => {
                 skipPinned: true,
             };
 
-            const wrapper = shallowWithIntl(
+            const {container} = renderWithContext(
                 <PostPreHeader {...props}/>,
             );
 
-            expect(wrapper.find('span.icon-pin')).toHaveLength(0);
-
-            expect(wrapper.find(FlagIconFilled)).toHaveLength(1);
-            expect(wrapper.find(FormattedMessage)).toHaveLength(1);
-            expect(wrapper.find(FormattedMessage).prop('defaultMessage')).toEqual('Saved');
-            expect(wrapper).toMatchSnapshot();
+            expect(container.querySelector('span.icon-pin')).toBeNull();
+            expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
+            expect(screen.getByText('Saved')).toBeInTheDocument();
+            expect(container).toMatchSnapshot();
         });
     });
 
-    test('should properly handle link clicks', () => {
+    test('should properly handle link clicks', async () => {
         const props = {
             ...baseProps,
             isFlagged: true,
             isPinned: true,
         };
 
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <PostPreHeader {...props}/>,
         );
 
-        expect(wrapper.find(FlagIconFilled)).toHaveLength(1);
-        expect(wrapper.find('span.icon-pin')).toHaveLength(1);
-        expect(wrapper.find(FormattedMessage)).toHaveLength(2);
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('.icon--post-pre-header svg')).not.toBeNull();
+        expect(container.querySelector('span.icon-pin')).not.toBeNull();
+        expect(container).toMatchSnapshot();
 
-        wrapper.find('a').first().simulate('click');
+        const links = container.querySelectorAll('a');
+        await userEvent.click(links[0]);
         expect(baseProps.actions.showPinnedPosts).toHaveBeenNthCalledWith(1, baseProps.channelId);
 
-        wrapper.find('a').last().simulate('click');
+        await userEvent.click(links[1]);
         expect(baseProps.actions.showFlaggedPosts).toHaveBeenNthCalledWith(1);
     });
 });

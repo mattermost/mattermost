@@ -65,18 +65,19 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
 				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
-		} else {
-			rctx.Logger().Error("Plugin attempted to use an account that already exists. Convert user to a bot "+
-				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
-				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
-				"after which the plugin will create a bot account with that name. For more information about bot "+
-				"accounts, see https://mattermost.com/pl/default-bot-accounts", mlog.String("username",
-				bot.Username),
-				mlog.String("user_id",
-					user.Id),
-			)
+			return user.Id, nil
 		}
-		return user.Id, nil
+
+		rctx.Logger().Error("Plugin attempted to use an account that already exists. Convert user to a bot "+
+			"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
+			"existing user account you want to preserve, change its username and restart the Mattermost server, "+
+			"after which the plugin will create a bot account with that name. For more information about bot "+
+			"accounts, see https://mattermost.com/pl/default-bot-accounts", mlog.String("username",
+			bot.Username),
+			mlog.String("user_id",
+				user.Id),
+		)
+		return "", fmt.Errorf("username %q is already taken by a non-bot user", bot.Username)
 	}
 
 	createdBot, err := a.CreateBot(rctx, bot)
@@ -157,7 +158,7 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 			Message:   T("api.bot.teams_channels.add_message_mobile"),
 		}
 
-		if _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
+		if _, _, err := a.CreatePostAsUser(rctx, botAddPost, rctx.Session().Id, true); err != nil {
 			return nil, err
 		}
 	}
@@ -353,14 +354,22 @@ func (a *App) GetBots(rctx request.CTX, options *model.BotGetOptions) (model.Bot
 	return bots, nil
 }
 
-// IsBotOwnedByCurrentUserOrPlugin checks if the given user ID is a bot owned by the current session's user or by a plugin.
-func (a *App) IsBotOwnedByCurrentUserOrPlugin(rctx request.CTX, userID string) (bool, *model.AppError) {
+// IsBotExemptFromDMRestrictions checks if the given user ID is a bot that is
+// exempt from the RestrictDirectMessage=team enforcement. This includes the
+// system bot, bots owned by the current session's user, and plugin-owned bots.
+func (a *App) IsBotExemptFromDMRestrictions(rctx request.CTX, userID string) (bool, *model.AppError) {
 	bot, appErr := a.GetBot(rctx, userID, false)
 	if appErr != nil {
 		return false, appErr
 	}
 
-	if bot.OwnerId == rctx.Session().UserId {
+	// The system bot must be able to send messages to any user regardless of
+	// team membership (e.g. push notification tests, post reminders, etc.)
+	if bot.Username == model.BotSystemBotUsername {
+		return true, nil
+	}
+
+	if session := rctx.Session(); session != nil && bot.OwnerId == session.UserId {
 		return true, nil
 	}
 
@@ -371,7 +380,7 @@ func (a *App) IsBotOwnedByCurrentUserOrPlugin(rctx request.CTX, userID string) (
 
 	availablePlugins, err := pluginsEnvironment.Available()
 	if err != nil {
-		return false, model.NewAppError("IsBotOwnedByCurrentUserOrPlugin", "app.plugin.get_plugins.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return false, model.NewAppError("IsBotExemptFromDMRestrictions", "app.plugin.get_plugins.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	pluginIDs := make(map[string]bool, len(availablePlugins))
@@ -599,7 +608,7 @@ func (a *App) notifySysadminsBotOwnerDeactivated(rctx request.CTX, userID string
 			Type:      model.PostTypeSystemGeneric,
 		}
 
-		_, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
+		_, _, appErr = a.CreatePost(rctx, post, channel, model.CreatePostFlags{SetOnline: true})
 		if appErr != nil {
 			return appErr
 		}

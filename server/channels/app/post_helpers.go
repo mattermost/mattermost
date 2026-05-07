@@ -372,6 +372,10 @@ func (a *App) revealBurnOnReadPostsForUser(rctx request.CTX, postList *model.Pos
 	}
 
 	for _, post := range postList.BurnOnReadPosts {
+		if post.DeleteAt > 0 {
+			continue
+		}
+
 		// If user is the author, reveal the post with recipients
 		if post.UserId == userID {
 			if err := a.revealPostForAuthor(rctx, postList, post); err != nil {

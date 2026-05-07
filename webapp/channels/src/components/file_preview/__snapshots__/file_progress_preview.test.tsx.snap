@@ -1,159 +1,114 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`component/file_preview/file_progress_preview should match snapshot 1`] = `
-<div
-  className="file-preview post-image__column"
-  data-client-id="clientId"
-  key="clientId"
->
+<div>
   <div
-    className="post-image__thumbnail"
+    class="file-preview post-image__column"
+    data-client-id="clientId"
   >
     <div
-      className="file-icon image"
-    />
-  </div>
-  <div
-    className="post-image__details"
-  >
-    <div
-      className="post-image__detail_wrapper"
+      class="post-image__thumbnail"
     >
       <div
-        className="post-image__detail"
+        class="file-icon image"
+      />
+    </div>
+    <div
+      class="post-image__details"
+    >
+      <div
+        class="post-image__detail_wrapper"
       >
-        <FilenameOverlay
-          canDownload={false}
-          compactDisplay={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "",
-              "create_at": 0,
-              "delete_at": 0,
-              "extension": "png",
-              "has_preview_image": true,
-              "height": 80,
-              "id": "file",
-              "mime_type": "",
-              "name": "test_filename",
-              "percent": 50,
-              "size": 100,
-              "type": "image/png",
-              "update_at": 0,
-              "user_id": "",
-              "width": 100,
-            }
-          }
-        />
-        <span
-          className="post-image__uploadingTxt"
+        <div
+          class="post-image__detail"
         >
-          <MemoizedFormattedMessage
-            defaultMessage="Uploading..."
-            id="admin.plugin.uploading"
-          />
-          <span>
-             (50%)
+          <span
+            class="post-image__name"
+          >
+            test_filename
           </span>
-        </span>
+          <span
+            class="post-image__uploadingTxt"
+          >
+            Uploading...
+            <span>
+               (50%)
+            </span>
+          </span>
+        </div>
+      </div>
+      <div>
+        <a
+          class="file-preview__remove"
+        >
+          <i
+            class="icon icon-close"
+          />
+        </a>
+      </div>
+      <div
+        class="post-image__progressBar progress"
+      >
+        <div
+          aria-valuemax="100"
+          aria-valuemin="0"
+          aria-valuenow="50"
+          class="progress-bar"
+          role="progressbar"
+          style="width: 50%;"
+        />
       </div>
     </div>
-    <div>
-      <a
-        className="file-preview__remove"
-        onClick={[Function]}
-      >
-        <i
-          className="icon icon-close"
-        />
-      </a>
-    </div>
-    <ProgressBar
-      active={false}
-      bsClass="progress-bar"
-      className="post-image__progressBar"
-      isChild={false}
-      max={100}
-      min={0}
-      now={50}
-      srOnly={false}
-      striped={false}
-    />
   </div>
 </div>
 `;
 
 exports[`component/file_preview/file_progress_preview snapshot for percent value undefined 1`] = `
-<div
-  className="file-preview post-image__column"
-  data-client-id="clientId"
-  key="clientId"
->
+<div>
   <div
-    className="post-image__thumbnail"
+    class="file-preview post-image__column"
+    data-client-id="clientId"
   >
     <div
-      className="file-icon image"
-    />
-  </div>
-  <div
-    className="post-image__details"
-  >
-    <div
-      className="post-image__detail_wrapper"
+      class="post-image__thumbnail"
     >
       <div
-        className="post-image__detail"
-      >
-        <FilenameOverlay
-          canDownload={false}
-          compactDisplay={false}
-          fileInfo={
-            Object {
-              "archived": false,
-              "channel_id": "channel_id",
-              "clientId": "",
-              "create_at": 0,
-              "delete_at": 0,
-              "extension": "png",
-              "has_preview_image": true,
-              "height": 80,
-              "id": "file",
-              "mime_type": "",
-              "name": "test_filename",
-              "percent": undefined,
-              "size": 100,
-              "type": "image/png",
-              "update_at": 0,
-              "user_id": "",
-              "width": 100,
-            }
-          }
-        />
-        <span
-          className="post-image__uploadingTxt"
-        >
-          <MemoizedFormattedMessage
-            defaultMessage="Uploading..."
-            id="admin.plugin.uploading"
-          />
-          <span>
-             (0%)
-          </span>
-        </span>
-      </div>
+        class="file-icon image"
+      />
     </div>
-    <div>
-      <a
-        className="file-preview__remove"
-        onClick={[Function]}
+    <div
+      class="post-image__details"
+    >
+      <div
+        class="post-image__detail_wrapper"
       >
-        <i
-          className="icon icon-close"
-        />
-      </a>
+        <div
+          class="post-image__detail"
+        >
+          <span
+            class="post-image__name"
+          >
+            test_filename
+          </span>
+          <span
+            class="post-image__uploadingTxt"
+          >
+            Uploading...
+            <span>
+               (0%)
+            </span>
+          </span>
+        </div>
+      </div>
+      <div>
+        <a
+          class="file-preview__remove"
+        >
+          <i
+            class="icon icon-close"
+          />
+        </a>
+      </div>
     </div>
   </div>
 </div>

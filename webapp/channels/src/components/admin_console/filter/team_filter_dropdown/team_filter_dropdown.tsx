@@ -22,6 +22,9 @@ type TeamSelectOption = {label: string; value: string}
 
 export interface Props extends PropsFromRedux {
     option: FilterOption;
+
+    /** Passed by `Filter` for all filter list components; unused here. */
+    optionKey?: string;
     updateValues: (values: FilterValues, optionKey: string) => void;
 }
 
@@ -99,7 +102,8 @@ function TeamFilterDropdown(props: Props) {
         loadListInPageNumber(0);
     }, []);
 
-    const optionValues = props.option.values?.team_ids?.value as string[];
+    const rawTeamIds = props.option.values?.team_ids?.value;
+    const optionValues = Array.isArray(rawTeamIds) ? rawTeamIds : [];
     const selectedValues = list.filter((item) => optionValues.includes(item.value));
 
     return (

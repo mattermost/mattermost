@@ -1616,9 +1616,19 @@ func testGetGroupSyncable(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, gt1.GroupId, dgt.GroupId)
 	require.Equal(t, gt1.SyncableId, dgt.SyncableId)
 	require.Equal(t, gt1.AutoAdd, dgt.AutoAdd)
+	require.Equal(t, gt1.SchemeAdmin, dgt.SchemeAdmin)
 	require.NotZero(t, gt1.CreateAt)
 	require.NotZero(t, gt1.UpdateAt)
 	require.Zero(t, gt1.DeleteAt)
+
+	// Round-trip SchemeAdmin: true through UpdateGroupSyncable and re-fetch.
+	dgt.SchemeAdmin = true
+	_, err = ss.Group().UpdateGroupSyncable(dgt)
+	require.NoError(t, err)
+
+	dgt, err = ss.Group().GetGroupSyncable(groupTeam.GroupId, groupTeam.SyncableId, model.GroupSyncableTypeTeam)
+	require.NoError(t, err)
+	require.True(t, dgt.SchemeAdmin, "GetGroupSyncable must populate SchemeAdmin from the persisted row")
 }
 
 func testGetGroupSyncableErrors(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3627,6 +3637,10 @@ func testGetGroupsByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Use a unique prefix for display names to avoid collisions with groups
+	// created by other parallel subtests sharing the same database.
+	uid := model.NewId()[:8]
+
 	// Create Team1
 	team1 := &model.Team{
 		DisplayName:      "Team1",
@@ -3657,7 +3671,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Create Groups 1 and 2
 	group1, err := ss.Group().Create(&model.Group{
 		Name:           model.NewPointer(model.NewId()),
-		DisplayName:    "group-1",
+		DisplayName:    uid + "-group-1",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
@@ -3665,8 +3679,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	group2, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-2"),
-		DisplayName:    "group-2",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-2"),
+		DisplayName:    uid + "-group-2",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
@@ -3674,8 +3688,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	deletedGroup, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-deleted"),
-		DisplayName:    "group-deleted",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-deleted"),
+		DisplayName:    uid + "-group-deleted",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: false,
@@ -3730,8 +3744,8 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	// Create Group3
 	group3, err := ss.Group().Create(&model.Group{
-		Name:           model.NewPointer(model.NewId() + "-group-3"),
-		DisplayName:    "group-3",
+		Name:           model.NewPointer(model.NewId() + "-" + uid + "-group-3"),
+		DisplayName:    uid + "-group-3",
 		RemoteId:       model.NewPointer(model.NewId()),
 		Source:         model.GroupSourceLdap,
 		AllowReference: true,
@@ -3843,7 +3857,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 	user2.DeleteAt = 1
 	u2Update, _ := ss.User().Update(rctx, user2, true)
 
-	group2NameSubstring := "group-2"
+	group2NameSubstring := uid + "-group-2"
 
 	endCreateTime := u2Update.New.UpdateAt + 1
 
@@ -3927,12 +3941,15 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching display name",
-			Opts:    model.GroupSearchOpts{Q: "rouP-3"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP-3"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
 				for _, g := range groups {
-					if !strings.Contains(strings.ToLower(g.DisplayName), "roup-3") {
+					if !strings.Contains(strings.ToLower(g.DisplayName), uid+"-group-3") {
 						return false
 					}
 				}
@@ -3942,12 +3959,15 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Get group matching multiple display names",
-			Opts:    model.GroupSearchOpts{Q: "groUp"},
+			Opts:    model.GroupSearchOpts{Q: uid + "-GrOuP"},
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) < 2 {
+					return false
+				}
 				for _, g := range groups {
-					if !strings.Contains(strings.ToLower(g.DisplayName), "group") {
+					if !strings.Contains(strings.ToLower(g.DisplayName), uid+"-group") {
 						return false
 					}
 				}
@@ -4193,7 +4213,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Include archived groups",
-			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: "group-deleted"},
+			Opts:    model.GroupSearchOpts{IncludeArchived: true, Q: uid + "-group-deleted"},
 			Page:    0,
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
@@ -4203,7 +4223,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		},
 		{
 			Name:    "Only return archived groups",
-			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: "group-1"},
+			Opts:    model.GroupSearchOpts{FilterArchived: true, Q: uid + "-group-1"},
 			Page:    0,
 			PerPage: 1,
 			Resultf: func(groups []*model.Group) bool {
@@ -4979,6 +4999,15 @@ func groupTestPermittedSyncableAdminsTeam(t *testing.T, rctx request.CTX, ss sto
 	// deleted group syncable no longer includes group members
 	_, err = ss.Group().DeleteGroupSyncable(group1.Id, team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
+
+	// The persisted row must still carry SchemeAdmin=true after soft-delete;
+	// PermittedSyncableAdmins excludes it via the DeleteAt = 0 predicate, not
+	// via the field having been silently cleared.
+	deletedSyncable, err := ss.Group().GetGroupSyncable(group1.Id, team.Id, model.GroupSyncableTypeTeam)
+	require.NoError(t, err)
+	require.True(t, deletedSyncable.SchemeAdmin)
+	require.NotZero(t, deletedSyncable.DeleteAt)
+
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(team.Id, model.GroupSyncableTypeTeam)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)
@@ -5086,6 +5115,15 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, rctx request.CTX, ss 
 	// deleted group syncable no longer includes group members
 	_, err = ss.Group().DeleteGroupSyncable(group1.Id, channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
+
+	// The persisted row must still carry SchemeAdmin=true after soft-delete;
+	// PermittedSyncableAdmins excludes it via the DeleteAt = 0 predicate, not
+	// via the field having been silently cleared.
+	deletedSyncable, err := ss.Group().GetGroupSyncable(group1.Id, channel.Id, model.GroupSyncableTypeChannel)
+	require.NoError(t, err)
+	require.True(t, deletedSyncable.SchemeAdmin)
+	require.NotZero(t, deletedSyncable.DeleteAt)
+
 	actualUserIDs, err = ss.Group().PermittedSyncableAdmins(channel.Id, model.GroupSyncableTypeChannel)
 	require.NoError(t, err)
 	require.ElementsMatch(t, []string{user3.Id}, actualUserIDs)

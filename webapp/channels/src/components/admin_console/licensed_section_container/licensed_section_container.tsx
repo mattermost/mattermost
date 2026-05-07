@@ -20,7 +20,7 @@ import type {GlobalState} from 'types/store';
 type OwnProps = {
     settingsList: React.ReactNode[];
     requiredSku: LicenseSkus;
-    sectionTitle?: string;
+    sectionTitle?: string | MessageDescriptor;
     sectionDescription?: string | MessageDescriptor;
     featureDiscoveryConfig: {
         featureName: string;

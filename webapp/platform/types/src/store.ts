@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {AdminState} from './admin';
+import type {LLMService} from './agents';
 import type {AppsState} from './apps';
 import type {Bot} from './bots';
 import type {ChannelBookmarksState} from './channel_bookmarks';
@@ -19,6 +20,7 @@ import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
 import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
+import type {PropertiesState} from './properties';
 import type {Recap} from './recaps';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,
@@ -58,6 +60,8 @@ export type GlobalState = {
                 service_id: string;
                 service_type: string;
             }>;
+            llmServices: LLMService[];
+            agentsStatus: {available: boolean; reason?: string};
         };
         bots: {
             accounts: Record<string, Bot>;
@@ -98,6 +102,7 @@ export type GlobalState = {
             remotesByRemoteId?: Record<string, RemoteClusterInfo>;
         };
         contentFlagging: ContentFlaggingState;
+        properties: PropertiesState;
     };
     errors: any[];
     requests: {

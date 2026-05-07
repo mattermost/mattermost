@@ -6,11 +6,12 @@ package api4
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 	hasPermission := false
-	if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost) {
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelId, model.PermissionCreatePost); ok {
 		hasPermission = true
 	} else if channel, err := c.App.GetChannel(c.AppContext, channelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
@@ -42,6 +43,21 @@ func postPriorityCheckWithContext(where string, c *Context, priority *model.Post
 	}
 }
 
+func postCardTypeCheckWithContext(where string, c *Context, postType string) {
+	if appErr := app.PostCardTypeCheckWithApp(where, c.App, postType); appErr != nil {
+		appErr.Where = where
+		c.Err = appErr
+	}
+}
+
+func postBurnOnReadCheckWithContext(where string, c *Context, post *model.Post, channel *model.Channel) {
+	appErr := app.PostBurnOnReadCheckWithApp(where, c.App, c.AppContext, post.UserId, post.ChannelId, post.Type, channel)
+	if appErr != nil {
+		appErr.Where = where
+		c.Err = appErr
+	}
+}
+
 // checkUploadFilePermissionForNewFiles checks upload_file permission only when
 // adding new files to a post, preventing permission bypass via cross-channel file attachments.
 func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, originalPost *model.Post) {
@@ -63,9 +79,20 @@ func checkUploadFilePermissionForNewFiles(c *Context, newFileIds []string, origi
 	}
 
 	if hasNewFiles {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile) {
+		if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionUploadFile); !ok {
 			c.SetPermissionError(model.PermissionUploadFile)
 			return
 		}
+	}
+}
+
+// checkEditFileAttachmentPermission checks edit_file_attachment permission
+// when file IDs are being changed (files added or removed) during post edit.
+func checkEditFileAttachmentPermission(c *Context, newFileIds []string, originalPost *model.Post) {
+	if utils.SliceEqualUnordered(newFileIds, originalPost.FileIds) {
+		return
+	}
+	if ok, _ := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditFileAttachment); !ok {
+		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }

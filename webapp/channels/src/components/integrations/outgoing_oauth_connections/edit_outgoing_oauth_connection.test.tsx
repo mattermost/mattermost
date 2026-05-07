@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
@@ -11,8 +10,7 @@ import {Permissions} from 'mattermost-redux/constants';
 
 import EditOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/edit_outgoing_oauth_connection';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/EditOutgoingOAuthConnection', () => {
@@ -98,43 +96,37 @@ describe('components/integrations/EditOutgoingOAuthConnection', () => {
 
     test('should match snapshot, loading', () => {
         const props = {...baseProps, oauthApp: connection};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <EditOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <EditOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot', () => {
         const props = {...baseProps, oauthApp: connection};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <EditOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <EditOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when EnableOAuthServiceProvider is false', () => {
         const props = {...baseProps, oauthApp: connection, enableOAuthServiceProvider: false};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
+        const {container} = renderWithContext(
             <Router>
-                <Provider store={store}>
-                    <EditOutgoingOAuthConnection {...props}/>
-                </Provider>
+                <EditOutgoingOAuthConnection {...props}/>
             </Router>,
+            state,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

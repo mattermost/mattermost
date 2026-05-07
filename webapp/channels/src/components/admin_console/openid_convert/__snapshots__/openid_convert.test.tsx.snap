@@ -1,56 +1,48 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/OpenIdConvert should match snapshot 1`] = `
-<div
-  className="OpenIdConvert"
->
+<div>
   <div
-    className="OpenIdConvert_imageWrapper"
+    class="OpenIdConvert"
   >
-    <img
-      alt="OpenId Convert Image"
-      className="OpenIdConvert_image"
-      src=""
-    />
-  </div>
-  <div
-    className="OpenIdConvert_copyWrapper"
-  >
-    <p>
-      <MemoizedFormattedMessage
-        defaultMessage="You can now convert your OAuth2.0 configuration to OpenID Connect."
-        id="admin.openIdConvert.message"
-      />
-    </p>
     <div
-      className="OpenIdConvert_actionWrapper"
+      class="OpenIdConvert_imageWrapper"
     >
-      <button
-        className="btn"
-        data-testid="openIdConvert"
-        onClick={[Function]}
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Convert to OpenID Connect"
-          id="admin.openIdConvert.text"
-        />
-      </button>
-      <ForwardRef
-        className="btn-secondary"
-        data-testid="openIdLearnMore"
-        href="https://www.mattermost.com/default-openid-docs"
-        location="openid_convert"
-      >
-        <MemoizedFormattedMessage
-          defaultMessage="Learn more"
-          id="admin.openIdConvert.help"
-        />
-      </ForwardRef>
+      <img
+        alt="OpenId Convert Image"
+        class="OpenIdConvert_image"
+        src=""
+      />
+    </div>
+    <div
+      class="OpenIdConvert_copyWrapper"
+    >
+      <p>
+        You can now convert your OAuth2.0 configuration to OpenID Connect.
+      </p>
       <div
-        className="error-message"
-        data-testid="errorMessage"
+        class="OpenIdConvert_actionWrapper"
       >
-        <Memo(FormError) />
+        <button
+          class="btn"
+          data-testid="openIdConvert"
+        >
+          Convert to OpenID Connect
+        </button>
+        <a
+          class="btn-secondary"
+          data-testid="openIdLearnMore"
+          href="https://www.mattermost.com/default-openid-docs?utm_source=mattermost&utm_medium=in-product&utm_content=openid_convert&uid=&sid=&edition=team&server_version="
+          location="openid_convert"
+          rel="noopener noreferrer"
+          target="_blank"
+        >
+          Learn more
+        </a>
+        <div
+          class="error-message"
+          data-testid="errorMessage"
+        />
       </div>
     </div>
   </div>

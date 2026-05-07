@@ -283,11 +283,16 @@
           $ref: "#/components/responses/InternalServerError"
   "/api/v4/access_control_policies/{policy_id}/activate":
     get:
+      deprecated: true
       tags:
         - access control
       summary: Activate or deactivate an access control policy
       description: |
         Updates the active status of an access control policy.
+
+        **Deprecated:** This endpoint will be removed in a future release. Use the dedicated access control policy update endpoint instead.
+        Link: </api/v4/access_control_policies/activate>; rel="successor-version"
+
         ##### Permissions
         Must have the `manage_system` permission.
       operationId: UpdateAccessControlPolicyActiveStatus

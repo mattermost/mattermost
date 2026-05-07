@@ -11,7 +11,7 @@
 
 // If the contents of the interactive dialog from the demo plugin change, please update the demoPluginDialogElements object.
 
-import {demoPlugin} from '../../../utils/plugins';
+import {demoPlugin} from '@/utils/plugins';
 
 describe('Interactive Dialogs', () => {
     let testTeam;

@@ -17,7 +17,7 @@ func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, a
 
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
-		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
+		if ok, _ := a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel); !ok {
 			return nil, model.NewAppError("CreateRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 		}
 	}
@@ -113,6 +113,27 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, recap *model.Recap) (*model.Reca
 	return recap, nil
 }
 
+// MarkRecapsAsViewed marks all of the user's not-yet-viewed completed/failed
+// recaps as viewed at the current timestamp and broadcasts a recap_updated
+// WebSocket event for each affected recap so other clients can refresh.
+func (a *App) MarkRecapsAsViewed(rctx request.CTX) ([]string, *model.AppError) {
+	userID := rctx.Session().UserId
+	statuses := []string{model.RecapStatusCompleted, model.RecapStatusFailed}
+
+	ids, err := a.Srv().Store().Recap().MarkRecapsAsViewed(userID, statuses)
+	if err != nil {
+		return nil, model.NewAppError("MarkRecapsAsViewed", "app.recap.mark_viewed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, id := range ids {
+		message := model.NewWebSocketEvent(model.WebsocketEventRecapUpdated, "", "", userID, nil, "")
+		message.Add("recap_id", id)
+		a.Publish(message)
+	}
+
+	return ids, nil
+}
+
 // RegenerateRecap regenerates an existing recap
 func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Recap) (*model.Recap, *model.AppError) {
 	recapID := recap.Id
@@ -134,9 +155,11 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID string, recap *model.Reca
 		return nil, model.NewAppError("RegenerateRecap", "app.recap.delete_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	// Update recap status to pending and reset read status
+	// Update recap status to pending and reset read/viewed status so the recap
+	// reappears in the badge once it completes again.
 	recap.Status = model.RecapStatusPending
 	recap.ReadAt = 0
+	recap.ViewedAt = 0
 	recap.UpdateAt = model.GetMillis()
 	recap.TotalMessageCount = 0
 
@@ -206,8 +229,13 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 		return result, postsErr
 	}
 
+	sourcePostIDs := extractPostIDs(posts)
+
 	// No posts to summarize - return success with 0 messages
 	if len(posts) == 0 {
+		if appErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); appErr != nil {
+			return result, appErr
+		}
 		result.Success = true
 		return result, nil
 	}
@@ -221,28 +249,38 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	// Summarize posts
 	summary, err := a.SummarizePosts(rctx, userID, posts, channel.DisplayName, team.Name, agentID)
 	if err != nil {
+		if saveErr := a.saveRecapChannelRecord(recapID, channel.Id, channel.DisplayName, nil, nil, sourcePostIDs); saveErr != nil {
+			return result, saveErr
+		}
 		return result, err
 	}
 
-	// Save recap channel
-	recapChannel := &model.RecapChannel{
-		Id:            model.NewId(),
-		RecapId:       recapID,
-		ChannelId:     channelID,
-		ChannelName:   channel.DisplayName,
-		Highlights:    summary.Highlights,
-		ActionItems:   summary.ActionItems,
-		SourcePostIds: extractPostIDs(posts),
-		CreateAt:      model.GetMillis(),
-	}
-
-	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
-		return result, model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if appErr := a.saveRecapChannelRecord(recapID, channelID, channel.DisplayName, summary.Highlights, summary.ActionItems, sourcePostIDs); appErr != nil {
+		return result, appErr
 	}
 
 	result.MessageCount = len(posts)
 	result.Success = true
 	return result, nil
+}
+
+func (a *App) saveRecapChannelRecord(recapID, channelID, channelName string, highlights, actionItems, sourcePostIDs []string) *model.AppError {
+	recapChannel := &model.RecapChannel{
+		Id:            model.NewId(),
+		RecapId:       recapID,
+		ChannelId:     channelID,
+		ChannelName:   channelName,
+		Highlights:    highlights,
+		ActionItems:   actionItems,
+		SourcePostIds: sourcePostIDs,
+		CreateAt:      model.GetMillis(),
+	}
+
+	if err := a.Srv().Store().Recap().SaveRecapChannel(recapChannel); err != nil {
+		return model.NewAppError("ProcessRecapChannel", "app.recap.save_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
 // fetchPostsForRecap fetches posts for a channel after the given timestamp and enriches them with user information

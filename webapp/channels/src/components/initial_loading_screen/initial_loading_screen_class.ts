@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {isDesktopApp} from '@mattermost/shared/utils/user_agent';
+
 import {Measure, measureAndReport} from 'utils/performance_telemetry';
-import {isDesktopApp} from 'utils/user_agent';
 
 const ANIMATION_CLASS_FOR_MATTERMOST_LOGO_HIDE = 'LoadingAnimation__compass-shrink';
 const ANIMATION_CLASS_FOR_COMPLETE_LOADER_HIDE = 'LoadingAnimation__shrink';
 
 const DESTROY_DELAY_AFTER_ANIMATION_END = 1000;
-const MINIMUM_LOADING_TIME = 2000; // Minimum time to show the loading screen (in ms)
+const MINIMUM_LOADING_TIME = 1000; // Minimum time to show the loading screen (in ms)
 
 const LOADING_CLASS_FOR_SCREEN = 'LoadingScreen';
 const LOADING_COMPLETE_CLASS_FOR_SCREEN = 'LoadingScreen LoadingScreen--loaded';
@@ -123,6 +124,16 @@ export class InitialLoadingScreenClass {
             return;
         }
 
+        // Measure the actual load time before any artificial delays
+        measureAndReport({
+            name: Measure.SplashScreen,
+            startMark: 0,
+            canFail: false,
+            labels: {
+                page_type: pageType,
+            },
+        });
+
         // Calculate how long the loading screen has been visible
         const elapsedTime = this.startTime ? Date.now() - this.startTime : 0;
         const remainingTime = Math.max(0, MINIMUM_LOADING_TIME - elapsedTime);
@@ -137,15 +148,6 @@ export class InitialLoadingScreenClass {
 
             this.loadingScreenElement.className = LOADING_COMPLETE_CLASS_FOR_SCREEN;
             this.loadingAnimationElement.className = LOADING_COMPLETE_CLASS_FOR_ANIMATION;
-
-            measureAndReport({
-                name: Measure.SplashScreen,
-                startMark: 0,
-                canFail: false,
-                labels: {
-                    page_type: pageType,
-                },
-            });
         }, remainingTime);
     }
 }

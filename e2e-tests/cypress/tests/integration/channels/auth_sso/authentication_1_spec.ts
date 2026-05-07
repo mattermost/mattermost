@@ -10,14 +10,14 @@
 // Stage: @prod
 // Group: @channels @system_console @authentication
 
-import * as TIMEOUTS from '../../../fixtures/timeouts';
-import {getRandomId} from '../../../utils';
+import * as TIMEOUTS from '@/fixtures/timeouts';
+import {getRandomId, newTestPassword} from '@/utils';
 
 describe('Authentication', () => {
     const restrictCreationToDomains = 'mattermost.com, test.com';
-    let testUser;
-    let testUserAlreadyInTeam;
-    let testTeam;
+    let testUser: Cypress.UserProfile;
+    let testUserAlreadyInTeam: Cypress.UserProfile;
+    let testTeam: Cypress.Team;
 
     before(() => {
         // # Do email test if setup properly
@@ -57,9 +57,11 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@mattermost.com`);
 
-        cy.get('#input_password-input').type('Test123456!');
+        cy.get('#input_password-input').type(newTestPassword());
 
         cy.get('#input_name').clear().type(`test${getRandomId()}`);
+
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
         cy.findByText('Create account').click();
 
@@ -109,9 +111,11 @@ describe('Authentication', () => {
 
         cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(`test-${getRandomId()}@example.com`);
 
-        cy.get('#input_password-input').type('Test123456!');
+        cy.get('#input_password-input').type(newTestPassword());
 
         cy.get('#input_name').clear().type(`test${getRandomId()}`);
+
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
         cy.findByText('Create account').click();
 
@@ -142,9 +146,11 @@ describe('Authentication', () => {
 
             cy.get('#input_email', {timeout: TIMEOUTS.ONE_MIN}).type(email);
 
-            cy.get('#input_password-input').type('Test123456!');
+            cy.get('#input_password-input').type(newTestPassword());
 
             cy.get('#input_name').clear().type(username);
+
+            cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
             cy.findByText('Create account').click();
 

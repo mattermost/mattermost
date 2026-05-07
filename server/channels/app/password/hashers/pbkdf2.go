@@ -195,6 +195,18 @@ func (p PBKDF2) Hash(password string) (string, error) {
 // The provided [phcparser.PHC] is validated to double-check it was generated with
 // this hasher and parameters.
 func (p PBKDF2) CompareHashAndPassword(hash phcparser.PHC, password string) error {
+	if len(password) > PasswordMaxLengthBytes {
+		return ErrPasswordTooLong
+	}
+
+	// Under FIPS, the OpenSSL PBKDF2 implementation requires keys of at least
+	// fipsMinKeyLength bytes. A password shorter than this can never match a
+	// stored hash, so return ErrMismatchedHashAndPassword directly rather than
+	// letting PBKDF2 fail with a generic crypto error.
+	if fipsMinKeyLength > 0 && len(password) < fipsMinKeyLength {
+		return ErrMismatchedHashAndPassword
+	}
+
 	// Validate parameters
 	if !p.IsPHCValid(hash) {
 		return fmt.Errorf("the stored password does not comply with the PBKDF2 parser's PHC serialization")

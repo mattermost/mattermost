@@ -5,6 +5,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
 import type {OAuthApp} from '@mattermost/types/integrations';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -164,26 +165,28 @@ export default class Authorize extends React.PureComponent<Props, State> {
                         />
                     </h2>
                     <div className='prompt__buttons'>
-                        <button
+                        <Button
                             type='submit'
-                            className='btn btn-tertiary authorize-btn'
+                            emphasis='tertiary'
+                            className='authorize-btn'
                             onClick={this.handleDeny}
                         >
                             <FormattedMessage
                                 id='authorize.deny'
                                 defaultMessage='Deny'
                             />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             type='submit'
-                            className='btn btn-primary authorize-btn'
+                            emphasis='primary'
+                            className='authorize-btn'
                             onClick={this.handleAllow}
                         >
                             <FormattedMessage
                                 id='authorize.allow'
                                 defaultMessage='Allow'
                             />
-                        </button>
+                        </Button>
                     </div>
                     {error}
                 </div>

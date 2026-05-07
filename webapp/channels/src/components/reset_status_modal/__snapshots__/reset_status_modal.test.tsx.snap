@@ -1,59 +1,231 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ResetStatusModal should match snapshot 1`] = `
-<Memo(ConfirmModal)
-  cancelButtonText=""
-  checkboxText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Do not ask me again"
-      id="modal.manual_status.ask"
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
     />
-  }
-  confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Set status to \\"Online\\""
-      id="modal.manual_status.button_online"
-    />
-  }
-  message={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Would you like to switch your status to \\"Online\\"?"
-      id="modal.manual_status.message_online"
-    />
-  }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  show={false}
-  showCheckbox={true}
-  title=""
-/>
+    <div
+      aria-labelledby="confirmModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="confirmModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Your status is set to "Away"
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div>
+                  <div
+                    class="ConfirmModal__body"
+                    id="confirmModalBody"
+                  >
+                    Would you like to switch your status to "Online"?
+                    <div
+                      class="checkbox text-right mb-0"
+                    >
+                      <label>
+                        <input
+                          type="checkbox"
+                        />
+                        Do not ask me again
+                      </label>
+                    </div>
+                  </div>
+                  <div
+                    class="ConfirmModal__footer"
+                  >
+                    <button
+                      class="btn btn-tertiary"
+                      data-testid="cancel-button"
+                      id="cancelModalButton"
+                      type="button"
+                    >
+                      Stay as "Away"
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      id="confirmModalButton"
+                      type="button"
+                    >
+                      Set status to "Online"
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;
 
 exports[`components/ResetStatusModal should match snapshot, render modal for OOF status 1`] = `
-<Memo(ConfirmModal)
-  cancelButtonText=""
-  checkboxText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Do not ask me again"
-      id="modal.manual_status.ask"
+<body
+  class="modal-open"
+  style="padding-right: 0px;"
+>
+  <div
+    aria-hidden="true"
+  />
+  <div
+    role="none"
+  >
+    <div
+      class="fade modal-backdrop in"
     />
-  }
-  confirmButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Set status to \\"Online\\""
-      id="modal.manual_status.button_online"
-    />
-  }
-  message={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Would you like to switch your status to \\"Online\\" and disable automatic replies?"
-      id="modal.manual_status.auto_responder.message_online"
-    />
-  }
-  onCancel={[Function]}
-  onConfirm={[Function]}
-  show={false}
-  showCheckbox={false}
-  title=""
-/>
+    <div
+      aria-labelledby="confirmModalLabel"
+      aria-modal="true"
+      class="fade in modal"
+      id="confirmModal"
+      role="dialog"
+      style="display: block; padding-right: 0px;"
+      tabindex="-1"
+    >
+      <div
+        class="GenericModal__location--center a11y__modal GenericModal GenericModal__compassDesign ConfirmModal a11y__modal  modal-dialog"
+      >
+        <div
+          class="modal-content"
+          role="document"
+        >
+          <div
+            class="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
+          >
+            <div
+              class="modal-header"
+            >
+              <div
+                class="GenericModal__header__text_container"
+              >
+                <div
+                  class="GenericModal__header"
+                >
+                  <h1
+                    class="modal-title"
+                    id="genericModalLabel"
+                  >
+                    Your status is set to "Out of office"
+                  </h1>
+                </div>
+              </div>
+              <button
+                aria-label="Close"
+                class="close"
+                type="button"
+              >
+                <span
+                  aria-hidden="true"
+                >
+                  ×
+                </span>
+                <span
+                  class="sr-only"
+                >
+                  Close
+                </span>
+              </button>
+            </div>
+            <div
+              class="modal-body"
+            >
+              <div
+                class="GenericModal__body padding"
+              >
+                <div>
+                  <div
+                    class="ConfirmModal__body"
+                    id="confirmModalBody"
+                  >
+                    Would you like to switch your status to "Online" and disable automatic replies?
+                  </div>
+                  <div
+                    class="ConfirmModal__footer"
+                  >
+                    <button
+                      class="btn btn-tertiary"
+                      data-testid="cancel-button"
+                      id="cancelModalButton"
+                      type="button"
+                    >
+                      Stay "Out of office"
+                    </button>
+                    <button
+                      class="btn btn-primary"
+                      id="confirmModalButton"
+                      type="button"
+                    >
+                      Set status to "Online"
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 `;

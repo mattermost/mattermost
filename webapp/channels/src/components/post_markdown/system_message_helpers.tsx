@@ -366,6 +366,64 @@ function renderChannelUnarchivedMessage(post: Post): ReactNode {
     );
 }
 
+function renderAutoTranslationChangeMessage(post: Post): ReactNode {
+    if (!post.props.username) {
+        return null;
+    }
+
+    const username = renderUsername(post.props.username);
+    const enabled = post.props.enabled;
+    if (enabled) {
+        return (
+            <FormattedMessage
+                id='api.channel.auto_translation_change.message.enabled'
+                defaultMessage='{username} enabled Auto-translation for this channel. All new messages will appear in your preferred language.'
+                values={{username}}
+            />
+        );
+    }
+    return (
+        <FormattedMessage
+            id='api.channel.auto_translation_change.message.disabled'
+            defaultMessage='{username} disabled Auto-translation for this channel. All messages will appear in the original language.'
+            values={{username}}
+        />
+    );
+}
+
+function renderSharedChannelStateMessage(post: Post): ReactNode {
+    const state = ensureString(post.props?.shared_channel_state);
+    const workspaceName = ensureString(post.props?.workspace_name);
+
+    if (state === 'shared') {
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.now_shared'
+                defaultMessage='This channel is now shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    if (state === 'unshared') {
+        if (workspaceName === '') {
+            return (
+                <FormattedMessage
+                    id='shared_channel.system_message.no_longer_shared_unknown'
+                    defaultMessage='This channel is no longer shared with another workspace.'
+                />
+            );
+        }
+        return (
+            <FormattedMessage
+                id='shared_channel.system_message.no_longer_shared'
+                defaultMessage='This channel is no longer shared with {workspaceName}.'
+                values={{workspaceName}}
+            />
+        );
+    }
+    return null;
+}
+
 function renderMeMessage(post: Post): ReactNode {
     // Trim off the leading and trailing asterisk added to /me messages
     const message = post.message.replace(/^\*|\*$/g, '');
@@ -390,6 +448,8 @@ const systemMessageRenderers = {
     [Posts.POST_TYPES.CHANNEL_DELETED]: renderChannelDeletedMessage,
     [Posts.POST_TYPES.CHANNEL_UNARCHIVED]: renderChannelUnarchivedMessage,
     [Posts.POST_TYPES.ME]: renderMeMessage,
+    [Posts.POST_TYPES.AUTO_TRANSLATION_CHANGE]: renderAutoTranslationChangeMessage,
+    [Posts.POST_TYPES.SHARED_CHANNEL_STATE]: renderSharedChannelStateMessage,
 };
 
 export type AddMemberProps = {

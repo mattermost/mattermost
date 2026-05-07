@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @accessibility
 
-import {getRandomId} from '../../../utils';
+import {getRandomId} from '@/utils';
 
 function postMessages(testChannel, otherUser, count) {
     for (let index = 0; index < count; index++) {

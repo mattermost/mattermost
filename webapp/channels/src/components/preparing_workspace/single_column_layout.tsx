@@ -7,11 +7,7 @@ import './single_column_layout.scss';
 
 type Props = {
     children: React.ReactNode | React.ReactNodeArray;
-    beforePath?: boolean;
-    afterPath?: boolean;
     style?: React.CSSProperties;
-    lineDistance?: number;
-    lineLeft?: number;
 };
 
 export default function SingleColumnLayout(props: Props) {

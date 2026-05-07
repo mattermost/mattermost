@@ -6,6 +6,7 @@ package app
 import (
 	"database/sql"
 	"encoding/base64"
+	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -19,24 +20,31 @@ import (
 )
 
 func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.RegisterPluginOpts) (remoteID string, err error) {
-	// check for pluginID already registered
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(opts.PluginID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			// anything other than not_found is unrecoverable
-			return "", err
-		}
+	// When SiteURL is empty, fall back to the legacy single-remote behavior
+	// using the "plugin_" prefix. This preserves compatibility for older plugins
+	// that haven't been updated to provide a SiteURL.
+	if opts.SiteURL == "" {
+		opts.SiteURL = model.SiteURLPlugin + opts.PluginID
 	}
 
-	// if plugin is already registered then treat this as an update.
+	// Check if this SiteURL is already registered.
+	rc, err := a.Srv().Store().RemoteCluster().GetBySiteURL(opts.SiteURL)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return "", err
+	}
+
 	if rc != nil {
-		// plugin was deleted at some point
+		// SiteURL exists. Verify it belongs to this plugin.
+		if rc.PluginID != opts.PluginID {
+			return "", fmt.Errorf("SiteURL %q is already in use by remote %s (plugin %q)", opts.SiteURL, rc.RemoteId, rc.PluginID)
+		}
+
+		// Same plugin, same SiteURL: idempotent re-registration.
 		if rc.DeleteAt != 0 {
 			rctx.Logger().Debug("Restoring plugin registration for Shared Channels",
 				mlog.String("plugin_id", opts.PluginID),
 				mlog.String("remote_id", rc.RemoteId),
 			)
-
 			rc.DeleteAt = 0
 		} else {
 			rctx.Logger().Debug("Plugin already registered for Shared Channels",
@@ -54,10 +62,13 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 		return rc.RemoteId, nil
 	}
 
+	// New connection. Name must satisfy the slug-style regex enforced by
+	// RemoteCluster.IsValid, so derive it from Displayname; the original
+	// human-readable label is preserved on DisplayName.
 	rc = &model.RemoteCluster{
-		Name:        opts.Displayname,
+		Name:        model.CleanRemoteName(opts.Displayname),
 		DisplayName: opts.Displayname,
-		SiteURL:     model.SiteURLPlugin + opts.PluginID, // require a unique siteurl
+		SiteURL:     opts.SiteURL,
 		Token:       model.NewId(),
 		CreatorId:   opts.CreatorID,
 		PluginID:    opts.PluginID,
@@ -72,9 +83,10 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	rctx.Logger().Debug("Registered new plugin for Shared Channels",
 		mlog.String("plugin_id", opts.PluginID),
 		mlog.String("remote_id", rcSaved.RemoteId),
+		mlog.String("site_url", opts.SiteURL),
 	)
 
-	// ping the plugin remote immediately if the service is running
+	// Ping the plugin remote immediately if the service is running.
 	// If the service is not available the ping will happen once the
 	// service starts. This is expected since plugins start before the
 	// service.
@@ -86,14 +98,36 @@ func (a *App) RegisterPluginForSharedChannels(rctx request.CTX, opts model.Regis
 	return rcSaved.RemoteId, nil
 }
 
+// UnregisterPluginForSharedChannels unregisters all remotes for the specified plugin.
+// Used in OnDeactivate for bulk cleanup.
 func (a *App) UnregisterPluginForSharedChannels(pluginID string) error {
-	rc, err := a.Srv().Store().RemoteCluster().GetByPluginID(pluginID)
+	remotes, err := a.Srv().Store().RemoteCluster().GetAllByPluginID(pluginID)
 	if err != nil {
 		return err
 	}
 
+	for _, rc := range remotes {
+		if _, appErr := a.DeleteRemoteCluster(rc.RemoteId); appErr != nil {
+			return appErr
+		}
+	}
+	return nil
+}
+
+// UnregisterPluginRemoteForSharedChannels unregisters a specific remote by its remoteID.
+// The pluginID is validated against the remote's PluginID to ensure a plugin can only
+// unregister its own remotes.
+func (a *App) UnregisterPluginRemoteForSharedChannels(pluginID, remoteID string) error {
+	rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, true)
+	if err != nil {
+		return err
+	}
+
+	if rc.PluginID != pluginID {
+		return fmt.Errorf("remote %s does not belong to plugin %s", remoteID, pluginID)
+	}
+
 	if rc.DeleteAt != 0 {
-		// plugin already unregistered, nothing to do
 		return nil
 	}
 
@@ -144,10 +178,86 @@ func (a *App) UpdateRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster
 	return rc, nil
 }
 
+const sharedChannelRemotesPageSize = 10000
+
+// sharedChannelIDsWithActiveRemotesForRemote returns channel IDs that have a non-deleted
+// SharedChannelRemote row for the given remote cluster.
+func (a *App) sharedChannelIDsWithActiveRemotesForRemote(remoteClusterID string) ([]string, error) {
+	ss := a.Srv().Store()
+	var channelIDs []string
+	offset := 0
+	for {
+		remotes, err := ss.SharedChannel().GetRemotes(offset, sharedChannelRemotesPageSize, model.SharedChannelRemoteFilterOpts{
+			RemoteId:           remoteClusterID,
+			IncludeUnconfirmed: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, r := range remotes {
+			channelIDs = append(channelIDs, r.ChannelId)
+		}
+		if len(remotes) < sharedChannelRemotesPageSize {
+			break
+		}
+		offset += sharedChannelRemotesPageSize
+	}
+	return channelIDs, nil
+}
+
+// unshareSharedChannelsIfNoRemotes unshares each channel in channelIDs that has no remaining
+// SharedChannelRemote rows. The check matches sharedchannel.Service.unshareChannelIfNoActiveRemotes
+// (GetRemotes with IncludeUnconfirmed: true). If the shared channel sync service is not
+// running, the shared channel row is removed via the store instead of UnshareChannel.
+func (a *App) unshareSharedChannelsIfNoRemotes(channelIDs []string) {
+	ss := a.Srv().Store()
+	scService := a.Srv().GetSharedChannelSyncService()
+
+	for _, channelID := range channelIDs {
+		remotes, err := ss.SharedChannel().GetRemotes(0, 1, model.SharedChannelRemoteFilterOpts{ChannelId: channelID, IncludeUnconfirmed: true})
+		if err != nil {
+			a.Log().Error("Failed to check remaining shared channel remotes after remote cluster delete",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err),
+			)
+			continue
+		}
+		if len(remotes) > 0 {
+			continue
+		}
+		if scService != nil {
+			if _, err := scService.UnshareChannel(channelID); err != nil {
+				a.Log().Error("Failed to unshare channel with no remaining remotes",
+					mlog.String("channel_id", channelID),
+					mlog.Err(err),
+				)
+			}
+			continue
+		}
+		if _, err := ss.SharedChannel().Delete(channelID); err != nil {
+			a.Log().Error("Failed to unshare channel via store after remote cluster delete",
+				mlog.String("channel_id", channelID),
+				mlog.Err(err),
+			)
+		}
+	}
+}
+
 func (a *App) DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError) {
+	affectedChannelIDs, listErr := a.sharedChannelIDsWithActiveRemotesForRemote(remoteClusterId)
+	if listErr != nil {
+		a.Log().Warn("Could not list shared channel remotes before deleting remote cluster; skipping orphan shared-channel cleanup",
+			mlog.String("remote_id", remoteClusterId),
+			mlog.Err(listErr),
+		)
+	}
+
 	deleted, err := a.Srv().Store().RemoteCluster().Delete(remoteClusterId)
 	if err != nil {
 		return false, model.NewAppError("DeleteRemoteCluster", "api.remote_cluster.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	if deleted && listErr == nil {
+		a.unshareSharedChannelsIfNoRemotes(affectedChannelIDs)
 	}
 	return deleted, nil
 }

@@ -14,7 +14,6 @@ import UserListRow from './user_list_row';
 
 type Props = {
     rowComponentType?: React.ComponentType<any>;
-    length?: number;
     actions?: Array<React.ComponentType<any>>;
     actionUserProps?: {
         [userId: string]: {

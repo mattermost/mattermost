@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
-import * as TextFormatting from 'utils/text_formatting';
 
 import {unescapeHtmlEntities} from './markdown/renderer';
 
@@ -224,7 +223,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
 
 // Returns true when the URL could possibly cause any external requests.
 // Currently returns false only for permalinks
-const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}(\\?view=citation)?$');
 export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
     if (siteURL && siteURL !== '') {
         let standardSiteURL = siteURL;
@@ -264,7 +263,7 @@ export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourc
     // Paths managed by another service shouldn't be handled by the web app either
     if (managedResourcePaths) {
         for (const managedPath of managedResourcePaths) {
-            unhandledPaths.push(TextFormatting.escapeRegex(managedPath));
+            unhandledPaths.push(RegExp.escape(managedPath));
         }
     }
 

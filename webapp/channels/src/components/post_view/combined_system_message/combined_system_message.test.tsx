@@ -7,10 +7,9 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {General, Posts} from 'mattermost-redux/constants';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import CombinedSystemMessage from './combined_system_message';
-import type {CombinedSystemMessage as CombinedSystemMessageType} from './combined_system_message';
 
 describe('components/post_view/CombinedSystemMessage', () => {
     const userProfiles = [
@@ -52,22 +51,22 @@ describe('components/post_view/CombinedSystemMessage', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CombinedSystemMessage {...baseProps}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot when join leave messages are turned off', () => {
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CombinedSystemMessage
                 {...baseProps}
                 showJoinLeave={false}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot, "removed from channel" message when join leave messages are turned off', () => {
@@ -82,43 +81,64 @@ describe('components/post_view/CombinedSystemMessage', () => {
             userIds: ['removed_user_id_2'],
         }];
         const props = {...baseProps, messageData, allUserIds, showJoinLeave: false};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CombinedSystemMessage {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 
     test('should call getMissingProfilesByIds and/or getMissingProfilesByUsernames on loadUserProfiles', () => {
-        const props = {
-            ...baseProps,
-            allUserIds: [],
-            actions: {
-                getMissingProfilesByIds: jest.fn(),
-                getMissingProfilesByUsernames: jest.fn(),
-            },
+        // Test 1: empty allUserIds and allUsernames - should not call either action
+        const actions1 = {
+            getMissingProfilesByIds: jest.fn(),
+            getMissingProfilesByUsernames: jest.fn(),
         };
-
-        const wrapper = shallowWithIntl(
-            <CombinedSystemMessage {...props}/>,
+        renderWithContext(
+            <CombinedSystemMessage
+                {...baseProps}
+                allUserIds={[]}
+                allUsernames={[]}
+                actions={actions1}
+            />,
         );
+        expect(actions1.getMissingProfilesByIds).toHaveBeenCalledTimes(0);
+        expect(actions1.getMissingProfilesByUsernames).toHaveBeenCalledTimes(0);
 
-        const instance = wrapper.instance() as CombinedSystemMessageType;
+        // Test 2: with userIds only - should call getMissingProfilesByIds
+        const actions2 = {
+            getMissingProfilesByIds: jest.fn(),
+            getMissingProfilesByUsernames: jest.fn(),
+        };
+        renderWithContext(
+            <CombinedSystemMessage
+                {...baseProps}
+                allUserIds={['user_id_1']}
+                allUsernames={[]}
+                actions={actions2}
+            />,
+        );
+        expect(actions2.getMissingProfilesByIds).toHaveBeenCalledTimes(1);
+        expect(actions2.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1']);
+        expect(actions2.getMissingProfilesByUsernames).toHaveBeenCalledTimes(0);
 
-        instance.loadUserProfiles([], []);
-        expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledTimes(0);
-        expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledTimes(0);
-
-        instance.loadUserProfiles(['user_id_1'], []);
-        expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledTimes(1);
-        expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1']);
-        expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledTimes(0);
-
-        instance.loadUserProfiles(['user_id_1', 'user_id_2'], ['user1']);
-        expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledTimes(2);
-        expect(props.actions.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
-        expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
-        expect(props.actions.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
+        // Test 3: with both userIds and usernames - should call both actions
+        const actions3 = {
+            getMissingProfilesByIds: jest.fn(),
+            getMissingProfilesByUsernames: jest.fn(),
+        };
+        renderWithContext(
+            <CombinedSystemMessage
+                {...baseProps}
+                allUserIds={['user_id_1', 'user_id_2']}
+                allUsernames={['user1']}
+                actions={actions3}
+            />,
+        );
+        expect(actions3.getMissingProfilesByIds).toHaveBeenCalledTimes(1);
+        expect(actions3.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
+        expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
+        expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
     });
     test('should render messages in chronological order', () => {
         const allUserIds = ['current_user_id', 'other_user_id_1', 'user_id_1', 'user_id_2', 'join_last'];
@@ -144,10 +164,10 @@ describe('components/post_view/CombinedSystemMessage', () => {
             userIds: [''],
         }];
         const props = {...baseProps, messageData, allUserIds};
-        const wrapper = shallowWithIntl(
+        const {container} = renderWithContext(
             <CombinedSystemMessage {...props}/>,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

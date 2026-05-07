@@ -3,13 +3,11 @@
 
 jest.mock('utils/browser_history');
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import MfaSection from 'components/user_settings/security/mfa_section/mfa_section';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 
 describe('MfaSection', () => {
@@ -31,9 +29,9 @@ describe('MfaSection', () => {
                 ...baseProps,
                 mfaAvailable: false,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('when section is collapsed and MFA is not active', () => {
@@ -42,9 +40,9 @@ describe('MfaSection', () => {
                 active: false,
                 mfaActive: false,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('when section is collapsed and MFA is active', () => {
@@ -53,9 +51,9 @@ describe('MfaSection', () => {
                 active: false,
                 mfaActive: true,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('when section is expanded and MFA is not active', () => {
@@ -63,9 +61,9 @@ describe('MfaSection', () => {
                 ...baseProps,
                 mfaActive: false,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('when section is expanded and MFA is active but not enforced', () => {
@@ -73,9 +71,9 @@ describe('MfaSection', () => {
                 ...baseProps,
                 mfaActive: true,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
         test('when section is expanded and MFA is active and enforced', () => {
@@ -84,33 +82,36 @@ describe('MfaSection', () => {
                 mfaActive: true,
                 mfaEnforced: true,
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            const {container} = renderWithContext(<MfaSection {...props}/>);
 
-            expect(wrapper).toMatchSnapshot();
+            expect(container).toMatchSnapshot();
         });
 
-        test('when section is expanded with a server error', () => {
+        test('when section is expanded with a server error', async () => {
             const props = {
                 ...baseProps,
-                serverError: 'An error occurred',
+                mfaActive: true,
+                actions: {
+                    deactivateMfa: jest.fn(() => Promise.resolve({error: {message: 'An error has occurred'}})),
+                },
             };
-            const wrapper = shallow(<MfaSection {...props}/>);
+            renderWithContext(<MfaSection {...props}/>);
 
-            wrapper.setState({serverError: 'An error has occurred'});
+            await userEvent.click(screen.getByText('Remove MFA from Account'));
 
-            expect(wrapper).toMatchSnapshot();
+            await waitFor(() => {
+                expect(screen.getByText('An error has occurred')).toBeInTheDocument();
+            });
+
+            expect(screen.getByText('An error has occurred')).toMatchSnapshot();
         });
     });
 
     describe('setupMfa', () => {
-        it('should send to setup page', () => {
-            const wrapper = mountWithIntl(<MfaSection {...baseProps}/>);
+        it('should send to setup page', async () => {
+            renderWithContext(<MfaSection {...baseProps}/>);
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-            } as unknown as React.MouseEvent<HTMLElement>;
-
-            (wrapper.instance() as MfaSection).setupMfa(mockEvent);
+            await userEvent.click(screen.getByText('Add MFA to Account'));
 
             expect(getHistory().push).toHaveBeenCalledWith('/mfa/setup');
         });
@@ -118,62 +119,58 @@ describe('MfaSection', () => {
 
     describe('removeMfa', () => {
         it('on success, should close section and clear state', async () => {
-            const wrapper = mountWithIntl(<MfaSection {...baseProps}/>);
+            const props = {
+                ...baseProps,
+                mfaActive: true,
+            };
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-            } as unknown as React.MouseEvent<HTMLElement>;
+            renderWithContext(<MfaSection {...props}/>);
 
-            act(() => {
-                wrapper.setState({serverError: 'An error has occurred'});
+            await userEvent.click(screen.getByText('Remove MFA from Account'));
+
+            await waitFor(() => {
+                expect(baseProps.updateSection).toHaveBeenCalledWith('');
             });
-
-            await act(async () => {
-                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
-            });
-
-            expect(baseProps.updateSection).toHaveBeenCalledWith('');
-            expect(wrapper.state('serverError')).toEqual(null);
+            expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
             expect(getHistory().push).not.toHaveBeenCalled();
         });
 
         it('on success, should send to setup page if MFA enforcement is enabled', async () => {
             const props = {
                 ...baseProps,
+                mfaActive: true,
                 mfaEnforced: true,
             };
 
-            const wrapper = mountWithIntl(<MfaSection {...props}/>);
+            renderWithContext(<MfaSection {...props}/>);
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-            } as unknown as React.MouseEvent<HTMLElement>;
+            await userEvent.click(screen.getByText('Reset MFA on Account'));
 
-            await act(async () => {
-                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            await waitFor(() => {
+                expect(getHistory().push).toHaveBeenCalledWith('/mfa/setup');
             });
-
             expect(baseProps.updateSection).not.toHaveBeenCalled();
-            expect(getHistory().push).toHaveBeenCalledWith('/mfa/setup');
         });
 
         it('on error, should show error', async () => {
             const error = {message: 'An error occurred'};
 
-            const wrapper = mountWithIntl(<MfaSection {...baseProps}/>);
+            const props = {
+                ...baseProps,
+                mfaActive: true,
+                actions: {
+                    deactivateMfa: jest.fn(() => Promise.resolve({error})),
+                },
+            };
 
-            const mockEvent = {
-                preventDefault: jest.fn(),
-            } as unknown as React.MouseEvent<HTMLElement>;
+            renderWithContext(<MfaSection {...props}/>);
 
-            baseProps.actions.deactivateMfa.mockImplementation(() => Promise.resolve({error}));
+            await userEvent.click(screen.getByText('Remove MFA from Account'));
 
-            await act(async () => {
-                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            await waitFor(() => {
+                expect(screen.getByText('An error occurred')).toBeInTheDocument();
             });
-
             expect(baseProps.updateSection).not.toHaveBeenCalled();
-            expect(wrapper.state('serverError')).toEqual(error.message);
         });
     });
 });

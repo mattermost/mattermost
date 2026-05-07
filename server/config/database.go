@@ -84,8 +84,6 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 }
 
 // initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
-//
-// Uses MEDIUMTEXT on MySQL, and TEXT on sane databases.
 func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	assetsList, err := assets.ReadDir(filepath.Join("migrations", ds.driverName))
 	if err != nil {
@@ -132,18 +130,9 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	return engine.ApplyAll()
 }
 
-// parseDSN splits up a connection string into a driver name and data source name.
+// parseDSN parses a PostgreSQL connection string and validates the scheme.
 //
-// For example:
-//
-//	mysql://mmuser:mostest@localhost:5432/mattermost_test
-//
-// returns
-//
-//	driverName = mysql
-//	dataSourceName = mmuser:mostest@localhost:5432/mattermost_test
-//
-// By contrast, a Postgres DSN is returned unmodified.
+// Accepts postgres:// or postgresql:// schemes and returns the DSN unmodified.
 func parseDSN(dsn string) (string, string, error) {
 	// Treat the DSN as the URL that it is.
 	s := strings.SplitN(dsn, "://", 2)

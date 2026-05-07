@@ -9,7 +9,7 @@ import * as modalActions from 'actions/views/modals';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 import UnarchiveChannelModal from 'components/unarchive_channel_modal';
 
-import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -21,11 +21,7 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
         jest.spyOn(require('react-redux'), 'useDispatch');
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test('renders the component correctly, handle click event', () => {
+    test('renders the component correctly, handle click event', async () => {
         const channel = TestHelper.getChannelMock();
 
         renderWithContext(
@@ -37,7 +33,7 @@ describe('components/ChannelHeaderMenu/MenuItems/UnarchiveChannel', () => {
         const menuItem = screen.getByText('Unarchive Channel');
         expect(menuItem).toBeInTheDocument();
 
-        fireEvent.click(menuItem); // Simulate click on the menu item
+        await userEvent.click(menuItem); // Simulate click on the menu item
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(modalActions.openModal).toHaveBeenCalledTimes(1);
         expect(modalActions.openModal).toHaveBeenCalledWith({

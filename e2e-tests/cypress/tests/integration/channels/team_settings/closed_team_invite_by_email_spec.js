@@ -10,21 +10,22 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
-import {getAdminAccount} from '../../../support/env';
-import * as TIMEOUTS from '../../../fixtures/timeouts';
+import {getAdminAccount} from '@/support/env';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 import {
     getJoinEmailTemplate,
     getRandomId,
+    newTestPassword,
     reUrl,
     verifyEmailBody,
-} from '../../../utils';
+} from '@/utils';
 
 describe('Team Settings', () => {
     const sysadmin = getAdminAccount();
     const randomId = getRandomId();
     const username = `user${randomId}`;
     const email = `user${randomId}@sample.mattermost.com`;
-    const password = 'passwd';
+    const password = newTestPassword();
 
     let testTeam;
     let siteName;
@@ -71,7 +72,7 @@ describe('Team Settings', () => {
             cy.get('#allowedDomains').should('have.text', 'corp.mattermost.com, mattermost.com');
 
             // # Close the modal
-            cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();
+            cy.get('button[aria-label="Close"]').should('be.visible').click();
         });
 
         // # Open the 'Invite People' full screen modal
@@ -113,6 +114,9 @@ describe('Team Settings', () => {
         cy.get('#input_name').type(username);
         cy.wait(TIMEOUTS.HALF_SEC);
         cy.get('#input_password-input').type(password);
+
+        // # Check the terms and privacy checkbox
+        cy.get('#signup-body-card-form-check-terms-and-privacy').check();
 
         // # Attempt to create an account by clicking on the 'Create Account' button
         cy.findByText('Create account').click();

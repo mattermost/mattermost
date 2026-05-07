@@ -26,14 +26,11 @@ describe('components/TeamSettings', () => {
     };
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
-        closeModal: jest.fn(),
         actions: baseActions,
-        hasChanges: true,
-        hasChangeTabError: false,
-        setHasChanges: jest.fn(),
-        setHasChangeTabError: jest.fn(),
-        setJustSaved: jest.fn(),
-        collapseModal: jest.fn(),
+        areThereUnsavedChanges: true,
+        showTabSwitchError: false,
+        setAreThereUnsavedChanges: jest.fn(),
+        setShowTabSwitchError: jest.fn(),
     };
 
     test('should not render team invite section if no permissions for team inviting', () => {

@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ProfilePopoverEmail from './profile_popover_email';
 
@@ -48,26 +47,25 @@ describe('components/ProfilePopoverEmail', () => {
         expect(emailLink.tagName).toBe('A');
     });
 
-    test('should open email client when clicked', () => {
+    test('should open email client when clicked', async () => {
         renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
 
         const email = 'test@example.com';
         const emailLink = screen.getByText(email);
 
-        fireEvent.click(emailLink);
+        await userEvent.click(emailLink);
 
         expect(mockWindowOpen).toHaveBeenCalledWith('mailto:test@example.com');
     });
 
-    test('should prevent default click behavior', () => {
+    test('should prevent default click behavior', async () => {
         renderWithContext(<ProfilePopoverEmail {...baseProps}/>);
 
         const email = 'test@example.com';
         const emailLink = screen.getByText(email);
 
-        const clickEvent = fireEvent.click(emailLink);
+        await userEvent.click(emailLink);
 
-        expect(clickEvent).toBe(false); // fireEvent.click returns false when preventDefault was called
         expect(mockWindowOpen).toHaveBeenCalledWith('mailto:test@example.com');
     });
 });

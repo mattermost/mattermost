@@ -301,6 +301,7 @@ describe('components/sidebar', () => {
             expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
 
             // Test with backslash key (should not trigger the modal)
+            // fireEvent on document used because userEvent.keyboard requires element focus
             fireEvent.keyDown(document, {
                 key: '\\',
                 code: 'Backslash',
@@ -310,6 +311,7 @@ describe('components/sidebar', () => {
             expect(openModalSpy).not.toHaveBeenCalled();
 
             // Test with 'ù' key but with forward slash keyCode (should trigger the modal)
+            // fireEvent on document used because userEvent.keyboard requires element focus
             fireEvent.keyDown(document, {
                 key: 'ù',
                 code: 'Slash',
@@ -324,6 +326,7 @@ describe('components/sidebar', () => {
             openModalSpy.mockClear();
 
             // Test with '/' key but with seven keyCode (should trigger the modal)
+            // fireEvent on document used because userEvent.keyboard requires element focus
             fireEvent.keyDown(document, {
                 key: '/',
                 code: 'Digit7',
@@ -338,6 +341,7 @@ describe('components/sidebar', () => {
             openModalSpy.mockClear();
 
             // Test with forward slash key (should trigger the modal)
+            // fireEvent on document used because userEvent.keyboard requires element focus
             fireEvent.keyDown(document, {
                 key: '/',
                 code: 'Slash',
@@ -371,6 +375,7 @@ describe('components/sidebar', () => {
             expect(document.getElementById('SidebarContainer')).toBeInTheDocument();
 
             // Test with forward slash key (should close the modal since it's already open)
+            // fireEvent on document used because userEvent.keyboard requires element focus
             fireEvent.keyDown(document, {
                 key: '/',
                 code: 'Slash',

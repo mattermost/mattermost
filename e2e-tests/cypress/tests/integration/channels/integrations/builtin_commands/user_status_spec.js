@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @integrations
 
-import * as TIMEOUTS from '../../../../fixtures/timeouts';
+import * as TIMEOUTS from '@/fixtures/timeouts';
 
 describe('Integrations', () => {
     const away = {name: 'away', ariaLabel: 'Away', message: 'You are now away', className: 'icon-clock'};

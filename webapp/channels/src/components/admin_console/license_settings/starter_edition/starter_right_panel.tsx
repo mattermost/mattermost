@@ -69,8 +69,8 @@ const StarterRightPanel = () => {
             </div>
             <div className='purchase_buttons'>
                 <ContactUsButton
-                    eventID='post_trial_contact_sales'
-                    customClass='btn-tertiary btn-full'
+                    emphasis='tertiary'
+                    customClass='btn-full'
                 />
             </div>
         </div>

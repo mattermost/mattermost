@@ -5,7 +5,7 @@ import type {KatexOptions} from 'katex';
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-type Katex = typeof import('katex');
+type Katex = typeof import('katex').default;
 
 type Props = {
     content: string;

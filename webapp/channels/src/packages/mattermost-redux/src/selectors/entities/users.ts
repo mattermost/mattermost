@@ -72,10 +72,6 @@ export function getUserIdsNotInTeams(state: GlobalState): RelationOneToManyUniqu
     return state.entities.users.profilesNotInTeam;
 }
 
-export function getUserIdsWithoutTeam(state: GlobalState): Set<UserProfile['id']> {
-    return state.entities.users.profilesWithoutTeam;
-}
-
 export function getUserIdsInGroups(state: GlobalState): RelationOneToManyUnique<Group, UserProfile> {
     return state.entities.users.profilesInGroup;
 }
@@ -443,16 +439,6 @@ export const getProfilesNotInCurrentTeam: (state: GlobalState) => UserProfile[] 
     },
 );
 
-export const getProfilesWithoutTeam: (state: GlobalState, filters: Filters) => UserProfile[] = createSelector(
-    'getProfilesWithoutTeam',
-    getUsers,
-    getUserIdsWithoutTeam,
-    (state: GlobalState, filters: Filters) => filters,
-    (profiles, withoutTeamProfileSet, filters) => {
-        return sortAndInjectProfiles(filterProfiles(profiles, filters), withoutTeamProfileSet);
-    },
-);
-
 export function getStatusForUserId(state: GlobalState, userId: UserProfile['id']): string {
     return getUserStatuses(state)[userId];
 }
@@ -524,7 +510,7 @@ export function makeSearchProfilesInChannel() {
 }
 
 export function searchProfilesInCurrentChannel(state: GlobalState, term: string, skipCurrent = false): UserProfile[] {
-    const profiles = filterProfilesStartingWithTerm(getProfilesInCurrentChannel(state), term);
+    const profiles = filterProfilesMatchingWithTerm(getProfilesInCurrentChannel(state), term);
 
     if (skipCurrent) {
         removeCurrentUserFromList(profiles, getCurrentUserId(state));
@@ -571,15 +557,6 @@ export function searchProfilesNotInCurrentTeam(state: GlobalState, term: string,
     }
 
     return profiles;
-}
-
-export function searchProfilesWithoutTeam(state: GlobalState, term: string, skipCurrent = false, filters: Filters): UserProfile[] {
-    const filteredProfiles = filterProfilesStartingWithTerm(getProfilesWithoutTeam(state, filters), term);
-    if (skipCurrent) {
-        removeCurrentUserFromList(filteredProfiles, getCurrentUserId(state));
-    }
-
-    return filteredProfiles;
 }
 
 function removeCurrentUserFromList(profiles: UserProfile[], currentUserId: UserProfile['id']) {

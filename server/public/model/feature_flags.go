@@ -69,6 +69,14 @@ type FeatureFlags struct {
 
 	AttributeBasedAccessControl bool
 
+	// Mask non-held attribute values in the policy editor for delegated admins.
+	// Requires AttributeBasedAccessControl.
+	AttributeValueMasking bool
+
+	// Enable permission policies (file upload/download ABAC policies).
+	// Requires AttributeBasedAccessControl to also be enabled.
+	PermissionPolicies bool
+
 	ContentFlagging bool
 
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
@@ -76,12 +84,17 @@ type FeatureFlags struct {
 
 	EnableMattermostEntry bool
 
-	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	// DEPRECATED: Mobile SSO SAML code-exchange flow - disabled by default
+	// This feature is deprecated and will be removed in a future release.
+	// Mobile clients should use the direct SSO callback flow with srv parameter verification.
 	MobileSSOCodeExchange bool
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// Enable classification markings for banners at the system and channel level
+	ClassificationMarkings bool
 
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
@@ -91,6 +104,16 @@ type FeatureFlags struct {
 
 	// FEATURE_FLAG_REMOVAL: EnableAIRecaps - Remove this when GA is released
 	EnableAIRecaps bool
+
+	// FEATURE_FLAG_REMOVAL: IntegratedBoards - Remove this when GA is released
+	// Enable the Integrated Boards feature within Mattermost channels
+	IntegratedBoards bool
+
+	// Enable LIKE-based CJK (Chinese, Japanese, Korean) search for PostgreSQL
+	CJKSearch bool
+
+	// Collect plugin metrics and serve them on the /metrics endpoint
+	AggregatePluginMetrics bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -119,14 +142,18 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
+	f.AttributeValueMasking = false
+	f.PermissionPolicies = false
 	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
-	f.MobileSSOCodeExchange = true
+	// DEPRECATED: Disabled by default - mobile clients use direct SSO callback flow
+	f.MobileSSOCodeExchange = false
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
-	f.AutoTranslation = false
+	f.AutoTranslation = true
+
+	f.ClassificationMarkings = false
 
 	f.BurnOnRead = true
 
@@ -134,6 +161,12 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableAIPluginBridge = false
 
 	f.EnableAIRecaps = false
+
+	f.IntegratedBoards = false
+
+	f.CJKSearch = false
+
+	f.AggregatePluginMetrics = false
 }
 
 // ToMap returns the feature flags as a map[string]string

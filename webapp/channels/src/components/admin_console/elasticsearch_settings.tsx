@@ -11,6 +11,7 @@ import type {Job, JobType} from '@mattermost/types/jobs';
 import {elasticsearchPurgeIndexes, elasticsearchTest, rebuildChannelsIndex} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
+import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
 
@@ -36,6 +37,7 @@ interface State extends BaseState {
     enableIndexing: boolean;
     enableSearching: boolean;
     enableAutocomplete: boolean;
+    enableSearchPublicChannelsWithoutMembership: boolean;
     configTested: boolean;
     canSave: boolean;
     canPurgeAndIndex: boolean;
@@ -60,6 +62,7 @@ export const messages = defineMessages({
     passwordDescription: {id: 'admin.elasticsearch.passwordDescription', defaultMessage: '(Optional) The password to authenticate to the Elasticsearch server.'},
     sniffTitle: {id: 'admin.elasticsearch.sniffTitle', defaultMessage: 'Enable Cluster Sniffing:'},
     sniffDescription: {id: 'admin.elasticsearch.sniffDescription', defaultMessage: 'When true, sniffing finds and connects to all data nodes in your cluster automatically.'},
+    sniffWarning: {id: 'admin.elasticsearch.sniffWarning', defaultMessage: 'Do not enable cluster sniffing with cloud-hosted providers such as Elastic Cloud or Amazon OpenSearch Service.'},
     testHelpText: {id: 'admin.elasticsearch.testHelpText', defaultMessage: 'Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle "Enable Elasticsearch Indexing".'},
     elasticsearch_test_button: {id: 'admin.elasticsearch.elasticsearch_test_button', defaultMessage: 'Test Connection'},
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
@@ -88,6 +91,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.passwordDescription,
     messages.sniffTitle,
     messages.sniffDescription,
+    messages.sniffWarning,
     messages.testHelpText,
     messages.elasticsearch_test_button,
     messages.bulkIndexingTitle,
@@ -114,6 +118,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         config.ElasticsearchSettings.EnableSearching = this.state.enableSearching;
         config.ElasticsearchSettings.EnableAutocomplete = this.state.enableAutocomplete;
         config.ElasticsearchSettings.IgnoredPurgeIndexes = this.state.ignoredPurgeIndexes;
+        config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership = this.state.enableSearchPublicChannelsWithoutMembership;
 
         return config;
     };
@@ -132,6 +137,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             enableIndexing: config.ElasticsearchSettings.EnableIndexing,
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             enableAutocomplete: config.ElasticsearchSettings.EnableAutocomplete,
+            enableSearchPublicChannelsWithoutMembership: config.ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership,
             configTested: true,
             canSave: true,
             canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing,
@@ -145,6 +151,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 this.setState({
                     enableSearching: false,
                     enableAutocomplete: false,
+                    enableSearchPublicChannelsWithoutMembership: false,
                 });
             } else {
                 this.setState({
@@ -161,7 +168,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
             });
         }
 
-        if (id !== 'enableSearching' && id !== 'enableAutocomplete') {
+        if (id !== 'enableSearching' && id !== 'enableAutocomplete' && id !== 'enableSearchPublicChannelsWithoutMembership') {
             this.setState({
                 canPurgeAndIndex: false,
             });
@@ -180,7 +187,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         return this.state.canSave;
     };
 
-    doTestConfig = (success: () => void, error: (error: {message: string; detailed_message?: string}) => void): void => {
+    doTestConfig = (success: () => void, error: (error: {message: string; detailed_error?: string}) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -193,7 +200,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 });
                 success();
             },
-            (err: {message: string; detailed_message?: string}) => {
+            (err: {message: string; detailed_error?: string}) => {
                 this.setState({
                     configTested: false,
                     canSave: false,
@@ -277,7 +284,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.backendDescription'
-                            defaultMessage='The type of the search backend.'
+                            defaultMessage='The type of the search backend. Changing this setting requires a server restart before taking effect.'
                         />
                     }
                     value={this.state.backend}
@@ -403,7 +410,17 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 <BooleanSetting
                     id='sniff'
                     label={<FormattedMessage {...messages.sniffTitle}/>}
-                    helpText={<FormattedMessage {...messages.sniffDescription}/>}
+                    helpText={
+                        <>
+                            <FormattedMessage {...messages.sniffDescription}/>
+                            {this.state.sniff && (
+                                <div className='alert alert-warning'>
+                                    <WarningIcon/>
+                                    <FormattedMessage {...messages.sniffWarning}/>
+                                </div>
+                            )}
+                        </>
+                    }
                     value={this.state.sniff}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
                     onChange={this.handleSettingChanged}
@@ -412,6 +429,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 <RequestButton
                     id='testConfig'
                     requestAction={this.doTestConfig}
+                    includeDetailedError={true}
                     helpText={<FormattedMessage {...messages.testHelpText}/>}
                     buttonText={<FormattedMessage {...messages.elasticsearch_test_button}/>}
                     successMessage={defineMessage({
@@ -526,6 +544,25 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableAutocomplete')}
+                />
+                <BooleanSetting
+                    id='enableSearchPublicChannelsWithoutMembership'
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipTitle'
+                            defaultMessage='Allow searching public channels without membership:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.enableSearchPublicChannelsWithoutMembershipDescription'
+                            defaultMessage='When enabled, users can find messages in public channels they have not joined. When enabled for the first time, existing posts will be updated in the background. This process is throttled to avoid impacting search performance. This setting has no effect when Compliance Mode is enabled.'
+                        />
+                    }
+                    value={this.state.enableSearchPublicChannelsWithoutMembership}
+                    disabled={this.props.isDisabled || !this.state.enableIndexing || !this.state.configTested}
+                    onChange={this.handleSettingChanged}
+                    setByEnv={this.isSetByEnv('ElasticsearchSettings.EnableSearchPublicChannelsWithoutMembership')}
                 />
             </SettingsGroup>
         );

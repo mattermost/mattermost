@@ -9,6 +9,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
@@ -16,7 +17,6 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';
@@ -29,6 +29,9 @@ type CustomMenuProps = {
     children?: React.ReactNode;
     onClose: () => void;
     rootCloseEvent?: 'click' | 'mousedown';
+
+    //  A bsRole prop is required by React Bootstrap's Dropdown
+    // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
 }
 
@@ -67,6 +70,9 @@ type CustomToggleProps = {
     children?: React.ReactNode;
     dropdownOpen?: boolean;
     onClick?: (e: React.MouseEvent) => void;
+
+    //  A bsRole prop is required by React Bootstrap's Dropdown
+    // eslint-disable-next-line react/no-unused-prop-types
     bsRole: string;
 }
 

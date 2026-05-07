@@ -92,10 +92,6 @@ describe('RecapChannelCard', () => {
         create_at: 1000,
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
     test('should render channel name', () => {
         renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
@@ -142,9 +138,9 @@ describe('RecapChannelCard', () => {
         expect(container.firstChild).toBeNull();
     });
 
-    test('should toggle collapse state when collapse button clicked', async () => {
+    test('should toggle collapse state when header is clicked', async () => {
         const user = userEvent.setup();
-        renderWithContext(
+        const {container} = renderWithContext(
             <RecapChannelCard channel={mockRecapChannel}/>,
             baseState,
         );
@@ -152,11 +148,56 @@ describe('RecapChannelCard', () => {
         // Initially expanded, content should be visible
         expect(screen.getByText('Highlights')).toBeInTheDocument();
 
-        // Find and click the collapse button
-        const collapseButton = screen.getByRole('button', {name: ''});
-        await user.click(collapseButton);
+        // Click the header to collapse
+        const header = container.querySelector('.recap-channel-header')!;
+        await user.click(header);
 
         // Content should be hidden after collapse
+        expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
+
+        // Click again to expand
+        await user.click(header);
+        expect(screen.getByText('Highlights')).toBeInTheDocument();
+    });
+
+    test('should have keyboard-accessible header with proper ARIA attributes', () => {
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        expect(header).toHaveAttribute('role', 'button');
+        expect(header).toHaveAttribute('tabindex', '0');
+        expect(header).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    test('should toggle collapse with Enter key on header', async () => {
+        const user = userEvent.setup();
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        (header as HTMLElement).focus();
+        await user.keyboard('{Enter}');
+
+        expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
+        expect(header).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    test('should toggle collapse with Space key on header', async () => {
+        const user = userEvent.setup();
+        const {container} = renderWithContext(
+            <RecapChannelCard channel={mockRecapChannel}/>,
+            baseState,
+        );
+
+        const header = container.querySelector('.recap-channel-header')!;
+        (header as HTMLElement).focus();
+        await user.keyboard(' ');
+
         expect(screen.queryByText('Highlights')).not.toBeInTheDocument();
     });
 

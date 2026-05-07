@@ -166,3 +166,15 @@ export const getSearchButtons = createSelector(
         return components;
     },
 );
+
+/**
+ * Get a plugin's display name by its ID
+ * Falls back to plugin ID if name is not available, then to 'unknown' if no plugin ID
+ */
+export const getPluginDisplayName = (state: GlobalState, pluginId?: string): string => {
+    if (!pluginId) {
+        return 'unknown';
+    }
+    const plugins = state.plugins?.plugins ?? {};
+    return plugins[pluginId]?.name || pluginId;
+};

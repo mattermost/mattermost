@@ -5,14 +5,15 @@ import React, {Component, createRef} from 'react';
 import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/shared/components/button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
+
 import FormError from 'components/form_error';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
-
-import WithTooltip from './with_tooltip';
 
 type Props = {
     clientError?: ReactNode;
@@ -29,7 +30,6 @@ type Props = {
     onFileChange?: (e: ChangeEvent<HTMLInputElement>) => void;
     updateSection?: (e: MouseEvent<HTMLButtonElement>) => void;
     imageContext?: string;
-    maxFileSize?: number;
     helpText?: ReactNode;
 }
 
@@ -252,14 +252,7 @@ export default class SettingPicture extends Component<Props, State> {
     render() {
         const img = this.renderImg();
 
-        let confirmButtonClass = 'btn';
-        let disableSaveButtonFocus = false;
-        if (this.props.submitActive || this.state.removeSrc || this.state.setDefaultSrc) {
-            confirmButtonClass += ' btn-primary';
-        } else {
-            confirmButtonClass += ' btn-inactive disabled';
-            disableSaveButtonFocus = true;
-        }
+        const disableSaveButtonFocus = !this.props.submitActive && !this.state.removeSrc && !this.state.setDefaultSrc;
 
         let imgRender;
         if (img) {
@@ -288,9 +281,10 @@ export default class SettingPicture extends Component<Props, State> {
                         aria-hidden={true}
                         tabIndex={-1}
                     />
-                    <button
+                    <Button
                         data-testid='inputSettingPictureButton'
-                        className='btn btn-primary btn-file'
+                        emphasis='primary'
+                        className='btn-file'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
                         aria-label={localizeMessage({id: 'setting_picture.select', defaultMessage: 'Select'})}
@@ -299,13 +293,13 @@ export default class SettingPicture extends Component<Props, State> {
                             id='setting_picture.select'
                             defaultMessage='Select'
                         />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         tabIndex={disableSaveButtonFocus ? -1 : 0}
                         data-testid='saveSettingPicture'
                         disabled={disableSaveButtonFocus}
                         ref={this.confirmButton}
-                        className={confirmButtonClass}
+                        emphasis='primary'
                         onClick={this.handleSave}
                         aria-label={this.props.loadingPicture ? localizeMessage({id: 'setting_picture.uploading', defaultMessage: 'Uploading...'}) : localizeMessage({id: 'setting_picture.save', defaultMessage: 'Save'})}
                     >
@@ -318,7 +312,7 @@ export default class SettingPicture extends Component<Props, State> {
                                 defaultMessage='Save'
                             />
                         </LoadingWrapper>
-                    </button>
+                    </Button>
                 </span>
             );
         }
@@ -351,9 +345,10 @@ export default class SettingPicture extends Component<Props, State> {
                                 type={'modal'}
                             />
                             {buttonRender}
-                            <button
+                            <Button
                                 data-testid='cancelSettingPicture'
-                                className='btn btn-tertiary theme ml-2'
+                                emphasis='tertiary'
+                                className='ml-2'
                                 onClick={this.handleCancel}
                                 aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}
                             >
@@ -361,7 +356,7 @@ export default class SettingPicture extends Component<Props, State> {
                                     id='setting_picture.cancel'
                                     defaultMessage='Cancel'
                                 />
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

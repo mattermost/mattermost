@@ -79,13 +79,15 @@
           $ref: "#/components/responses/Forbidden"
   /api/v4/users/login/sso/code-exchange:
     post:
+      deprecated: true
       tags:
         - users
       summary: Exchange SSO login code for session tokens
       description: >
         Exchange a short-lived login_code for session tokens using SAML code exchange (mobile SSO flow).
-        This endpoint is part of the mobile SSO code-exchange flow to prevent tokens 
-        from appearing in deep links.
+
+        **Deprecated:** This endpoint is deprecated and will be removed in a future release.
+        Mobile clients should use the direct SSO callback flow instead.
 
         ##### Permissions
 
@@ -130,6 +132,8 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "410":
+          description: Endpoint is deprecated and disabled
   /oauth/intune:
     post:
       tags:
@@ -431,6 +435,25 @@
           description: When used with `not_in_channel` or `not_in_team`, returns only the
             users that are allowed to join the channel or team based on its
             group constrains.
+          schema:
+            type: boolean
+        - name: abac_match_only
+          in: query
+          description: >
+            When used with `not_in_channel`, restricts the result to users whose
+            attributes satisfy the channel's Attribute-Based Access Control
+            (ABAC) membership policy.
+
+
+            On private channels with an ABAC policy this filter is always
+            applied regardless of this parameter (hard gate). On public channels
+            with an advisory ABAC policy the full not_in_channel candidate list
+            is returned by default; set this to `true` to fetch only the
+            matching subset of candidates (for example to annotate recommended
+            members in the invite UI).
+
+
+            __Minimum server version__: 11.8
           schema:
             type: boolean
         - name: without_team

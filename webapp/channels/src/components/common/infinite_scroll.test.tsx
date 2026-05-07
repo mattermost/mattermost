@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 
 import InfiniteScroll from 'components/common/infinite_scroll';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, fireEvent, waitFor, act} from 'tests/react_testing_utils';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {
@@ -18,83 +16,142 @@ describe('/components/common/InfiniteScroll', () => {
         totalItems: 20,
         itemsPerPage: 10,
         pageNumber: 1,
+        bufferValue: 100,
     };
 
-    let wrapper: ReactWrapper<any, any, InfiniteScroll>;
-
-    beforeEach(() => {
-        wrapper = mountWithIntl(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>) as unknown as ReactWrapper<any, any, InfiniteScroll>;
-    });
-
     test('should match snapshot', () => {
-        expect(wrapper).toMatchSnapshot();
+        const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
+        expect(container).toMatchSnapshot();
 
-        const wrapperDiv = wrapper.find(`.${baseProps.styleClass}`);
+        const wrapperDiv = container.querySelector(`.${baseProps.styleClass}`);
 
         // InfiniteScroll is styled by the user's style
-        expect(wrapperDiv.exists()).toBe(true);
+        expect(wrapperDiv).toBeInTheDocument();
 
         // Ensure that scroll is added to InfiniteScroll wrapper div
-        expect(wrapperDiv.hasClass('infinite-scroll')).toBe(true);
+        expect(wrapperDiv).toHaveClass('infinite-scroll');
     });
 
     test('should attach and remove event listeners', () => {
-        const instance = wrapper.instance();
-        const node = instance.node;
-        node.current!.addEventListener = jest.fn();
-        node.current!.removeEventListener = jest.fn();
+        const addEventListenerSpy = jest.spyOn(HTMLDivElement.prototype, 'addEventListener');
+        const removeEventListenerSpy = jest.spyOn(HTMLDivElement.prototype, 'removeEventListener');
 
-        instance.componentDidMount();
-        expect(node.current!.addEventListener).toHaveBeenCalledTimes(1);
-        expect(node.current!.removeEventListener).not.toHaveBeenCalled();
+        const {unmount} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
 
-        instance.componentWillUnmount();
+        expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
 
-        expect(node.current!.removeEventListener).toHaveBeenCalledTimes(1);
+        unmount();
+
+        expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+
+        addEventListenerSpy.mockRestore();
+        removeEventListenerSpy.mockRestore();
     });
 
     test('should execute call back function when scroll reaches the bottom and there \'s more data and no current fetch is taking place', async () => {
-        const instance = wrapper.instance();
+        const {container} = renderWithContext(<InfiniteScroll {...baseProps}><div/></InfiniteScroll>);
 
         expect(baseProps.callBack).toHaveBeenCalledTimes(0);
 
-        act(() => {
-            instance.handleScroll();
+        const scrollContainer = container.querySelector('.infinite-scroll') as HTMLElement;
+
+        // Mock scroll position to simulate being at the bottom
+        Object.defineProperty(scrollContainer, 'scrollHeight', {value: 1000, configurable: true});
+        Object.defineProperty(scrollContainer, 'clientHeight', {value: 500, configurable: true});
+        Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
+
+        await act(async () => {
+            // Simulate scroll event - fireEvent used because userEvent doesn't support scroll events
+            fireEvent.scroll(scrollContainer);
+
+            // Wait for debounce (200ms) plus some buffer
+            await new Promise((resolve) => setTimeout(resolve, 250));
         });
 
         await waitFor(() => {
-            expect(wrapper.state().isFetching).toBe(true);
             expect(baseProps.callBack).toHaveBeenCalledTimes(1);
         });
     });
 
-    test('should not execute call back even if scroll is a the bottom when there \'s no more data', async () => {
-        act(() => {
-            wrapper.setState({isEndofData: true});
+    test('should not execute call back even if scroll is at the bottom when there \'s no more data', async () => {
+        // Set totalItems to 0 to simulate no data/end of data scenario
+        const propsWithNoData = {
+            ...baseProps,
+            totalItems: 0,
+        };
+
+        const {container} = renderWithContext(
+            <InfiniteScroll {...propsWithNoData}><div/></InfiniteScroll>,
+        );
+
+        const scrollContainer = container.querySelector('.infinite-scroll') as HTMLElement;
+
+        // Mock scroll position to simulate being at the bottom
+        Object.defineProperty(scrollContainer, 'scrollHeight', {value: 1000, configurable: true});
+        Object.defineProperty(scrollContainer, 'clientHeight', {value: 500, configurable: true});
+        Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
+
+        await act(async () => {
+            fireEvent.scroll(scrollContainer);
+
+            // Wait for debounce (200ms) plus some buffer
+            await new Promise((resolve) => setTimeout(resolve, 250));
         });
 
-        const instance = wrapper.instance();
-
-        act(() => {
-            instance.handleScroll();
+        // First scroll triggers callback, which then sets isEndofData to true since totalItems is 0
+        await waitFor(() => {
+            expect(baseProps.callBack).toHaveBeenCalledTimes(1);
         });
 
-        expect(baseProps.callBack).toHaveBeenCalledTimes(0);
+        // Subsequent scroll should not trigger callback since isEndofData is now true
+        await act(async () => {
+            fireEvent.scroll(scrollContainer);
+            await new Promise((resolve) => setTimeout(resolve, 250));
+        });
+
+        // Should still be only 1 call
+        expect(baseProps.callBack).toHaveBeenCalledTimes(1);
     });
 
-    test('should not show loading screen if there is no data', () => {
-        let loadingDiv = wrapper.find('.loading-screen');
-        expect(loadingDiv.exists()).toBe(false);
+    test('should not show loading screen if there is no data', async () => {
+        // Create a callback that doesn't resolve immediately to keep loading state
+        let resolveCallback: () => void;
+        const slowCallback = jest.fn(() => new Promise<void>((resolve) => {
+            resolveCallback = resolve;
+        }));
 
-        act(() => {
-            wrapper.setState({isFetching: true});
+        const propsWithSlowCallback = {
+            ...baseProps,
+            callBack: slowCallback,
+        };
+
+        const {container} = renderWithContext(<InfiniteScroll {...propsWithSlowCallback}><div/></InfiniteScroll>);
+        let loadingDiv = container.querySelector('.loading-screen');
+        expect(loadingDiv).not.toBeInTheDocument();
+
+        // Mock scroll to trigger fetching state
+        const scrollContainer = container.querySelector('.infinite-scroll') as HTMLElement;
+
+        Object.defineProperty(scrollContainer, 'scrollHeight', {value: 1000, configurable: true});
+        Object.defineProperty(scrollContainer, 'clientHeight', {value: 500, configurable: true});
+        Object.defineProperty(scrollContainer, 'scrollTop', {value: 500, configurable: true});
+
+        await act(async () => {
+            fireEvent.scroll(scrollContainer);
+
+            // Wait for debounce (200ms) plus some buffer
+            await new Promise((resolve) => setTimeout(resolve, 250));
         });
 
-        expect(wrapper).toMatchSnapshot();
-        expect(wrapper.state().isFetching).toBe(true);
+        // Now it should show the loader during fetching
+        loadingDiv = container.querySelector('.loading-screen');
+        expect(loadingDiv).toBeInTheDocument();
 
-        // Now it should show the loader.
-        loadingDiv = wrapper.find('.loading-screen');
-        expect(loadingDiv.exists()).toBe(true);
+        expect(container).toMatchSnapshot();
+
+        // Resolve the callback to cleanup
+        await act(async () => {
+            resolveCallback!();
+        });
     });
 });

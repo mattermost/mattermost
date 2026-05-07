@@ -3,13 +3,9 @@
 
 import React from 'react';
 
-import {renderWithContext, fireEvent, screen} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ToggleFormattingBar from './toggle_formatting_bar';
-
-jest.mock('components/with_tooltip', () => {
-    return ({children}: { children: React.ReactNode }) => <div>{children}</div>;
-});
 
 describe('ToggleFormattingBar Component', () => {
     it('should render correctly with default props', () => {
@@ -24,7 +20,7 @@ describe('ToggleFormattingBar Component', () => {
         expect(screen.getAllByLabelText('Format letter Case Icon')[0]).toBeInTheDocument();
     });
 
-    it('should call onClick handler when clicked', () => {
+    it('should call onClick handler when clicked', async () => {
         const onClick = jest.fn();
         renderWithContext(
             <ToggleFormattingBar
@@ -34,7 +30,7 @@ describe('ToggleFormattingBar Component', () => {
             />,
         );
 
-        fireEvent.click(screen.getByLabelText('formatting'));
+        await userEvent.click(screen.getByLabelText('formatting'));
         expect(onClick).toHaveBeenCalledTimes(1);
     });
 
@@ -48,6 +44,7 @@ describe('ToggleFormattingBar Component', () => {
             />,
         );
 
+        // Use fireEvent.click to test disabled behavior (userEvent respects pointer-events: none)
         fireEvent.click(screen.getByLabelText('formatting'));
         expect(onClick).not.toHaveBeenCalled();
     });

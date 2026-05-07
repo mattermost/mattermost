@@ -2,12 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import type {Audit} from '@mattermost/types/audits';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import mockStore from 'tests/test_store';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import AuditRow from './audit_row';
 import type {Props} from './audit_row';
@@ -30,7 +28,7 @@ describe('components/audit_table/audit_row/AuditRow', () => {
         showSession: true,
     };
 
-    const store = mockStore({
+    const state = {
         entities: {
             users: {
                 profiles: {
@@ -40,26 +38,27 @@ describe('components/audit_table/audit_row/AuditRow', () => {
                 },
             },
         },
-    });
+    };
 
-    const wrapper = (props: Props) => {
-        return mountWithIntl(
-            <Provider store={store}>
-                <table>
-                    <tbody>
-                        <AuditRow {...props}/>
-                    </tbody>
-                </table>
-            </Provider>,
+    const renderComponent = (props: Props) => {
+        return renderWithContext(
+            <table>
+                <tbody>
+                    <AuditRow {...props}/>
+                </tbody>
+            </table>,
+            state,
         );
     };
 
     test('should match snapshot with no desc', () => {
-        expect(wrapper(baseProps)).toMatchSnapshot();
+        const {container} = renderComponent(baseProps);
+        expect(container).toMatchSnapshot();
     });
 
     test('should match snapshot with desc', () => {
         const props = {...baseProps, desc: 'Successfully authenticated'};
-        expect(wrapper(props)).toMatchSnapshot();
+        const {container} = renderComponent(props);
+        expect(container).toMatchSnapshot();
     });
 });

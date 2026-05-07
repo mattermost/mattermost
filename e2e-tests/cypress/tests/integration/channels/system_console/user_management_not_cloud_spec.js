@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @system_console @not_cloud
 
-const TIMEOUTS = require('../../../fixtures/timeouts');
+const TIMEOUTS = require('@/fixtures/timeouts');
 
 describe('User Management', () => {
     let testTeam;

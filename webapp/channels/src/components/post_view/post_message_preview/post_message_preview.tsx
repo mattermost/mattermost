@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
@@ -12,14 +12,17 @@ import {General} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import FileAttachmentListContainer from 'components/file_attachment_list';
+import PostHeaderTranslateIcon from 'components/post/post_header_translate_icon';
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import PostAttachmentOpenGraph from 'components/post_view/post_attachment_opengraph';
 import PostMessageView from 'components/post_view/post_message_view';
+import RedactedFilesPlaceholder from 'components/post_view/redacted_files_placeholder';
 import Timestamp from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 
 import * as PostUtils from 'utils/post_utils';
+import {getPostTranslation} from 'utils/post_utils';
 
 import PreviewPostAvatar from './avatar/avatar';
 
@@ -40,14 +43,16 @@ export type Props = OwnProps & {
     handleFileDropdownOpened?: (open: boolean) => void;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
     disableActions?: boolean;
+    permissionPoliciesEnabled?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
+    isChannelAutotranslated: boolean;
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions} = props;
-
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions, isChannelAutotranslated} = props;
+    const {locale} = useIntl();
     const toggleEmbedVisibility = () => {
         if (previewPost) {
             props.actions.toggleEmbedVisibility(previewPost.id);
@@ -60,7 +65,15 @@ const PostMessagePreview = (props: Props) => {
 
     let fileAttachmentPreview = null;
 
-    if (((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0))) {
+    const redactedFileCount = previewPost.metadata?.redacted_file_count ?? 0;
+    if (props.permissionPoliciesEnabled && redactedFileCount > 0) {
+        fileAttachmentPreview = (
+            <RedactedFilesPlaceholder
+                count={redactedFileCount}
+                compactDisplay={compactDisplay}
+            />
+        );
+    } else if ((previewPost.file_ids && previewPost.file_ids.length > 0) || (previewPost.filenames && previewPost.filenames.length > 0)) {
         fileAttachmentPreview = (
             <FileAttachmentListContainer
                 post={previewPost}
@@ -115,6 +128,8 @@ const PostMessagePreview = (props: Props) => {
     ) : null;
 
     const overwriteName = ensureString(previewPost.props?.override_username);
+
+    const translation = getPostTranslation(previewPost, locale);
 
     return (
         <PostAttachmentContainer
@@ -171,12 +186,21 @@ const PostMessagePreview = (props: Props) => {
                                 postAuthorId={previewPost.user_id}
                             />
                         )}
+                        {isChannelAutotranslated && (
+                            <PostHeaderTranslateIcon
+                                postId={previewPost.id}
+                                translationState={translation?.state}
+                                postType={previewPost.type}
+                            />
+                        )}
                     </div>
                 </div>
                 <PostMessageView
                     post={previewPost}
                     overflowType='ellipsis'
-                    maxHeight={105}
+                    maxHeight={200}
+                    userLanguage={locale}
+                    isChannelAutotranslated={isChannelAutotranslated}
                 />
                 {urlPreview}
                 {fileAttachmentPreview}

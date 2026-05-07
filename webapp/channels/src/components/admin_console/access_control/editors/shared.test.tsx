@@ -177,6 +177,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -185,6 +188,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -198,6 +203,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -207,6 +215,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -220,6 +230,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -229,6 +242,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -242,6 +257,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -251,19 +269,52 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
         expect(hasUsableAttributes(userAttributes, false)).toBe(true);
     });
 
-    test('should return false when attributes exist but are not usable (not LDAP/SAML/admin and EnableUserManagedAttributes is false)', () => {
+    test('should return true when attributes are plugin-managed (protected)', () => {
         const userAttributes: UserPropertyField[] = [
             {
                 id: 'attr1',
                 name: 'department',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
+                attrs: {
+                    sort_order: 0,
+                    visibility: 'always',
+                    value_type: '',
+                    protected: true,
+                    source_plugin_id: 'com.example.plugin',
+                },
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                created_by: '',
+                updated_by: '',
+            },
+        ];
+
+        expect(hasUsableAttributes(userAttributes, false)).toBe(true);
+    });
+
+    test('should return false when attributes exist but are not usable (not LDAP/SAML/admin/protected and EnableUserManagedAttributes is false)', () => {
+        const userAttributes: UserPropertyField[] = [
+            {
+                id: 'attr1',
+                name: 'department',
+                type: 'text',
+                group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -272,6 +323,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -292,6 +345,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -301,6 +357,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 
@@ -314,6 +372,9 @@ describe('hasUsableAttributes', () => {
                 name: 'department name',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -322,12 +383,17 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
             {
                 id: 'attr2',
                 name: 'location',
                 type: 'text',
                 group_id: 'custom_profile_attributes',
+                target_id: '',
+                target_type: '',
+                object_type: '',
                 attrs: {
                     sort_order: 0,
                     visibility: 'always',
@@ -337,6 +403,8 @@ describe('hasUsableAttributes', () => {
                 create_at: 0,
                 update_at: 0,
                 delete_at: 0,
+                created_by: '',
+                updated_by: '',
             },
         ];
 

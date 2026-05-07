@@ -12,9 +12,10 @@
 
 import {Team} from '@mattermost/types/teams';
 
-import {getRandomId} from '../../../utils';
-
 import {createBotInteractive} from './helpers';
+
+import {getRandomId} from '@/utils';
+
 
 describe('Bot accounts - CRUD Testing', () => {
     let newTeam: Team;
@@ -57,24 +58,24 @@ describe('Bot accounts - CRUD Testing', () => {
         // * Check that the previously created bot is listed
         cy.findByText(`Test Bot (@${botUsername})`).then((el) => {
             // # Make sure it's on the screen
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // # Click the 'Create token' button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Create New Token').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Create New Token').should('be.visible').click();
 
             // # Add description
-            cy.wrap(el[0].parentElement.parentElement).find('input').click().type('description!');
+            cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type('description!');
 
             // # Save
             cy.findByTestId('saveSetting').click();
 
             // # Click Close button
-            cy.wrap(el[0].parentElement.parentElement).findByText('Close').should('be.visible').click();
+            cy.wrap(el[0].parentElement!.parentElement!).findByText('Close').should('be.visible').click();
 
-            cy.wrap(el[0].parentElement.parentElement).scrollIntoView();
+            cy.wrap(el[0].parentElement!.parentElement!).scrollIntoView();
 
             // * Check that token is visible
-            cy.wrap(el[0].parentElement.parentElement).findAllByText(/Token ID:/).should('have.length', 2);
+            cy.wrap(el[0].parentElement!.parentElement!).findAllByText(/Token ID:/).should('have.length', 2);
         });
     });
 });

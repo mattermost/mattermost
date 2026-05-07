@@ -40,6 +40,7 @@ interface Props {
     gmUsers?: UserProfile[];
     canEditChannelProperties: boolean;
     actions: {
+        editChannelName: () => void;
         editChannelPurpose: () => void;
         editChannelHeader: () => void;
     };

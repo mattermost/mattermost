@@ -291,13 +291,13 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	fpath := fmt.Sprintf("/teams/%v/channels/%v/users/%v/%v/test.png", th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, fileID)
 	_, err := th.App.WriteFile(file, fpath)
 	require.Nil(t, err)
-	rpost, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err := th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
 	assert.Equal(t, 1, len(infos))
 
-	rpost, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+	rpost, _, err = th.App.CreatePost(th.Context, &model.Post{UserId: th.BasicUser.Id, ChannelId: th.BasicChannel.Id, Filenames: []string{fmt.Sprintf("/%v/%v/%v/../../test.png", th.BasicChannel.Id, th.BasicUser.Id, fileID)}}, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 	require.Nil(t, err)
 
 	infos = th.App.MigrateFilenamesToFileInfos(th.Context, rpost)
@@ -511,7 +511,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 0
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -524,6 +524,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should not return later pages of fileInfos from database", func(t *testing.T) {
@@ -531,11 +532,12 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 
 		page := 1
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should return first page of fileInfos from ElasticSearch", func(t *testing.T) {
@@ -554,17 +556,19 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -581,17 +585,19 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("SearchFiles", mock.Anything, mock.Anything, page, perPage).Return(resultsPage, nil)
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
 		assert.Equal(t, resultsPage, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -605,13 +611,14 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		require.NotNil(t, results)
@@ -624,6 +631,7 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 			fileInfos[1].Id,
 			fileInfos[0].Id,
 		}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 
@@ -637,16 +645,18 @@ func TestSearchFilesInTeamForUser(t *testing.T) {
 		es.On("GetName").Return("mock")
 		es.On("Start").Return(nil).Maybe()
 		es.On("IsActive").Return(true)
+		es.On("IsHealthy").Return(true)
 		es.On("IsSearchEnabled").Return(true)
 		th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = es
 		defer func() {
 			th.App.Srv().Platform().SearchEngine.ElasticsearchEngine = nil
 		}()
 
-		results, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
+		results, allFilesHaveMembership, err := th.App.SearchFilesInTeamForUser(th.Context, searchTerm, th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, page, perPage)
 
 		require.Nil(t, err)
 		assert.Equal(t, []string{}, results.Order)
+		require.True(t, allFilesHaveMembership)
 		es.AssertExpectations(t)
 	})
 }
@@ -769,16 +779,18 @@ func TestSetFileSearchableContent(t *testing.T) {
 		})
 	require.NoError(t, err)
 
-	result, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr := th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 0, len(result.Order))
+	require.True(t, allFilesHaveMembership)
 
 	appErr = th.App.SetFileSearchableContent(th.Context, fileInfo.Id, "searchable")
 	require.Nil(t, appErr)
 
-	result, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
+	result, allFilesHaveMembership, appErr = th.App.SearchFilesInTeamForUser(th.Context, "searchable", th.BasicUser.Id, th.BasicTeam.Id, false, false, 0, 0, 60)
 	require.Nil(t, appErr)
 	assert.Equal(t, 1, len(result.Order))
+	require.True(t, allFilesHaveMembership)
 }
 
 func TestPermanentDeleteFilesByPost(t *testing.T) {
@@ -805,10 +817,10 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			FileIds:       []string{info1.Id},
 		}
 
-		post, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err = th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		require.Nil(t, err)
 
 		_, err = th.App.GetFileInfo(th.Context, info1.Id)
@@ -816,7 +828,7 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 	})
 
 	t.Run("should not delete files for post that doesn't exist", func(t *testing.T) {
-		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1")
+		err := th.App.PermanentDeleteFilesByPost(th.Context, "postId1", nil)
 		assert.Nil(t, err)
 	})
 
@@ -829,11 +841,67 @@ func TestPermanentDeleteFilesByPost(t *testing.T) {
 			CreateAt:      0,
 		}
 
-		post, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		post, _, err := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
 		assert.Nil(t, err)
 
-		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id)
+		err = th.App.PermanentDeleteFilesByPost(th.Context, post.Id, nil)
 		assert.Nil(t, err)
+	})
+
+	t.Run("should mark both report steps as failed on GetForPost store error", func(t *testing.T) {
+		mockTh := SetupWithStoreMock(t)
+
+		mockStore := mockTh.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		mockFileStore.On("GetForPost", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil, errors.New("db connection lost"))
+		mockStore.On("FileInfo").Return(&mockFileStore)
+
+		report := &model.PostDeletionReport{
+			PostID:    "test-post-id",
+			Timestamp: time.Now(),
+		}
+
+		appErr := mockTh.App.PermanentDeleteFilesByPost(request.TestContext(t), "test-post-id", report)
+		require.NotNil(t, appErr)
+
+		// Both file_attachments and fileinfo_rows steps should be marked as failed
+		require.Len(t, report.Steps, 2)
+		require.Equal(t, model.StepFailed, report.Steps[0].Status)
+		require.Equal(t, model.StepFailed, report.Steps[1].Status)
+		require.Contains(t, report.Steps[0].Errors[0], "db connection lost")
+		require.Contains(t, report.Steps[1].Errors[0], "db connection lost")
+	})
+
+	t.Run("should mark fileinfo_rows as failed when PermanentDeleteForPost fails", func(t *testing.T) {
+		mockTh := SetupWithStoreMock(t)
+
+		postID := model.NewId()
+
+		mockStore := mockTh.App.Srv().Store().(*storemocks.Store)
+		mockFileStore := storemocks.FileInfoStore{}
+		// Return file infos with non-existent paths so file store removal
+		// returns NotFound (which is skipped), resulting in no errors.
+		mockFileStore.On("GetForPost", postID, false, true, true).Return([]*model.FileInfo{
+			{Id: model.NewId(), Name: "file1.txt", Path: "/nonexistent/file1.txt"},
+			{Id: model.NewId(), Name: "file2.txt", Path: "/nonexistent/file2.txt"},
+		}, nil)
+		mockFileStore.On("PermanentDeleteForPost", mock.Anything, postID).Return(errors.New("foreign key constraint"))
+		mockStore.On("FileInfo").Return(&mockFileStore)
+
+		report := &model.PostDeletionReport{
+			PostID:    postID,
+			Timestamp: time.Now(),
+		}
+
+		appErr := mockTh.App.PermanentDeleteFilesByPost(request.TestContext(t), postID, report)
+		require.NotNil(t, appErr)
+
+		// file_attachments step should succeed (NotFound files are skipped),
+		// but fileinfo_rows step should fail due to the DB error.
+		require.Len(t, report.Steps, 2)
+		require.Equal(t, model.StepSuccess, report.Steps[0].Status, "file_attachments step should succeed")
+		require.Equal(t, model.StepFailed, report.Steps[1].Status, "fileinfo_rows step should fail")
+		require.Contains(t, report.Steps[1].Errors[0], "foreign key constraint")
 	})
 }
 
@@ -872,10 +940,11 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
 		// BasicUser should have access to all files
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should filter files when guest has read_channel_content permission", func(t *testing.T) {
@@ -885,10 +954,11 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileInfo3.Id] = fileInfo3
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 3)
 		require.Len(t, fileList.Order, 3)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should filter files when guest does not have read_channel_content permission", func(t *testing.T) {
@@ -923,22 +993,25 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileInfo3.Id] = fileInfo3
 		fileList.Order = []string{fileInfo1.Id, fileInfo2.Id, fileInfo3.Id}
 
-		appErr = th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, guestUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should handle empty file list", func(t *testing.T) {
 		fileList := model.NewFileInfoList()
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should handle nil file list", func(t *testing.T) {
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, nil, th.BasicUser.Id)
+		require.True(t, allFilesHaveMembership)
 		require.Nil(t, appErr)
 	})
 
@@ -952,10 +1025,11 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileWithoutChannel.Id] = fileWithoutChannel
 		fileList.Order = []string{fileWithoutChannel.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
 	})
 
 	t.Run("should handle files from non-existent channels", func(t *testing.T) {
@@ -968,9 +1042,168 @@ func TestFilterFilesByChannelPermissions(t *testing.T) {
 		fileList.FileInfos[fileWithInvalidChannel.Id] = fileWithInvalidChannel
 		fileList.Order = []string{fileWithInvalidChannel.Id}
 
-		appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		allFilesHaveMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Len(t, fileList.FileInfos, 0)
 		require.Len(t, fileList.Order, 0)
+		require.True(t, allFilesHaveMembership)
+	})
+}
+
+func TestFilterFilesByChannelPermissions_ABAC(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+	}).InitBasic(t)
+
+	post := th.CreatePost(t, th.BasicChannel)
+
+	t.Run("no filtering when ABAC is not enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = false
+		})
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = nil
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		allMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, allMembership)
+		require.Len(t, fileList.Order, 1)
+	})
+
+	t.Run("keeps files when ABAC allows download", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+
+		fi1 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi2 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi1.Id] = fi1
+		fileList.FileInfos[fi2.Id] = fi2
+		fileList.Order = []string{fi1.Id, fi2.Id}
+
+		allMembership, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.True(t, allMembership)
+		require.Len(t, fileList.Order, 2)
+	})
+
+	t.Run("removes files when ABAC denies download", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id && req.Action == model.AccessControlPolicyActionDownloadFileAttachment
+		})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		require.Empty(t, fileList.FileInfos)
+	})
+
+	t.Run("ABAC evaluation error denies download (fail-secure)", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(model.AccessDecision{}, model.NewAppError("test", "test.error", nil, "", 500))
+
+		fi := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		require.Empty(t, fileList.FileInfos)
+	})
+
+	t.Run("ABAC evaluates once per channel not per file", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == th.BasicChannel.Id
+		})).Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil)).Once()
+
+		fi1 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi2 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fi3 := th.CreateFileInfo(t, th.BasicUser.Id, post.Id, th.BasicChannel.Id)
+		fileList := model.NewFileInfoList()
+		fileList.FileInfos[fi1.Id] = fi1
+		fileList.FileInfos[fi2.Id] = fi2
+		fileList.FileInfos[fi3.Id] = fi3
+		fileList.Order = []string{fi1.Id, fi2.Id, fi3.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Len(t, fileList.Order, 3)
+		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", 1)
+	})
+
+	t.Run("skips ABAC check for channels already denied by RBAC", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+		})
+
+		mockACS := &eMocks.AccessControlServiceInterface{}
+		original := th.App.Srv().ch.AccessControl
+		th.App.Srv().ch.AccessControl = mockACS
+		defer func() { th.App.Srv().ch.AccessControl = original }()
+
+		fileList := model.NewFileInfoList()
+		fi := &model.FileInfo{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			Name:      "test.txt",
+		}
+		fileList.FileInfos[fi.Id] = fi
+		fileList.Order = []string{fi.Id}
+
+		_, appErr := th.App.FilterFilesByChannelPermissions(th.Context, fileList, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, fileList.Order)
+		mockACS.AssertNotCalled(t, "AccessEvaluation")
 	})
 }

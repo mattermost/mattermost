@@ -22,10 +22,10 @@ import {checkIsFirstAdmin, getCurrentUser, isCurrentUserSystemAdmin} from 'matte
 import {redirectUserToDefaultTeam, emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import {reloadPage} from 'utils/browser_utils';
-import {ActionTypes, StoragePrefixes} from 'utils/constants';
+import {StoragePrefixes} from 'utils/constants';
 import {doesCookieContainsMMUserId} from 'utils/utils';
 
-import type {ActionFuncAsync, ThunkActionFunc} from 'types/store';
+import type {ThunkActionFunc} from 'types/store';
 import type {Translations} from 'types/store/i18n';
 
 export type TranslationPluginFunction = (locale: string) => Translations
@@ -81,22 +81,6 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
             isLoaded: true,
             isMeRequested: true,
         };
-    };
-}
-
-export function registerCustomPostRenderer(type: string, component: any, id: string): ActionFuncAsync {
-    return async (dispatch) => {
-        // piggyback on plugins state to register a custom post renderer
-        dispatch({
-            type: ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT,
-            data: {
-                postTypeId: id,
-                pluginId: id,
-                type,
-                component,
-            },
-        });
-        return {data: true};
     };
 }
 

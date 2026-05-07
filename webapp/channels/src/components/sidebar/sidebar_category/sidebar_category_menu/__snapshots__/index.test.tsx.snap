@@ -1,133 +1,33 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_category/sidebar_category_menu should match snapshot and contain correct buttons 1`] = `
-<Memo(SidebarCategoryGenericMenu)
-  id="test_category_id"
-  name="custom_category_1"
+<div
+  aria-hidden="true"
 >
-  <MarkAsUnreadItem
-    handleViewCategory={[Function]}
-    id="test_category_id"
-    numChannels={0}
-  />
-  <MenuItemSeparator />
-  <MenuItem
-    id="mute-test_category_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Mute Category"
-        id="sidebar_left.sidebar_category_menu.muteCategory"
-      />
-    }
-    leadingElement={
-      <BellOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup={true}
-    id="rename-test_category_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Rename Category"
-        id="sidebar_left.sidebar_category_menu.renameCategory"
-      />
-    }
-    leadingElement={
-      <PencilOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItem
-    aria-haspopup={true}
-    id="delete-test_category_id"
-    isDestructive={true}
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Delete Category"
-        id="sidebar_left.sidebar_category_menu.deleteCategory"
-      />
-    }
-    leadingElement={
-      <TrashCanOutlineIcon
-        size={18}
-      />
-    }
-    onClick={[Function]}
-  />
-  <MenuItemSeparator />
-  <SubMenu
-    id="sortChannels-test_category_id"
-    labels={
-      <Memo(MemoizedFormattedMessage)
-        defaultMessage="Sort"
-        id="sidebar.sort"
-      />
-    }
-    leadingElement={
-      <SortAlphabeticalAscendingIcon
-        size={18}
-      />
-    }
-    menuAriaLabel="Sort submenu"
-    menuId="sortChannels-test_category_id-menu"
-    trailingElements={
-      <React.Fragment>
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Alphabetically"
-          id="user.settings.sidebar.sortAlpha"
-        />
-        <ChevronRightIcon
-          size={16}
-        />
-      </React.Fragment>
-    }
+  <div
+    class="SidebarMenu MenuWrapper MenuWrapper--open menuOpen"
   >
-    <MenuItem
-      id="sortAplhabetical-test_category_id"
-      labels={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Alphabetically"
-          id="user.settings.sidebar.sortAlpha"
+    <button
+      aria-controls="SidebarChannelMenu-MenuList-test_category_id"
+      aria-expanded="true"
+      aria-haspopup="true"
+      aria-label="custom_category_1 category options"
+      class="SidebarMenu_menuButton"
+      id="SidebarCategoryMenu-Button-test_category_id"
+    >
+      <svg
+        fill="currentColor"
+        height="16"
+        version="1.1"
+        viewBox="0 0 24 24"
+        width="16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"
         />
-      }
-      onClick={[Function]}
-      trailingElements={
-        <CheckIcon
-          size={16}
-        />
-      }
-    />
-    <MenuItem
-      id="sortByMostRecent-test_category_id"
-      labels={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Recent activity"
-          id="sidebar.sortedByRecencyLabel"
-        />
-      }
-      onClick={[Function]}
-      trailingElements={null}
-    />
-    <MenuItem
-      id="sortManual-test_category_id"
-      labels={
-        <Memo(MemoizedFormattedMessage)
-          defaultMessage="Manually"
-          id="sidebar.sortedManually"
-        />
-      }
-      onClick={[Function]}
-      trailingElements={null}
-    />
-  </SubMenu>
-  <MenuItemSeparator />
-  <CreateNewCategoryMenuItem
-    id="test_category_id"
-  />
-</Memo(SidebarCategoryGenericMenu)>
+      </svg>
+    </button>
+  </div>
+</div>
 `;

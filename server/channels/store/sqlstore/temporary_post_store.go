@@ -92,7 +92,8 @@ func (s *SqlTemporaryPostStore) saveT(tx *sqlxTxWrapper, post *model.TemporaryPo
 	return post, nil
 }
 
-func (s *SqlTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+func (s *SqlTemporaryPostStore) Get(rctx request.CTX, id string, allowFromCache bool) (*model.TemporaryPost, error) {
+	// allowFromCache parameter is handled by the cache layer, not used here
 	query := s.selectQueryBuilder.
 		Where(sq.Eq{"PostId": id})
 
@@ -146,13 +147,16 @@ func (s *SqlTemporaryPostStore) Delete(rctx request.CTX, id string) error {
 	return nil
 }
 
-func (s *SqlTemporaryPostStore) GetExpiredPosts(rctx request.CTX) ([]string, error) {
+func (s *SqlTemporaryPostStore) GetExpiredPosts(rctx request.CTX, lastPostId string, limit uint64) ([]string, error) {
 	now := model.GetMillis()
 
 	query := s.getQueryBuilder().
 		Select("PostId").
 		From("TemporaryPosts").
-		Where(sq.LtOrEq{"ExpireAt": now})
+		OrderBy("PostId ASC").
+		Where(sq.LtOrEq{"ExpireAt": now}).
+		Where(sq.Gt{"PostId": lastPostId}).
+		Limit(limit)
 
 	ids := []string{}
 	err := s.GetMaster().SelectBuilder(&ids, query)

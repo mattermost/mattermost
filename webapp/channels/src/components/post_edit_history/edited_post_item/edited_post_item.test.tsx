@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -29,6 +29,7 @@ describe('components/post_edit_history/edited_post_item', () => {
             closeRightHandSide: jest.fn(),
             openModal: jest.fn(),
         },
+        isChannelAutotranslated: false,
     };
 
     test('should match snapshot', () => {
@@ -45,12 +46,12 @@ describe('components/post_edit_history/edited_post_item', () => {
         expect(container).toMatchSnapshot();
     });
 
-    test('clicking on the restore button should call openRestorePostModal', () => {
+    test('clicking on the restore button should call openRestorePostModal', async () => {
         renderWithContext(<EditedPostItem {...baseProps}/>);
 
         // find the button with restore icon and click it
         const restoreButton = screen.getByRole('button', {name: /restore/i});
-        fireEvent.click(restoreButton);
+        await userEvent.click(restoreButton);
 
         expect(baseProps.actions.openModal).toHaveBeenCalledWith(
             expect.objectContaining({

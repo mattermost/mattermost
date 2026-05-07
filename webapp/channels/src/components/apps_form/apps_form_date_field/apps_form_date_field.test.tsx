@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {AppField} from '@mattermost/types/apps';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AppsFormDateField from './apps_form_date_field';
 
@@ -29,8 +28,6 @@ describe('AppsFormDateField', () => {
     };
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
         // Mock current time to avoid timezone-dependent tests
         jest.useFakeTimers();
         jest.setSystemTime(new Date('2025-01-15T10:00:00.000Z'));
@@ -90,6 +87,8 @@ describe('AppsFormDateField', () => {
     it('should handle input click to open date picker', () => {
         renderComponent();
         const button = screen.getByRole('button');
+
+        // Use fireEvent.click here because userEvent doesn't work well with fake timers
         fireEvent.click(button);
 
         // DatePicker opening is handled by the DatePicker component itself
@@ -101,6 +100,7 @@ describe('AppsFormDateField', () => {
         renderComponent();
         const button = screen.getByRole('button');
 
+        // Simulate keyboard Enter key - fireEvent used because userEvent doesn't work well with fake timers
         fireEvent.keyDown(button, {key: 'Enter'});
         expect(button).toBeInTheDocument();
 

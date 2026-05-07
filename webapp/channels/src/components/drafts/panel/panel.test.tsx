@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+
+import {render} from 'tests/react_testing_utils';
 
 import Panel from './panel';
 
@@ -17,12 +18,12 @@ describe('components/drafts/panel/', () => {
     };
 
     it('should match snapshot', () => {
-        const wrapper = shallow(
+        const {container} = render(
             <Panel
                 {...baseProps}
             />,
         );
 
-        expect(wrapper).toMatchSnapshot();
+        expect(container).toMatchSnapshot();
     });
 });

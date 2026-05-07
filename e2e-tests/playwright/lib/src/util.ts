@@ -4,16 +4,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
-// Lazy-load the ESM-only uuid package dynamically
-let uuidv4: (() => string) | null = null;
-
-async function loadUuid() {
-    if (!uuidv4) {
-        const {v4} = await import('uuid');
-        uuidv4 = v4;
-    }
-    return uuidv4!;
-}
+import {v4 as uuidv4} from 'uuid';
 const second = 1000;
 const minute = 60 * 1000;
 
@@ -38,15 +29,9 @@ export const wait = async (ms = 0): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-/**
- * Generate a random ID string.
- * Because uuid is dynamically loaded, this is async.
- */
-export async function getRandomId(length = 7): Promise<string> {
+export function getRandomId(length = 7): string {
     const MAX_SUBSTRING_INDEX = 27;
-
-    const v4 = await loadUuid();
-    return v4()
+    return uuidv4()
         .replace(/-/g, '')
         .substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 }
@@ -55,6 +40,12 @@ export async function getRandomId(length = 7): Promise<string> {
 // selected for compatibility with existing local development.
 // It should not be used for testing.
 export const defaultTeam = {name: 'ad-1', displayName: 'eligendi', type: 'O'};
+
+// Returns a FIPS-compliant test password (>= 14 chars with complexity).
+// Static for now but could generate unique passwords if requirements change.
+export function newTestPassword(): string {
+    return 'Passwd4Testing!';
+}
 
 export const illegalRe = /[/?<>\\:*|":&();]/g;
 export const simpleEmailRe = /\S+@\S+\.\S+/;

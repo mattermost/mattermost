@@ -7,10 +7,9 @@
 // - Use element ID when selecting an element. Create one if none.
 // ***************************************************************
 
-// Stage: @prod
 // Group: @channels @messaging @plugin @not_cloud
 
-import {demoPlugin} from '../../../utils/plugins';
+import {demoPlugin} from '@/utils/plugins';
 
 describe('Messaging', () => {
     let testTeam;
