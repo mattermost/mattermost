@@ -181,7 +181,7 @@ describe('components/SearchResults', () => {
             const dateLine = DATE_LINE + new Date('2026-03-12').getTime();
 
             const {container} = renderSearchResults({
-                results: [dateLine, post] as any,
+                results: [dateLine, post],
                 searchType: 'files',
                 isSearchAtEnd: true,
             });
@@ -198,7 +198,7 @@ describe('components/SearchResults', () => {
             const dateLine2 = DATE_LINE + new Date('2026-03-13').getTime();
 
             const {container} = renderSearchResults({
-                results: [dateLine1, post1, dateLine2, post2] as any,
+                results: [dateLine1, post1, dateLine2, post2],
                 searchType: 'files',
                 isSearchAtEnd: true,
             });
@@ -212,7 +212,7 @@ describe('components/SearchResults', () => {
             const dateLine = DATE_LINE + new Date('2026-03-12').getTime();
 
             const {container} = renderSearchResults({
-                results: [dateLine, post] as any,
+                results: [dateLine, post],
                 searchType: 'files',
                 isSearchAtEnd: false,
                 searchPage: 1,

@@ -151,11 +151,12 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
 
-    // The `results` prop is a mix of posts and date-separator strings (added by
-    // makeAddDateSeparatorsForSearchResults). The messages counter must reflect
-    // only the actual posts, otherwise the count is inflated by one per date
-    // group (see MM-67904).
-    const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string' || !isDateLine(item)).length : 0;
+    // The `results` prop is typed as `Array<Post | string>`. Strings are
+    // non-Post entries (date separators injected by
+    // makeAddDateSeparatorsForSearchResults), so the messages counter only
+    // counts the non-string entries. Otherwise the count is inflated by one
+    // per date group (see MM-67904).
+    const messagesCount = Array.isArray(results) ? results.filter((item) => typeof item !== 'string').length : 0;
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
     const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
     const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
