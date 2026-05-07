@@ -219,7 +219,7 @@ function makeMapStateToProps() {
             recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
-            isExpanded: state.views.rhs.isSidebarExpanded,
+            isExpanded: state.views.rhs.isSidebarExpanded || state.views.rhsSuppressed,
             isPostBeingEdited: ownProps.location === Locations.CENTER ? !getIsPostBeingEditedInRHS(state, post.id) && getIsPostBeingEdited(state, post.id) : getIsPostBeingEditedInRHS(state, post.id),
             isMobileView: getIsMobileView(state),
             previewCollapsed,
