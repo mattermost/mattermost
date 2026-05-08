@@ -3275,24 +3275,6 @@ func (a *App) RewriteMessage(
 	rootID string,
 	channelID string,
 ) (*model.RewriteResponse, *model.AppError) {
-	syntheticPost := &model.Post{
-		ChannelId: channelID,
-		Message:   message,
-		RootId:    rootID,
-	}
-	if session := rctx.Session(); session != nil {
-		syntheticPost.UserId = session.UserId
-	}
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rejectionReason = hooks.MessageWillBeRewrittenByAI(pluginContext, syntheticPost, string(action))
-		return rejectionReason == ""
-	}, plugin.MessageWillBeRewrittenByAIID)
-	if rejectionReason != "" {
-		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.rejected_by_plugin", map[string]any{"Reason": rejectionReason}, "", http.StatusBadRequest)
-	}
-
 	// Build thread context if rootID is provided
 	var threadContext string
 	if rootID != "" {

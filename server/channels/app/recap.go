@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/plugin"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
@@ -200,22 +198,6 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	lastViewedAt, lastViewedErr := a.Srv().Store().Channel().GetMemberLastViewedAt(rctx, channelID, userID)
 	if lastViewedErr != nil {
 		return result, model.NewAppError("ProcessRecapChannel", "app.recap.get_last_viewed.app_error", nil, "", http.StatusInternalServerError).Wrap(lastViewedErr)
-	}
-
-	var rejectionReason string
-	pluginContext := pluginContext(rctx)
-	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-		rejectionReason = hooks.RecapWillBeProcessed(pluginContext, channel)
-		return rejectionReason == ""
-	}, plugin.RecapWillBeProcessedID)
-	if rejectionReason != "" {
-		// Skip this channel: report success with no output, do not write a recap row.
-		// The worker treats Success=false as failure (logs warning); Success=true with
-		// MessageCount=0 means "handled, nothing to do."
-		// The rejection reason is captured in the Debug log below for operator diagnostics.
-		rctx.Logger().Debug("Recap channel skipped by plugin", mlog.String("recap_id", recapID), mlog.String("channel_id", channelID), mlog.String("user_id", userID), mlog.String("reason", rejectionReason))
-		result.Success = true
-		return result, nil
 	}
 
 	// Fetch posts for recap

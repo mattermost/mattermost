@@ -1782,9 +1782,6 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// channel_id is optional so older mobile clients (which predate the new field) keep working.
-	// When empty, the synthetic post passed to MessageWillBeRewrittenByAI carries ChannelId="";
-	// plugins gating on channel context (e.g., MBE) should fail closed in that case.
 	if req.ChannelID != "" && !model.IsValidId(req.ChannelID) {
 		c.SetInvalidParam("channel_id")
 		return

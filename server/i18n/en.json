@@ -7985,10 +7985,6 @@
     "translation": "Failed to parse rewrite response from AI."
   },
   {
-    "id": "app.post.rewrite.rejected_by_plugin",
-    "translation": "Rewrite rejected by plugin: {{.Reason}}"
-  },
-  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
