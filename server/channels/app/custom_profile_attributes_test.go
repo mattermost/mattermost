@@ -26,7 +26,7 @@ func TestGetCPAValue(t *testing.T) {
 
 	field := &model.PropertyField{
 		GroupID:    cpaID,
-		Name:       model.NewId(),
+		Name:       "f_" + model.NewId(),
 		Type:       model.PropertyFieldTypeText,
 		ObjectType: model.PropertyFieldObjectTypeUser,
 		TargetType: string(model.PropertyFieldTargetLevelSystem),
@@ -78,7 +78,7 @@ func TestGetCPAValue(t *testing.T) {
 		optionIDs := []string{model.NewId(), model.NewId(), model.NewId()}
 		arrayField := &model.PropertyField{
 			GroupID:    cpaID,
-			Name:       model.NewId(),
+			Name:       "f_" + model.NewId(),
 			Type:       model.PropertyFieldTypeMultiselect,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
