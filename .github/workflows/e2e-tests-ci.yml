@@ -209,6 +209,7 @@ jobs:
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
+      id-token: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -234,6 +235,7 @@ jobs:
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       statuses: write
+      id-token: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -257,6 +259,7 @@ jobs:
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       statuses: write
+      id-token: write
     uses: ./.github/workflows/e2e-tests-cypress.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
@@ -282,6 +285,7 @@ jobs:
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       statuses: write
+      id-token: write
     uses: ./.github/workflows/e2e-tests-playwright.yml
     with:
       commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
