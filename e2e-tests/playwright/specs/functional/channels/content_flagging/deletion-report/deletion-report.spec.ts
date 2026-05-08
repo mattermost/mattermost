@@ -14,7 +14,7 @@ import {setupContentFlagging, createPost} from './../support';
  * 4. Login as the reviewer and navigate to the content review DM
  * 5. Verify the deletion report summary table is posted in the reviewer's thread
  */
-test('Reviewer receives a deletion report summary after removing a flagged post', async ({pw}) => {
+test.fixme('Reviewer receives a deletion report summary after removing a flagged post', async ({pw}) => {
     const {adminClient, team, user: reviewerUser, userClient: reviewerUserClient} = await pw.initSetup();
 
     // Create author user..

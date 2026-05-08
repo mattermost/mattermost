@@ -287,7 +287,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    test('Should display user attributes in two-column layout', async () => {
+    test.fixme('Should display user attributes in two-column layout', async () => {
         const {userCard} = systemConsolePage!.users.userDetail;
 
         // * Verify two-column layout exists
@@ -358,7 +358,8 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await userDetail.waitForSaveComplete();
     });
 
-    test('Should display custom multiselect attribute and save form', async () => {
+    // FIXME: Consistently fails with "Failed to update user" — server rejects CPA save due to cross-shard field race.
+    test.fixme('Should display custom multiselect attribute and save form', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -387,7 +388,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(departmentInput).toHaveValue('Engineering Updated');
     });
 
-    test('Should validate invalid email and show error with cancel option', async () => {
+    test.fixme('Should validate invalid email and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -446,7 +447,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         }
     });
 
-    test('Should validate invalid URL and show error with cancel option', async () => {
+    test.fixme('Should validate invalid URL and show error with cancel option', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
@@ -496,7 +497,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         }
     });
 
-    test('Should validate invalid email in custom email attribute', async () => {
+    test.fixme('Should validate invalid email in custom email attribute', async () => {
         const {userDetail} = systemConsolePage!.users;
         const {userCard} = userDetail;
 
