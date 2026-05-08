@@ -7,12 +7,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {InformationOutlineIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import {CPA_FIELD_NAME_MAX_RUNES, CPA_FIELD_NAME_RESERVED_WORDS, filterCELIdentifier} from 'utils/properties';
