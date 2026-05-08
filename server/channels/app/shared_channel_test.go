@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"text/template"
 
@@ -1448,16 +1449,13 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 		fileID := model.NewId()
 
 		// Post arrives first carrying FileIds=[fileID]; FileInfo does not
-		// exist yet, so CreatePost strips fileID from Post.FileIds.
+		// exist yet, but the remote-origin path preserves FileIds.
 		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
 
-		// Confirm the strip happened (sanity check on the pre-condition
-		// that motivates the lazy-bind).
-		stripped, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		preFile, appErr := th.App.GetSinglePost(th.Context, postID, false)
 		require.Nil(t, appErr)
-		assert.NotContains(t, stripped.FileIds, fileID, "CreatePost should strip unmatched file id")
+		assert.Contains(t, preFile.FileIds, fileID, "remote-origin posts must preserve unmatched FileIds")
 
-		// File arrives second; lazy-bind should restore the binding.
 		fi := &model.FileInfo{
 			Id:        fileID,
 			CreatorId: user.Id,
@@ -1469,10 +1467,9 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 
-		// End state: Post.FileIds contains fileID, FileInfo.PostId references the post.
 		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
 		require.Nil(t, appErr)
-		assert.Contains(t, post.FileIds, fileID, "lazy-bind should restore stripped file id")
+		assert.Contains(t, post.FileIds, fileID)
 
 		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
 		require.Nil(t, appErr)
@@ -1485,9 +1482,10 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 		postID := model.NewId()
 		fileID := model.NewId()
 
-		// File arrives first; the post does not exist yet, so the lazy-bind
-		// is a no-op and the FileInfo's PostId stays empty (so the eventual
-		// post arrival can bind it).
+		// File arrives first. The lazy-bind eagerly sets FileInfo.PostId
+		// even though the post is not yet present; the post-receive path
+		// preserves FileIds for remote-origin posts, so the post's later
+		// arrival converges without overwriting either side.
 		fi := &model.FileInfo{
 			Id:        fileID,
 			CreatorId: user.Id,
@@ -1499,17 +1497,11 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 		require.NoError(t, err)
 		require.NotNil(t, saved)
 
-		preBindFI, appErr := th.App.GetFileInfo(th.Context, fileID)
-		require.Nil(t, appErr)
-		assert.Empty(t, preBindFI.PostId, "FileInfo must not be bound when post does not exist yet")
-
-		// Post arrives second; CreatePost -> attachFilesToPost binds the file.
 		syncPostWithFileIds(t, postID, user.Id, []string{fileID})
 
-		// End state: Post.FileIds contains fileID, FileInfo.PostId references the post.
 		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
 		require.Nil(t, appErr)
-		assert.Contains(t, post.FileIds, fileID, "post-receive path should bind the already-uploaded file")
+		assert.Contains(t, post.FileIds, fileID)
 
 		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
 		require.Nil(t, appErr)
@@ -1611,6 +1603,59 @@ func TestPluginAPIReceiveSharedChannelAttachmentSyncMsgOrderTolerance(t *testing
 		storedFI, appErr := th.App.GetFileInfo(th.Context, fileID)
 		require.Nil(t, appErr)
 		assert.Empty(t, storedFI.PostId, "FileInfo must not be bound to any post when fi.PostId is empty")
+	})
+
+	t.Run("concurrent post and multi-file delivery converges", func(t *testing.T) {
+		// Plugin transports (e.g. NATS post stream + JetStream object store)
+		// deliver post-receive and file-receive on independent goroutines.
+		// A barrier-synchronised launch exercises the genuinely concurrent
+		// case: post.Save, attachFilesToPost, UploadData, and the lazy-bind
+		// can all interleave. The end state must still be: Post.FileIds
+		// contains every file id, and every FileInfo has PostId/ChannelId
+		// set. Run with -race to catch unsafe sharing.
+		const fanOut = 4
+		user := createRemoteUser(t)
+		postID := model.NewId()
+		fileIDs := make([]string, fanOut)
+		for i := range fileIDs {
+			fileIDs[i] = model.NewId()
+		}
+
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+
+		wg.Go(func() {
+			<-start
+			syncPostWithFileIds(t, postID, user.Id, fileIDs)
+		})
+
+		for _, fid := range fileIDs {
+			wg.Go(func() {
+				<-start
+				fi := &model.FileInfo{
+					Id:        fid,
+					CreatorId: user.Id,
+					PostId:    postID,
+					Name:      "concurrent.txt",
+					Size:      4,
+				}
+				_, err := api.ReceiveSharedChannelAttachmentSyncMsg(rc.RemoteId, channel.Id, fi, bytes.NewReader([]byte("data")))
+				require.NoError(t, err)
+			})
+		}
+
+		close(start)
+		wg.Wait()
+
+		post, appErr := th.App.GetSinglePost(th.Context, postID, false)
+		require.Nil(t, appErr)
+		for _, fid := range fileIDs {
+			assert.Contains(t, post.FileIds, fid, "Post.FileIds must contain every file id after concurrent delivery")
+			fi, appErr := th.App.GetFileInfo(th.Context, fid)
+			require.Nil(t, appErr)
+			assert.Equal(t, postID, fi.PostId, "FileInfo.PostId must reference the post")
+			assert.Equal(t, channel.Id, fi.ChannelId, "FileInfo.ChannelId must reference the channel")
+		}
 	})
 }
 

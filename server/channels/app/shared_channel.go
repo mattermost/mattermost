@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -371,38 +370,17 @@ func (a *App) ReceiveSharedChannelAttachmentSyncMsg(rctx request.CTX, pluginID, 
 		return nil, fmt.Errorf("error uploading attachment data: %w", appErr)
 	}
 
-	// Lazy-bind the file to its post. The plugin API does not require
-	// post-then-file or file-then-post ordering between
-	// ReceiveSharedChannelSyncMsg and ReceiveSharedChannelAttachmentSyncMsg.
-	// Heal the post-then-file ordering case here: CreatePost will have
-	// stripped the unmatched file id from Post.FileIds when it ran ahead
-	// of the file's arrival, so re-bind the file and restore the id.
-	// In the file-then-post ordering case (post not yet present), leave
-	// the FileInfo unbound so the eventual post arrival's CreatePost ->
-	// attachFilesToPost can bind it. AttachToPost is a blind UPDATE that
-	// does not validate post existence, so it must only run after the
-	// post has been confirmed to exist; otherwise the FileInfo would be
-	// pointed at a non-existent post and the later attachFilesToPost
-	// call would skip it.
+	// Bind the FileInfo to its post. AttachToPost is atomic against the
+	// post-receive path's parallel call for the same id, so whichever
+	// arrives second sees PostId already set and is a no-op. The
+	// post-receive path does not strip unmatched FileIds for remote-origin
+	// posts, so Post.FileIds does not need to be touched here.
 	if fi.PostId != "" {
-		post, perr := a.Srv().Store().Post().GetSingle(rctx, fi.PostId, false)
-		if perr == nil {
-			if attachErr := a.Srv().Store().FileInfo().AttachToPost(rctx, saved.Id, fi.PostId, channelID, saved.CreatorId); attachErr == nil {
-				if !slices.Contains(post.FileIds, saved.Id) {
-					post.FileIds = append(post.FileIds, saved.Id)
-					if _, oerr := a.Srv().Store().Post().Overwrite(rctx, post); oerr != nil {
-						rctx.Logger().Warn("ReceiveSharedChannelAttachmentSyncMsg: failed to overwrite post with attached file id",
-							mlog.String("post_id", fi.PostId),
-							mlog.String("file_id", saved.Id),
-							mlog.Err(oerr))
-					}
-				}
-			} else {
-				rctx.Logger().Warn("ReceiveSharedChannelAttachmentSyncMsg: failed to attach file to post",
-					mlog.String("post_id", fi.PostId),
-					mlog.String("file_id", saved.Id),
-					mlog.Err(attachErr))
-			}
+		if attachErr := a.Srv().Store().FileInfo().AttachToPost(rctx, saved.Id, fi.PostId, channelID, saved.CreatorId); attachErr != nil {
+			rctx.Logger().Debug("ReceiveSharedChannelAttachmentSyncMsg: AttachToPost did not bind",
+				mlog.String("post_id", fi.PostId),
+				mlog.String("file_id", saved.Id),
+				mlog.Err(attachErr))
 		}
 	}
 
