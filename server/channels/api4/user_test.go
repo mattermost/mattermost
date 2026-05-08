@@ -6746,6 +6746,14 @@ func TestDemoteUserToGuest(t *testing.T) {
 	t.Run("cannot demote bot account", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guest_accounts"))
 
+		prevBotCreation := *th.App.Config().ServiceSettings.EnableBotAccountCreation
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = prevBotCreation
+		})
+
 		createdBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 			Username:    "botdemote" + model.NewId(),
 			DisplayName: "Demote Test Bot",
@@ -6753,6 +6761,10 @@ func TestDemoteUserToGuest(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
+		defer func() {
+			appErr := th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
+			require.Nil(t, appErr)
+		}()
 
 		demoteResp, err := th.SystemAdminClient.DemoteUserToGuest(context.Background(), createdBot.UserId)
 		CheckBadRequestStatus(t, demoteResp)
