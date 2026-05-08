@@ -224,13 +224,13 @@ func (ps *PropertyService) searchPropertyFields(groupID string, opts model.Prope
 	return ps.fieldStore.SearchPropertyFields(opts)
 }
 
-func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, bool, error) {
+func (ps *PropertyService) updatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
 	fields, _, clearedIDs, err := ps.updatePropertyFields(rctx, groupID, []*model.PropertyField{field})
 	if err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
-	return fields[0], len(clearedIDs) > 0, nil
+	return fields[0], clearedIDs, nil
 }
 
 func (ps *PropertyService) updatePropertyFields(rctx request.CTX, groupID string, fields []*model.PropertyField) (requested []*model.PropertyField, propagated []*model.PropertyField, clearedFieldIDs []string, err error) {
@@ -532,13 +532,15 @@ func (ps *PropertyService) SearchPropertyFields(rctx request.CTX, groupID string
 }
 
 // UpdatePropertyField updates a single field. It returns the updated field and
-// a flag indicating whether the field's dependent property values were cleared
-// as a side effect (e.g. by TypeChangeValueCleanupHook on a type change). The
-// caller is expected to publish any value-cleanup WS events.
-func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, bool, error) {
+// the IDs of fields whose dependent property values were cleared as a side
+// effect (e.g. by TypeChangeValueCleanupHook on a type change). Hooks may
+// cascade clears to other fields, so the slice is not necessarily limited to
+// the updated field's own ID. The caller is expected to publish any
+// value-cleanup WS events.
+func (ps *PropertyService) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField) (*model.PropertyField, []string, error) {
 	field, err := ps.runPreUpdatePropertyField(rctx, groupID, field)
 	if err != nil {
-		return nil, false, fmt.Errorf("UpdatePropertyField: %w", err)
+		return nil, nil, fmt.Errorf("UpdatePropertyField: %w", err)
 	}
 
 	return ps.updatePropertyField(rctx, groupID, field)

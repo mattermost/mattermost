@@ -211,7 +211,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	existingField.UpdatedBy = c.AppContext.Session().UserId
 	connectionID := r.Header.Get(model.ConnectionId)
 
-	updatedField, valuesCleared, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
+	updatedField, clearedIDs, updateErr := c.App.UpdatePropertyField(rctx, group.ID, existingField, false, connectionID)
 	if updateErr != nil {
 		c.Err = updateErr
 		return
@@ -229,7 +229,7 @@ func patchCPAField(c *Context, w http.ResponseWriter, r *http.Request) {
 	// fired by App.UpdatePropertyField.
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
 	message.Add("field", cpaField)
-	message.Add("delete_values", valuesCleared)
+	message.Add("delete_values", len(clearedIDs) > 0)
 	c.App.Publish(message)
 
 	auditRec.Success()

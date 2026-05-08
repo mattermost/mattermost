@@ -183,15 +183,17 @@ func (a *App) CountPropertyFieldsForTarget(rctx request.CTX, groupID, targetType
 }
 
 // UpdatePropertyField updates an existing property field. The second return
-// value indicates whether the field's dependent property values were cleared
+// value lists the IDs of fields whose dependent property values were cleared
 // as a side effect (e.g. by TypeChangeValueCleanupHook on a type change).
-func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, bool, *model.AppError) {
+// Hooks may cascade clears to other fields, so the slice is not necessarily
+// limited to the updated field's own ID.
+func (a *App) UpdatePropertyField(rctx request.CTX, groupID string, field *model.PropertyField, bypassProtectedCheck bool, connectionID string) (*model.PropertyField, []string, *model.AppError) {
 	fields, clearedIDs, err := a.UpdatePropertyFields(rctx, groupID, []*model.PropertyField{field}, bypassProtectedCheck, connectionID)
 	if err != nil {
-		return nil, false, err
+		return nil, nil, err
 	}
 
-	return fields[0], len(clearedIDs) > 0, nil
+	return fields[0], clearedIDs, nil
 }
 
 // UpdatePropertyFields updates multiple property fields. The second return

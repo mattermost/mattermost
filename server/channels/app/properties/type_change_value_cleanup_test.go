@@ -63,9 +63,9 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		// Patch to type=text. AttributeValidationHook strips the now-invalid
 		// options attr; TypeChangeValueCleanupHook deletes the dependent value.
 		created.Type = model.PropertyFieldTypeText
-		_, valuesCleared, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
 		require.NoError(t, err)
-		assert.True(t, valuesCleared, "expected post-hook to flag cleared values")
+		assert.Equal(t, []string{created.ID}, clearedIDs, "expected post-hook to report the type-changed field as cleared")
 
 		// Confirm the value is gone.
 		postValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
@@ -117,9 +117,9 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 		require.Len(t, preValues, 1)
 
 		created.Type = model.PropertyFieldTypeText
-		_, valuesCleared, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
 		require.NoError(t, err)
-		assert.True(t, valuesCleared, "expected post-hook to flag cleared values")
+		assert.Equal(t, []string{created.ID}, clearedIDs, "expected post-hook to report the type-changed field as cleared")
 
 		postValues, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
@@ -153,9 +153,9 @@ func TestTypeChangeValueCleanupHook(t *testing.T) {
 
 		// Rename only — no Type change.
 		created.Name = "text-field-renamed-" + model.NewId()
-		_, valuesCleared, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
+		_, clearedIDs, err := th.service.UpdatePropertyField(th.Context, th.CPAGroupID, created)
 		require.NoError(t, err)
-		assert.False(t, valuesCleared, "rename without type change must not clear values")
+		assert.Empty(t, clearedIDs, "rename without type change must not clear values")
 
 		values, err := th.service.SearchPropertyValues(th.Context, th.CPAGroupID, model.PropertyValueSearchOpts{
 			FieldID: created.ID,
