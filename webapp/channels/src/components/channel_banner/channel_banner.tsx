@@ -42,9 +42,9 @@ export default function ChannelBanner({channelId}: Props) {
     const classificationBanner = useChannelClassificationBanner(channelId);
 
     // Classification property value takes priority over native banner_info
-    const effectiveBanner: ChannelBanner | undefined = classificationBanner.hasClassification
-        ? classificationBanner.classificationBanner
-        : channelBannerInfo;
+    const effectiveBanner: ChannelBanner | undefined = classificationBanner.hasClassification ?
+        classificationBanner.classificationBanner :
+        channelBannerInfo;
 
     const showBanner = classificationBanner.hasClassification || showNativeBanner;
 

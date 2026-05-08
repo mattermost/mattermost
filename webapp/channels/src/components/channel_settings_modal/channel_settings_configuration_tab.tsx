@@ -15,11 +15,11 @@ import {Client4} from 'mattermost-redux/client';
 import {isChannelAutotranslated as isChannelAutotranslatedSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getRemotesForChannel} from 'mattermost-redux/selectors/entities/shared_channels';
 
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
     CHANNEL_LINKED_OBJECT_TYPE,
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
-import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
 import ColorInput from 'components/color_input';
 import useChannelClassificationBanner from 'components/common/hooks/useChannelClassificationBanner';

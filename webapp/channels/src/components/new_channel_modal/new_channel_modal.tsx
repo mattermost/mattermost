@@ -24,17 +24,17 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
 
+import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
 import {
     CHANNEL_LINKED_OBJECT_TYPE,
     GROUP_NAME,
 } from 'components/admin_console/classification_markings/utils';
-import {ColorSwatch, LevelOptionLabel} from 'components/admin_console/classification_markings/classification_markings_styled';
+import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
+import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import {
     CHANNEL_BANNER_MAX_CHARACTER_LIMIT,
     CHANNEL_BANNER_MIN_CHARACTER_LIMIT,
 } from 'components/channel_settings_modal/channel_settings_configuration_tab';
-import {classificationPresetDropdownStyles} from 'components/admin_console/classification_markings/utils/preset_dropdown_styles';
-import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import useClassificationMarkings from 'components/common/hooks/useClassificationMarkings';
 import DropdownInput from 'components/dropdown_input';
