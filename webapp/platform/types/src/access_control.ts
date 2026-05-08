@@ -317,6 +317,7 @@ export type PolicySimulationBlame = {
  * `PolicySimulationBlame.expression`.
  */
 export type PolicySimulationMergedRule = {
+
     /** Author-supplied rule name (matches AccessControlPolicy.Rules[i].name). */
     name: string;
 
