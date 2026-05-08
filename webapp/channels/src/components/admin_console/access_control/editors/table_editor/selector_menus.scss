@@ -44,6 +44,24 @@
     }
 }
 
+.attribute-selector-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.2;
+
+    &__display-name {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    &__unique-name {
+        font-size: 11px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-family: monospace;
+    }
+}
+
 .values-editor {
     width: 100%;
     

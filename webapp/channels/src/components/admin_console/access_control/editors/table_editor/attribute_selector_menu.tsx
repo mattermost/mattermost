@@ -27,6 +27,18 @@ import {getUserPropertyFieldLabel} from 'utils/properties';
 
 import './selector_menus.scss';
 
+type AttributeLabelProps = {
+    displayName: string;
+    name: string;
+};
+
+const AttributeLabel = ({displayName, name}: AttributeLabelProps) => (
+    <span className='attribute-selector-label'>
+        <span className='attribute-selector-label__display-name'>{displayName}</span>
+        <span className='attribute-selector-label__unique-name'>{name}</span>
+    </span>
+);
+
 // Define AttributeIcon outside the main component
 const AttributeIcon = (props: IconProps & { attribute?: UserPropertyField }) => {
     const {attribute, ...iconProps} = props;
@@ -147,6 +159,7 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
             />
             {options.map((option) => {
                 const {name} = option;
+                const displayName = option.attrs?.display_name;
 
                 // hasSpaces checks the CEL identifier (name), not the display label.
                 // New fields cannot have spaces in name but leaving this check for backwards compatibility with grandfathered legacy fields.
@@ -164,7 +177,14 @@ const AttributeSelectorMenu = ({currentAttribute, availableAttributes, disabled,
                         forceCloseOnSelect={true}
                         aria-checked={name === currentAttribute}
                         onClick={hasSpaces ? undefined : () => handleAttributeChange(name)}
-                        labels={<span>{getUserPropertyFieldLabel(option)}</span>}
+                        labels={
+                            displayName ? (
+                                <AttributeLabel
+                                    displayName={displayName}
+                                    name={name}
+                                />
+                            ) : <span>{name}</span>
+                        }
                         disabled={hasSpaces || !allowed}
                         leadingElement={
                             <AttributeIcon

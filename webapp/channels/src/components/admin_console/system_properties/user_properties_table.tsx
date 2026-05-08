@@ -231,22 +231,21 @@ export function UserPropertiesTable({
                 header: () => {
                     return (
                         <ColHeaderLeft>
-                            <NameHeaderLabel>
-                                <FormattedMessage
-                                    id='admin.system_properties.user_properties.table.name'
-                                    defaultMessage='Name'
+                            <FormattedMessage
+                                id='admin.system_properties.user_properties.table.property'
+                                defaultMessage='Attribute'
+                            />
+                            <WithTooltip
+                                title={formatMessage({
+                                    id: 'admin.system_properties.user_properties.table.property.tooltip',
+                                    defaultMessage: 'Identifier used in Common Expression Language (CEL) based policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
+                                })}
+                            >
+                                <InformationOutlineIcon
+                                    size={14}
+                                    style={{marginLeft: '4px', verticalAlign: 'middle', cursor: 'help'}}
                                 />
-                                <WithTooltip
-                                    title={formatMessage({
-                                        id: 'admin.system_properties.user_properties.table.identifier.tooltip',
-                                        defaultMessage: 'CEL identifier used in policies. Only letters, digits, and underscores allowed. Must start with a letter or underscore. Reserved CEL words are not allowed.',
-                                    })}
-                                >
-                                    <InfoIconWrapper>
-                                        <InformationOutlineIcon size={14}/>
-                                    </InfoIconWrapper>
-                                </WithTooltip>
-                            </NameHeaderLabel>
+                            </WithTooltip>
                         </ColHeaderLeft>
                     );
                 },
