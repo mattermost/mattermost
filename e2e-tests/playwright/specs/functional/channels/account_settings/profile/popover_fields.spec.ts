@@ -4,7 +4,7 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 /**
- * Verify that profile popover shows correct user information based on privacy settings
+ * Verify that profile popover shows correct user information based on privacy settings [testing only]
  * and continues to show correct information after at-mention autocomplete is used.
  *
  * Precondition:
