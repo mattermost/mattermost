@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, useEffect, useMemo} from 'react';
+import React, {useCallback, useState, useEffect, useMemo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -11,7 +11,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import {patchChannel, updateChannelPrivacy} from 'mattermost-redux/actions/channels';
 import {General} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {areManagedCategoriesEnabled, getChannelManagedCategoryName} from 'mattermost-redux/selectors/entities/channel_categories';
+import {areManagedCategoriesEnabled, getChannelManagedCategoryName, isChannelCategorySortingEnabled, makeGetSidebarCategoryNamesForTeam} from 'mattermost-redux/selectors/entities/channel_categories';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {
@@ -24,8 +24,8 @@ import {
 } from 'selectors/views/textbox';
 
 import ConvertConfirmModal from 'components/admin_console/team_channel_settings/convert_confirm_modal';
+import CategorySelector from 'components/category_selector/category_selector';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
-import ManagedCategorySelector from 'components/channel_settings_modal/managed_category_selector';
 import type {TextboxElement} from 'components/textbox';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
@@ -50,6 +50,9 @@ function ChannelSettingsInfoTab({
 }: ChannelSettingsInfoTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+
+    const getSidebarCategoryNamesForTeam = useRef(makeGetSidebarCategoryNamesForTeam());
+
     const shouldShowPreviewPurpose = useSelector(showPreviewOnChannelSettingsPurposeModal);
     const shouldShowPreviewHeader = useSelector(showPreviewOnChannelSettingsHeaderModal);
 
@@ -85,10 +88,13 @@ function ChannelSettingsInfoTab({
     });
     const canManageChannelRoles = useSelector((state: GlobalState) => haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES));
 
-    const enableManagedCategories = useSelector(areManagedCategoriesEnabled);
-    const showManagedCategorySelector = enableManagedCategories && !isDMorGroupChannel;
+    const showDefaultCategorySelector = useSelector(isChannelCategorySortingEnabled);
+    const showDefaultCategoryField = showDefaultCategorySelector && !isDMorGroupChannel;
 
-    const currentCategoryName = useSelector((state: GlobalState) => getChannelManagedCategoryName(state, channel.id));
+    const enableManagedCategories = useSelector(areManagedCategoriesEnabled);
+    const showManagedCategoryField = enableManagedCategories && !isDMorGroupChannel;
+
+    const currentManagedCategoryName = useSelector((state: GlobalState) => getChannelManagedCategoryName(state, channel.id));
 
     // Must stay aligned with server `UpdateChannel` when an ABAC membership policy is enforced.
     const channelTypeLockedByMembershipPolicy = Boolean(channel.policy_enforced);
@@ -99,13 +105,21 @@ function ChannelSettingsInfoTab({
         }) :
         undefined;
 
-    const [managedCategoryName, setManagedCategoryName] = useState(currentCategoryName);
-    const [serverCategoryName, setServerCategoryName] = useState(currentCategoryName);
+    const [defaultCategoryName, setDefaultCategoryName] = useState<string | undefined>(channel.default_category_name);
+    const [serverDefaultCategoryName, setServerDefaultCategoryName] = useState<string | undefined>(channel.default_category_name);
+
+    const [managedCategoryName, setManagedCategoryName] = useState(currentManagedCategoryName);
+    const [serverManagedCategoryName, setServerManagedCategoryName] = useState(currentManagedCategoryName);
 
     useEffect(() => {
-        setManagedCategoryName(currentCategoryName);
-        setServerCategoryName(currentCategoryName);
-    }, [currentCategoryName]);
+        setDefaultCategoryName(channel.default_category_name);
+        setServerDefaultCategoryName(channel.default_category_name);
+    }, [channel.id, channel.default_category_name]);
+
+    useEffect(() => {
+        setManagedCategoryName(currentManagedCategoryName);
+        setServerManagedCategoryName(currentManagedCategoryName);
+    }, [currentManagedCategoryName]);
 
     // Constants
     const HEADER_MAX_LENGTH = 1024;
@@ -153,11 +167,12 @@ function ChannelSettingsInfoTab({
             channelPurpose.trim() !== channel.purpose ||
             channelHeader.trim() !== channel.header ||
             channelType !== channel.type ||
-            managedCategoryName !== serverCategoryName
+            (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '') ||
+            managedCategoryName !== serverManagedCategoryName
         ) : false;
 
         setAreThereUnsavedChanges?.(unsavedChanges);
-    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, managedCategoryName, serverCategoryName, setAreThereUnsavedChanges]);
+    }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName, setAreThereUnsavedChanges]);
 
     const handleURLChange = useCallback((newURL: string) => {
         if (internalUrlError) {
@@ -288,7 +303,10 @@ function ChannelSettingsInfoTab({
         if (channelHeader.trim() !== channel.header) {
             updated.header = channelHeader.trim();
         }
-        if (managedCategoryName !== serverCategoryName) {
+        if ((defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '')) {
+            updated.default_category_name = defaultCategoryName ?? '';
+        }
+        if (managedCategoryName !== serverManagedCategoryName) {
             updated.managed_category_name = managedCategoryName ?? '';
         }
 
@@ -311,10 +329,11 @@ function ChannelSettingsInfoTab({
             setChannelPurpose(data?.purpose ?? updated.purpose ?? channel.purpose);
         }
         setChannelHeader(data?.header ?? updated.header ?? channel.header);
-        setServerCategoryName(managedCategoryName);
+        setServerDefaultCategoryName(defaultCategoryName);
+        setServerManagedCategoryName(managedCategoryName);
 
         return true;
-    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, managedCategoryName, serverCategoryName]);
+    }, [channel, displayName, channelType, isDMorGroupChannel, channelUrl, channelPurpose, channelHeader, dispatch, formatMessage, handleServerError, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
 
     // Handle save changes panel actions
     const handleSaveChanges = useCallback(async () => {
@@ -355,7 +374,8 @@ function ChannelSettingsInfoTab({
         setChannelPurpose(channel?.purpose ?? '');
         setChannelHeader(channel?.header ?? '');
         setChannelType(channel?.type as ChannelType ?? Constants.OPEN_CHANNEL as ChannelType);
-        setManagedCategoryName(serverCategoryName);
+        setDefaultCategoryName(serverDefaultCategoryName);
+        setManagedCategoryName(serverManagedCategoryName);
 
         // Clear errors
         setUrlError('');
@@ -367,7 +387,7 @@ function ChannelSettingsInfoTab({
         if (onCancel) {
             onCancel();
         }
-    }, [channel, onCancel, serverCategoryName, setFormError]);
+    }, [channel, onCancel, serverDefaultCategoryName, serverManagedCategoryName, setFormError]);
 
     // Calculate if there are errors
     const hasErrors = Boolean(formError) ||
@@ -386,12 +406,13 @@ function ChannelSettingsInfoTab({
                 unsavedChanges = unsavedChanges || channelUrl.trim() !== channel.name;
                 unsavedChanges = unsavedChanges || channelPurpose.trim() !== channel.purpose;
                 unsavedChanges = unsavedChanges || channelType !== channel.type;
-                unsavedChanges = unsavedChanges || managedCategoryName !== serverCategoryName;
+                unsavedChanges = unsavedChanges || (defaultCategoryName ?? '') !== (serverDefaultCategoryName ?? '');
+                unsavedChanges = unsavedChanges || managedCategoryName !== serverManagedCategoryName;
             }
         }
 
         return unsavedChanges || saveChangesPanelState === 'saved';
-    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, managedCategoryName, serverCategoryName]);
+    }, [channel, isDMorGroupChannel, displayName, channelUrl, channelPurpose, channelHeader, channelType, saveChangesPanelState, defaultCategoryName, serverDefaultCategoryName, managedCategoryName, serverManagedCategoryName]);
 
     return (
         <div className='ChannelSettingsModal__infoTab'>
@@ -459,11 +480,25 @@ function ChannelSettingsInfoTab({
                     onChange={handleChannelTypeChange}
                 />
             )}
-            {/* Admin Sidebar Category Selector */}
-            {showManagedCategorySelector && (
-                <ManagedCategorySelector
+            {/* Default Sidebar Category Selector */}
+            {showDefaultCategoryField && (
+                <CategorySelector
+                    value={defaultCategoryName}
+                    onChange={setDefaultCategoryName}
+                    getOptions={getSidebarCategoryNamesForTeam.current}
+                    menuPortalTargetId='channelSettingsModal'
+                    disabled={!canManageChannelProperties}
+                    helpText={formatMessage({id: 'default_category.help_text', defaultMessage: 'Sets the default sidebar category for users when they join the channel.'})}
+                />
+            )}
+            {/* Managed Sidebar Category Selector */}
+            {showManagedCategoryField && (
+                <CategorySelector
                     value={managedCategoryName}
                     onChange={setManagedCategoryName}
+                    getOptions={getSidebarCategoryNamesForTeam.current}
+                    label={formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'})}
+                    placeholder={formatMessage({id: 'managed_category.placeholder', defaultMessage: 'Choose a managed category (optional)'})}
                     menuPortalTargetId='channelSettingsModal'
                     disabled={!canManageChannelRoles}
                 />
