@@ -37,7 +37,6 @@ describe('SecureConnections', () => {
     });
 
     it('shows the LoadingScreen while remote clusters are loading', async () => {
-        // Never-resolving promise to keep the loading state
         getRemoteClusters.mockImplementation(() => new Promise<never>(() => {}));
 
         renderWithContext(<SecureConnections/>);

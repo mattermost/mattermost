@@ -64,6 +64,27 @@ describe('SecureConnectionAcceptInviteModal', () => {
         expect(screen.getByTestId('password')).toBeInTheDocument();
     });
 
+    it('keeps the Accept button disabled when any single field is missing', async () => {
+        const user = userEvent.setup();
+
+        renderWithContext(
+            <SecureConnectionAcceptInviteModal
+                onConfirm={jest.fn().mockResolvedValue(remoteCluster)}
+                onCancel={jest.fn()}
+                onExited={jest.fn()}
+                onHide={jest.fn()}
+            />,
+            baseState,
+        );
+
+        // Fill three of four — omit the password.
+        await user.type(screen.getByTestId('display-name'), 'Acme Org');
+        await user.type(screen.getByTestId('invite-code'), 'INVITE');
+        await user.click(screen.getByTestId('destination-team-input'));
+
+        expect(screen.getByRole('button', {name: 'Accept'})).toBeDisabled();
+    });
+
     it('disables the Accept button until all four fields are filled', async () => {
         const user = userEvent.setup();
 

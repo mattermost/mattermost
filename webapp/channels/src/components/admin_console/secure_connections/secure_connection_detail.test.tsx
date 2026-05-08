@@ -124,11 +124,18 @@ describe('SecureConnectionDetail', () => {
             expect(screen.getByTestId('organization-name-input')).toHaveValue('Acme');
         });
 
+        const saveButton = screen.getByRole('button', {name: 'Save'});
+        expect(saveButton).toBeDisabled();
+
         const input = screen.getByTestId('organization-name-input');
         await user.clear(input);
         await user.type(input, 'Acme Renamed');
 
         expect(screen.getByTestId('organization-name-input')).toHaveValue('Acme Renamed');
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
+        });
     });
 
     it('renders the placeholder when no shared channels exist (edit mode, confirmed)', async () => {

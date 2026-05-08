@@ -19,11 +19,11 @@ import {
     useSharedChannelsRemove,
 } from './modal_utils';
 
-const openedModals: any[] = [];
+const mockOpenedModals: any[] = [];
 
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn((arg) => {
-        openedModals.push(arg);
+        mockOpenedModals.push(arg);
         return {type: 'OPEN_MODAL', arg};
     }),
 }));
@@ -37,7 +37,7 @@ const remoteCluster = {
 
 describe('modal_utils', () => {
     beforeEach(() => {
-        openedModals.length = 0;
+        mockOpenedModals.length = 0;
         jest.clearAllMocks();
     });
 
@@ -50,10 +50,10 @@ describe('modal_utils', () => {
                 result.current.promptCreate(patch);
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE);
-            expect(openedModals[0].dialogProps.creating).toBe(true);
-            expect(typeof openedModals[0].dialogProps.onConfirm).toBe('function');
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE);
+            expect(mockOpenedModals[0].dialogProps.creating).toBe(true);
+            expect(typeof mockOpenedModals[0].dialogProps.onConfirm).toBe('function');
         });
     });
 
@@ -65,9 +65,9 @@ describe('modal_utils', () => {
                 result.current.promptCreateInvite();
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE);
-            expect(openedModals[0].dialogProps.creating).toBeUndefined();
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_CREATE_INVITE);
+            expect(mockOpenedModals[0].dialogProps.creating).toBeUndefined();
         });
 
         it('passes an onConfirm that calls Client4.generateInviteRemoteCluster', async () => {
@@ -79,7 +79,7 @@ describe('modal_utils', () => {
                 result.current.promptCreateInvite();
             });
 
-            const share = await openedModals[0].dialogProps.onConfirm();
+            const share = await mockOpenedModals[0].dialogProps.onConfirm();
 
             expect(Client4.generateInviteRemoteCluster).toHaveBeenCalledWith(remoteCluster.remote_id, expect.objectContaining({password: expect.any(String)}));
             expect(share).toEqual({remoteCluster, share: {invite: 'INVITE_TOKEN', password: expect.any(String)}});
@@ -94,8 +94,8 @@ describe('modal_utils', () => {
                 result.current.promptAcceptInvite();
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_ACCEPT_INVITE);
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_ACCEPT_INVITE);
         });
 
         it('passes an onConfirm that calls Client4.acceptInviteRemoteCluster', async () => {
@@ -108,7 +108,7 @@ describe('modal_utils', () => {
                 result.current.promptAcceptInvite();
             });
 
-            const rc = await openedModals[0].dialogProps.onConfirm({
+            const rc = await mockOpenedModals[0].dialogProps.onConfirm({
                 display_name: 'Acme',
                 default_team_id: 'team-1',
                 invite: 'INVITE',
@@ -134,9 +134,9 @@ describe('modal_utils', () => {
                 result.current.promptDelete();
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_DELETE);
-            expect(openedModals[0].dialogProps.displayName).toBe('Acme');
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SECURE_CONNECTION_DELETE);
+            expect(mockOpenedModals[0].dialogProps.displayName).toBe('Acme');
         });
 
         it('onConfirm calls Client4.deleteRemoteCluster', async () => {
@@ -148,7 +148,7 @@ describe('modal_utils', () => {
                 result.current.promptDelete();
             });
 
-            await openedModals[0].dialogProps.onConfirm();
+            await mockOpenedModals[0].dialogProps.onConfirm();
 
             expect(spy).toHaveBeenCalledWith('rc-1');
         });
@@ -164,10 +164,10 @@ describe('modal_utils', () => {
                 result.current.promptRemove('ch-a');
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SHARED_CHANNEL_REMOTE_UNINVITE);
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SHARED_CHANNEL_REMOTE_UNINVITE);
 
-            await openedModals[0].dialogProps.onConfirm();
+            await mockOpenedModals[0].dialogProps.onConfirm();
             expect(Client4.sharedChannelRemoteUninvite).toHaveBeenCalledWith('rc-1', 'ch-a');
         });
     });
@@ -180,9 +180,9 @@ describe('modal_utils', () => {
                 result.current.promptAdd();
             });
 
-            expect(openedModals).toHaveLength(1);
-            expect(openedModals[0].modalId).toBe(ModalIdentifiers.SHARED_CHANNEL_REMOTE_INVITE);
-            expect(openedModals[0].dialogProps.remoteId).toBe('rc-1');
+            expect(mockOpenedModals).toHaveLength(1);
+            expect(mockOpenedModals[0].modalId).toBe(ModalIdentifiers.SHARED_CHANNEL_REMOTE_INVITE);
+            expect(mockOpenedModals[0].dialogProps.remoteId).toBe('rc-1');
         });
 
         it('onConfirm aggregates per-channel results and errors', async () => {
@@ -200,7 +200,7 @@ describe('modal_utils', () => {
                 {id: 'ch-ok'},
                 {id: 'ch-fail'},
             ] as any;
-            const res = await openedModals[0].dialogProps.onConfirm(channels);
+            const res = await mockOpenedModals[0].dialogProps.onConfirm(channels);
 
             expect(spy).toHaveBeenCalledTimes(2);
             expect(res.data['ch-ok']).toBeDefined();

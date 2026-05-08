@@ -11,11 +11,11 @@ import {TestHelper} from 'utils/test_helper';
 
 import TeamSelector from './team_selector';
 
-let lastDropdownProps: any;
+let mockLastDropdownProps: any;
 
 jest.mock('components/dropdown_input', () => {
     return function MockDropdownInput(props: any) {
-        lastDropdownProps = props;
+        mockLastDropdownProps = props;
         return (
             <div
                 data-testid={props.testId}
@@ -40,7 +40,7 @@ const teamsById: IDMappedObjects<Team> = {
 
 describe('TeamSelector', () => {
     beforeEach(() => {
-        lastDropdownProps = undefined;
+        mockLastDropdownProps = undefined;
     });
 
     it('passes teams sorted by display_name as DropdownInput options', () => {
@@ -53,7 +53,7 @@ describe('TeamSelector', () => {
             />,
         );
 
-        expect(lastDropdownProps.options).toEqual([
+        expect(mockLastDropdownProps.options).toEqual([
             {value: teamB.id, label: 'Alpha'},
             {value: teamC.id, label: 'Bravo'},
             {value: teamA.id, label: 'Charlie'},
@@ -70,7 +70,7 @@ describe('TeamSelector', () => {
             />,
         );
 
-        expect(lastDropdownProps.value).toEqual({label: 'Charlie', value: teamA.id});
+        expect(mockLastDropdownProps.value).toEqual({label: 'Charlie', value: teamA.id});
     });
 
     it('passes undefined as value when the id does not match a team', () => {
@@ -83,7 +83,7 @@ describe('TeamSelector', () => {
             />,
         );
 
-        expect(lastDropdownProps.value).toBeUndefined();
+        expect(mockLastDropdownProps.value).toBeUndefined();
     });
 
     it('forwards the legend, testId, and required flag', () => {
@@ -97,10 +97,10 @@ describe('TeamSelector', () => {
             />,
         );
 
-        expect(lastDropdownProps.testId).toBe('destination-team');
-        expect(lastDropdownProps.legend).toBe('Pick a team');
-        expect(lastDropdownProps.required).toBe(true);
-        expect(lastDropdownProps.name).toBe('team_selector');
+        expect(mockLastDropdownProps.testId).toBe('destination-team');
+        expect(mockLastDropdownProps.legend).toBe('Pick a team');
+        expect(mockLastDropdownProps.required).toBe(true);
+        expect(mockLastDropdownProps.name).toBe('team_selector');
     });
 
     it('invokes onChange with the chosen team id', () => {
@@ -115,7 +115,7 @@ describe('TeamSelector', () => {
             />,
         );
 
-        lastDropdownProps.onChange({value: teamC.id, label: 'Bravo'});
+        mockLastDropdownProps.onChange({value: teamC.id, label: 'Bravo'});
 
         expect(onChange).toHaveBeenCalledWith(teamC.id);
     });

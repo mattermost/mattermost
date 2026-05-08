@@ -73,8 +73,11 @@ describe('SecureConnectionCreateInviteModal', () => {
         });
     });
 
-    it('flips the confirm button label to "Done" once both invite and password are populated', async () => {
-        const onConfirm = jest.fn().mockResolvedValue(shareResult);
+    it('flips the confirm button label from "Save" to "Done" once both invite and password are populated', async () => {
+        let resolveConfirm!: (value: typeof shareResult) => void;
+        const onConfirm = jest.fn(() => new Promise<typeof shareResult>((resolve) => {
+            resolveConfirm = resolve;
+        }));
 
         renderWithContext(
             <SecureConnectionCreateInviteModal
@@ -84,9 +87,16 @@ describe('SecureConnectionCreateInviteModal', () => {
             />,
         );
 
+        // Pre-resolve: button shows "Save" (the not-done label) and "Done" is absent.
+        expect(screen.queryByRole('button', {name: 'Done'})).not.toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
+
+        // Resolve onConfirm; label flips to "Done".
+        resolveConfirm(shareResult);
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
         });
+        expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
     });
 
     it('renders the security warning notice when done', async () => {

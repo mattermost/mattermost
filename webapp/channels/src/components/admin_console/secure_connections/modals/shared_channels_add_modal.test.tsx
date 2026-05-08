@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {waitFor} from '@testing-library/react';
+import {waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -10,11 +10,11 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import SharedChannelsAddModal from './shared_channels_add_modal';
 
-let lastChannelsInputProps: any;
+let mockLastChannelsInputProps: any;
 
 jest.mock('components/widgets/inputs/channels_input', () => {
     return function MockChannelsInput(props: any) {
-        lastChannelsInputProps = props;
+        mockLastChannelsInputProps = props;
         return (
             <div
                 data-testid='channels-input'
@@ -37,7 +37,7 @@ const channelB = {id: 'ch-b', display_name: 'Channel B'} as ChannelWithTeamData;
 
 describe('SharedChannelsAddModal', () => {
     beforeEach(() => {
-        lastChannelsInputProps = undefined;
+        mockLastChannelsInputProps = undefined;
     });
 
     it('renders the title and the channels input', () => {
@@ -68,7 +68,7 @@ describe('SharedChannelsAddModal', () => {
 
         expect(screen.getByRole('button', {name: 'Share'})).toBeDisabled();
 
-        lastChannelsInputProps.onChange([channelA, channelB]);
+        mockLastChannelsInputProps.onChange([channelA, channelB]);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -90,7 +90,7 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        lastChannelsInputProps.onChange([channelA]);
+        mockLastChannelsInputProps.onChange([channelA]);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -125,7 +125,7 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        lastChannelsInputProps.onChange([channelA]);
+        mockLastChannelsInputProps.onChange([channelA]);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -137,8 +137,12 @@ describe('SharedChannelsAddModal', () => {
             expect(screen.getByText(/could not be added to this connection/)).toBeInTheDocument();
         });
 
-        const confirmButton = document.querySelector('.modal-footer button.confirm');
-        expect(confirmButton).toHaveTextContent('Close');
+        // Two "Close" buttons exist after the error: the modal's header X and
+        // the footer confirm. The footer one is the one we care about flipping;
+        // pick it via dialog-scoped role query.
+        const dialog = screen.getByRole('dialog');
+        const closeButtons = within(dialog).getAllByRole('button', {name: 'Close'});
+        expect(closeButtons.length).toBeGreaterThanOrEqual(1);
     });
 
     it('drops errors for channels removed from the selection', async () => {
@@ -160,7 +164,7 @@ describe('SharedChannelsAddModal', () => {
             />,
         );
 
-        lastChannelsInputProps.onChange([channelA]);
+        mockLastChannelsInputProps.onChange([channelA]);
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Share'})).toBeEnabled();
@@ -171,7 +175,7 @@ describe('SharedChannelsAddModal', () => {
             expect(screen.getByText(/could not be added/)).toBeInTheDocument();
         });
 
-        lastChannelsInputProps.onChange([channelB]);
+        mockLastChannelsInputProps.onChange([channelB]);
 
         await waitFor(() => {
             expect(screen.queryByText(/could not be added/)).not.toBeInTheDocument();

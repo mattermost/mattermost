@@ -20,9 +20,6 @@ const {useRemoteClusterDelete, useRemoteClusterCreateInvite} = jest.requireMock(
 const promptDelete = jest.fn();
 const promptCreateInvite = jest.fn();
 
-useRemoteClusterDelete.mockReturnValue({promptDelete});
-useRemoteClusterCreateInvite.mockReturnValue({promptCreateInvite});
-
 const confirmedRC = {
     remote_id: 'rc-1',
     display_name: 'Acme',
@@ -103,7 +100,20 @@ describe('SecureConnectionRow', () => {
         expect(screen.getByRole('menuitem', {name: 'Edit'})).toBeInTheDocument();
     });
 
-    it('clicking "Delete" invokes promptDelete and onDeleteSuccess', async () => {
+    it('passes the remoteCluster into useRemoteClusterDelete', () => {
+        renderWithContext(
+            <SecureConnectionRow
+                remoteCluster={confirmedRC}
+                onDeleteSuccess={jest.fn()}
+                disabled={false}
+            />,
+        );
+
+        expect(useRemoteClusterDelete).toHaveBeenCalledWith(confirmedRC);
+        expect(useRemoteClusterCreateInvite).toHaveBeenCalledWith(confirmedRC);
+    });
+
+    it('clicking "Delete" calls onDeleteSuccess after promptDelete resolves', async () => {
         const user = userEvent.setup();
         const onDeleteSuccess = jest.fn();
 
@@ -120,10 +130,33 @@ describe('SecureConnectionRow', () => {
 
         await waitFor(() => {
             expect(promptDelete).toHaveBeenCalledTimes(1);
-        });
-        await waitFor(() => {
             expect(onDeleteSuccess).toHaveBeenCalled();
         });
+    });
+
+    it('does NOT call onDeleteSuccess when promptDelete rejects (cancelled)', async () => {
+        const user = userEvent.setup();
+        const onDeleteSuccess = jest.fn();
+        promptDelete.mockRejectedValueOnce(new Error('cancelled'));
+
+        renderWithContext(
+            <SecureConnectionRow
+                remoteCluster={confirmedRC}
+                onDeleteSuccess={onDeleteSuccess}
+                disabled={false}
+            />,
+        );
+
+        await user.click(screen.getByLabelText(/Connection options for/));
+        await user.click(screen.getByRole('menuitem', {name: 'Delete'}));
+
+        await waitFor(() => {
+            expect(promptDelete).toHaveBeenCalledTimes(1);
+        });
+        // Allow microtasks to flush so any erroneous .then(onDeleteSuccess) would run.
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(onDeleteSuccess).not.toHaveBeenCalled();
     });
 
     it('disables the menu button when disabled', () => {
